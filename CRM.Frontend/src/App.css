@@ -1,0 +1,71 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* App Content Wrapper - Desktop Only */
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  margin-left: 80px;
+}
+
+.card {
+  border: 1px solid #e3e6f0;
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+  margin-bottom: 1rem;
+}
+
+.page-header {
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  background: white;
+  border-radius: 0.35rem;
+  border-left: 0.25rem solid #4e73df;
+}
+
+.stat-card {
+  padding: 1.5rem;
+  border-radius: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2e59d9;
+}
+
+/* Container */
+.container,
+.container-fluid {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Tables */
+.table {
+  font-size: 1rem;
+}
+
+/* Buttons */
+.btn {
+  width: auto;
+  margin-bottom: 0;
+}

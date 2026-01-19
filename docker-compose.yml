@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Database Tier (MariaDB)
+  mariadb:
+    image: mariadb:latest
+    container_name: crm-mariadb
+    ports:
+      - "3306:3306"
+    environment:
+      - MARIADB_ROOT_PASSWORD=RootPass@2024
+      - MARIADB_DATABASE=crm_db
+      - MARIADB_USER=crm_user
+      - MARIADB_PASSWORD=CrmPass@2024
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --default-authentication-plugin=mysql_native_password
+
+  # API Tier (Application/Business Logic)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: crm-api:latest
+    container_name: crm-api
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DatabaseProvider=mariadb
+      - DefaultConnection=Server=mariadb;Port=3306;Database=crm_db;User Id=crm_user;Password=CrmPass@2024;
+      - Jwt__Secret=your-super-secret-key-that-is-at-least-32-characters-long!!!
+      - Jwt__Issuer=CRMApp
+      - Jwt__Audience=CRMUsers
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # Frontend Tier (Presentation)
+  frontend:
+    image: crm-frontend:latest
+    container_name: crm-frontend
+    ports:
+      - "8070:3000"
+    environment:
+      - REACT_APP_API_URL=http://api:5000/api
+      - NODE_ENV=development
+    depends_on:
+      - api
+    networks:
+      - crm-network
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+  crm-network:
+    driver: bridge

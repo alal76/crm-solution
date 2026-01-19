@@ -1,0 +1,219 @@
+.auth-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  padding: 2rem !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  margin-left: 0 !important;
+  padding-left: 80px !important;
+}
+
+.auth-card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  background-color: white;
+  animation: slideIn 0.3s ease-in-out;
+  width: 100%;
+  max-width: 700px;
+  padding: 0;
+  overflow: hidden;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-card h2 {
+  color: #2d3748;
+  font-weight: 700;
+  margin-bottom: 0;
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 3rem 3rem 2rem 3rem;
+  color: white;
+}
+
+.auth-card .form-label {
+  color: #4a5568;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.auth-card .form-control {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  font-size: 1.05rem;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-bottom: 1.75rem;
+  background-color: #f8fafc;
+}
+
+.auth-card .form-control:focus {
+  border-color: #667eea;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.auth-card .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 1.1rem 1.5rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  width: 100%;
+  font-size: 1.1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+  letter-spacing: 0.5px;
+}
+
+.auth-card .btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+.auth-card .card-body {
+  padding: 2rem 3rem;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  color: #cbd5e0;
+  font-size: 0.95rem;
+  margin: 2.5rem 0 2rem 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 35%;
+  height: 2px;
+  background-color: #e2e8f0;
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+.divider span {
+  position: relative;
+  background-color: white;
+  padding: 0 1.25rem;
+  z-index: 1;
+  color: #a0aec0;
+}
+
+.oauth-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.oauth-btn {
+  flex: 1;
+  border: 2px solid #e2e8f0;
+  color: #4a5568;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 1.1rem 1.5rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 100%;
+  background-color: #f8fafc;
+}
+
+.oauth-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background-color: #f0f4ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.auth-card p {
+  color: #718096;
+  font-size: 1rem;
+  margin-top: 2.5rem;
+  padding: 0 3rem 3rem 3rem;
+}
+
+.auth-card a {
+  color: #667eea !important;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.auth-card a:hover {
+  color: #764ba2 !important;
+  text-decoration: underline !important;
+}
+.password-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input-group .form-control {
+  padding-right: 3rem;
+  width: 100%;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #667eea;
+  font-size: 1.2rem;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  line-height: 1;
+}
+
+.password-toggle-btn:hover {
+  color: #764ba2;
+  transform: translateY(-50%) scale(1.2);
+}
+
+.password-toggle-btn:active {
+  color: #667eea;
+}
+
+.password-toggle-btn:focus {
+  outline: 2px solid #667eea;
+  outline-offset: -2px;
+}

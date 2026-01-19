@@ -1,0 +1,173 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-api
+  namespace: crm-app
+  labels:
+    tier: application
+    app: crm
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      tier: application
+      app: crm
+  template:
+    metadata:
+      labels:
+        tier: application
+        app: crm
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+    spec:
+      serviceAccountName: crm-api
+      containers:
+      - name: crm-api
+        image: your-registry/crm-api:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+          name: http
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: crm-config
+        - secretRef:
+            name: crm-secrets
+        env:
+        - name: Jwt__Secret
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: JWT_SECRET
+        - name: Jwt__Issuer
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: JWT_ISSUER
+        - name: Jwt__Audience
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: JWT_AUDIENCE
+        - name: DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_CONNECTION_STRING
+        volumeMounts:
+        - name: db-volume
+          mountPath: /data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+      volumes:
+      - name: db-volume
+        persistentVolumeClaim:
+          claimName: crm-db-pvc
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - crm
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-api
+  namespace: crm-app
+  labels:
+    tier: application
+spec:
+  type: ClusterIP
+  selector:
+    tier: application
+    app: crm
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  sessionAffinity: ClientIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: crm-api-hpa
+  namespace: crm-app
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: crm-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 30
+      selectPolicy: Max
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: crm-api
+  namespace: crm-app

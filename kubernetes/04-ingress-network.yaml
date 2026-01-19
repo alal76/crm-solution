@@ -1,0 +1,99 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: crm-ingress
+  namespace: crm-app
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  tls:
+  - hosts:
+    - crm.example.com
+    secretName: crm-tls
+  rules:
+  - host: crm.example.com
+    http:
+      paths:
+      - path: /api(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: crm-api
+            port:
+              number: 5000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: crm-frontend
+            port:
+              number: 3000
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: crm-api-pdb
+  namespace: crm-app
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      tier: application
+      app: crm
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: crm-frontend-pdb
+  namespace: crm-app
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      tier: presentation
+      app: crm
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: crm-quota
+  namespace: crm-app
+spec:
+  hard:
+    requests.cpu: "10"
+    requests.memory: "20Gi"
+    limits.cpu: "20"
+    limits.memory: "40Gi"
+    pods: "50"
+    services: "10"
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: crm-network-policy
+  namespace: crm-app
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: crm-app
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: crm-app
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53

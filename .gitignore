@@ -1,0 +1,22 @@
+# Git configuration for CRM project
+[core]
+    ignorecase = true
+
+# Files to ignore
+*.dll
+*.exe
+*.pdb
+bin/
+obj/
+.vs/
+.vscode/
+node_modules/
+dist/
+build/
+*.log
+*.user
+*.suo
+.DS_Store
+.env.local
+appsettings.*.json
+.docker-remote-config.json

@@ -1,0 +1,181 @@
+/* Left Sidebar Dock - Desktop Only */
+.sidebar-dock {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 80px;
+  background: #2d3436;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-right: 1px solid #636e72;
+  z-index: 1000;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Adjust body to account for dock */
+body {
+  margin-left: 80px;
+}
+
+#root {
+  margin-left: 0;
+}
+
+/* Brand Logo */
+.dock-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.dock-brand a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-decoration: none;
+  width: 100%;
+  height: 100%;
+}
+
+.dock-brand:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Navigation */
+.dock-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+  padding: 0 0.5rem;
+}
+
+/* Dock Items */
+.dock-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  color: #b2bec3;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  position: relative;
+}
+
+.dock-item:hover {
+  color: #4e73df;
+  background: rgba(78, 115, 223, 0.1);
+  transform: translateX(4px);
+}
+
+.dock-item.active {
+  color: #4e73df;
+  background: rgba(78, 115, 223, 0.15);
+}
+
+/* Dock Buttons */
+.dock-btn {
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border-radius: 10px;
+  border: none;
+  background-color: transparent;
+  color: #b2bec3;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dock-btn:hover {
+  color: #4e73df;
+  background-color: rgba(78, 115, 223, 0.1);
+  transform: translateX(4px);
+}
+
+.dock-btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Bottom Tools Section */
+.dock-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+  padding: 0 0.5rem;
+  border-top: 1px solid #636e72;
+  padding-top: 1rem;
+}
+
+/* Dropdown */
+.dock-item-dropdown {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.dock-profile {
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.dock-profile:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Settings Main Icon */
+.dock-settings-main {
+  color: #ff9ff3;
+  font-weight: bold;
+}
+
+.dock-settings-main:hover {
+  color: #ff7675;
+  background: rgba(255, 152, 243, 0.15);
+  transform: rotate(20deg) translateX(4px);
+}
+
+.dock-settings-main.active {
+  color: #ff7675;
+  background: rgba(255, 152, 243, 0.2);
+}
+
+/* Dropdown Menu Positioning */
+.dropdown-menu-end {
+  left: auto !important;
+  right: -10px !important;
+  top: 0 !important;
+}
+
+.dropdown-menu {
+  min-width: 200px;
+}
