@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # CRM Solution - Comprehensive Customer Relationship Management System
 
 A full-stack, enterprise-grade CRM solution built with **.NET Core** backend and **React** frontend with responsive UI supporting mobile and web platforms.
@@ -407,3 +408,7 @@ For issues and questions, contact the development team.
 
 **Version**: 1.0.0  
 **Last Updated**: January 2026
+=======
+# crm-solution
+A comprehensive .NET-based CRM solution with multi-database support - built by vibe coding
+>>>>>>> 05d575add762148930a917a91f9482764c6a5ef9
