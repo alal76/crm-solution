@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Settings as SettingsIcon } from '@mui/icons-material';
 import { debugLog, debugError } from '../utils/debug';
+import { getHealthCheckUrl, getServicePorts } from '../config/ports';
 import '../styles/Footer.css';
 
 interface HealthStatus {
@@ -13,27 +14,28 @@ interface HealthStatus {
 function Footer() {
   const [apiStatus, setApiStatus] = useState<HealthStatus>({ status: 'down' });
   const [dbStatus, setDbStatus] = useState<HealthStatus>({ status: 'down' });
+  const [ports, setPorts] = useState(getServicePorts());
   const [buildInfo] = useState({
     version: process.env.REACT_APP_VERSION || '1.1.0',
     buildDate: process.env.REACT_APP_BUILD_DATE || new Date().toISOString().split('T')[0],
   });
 
   useEffect(() => {
+    // Cache the port configuration
+    setPorts(getServicePorts());
+  }, []);
+
+  useEffect(() => {
     const checkHealth = async () => {
       try {
-        // Use axios directly to avoid baseURL manipulation and auth headers
-        // This creates a simple request to the health endpoint
-        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-        const healthUrl = apiUrl.replace('/api', '') + '/health'; // Remove /api and add /health
+        const healthUrl = getHealthCheckUrl();
         
-        console.log('[Health Check] URL:', healthUrl);
-        debugLog('Health check URL:', healthUrl);
+        debugLog('Health check URL:', { healthUrl, ports });
         
         const response = await axios.get(healthUrl, {
           timeout: 5000,
         });
         
-        console.log('[Health Check] Success:', response.status, response.data);
         debugLog('Health check success:', response.data);
         
         if (response.status === 200) {
@@ -42,8 +44,10 @@ function Footer() {
           setDbStatus({ status: 'up' });
         }
       } catch (error: any) {
-        console.error('[Health Check] Failed:', error.message, error.response?.status);
-        debugError('Health check failed:', error.message);
+        debugError('Health check failed:', {
+          message: error.message,
+          status: error.response?.status,
+        });
         setApiStatus({ status: 'down' });
         setDbStatus({ status: 'down' });
       }

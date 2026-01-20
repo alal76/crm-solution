@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -14,90 +14,102 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Alert,
-  IconButton,
-  Chip,
+  CircularProgress,
+  TextField,
+  Container,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
+  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Add as AddIcon,
 } from '@mui/icons-material';
+import apiClient from '../services/apiClient';
+import logo from '../assets/logo.png';
 
 interface Opportunity {
-  id: string;
+  id: number;
+  title: string;
+  customerId: number;
+  expectedValue: number;
+  expectedCloseDate: string;
+  description?: string;
+  createdAt: string;
+}
+
+interface Customer {
+  id: number;
   name: string;
-  company: string;
-  value: number;
-  stage: 'lead' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
-  probability: number;
-  closeDate: string;
+}
+
+interface OpportunityForm {
+  title: string;
+  customerId: number;
+  expectedValue: number;
+  expectedCloseDate: string;
+  description: string;
 }
 
 function OpportunitiesPage() {
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([
-    {
-      id: '1',
-      name: 'Enterprise Software Deal',
-      company: 'Tech Corp',
-      value: 50000,
-      stage: 'proposal',
-      probability: 70,
-      closeDate: '2026-02-15',
-    },
-    {
-      id: '2',
-      name: 'Implementation Services',
-      company: 'Global Industries',
-      value: 25000,
-      stage: 'negotiation',
-      probability: 50,
-      closeDate: '2026-03-01',
-    },
-  ]);
-
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    company: '',
-    value: '',
-    stage: 'lead',
-    probability: '',
-    closeDate: '',
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [formData, setFormData] = useState<OpportunityForm>({
+    title: '',
+    customerId: 0,
+    expectedValue: 0,
+    expectedCloseDate: '',
+    description: '',
   });
-  const [error, setError] = useState('');
 
-  const stageColors: Record<string, { bg: string; text: string }> = {
-    lead: { bg: '#E0E7FF', text: '#3949AB' },
-    qualified: { bg: '#E1F5FE', text: '#0277BD' },
-    proposal: { bg: '#F3E5F5', text: '#6A1B9A' },
-    negotiation: { bg: '#FFF3E0', text: '#E65100' },
-    won: { bg: '#E8F5E9', text: '#06A77D' },
-    lost: { bg: '#FFEBEE', text: '#B3261E' },
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
+    try {
+      setLoading(true);
+      const [oppRes, custRes] = await Promise.all([
+        apiClient.get('/opportunities'),
+        apiClient.get('/customers'),
+      ]);
+      setOpportunities(oppRes.data);
+      setCustomers(custRes.data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch data');
+      console.error('Error fetching data:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleOpenDialog = (opportunity?: Opportunity) => {
-    if (opportunity) {
-      setEditingId(opportunity.id);
+  const handleOpenDialog = (opp?: Opportunity) => {
+    if (opp) {
+      setEditingId(opp.id);
       setFormData({
-        name: opportunity.name,
-        company: opportunity.company,
-        value: opportunity.value.toString(),
-        stage: opportunity.stage,
-        probability: opportunity.probability.toString(),
-        closeDate: opportunity.closeDate,
+        title: opp.title,
+        customerId: opp.customerId,
+        expectedValue: opp.expectedValue,
+        expectedCloseDate: opp.expectedCloseDate.split('T')[0],
+        description: opp.description || '',
       });
     } else {
       setEditingId(null);
       setFormData({
-        name: '',
-        company: '',
-        value: '',
-        stage: 'lead',
-        probability: '',
-        closeDate: '',
+        title: '',
+        customerId: customers[0]?.id || 0,
+        expectedValue: 0,
+        expectedCloseDate: '',
+        description: '',
       });
     }
     setOpenDialog(true);
@@ -105,227 +117,203 @@ function OpportunitiesPage() {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setError('');
+    setEditingId(null);
   };
 
-  const handleSave = () => {
-    if (!formData.name || !formData.company || !formData.value || !formData.closeDate) {
-      setError('Please fill in all required fields');
+  const handleSelectChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'expectedValue' ? parseFloat(value) || 0 : value,
+    }));
+  };
+
+  const handleSaveOpportunity = async () => {
+    if (!formData.title.trim() || !formData.customerId || !formData.expectedCloseDate) {
+      setError('Please fill in required fields (Title, Customer, Close Date)');
       return;
     }
 
-    if (editingId) {
-      setOpportunities(
-        opportunities.map((o) =>
-          o.id === editingId
-            ? {
-                ...o,
-                name: formData.name,
-                company: formData.company,
-                value: parseFloat(formData.value),
-                stage: formData.stage as any,
-                probability: parseInt(formData.probability),
-                closeDate: formData.closeDate,
-              }
-            : o
-        )
-      );
-    } else {
-      const newOpp: Opportunity = {
-        id: Date.now().toString(),
-        name: formData.name,
-        company: formData.company,
-        value: parseFloat(formData.value),
-        stage: formData.stage as any,
-        probability: parseInt(formData.probability),
-        closeDate: formData.closeDate,
-      };
-      setOpportunities([...opportunities, newOpp]);
+    try {
+      if (editingId) {
+        await apiClient.put(`/opportunities/${editingId}`, formData);
+        setSuccessMessage('Opportunity updated successfully');
+      } else {
+        await apiClient.post('/opportunities', formData);
+        setSuccessMessage('Opportunity created successfully');
+      }
+      handleCloseDialog();
+      fetchAllData();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save opportunity');
+      console.error('Error saving opportunity:', err);
     }
-    handleCloseDialog();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDeleteOpportunity = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this opportunity?')) {
-      setOpportunities(opportunities.filter((o) => o.id !== id));
+      try {
+        await apiClient.delete(`/opportunities/${id}`);
+        setSuccessMessage('Opportunity deleted successfully');
+        fetchAllData();
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to delete opportunity');
+        console.error('Error deleting opportunity:', err);
+      }
     }
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ py: 2 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Opportunities
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            Manage sales pipeline and opportunities
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-          sx={{ backgroundColor: '#6750A4', textTransform: 'none', borderRadius: 2 }}
-        >
-          Add Opportunity
-        </Button>
-      </Box>
-
-      <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
-        <CardContent sx={{ p: 0 }}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Opportunity</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Company</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="right">
-                  Value
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Stage</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Probability
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Close Date</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {opportunities.map((opp) => (
-                <TableRow
-                  key={opp.id}
-                  sx={{
-                    '&:hover': { backgroundColor: '#F5EFF7' },
-                    borderBottom: '1px solid #E8DEF8',
-                  }}
-                >
-                  <TableCell sx={{ fontWeight: 500 }}>{opp.name}</TableCell>
-                  <TableCell>{opp.company}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600, color: '#6750A4' }}>
-                    ${opp.value.toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={opp.stage.charAt(0).toUpperCase() + opp.stage.slice(1)}
-                      size="small"
-                      sx={{
-                        backgroundColor: stageColors[opp.stage]?.bg,
-                        color: stageColors[opp.stage]?.text,
-                        fontWeight: 600,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">{opp.probability}%</TableCell>
-                  <TableCell>{opp.closeDate}</TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenDialog(opp)}
-                      sx={{ color: '#6750A4' }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDelete(opp.id)}
-                      sx={{ color: '#B3261E' }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, color: '#6750A4' }}>
-          {editingId ? 'Edit Opportunity' : 'Add Opportunity'}
-        </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          <TextField
-            fullWidth
-            label="Opportunity Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Company"
-            value={formData.company}
-            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Opportunity Value"
-            type="number"
-            value={formData.value}
-            onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Stage"
-            select
-            value={formData.stage}
-            onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            SelectProps={{ native: true }}
+    <Box sx={{ py: 4 }}>
+      <Container maxWidth="lg">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>Opportunities</Typography>
+          </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+            sx={{ backgroundColor: '#6750A4' }}
           >
-            <option value="lead">Lead</option>
-            <option value="qualified">Qualified</option>
-            <option value="proposal">Proposal</option>
-            <option value="negotiation">Negotiation</option>
-            <option value="won">Won</option>
-            <option value="lost">Lost</option>
-          </TextField>
+            Add Opportunity
+          </Button>
+        </Box>
+
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+
+        <Card>
+          <CardContent>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
+                  <TableCell><strong>Title</strong></TableCell>
+                  <TableCell><strong>Expected Value</strong></TableCell>
+                  <TableCell><strong>Close Date</strong></TableCell>
+                  <TableCell><strong>Description</strong></TableCell>
+                  <TableCell align="center"><strong>Actions</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {opportunities.map((opp) => (
+                  <TableRow key={opp.id}>
+                    <TableCell>{opp.title}</TableCell>
+                    <TableCell>${opp.expectedValue.toLocaleString()}</TableCell>
+                    <TableCell>{new Date(opp.expectedCloseDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{opp.description || '-'}</TableCell>
+                    <TableCell align="center">
+                      <Button
+                        size="small"
+                        color="primary"
+                        startIcon={<EditIcon />}
+                        onClick={() => handleOpenDialog(opp)}
+                        sx={{ mr: 1 }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => handleDeleteOpportunity(opp.id)}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {opportunities.length === 0 && (
+              <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
+                No opportunities found
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      </Container>
+
+      {/* Add/Edit Opportunity Dialog */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingId ? 'Edit Opportunity' : 'Create New Opportunity'}</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <TextField
+            autoFocus
+            fullWidth
+            label="Title"
+            name="title"
+            value={formData.title}
+            onChange={handleInputChange}
+            margin="normal"
+            required
+          />
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel>Customer</InputLabel>
+            <Select
+              name="customerId"
+              value={formData.customerId}
+              onChange={handleSelectChange}
+              label="Customer"
+            >
+              {customers.map(cust => (
+                <MenuItem key={cust.id} value={cust.id}>{cust.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             fullWidth
-            label="Win Probability (%)"
+            label="Expected Value"
+            name="expectedValue"
             type="number"
-            value={formData.probability}
-            onChange={(e) => setFormData({ ...formData, probability: e.target.value })}
+            value={formData.expectedValue}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            inputProps={{ min: 0, max: 100 }}
+            inputProps={{ step: "0.01" }}
           />
           <TextField
             fullWidth
             label="Expected Close Date"
+            name="expectedCloseDate"
             type="date"
-            value={formData.closeDate}
-            onChange={(e) => setFormData({ ...formData, closeDate: e.target.value })}
+            value={formData.expectedCloseDate}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            required
             InputLabelProps={{ shrink: true }}
+            required
+          />
+          <TextField
+            fullWidth
+            label="Description"
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            margin="normal"
+            multiline
+            rows={2}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={handleSave}
-            variant="contained"
-            sx={{ backgroundColor: '#6750A4', textTransform: 'none' }}
-          >
+          <Button onClick={handleSaveOpportunity} variant="contained" color="primary">
             {editingId ? 'Update' : 'Create'}
           </Button>
         </DialogActions>

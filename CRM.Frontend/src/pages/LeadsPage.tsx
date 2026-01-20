@@ -24,6 +24,7 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon,
 } from '@mui/icons-material';
+import logo from '../assets/logo.png';
 
 interface Lead {
   id: string;
@@ -174,13 +175,16 @@ function LeadsPage() {
   return (
     <Box sx={{ py: 2 }}>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Leads
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            Manage and track your sales leads
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
+          <Box>
+            <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
+              Leads
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              Manage and track your sales leads
+            </Typography>
+          </Box>
         </Box>
         <Button
           variant="contained"

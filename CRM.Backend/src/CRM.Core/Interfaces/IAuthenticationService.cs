@@ -72,4 +72,9 @@ public interface IAuthenticationService
     /// Reset password with token
     /// </summary>
     Task<bool> ResetPasswordAsync(string token, string newPassword);
+
+    /// <summary>
+    /// Admin reset user password by user ID
+    /// </summary>
+    Task<bool> AdminResetPasswordAsync(int userId, string newPassword);
 }

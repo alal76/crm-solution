@@ -1,5 +1,5 @@
-// Debug utility for logging
-const DEBUG = process.env.NODE_ENV === 'development' || true;
+// Debug utility for logging - always enabled for troubleshooting
+const DEBUG = true;
 
 export const debugLog = (label: string, data?: any) => {
   if (DEBUG) {

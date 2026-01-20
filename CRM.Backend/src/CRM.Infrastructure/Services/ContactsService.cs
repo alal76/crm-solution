@@ -1,0 +1,273 @@
+using CRM.Core.Dtos;
+using CRM.Core.Interfaces;
+using CRM.Core.Models;
+using CRM.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace CRM.Infrastructure.Services;
+
+public class ContactsService : IContactsService
+{
+    private readonly CrmDbContext _context;
+
+    public ContactsService(CrmDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<ContactDto> GetByIdAsync(int id)
+    {
+        var contact = await _context.Contacts
+            .Include(c => c.SocialMediaLinks)
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (contact == null)
+            throw new InvalidOperationException($"Contact with ID {id} not found");
+
+        return MapToDto(contact);
+    }
+
+    public async Task<List<ContactDto>> GetAllAsync()
+    {
+        var contacts = await _context.Contacts
+            .Include(c => c.SocialMediaLinks)
+            .OrderBy(c => c.LastName)
+            .ThenBy(c => c.FirstName)
+            .ToListAsync();
+
+        return contacts.Select(MapToDto).ToList();
+    }
+
+    public async Task<List<ContactDto>> GetByTypeAsync(string contactType)
+    {
+        if (!Enum.TryParse<ContactType>(contactType, true, out var type))
+            return new List<ContactDto>();
+
+        var contacts = await _context.Contacts
+            .Include(c => c.SocialMediaLinks)
+            .Where(c => c.ContactType == type)
+            .OrderBy(c => c.LastName)
+            .ThenBy(c => c.FirstName)
+            .ToListAsync();
+
+        return contacts.Select(MapToDto).ToList();
+    }
+
+    public async Task<ContactDto> CreateAsync(CreateContactRequest request, string modifiedBy)
+    {
+        if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
+            throw new ArgumentException("First name and last name are required");
+
+        var contactType = Enum.TryParse<ContactType>(request.ContactType, true, out var type) 
+            ? type 
+            : ContactType.Other;
+
+        var contact = new Contact
+        {
+            ContactType = contactType,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            MiddleName = request.MiddleName,
+            EmailPrimary = request.EmailPrimary,
+            EmailSecondary = request.EmailSecondary,
+            PhonePrimary = request.PhonePrimary,
+            PhoneSecondary = request.PhoneSecondary,
+            Address = request.Address,
+            City = request.City,
+            State = request.State,
+            Country = request.Country,
+            ZipCode = request.ZipCode,
+            JobTitle = request.JobTitle,
+            Department = request.Department,
+            Company = request.Company,
+            ReportsTo = request.ReportsTo,
+            Notes = request.Notes,
+            DateOfBirth = request.DateOfBirth,
+            DateAdded = DateTime.UtcNow,
+            LastModified = DateTime.UtcNow,
+            ModifiedBy = modifiedBy
+        };
+
+        _context.Contacts.Add(contact);
+        await _context.SaveChangesAsync();
+
+        return MapToDto(contact);
+    }
+
+    public async Task<ContactDto> UpdateAsync(int id, UpdateContactRequest request, string modifiedBy)
+    {
+        var contact = await _context.Contacts
+            .Include(c => c.SocialMediaLinks)
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (contact == null)
+            throw new InvalidOperationException($"Contact with ID {id} not found");
+
+        if (!string.IsNullOrWhiteSpace(request.ContactType))
+        {
+            if (Enum.TryParse<ContactType>(request.ContactType, true, out var type))
+                contact.ContactType = type;
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.FirstName))
+            contact.FirstName = request.FirstName;
+
+        if (!string.IsNullOrWhiteSpace(request.LastName))
+            contact.LastName = request.LastName;
+
+        if (request.MiddleName != null)
+            contact.MiddleName = request.MiddleName;
+
+        if (request.EmailPrimary != null)
+            contact.EmailPrimary = request.EmailPrimary;
+
+        if (request.EmailSecondary != null)
+            contact.EmailSecondary = request.EmailSecondary;
+
+        if (request.PhonePrimary != null)
+            contact.PhonePrimary = request.PhonePrimary;
+
+        if (request.PhoneSecondary != null)
+            contact.PhoneSecondary = request.PhoneSecondary;
+
+        if (request.Address != null)
+            contact.Address = request.Address;
+
+        if (request.City != null)
+            contact.City = request.City;
+
+        if (request.State != null)
+            contact.State = request.State;
+
+        if (request.Country != null)
+            contact.Country = request.Country;
+
+        if (request.ZipCode != null)
+            contact.ZipCode = request.ZipCode;
+
+        if (request.JobTitle != null)
+            contact.JobTitle = request.JobTitle;
+
+        if (request.Department != null)
+            contact.Department = request.Department;
+
+        if (request.Company != null)
+            contact.Company = request.Company;
+
+        if (request.ReportsTo != null)
+            contact.ReportsTo = request.ReportsTo;
+
+        if (request.Notes != null)
+            contact.Notes = request.Notes;
+
+        if (request.DateOfBirth.HasValue)
+            contact.DateOfBirth = request.DateOfBirth;
+
+        contact.LastModified = DateTime.UtcNow;
+        contact.ModifiedBy = modifiedBy;
+
+        _context.Contacts.Update(contact);
+        await _context.SaveChangesAsync();
+
+        return MapToDto(contact);
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var contact = await _context.Contacts
+            .Include(c => c.SocialMediaLinks)
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (contact == null)
+            throw new InvalidOperationException($"Contact with ID {id} not found");
+
+        // Delete associated social media links
+        _context.SocialMediaLinks.RemoveRange(contact.SocialMediaLinks);
+        _context.Contacts.Remove(contact);
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<SocialMediaLinkDto> AddSocialMediaLinkAsync(int contactId, AddSocialMediaRequest request)
+    {
+        var contact = await _context.Contacts.FindAsync(contactId);
+        if (contact == null)
+            throw new InvalidOperationException($"Contact with ID {contactId} not found");
+
+        var platform = Enum.TryParse<SocialMediaPlatform>(request.Platform, true, out var p)
+            ? p
+            : SocialMediaPlatform.Other;
+
+        var link = new SocialMediaLink
+        {
+            ContactId = contactId,
+            Platform = platform,
+            Url = request.Url,
+            Handle = request.Handle,
+            DateAdded = DateTime.UtcNow
+        };
+
+        _context.SocialMediaLinks.Add(link);
+        await _context.SaveChangesAsync();
+
+        return new SocialMediaLinkDto
+        {
+            Id = link.Id,
+            Platform = link.Platform.ToString(),
+            Url = link.Url,
+            Handle = link.Handle
+        };
+    }
+
+    public async Task<bool> RemoveSocialMediaLinkAsync(int linkId)
+    {
+        var link = await _context.SocialMediaLinks.FindAsync(linkId);
+        if (link == null)
+            throw new InvalidOperationException($"Social media link with ID {linkId} not found");
+
+        _context.SocialMediaLinks.Remove(link);
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    private static ContactDto MapToDto(Contact contact)
+    {
+        return new ContactDto
+        {
+            Id = contact.Id,
+            ContactType = contact.ContactType.ToString(),
+            FirstName = contact.FirstName,
+            LastName = contact.LastName,
+            MiddleName = contact.MiddleName,
+            EmailPrimary = contact.EmailPrimary,
+            EmailSecondary = contact.EmailSecondary,
+            PhonePrimary = contact.PhonePrimary,
+            PhoneSecondary = contact.PhoneSecondary,
+            Address = contact.Address,
+            City = contact.City,
+            State = contact.State,
+            Country = contact.Country,
+            ZipCode = contact.ZipCode,
+            JobTitle = contact.JobTitle,
+            Department = contact.Department,
+            Company = contact.Company,
+            ReportsTo = contact.ReportsTo,
+            Notes = contact.Notes,
+            DateOfBirth = contact.DateOfBirth,
+            DateAdded = contact.DateAdded,
+            LastModified = contact.LastModified,
+            ModifiedBy = contact.ModifiedBy,
+            SocialMediaLinks = contact.SocialMediaLinks
+                .Select(l => new SocialMediaLinkDto
+                {
+                    Id = l.Id,
+                    Platform = l.Platform.ToString(),
+                    Url = l.Url,
+                    Handle = l.Handle
+                })
+                .ToList()
+        };
+    }
+}

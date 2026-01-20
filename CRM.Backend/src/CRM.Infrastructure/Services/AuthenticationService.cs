@@ -4,6 +4,7 @@ using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
 
@@ -16,17 +17,20 @@ public class AuthenticationService : IAuthenticationService
     private readonly IRepository<OAuthToken> _oauthTokenRepository;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ITotpService _totpService;
+    private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
         IRepository<User> userRepository,
         IRepository<OAuthToken> oauthTokenRepository,
         IJwtTokenService jwtTokenService,
-        ITotpService totpService)
+        ITotpService totpService,
+        ILogger<AuthenticationService> logger)
     {
         _userRepository = userRepository;
         _oauthTokenRepository = oauthTokenRepository;
         _jwtTokenService = jwtTokenService;
         _totpService = totpService;
+        _logger = logger;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
@@ -474,6 +478,29 @@ public class AuthenticationService : IAuthenticationService
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();
 
+        return true;
+    }
+
+    public async Task<bool> AdminResetPasswordAsync(int userId, string newPassword)
+    {
+        if (string.IsNullOrWhiteSpace(newPassword))
+            throw new ArgumentException("New password is required");
+
+        if (newPassword.Length < 6)
+            throw new ArgumentException("Password must be at least 6 characters");
+
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || user.IsDeleted)
+            throw new InvalidOperationException("User not found");
+
+        user.PasswordHash = HashPassword(newPassword);
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiry = null;
+
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
+
+        _logger.LogInformation($"Admin reset password for user {userId}");
         return true;
     }
 

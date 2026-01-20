@@ -1,17 +1,35 @@
 import axios, { AxiosInstance } from 'axios';
 import { debugLog, debugError } from '../utils/debug';
+import { getApiBaseUrl, getServicePorts } from '../config/ports';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Determine API URL at runtime to ensure window is available
+let API_URL: string;
 
-debugLog('API Client initialized with URL:', API_URL);
+const initializeApiUrl = () => {
+  const ports = getServicePorts();
+  const API_BASE_URL = getApiBaseUrl();
+  API_URL = `${API_BASE_URL}/api`;
+  debugLog('API Client initialized', { API_URL, ports });
+};
+
+// Initialize on first use or immediately if window is available
+if (typeof window !== 'undefined') {
+  initializeApiUrl();
+}
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: API_URL || 'http://localhost:5001/api',
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 10000,
 });
+
+// Reinitialize baseURL after module loads if not already set
+if (!API_URL && typeof window !== 'undefined') {
+  initializeApiUrl();
+  apiClient.defaults.baseURL = API_URL;
+}
 
 // Add request interceptor with logging
 apiClient.interceptors.request.use((config) => {

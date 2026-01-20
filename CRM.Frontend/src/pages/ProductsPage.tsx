@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -14,60 +14,72 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Alert,
-  IconButton,
-  Chip,
+  CircularProgress,
+  TextField,
+  Container,
 } from '@mui/material';
 import {
+  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Add as AddIcon,
 } from '@mui/icons-material';
+import apiClient from '../services/apiClient';
+import logo from '../assets/logo.png';
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
   sku: string;
   price: number;
   category: string;
   stock: number;
-  status: 'active' | 'inactive';
+  status: number;
+  createdAt: string;
+}
+
+interface ProductForm {
+  name: string;
+  sku: string;
+  category: string;
+  price: number;
+  stock: number;
+  status: number;
 }
 
 function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: '1',
-      name: 'Premium Software License',
-      sku: 'PSL-001',
-      price: 99.99,
-      category: 'Software',
-      stock: 50,
-      status: 'active',
-    },
-    {
-      id: '2',
-      name: 'Training Package',
-      sku: 'TRN-001',
-      price: 299.99,
-      category: 'Services',
-      stock: 100,
-      status: 'active',
-    },
-  ]);
-
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [formData, setFormData] = useState<ProductForm>({
     name: '',
     sku: '',
-    price: '',
     category: '',
-    stock: '',
-    status: 'active',
+    price: 0,
+    stock: 0,
+    status: 1,
   });
-  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/products');
+      setProducts(response.data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch products');
+      console.error('Error fetching products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOpenDialog = (product?: Product) => {
     if (product) {
@@ -75,239 +87,222 @@ function ProductsPage() {
       setFormData({
         name: product.name,
         sku: product.sku,
-        price: product.price.toString(),
         category: product.category,
-        stock: product.stock.toString(),
+        price: product.price,
+        stock: product.stock,
         status: product.status,
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '', sku: '', price: '', category: '', stock: '', status: 'active' });
+      setFormData({
+        name: '',
+        sku: '',
+        category: '',
+        price: 0,
+        stock: 0,
+        status: 1,
+      });
     }
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setError('');
+    setEditingId(null);
   };
 
-  const handleSave = () => {
-    if (!formData.name || !formData.sku || !formData.price || !formData.category) {
-      setError('Please fill in all required fields');
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'price' || name === 'stock' || name === 'status' ? parseFloat(value) || 0 : value,
+    }));
+  };
+
+  const handleSaveProduct = async () => {
+    if (!formData.name.trim() || !formData.sku.trim() || !formData.category.trim()) {
+      setError('Please fill in required fields (Name, SKU, Category)');
       return;
     }
 
-    if (editingId) {
-      setProducts(
-        products.map((p) =>
-          p.id === editingId
-            ? {
-                ...p,
-                name: formData.name,
-                sku: formData.sku,
-                price: parseFloat(formData.price),
-                category: formData.category,
-                stock: parseInt(formData.stock),
-                status: formData.status as 'active' | 'inactive',
-              }
-            : p
-        )
-      );
-    } else {
-      const newProduct: Product = {
-        id: Date.now().toString(),
-        name: formData.name,
-        sku: formData.sku,
-        price: parseFloat(formData.price),
-        category: formData.category,
-        stock: parseInt(formData.stock),
-        status: formData.status as 'active' | 'inactive',
-      };
-      setProducts([...products, newProduct]);
+    try {
+      if (editingId) {
+        await apiClient.put(`/products/${editingId}`, formData);
+        setSuccessMessage('Product updated successfully');
+      } else {
+        await apiClient.post('/products', formData);
+        setSuccessMessage('Product created successfully');
+      }
+      handleCloseDialog();
+      fetchProducts();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save product');
+      console.error('Error saving product:', err);
     }
-    handleCloseDialog();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDeleteProduct = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter((p) => p.id !== id));
+      try {
+        await apiClient.delete(`/products/${id}`);
+        setSuccessMessage('Product deleted successfully');
+        fetchProducts();
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to delete product');
+        console.error('Error deleting product:', err);
+      }
     }
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ py: 2 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Products
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            Manage your product catalog and inventory
-          </Typography>
+    <Box sx={{ py: 4 }}>
+      <Container maxWidth="lg">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>Products</Typography>
+          </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+            sx={{ backgroundColor: '#6750A4' }}
+          >
+            Add Product
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-          sx={{ backgroundColor: '#6750A4', textTransform: 'none', borderRadius: 2 }}
-        >
-          Add Product
-        </Button>
-      </Box>
 
-      <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
-        <CardContent sx={{ p: 0 }}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Name</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>SKU</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Category</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="right">
-                  Price
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Stock
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Status
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {products.map((product) => (
-                <TableRow
-                  key={product.id}
-                  sx={{
-                    '&:hover': { backgroundColor: '#F5EFF7' },
-                    borderBottom: '1px solid #E8DEF8',
-                  }}
-                >
-                  <TableCell sx={{ fontWeight: 500 }}>{product.name}</TableCell>
-                  <TableCell>{product.sku}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600, color: '#6750A4' }}>
-                    ${product.price.toFixed(2)}
-                  </TableCell>
-                  <TableCell align="center">{product.stock}</TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={product.status.charAt(0).toUpperCase() + product.status.slice(1)}
-                      size="small"
-                      sx={{
-                        backgroundColor: product.status === 'active' ? '#E8F5E9' : '#FFEBEE',
-                        color: product.status === 'active' ? '#06A77D' : '#B3261E',
-                        fontWeight: 600,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenDialog(product)}
-                      sx={{ color: '#6750A4' }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDelete(product.id)}
-                      sx={{ color: '#B3261E' }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+
+        <Card>
+          <CardContent>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
+                  <TableCell><strong>Name</strong></TableCell>
+                  <TableCell><strong>SKU</strong></TableCell>
+                  <TableCell><strong>Category</strong></TableCell>
+                  <TableCell><strong>Price</strong></TableCell>
+                  <TableCell><strong>Stock</strong></TableCell>
+                  <TableCell align="center"><strong>Actions</strong></TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHead>
+              <TableBody>
+                {products.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>{product.name}</TableCell>
+                    <TableCell>{product.sku}</TableCell>
+                    <TableCell>{product.category}</TableCell>
+                    <TableCell>${product.price.toFixed(2)}</TableCell>
+                    <TableCell>{product.stock}</TableCell>
+                    <TableCell align="center">
+                      <Button
+                        size="small"
+                        color="primary"
+                        startIcon={<EditIcon />}
+                        onClick={() => handleOpenDialog(product)}
+                        sx={{ mr: 1 }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => handleDeleteProduct(product.id)}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {products.length === 0 && (
+              <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
+                No products found
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      </Container>
 
+      {/* Add/Edit Product Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, color: '#6750A4' }}>
-          {editingId ? 'Edit Product' : 'Add Product'}
-        </DialogTitle>
+        <DialogTitle>{editingId ? 'Edit Product' : 'Create New Product'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
           <TextField
+            autoFocus
             fullWidth
             label="Product Name"
+            name="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
             required
           />
           <TextField
             fullWidth
             label="SKU"
+            name="sku"
             value={formData.sku}
-            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
+            required
+          />
+          <TextField
+            fullWidth
+            label="Category"
+            name="category"
+            value={formData.category}
+            onChange={handleInputChange}
+            margin="normal"
             required
           />
           <TextField
             fullWidth
             label="Price"
+            name="price"
             type="number"
             value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            required
-            inputProps={{ step: '0.01' }}
+            inputProps={{ step: "0.01" }}
           />
           <TextField
             fullWidth
-            label="Category"
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Stock Quantity"
+            label="Stock"
+            name="stock"
             type="number"
             value={formData.stock}
-            onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
+            inputProps={{ step: "1" }}
           />
           <TextField
             fullWidth
             label="Status"
-            select
+            name="status"
+            type="number"
             value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            SelectProps={{
-              native: true,
-            }}
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </TextField>
+            inputProps={{ step: "1" }}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={handleSave}
-            variant="contained"
-            sx={{ backgroundColor: '#6750A4', textTransform: 'none' }}
-          >
+          <Button onClick={handleSaveProduct} variant="contained" color="primary">
             {editingId ? 'Update' : 'Create'}
           </Button>
         </DialogActions>

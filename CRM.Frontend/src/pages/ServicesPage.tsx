@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -14,64 +14,69 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Alert,
-  IconButton,
-  Chip,
+  CircularProgress,
+  TextField,
+  Container,
 } from '@mui/material';
 import {
+  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Add as AddIcon,
 } from '@mui/icons-material';
+import apiClient from '../services/apiClient';
+import logo from '../assets/logo.png';
 
 interface Service {
-  id: string;
+  id: number;
   name: string;
   description: string;
   category: string;
   hourlyRate: number;
-  status: 'available' | 'unavailable';
-  capacity: number;
-  allocated: number;
+  status: number;
+  createdAt: string;
+}
+
+interface ServiceForm {
+  name: string;
+  description: string;
+  category: string;
+  hourlyRate: number;
+  status: number;
 }
 
 function ServicesPage() {
-  const [services, setServices] = useState<Service[]>([
-    {
-      id: '1',
-      name: 'Implementation Consulting',
-      description: 'Expert guidance for system setup and configuration',
-      category: 'Consulting',
-      hourlyRate: 150,
-      status: 'available',
-      capacity: 40,
-      allocated: 20,
-    },
-    {
-      id: '2',
-      name: 'Technical Support',
-      description: '24/7 technical support and maintenance',
-      category: 'Support',
-      hourlyRate: 100,
-      status: 'available',
-      capacity: 80,
-      allocated: 45,
-    },
-  ]);
-
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [formData, setFormData] = useState<ServiceForm>({
     name: '',
     description: '',
     category: '',
-    hourlyRate: '',
-    status: 'available',
-    capacity: '',
-    allocated: '',
+    hourlyRate: 0,
+    status: 1,
   });
-  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/services');
+      setServices(response.data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch services');
+      console.error('Error fetching services:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOpenDialog = (service?: Service) => {
     if (service) {
@@ -80,10 +85,8 @@ function ServicesPage() {
         name: service.name,
         description: service.description,
         category: service.category,
-        hourlyRate: service.hourlyRate.toString(),
+        hourlyRate: service.hourlyRate,
         status: service.status,
-        capacity: service.capacity.toString(),
-        allocated: service.allocated.toString(),
       });
     } else {
       setEditingId(null);
@@ -91,10 +94,8 @@ function ServicesPage() {
         name: '',
         description: '',
         category: '',
-        hourlyRate: '',
-        status: 'available',
-        capacity: '',
-        allocated: '',
+        hourlyRate: 0,
+        status: 1,
       });
     }
     setOpenDialog(true);
@@ -102,251 +103,190 @@ function ServicesPage() {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setError('');
+    setEditingId(null);
   };
 
-  const handleSave = () => {
-    if (!formData.name || !formData.category || !formData.hourlyRate || !formData.capacity) {
-      setError('Please fill in all required fields');
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'hourlyRate' || name === 'status' ? parseFloat(value) || 0 : value,
+    }));
+  };
+
+  const handleSaveService = async () => {
+    if (!formData.name.trim() || !formData.category.trim()) {
+      setError('Please fill in required fields (Name, Category)');
       return;
     }
 
-    if (editingId) {
-      setServices(
-        services.map((s) =>
-          s.id === editingId
-            ? {
-                ...s,
-                name: formData.name,
-                description: formData.description,
-                category: formData.category,
-                hourlyRate: parseFloat(formData.hourlyRate),
-                status: formData.status as any,
-                capacity: parseInt(formData.capacity),
-                allocated: parseInt(formData.allocated),
-              }
-            : s
-        )
-      );
-    } else {
-      const newService: Service = {
-        id: Date.now().toString(),
-        name: formData.name,
-        description: formData.description,
-        category: formData.category,
-        hourlyRate: parseFloat(formData.hourlyRate),
-        status: formData.status as any,
-        capacity: parseInt(formData.capacity),
-        allocated: parseInt(formData.allocated),
-      };
-      setServices([...services, newService]);
+    try {
+      if (editingId) {
+        await apiClient.put(`/services/${editingId}`, formData);
+        setSuccessMessage('Service updated successfully');
+      } else {
+        await apiClient.post('/services', formData);
+        setSuccessMessage('Service created successfully');
+      }
+      handleCloseDialog();
+      fetchServices();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save service');
+      console.error('Error saving service:', err);
     }
-    handleCloseDialog();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDeleteService = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this service?')) {
-      setServices(services.filter((s) => s.id !== id));
+      try {
+        await apiClient.delete(`/services/${id}`);
+        setSuccessMessage('Service deleted successfully');
+        fetchServices();
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to delete service');
+        console.error('Error deleting service:', err);
+      }
     }
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ py: 2 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Services
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            Manage your services and capacity allocation
-          </Typography>
+    <Box sx={{ py: 4 }}>
+      <Container maxWidth="lg">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>Services</Typography>
+          </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+            sx={{ backgroundColor: '#6750A4' }}
+          >
+            Add Service
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-          sx={{ backgroundColor: '#6750A4', textTransform: 'none', borderRadius: 2 }}
-        >
-          Add Service
-        </Button>
-      </Box>
 
-      <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
-        <CardContent sx={{ p: 0 }}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Service Name</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Category</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="right">
-                  Hourly Rate
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Capacity
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Allocated
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {services.map((service) => {
-                const utilizationPercent = (service.allocated / service.capacity) * 100;
-                return (
-                  <TableRow
-                    key={service.id}
-                    sx={{
-                      '&:hover': { backgroundColor: '#F5EFF7' },
-                      borderBottom: '1px solid #E8DEF8',
-                    }}
-                  >
-                    <TableCell sx={{ fontWeight: 500 }}>{service.name}</TableCell>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+
+        <Card>
+          <CardContent>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
+                  <TableCell><strong>Name</strong></TableCell>
+                  <TableCell><strong>Category</strong></TableCell>
+                  <TableCell><strong>Description</strong></TableCell>
+                  <TableCell><strong>Hourly Rate</strong></TableCell>
+                  <TableCell align="center"><strong>Actions</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {services.map((service) => (
+                  <TableRow key={service.id}>
+                    <TableCell>{service.name}</TableCell>
                     <TableCell>{service.category}</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600, color: '#6750A4' }}>
-                      ${service.hourlyRate}/hr
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={service.status === 'available' ? 'Available' : 'Unavailable'}
+                    <TableCell>{service.description}</TableCell>
+                    <TableCell>${service.hourlyRate}/hr</TableCell>
+                    <TableCell align="center">
+                      <Button
                         size="small"
-                        sx={{
-                          backgroundColor: service.status === 'available' ? '#E8F5E9' : '#FFEBEE',
-                          color: service.status === 'available' ? '#06A77D' : '#B3261E',
-                          fontWeight: 600,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {service.allocated}/{service.capacity} hrs
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: utilizationPercent > 80 ? '#B3261E' : '#06A77D', fontWeight: 600 }}
-                      >
-                        {utilizationPercent.toFixed(0)}%
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Typography variant="body2">{service.allocated} hrs</Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        size="small"
+                        color="primary"
+                        startIcon={<EditIcon />}
                         onClick={() => handleOpenDialog(service)}
-                        sx={{ color: '#6750A4' }}
+                        sx={{ mr: 1 }}
                       >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
+                        Edit
+                      </Button>
+                      <Button
                         size="small"
-                        onClick={() => handleDelete(service.id)}
-                        sx={{ color: '#B3261E' }}
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => handleDeleteService(service.id)}
                       >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                ))}
+              </TableBody>
+            </Table>
+            {services.length === 0 && (
+              <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
+                No services found
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      </Container>
 
+      {/* Add/Edit Service Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, color: '#6750A4' }}>
-          {editingId ? 'Edit Service' : 'Add Service'}
-        </DialogTitle>
+        <DialogTitle>{editingId ? 'Edit Service' : 'Create New Service'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
           <TextField
+            autoFocus
             fullWidth
             label="Service Name"
+            name="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
+            required
+          />
+          <TextField
+            fullWidth
+            label="Category"
+            name="category"
+            value={formData.category}
+            onChange={handleInputChange}
+            margin="normal"
             required
           />
           <TextField
             fullWidth
             label="Description"
+            name="description"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
             multiline
             rows={2}
           />
           <TextField
             fullWidth
-            label="Category"
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            required
-          />
-          <TextField
-            fullWidth
             label="Hourly Rate"
+            name="hourlyRate"
             type="number"
             value={formData.hourlyRate}
-            onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            required
-            inputProps={{ step: '0.01' }}
-          />
-          <TextField
-            fullWidth
-            label="Total Capacity (hours)"
-            type="number"
-            value={formData.capacity}
-            onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Currently Allocated (hours)"
-            type="number"
-            value={formData.allocated}
-            onChange={(e) => setFormData({ ...formData, allocated: e.target.value })}
-            margin="normal"
-            variant="outlined"
+            inputProps={{ step: "0.01" }}
           />
           <TextField
             fullWidth
             label="Status"
-            select
+            name="status"
+            type="number"
             value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            SelectProps={{ native: true }}
-          >
-            <option value="available">Available</option>
-            <option value="unavailable">Unavailable</option>
-          </TextField>
+            inputProps={{ step: "1" }}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={handleSave}
-            variant="contained"
-            sx={{ backgroundColor: '#6750A4', textTransform: 'none' }}
-          >
+          <Button onClick={handleSaveService} variant="contained" color="primary">
             {editingId ? 'Update' : 'Create'}
           </Button>
         </DialogActions>

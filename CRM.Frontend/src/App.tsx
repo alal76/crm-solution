@@ -15,11 +15,13 @@ import RegisterPage from './pages/RegisterPage';
 import PasswordResetPage from './pages/PasswordResetPage';
 import DashboardPage from './pages/DashboardPage';
 import CustomersPage from './pages/CustomersPage';
+import ContactsPage from './pages/ContactsPage';
 import OpportunitiesPage from './pages/OpportunitiesPage';
 import ProductsPage from './pages/ProductsPage';
 import CampaignsPage from './pages/CampaignsPage';
 import LeadsPage from './pages/LeadsPage';
 import ServicesPage from './pages/ServicesPage';
+import WorkflowsPage from './pages/WorkflowsPage';
 import TwoFactorPage from './pages/TwoFactorPage';
 import UserManagementPage from './pages/UserManagementPage';
 import DepartmentManagementPage from './pages/DepartmentManagementPage';
@@ -78,6 +80,16 @@ function App() {
                 }
               />
               <Route
+                path="/contacts"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Contacts">
+                      <ContactsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/opportunities"
                 element={
                   <ProtectedRoute>
@@ -123,6 +135,16 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <ServicesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/workflows"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <WorkflowsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

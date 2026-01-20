@@ -28,6 +28,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import logo from '../assets/logo.png';
 import { opportunityService, campaignService } from '../services/apiService';
 
 // Sample data for charts
@@ -142,13 +143,16 @@ function DashboardPage() {
   return (
     <Box sx={{ py: 2 }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-          Dashboard
-        </Typography>
-        <Typography color="textSecondary" variant="body2">
-          Welcome back! Here's your performance overview.
-        </Typography>
+      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
+        <Box>
+          <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
+            Dashboard
+          </Typography>
+          <Typography color="textSecondary" variant="body2">
+            Welcome back! Here's your performance overview.
+          </Typography>
+        </Box>
       </Box>
 
       {/* Error Alert */}

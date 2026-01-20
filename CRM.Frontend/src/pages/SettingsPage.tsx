@@ -25,6 +25,7 @@ import { useAuth } from '../contexts/AuthContext';
 import UserApprovalTab from '../components/settings/UserApprovalTab';
 import GroupManagementTab from '../components/settings/GroupManagementTab';
 import DatabaseSettingsTab from '../components/settings/DatabaseSettingsTab';
+import logo from '../assets/logo.png';
 
 interface SettingsTab {
   id: string;
@@ -292,13 +293,16 @@ function SettingsPage() {
 
   return (
     <Box sx={{ py: 2 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-          Settings
-        </Typography>
-        <Typography color="textSecondary" variant="body2">
-          Manage your CRM configuration and preferences
-        </Typography>
+      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
+        <Box>
+          <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
+            Settings
+          </Typography>
+          <Typography color="textSecondary" variant="body2">
+            Manage your CRM configuration and preferences
+          </Typography>
+        </Box>
       </Box>
 
       <Paper sx={{ borderRadius: 3, boxShadow: 1 }}>

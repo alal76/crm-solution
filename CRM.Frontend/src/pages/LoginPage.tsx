@@ -19,6 +19,7 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logo from '../assets/logo.png';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -92,10 +93,25 @@ function LoginPage() {
     setLoading(true);
 
     try {
+      console.log('[LoginPage] Attempting login with email:', email);
       await login(email, password);
+      console.log('[LoginPage] Login successful, navigating to home');
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || err.response?.data?.error || 'Login failed. Please check your credentials.');
+      console.error('[LoginPage] Login error:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        error: err,
+      });
+      
+      const errorMessage = 
+        err.response?.data?.message || 
+        err.response?.data?.error || 
+        err.message ||
+        'Login failed. Please check your credentials.';
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -129,6 +145,9 @@ function LoginPage() {
               textAlign: 'center',
             }}
           >
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center', width: 50, height: 50, mx: 'auto' }}>
+              <img src={logo} alt="CRM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </Box>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
               Welcome Back
             </Typography>

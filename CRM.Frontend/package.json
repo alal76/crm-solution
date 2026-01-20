@@ -1,6 +1,6 @@
 {
   "name": "crm-frontend",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "CRM Frontend - Responsive React Application",
   "private": true,
   "dependencies": {

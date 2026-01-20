@@ -108,6 +108,8 @@ namespace CRM.Infrastructure.Migrations
                     PasswordResetTokenExpiry = table.Column<DateTime>(type: "TEXT", nullable: true),
                     EmailVerified = table.Column<bool>(type: "INTEGER", nullable: false),
                     EmailVerificationToken = table.Column<string>(type: "TEXT", nullable: true),
+                    DepartmentId = table.Column<int>(type: "INTEGER", nullable: true),
+                    UserProfileId = table.Column<int>(type: "INTEGER", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
