@@ -17,6 +17,10 @@ build/
 *.user
 *.suo
 .DS_Store
+.env
 .env.local
+.env.production
+.env.*.local
 appsettings.*.json
+!appsettings.json
 .docker-remote-config.json

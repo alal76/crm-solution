@@ -43,6 +43,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // Contact entities
     public DbSet<Contact> Contacts { get; set; }
     public DbSet<SocialMediaLink> SocialMediaLinks { get; set; }
+    
+    // New comprehensive entities
+    public DbSet<CrmTask> CrmTasks { get; set; }
+    public DbSet<Note> Notes { get; set; }
+    public DbSet<Quote> Quotes { get; set; }
+    public DbSet<Activity> Activities { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -276,6 +282,118 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
             // Index for audit trail queries
             entity.HasIndex(e => new { e.WorkflowId, e.CreatedAt });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+        });
+
+        // Configure CrmTask
+        modelBuilder.Entity<CrmTask>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Subject).IsRequired().HasMaxLength(255);
+            
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Opportunity)
+                .WithMany()
+                .HasForeignKey(e => e.OpportunityId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.AssignedToUser)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.ParentTask)
+                .WithMany(t => t.SubTasks)
+                .HasForeignKey(e => e.ParentTaskId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasIndex(e => e.DueDate);
+            entity.HasIndex(e => e.Status);
+        });
+
+        // Configure Note
+        modelBuilder.Entity<Note>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Content).IsRequired();
+            
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Opportunity)
+                .WithMany()
+                .HasForeignKey(e => e.OpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasIndex(e => e.IsPinned);
+        });
+
+        // Configure Quote
+        modelBuilder.Entity<Quote>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.QuoteNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Opportunity)
+                .WithMany()
+                .HasForeignKey(e => e.OpportunityId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.AssignedToUser)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.ParentQuote)
+                .WithMany(q => q.Revisions)
+                .HasForeignKey(e => e.ParentQuoteId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasIndex(e => e.QuoteNumber).IsUnique();
+            entity.HasIndex(e => e.Status);
+        });
+
+        // Configure Activity
+        modelBuilder.Entity<Activity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
+            
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Opportunity)
+                .WithMany()
+                .HasForeignKey(e => e.OpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.ActivityDate);
+            entity.HasIndex(e => e.ActivityType);
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
         });
     }

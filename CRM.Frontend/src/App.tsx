@@ -27,6 +27,10 @@ import UserManagementPage from './pages/UserManagementPage';
 import DepartmentManagementPage from './pages/DepartmentManagementPage';
 import ProfileManagementPage from './pages/ProfileManagementPage';
 import SettingsPage from './pages/SettingsPage';
+import TasksPage from './pages/TasksPage';
+import QuotesPage from './pages/QuotesPage';
+import NotesPage from './pages/NotesPage';
+import ActivitiesPage from './pages/ActivitiesPage';
 import './App.css';
 
 function App() {
@@ -197,6 +201,46 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <SettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tasks"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <TasksPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/quotes"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <QuotesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notes"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <NotesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/activities"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ActivitiesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

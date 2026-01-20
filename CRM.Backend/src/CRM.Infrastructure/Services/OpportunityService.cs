@@ -27,7 +27,7 @@ public class OpportunityService : IOpportunityService
 
     public async Task<IEnumerable<Opportunity>> GetOpenOpportunitiesAsync()
     {
-        return await _repository.FindAsync(o => !o.IsDeleted && o.Stage != 4); // 4 = Closed
+        return await _repository.FindAsync(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost);
     }
 
     public async Task<int> CreateOpportunityAsync(Opportunity opportunity)

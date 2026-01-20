@@ -18,8 +18,6 @@ import {
   DialogActions,
   TextField,
   MenuItem,
-  FormControlLabel,
-  Checkbox,
   Stack,
   Chip,
 } from '@mui/material';
@@ -113,6 +111,7 @@ function ContactsPage() {
   // Fetch contacts
   useEffect(() => {
     fetchContacts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType]);
 
   const fetchContacts = async () => {

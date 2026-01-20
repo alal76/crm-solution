@@ -70,10 +70,12 @@ export const getApiEndpoint = (path: string): string => {
   return `${baseUrl}${apiPath}${path.startsWith('/') ? path : '/' + path}`;
 };
 
-export default {
+const portsConfig = {
   getServicePorts,
   getApiBaseUrl,
   getHealthCheckUrl,
   getApiEndpoint,
   DEFAULT_PORTS,
 };
+
+export default portsConfig;

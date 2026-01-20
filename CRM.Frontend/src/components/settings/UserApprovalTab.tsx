@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Box, Card, CardContent, Typography, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 
 function UserApprovalTab() {
   return (

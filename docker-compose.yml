@@ -8,10 +8,10 @@ services:
     ports:
       - "3306:3306"
     environment:
-      - MARIADB_ROOT_PASSWORD=RootPass@2024
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-RootPass@Dev2024}
       - MARIADB_DATABASE=crm_db
       - MARIADB_USER=crm_user
-      - MARIADB_PASSWORD=CrmPass@2024
+      - MARIADB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024}
     volumes:
       - db-data:/var/lib/mysql
     networks:
@@ -33,12 +33,13 @@ services:
     ports:
       - "5001:5000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/crm.db
       - DatabaseProvider=sqlite
-      - Jwt__Secret=your-super-secret-key-that-is-at-least-32-characters-long!!!
+      - Jwt__Secret=${JWT_SECRET:-dev-secret-key-change-in-production-32chars}
       - Jwt__Issuer=CRMApp
       - Jwt__Audience=CRMUsers
+      - AllowedOrigins=${ALLOWED_ORIGINS:-http://localhost:3000}
     volumes:
       - api-data:/app/data
     depends_on:

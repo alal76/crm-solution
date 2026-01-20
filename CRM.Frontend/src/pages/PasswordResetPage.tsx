@@ -16,7 +16,7 @@ function PasswordResetPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState<'request' | 'reset'>(token ? 'reset' : 'request');
+  const [step] = useState<'request' | 'reset'>(token ? 'reset' : 'request');
 
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();

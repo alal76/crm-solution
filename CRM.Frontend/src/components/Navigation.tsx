@@ -28,6 +28,10 @@ import {
   Lock as LockIcon,
   VpnKey as VpnKeyIcon,
   AutoAwesome as AutomationIcon,
+  Assignment as TaskIcon,
+  Description as QuoteIcon,
+  Note as NoteIcon,
+  Timeline as ActivityIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -37,7 +41,7 @@ import './Navigation.css';
 
 function NavigationContent() {
   const { isAuthenticated, user, logout } = useAuth();
-  const { profile, canAccessPage, hasPermission } = useProfile();
+  const { profile, hasPermission } = useProfile();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -68,6 +72,10 @@ function NavigationContent() {
     { label: 'Products', icon: PackageIcon, path: '/products', permission: 'Products' },
     { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', permission: 'Campaigns' },
     { label: 'Leads', icon: PeopleIcon, path: '/leads', permission: 'Customers' },
+    { label: 'Tasks', icon: TaskIcon, path: '/tasks', permission: 'Customers' },
+    { label: 'Quotes', icon: QuoteIcon, path: '/quotes', permission: 'Opportunities' },
+    { label: 'Notes', icon: NoteIcon, path: '/notes', permission: 'Customers' },
+    { label: 'Activities', icon: ActivityIcon, path: '/activities', permission: 'Dashboard' },
     { label: 'Services', icon: SettingsIcon, path: '/services', permission: 'Products' },
   ];
 

@@ -88,6 +88,10 @@ public class WorkflowsController : ControllerBase
             };
 
             var created = await _workflowService.CreateWorkflowAsync(workflow);
+            if (created == null)
+            {
+                return BadRequest(new { message = "Failed to create workflow" });
+            }
             return CreatedAtAction(nameof(GetWorkflow), new { id = created.Id }, MapToDto(created));
         }
         catch (Exception ex)

@@ -1,4 +1,4 @@
-import { Box, Container, Typography, Card, CardContent, TextField, Button, Alert, CircularProgress, FormControlLabel, Checkbox } from '@mui/material';
+import { Box, Container, Typography, Card, CardContent, TextField, Button, Alert, CircularProgress } from '@mui/material';
 import { useState, useEffect } from 'react';
 import logo from '../assets/logo.png';
 import apiClient from '../services/apiClient';
@@ -31,7 +31,7 @@ function TwoFactorPage() {
   const handleEnableTwoFactor = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.post('/auth/enable-2fa');
+      await apiClient.post('/auth/enable-2fa');
       // In a real scenario, QR code would be displayed here
       setSuccess(true);
       setIsVerifying(true);

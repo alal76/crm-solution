@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -18,80 +18,129 @@ import {
   Alert,
   IconButton,
   Chip,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from '@mui/material';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
+  PersonAdd as PersonAddIcon,
 } from '@mui/icons-material';
+import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 
+// Lead sources for the dropdown
+const LEAD_SOURCES = [
+  { value: 'website', label: 'Website', bg: '#E3F2FD', text: '#1565C0' },
+  { value: 'referral', label: 'Referral', bg: '#F3E5F5', text: '#6A1B9A' },
+  { value: 'event', label: 'Event', bg: '#E0F2F1', text: '#00695C' },
+  { value: 'cold_call', label: 'Cold Call', bg: '#FFF3E0', text: '#E65100' },
+  { value: 'social', label: 'Social Media', bg: '#FCE4EC', text: '#C2185B' },
+  { value: 'other', label: 'Other', bg: '#F0F4C3', text: '#558B2F' },
+];
+
+// Lead status options (stored in Notes field since Contact model doesn't have status)
+const LEAD_STATUSES = [
+  { value: 'new', label: 'New', bg: '#E8DEF8', text: '#6750A4' },
+  { value: 'contacted', label: 'Contacted', bg: '#E1F5FE', text: '#0277BD' },
+  { value: 'qualified', label: 'Qualified', bg: '#E8F5E9', text: '#06A77D' },
+  { value: 'converted', label: 'Converted', bg: '#F1F8E9', text: '#558B2F' },
+  { value: 'lost', label: 'Lost', bg: '#FFEBEE', text: '#B3261E' },
+];
+
 interface Lead {
-  id: string;
+  id: number;
   firstName: string;
   lastName: string;
-  email: string;
-  phone: string;
+  emailPrimary: string;
+  phonePrimary: string;
   company: string;
-  source: 'website' | 'referral' | 'event' | 'cold_call' | 'social' | 'other';
-  status: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
+  jobTitle: string;
+  source: string;
+  status: string;
+  notes: string;
   dateAdded: string;
+  contactType: number;
+}
+
+interface LeadFormData {
+  firstName: string;
+  lastName: string;
+  emailPrimary: string;
+  phonePrimary: string;
+  company: string;
+  jobTitle: string;
+  source: string;
+  status: string;
+  notes: string;
 }
 
 function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>([
-    {
-      id: '1',
-      firstName: 'John',
-      lastName: 'Smith',
-      email: 'john.smith@example.com',
-      phone: '(555) 123-4567',
-      company: 'TechStart Inc',
-      source: 'website',
-      status: 'new',
-      dateAdded: '2026-01-15',
-    },
-    {
-      id: '2',
-      firstName: 'Sarah',
-      lastName: 'Johnson',
-      email: 'sarah.j@business.com',
-      phone: '(555) 987-6543',
-      company: 'Enterprise Solutions',
-      source: 'referral',
-      status: 'contacted',
-      dateAdded: '2026-01-10',
-    },
-  ]);
-
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [formData, setFormData] = useState<LeadFormData>({
     firstName: '',
     lastName: '',
-    email: '',
-    phone: '',
+    emailPrimary: '',
+    phonePrimary: '',
     company: '',
+    jobTitle: '',
     source: 'website',
     status: 'new',
+    notes: '',
   });
-  const [error, setError] = useState('');
 
-  const sourceColors: Record<string, { bg: string; text: string }> = {
-    website: { bg: '#E3F2FD', text: '#1565C0' },
-    referral: { bg: '#F3E5F5', text: '#6A1B9A' },
-    event: { bg: '#E0F2F1', text: '#00695C' },
-    cold_call: { bg: '#FFF3E0', text: '#E65100' },
-    social: { bg: '#FCE4EC', text: '#C2185B' },
-    other: { bg: '#F0F4C3', text: '#558B2F' },
-  };
+  useEffect(() => {
+    fetchLeads();
+  }, []);
 
-  const statusColors: Record<string, { bg: string; text: string }> = {
-    new: { bg: '#E8DEF8', text: '#6750A4' },
-    contacted: { bg: '#E1F5FE', text: '#0277BD' },
-    qualified: { bg: '#E8F5E9', text: '#06A77D' },
-    converted: { bg: '#F1F8E9', text: '#558B2F' },
-    lost: { bg: '#FFEBEE', text: '#B3261E' },
+  const fetchLeads = async () => {
+    try {
+      setLoading(true);
+      // Leads are Contacts with ContactType = Lead (value 2)
+      const response = await apiClient.get('/contacts/type/Lead');
+      // Parse source and status from notes field (stored as JSON)
+      const leadsWithMeta = response.data.map((contact: any) => {
+        let source = 'other';
+        let status = 'new';
+        let notes = contact.notes || '';
+        
+        // Try to parse metadata from notes
+        try {
+          if (notes.startsWith('{')) {
+            const meta = JSON.parse(notes);
+            source = meta.source || 'other';
+            status = meta.status || 'new';
+            notes = meta.notes || '';
+          }
+        } catch {
+          // Notes is plain text, keep defaults
+        }
+        
+        return {
+          ...contact,
+          source,
+          status,
+          notes,
+        };
+      });
+      setLeads(leadsWithMeta);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch leads');
+      console.error('Error fetching leads:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOpenDialog = (lead?: Lead) => {
@@ -100,22 +149,26 @@ function LeadsPage() {
       setFormData({
         firstName: lead.firstName,
         lastName: lead.lastName,
-        email: lead.email,
-        phone: lead.phone,
-        company: lead.company,
-        source: lead.source,
-        status: lead.status,
+        emailPrimary: lead.emailPrimary || '',
+        phonePrimary: lead.phonePrimary || '',
+        company: lead.company || '',
+        jobTitle: lead.jobTitle || '',
+        source: lead.source || 'website',
+        status: lead.status || 'new',
+        notes: lead.notes || '',
       });
     } else {
       setEditingId(null);
       setFormData({
         firstName: '',
         lastName: '',
-        email: '',
-        phone: '',
+        emailPrimary: '',
+        phonePrimary: '',
         company: '',
+        jobTitle: '',
         source: 'website',
         status: 'new',
+        notes: '',
       });
     }
     setOpenDialog(true);
@@ -123,60 +176,147 @@ function LeadsPage() {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setError('');
+    setEditingId(null);
+    setError(null);
   };
 
-  const handleSave = () => {
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.company) {
-      setError('Please fill in all required fields');
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.emailPrimary.trim()) {
+      setError('Please fill in required fields (First Name, Last Name, Email)');
       return;
     }
 
-    if (editingId) {
-      setLeads(
-        leads.map((l) =>
-          l.id === editingId
-            ? {
-                ...l,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email,
-                phone: formData.phone,
-                company: formData.company,
-                source: formData.source as any,
-                status: formData.status as any,
-              }
-            : l
-        )
-      );
-    } else {
-      const newLead: Lead = {
-        id: Date.now().toString(),
+    try {
+      // Store source, status, and notes as JSON in notes field
+      const notesWithMeta = JSON.stringify({
+        source: formData.source,
+        status: formData.status,
+        notes: formData.notes,
+      });
+
+      const contactData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
+        emailPrimary: formData.emailPrimary,
+        phonePrimary: formData.phonePrimary,
         company: formData.company,
-        source: formData.source as any,
-        status: formData.status as any,
-        dateAdded: new Date().toISOString().split('T')[0],
+        jobTitle: formData.jobTitle,
+        contactType: 2, // Lead
+        notes: notesWithMeta,
       };
-      setLeads([...leads, newLead]);
+
+      if (editingId) {
+        await apiClient.put(`/contacts/${editingId}`, contactData);
+        setSuccessMessage('Lead updated successfully');
+      } else {
+        await apiClient.post('/contacts', contactData);
+        setSuccessMessage('Lead created successfully');
+      }
+      
+      handleCloseDialog();
+      fetchLeads();
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save lead');
+      console.error('Error saving lead:', err);
     }
-    handleCloseDialog();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this lead?')) {
-      setLeads(leads.filter((l) => l.id !== id));
+      try {
+        await apiClient.delete(`/contacts/${id}`);
+        setSuccessMessage('Lead deleted successfully');
+        fetchLeads();
+        
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to delete lead');
+        console.error('Error deleting lead:', err);
+      }
     }
   };
+
+  const handleConvertToCustomer = async (lead: Lead) => {
+    if (window.confirm(`Convert ${lead.firstName} ${lead.lastName} to a Customer?`)) {
+      try {
+        // Create customer from lead data
+        await apiClient.post('/customers', {
+          name: `${lead.firstName} ${lead.lastName}`,
+          company: lead.company || `${lead.firstName}'s Company`,
+          email: lead.emailPrimary,
+          phone: lead.phonePrimary,
+          industry: 'Other',
+          lifecycleStage: 1, // Customer
+          notes: `Converted from lead. ${lead.notes}`,
+        });
+
+        // Update lead status to converted
+        const notesWithMeta = JSON.stringify({
+          source: lead.source,
+          status: 'converted',
+          notes: lead.notes,
+        });
+
+        await apiClient.put(`/contacts/${lead.id}`, {
+          firstName: lead.firstName,
+          lastName: lead.lastName,
+          emailPrimary: lead.emailPrimary,
+          phonePrimary: lead.phonePrimary,
+          company: lead.company,
+          jobTitle: lead.jobTitle,
+          contactType: 2,
+          notes: notesWithMeta,
+        });
+
+        setSuccessMessage('Lead converted to customer successfully!');
+        fetchLeads();
+        
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to convert lead');
+        console.error('Error converting lead:', err);
+      }
+    }
+  };
+
+  const getSourceStyle = (source: string) => {
+    const sourceInfo = LEAD_SOURCES.find(s => s.value === source);
+    return sourceInfo ? { bg: sourceInfo.bg, text: sourceInfo.text } : { bg: '#F0F4C3', text: '#558B2F' };
+  };
+
+  const getStatusStyle = (status: string) => {
+    const statusInfo = LEAD_STATUSES.find(s => s.value === status);
+    return statusInfo ? { bg: statusInfo.bg, text: statusInfo.text } : { bg: '#E8DEF8', text: '#6750A4' };
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ py: 2 }}>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
+          <Box sx={{ width: 40, height: 40, flexShrink: 0 }}>
+            <img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          </Box>
           <Box>
             <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
               Leads
@@ -196,6 +336,9 @@ function LeadsPage() {
         </Button>
       </Box>
 
+      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
+      {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+
       <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
         <CardContent sx={{ p: 0 }}>
           <Table>
@@ -213,65 +356,96 @@ function LeadsPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {leads.map((lead) => (
-                <TableRow
-                  key={lead.id}
-                  sx={{
-                    '&:hover': { backgroundColor: '#F5EFF7' },
-                    borderBottom: '1px solid #E8DEF8',
-                  }}
-                >
-                  <TableCell sx={{ fontWeight: 500 }}>
-                    {lead.firstName} {lead.lastName}
-                  </TableCell>
-                  <TableCell>{lead.email}</TableCell>
-                  <TableCell>{lead.company}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={lead.source.replace('_', ' ').toUpperCase()}
-                      size="small"
-                      sx={{
-                        backgroundColor: sourceColors[lead.source]?.bg,
-                        color: sourceColors[lead.source]?.text,
-                        fontWeight: 600,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
-                      size="small"
-                      sx={{
-                        backgroundColor: statusColors[lead.status]?.bg,
-                        color: statusColors[lead.status]?.text,
-                        fontWeight: 600,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{lead.dateAdded}</TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenDialog(lead)}
-                      sx={{ color: '#6750A4' }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDelete(lead.id)}
-                      sx={{ color: '#B3261E' }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+              {leads.map((lead) => {
+                const sourceStyle = getSourceStyle(lead.source);
+                const statusStyle = getStatusStyle(lead.status);
+                return (
+                  <TableRow
+                    key={lead.id}
+                    sx={{
+                      '&:hover': { backgroundColor: '#F5EFF7' },
+                      borderBottom: '1px solid #E8DEF8',
+                    }}
+                  >
+                    <TableCell sx={{ fontWeight: 500 }}>
+                      {lead.firstName} {lead.lastName}
+                      {lead.jobTitle && (
+                        <Typography variant="caption" display="block" color="textSecondary">
+                          {lead.jobTitle}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>{lead.emailPrimary}</TableCell>
+                    <TableCell>{lead.company || '—'}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={LEAD_SOURCES.find(s => s.value === lead.source)?.label || lead.source}
+                        size="small"
+                        sx={{
+                          backgroundColor: sourceStyle.bg,
+                          color: sourceStyle.text,
+                          fontWeight: 600,
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={LEAD_STATUSES.find(s => s.value === lead.status)?.label || lead.status}
+                        size="small"
+                        sx={{
+                          backgroundColor: statusStyle.bg,
+                          color: statusStyle.text,
+                          fontWeight: 600,
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {lead.dateAdded ? new Date(lead.dateAdded).toLocaleDateString() : '—'}
+                    </TableCell>
+                    <TableCell align="center">
+                      {lead.status !== 'converted' && (
+                        <IconButton
+                          size="small"
+                          onClick={() => handleConvertToCustomer(lead)}
+                          sx={{ color: '#06A77D' }}
+                          title="Convert to Customer"
+                        >
+                          <PersonAddIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                      <IconButton
+                        size="small"
+                        onClick={() => handleOpenDialog(lead)}
+                        sx={{ color: '#6750A4' }}
+                        title="Edit Lead"
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDelete(lead.id)}
+                        sx={{ color: '#B3261E' }}
+                        title="Delete Lead"
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {leads.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                    <Typography color="textSecondary">No leads found. Add your first lead to get started.</Typography>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
+      {/* Add/Edit Lead Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 600, color: '#6750A4' }}>
           {editingId ? 'Edit Lead' : 'Add Lead'}
@@ -282,84 +456,112 @@ function LeadsPage() {
               {error}
             </Alert>
           )}
-          <TextField
-            fullWidth
-            label="First Name"
-            value={formData.firstName}
-            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Last Name"
-            value={formData.lastName}
-            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            required
-          />
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="First Name"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              margin="normal"
+              required
+            />
+            <TextField
+              fullWidth
+              label="Last Name"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              margin="normal"
+              required
+            />
+          </Box>
           <TextField
             fullWidth
             label="Email"
+            name="emailPrimary"
             type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            value={formData.emailPrimary}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
             required
           />
           <TextField
             fullWidth
             label="Phone"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            name="phonePrimary"
+            value={formData.phonePrimary}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
           />
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Company"
+              name="company"
+              value={formData.company}
+              onChange={handleInputChange}
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Job Title"
+              name="jobTitle"
+              value={formData.jobTitle}
+              onChange={handleInputChange}
+              margin="normal"
+            />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Lead Source</InputLabel>
+              <Select
+                name="source"
+                value={formData.source}
+                onChange={handleSelectChange}
+                label="Lead Source"
+              >
+                {LEAD_SOURCES.map(source => (
+                  <MenuItem key={source.value} value={source.value}>
+                    <Chip
+                      label={source.label}
+                      size="small"
+                      sx={{ backgroundColor: source.bg, color: source.text }}
+                    />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Status</InputLabel>
+              <Select
+                name="status"
+                value={formData.status}
+                onChange={handleSelectChange}
+                label="Status"
+              >
+                {LEAD_STATUSES.map(status => (
+                  <MenuItem key={status.value} value={status.value}>
+                    <Chip
+                      label={status.label}
+                      size="small"
+                      sx={{ backgroundColor: status.bg, color: status.text }}
+                    />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
           <TextField
             fullWidth
-            label="Company"
-            value={formData.company}
-            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+            label="Notes"
+            name="notes"
+            value={formData.notes}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            required
+            multiline
+            rows={3}
           />
-          <TextField
-            fullWidth
-            label="Lead Source"
-            select
-            value={formData.source}
-            onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            SelectProps={{ native: true }}
-          >
-            <option value="website">Website</option>
-            <option value="referral">Referral</option>
-            <option value="event">Event</option>
-            <option value="cold_call">Cold Call</option>
-            <option value="social">Social Media</option>
-            <option value="other">Other</option>
-          </TextField>
-          <TextField
-            fullWidth
-            label="Status"
-            select
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            SelectProps={{ native: true }}
-          >
-            <option value="new">New</option>
-            <option value="contacted">Contacted</option>
-            <option value="qualified">Qualified</option>
-            <option value="converted">Converted</option>
-            <option value="lost">Lost</option>
-          </TextField>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

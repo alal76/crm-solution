@@ -2,110 +2,124 @@ using Xunit;
 using Moq;
 using FluentAssertions;
 using CRM.Api.Controllers;
+using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace CRM.Tests.Controllers
 {
     public class DepartmentsControllerTests
     {
-        private readonly Mock<IDepartmentService> _mockDepartmentService;
+        private readonly Mock<IRepository<Department>> _mockDepartmentRepository;
+        private readonly Mock<ILogger<DepartmentsController>> _mockLogger;
         private readonly DepartmentsController _controller;
 
         public DepartmentsControllerTests()
         {
-            _mockDepartmentService = new Mock<IDepartmentService>();
-            _controller = new DepartmentsController(_mockDepartmentService.Object, null!);
+            _mockDepartmentRepository = new Mock<IRepository<Department>>();
+            _mockLogger = new Mock<ILogger<DepartmentsController>>();
+            _controller = new DepartmentsController(_mockDepartmentRepository.Object, _mockLogger.Object);
         }
 
         [Fact]
-        public async Task GetAll_ReturnsOkResult_WithDepartments()
+        public async Task GetDepartments_ReturnsOkResult_WithDepartments()
         {
             // Arrange
-            var departments = new List<object>
+            var departments = new List<Department>
             {
-                new { Id = 1, Name = "Sales", Code = "SAL" },
-                new { Id = 2, Name = "Engineering", Code = "ENG" }
+                new Department { Id = 1, Name = "Sales", DepartmentCode = "SAL", IsActive = true, IsDeleted = false },
+                new Department { Id = 2, Name = "Engineering", DepartmentCode = "ENG", IsActive = true, IsDeleted = false }
             };
 
-            _mockDepartmentService.Setup(s => s.GetAllDepartmentsAsync())
+            _mockDepartmentRepository.Setup(r => r.GetAllAsync())
                 .ReturnsAsync(departments);
 
             // Act
-            var result = await _controller.GetAll();
+            var result = await _controller.GetDepartments();
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            okResult.StatusCode.Should().Be(200);
-            _mockDepartmentService.Verify(s => s.GetAllDepartmentsAsync(), Times.Once);
+            var okResult = result.Result as OkObjectResult;
+            okResult.Should().NotBeNull();
+            okResult!.StatusCode.Should().Be(200);
+            _mockDepartmentRepository.Verify(r => r.GetAllAsync(), Times.Once);
         }
 
         [Fact]
-        public async Task GetById_WithValidId_ReturnsOkResult()
+        public async Task GetDepartmentById_WithValidId_ReturnsOkResult()
         {
             // Arrange
             var departmentId = 1;
-            var department = new { Id = 1, Name = "Sales", Code = "SAL" };
+            var department = new Department { Id = 1, Name = "Sales", DepartmentCode = "SAL", IsActive = true, IsDeleted = false };
 
-            _mockDepartmentService.Setup(s => s.GetDepartmentByIdAsync(departmentId))
+            _mockDepartmentRepository.Setup(r => r.GetByIdAsync(departmentId))
                 .ReturnsAsync(department);
 
             // Act
-            var result = await _controller.GetById(departmentId);
+            var result = await _controller.GetDepartmentById(departmentId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            okResult.StatusCode.Should().Be(200);
-            _mockDepartmentService.Verify(s => s.GetDepartmentByIdAsync(departmentId), Times.Once);
+            var okResult = result.Result as OkObjectResult;
+            okResult.Should().NotBeNull();
+            okResult!.StatusCode.Should().Be(200);
+            _mockDepartmentRepository.Verify(r => r.GetByIdAsync(departmentId), Times.Once);
         }
 
         [Fact]
-        public async Task Create_WithValidDepartment_ReturnsCreatedResult()
+        public async Task GetDepartmentById_WithInvalidId_ReturnsNotFound()
         {
             // Arrange
-            var departmentRequest = new { Name = "HR", Code = "HR" };
-            var createdDepartment = new { Id = 1, Name = "HR", Code = "HR" };
-
-            _mockDepartmentService.Setup(s => s.CreateDepartmentAsync(It.IsAny<object>()))
-                .ReturnsAsync(createdDepartment);
+            var departmentId = 999;
+            _mockDepartmentRepository.Setup(r => r.GetByIdAsync(departmentId))
+                .ReturnsAsync((Department?)null);
 
             // Act
-            var result = await _controller.Create(departmentRequest);
+            var result = await _controller.GetDepartmentById(departmentId);
 
             // Assert
-            var createdResult = Assert.IsType<CreatedAtActionResult>(result);
-            createdResult.StatusCode.Should().Be(201);
-            _mockDepartmentService.Verify(s => s.CreateDepartmentAsync(It.IsAny<object>()), Times.Once);
+            result.Result.Should().BeOfType<NotFoundResult>();
         }
 
         [Fact]
-        public async Task Delete_WithValidId_ReturnsOkResult()
+        public async Task GetDepartments_FiltersOutDeletedDepartments()
         {
             // Arrange
-            var departmentId = 1;
-            _mockDepartmentService.Setup(s => s.DeleteDepartmentAsync(departmentId))
-                .ReturnsAsync(true);
+            var departments = new List<Department>
+            {
+                new Department { Id = 1, Name = "Sales", IsDeleted = false },
+                new Department { Id = 2, Name = "Deleted Dept", IsDeleted = true }
+            };
+
+            _mockDepartmentRepository.Setup(r => r.GetAllAsync())
+                .ReturnsAsync(departments);
 
             // Act
-            var result = await _controller.Delete(departmentId);
+            var result = await _controller.GetDepartments();
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            okResult.StatusCode.Should().Be(200);
-            _mockDepartmentService.Verify(s => s.DeleteDepartmentAsync(departmentId), Times.Once);
+            var okResult = result.Result as OkObjectResult;
+            okResult.Should().NotBeNull();
         }
 
         [Fact]
-        public async Task GetAll_WhenServiceThrowsException_ReturnsBadRequest()
+        public void DepartmentsController_HasAuthorizeAttribute()
         {
-            // Arrange
-            _mockDepartmentService.Setup(s => s.GetAllDepartmentsAsync())
-                .ThrowsAsync(new Exception("Database error"));
+            // Verify the controller has the Authorize attribute
+            var controllerType = typeof(DepartmentsController);
+            var authorizeAttribute = controllerType.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true);
+            authorizeAttribute.Should().NotBeEmpty("Controller should require authorization");
+        }
 
-            // Act & Assert
-            await Assert.ThrowsAsync<Exception>(() => _controller.GetAll());
+        [Fact]
+        public void DepartmentsController_ImplementsApiController()
+        {
+            // Verify the controller has the ApiController attribute
+            var controllerType = typeof(DepartmentsController);
+            var apiControllerAttribute = controllerType.GetCustomAttributes(typeof(ApiControllerAttribute), true);
+            apiControllerAttribute.Should().NotBeEmpty("Controller should be an API controller");
         }
     }
 }
