@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Container,
   TextField,
@@ -15,311 +15,487 @@ import {
   Divider,
   FormControlLabel,
   Checkbox,
+  Fade,
+  Collapse,
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import {
+  Visibility,
+  VisibilityOff,
+  LockOutlined,
+  EmailOutlined,
+} from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import logo from '../assets/logo.png';
 
-function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [oauthEnabled, setOauthEnabled] = useState(false);
-  const { login, googleLogin } = useAuth();
-  const navigate = useNavigate();
-
-  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-
-  useEffect(() => {
-    const hasOAuthConfig = googleClientId;
-    setOauthEnabled(!!hasOAuthConfig);
-
-    if (!googleClientId) {
-      console.warn('Google OAuth: REACT_APP_GOOGLE_CLIENT_ID not configured');
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-
-    script.onload = () => {
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleGoogleResponse,
-        });
-        const googleButton = document.getElementById('google-login-button');
-        if (googleButton) {
-          window.google.accounts.id.renderButton(googleButton, {
-            theme: 'outline',
-            size: 'large',
-            width: '100%',
-          });
-        }
-      }
-    };
-
-    return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [googleClientId]);
-
-  const handleGoogleResponse = async (response: any) => {
-    if (response.credential) {
-      setError('');
-      setLoading(true);
-      try {
-        await googleLogin(response.credential);
-        navigate('/');
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Google login failed');
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      console.log('[LoginPage] Attempting login with email:', email);
-      await login(email, password);
-      console.log('[LoginPage] Login successful, navigating to home');
-      navigate('/');
-    } catch (err: any) {
-      console.error('[LoginPage] Login error:', {
-        message: err.message,
-        status: err.response?.status,
-        data: err.response?.data,
-        error: err,
-      });
-      
-      const errorMessage = 
-        err.response?.data?.message || 
-        err.response?.data?.error || 
-        err.message ||
-        'Login failed. Please check your credentials.';
-      
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+// Lazy load logo for faster initial render
+const Logo = React.memo(() => {
+  const [logoLoaded, setLogoLoaded] = useState(false);
+  
   return (
     <Box
       sx={{
+        width: 60,
+        height: 60,
+        mx: 'auto',
+        mb: 2,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: '50%',
+        transition: 'transform 0.3s ease',
+        '&:hover': { transform: 'scale(1.05)' },
+      }}
+    >
+      <img
+        src="/logo.png"
+        alt="CRM"
+        loading="lazy"
+        onLoad={() => setLogoLoaded(true)}
+        style={{
+          width: 40,
+          height: 40,
+          objectFit: 'contain',
+          opacity: logoLoaded ? 1 : 0,
+          transition: 'opacity 0.3s ease',
+        }}
+        onError={(e) => {
+          (e.target as HTMLImageElement).style.display = 'none';
+        }}
+      />
+      {!logoLoaded && <LockOutlined sx={{ fontSize: 32, color: 'white' }} />}
+    </Box>
+  );
+});
+
+// Memoized styles for better performance
+const useStyles = () =>
+  useMemo(
+    () => ({
+      container: {
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #6750A4 0%, #A085D3 100%)',
+        background: 'linear-gradient(135deg, #6750A4 0%, #9575CD 50%, #7E57C2 100%)',
+        backgroundSize: '200% 200%',
+        animation: 'gradientShift 15s ease infinite',
         py: 3,
         px: 2,
-      }}
-    >
-      <Container maxWidth="sm">
-        <Card
-          sx={{
-            borderRadius: 3,
-            boxShadow: '0px 12px 24px rgba(0, 0, 0, 0.15)',
-            overflow: 'hidden',
-          }}
-        >
-          <Box
-            sx={{
-              background: 'linear-gradient(135deg, #6750A4 0%, #7D5B8D 100%)',
-              color: 'white',
-              p: 3,
-              textAlign: 'center',
-            }}
-          >
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center', width: 50, height: 50, mx: 'auto' }}>
-              <img src={logo} alt="CRM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            </Box>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-              Welcome Back
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Sign in to your CRM account
-            </Typography>
-          </Box>
+        '@keyframes gradientShift': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
+        },
+      },
+      card: {
+        borderRadius: 4,
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
+        overflow: 'hidden',
+        backdropFilter: 'blur(10px)',
+        maxWidth: 440,
+        width: '100%',
+      },
+      header: {
+        background: 'linear-gradient(135deg, #5E35B1 0%, #7E57C2 100%)',
+        color: 'white',
+        p: 4,
+        textAlign: 'center' as const,
+      },
+      input: {
+        '& .MuiOutlinedInput-root': {
+          borderRadius: 2,
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            boxShadow: '0 2px 8px rgba(103, 80, 164, 0.15)',
+          },
+          '&.Mui-focused': {
+            boxShadow: '0 4px 12px rgba(103, 80, 164, 0.2)',
+          },
+        },
+      },
+      button: {
+        textTransform: 'none' as const,
+        fontSize: '1rem',
+        fontWeight: 600,
+        py: 1.5,
+        borderRadius: 3,
+        background: 'linear-gradient(135deg, #5E35B1 0%, #7E57C2 100%)',
+        boxShadow: '0 4px 15px rgba(94, 53, 177, 0.35)',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 8px 25px rgba(94, 53, 177, 0.45)',
+        },
+        '&:active': {
+          transform: 'translateY(0)',
+        },
+        '&:disabled': {
+          background: '#B8B5BD',
+          boxShadow: 'none',
+        },
+      },
+    }),
+    []
+  );
 
-          <CardContent sx={{ p: 4 }}>
-            {/* Error Alert */}
-            {error && (
-              <Alert
-                severity="error"
-                sx={{
-                  mb: 3,
-                  borderRadius: 2,
-                  fontWeight: 500,
-                }}
+const LoginPage: React.FC = () => {
+  // Form state
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => {
+    return localStorage.getItem('rememberMe') === 'true';
+  });
+  
+  // UI state
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  // OAuth state
+  const [oauthEnabled, setOauthEnabled] = useState(false);
+  
+  const { login, googleLogin } = useAuth();
+  const navigate = useNavigate();
+  const styles = useStyles();
+
+  // Load saved email on mount
+  useEffect(() => {
+    setMounted(true);
+    const savedEmail = localStorage.getItem('savedEmail');
+    if (savedEmail && rememberMe) {
+      setFormData(prev => ({ ...prev, email: savedEmail }));
+    }
+  }, [rememberMe]);
+
+  // Initialize Google OAuth lazily
+  useEffect(() => {
+    const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    if (!googleClientId) return;
+
+    setOauthEnabled(true);
+
+    // Defer script loading for faster initial render
+    const timer = setTimeout(() => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      
+      script.onload = () => {
+        if (window.google) {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleGoogleResponse,
+          });
+          const btn = document.getElementById('google-login-button');
+          if (btn) {
+            window.google.accounts.id.renderButton(btn, {
+              theme: 'outline',
+              size: 'large',
+              width: 380,
+            });
+          }
+        }
+      };
+      
+      document.head.appendChild(script);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleGoogleResponse = useCallback(
+    async (response: { credential?: string }) => {
+      if (!response.credential) return;
+      
+      setError('');
+      setLoading(true);
+      
+      try {
+        await googleLogin(response.credential);
+        navigate('/');
+      } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } } };
+        setError(error.response?.data?.message || 'Google login failed');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [googleLogin, navigate]
+  );
+
+  const handleInputChange = useCallback(
+    (field: 'email' | 'password') => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData(prev => ({ ...prev, [field]: e.target.value }));
+      if (error) setError('');
+    },
+    [error]
+  );
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      
+      if (!formData.email.trim() || !formData.password) {
+        setError('Please enter both email and password');
+        return;
+      }
+
+      setError('');
+      setLoading(true);
+
+      try {
+        await login(formData.email.trim(), formData.password);
+        
+        if (rememberMe) {
+          localStorage.setItem('savedEmail', formData.email.trim());
+          localStorage.setItem('rememberMe', 'true');
+        } else {
+          localStorage.removeItem('savedEmail');
+          localStorage.removeItem('rememberMe');
+        }
+        
+        navigate('/');
+      } catch (err: unknown) {
+        const error = err as { 
+          response?: { data?: { message?: string; error?: string }; status?: number };
+          message?: string;
+        };
+        
+        let errorMessage = 'Login failed. Please check your credentials.';
+        
+        if (error.response?.status === 401) {
+          errorMessage = 'Invalid email or password';
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [formData, login, navigate, rememberMe]
+  );
+
+  const togglePassword = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
+
+  const handleRememberMe = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setRememberMe(e.target.checked);
+  }, []);
+
+  return (
+    <Box sx={styles.container}>
+      <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Fade in={mounted} timeout={600}>
+          <Card sx={styles.card}>
+            <Box sx={styles.header}>
+              <Logo />
+              <Typography
+                variant="h4"
+                component="h1"
+                sx={{ fontWeight: 700, mb: 0.5, letterSpacing: '-0.5px' }}
               >
-                {error}
-              </Alert>
-            )}
-
-            {/* Login Form */}
-            <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
-              <TextField
-                fullWidth
-                label="Email or Username"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                margin="normal"
-                variant="outlined"
-                placeholder="you@example.com"
-                required
-                InputProps={{
-                  sx: { borderRadius: 2 },
-                }}
-              />
-
-              <TextField
-                fullWidth
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                margin="normal"
-                variant="outlined"
-                placeholder="••••••••"
-                required
-                InputProps={{
-                  sx: { borderRadius: 2 },
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        disabled={loading}
-                        sx={{
-                          '&:hover': {
-                            backgroundColor: 'rgba(103, 80, 164, 0.08)',
-                          },
-                        }}
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-
-              <Box sx={{ mt: 2, mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      disabled={loading}
-                      size="small"
-                    />
-                  }
-                  label={<Typography variant="body2">Remember me</Typography>}
-                />
-                <MuiLink
-                  component={RouterLink}
-                  to="/password-reset"
-                  sx={{
-                    textDecoration: 'none',
-                    fontSize: '0.9rem',
-                    fontWeight: 500,
-                    color: '#6750A4',
-                    '&:hover': { textDecoration: 'underline' },
-                  }}
-                >
-                  Forgot password?
-                </MuiLink>
-              </Box>
-
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
-                type="submit"
-                disabled={loading}
-                sx={{
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  py: 1.5,
-                  borderRadius: 3,
-                  background: 'linear-gradient(135deg, #6750A4 0%, #7D5B8D 100%)',
-                  boxShadow: '0px 4px 12px rgba(103, 80, 164, 0.3)',
-                  '&:hover': {
-                    boxShadow: '0px 8px 20px rgba(103, 80, 164, 0.4)',
-                  },
-                  '&:disabled': {
-                    background: '#CAC7D0',
-                  },
-                }}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
-              </Button>
-            </Box>
-
-            {/* Divider */}
-            {oauthEnabled && (
-              <>
-                <Divider sx={{ my: 3, fontWeight: 500 }}>Or continue with</Divider>
-
-                {/* Google Login */}
-                <Box sx={{ mb: 3 }}>
-                  <div id="google-login-button" style={{ width: '100%' }}></div>
-                </Box>
-              </>
-            )}
-
-            {/* Sign Up Link */}
-            <Box sx={{ textAlign: 'center', mt: 3, pt: 3, borderTop: '1px solid #E0E0E0' }}>
-              <Typography variant="body2">
-                Don't have an account?{' '}
-                <MuiLink
-                  component={RouterLink}
-                  to="/register"
-                  sx={{
-                    textDecoration: 'none',
-                    fontWeight: 700,
-                    color: '#6750A4',
-                    '&:hover': {
-                      textDecoration: 'underline',
-                    },
-                  }}
-                >
-                  Create one
-                </MuiLink>
+                Welcome Back
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.85 }}>
+                Sign in to continue to your CRM
               </Typography>
             </Box>
-          </CardContent>
-        </Card>
 
-        {/* Footer */}
-        <Box sx={{ textAlign: 'center', mt: 4, color: 'rgba(255, 255, 255, 0.8)' }}>
-          <Typography variant="caption" sx={{ fontSize: '0.8rem' }}>
-            © 2026 CRM System. All rights reserved.
-          </Typography>
-        </Box>
+            <CardContent sx={{ p: 4 }}>
+              <Collapse in={!!error}>
+                <Alert
+                  severity="error"
+                  onClose={() => setError('')}
+                  sx={{ mb: 3, borderRadius: 2 }}
+                >
+                  {error}
+                </Alert>
+              </Collapse>
+
+              <Box component="form" onSubmit={handleSubmit} noValidate>
+                <TextField
+                  fullWidth
+                  label="Email or Username"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange('email')}
+                  disabled={loading}
+                  margin="normal"
+                  autoComplete="email"
+                  autoFocus
+                  placeholder="you@company.com"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailOutlined sx={{ color: 'action.active' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={styles.input}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={handleInputChange('password')}
+                  disabled={loading}
+                  margin="normal"
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockOutlined sx={{ color: 'action.active' }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={togglePassword}
+                          edge="end"
+                          disabled={loading}
+                          size="small"
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={styles.input}
+                />
+
+                <Box
+                  sx={{
+                    mt: 2,
+                    mb: 3,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={rememberMe}
+                        onChange={handleRememberMe}
+                        disabled={loading}
+                        size="small"
+                        sx={{
+                          color: '#7E57C2',
+                          '&.Mui-checked': { color: '#5E35B1' },
+                        }}
+                      />
+                    }
+                    label={
+                      <Typography variant="body2" color="text.secondary">
+                        Remember me
+                      </Typography>
+                    }
+                  />
+                  <MuiLink
+                    component={RouterLink}
+                    to="/password-reset"
+                    sx={{
+                      textDecoration: 'none',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      color: '#5E35B1',
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+                  >
+                    Forgot password?
+                  </MuiLink>
+                </Box>
+
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  type="submit"
+                  disabled={loading || !formData.email || !formData.password}
+                  sx={styles.button}
+                >
+                  {loading ? (
+                    <CircularProgress size={24} sx={{ color: 'white' }} />
+                  ) : (
+                    'Sign In'
+                  )}
+                </Button>
+              </Box>
+
+              {oauthEnabled && (
+                <Fade in timeout={800}>
+                  <Box>
+                    <Divider sx={{ my: 3 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        or
+                      </Typography>
+                    </Divider>
+                    <Box id="google-login-button" sx={{ display: 'flex', justifyContent: 'center' }} />
+                  </Box>
+                </Fade>
+              )}
+
+              <Box
+                sx={{
+                  textAlign: 'center',
+                  mt: 4,
+                  pt: 3,
+                  borderTop: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Don't have an account?{' '}
+                  <MuiLink
+                    component={RouterLink}
+                    to="/register"
+                    sx={{
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      color: '#5E35B1',
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+                  >
+                    Create one
+                  </MuiLink>
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Fade>
       </Container>
+
+      <Typography
+        variant="caption"
+        sx={{
+          position: 'fixed',
+          bottom: 16,
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          color: 'rgba(255,255,255,0.7)',
+        }}
+      >
+        © {new Date().getFullYear()} CRM System. All rights reserved.
+      </Typography>
     </Box>
   );
-}
+};
 
-export default LoginPage;
-
+export default React.memo(LoginPage);
