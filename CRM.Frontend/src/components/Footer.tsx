@@ -58,6 +58,7 @@ function Footer() {
     const interval = setInterval(checkHealth, 30000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getStatusClass = (status: 'up' | 'down') => {

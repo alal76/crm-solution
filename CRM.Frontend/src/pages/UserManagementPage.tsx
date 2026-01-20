@@ -59,7 +59,7 @@ const getRoleLabel = (role: number) => roleOptions.find(r => r.value === role)?.
 
 function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [, setContacts] = useState<Contact[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);

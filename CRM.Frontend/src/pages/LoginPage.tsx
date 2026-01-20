@@ -71,6 +71,7 @@ function LoginPage() {
         document.head.removeChild(script);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleClientId]);
 
   const handleGoogleResponse = async (response: any) => {

@@ -29,7 +29,7 @@ public class MarketingCampaignService : IMarketingCampaignService
 
     public async Task<IEnumerable<MarketingCampaign>> GetActiveCampaignsAsync()
     {
-        return await _repository.FindAsync(c => !c.IsDeleted && c.Status == 1); // 1 = Active
+        return await _repository.FindAsync(c => !c.IsDeleted && c.Status == CampaignStatus.Active);
     }
 
     public async Task<int> CreateCampaignAsync(MarketingCampaign campaign)

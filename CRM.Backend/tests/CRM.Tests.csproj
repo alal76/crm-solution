@@ -21,9 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CRM.Api\CRM.Api.csproj" />
-    <ProjectReference Include="..\CRM.Core\CRM.Core.csproj" />
-    <ProjectReference Include="..\CRM.Infrastructure\CRM.Infrastructure.csproj" />
+    <ProjectReference Include="..\src\CRM.Api\CRM.Api.csproj" />
+    <ProjectReference Include="..\src\CRM.Core\CRM.Core.csproj" />
+    <ProjectReference Include="..\src\CRM.Infrastructure\CRM.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

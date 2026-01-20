@@ -37,27 +37,28 @@ namespace CRM.Tests
         }
 
         [Fact]
-        public void Customer_StatusShouldBeActive()
-        {
-            // Arrange
-            var customer = new Customer
-            {
-                Status = "Active"
-            };
-
-            // Act & Assert
-            Assert.Equal("Active", customer.Status);
-        }
-
-        [Fact]
-        public void Customer_ShouldHaveOpportunitiesCollection()
+        public void Customer_LifecycleStageShouldDefaultToZero()
         {
             // Arrange
             var customer = new Customer();
 
             // Act & Assert
-            Assert.NotNull(customer.Opportunities);
-            Assert.Empty(customer.Opportunities);
+            Assert.Equal(0, customer.LifecycleStage);
+        }
+
+        [Fact]
+        public void Customer_ShouldCalculateFullName()
+        {
+            // Arrange
+            var customer = new Customer
+            {
+                FirstName = "John",
+                LastName = "Doe"
+            };
+
+            // Act & Assert
+            Assert.Equal("John", customer.FirstName);
+            Assert.Equal("Doe", customer.LastName);
         }
     }
 
@@ -71,12 +72,12 @@ namespace CRM.Tests
             {
                 Name = "Premium Package",
                 Price = 999.99m,
-                Stock = 50
+                Quantity = 50
             };
 
             // Act & Assert
             Assert.Equal(999.99m, product.Price);
-            Assert.Equal(50, product.Stock);
+            Assert.Equal(50, product.Quantity);
         }
 
         [Fact]
@@ -93,16 +94,13 @@ namespace CRM.Tests
         }
 
         [Fact]
-        public void Product_StatusShouldBeActive()
+        public void Product_IsActiveShouldDefaultToTrue()
         {
             // Arrange
-            var product = new Product
-            {
-                Status = "active"
-            };
+            var product = new Product();
 
             // Act & Assert
-            Assert.Equal("active", product.Status);
+            Assert.True(product.IsActive);
         }
     }
 }

@@ -59,7 +59,7 @@ function CompanyBrandingTab() {
     companyEmail: 'support@example.com',
     companyPhone: '(555) 000-0000',
   });
-  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState(formData.companyLogo);
   const [saved, setSaved] = useState(false);
 
@@ -238,10 +238,10 @@ function CompanyBrandingTab() {
 }
 
 function SettingsPage() {
-  const { user } = useAuth();
+  useAuth();
   const [activeTab, setActiveTab] = useState('branding');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error] = useState('');
 
   useEffect(() => {
     // Simulate loading
