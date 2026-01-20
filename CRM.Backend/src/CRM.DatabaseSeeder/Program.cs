@@ -462,7 +462,7 @@ class Program
                 ZipCode = faker.Address.ZipCode(),
                 LeadScore = faker.Random.Int(0, 100),
                 LeadSource = faker.PickRandom(new[] { "Website", "Referral", "LinkedIn", "Trade Show", "Email Campaign" }),
-                CustomerId = faker.Random.Bool(0.3f) ? faker.PickRandom(customers).Id : null,
+                AccountId = faker.Random.Bool(0.3f) ? faker.PickRandom(customers).Id : null,
                 Notes = faker.Lorem.Paragraph(),
                 DateAdded = faker.Date.Past(1)
             };
@@ -734,9 +734,8 @@ class Program
                 ContactId = faker.Random.Bool(0.3f) ? faker.PickRandom(contacts).Id : null,
                 AssignedToUserId = faker.PickRandom(users).Id,
                 CreatedByUserId = faker.PickRandom(users).Id,
-                FollowUpRequired = faker.Random.Bool(0.3f),
                 FollowUpDate = faker.Random.Bool(0.2f) ? faker.Date.Future(1) : null,
-                Notes = faker.Lorem.Paragraph(),
+                FollowUpNotes = faker.Lorem.Paragraph(),
                 CreatedAt = faker.Date.Past(1)
             };
             interactions.Add(interaction);
@@ -775,8 +774,8 @@ class Program
                 EntityId = faker.Random.Int(1, 50),
                 CustomerId = faker.Random.Bool(0.4f) ? faker.PickRandom(customers).Id : null,
                 OpportunityId = faker.Random.Bool(0.3f) ? faker.PickRandom(opportunities).Id : null,
-                IsSystemGenerated = faker.Random.Bool(0.2f),
-                IsVisible = true,
+                IsSystem = faker.Random.Bool(0.2f),
+                IsPrivate = false,
                 CreatedAt = faker.Date.Past(1)
             };
             activities.Add(activity);
