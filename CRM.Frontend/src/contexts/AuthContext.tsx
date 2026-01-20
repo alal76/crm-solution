@@ -123,8 +123,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      debugLog('Login attempt', { email });
-      const response = await axiosInstance.post('/auth/login', { email, password });
+      const endpoint = '/auth/login';
+      console.log('[AuthContext] Login attempt', { email, endpoint });
+      debugLog('Login attempt', { email, endpoint });
+      
+      const response = await axiosInstance.post(endpoint, { email, password });
+      console.log('[AuthContext] Login response received:', { userId: response.data.userId, status: response.status });
       debugLog('Login successful', { userId: response.data.userId, email: response.data.email });
       
       const accessToken = response.data.accessToken;
@@ -152,7 +156,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(response.data);
       setIsAuthenticated(true);
+      console.log('[AuthContext] Login complete, user authenticated');
     } catch (error: any) {
+      console.error('[AuthContext] Login failed:', {
+        email,
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        code: error.code,
+      });
       debugError('Login failed', {
         email,
         error: error.message,

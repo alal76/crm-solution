@@ -2,6 +2,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -80,6 +81,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserGroupService, UserGroupService>();
 builder.Services.AddScoped<IUserApprovalService, UserApprovalService>();
 builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
+builder.Services.AddScoped<IWorkflowService, WorkflowService>();
+builder.Services.AddScoped<IContactsService, ContactsService>();
 
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-super-secret-key-that-is-at-least-32-characters-long!!!";
@@ -91,10 +94,21 @@ builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = "Bearer";
     options.DefaultChallengeScheme = "Bearer";
+})
+.AddJwtBearer("Bearer", options =>
+{
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
 });
-
-// Note: JwtBearer authentication requires Microsoft.AspNetCore.Authentication.JwtBearer NuGet package
-// For now, authentication is configured but the JWT bearer middleware will need to be added manually
 
 var app = builder.Build();
 
@@ -104,13 +118,41 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
     try
     {
-        await db.Database.MigrateAsync();
+        // Check if database exists and has tables
+        var canConnect = await db.Database.CanConnectAsync();
+        if (canConnect)
+        {
+            // Try to apply migrations if they haven't been applied
+            try
+            {
+                var pending = await db.Database.GetPendingMigrationsAsync();
+                if (pending.Any())
+                {
+                    Log.Information($"Applying {pending.Count()} pending migrations...");
+                    await db.Database.MigrateAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Could not apply migrations, trying EnsureCreated...");
+                // If migration fails, try creating tables from model
+                await db.Database.EnsureCreatedAsync();
+            }
+        }
+        else
+        {
+            Log.Information("Creating new database...");
+            await db.Database.EnsureCreatedAsync();
+        }
+        
+        // Seed data
         await DbSeed.SeedAsync(db);
-        Log.Information("Database migrations and seeding completed successfully");
+        Log.Information("Database setup completed successfully");
     }
     catch (Exception ex)
     {
-        Log.Error(ex, "Error applying migrations or seeding database");
+        Log.Error(ex, "Error during database setup - continuing anyway");
+        // Continue anyway - the app can still run with partial setup
     }
 }
 
@@ -133,16 +175,20 @@ if (Directory.Exists(frontendBuildPath))
 
 app.UseRouting();
 app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// SPA fallback - serve index.html for unmatched routes
-app.MapFallback(context =>
+// SPA fallback - serve index.html for unmatched routes (only if frontend build exists)
+if (Directory.Exists(frontendBuildPath))
 {
-    context.Response.ContentType = "text/html";
-    return context.Response.SendFileAsync(Path.Combine(frontendBuildPath, "index.html"));
-});
+    app.MapFallback(context =>
+    {
+        context.Response.ContentType = "text/html";
+        return context.Response.SendFileAsync(Path.Combine(frontendBuildPath, "index.html"));
+    });
+}
 
 app.Run();
 

@@ -148,6 +148,71 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
+    /// Update user (edit)
+    /// </summary>
+    [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<UserDto>> UpdateUser(int id, [FromBody] UpdateUserDto updateDto)
+    {
+        try
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null || user.IsDeleted)
+                return NotFound(new { message = "User not found" });
+
+            user.Email = updateDto.Email ?? user.Email;
+            user.FirstName = updateDto.FirstName ?? user.FirstName;
+            user.LastName = updateDto.LastName ?? user.LastName;
+            user.Role = updateDto.Role ?? user.Role;
+            user.IsActive = updateDto.IsActive ?? user.IsActive;
+            user.DepartmentId = updateDto.DepartmentId ?? user.DepartmentId;
+            user.UserProfileId = updateDto.UserProfileId ?? user.UserProfileId;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveAsync();
+
+            return Ok(MapToDto(user));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user {Id}", id);
+            return StatusCode(500, new { message = "Error updating user", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Delete user
+    /// </summary>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteUser(int id)
+    {
+        try
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null || user.IsDeleted)
+                return NotFound(new { message = "User not found" });
+
+            user.IsDeleted = true;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveAsync();
+
+            return Ok(new { message = "User deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting user {Id}", id);
+            return StatusCode(500, new { message = "Error deleting user", error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Remove user from profile
     /// </summary>
     [HttpPost("{id}/remove-profile")]

@@ -27,10 +27,12 @@ import {
   AccountCircle as AccountCircleIcon,
   Lock as LockIcon,
   VpnKey as VpnKeyIcon,
+  AutoAwesome as AutomationIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../contexts/ProfileContext';
+import logo from '../assets/logo.png';
 import './Navigation.css';
 
 function NavigationContent() {
@@ -61,6 +63,7 @@ function NavigationContent() {
   const navItems = [
     { label: 'Dashboard', icon: DashboardIcon, path: '/', permission: 'Dashboard' },
     { label: 'Customers', icon: PeopleIcon, path: '/customers', permission: 'Customers' },
+    { label: 'Contacts', icon: PeopleIcon, path: '/contacts', permission: 'Contacts' },
     { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', permission: 'Opportunities' },
     { label: 'Products', icon: PackageIcon, path: '/products', permission: 'Products' },
     { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', permission: 'Campaigns' },
@@ -69,6 +72,7 @@ function NavigationContent() {
   ];
 
   const adminItems = [
+    { label: 'Workflows', icon: AutomationIcon, path: '/workflows' },
     { label: 'Admin Settings', icon: SettingsIcon, path: '/settings' },
   ];
 
@@ -86,6 +90,9 @@ function NavigationContent() {
             >
               <MenuIcon />
             </IconButton>
+            <Box sx={{ width: 36, height: 36, mr: 1.5, flexShrink: 0 }}>
+              <img src={logo} alt="CRM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </Box>
             <Typography variant="h6" component={RouterLink} to="/" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 600 }}>
               CRM System
             </Typography>
@@ -153,34 +160,35 @@ function NavigationContent() {
           },
         }}
       >
-        <Box sx={{ p: 2 }}>
+        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 32, height: 32, flexShrink: 0 }}>
+            <img src={logo} alt="CRM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </Box>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Menu
           </Typography>
         </Box>
         <Divider />
         <List>
-          {navItems.map((item) =>
-            canAccessPage(item.permission) ? (
-              <ListItem
-                button
-                key={item.path}
-                component={RouterLink}
-                to={item.path}
-                onClick={() => setDrawerOpen(false)}
-                sx={{
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
-                  },
-                }}
-              >
-                <ListItemIcon>
-                  <item.icon />
-                </ListItemIcon>
-                <ListItemText primary={item.label} />
-              </ListItem>
-            ) : null
-          )}
+          {navItems.map((item) => (
+            <ListItem
+              button
+              key={item.path}
+              component={RouterLink}
+              to={item.path}
+              onClick={() => setDrawerOpen(false)}
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                },
+              }}
+            >
+              <ListItemIcon>
+                <item.icon />
+              </ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItem>
+          ))}
         </List>
 
         {(user?.role === 'Admin' || user?.role === 0 || user?.role === '0' || hasPermission('canManageUsers')) && (

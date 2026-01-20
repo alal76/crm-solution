@@ -281,4 +281,41 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { message = "An error occurred during password reset" });
         }
     }
+
+    /// <summary>
+    /// Admin reset user password (by user ID)
+    /// </summary>
+    [HttpPost("reset-password/{userId}")]
+    [Authorize]
+    public async Task<IActionResult> AdminResetPassword(int userId, [FromBody] AdminPasswordResetRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Verify user is admin
+            var userRoleClaim = User.FindFirst("role");
+            if (userRoleClaim?.Value != "0") // 0 = Admin role
+                return Forbid();
+
+            await _authenticationService.AdminResetPasswordAsync(userId, request.NewPassword);
+            return Ok(new { message = "Password reset successfully" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning($"Admin password reset failed: {ex.Message}");
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning($"Admin password reset unauthorized: {ex.Message}");
+            return Forbid();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Admin password reset error: {ex.Message}");
+            return StatusCode(500, new { message = "An error occurred during password reset" });
+        }
+    }
 }

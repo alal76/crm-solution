@@ -1,0 +1,28 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo Background Circle -->
+  <circle cx="20" cy="20" r="18" fill="#6750A4" opacity="0.1"/>
+  
+  <!-- Main Circle -->
+  <circle cx="20" cy="20" r="15" fill="#6750A4"/>
+  
+  <!-- Top Left Segment -->
+  <path d="M 20 5 L 28 13 L 20 13 Z" fill="white"/>
+  
+  <!-- Top Right Segment -->
+  <path d="M 20 5 L 12 13 L 20 13 Z" fill="white" opacity="0.8"/>
+  
+  <!-- Bottom Right Segment -->
+  <path d="M 20 35 L 28 27 L 20 27 Z" fill="white"/>
+  
+  <!-- Bottom Left Segment -->
+  <path d="M 20 35 L 12 27 L 20 27 Z" fill="white" opacity="0.8"/>
+  
+  <!-- Center Square -->
+  <rect x="16" y="16" width="8" height="8" fill="white"/>
+  
+  <!-- Right Segment -->
+  <path d="M 35 20 L 27 28 L 27 20 Z" fill="white"/>
+  
+  <!-- Left Segment -->
+  <path d="M 5 20 L 13 28 L 13 20 Z" fill="white" opacity="0.8"/>
+</svg>

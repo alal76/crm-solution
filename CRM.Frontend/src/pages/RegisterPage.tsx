@@ -19,6 +19,7 @@ import {
 import { Visibility, VisibilityOff, Check as CheckIcon } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logo from '../assets/logo.png';
 
 function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -149,6 +150,9 @@ function RegisterPage() {
               textAlign: 'center',
             }}
           >
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center', width: 50, height: 50, mx: 'auto' }}>
+              <img src={logo} alt="CRM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </Box>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
               Create Account
             </Typography>

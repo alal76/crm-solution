@@ -55,9 +55,11 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const canAccessPage = (pageName: string): boolean => {
-    if (!profile) return false;
-    // If no accessible pages are specified, allow access to all pages (admin behavior)
+    // If profile not loaded yet, allow access (will check again when loaded)
+    if (!profile) return true;
+    // If no accessible pages are specified, allow access to all pages (admin/default behavior)
     if (profile.accessiblePages.length === 0) return true;
+    // Otherwise, check if the page is in the accessible pages list
     return profile.accessiblePages.includes(pageName);
   };
 

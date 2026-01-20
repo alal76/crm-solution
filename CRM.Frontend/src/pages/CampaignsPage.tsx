@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -14,79 +14,68 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Alert,
-  IconButton,
-  Chip,
-  LinearProgress,
+  CircularProgress,
+  TextField,
+  Container,
 } from '@mui/material';
 import {
+  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Add as AddIcon,
 } from '@mui/icons-material';
+import apiClient from '../services/apiClient';
+import logo from '../assets/logo.png';
 
 interface Campaign {
-  id: string;
+  id: number;
   name: string;
-  type: 'email' | 'social' | 'webinar' | 'content' | 'event';
-  status: 'planning' | 'active' | 'paused' | 'completed';
+  description: string;
   startDate: string;
   endDate: string;
   budget: number;
-  spent: number;
+  createdAt: string;
+}
+
+interface CampaignForm {
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
 }
 
 function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([
-    {
-      id: '1',
-      name: 'Q1 Email Campaign',
-      type: 'email',
-      status: 'active',
-      startDate: '2026-01-01',
-      endDate: '2026-03-31',
-      budget: 5000,
-      spent: 2500,
-    },
-    {
-      id: '2',
-      name: 'Spring Webinar Series',
-      type: 'webinar',
-      status: 'planning',
-      startDate: '2026-04-01',
-      endDate: '2026-06-30',
-      budget: 10000,
-      spent: 0,
-    },
-  ]);
-
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [formData, setFormData] = useState<CampaignForm>({
     name: '',
-    type: 'email',
-    status: 'planning',
+    description: '',
     startDate: '',
     endDate: '',
-    budget: '',
-    spent: '',
+    budget: 0,
   });
-  const [error, setError] = useState('');
 
-  const typeColors: Record<string, { bg: string; text: string }> = {
-    email: { bg: '#E3F2FD', text: '#1565C0' },
-    social: { bg: '#F3E5F5', text: '#6A1B9A' },
-    webinar: { bg: '#E0F2F1', text: '#00695C' },
-    content: { bg: '#FFF3E0', text: '#E65100' },
-    event: { bg: '#FCE4EC', text: '#C2185B' },
-  };
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
 
-  const statusColors: Record<string, { bg: string; text: string }> = {
-    planning: { bg: '#E8DEF8', text: '#6750A4' },
-    active: { bg: '#E8F5E9', text: '#06A77D' },
-    paused: { bg: '#FFF3E0', text: '#F57C00' },
-    completed: { bg: '#E1F5FE', text: '#0092BC' },
+  const fetchCampaigns = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/campaigns');
+      setCampaigns(response.data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch campaigns');
+      console.error('Error fetching campaigns:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOpenDialog = (campaign?: Campaign) => {
@@ -94,23 +83,19 @@ function CampaignsPage() {
       setEditingId(campaign.id);
       setFormData({
         name: campaign.name,
-        type: campaign.type,
-        status: campaign.status,
-        startDate: campaign.startDate,
-        endDate: campaign.endDate,
-        budget: campaign.budget.toString(),
-        spent: campaign.spent.toString(),
+        description: campaign.description,
+        startDate: campaign.startDate.split('T')[0],
+        endDate: campaign.endDate.split('T')[0],
+        budget: campaign.budget,
       });
     } else {
       setEditingId(null);
       setFormData({
         name: '',
-        type: 'email',
-        status: 'planning',
+        description: '',
         startDate: '',
         endDate: '',
-        budget: '',
-        spent: '',
+        budget: 0,
       });
     }
     setOpenDialog(true);
@@ -118,262 +103,195 @@ function CampaignsPage() {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setError('');
+    setEditingId(null);
   };
 
-  const handleSave = () => {
-    if (!formData.name || !formData.startDate || !formData.endDate || !formData.budget) {
-      setError('Please fill in all required fields');
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'budget' ? parseFloat(value) || 0 : value,
+    }));
+  };
+
+  const handleSaveCampaign = async () => {
+    if (!formData.name.trim() || !formData.startDate || !formData.endDate) {
+      setError('Please fill in required fields (Name, Start Date, End Date)');
       return;
     }
 
-    if (editingId) {
-      setCampaigns(
-        campaigns.map((c) =>
-          c.id === editingId
-            ? {
-                ...c,
-                name: formData.name,
-                type: formData.type as any,
-                status: formData.status as any,
-                startDate: formData.startDate,
-                endDate: formData.endDate,
-                budget: parseFloat(formData.budget),
-                spent: parseFloat(formData.spent),
-              }
-            : c
-        )
-      );
-    } else {
-      const newCampaign: Campaign = {
-        id: Date.now().toString(),
-        name: formData.name,
-        type: formData.type as any,
-        status: formData.status as any,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        budget: parseFloat(formData.budget),
-        spent: parseFloat(formData.spent),
-      };
-      setCampaigns([...campaigns, newCampaign]);
+    try {
+      if (editingId) {
+        await apiClient.put(`/campaigns/${editingId}`, formData);
+        setSuccessMessage('Campaign updated successfully');
+      } else {
+        await apiClient.post('/campaigns', formData);
+        setSuccessMessage('Campaign created successfully');
+      }
+      handleCloseDialog();
+      fetchCampaigns();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save campaign');
+      console.error('Error saving campaign:', err);
     }
-    handleCloseDialog();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDeleteCampaign = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this campaign?')) {
-      setCampaigns(campaigns.filter((c) => c.id !== id));
+      try {
+        await apiClient.delete(`/campaigns/${id}`);
+        setSuccessMessage('Campaign deleted successfully');
+        fetchCampaigns();
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to delete campaign');
+        console.error('Error deleting campaign:', err);
+      }
     }
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ py: 2 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Marketing Campaigns
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            Plan and track your marketing campaigns
-          </Typography>
+    <Box sx={{ py: 4 }}>
+      <Container maxWidth="lg">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>Campaigns</Typography>
+          </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+            sx={{ backgroundColor: '#6750A4' }}
+          >
+            Add Campaign
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-          sx={{ backgroundColor: '#6750A4', textTransform: 'none', borderRadius: 2 }}
-        >
-          New Campaign
-        </Button>
-      </Box>
 
-      <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
-        <CardContent sx={{ p: 0 }}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Campaign Name</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Type</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Budget</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Progress
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {campaigns.map((campaign) => {
-                const progress = campaign.budget > 0 ? (campaign.spent / campaign.budget) * 100 : 0;
-                return (
-                  <TableRow
-                    key={campaign.id}
-                    sx={{
-                      '&:hover': { backgroundColor: '#F5EFF7' },
-                      borderBottom: '1px solid #E8DEF8',
-                    }}
-                  >
-                    <TableCell sx={{ fontWeight: 500 }}>{campaign.name}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={campaign.type.charAt(0).toUpperCase() + campaign.type.slice(1)}
-                        size="small"
-                        sx={{
-                          backgroundColor: typeColors[campaign.type]?.bg,
-                          color: typeColors[campaign.type]?.text,
-                          fontWeight: 600,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-                        size="small"
-                        sx={{
-                          backgroundColor: statusColors[campaign.status]?.bg,
-                          color: statusColors[campaign.status]?.text,
-                          fontWeight: 600,
-                        }}
-                      />
-                    </TableCell>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+
+        <Card>
+          <CardContent>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
+                  <TableCell><strong>Name</strong></TableCell>
+                  <TableCell><strong>Description</strong></TableCell>
+                  <TableCell><strong>Budget</strong></TableCell>
+                  <TableCell><strong>Start Date</strong></TableCell>
+                  <TableCell><strong>End Date</strong></TableCell>
+                  <TableCell align="center"><strong>Actions</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {campaigns.map((campaign) => (
+                  <TableRow key={campaign.id}>
+                    <TableCell>{campaign.name}</TableCell>
+                    <TableCell>{campaign.description}</TableCell>
                     <TableCell>${campaign.budget.toLocaleString()}</TableCell>
-                    <TableCell align="center" sx={{ minWidth: 150 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <LinearProgress
-                          variant="determinate"
-                          value={progress}
-                          sx={{ flex: 1, height: 8, borderRadius: 2 }}
-                        />
-                        <Typography variant="caption" sx={{ minWidth: 35 }}>
-                          {progress.toFixed(0)}%
-                        </Typography>
-                      </Box>
-                    </TableCell>
+                    <TableCell>{new Date(campaign.startDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(campaign.endDate).toLocaleDateString()}</TableCell>
                     <TableCell align="center">
-                      <IconButton
+                      <Button
                         size="small"
+                        color="primary"
+                        startIcon={<EditIcon />}
                         onClick={() => handleOpenDialog(campaign)}
-                        sx={{ color: '#6750A4' }}
+                        sx={{ mr: 1 }}
                       >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
+                        Edit
+                      </Button>
+                      <Button
                         size="small"
-                        onClick={() => handleDelete(campaign.id)}
-                        sx={{ color: '#B3261E' }}
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => handleDeleteCampaign(campaign.id)}
                       >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                ))}
+              </TableBody>
+            </Table>
+            {campaigns.length === 0 && (
+              <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
+                No campaigns found
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      </Container>
 
+      {/* Add/Edit Campaign Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, color: '#6750A4' }}>
-          {editingId ? 'Edit Campaign' : 'Create Campaign'}
-        </DialogTitle>
+        <DialogTitle>{editingId ? 'Edit Campaign' : 'Create New Campaign'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
           <TextField
+            autoFocus
             fullWidth
             label="Campaign Name"
+            name="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
             required
           />
           <TextField
             fullWidth
-            label="Campaign Type"
-            select
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+            label="Description"
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            SelectProps={{ native: true }}
-          >
-            <option value="email">Email</option>
-            <option value="social">Social Media</option>
-            <option value="webinar">Webinar</option>
-            <option value="content">Content Marketing</option>
-            <option value="event">Event</option>
-          </TextField>
-          <TextField
-            fullWidth
-            label="Status"
-            select
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            margin="normal"
-            variant="outlined"
-            SelectProps={{ native: true }}
-          >
-            <option value="planning">Planning</option>
-            <option value="active">Active</option>
-            <option value="paused">Paused</option>
-            <option value="completed">Completed</option>
-          </TextField>
+            multiline
+            rows={2}
+          />
           <TextField
             fullWidth
             label="Start Date"
+            name="startDate"
             type="date"
             value={formData.startDate}
-            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            required
             InputLabelProps={{ shrink: true }}
+            required
           />
           <TextField
             fullWidth
             label="End Date"
+            name="endDate"
             type="date"
             value={formData.endDate}
-            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            required
             InputLabelProps={{ shrink: true }}
+            required
           />
           <TextField
             fullWidth
             label="Budget"
+            name="budget"
             type="number"
             value={formData.budget}
-            onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+            onChange={handleInputChange}
             margin="normal"
-            variant="outlined"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Amount Spent"
-            type="number"
-            value={formData.spent}
-            onChange={(e) => setFormData({ ...formData, spent: e.target.value })}
-            margin="normal"
-            variant="outlined"
+            inputProps={{ step: "0.01" }}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={handleSave}
-            variant="contained"
-            sx={{ backgroundColor: '#6750A4', textTransform: 'none' }}
-          >
+          <Button onClick={handleSaveCampaign} variant="contained" color="primary">
             {editingId ? 'Update' : 'Create'}
           </Button>
         </DialogActions>

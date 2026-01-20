@@ -1,5 +1,6 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -32,6 +33,16 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<UserGroupMember> UserGroupMembers { get; set; }
     public DbSet<UserApprovalRequest> UserApprovalRequests { get; set; }
     public DbSet<DatabaseBackup> DatabaseBackups { get; set; }
+    
+    // Workflow entities
+    public DbSet<Workflow> Workflows { get; set; }
+    public DbSet<WorkflowRule> WorkflowRules { get; set; }
+    public DbSet<WorkflowRuleCondition> WorkflowRuleConditions { get; set; }
+    public DbSet<WorkflowExecution> WorkflowExecutions { get; set; }
+    
+    // Contact entities
+    public DbSet<Contact> Contacts { get; set; }
+    public DbSet<SocialMediaLink> SocialMediaLinks { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -180,6 +191,92 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(d => d.Profiles)
                 .HasForeignKey(e => e.DepartmentId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure Workflow
+        modelBuilder.Entity<Workflow>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(50);
+
+            entity.HasMany(e => e.Rules)
+                .WithOne(r => r.Workflow)
+                .HasForeignKey(r => r.WorkflowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(e => e.Executions)
+                .WithOne(ex => ex.Workflow)
+                .HasForeignKey(ex => ex.WorkflowId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure WorkflowRule
+        modelBuilder.Entity<WorkflowRule>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.ConditionLogic).HasMaxLength(10).HasDefaultValue("AND");
+
+            entity.HasOne(e => e.Workflow)
+                .WithMany(w => w.Rules)
+                .HasForeignKey(e => e.WorkflowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.TargetUserGroup)
+                .WithMany()
+                .HasForeignKey(e => e.TargetUserGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(e => e.Conditions)
+                .WithOne(c => c.WorkflowRule)
+                .HasForeignKey(c => c.WorkflowRuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure WorkflowRuleCondition
+        modelBuilder.Entity<WorkflowRuleCondition>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.FieldName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Operator).IsRequired().HasMaxLength(20);
+
+            entity.HasOne(e => e.WorkflowRule)
+                .WithMany(r => r.Conditions)
+                .HasForeignKey(e => e.WorkflowRuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure WorkflowExecution
+        modelBuilder.Entity<WorkflowExecution>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("Success");
+
+            entity.HasOne(e => e.Workflow)
+                .WithMany(w => w.Executions)
+                .HasForeignKey(e => e.WorkflowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.WorkflowRule)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowRuleId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.SourceUserGroup)
+                .WithMany()
+                .HasForeignKey(e => e.SourceUserGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.TargetUserGroup)
+                .WithMany()
+                .HasForeignKey(e => e.TargetUserGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Index for audit trail queries
+            entity.HasIndex(e => new { e.WorkflowId, e.CreatedAt });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
         });
     }
 }
