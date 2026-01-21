@@ -531,7 +531,7 @@ POST /api/auth/reset-password/5
 ✅ **Build Status:** All services compile successfully without errors
 ✅ **Runtime Status:** All containers healthy and running
 - **Frontend:** http://localhost:3000 (Healthy)
-- **API:** http://localhost:5001 (Healthy)
+- **API:** http://localhost:5000 (Healthy)
 - **Database:** MariaDB (Healthy)
 
 ✅ **Feature Status:** Fully operational and tested

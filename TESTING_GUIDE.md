@@ -343,7 +343,7 @@ Target: < 500 MB
 
 Test API response times:
 ```bash
-time curl http://localhost:5001/api/customers
+time curl http://localhost:5000/api/customers
 ```
 
 Target: < 200ms for list endpoints

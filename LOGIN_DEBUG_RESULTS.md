@@ -31,14 +31,14 @@ Added detailed error handling:
 
 ### API Health ✅
 ```
-GET http://localhost:5001/health
+GET http://localhost:5000/health
 Response: { "status": "healthy" }
 HTTP: 200 OK
 ```
 
 ### Login - Valid Credentials ✅
 ```
-POST http://localhost:5001/api/auth/login
+POST http://localhost:5000/api/auth/login
 Email: abhi.lal@gmail.com
 Password: Admin@123
 Response: 200 OK with accessToken, refreshToken, user data
@@ -46,7 +46,7 @@ Response: 200 OK with accessToken, refreshToken, user data
 
 ### Login - Invalid Credentials ✅
 ```
-POST http://localhost:5001/api/auth/login
+POST http://localhost:5000/api/auth/login
 Email: abhi.lal@gmail.com
 Password: wrongpassword
 Response: 401 Unauthorized with message "Invalid email or password"
@@ -93,12 +93,12 @@ docker logs crm-frontend | tail -50
 
 | Service | Internal | External | Purpose |
 |---------|----------|----------|---------|
-| API | 5000 | 5001 | REST API endpoint |
+| API | 5000 | 5000 | REST API endpoint |
 | Frontend | - | 3000 | React app |
 | Database | 3306 | 3306 | MariaDB |
 
 The frontend automatically detects:
-- **localhost/127.0.0.1 access**: Uses port 5001
+- **localhost/127.0.0.1 access**: Uses port 5000
 - **Docker container access**: Uses port 5000
 - **Custom deployment**: Uses `REACT_APP_API_URL` environment variable
 
@@ -123,7 +123,7 @@ The frontend automatically detects:
 
 ### Method 1: Direct API Test
 ```bash
-curl -X POST http://localhost:5001/api/auth/login \
+curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"abhi.lal@gmail.com","password":"Admin@123"}'
 ```
@@ -139,12 +139,12 @@ curl -X POST http://localhost:5001/api/auth/login \
 ### Method 3: Workflow API Test
 ```bash
 # 1. Get token
-TOKEN=$(curl -s -X POST http://localhost:5001/api/auth/login \
+TOKEN=$(curl -s -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"abhi.lal@gmail.com","password":"Admin@123"}' | jq -r '.accessToken')
 
 # 2. Use token to call protected endpoint
-curl -s http://localhost:5001/api/workflows/leads \
+curl -s http://localhost:5000/api/workflows/leads \
   -H "Authorization: Bearer $TOKEN" | jq .
 ```
 

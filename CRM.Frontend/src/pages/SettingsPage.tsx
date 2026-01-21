@@ -170,8 +170,8 @@ function CompanyBrandingTab() {
 
   const getApiUrl = () => {
     return window.location.hostname === 'localhost' 
-      ? 'http://localhost:5001/api'
-      : `http://${window.location.hostname}:5001/api`;
+      ? 'http://localhost:5000/api'
+      : `http://${window.location.hostname}:5000/api`;
   };
 
   // Load user-defined palettes

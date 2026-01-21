@@ -264,7 +264,7 @@ dotnet run
 dotnet run --configuration Release
 ```
 
-The API will be available at `https://localhost:5001` and Swagger UI at `https://localhost:5001/swagger`
+The API will be available at `https://localhost:5000` and Swagger UI at `https://localhost:5000/swagger`
 
 ### 3. Start Frontend
 

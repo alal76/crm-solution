@@ -47,23 +47,18 @@ var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(',')
 
 builder.Services.AddCors(options =>
 {
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
     options.AddPolicy("AllowAll", policy =>
     {
-        if (builder.Environment.IsDevelopment())
-        {
-            // Development: Allow any origin for easier testing
-            policy.AllowAnyOrigin()
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        }
-        else
-        {
-            // Production: Restrict to configured origins
-            policy.WithOrigins(allowedOrigins)
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
-        }
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
@@ -228,7 +223,8 @@ if (Directory.Exists(frontendBuildPath))
 }
 
 app.UseRouting();
-app.UseCors("AllowAll");
+// Use the default CORS policy globally
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 

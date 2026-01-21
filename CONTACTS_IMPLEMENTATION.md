@@ -220,7 +220,7 @@ Updated `App.tsx`:
 ## Docker Deployment ✅
 
 All services running and healthy:
-- API: `http://localhost:5001` (port 5000 internal)
+- API: `http://localhost:5000` (port 5000 internal)
 - Frontend: `http://localhost:3000`
 - MariaDB: `http://localhost:3306`
 

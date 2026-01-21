@@ -324,7 +324,7 @@ const ModuleFieldSettingsTab: React.FC = () => {
                 </Typography>
 
                 <DragDropContext onDragEnd={(result) => handleDragEnd(result, tabName)}>
-                  <Droppable droppableId="fields">
+                  <Droppable droppableId={`fields-${tabName}`}>
                     {(provided) => (
                       <Table {...provided.droppableProps} ref={provided.innerRef}>
                         <TableHead>
