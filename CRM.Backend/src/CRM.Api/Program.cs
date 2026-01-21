@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Repositories;
@@ -99,6 +115,12 @@ builder.Services.AddScoped<IUserApprovalService, UserApprovalService>();
 builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
+builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
+builder.Services.AddScoped<IServiceRequestCategoryService, ServiceRequestCategoryService>();
+builder.Services.AddScoped<IServiceRequestSubcategoryService, ServiceRequestSubcategoryService>();
+builder.Services.AddScoped<IServiceRequestCustomFieldService, ServiceRequestCustomFieldService>();
+builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
+builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-super-secret-key-that-is-at-least-32-characters-long!!!";
@@ -187,6 +209,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Serve static files from wwwroot (for uploaded files)
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+app.UseStaticFiles(); // Serve from wwwroot
 
 // Serve static files from frontend build
 var frontendBuildPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CRM.Frontend", "build");

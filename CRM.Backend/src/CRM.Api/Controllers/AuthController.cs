@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -78,6 +94,33 @@ public class AuthController : ControllerBase
         {
             _logger.LogError($"Login error: {ex.Message}");
             return StatusCode(500, new { message = "An error occurred during login" });
+        }
+    }
+
+    /// <summary>
+    /// Verify 2FA code during login
+    /// </summary>
+    [HttpPost("login/2fa")]
+    [AllowAnonymous]
+    public async Task<IActionResult> LoginWith2FA([FromBody] TwoFactorLoginRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var response = await _authenticationService.VerifyTwoFactorLoginAsync(request.TwoFactorToken, request.Code);
+            return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning($"2FA login verification failed: {ex.Message}");
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"2FA login error: {ex.Message}");
+            return StatusCode(500, new { message = "An error occurred during 2FA verification" });
         }
     }
 
@@ -197,6 +240,32 @@ public class AuthController : ControllerBase
         {
             _logger.LogError($"2FA verification error: {ex.Message}");
             return StatusCode(500, new { message = "An error occurred during 2FA verification" });
+        }
+    }
+
+    /// <summary>
+    /// Enable two-factor authentication with secret and backup codes
+    /// </summary>
+    [HttpPost("2fa/enable")]
+    [Authorize]
+    public async Task<IActionResult> Enable2FA([FromBody] TwoFactorEnableRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            await _authenticationService.EnableTwoFactorAsync(userId, request.Secret, request.BackupCodes);
+            return Ok(new { message = "2FA enabled successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"2FA enable error: {ex.Message}");
+            return StatusCode(500, new { message = "An error occurred while enabling 2FA" });
         }
     }
 

@@ -35,6 +35,13 @@ public interface ICrmDbContext
     DbSet<Note> Notes { get; }
     DbSet<Quote> Quotes { get; }
     
+    // Service Request entities
+    DbSet<ServiceRequest> ServiceRequests { get; }
+    DbSet<ServiceRequestCategory> ServiceRequestCategories { get; }
+    DbSet<ServiceRequestSubcategory> ServiceRequestSubcategories { get; }
+    DbSet<ServiceRequestCustomFieldDefinition> ServiceRequestCustomFieldDefinitions { get; }
+    DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; }
+    
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

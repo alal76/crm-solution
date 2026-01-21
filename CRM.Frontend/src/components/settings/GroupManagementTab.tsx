@@ -53,6 +53,7 @@ interface GroupPermissions {
   canAccessActivities: boolean;
   canAccessNotes: boolean;
   canAccessWorkflows: boolean;
+  canAccessServiceRequests: boolean;
   canAccessReports: boolean;
   canAccessSettings: boolean;
   canAccessUserManagement: boolean;
@@ -105,6 +106,7 @@ interface UserGroup extends GroupPermissions {
   isActive: boolean;
   isDefault: boolean;
   displayOrder: number;
+  headerColor: string;
   memberCount: number;
   createdAt: string;
 }
@@ -124,6 +126,7 @@ const defaultPermissions: GroupPermissions = {
   canAccessActivities: false,
   canAccessNotes: false,
   canAccessWorkflows: false,
+  canAccessServiceRequests: false,
   canAccessReports: false,
   canAccessSettings: false,
   canAccessUserManagement: false,
@@ -183,6 +186,7 @@ function GroupManagementTab() {
     isActive: true,
     isDefault: false,
     displayOrder: 0,
+    headerColor: '#6750A4',
     ...defaultPermissions,
   });
   
@@ -225,6 +229,7 @@ function GroupManagementTab() {
         isActive: true,
         isDefault: false,
         displayOrder: 0,
+        headerColor: '#6750A4',
         ...defaultPermissions,
       });
     }
@@ -292,7 +297,7 @@ function GroupManagementTab() {
       'canAccessDashboard', 'canAccessCustomers', 'canAccessContacts', 'canAccessLeads',
       'canAccessOpportunities', 'canAccessProducts', 'canAccessServices', 'canAccessCampaigns',
       'canAccessQuotes', 'canAccessTasks', 'canAccessActivities', 'canAccessNotes',
-      'canAccessWorkflows', 'canAccessReports', 'canAccessSettings', 'canAccessUserManagement'
+      'canAccessWorkflows', 'canAccessServiceRequests', 'canAccessReports', 'canAccessSettings', 'canAccessUserManagement'
     ];
     const updates: Record<string, boolean> = {};
     menuPerms.forEach(p => updates[p] = value);
@@ -345,6 +350,7 @@ function GroupManagementTab() {
               <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                 <TableCell><strong>Group Name</strong></TableCell>
                 <TableCell><strong>Description</strong></TableCell>
+                <TableCell><strong>Header Color</strong></TableCell>
                 <TableCell><strong>Type</strong></TableCell>
                 <TableCell><strong>Members</strong></TableCell>
                 <TableCell><strong>Status</strong></TableCell>
@@ -354,7 +360,7 @@ function GroupManagementTab() {
             <TableBody>
               {groups.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography color="textSecondary">No groups created yet</Typography>
                   </TableCell>
                 </TableRow>
@@ -368,6 +374,20 @@ function GroupManagementTab() {
                       </Box>
                     </TableCell>
                     <TableCell>{group.description || '-'}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{
+                            width: 24,
+                            height: 24,
+                            backgroundColor: group.headerColor || '#6750A4',
+                            borderRadius: 0.5,
+                            border: '1px solid #ddd',
+                          }}
+                        />
+                        <Typography variant="caption">{group.headerColor || '#6750A4'}</Typography>
+                      </Box>
+                    </TableCell>
                     <TableCell>
                       {group.isSystemAdmin ? (
                         <Chip label="System Admin" color="primary" size="small" />
@@ -457,6 +477,38 @@ function GroupManagementTab() {
                   />
                 </Grid>
                 <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        Header Color
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#79747E' }}>
+                        Navigation bar color for users in this group (when Group Header Color is enabled)
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
+                      <input
+                        type="color"
+                        value={formData.headerColor || '#6750A4'}
+                        onChange={(e) => setFormData({ ...formData, headerColor: e.target.value })}
+                        style={{ 
+                          width: 50, 
+                          height: 35, 
+                          border: 'none', 
+                          borderRadius: 4,
+                          cursor: 'pointer'
+                        }}
+                      />
+                      <TextField
+                        size="small"
+                        value={formData.headerColor || '#6750A4'}
+                        onChange={(e) => setFormData({ ...formData, headerColor: e.target.value })}
+                        sx={{ width: 100 }}
+                      />
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12}>
                   <Alert severity="info" icon={<SecurityIcon />}>
                     <FormControlLabel
                       control={
@@ -510,6 +562,7 @@ function GroupManagementTab() {
                 <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessActivities', 'Activities')}</Grid>
                 <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessNotes', 'Notes')}</Grid>
                 <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessWorkflows', 'Workflows')}</Grid>
+                <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessServiceRequests', 'Service Requests')}</Grid>
                 <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessReports', 'Reports')}</Grid>
                 <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessSettings', 'Settings')}</Grid>
                 <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessUserManagement', 'User Management')}</Grid>

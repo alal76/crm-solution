@@ -46,6 +46,12 @@ public class UserGroup : BaseEntity
     /// </summary>
     public int DisplayOrder { get; set; } = 0;
     
+    /// <summary>
+    /// Custom header/navigation bar color for this group (hex format)
+    /// When UseGroupHeaderColor is enabled in SystemSettings, this color will be used
+    /// </summary>
+    public string HeaderColor { get; set; } = "#6750A4";
+    
     #endregion
     
     #region System Admin Flag
@@ -131,6 +137,11 @@ public class UserGroup : BaseEntity
     /// FUNCTIONAL: Whether members can see Workflows
     /// </summary>
     public bool CanAccessWorkflows { get; set; } = false;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether members can see Service Requests
+    /// </summary>
+    public bool CanAccessServiceRequests { get; set; } = false;
     
     /// <summary>
     /// FUNCTIONAL: Whether members can see Reports

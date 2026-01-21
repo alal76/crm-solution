@@ -20,6 +20,7 @@ interface GroupPermissions {
   canAccessActivities: boolean;
   canAccessNotes: boolean;
   canAccessWorkflows: boolean;
+  canAccessServiceRequests: boolean;
   canAccessReports: boolean;
   canAccessSettings: boolean;
   canAccessUserManagement: boolean;
@@ -165,6 +166,7 @@ const defaultGroupPermissions: GroupPermissions = {
   canAccessActivities: false,
   canAccessNotes: false,
   canAccessWorkflows: false,
+  canAccessServiceRequests: false,
   canAccessReports: false,
   canAccessSettings: false,
   canAccessUserManagement: false,
@@ -309,6 +311,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       'Activities': { enabled: modules.activitiesEnabled, permitted: groupPerms.canAccessActivities },
       'Notes': { enabled: modules.notesEnabled, permitted: groupPerms.canAccessNotes },
       'Workflows': { enabled: modules.workflowsEnabled, permitted: groupPerms.canAccessWorkflows },
+      'ServiceRequests': { enabled: true, permitted: groupPerms.canAccessServiceRequests },
       'Reports': { enabled: modules.reportsEnabled, permitted: groupPerms.canAccessReports },
       'Settings': { enabled: true, permitted: groupPerms.canAccessSettings },
       'User Management': { enabled: true, permitted: groupPerms.canAccessUserManagement }

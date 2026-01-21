@@ -23,6 +23,8 @@ import {
   VisibilityOff,
   LockOutlined,
   EmailOutlined,
+  Security as SecurityIcon,
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -137,10 +139,15 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   
+  // 2FA state
+  const [showTwoFactor, setShowTwoFactor] = useState(false);
+  const [twoFactorToken, setTwoFactorToken] = useState('');
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  
   // OAuth state
   const [oauthEnabled, setOauthEnabled] = useState(false);
   
-  const { login, googleLogin } = useAuth();
+  const { login, verifyTwoFactor, googleLogin } = useAuth();
   const navigate = useNavigate();
   const styles = useStyles();
 
@@ -232,7 +239,15 @@ const LoginPage: React.FC = () => {
       setLoading(true);
 
       try {
-        await login(formData.email.trim(), formData.password);
+        const result = await login(formData.email.trim(), formData.password);
+        
+        // Check if 2FA is required
+        if (result.requiresTwoFactor && result.twoFactorToken) {
+          setTwoFactorToken(result.twoFactorToken);
+          setShowTwoFactor(true);
+          setLoading(false);
+          return;
+        }
         
         if (rememberMe) {
           localStorage.setItem('savedEmail', formData.email.trim());
@@ -269,6 +284,54 @@ const LoginPage: React.FC = () => {
     [formData, login, navigate, rememberMe]
   );
 
+  const handleTwoFactorSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      
+      if (!twoFactorCode.trim()) {
+        setError('Please enter the verification code');
+        return;
+      }
+
+      setError('');
+      setLoading(true);
+
+      try {
+        await verifyTwoFactor(twoFactorToken, twoFactorCode.trim());
+        
+        if (rememberMe) {
+          localStorage.setItem('savedEmail', formData.email.trim());
+          localStorage.setItem('rememberMe', 'true');
+        }
+        
+        navigate('/');
+      } catch (err: unknown) {
+        const error = err as { 
+          response?: { data?: { message?: string }; status?: number };
+          message?: string;
+        };
+        
+        let errorMessage = 'Invalid verification code. Please try again.';
+        
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        }
+        
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [twoFactorCode, twoFactorToken, verifyTwoFactor, navigate, rememberMe, formData.email]
+  );
+
+  const handleBackToLogin = useCallback(() => {
+    setShowTwoFactor(false);
+    setTwoFactorToken('');
+    setTwoFactorCode('');
+    setError('');
+  }, []);
+
   const togglePassword = useCallback(() => {
     setShowPassword(prev => !prev);
   }, []);
@@ -289,10 +352,12 @@ const LoginPage: React.FC = () => {
                 component="h1"
                 sx={{ fontWeight: 700, mb: 0.5, letterSpacing: '-0.5px' }}
               >
-                Welcome Back
+                {showTwoFactor ? 'Two-Factor Authentication' : 'Welcome Back'}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.85 }}>
-                Sign in to continue to your CRM
+                {showTwoFactor 
+                  ? 'Enter the code from your authenticator app' 
+                  : 'Sign in to continue to your CRM'}
               </Typography>
             </Box>
 
@@ -307,27 +372,89 @@ const LoginPage: React.FC = () => {
                 </Alert>
               </Collapse>
 
-              <Box component="form" onSubmit={handleSubmit} noValidate>
-                <TextField
-                  fullWidth
-                  label="Email or Username"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange('email')}
-                  disabled={loading}
-                  margin="normal"
-                  autoComplete="email"
-                  autoFocus
-                  placeholder="you@company.com"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailOutlined sx={{ color: 'action.active' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={styles.input}
-                />
+              {showTwoFactor ? (
+                /* Two-Factor Authentication Form */
+                <Box component="form" onSubmit={handleTwoFactorSubmit} noValidate>
+                  <Box sx={{ textAlign: 'center', mb: 3 }}>
+                    <SecurityIcon sx={{ fontSize: 48, color: '#5E35B1', mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary">
+                      Open your authenticator app and enter the 6-digit code, or use a backup code.
+                    </Typography>
+                  </Box>
+
+                  <TextField
+                    fullWidth
+                    label="Verification Code"
+                    value={twoFactorCode}
+                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    disabled={loading}
+                    margin="normal"
+                    autoComplete="one-time-code"
+                    autoFocus
+                    placeholder="000000"
+                    inputProps={{
+                      maxLength: 6,
+                      style: { textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.5rem' },
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SecurityIcon sx={{ color: 'action.active' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={styles.input}
+                  />
+
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    type="submit"
+                    disabled={loading || twoFactorCode.length < 6}
+                    sx={{ ...styles.button, mt: 3 }}
+                  >
+                    {loading ? (
+                      <CircularProgress size={24} sx={{ color: 'white' }} />
+                    ) : (
+                      'Verify'
+                    )}
+                  </Button>
+
+                  <Button
+                    fullWidth
+                    variant="text"
+                    startIcon={<ArrowBackIcon />}
+                    onClick={handleBackToLogin}
+                    disabled={loading}
+                    sx={{ mt: 2, textTransform: 'none', color: '#5E35B1' }}
+                  >
+                    Back to Login
+                  </Button>
+                </Box>
+              ) : (
+                /* Regular Login Form */
+                <Box component="form" onSubmit={handleSubmit} noValidate>
+                  <TextField
+                    fullWidth
+                    label="Email or Username"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange('email')}
+                    disabled={loading}
+                    margin="normal"
+                    autoComplete="email"
+                    autoFocus
+                    placeholder="you@company.com"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <EmailOutlined sx={{ color: 'action.active' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={styles.input}
+                  />
 
                 <TextField
                   fullWidth
@@ -422,8 +549,9 @@ const LoginPage: React.FC = () => {
                   )}
                 </Button>
               </Box>
+              )}
 
-              {oauthEnabled && (
+              {!showTwoFactor && oauthEnabled && (
                 <Fade in timeout={800}>
                   <Box>
                     <Divider sx={{ my: 3 }}>
@@ -436,6 +564,7 @@ const LoginPage: React.FC = () => {
                 </Fade>
               )}
 
+              {!showTwoFactor && (
               <Box
                 sx={{
                   textAlign: 'center',
@@ -461,6 +590,7 @@ const LoginPage: React.FC = () => {
                   </MuiLink>
                 </Typography>
               </Box>
+              )}
             </CardContent>
           </Card>
         </Fade>

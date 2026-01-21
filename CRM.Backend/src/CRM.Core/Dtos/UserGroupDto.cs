@@ -11,6 +11,7 @@ public class UserGroupDto
     public bool IsActive { get; set; }
     public bool IsDefault { get; set; }
     public int DisplayOrder { get; set; }
+    public string HeaderColor { get; set; } = "#6750A4";
     public bool IsSystemAdmin { get; set; }
     public DateTime CreatedAt { get; set; }
     public int MemberCount { get; set; }
@@ -29,6 +30,7 @@ public class UserGroupDto
     public bool CanAccessActivities { get; set; }
     public bool CanAccessNotes { get; set; }
     public bool CanAccessWorkflows { get; set; }
+    public bool CanAccessServiceRequests { get; set; }
     public bool CanAccessReports { get; set; }
     public bool CanAccessSettings { get; set; }
     public bool CanAccessUserManagement { get; set; }
@@ -96,6 +98,7 @@ public class CreateUserGroupRequest
     public bool IsActive { get; set; } = true;
     public bool IsDefault { get; set; } = false;
     public int DisplayOrder { get; set; } = 0;
+    public string HeaderColor { get; set; } = "#6750A4";
     public bool IsSystemAdmin { get; set; } = false;
     
     // Menu Permissions
@@ -112,6 +115,7 @@ public class CreateUserGroupRequest
     public bool CanAccessActivities { get; set; } = false;
     public bool CanAccessNotes { get; set; } = false;
     public bool CanAccessWorkflows { get; set; } = false;
+    public bool CanAccessServiceRequests { get; set; } = false;
     public bool CanAccessReports { get; set; } = false;
     public bool CanAccessSettings { get; set; } = false;
     public bool CanAccessUserManagement { get; set; } = false;

@@ -1,9 +1,28 @@
+/**
+ * CRM Solution - Customer Relationship Management System
+ * Copyright (C) 2024-2026 Abhishek Lal
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { Container, CssBaseline, Box } from '@mui/material';
 import { AuthProvider } from './contexts/AuthContext';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { ProfileProvider } from './contexts/ProfileContext';
+import { BrandingProvider } from './contexts/BrandingContext';
 import Navigation from './components/Navigation';
 import BreadcrumbsComponent from './components/Breadcrumbs';
 import Footer from './components/Footer';
@@ -31,6 +50,11 @@ import TasksPage from './pages/TasksPage';
 import QuotesPage from './pages/QuotesPage';
 import NotesPage from './pages/NotesPage';
 import ActivitiesPage from './pages/ActivitiesPage';
+import AboutPage from './pages/AboutPage';
+import HelpPage from './pages/HelpPage';
+import LicensesPage from './pages/LicensesPage';
+import ServiceRequestsPage from './pages/ServiceRequestsPage';
+import ServiceRequestSettingsPage from './pages/ServiceRequestSettingsPage';
 import './App.css';
 
 function App() {
@@ -40,12 +64,13 @@ function App() {
       <Router>
         <AuthProvider>
           <ProfileProvider>
-            <LayoutProvider>
-              <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                <Navigation />
-                <BreadcrumbsComponent />
-                <Box sx={{ flex: 1, py: 4, px: 2 }}>
-                  <Container maxWidth="lg">
+            <BrandingProvider>
+              <LayoutProvider>
+                <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                  <Navigation />
+                  <BreadcrumbsComponent />
+                  <Box sx={{ flex: 1, py: 4, px: 2 }}>
+                    <Container maxWidth="lg">
                   <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
@@ -154,6 +179,26 @@ function App() {
                 }
               />
               <Route
+                path="/service-requests"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="ServiceRequests">
+                      <ServiceRequestsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-request-settings"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ServiceRequestSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/2fa"
                 element={
                   <ProtectedRoute>
@@ -245,12 +290,18 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              
+              {/* Public Info Routes */}
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/licenses" element={<LicensesPage />} />
                 </Routes>
-                  </Container>
+                    </Container>
+                  </Box>
+                  <Footer />
                 </Box>
-                <Footer />
-              </Box>
-            </LayoutProvider>
+              </LayoutProvider>
+            </BrandingProvider>
           </ProfileProvider>
         </AuthProvider>
       </Router>

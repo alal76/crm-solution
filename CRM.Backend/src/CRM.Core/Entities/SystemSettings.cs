@@ -116,14 +116,35 @@ public class SystemSettings : BaseEntity
     public string? CompanyLogoUrl { get; set; }
     
     /// <summary>
-    /// Primary brand color (hex)
+    /// Primary brand color (hex) - Used for main buttons, headers, navigation
     /// </summary>
     public string PrimaryColor { get; set; } = "#6750A4";
     
     /// <summary>
-    /// Secondary brand color (hex)
+    /// Secondary brand color (hex) - Used for secondary buttons, accents
     /// </summary>
     public string SecondaryColor { get; set; } = "#625B71";
+    
+    /// <summary>
+    /// Tertiary brand color (hex) - Used for highlights, links
+    /// </summary>
+    public string TertiaryColor { get; set; } = "#7D5260";
+    
+    /// <summary>
+    /// Surface brand color (hex) - Used for card backgrounds, panels
+    /// </summary>
+    public string SurfaceColor { get; set; } = "#FFFBFE";
+    
+    /// <summary>
+    /// Background brand color (hex) - Used for page background
+    /// </summary>
+    public string BackgroundColor { get; set; } = "#FFFBFE";
+    
+    /// <summary>
+    /// If true, use group-specific header colors instead of the palette primary color.
+    /// Each user group can have its own HeaderColor which will be used for the navigation bar.
+    /// </summary>
+    public bool UseGroupHeaderColor { get; set; } = false;
     
     /// <summary>
     /// Company website URL
@@ -139,6 +160,21 @@ public class SystemSettings : BaseEntity
     /// Company phone number
     /// </summary>
     public string? CompanyPhone { get; set; }
+    
+    /// <summary>
+    /// Selected color palette ID from cached palettes
+    /// </summary>
+    public int? SelectedPaletteId { get; set; }
+    
+    /// <summary>
+    /// Selected color palette name for display
+    /// </summary>
+    public string? SelectedPaletteName { get; set; }
+    
+    /// <summary>
+    /// Last time palettes were refreshed from GitHub
+    /// </summary>
+    public DateTime? PalettesLastRefreshed { get; set; }
     
     #endregion
     
@@ -168,6 +204,116 @@ public class SystemSettings : BaseEntity
     /// Whether new registrations require admin approval
     /// </summary>
     public bool RequireApprovalForNewUsers { get; set; } = true;
+    
+    #endregion
+    
+    #region Social Login - Google OAuth
+    
+    /// <summary>
+    /// Whether Google OAuth login is enabled
+    /// </summary>
+    public bool GoogleAuthEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// Google OAuth Client ID
+    /// </summary>
+    public string? GoogleClientId { get; set; }
+    
+    /// <summary>
+    /// Google OAuth Client Secret (encrypted)
+    /// </summary>
+    public string? GoogleClientSecret { get; set; }
+    
+    #endregion
+    
+    #region Social Login - Microsoft Account
+    
+    /// <summary>
+    /// Whether Microsoft Account login is enabled
+    /// </summary>
+    public bool MicrosoftAuthEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// Microsoft OAuth Client ID (Application ID)
+    /// </summary>
+    public string? MicrosoftClientId { get; set; }
+    
+    /// <summary>
+    /// Microsoft OAuth Client Secret (encrypted)
+    /// </summary>
+    public string? MicrosoftClientSecret { get; set; }
+    
+    /// <summary>
+    /// Microsoft Tenant ID (common, organizations, consumers, or specific tenant)
+    /// </summary>
+    public string? MicrosoftTenantId { get; set; } = "common";
+    
+    #endregion
+    
+    #region Social Login - Azure Active Directory
+    
+    /// <summary>
+    /// Whether Azure AD login is enabled
+    /// </summary>
+    public bool AzureAdAuthEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// Azure AD Application (client) ID
+    /// </summary>
+    public string? AzureAdClientId { get; set; }
+    
+    /// <summary>
+    /// Azure AD Client Secret (encrypted)
+    /// </summary>
+    public string? AzureAdClientSecret { get; set; }
+    
+    /// <summary>
+    /// Azure AD Tenant ID (Directory ID)
+    /// </summary>
+    public string? AzureAdTenantId { get; set; }
+    
+    /// <summary>
+    /// Azure AD Authority URL
+    /// </summary>
+    public string? AzureAdAuthority { get; set; }
+    
+    #endregion
+    
+    #region Social Login - LinkedIn
+    
+    /// <summary>
+    /// Whether LinkedIn OAuth login is enabled
+    /// </summary>
+    public bool LinkedInAuthEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// LinkedIn OAuth Client ID
+    /// </summary>
+    public string? LinkedInClientId { get; set; }
+    
+    /// <summary>
+    /// LinkedIn OAuth Client Secret (encrypted)
+    /// </summary>
+    public string? LinkedInClientSecret { get; set; }
+    
+    #endregion
+    
+    #region Social Login - Facebook
+    
+    /// <summary>
+    /// Whether Facebook OAuth login is enabled
+    /// </summary>
+    public bool FacebookAuthEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// Facebook App ID
+    /// </summary>
+    public string? FacebookAppId { get; set; }
+    
+    /// <summary>
+    /// Facebook App Secret (encrypted)
+    /// </summary>
+    public string? FacebookAppSecret { get; set; }
     
     #endregion
     

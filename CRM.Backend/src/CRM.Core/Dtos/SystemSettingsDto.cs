@@ -30,8 +30,15 @@ public class SystemSettingsDto
     
     public string CompanyName { get; set; } = string.Empty;
     public string? CompanyLogoUrl { get; set; }
-    public string PrimaryColor { get; set; } = "#1976d2";
-    public string SecondaryColor { get; set; } = "#dc004e";
+    public string PrimaryColor { get; set; } = "#6750A4";
+    public string SecondaryColor { get; set; } = "#625B71";
+    public string TertiaryColor { get; set; } = "#7D5260";
+    public string SurfaceColor { get; set; } = "#FFFBFE";
+    public string BackgroundColor { get; set; } = "#FFFBFE";
+    public bool UseGroupHeaderColor { get; set; } = false;
+    public int? SelectedPaletteId { get; set; }
+    public string? SelectedPaletteName { get; set; }
+    public DateTime? PalettesLastRefreshed { get; set; }
     
     #endregion
     
@@ -42,6 +49,49 @@ public class SystemSettingsDto
     public int SessionTimeoutMinutes { get; set; }
     public bool AllowUserRegistration { get; set; }
     public bool RequireApprovalForNewUsers { get; set; }
+    
+    #endregion
+    
+    #region Social Login - Google
+    
+    public bool GoogleAuthEnabled { get; set; }
+    public string? GoogleClientId { get; set; }
+    public string? GoogleClientSecret { get; set; }
+    
+    #endregion
+    
+    #region Social Login - Microsoft Account
+    
+    public bool MicrosoftAuthEnabled { get; set; }
+    public string? MicrosoftClientId { get; set; }
+    public string? MicrosoftClientSecret { get; set; }
+    public string? MicrosoftTenantId { get; set; }
+    
+    #endregion
+    
+    #region Social Login - Azure Active Directory
+    
+    public bool AzureAdAuthEnabled { get; set; }
+    public string? AzureAdClientId { get; set; }
+    public string? AzureAdClientSecret { get; set; }
+    public string? AzureAdTenantId { get; set; }
+    public string? AzureAdAuthority { get; set; }
+    
+    #endregion
+    
+    #region Social Login - LinkedIn
+    
+    public bool LinkedInAuthEnabled { get; set; }
+    public string? LinkedInClientId { get; set; }
+    public string? LinkedInClientSecret { get; set; }
+    
+    #endregion
+    
+    #region Social Login - Facebook
+    
+    public bool FacebookAuthEnabled { get; set; }
+    public string? FacebookAppId { get; set; }
+    public string? FacebookAppSecret { get; set; }
     
     #endregion
     
@@ -93,6 +143,12 @@ public class UpdateSystemSettingsRequest
     public string? CompanyLogoUrl { get; set; }
     public string? PrimaryColor { get; set; }
     public string? SecondaryColor { get; set; }
+    public string? TertiaryColor { get; set; }
+    public string? SurfaceColor { get; set; }
+    public string? BackgroundColor { get; set; }
+    public bool? UseGroupHeaderColor { get; set; }
+    public int? SelectedPaletteId { get; set; }
+    public string? SelectedPaletteName { get; set; }
     
     // Security Settings
     public bool? RequireTwoFactor { get; set; }
@@ -100,6 +156,34 @@ public class UpdateSystemSettingsRequest
     public int? SessionTimeoutMinutes { get; set; }
     public bool? AllowUserRegistration { get; set; }
     public bool? RequireApprovalForNewUsers { get; set; }
+    
+    // Social Login - Google
+    public bool? GoogleAuthEnabled { get; set; }
+    public string? GoogleClientId { get; set; }
+    public string? GoogleClientSecret { get; set; }
+    
+    // Social Login - Microsoft Account
+    public bool? MicrosoftAuthEnabled { get; set; }
+    public string? MicrosoftClientId { get; set; }
+    public string? MicrosoftClientSecret { get; set; }
+    public string? MicrosoftTenantId { get; set; }
+    
+    // Social Login - Azure Active Directory
+    public bool? AzureAdAuthEnabled { get; set; }
+    public string? AzureAdClientId { get; set; }
+    public string? AzureAdClientSecret { get; set; }
+    public string? AzureAdTenantId { get; set; }
+    public string? AzureAdAuthority { get; set; }
+    
+    // Social Login - LinkedIn
+    public bool? LinkedInAuthEnabled { get; set; }
+    public string? LinkedInClientId { get; set; }
+    public string? LinkedInClientSecret { get; set; }
+    
+    // Social Login - Facebook
+    public bool? FacebookAuthEnabled { get; set; }
+    public string? FacebookAppId { get; set; }
+    public string? FacebookAppSecret { get; set; }
     
     // Feature Flags
     public bool? ApiAccessEnabled { get; set; }
