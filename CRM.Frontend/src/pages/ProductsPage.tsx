@@ -11,6 +11,7 @@ import {
   Subscriptions as SubscriptionIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import LookupSelect from '../components/LookupSelect';
 import logo from '../assets/logo.png';
 
 // Enums matching backend
@@ -498,12 +499,14 @@ function ProductsPage() {
               {formData.isSubscription && (
                 <>
                   <Grid item xs={4}>
-                    <FormControl fullWidth>
-                      <InputLabel>Billing Frequency</InputLabel>
-                      <Select name="billingFrequency" value={formData.billingFrequency} onChange={handleSelectChange} label="Billing Frequency">
-                        {BILLING_FREQUENCIES.map(f => <MenuItem key={f.value} value={f.value}>{f.label}</MenuItem>)}
-                      </Select>
-                    </FormControl>
+                    <LookupSelect
+                      category="BillingCycle"
+                      name="billingFrequency"
+                      value={formData.billingFrequency}
+                      onChange={handleSelectChange}
+                      label="Billing Frequency"
+                      fallback={BILLING_FREQUENCIES.map(f => ({ value: f.value, label: f.label }))}
+                    />
                   </Grid>
                   <Grid item xs={4}>
                     <TextField fullWidth label="Recurring Price ($)" name="recurringPrice" type="number" value={formData.recurringPrice} onChange={handleInputChange} />

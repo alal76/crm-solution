@@ -3,10 +3,11 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Accept build arguments for environment variables
-ARG REACT_APP_API_URL=http://api:5000/api
+# Accept build arguments for environment variables (pass via docker-compose)
+ARG REACT_APP_API_URL
 ARG BUILD_DATE
 
+# Expose build arg to the build environment so React can embed it if provided
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 LABEL build_date=$BUILD_DATE
 

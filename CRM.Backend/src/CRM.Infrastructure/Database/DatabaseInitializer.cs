@@ -36,7 +36,7 @@ public class DatabaseInitializer
     /// </summary>
     public DatabaseProvider GetDatabaseProvider()
     {
-        var providerName = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var providerName = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "mariadb";
         
         return providerName switch
         {
@@ -45,7 +45,7 @@ public class DatabaseInitializer
             "mysql" => DatabaseProvider.MySQL,
             "mariadb" => DatabaseProvider.MariaDB,
             "oracle" => DatabaseProvider.Oracle,
-            _ => DatabaseProvider.SQLite
+            _ => DatabaseProvider.MariaDB
         };
     }
 

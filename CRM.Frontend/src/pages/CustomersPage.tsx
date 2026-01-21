@@ -14,6 +14,8 @@ import {
   PersonAdd as PersonAddIcon, Group as GroupIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import lookupService, { LookupItem } from '../services/lookupService';
+import FieldRenderer from '../components/FieldRenderer';
 import logo from '../assets/logo.png';
 
 // Customer Categories
@@ -277,6 +279,7 @@ function CustomersPage() {
   const [contactIsDecisionMaker, setContactIsDecisionMaker] = useState(false);
   const [fieldConfigs, setFieldConfigs] = useState<ModuleFieldConfiguration[]>([]);
   const [fieldConfigsLoading, setFieldConfigsLoading] = useState(false);
+  const [lookupItems, setLookupItems] = useState<Record<string, LookupItem[]>>({});
   const [formData, setFormData] = useState<CustomerForm>({
     category: 0,
     firstName: '',
@@ -330,7 +333,18 @@ function CustomersPage() {
     fetchUsers();
     fetchContacts();
     fetchFieldConfigurations();
+    // preload common lookups
+    loadLookup('PreferredContactMethod');
   }, []);
+
+  const loadLookup = async (category: string) => {
+    try {
+      const items = await lookupService.getLookupItems(category);
+      setLookupItems(prev => ({ ...prev, [category]: items }));
+    } catch (err) {
+      console.warn('Failed to load lookup', category, err);
+    }
+  };
 
   const fetchCustomers = async () => {
     try {
@@ -616,154 +630,27 @@ function CustomersPage() {
 
   const getSelectOptions = (config: ModuleFieldConfiguration) => {
     if (!config.options) return [] as string[];
-    return config.options.split(',').map(o => o.trim()).filter(Boolean);
+    // support static comma list
+    if (!config.options.startsWith('lookup:')) {
+      return config.options.split(',').map(o => o.trim()).filter(Boolean);
+    }
+    // format: lookup:CategoryName
+    const parts = config.options.split(':');
+    const category = parts[1] || parts.slice(1).join(':');
+    const items = lookupItems[category] || [];
+    return items.map(i => i.key || i.value);
   };
 
   const renderField = (config: ModuleFieldConfiguration) => {
-    const commonProps = {
-      fullWidth: true,
-      label: config.fieldLabel,
-      name: config.fieldName,
-      value: (formData as any)[config.fieldName] ?? '',
-      onChange: handleInputChange,
-      required: config.isRequired,
-      placeholder: config.placeholder || undefined,
-      helperText: config.helpText || undefined,
-    } as any;
-
-    switch (config.fieldName) {
-      case 'category':
-        return (
-          <FormControl fullWidth>
-            <InputLabel>{config.fieldLabel}</InputLabel>
-            <Select
-              name="category"
-              value={formData.category}
-              onChange={(e) => setFormData(prev => ({ ...prev, category: Number(e.target.value) }))}
-              label={config.fieldLabel}
-            >
-              {CUSTOMER_CATEGORIES.map(opt => (
-                <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        );
-      case 'customerType':
-        return (
-          <FormControl fullWidth>
-            <InputLabel>{config.fieldLabel}</InputLabel>
-            <Select name="customerType" value={formData.customerType} onChange={handleSelectChange} label={config.fieldLabel}>
-              {CUSTOMER_TYPES.map(t => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
-            </Select>
-          </FormControl>
-        );
-      case 'lifecycleStage':
-        return (
-          <FormControl fullWidth>
-            <InputLabel>{config.fieldLabel}</InputLabel>
-            <Select name="lifecycleStage" value={formData.lifecycleStage} onChange={handleSelectChange} label={config.fieldLabel}>
-              {LIFECYCLE_STAGES.map(s => (
-                <MenuItem key={s.value} value={s.value}>
-                  <Chip label={s.label} size="small" sx={{ backgroundColor: s.color, color: 'white' }} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        );
-      case 'priority':
-        return (
-          <FormControl fullWidth>
-            <InputLabel>{config.fieldLabel}</InputLabel>
-            <Select name="priority" value={formData.priority} onChange={handleSelectChange} label={config.fieldLabel}>
-              {PRIORITIES.map(p => (
-                <MenuItem key={p.value} value={p.value}>
-                  <Chip label={p.label} size="small" sx={{ backgroundColor: p.color, color: 'white' }} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        );
-      case 'industry':
-        return (
-          <FormControl fullWidth>
-            <InputLabel>{config.fieldLabel}</InputLabel>
-            <Select name="industry" value={formData.industry} onChange={handleSelectChange} label={config.fieldLabel}>
-              {INDUSTRIES.map(i => <MenuItem key={i} value={i}>{i}</MenuItem>)}
-            </Select>
-          </FormControl>
-        );
-      case 'leadSource':
-        return (
-          <FormControl fullWidth>
-            <InputLabel>{config.fieldLabel}</InputLabel>
-            <Select name="leadSource" value={formData.leadSource} onChange={handleSelectChange} label={config.fieldLabel}>
-              {LEAD_SOURCES.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-            </Select>
-          </FormControl>
-        );
-      case 'leadScore':
-        return (
-          <Box>
-            <Typography gutterBottom>{config.fieldLabel}: {formData.leadScore}</Typography>
-            <Slider
-              value={formData.leadScore}
-              onChange={(_, v) => setFormData(prev => ({ ...prev, leadScore: v as number }))}
-              min={0}
-              max={100}
-              valueLabelDisplay="auto"
-              sx={{ color: formData.leadScore > 70 ? '#4caf50' : formData.leadScore > 40 ? '#ff9800' : '#f44336' }}
-            />
-          </Box>
-        );
-      case 'optInEmail':
-      case 'optInPhone':
-      case 'optInSms':
-        return (
-          <FormControlLabel
-            control={<Checkbox name={config.fieldName} checked={(formData as any)[config.fieldName]} onChange={handleInputChange} />}
-            label={config.fieldLabel}
-          />
-        );
-      case 'preferredContactMethod':
-        return (
-          <FormControl fullWidth>
-            <InputLabel>{config.fieldLabel}</InputLabel>
-            <Select name="preferredContactMethod" value={formData.preferredContactMethod} onChange={handleSelectChange} label={config.fieldLabel}>
-              {getSelectOptions(config).map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
-            </Select>
-          </FormControl>
-        );
-      default:
-        if (config.fieldType === 'select') {
-          return (
-            <FormControl fullWidth>
-              <InputLabel>{config.fieldLabel}</InputLabel>
-              <Select name={config.fieldName} value={(formData as any)[config.fieldName] ?? ''} onChange={handleSelectChange} label={config.fieldLabel}>
-                {getSelectOptions(config).map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
-              </Select>
-            </FormControl>
-          );
-        }
-        if (config.fieldType === 'textarea') {
-          return (
-            <TextField {...commonProps} multiline rows={3} />
-          );
-        }
-        if (config.fieldType === 'checkbox') {
-          return (
-            <FormControlLabel
-              control={<Checkbox name={config.fieldName} checked={(formData as any)[config.fieldName]} onChange={handleInputChange} />}
-              label={config.fieldLabel}
-            />
-          );
-        }
-        return (
-          <TextField
-            {...commonProps}
-            type={config.fieldType === 'currency' ? 'number' : config.fieldType}
-          />
-        );
-    }
+    return (
+      <FieldRenderer
+        config={config}
+        formData={formData}
+        onChange={handleInputChange}
+        onSelectChange={handleSelectChange}
+        setFormData={setFormData}
+      />
+    );
   };
 
   const renderTabFields = (tabIndex: number) => {
@@ -1196,10 +1083,9 @@ function CustomersPage() {
                   <FormControl fullWidth>
                     <InputLabel>Preferred Contact Method</InputLabel>
                     <Select name="preferredContactMethod" value={formData.preferredContactMethod} onChange={handleSelectChange} label="Preferred Contact Method">
-                      <MenuItem value="Email">Email</MenuItem>
-                      <MenuItem value="Phone">Phone</MenuItem>
-                      <MenuItem value="SMS">SMS</MenuItem>
-                      <MenuItem value="Mail">Mail</MenuItem>
+                      {(lookupItems['PreferredContactMethod'] ? lookupItems['PreferredContactMethod'].map(i => (
+                        <MenuItem key={i.key || i.id} value={i.key || i.value}>{i.value}</MenuItem>
+                      )) : [ 'Email', 'Phone', 'SMS', 'Mail' ].map(v => <MenuItem key={v} value={v}>{v}</MenuItem>))}
                     </Select>
                   </FormControl>
                 </Grid>

@@ -42,6 +42,13 @@ public interface ICrmDbContext
     DbSet<ServiceRequestCustomFieldDefinition> ServiceRequestCustomFieldDefinitions { get; }
     DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; }
     DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; }
+    DbSet<Account> Accounts { get; }
+    DbSet<Address> Addresses { get; }
+    DbSet<ContactDetail> ContactDetails { get; }
+    DbSet<SocialAccount> SocialAccounts { get; }
+    DbSet<ContactInfoLink> ContactInfoLinks { get; }
+    DbSet<LookupCategory> LookupCategories { get; }
+    DbSet<LookupItem> LookupItems { get; }
     
     DatabaseFacade Database { get; }
 

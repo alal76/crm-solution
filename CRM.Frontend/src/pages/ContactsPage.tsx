@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import lookupService, { LookupItem } from '../services/lookupService';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -102,6 +103,7 @@ function ContactsPage() {
     firstName: '',
     lastName: '',
   });
+  const [lookupItems, setLookupItems] = useState<Record<string, LookupItem[]>>({});
   const [socialMediaData, setSocialMediaData] = useState({
     platform: 'LinkedIn',
     url: '',
@@ -113,6 +115,21 @@ function ContactsPage() {
     fetchContacts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType]);
+
+  useEffect(() => {
+    // preload contact-related lookups if available
+    (async () => {
+      try {
+        const [types, socials] = await Promise.all([
+          lookupService.getLookupItems('ContactType').catch(() => []),
+          lookupService.getLookupItems('SocialMediaPlatform').catch(() => []),
+        ]);
+        setLookupItems({ ContactType: types, SocialMediaPlatform: socials });
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, []);
 
   const fetchContacts = async () => {
     try {
@@ -289,11 +306,13 @@ function ContactsPage() {
               sx={{ minWidth: 200 }}
             >
               <MenuItem value="">All Types</MenuItem>
-              {CONTACT_TYPES.map((type) => (
+              {(lookupItems['ContactType'] && lookupItems['ContactType'].length ? lookupItems['ContactType'].map(i => (
+                <MenuItem key={i.key || i.id} value={i.key || i.value}>{i.value}</MenuItem>
+              )) : CONTACT_TYPES.map((type) => (
                 <MenuItem key={type} value={type}>
                   {type}
                 </MenuItem>
-              ))}
+              )))}
             </TextField>
           </CardContent>
         </Card>
@@ -597,11 +616,13 @@ function ContactsPage() {
               onChange={(e) => setSocialMediaData({ ...socialMediaData, platform: e.target.value })}
               fullWidth
             >
-              {SOCIAL_MEDIA_PLATFORMS.map((platform) => (
+              {(lookupItems['SocialMediaPlatform'] && lookupItems['SocialMediaPlatform'].length ? lookupItems['SocialMediaPlatform'].map(i => (
+                <MenuItem key={i.key || i.id} value={i.key || i.value}>{i.value}</MenuItem>
+              )) : SOCIAL_MEDIA_PLATFORMS.map((platform) => (
                 <MenuItem key={platform} value={platform}>
                   {platform}
                 </MenuItem>
-              ))}
+              )))}
             </TextField>
 
             <TextField

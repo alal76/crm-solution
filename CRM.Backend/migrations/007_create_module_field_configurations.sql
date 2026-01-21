@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS `ModuleFieldConfigurations` (
     `IsReorderable` tinyint(1) NOT NULL DEFAULT 1,
     `IsRequiredConfigurable` tinyint(1) NOT NULL DEFAULT 1,
     `IsHideable` tinyint(1) NOT NULL DEFAULT 1,
+    `IsDeleted` tinyint(1) NOT NULL DEFAULT 0,
     `CreatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `UpdatedAt` datetime NULL,
     PRIMARY KEY (`Id`),

@@ -25,6 +25,8 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
+using System.IO;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,8 +65,18 @@ builder.Services.AddCors(options =>
 });
 
 // Configure Database
-var databaseProvider = builder.Configuration["DatabaseProvider"] ?? "sqlite";
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=crm.db";
+var databaseProvider = builder.Configuration["DatabaseProvider"] ?? "mariadb";
+// Build connection string from configuration or environment variables
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString) && (databaseProvider.ToLower() == "mysql" || databaseProvider.ToLower() == "mariadb"))
+{
+    var dbHost = builder.Configuration["DB_HOST"] ?? builder.Configuration["DbHost"] ?? "mariadb";
+    var dbPort = builder.Configuration["DB_PORT"] ?? "3306";
+    var dbName = builder.Configuration["DB_NAME"] ?? "crm_db";
+    var dbUser = builder.Configuration["DB_USER"] ?? "crm_user";
+    var dbPass = builder.Configuration["DB_PASSWORD"] ?? builder.Configuration["DB_PASS"] ?? "crm_pass";
+    connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};Uid={dbUser};Pwd={dbPass};";
+}
 
 builder.Services.AddDbContext<CrmDbContext>(options =>
 {
@@ -155,11 +167,19 @@ using (var scope = app.Services.CreateScope())
         // Check if database exists and has tables
         var canConnect = await db.Database.CanConnectAsync();
         
-        // For non-SQLite databases, use EnsureCreated (migrations are SQLite-specific)
+        // For non-SQLite databases, try applying migrations first; fall back to EnsureCreated
         if (databaseProvider.ToLower() != "sqlite")
         {
-            Log.Information($"Using EnsureCreated for {databaseProvider} database...");
-            await db.Database.EnsureCreatedAsync();
+            try
+            {
+                Log.Information($"Attempting to apply migrations for {databaseProvider} database...");
+                await db.Database.MigrateAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Could not apply migrations for non-sqlite provider, falling back to EnsureCreated...");
+                await db.Database.EnsureCreatedAsync();
+            }
         }
         else if (canConnect)
         {
@@ -186,6 +206,36 @@ using (var scope = app.Services.CreateScope())
             await db.Database.EnsureCreatedAsync();
         }
         
+        // Apply any raw SQL migration files in CRM.Backend/migrations (useful for MySQL/MariaDB)
+        try
+        {
+            var migrationsFolder = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "migrations"));
+            if (Directory.Exists(migrationsFolder))
+            {
+                var sqlFiles = Directory.GetFiles(migrationsFolder, "*.sql").OrderBy(f => f);
+                foreach (var file in sqlFiles)
+                {
+                    try
+                    {
+                        var sql = await File.ReadAllTextAsync(file);
+                        if (!string.IsNullOrWhiteSpace(sql))
+                        {
+                            Log.Information($"Executing SQL migration file: {Path.GetFileName(file)}");
+                            await db.Database.ExecuteSqlRawAsync(sql);
+                        }
+                    }
+                    catch (Exception innerEx)
+                    {
+                        Log.Warning(innerEx, $"Failed to execute SQL file {file} - continuing");
+                    }
+                }
+            }
+        }
+        catch (Exception exSql)
+        {
+            Log.Warning(exSql, "Error while applying raw SQL migration files");
+        }
+
         // Seed data
         await DbSeed.SeedAsync(db);
         Log.Information("Database setup completed successfully");

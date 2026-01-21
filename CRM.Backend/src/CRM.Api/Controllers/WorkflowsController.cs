@@ -3,6 +3,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -321,6 +322,41 @@ public class WorkflowsController : ControllerBase
         {
             _logger.LogError($"Error executing workflow: {ex.Message}");
             return BadRequest(new { message = "Error executing workflow" });
+        }
+    }
+
+    /// <summary>
+    /// Get workflow queue for the current user (executions targeting any of user's groups)
+    /// </summary>
+    [HttpGet("queue")]
+    public async Task<ActionResult<IEnumerable<WorkflowExecutionDto>>> GetQueue()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            var groupIds = await _context.UserGroupMembers
+                .Where(m => m.UserId == userId)
+                .Select(m => m.UserGroupId)
+                .ToListAsync();
+
+            if (groupIds == null || !groupIds.Any())
+                return Ok(new List<WorkflowExecutionDto>());
+
+            var executions = await _context.WorkflowExecutions
+                .Where(ex => groupIds.Contains(ex.TargetUserGroupId))
+                .OrderByDescending(ex => ex.CreatedAt)
+                .ToListAsync();
+
+            var dtos = executions.Select(MapExecutionToDto).ToList();
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error retrieving queue: {ex.Message}");
+            return BadRequest(new { message = "Error retrieving queue" });
         }
     }
 
