@@ -222,6 +222,28 @@ interface User {
   lastName: string;
 }
 
+interface ModuleFieldConfiguration {
+  id: number;
+  moduleName: string;
+  fieldName: string;
+  fieldLabel: string;
+  fieldType: string;
+  tabIndex: number;
+  tabName: string;
+  displayOrder: number;
+  isEnabled: boolean;
+  isRequired: boolean;
+  gridSize: number;
+  placeholder?: string;
+  helpText?: string;
+  options?: string;
+  parentField?: string;
+  parentFieldValue?: string;
+  isReorderable: boolean;
+  isRequiredConfigurable: boolean;
+  isHideable: boolean;
+}
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -253,6 +275,8 @@ function CustomersPage() {
   const [contactRole, setContactRole] = useState<number>(0);
   const [contactIsPrimary, setContactIsPrimary] = useState(false);
   const [contactIsDecisionMaker, setContactIsDecisionMaker] = useState(false);
+  const [fieldConfigs, setFieldConfigs] = useState<ModuleFieldConfiguration[]>([]);
+  const [fieldConfigsLoading, setFieldConfigsLoading] = useState(false);
   const [formData, setFormData] = useState<CustomerForm>({
     category: 0,
     firstName: '',
@@ -305,6 +329,7 @@ function CustomersPage() {
     fetchCustomers();
     fetchUsers();
     fetchContacts();
+    fetchFieldConfigurations();
   }, []);
 
   const fetchCustomers = async () => {
@@ -335,6 +360,19 @@ function CustomersPage() {
       setContacts(response.data);
     } catch (err) {
       console.error('Error fetching contacts:', err);
+    }
+  };
+
+  const fetchFieldConfigurations = async () => {
+    try {
+      setFieldConfigsLoading(true);
+      const response = await apiClient.get('/modulefieldconfigurations/Customers');
+      setFieldConfigs(response.data || []);
+    } catch (err) {
+      console.error('Error fetching field configurations:', err);
+      setFieldConfigs([]);
+    } finally {
+      setFieldConfigsLoading(false);
     }
   };
 
@@ -529,6 +567,192 @@ function CustomersPage() {
   const getLifecycleStage = (value: number) => LIFECYCLE_STAGES.find(s => s.value === value);
   const getPriority = (value: number) => PRIORITIES.find(p => p.value === value);
   const getCustomerType = (value: number) => CUSTOMER_TYPES.find(t => t.value === value);
+
+  const isFieldVisible = (config: ModuleFieldConfiguration, categoryValue: number) => {
+    if (!config.isEnabled) return false;
+    if (config.parentField === 'category' && config.parentFieldValue !== undefined) {
+      return String(categoryValue) === String(config.parentFieldValue);
+    }
+    if (config.parentField && config.parentFieldValue) {
+      const current = (formData as any)[config.parentField];
+      return String(current ?? '') === String(config.parentFieldValue);
+    }
+    return true;
+  };
+
+  const getTabFields = (tabIndex: number) => {
+    if (!fieldConfigs.length) return [] as ModuleFieldConfiguration[];
+    return fieldConfigs
+      .filter(f => f.tabIndex === tabIndex)
+      .filter(f => isFieldVisible(f, formData.category))
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  };
+
+  const getSelectOptions = (config: ModuleFieldConfiguration) => {
+    if (!config.options) return [] as string[];
+    return config.options.split(',').map(o => o.trim()).filter(Boolean);
+  };
+
+  const renderField = (config: ModuleFieldConfiguration) => {
+    const commonProps = {
+      fullWidth: true,
+      label: config.fieldLabel,
+      name: config.fieldName,
+      value: (formData as any)[config.fieldName] ?? '',
+      onChange: handleInputChange,
+      required: config.isRequired,
+      placeholder: config.placeholder || undefined,
+      helperText: config.helpText || undefined,
+    } as any;
+
+    switch (config.fieldName) {
+      case 'category':
+        return (
+          <FormControl fullWidth>
+            <InputLabel>{config.fieldLabel}</InputLabel>
+            <Select
+              name="category"
+              value={formData.category}
+              onChange={(e) => setFormData(prev => ({ ...prev, category: Number(e.target.value) }))}
+              label={config.fieldLabel}
+            >
+              {CUSTOMER_CATEGORIES.map(opt => (
+                <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        );
+      case 'customerType':
+        return (
+          <FormControl fullWidth>
+            <InputLabel>{config.fieldLabel}</InputLabel>
+            <Select name="customerType" value={formData.customerType} onChange={handleSelectChange} label={config.fieldLabel}>
+              {CUSTOMER_TYPES.map(t => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
+            </Select>
+          </FormControl>
+        );
+      case 'lifecycleStage':
+        return (
+          <FormControl fullWidth>
+            <InputLabel>{config.fieldLabel}</InputLabel>
+            <Select name="lifecycleStage" value={formData.lifecycleStage} onChange={handleSelectChange} label={config.fieldLabel}>
+              {LIFECYCLE_STAGES.map(s => (
+                <MenuItem key={s.value} value={s.value}>
+                  <Chip label={s.label} size="small" sx={{ backgroundColor: s.color, color: 'white' }} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        );
+      case 'priority':
+        return (
+          <FormControl fullWidth>
+            <InputLabel>{config.fieldLabel}</InputLabel>
+            <Select name="priority" value={formData.priority} onChange={handleSelectChange} label={config.fieldLabel}>
+              {PRIORITIES.map(p => (
+                <MenuItem key={p.value} value={p.value}>
+                  <Chip label={p.label} size="small" sx={{ backgroundColor: p.color, color: 'white' }} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        );
+      case 'industry':
+        return (
+          <FormControl fullWidth>
+            <InputLabel>{config.fieldLabel}</InputLabel>
+            <Select name="industry" value={formData.industry} onChange={handleSelectChange} label={config.fieldLabel}>
+              {INDUSTRIES.map(i => <MenuItem key={i} value={i}>{i}</MenuItem>)}
+            </Select>
+          </FormControl>
+        );
+      case 'leadSource':
+        return (
+          <FormControl fullWidth>
+            <InputLabel>{config.fieldLabel}</InputLabel>
+            <Select name="leadSource" value={formData.leadSource} onChange={handleSelectChange} label={config.fieldLabel}>
+              {LEAD_SOURCES.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+            </Select>
+          </FormControl>
+        );
+      case 'leadScore':
+        return (
+          <Box>
+            <Typography gutterBottom>{config.fieldLabel}: {formData.leadScore}</Typography>
+            <Slider
+              value={formData.leadScore}
+              onChange={(_, v) => setFormData(prev => ({ ...prev, leadScore: v as number }))}
+              min={0}
+              max={100}
+              valueLabelDisplay="auto"
+              sx={{ color: formData.leadScore > 70 ? '#4caf50' : formData.leadScore > 40 ? '#ff9800' : '#f44336' }}
+            />
+          </Box>
+        );
+      case 'optInEmail':
+      case 'optInPhone':
+      case 'optInSms':
+        return (
+          <FormControlLabel
+            control={<Checkbox name={config.fieldName} checked={(formData as any)[config.fieldName]} onChange={handleInputChange} />}
+            label={config.fieldLabel}
+          />
+        );
+      case 'preferredContactMethod':
+        return (
+          <FormControl fullWidth>
+            <InputLabel>{config.fieldLabel}</InputLabel>
+            <Select name="preferredContactMethod" value={formData.preferredContactMethod} onChange={handleSelectChange} label={config.fieldLabel}>
+              {getSelectOptions(config).map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+            </Select>
+          </FormControl>
+        );
+      default:
+        if (config.fieldType === 'select') {
+          return (
+            <FormControl fullWidth>
+              <InputLabel>{config.fieldLabel}</InputLabel>
+              <Select name={config.fieldName} value={(formData as any)[config.fieldName] ?? ''} onChange={handleSelectChange} label={config.fieldLabel}>
+                {getSelectOptions(config).map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+              </Select>
+            </FormControl>
+          );
+        }
+        if (config.fieldType === 'textarea') {
+          return (
+            <TextField {...commonProps} multiline rows={3} />
+          );
+        }
+        if (config.fieldType === 'checkbox') {
+          return (
+            <FormControlLabel
+              control={<Checkbox name={config.fieldName} checked={(formData as any)[config.fieldName]} onChange={handleInputChange} />}
+              label={config.fieldLabel}
+            />
+          );
+        }
+        return (
+          <TextField
+            {...commonProps}
+            type={config.fieldType === 'currency' ? 'number' : config.fieldType}
+          />
+        );
+    }
+  };
+
+  const renderTabFields = (tabIndex: number) => {
+    const configs = getTabFields(tabIndex);
+    if (!configs.length) return null;
+    return (
+      <Grid container spacing={2}>
+        {configs.map(cfg => (
+          <Grid key={cfg.id} item xs={cfg.gridSize || 12}>
+            {renderField(cfg)}
+          </Grid>
+        ))}
+      </Grid>
+    );
+  };
 
   if (loading) {
     return (
@@ -974,7 +1198,91 @@ function CustomersPage() {
             </Grid>
           </TabPanel>
 
-          <TabPanel value={dialogTab} index={3}>
+          {/* Linked Contacts Tab - Only for Organizations when editing */}
+          {formData.category === 1 && editingId && (
+            <TabPanel value={dialogTab} index={3}>
+              <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Organization Contacts ({customerContacts.length})
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<PersonAddIcon />}
+                  onClick={() => setAddContactDialogOpen(true)}
+                  size="small"
+                >
+                  Add Contact
+                </Button>
+              </Box>
+              
+              {customerContacts.length === 0 ? (
+                <Paper elevation={0} sx={{ p: 4, textAlign: 'center', backgroundColor: '#F5EFF7', borderRadius: 2 }}>
+                  <GroupIcon sx={{ fontSize: 48, color: '#6750A4', opacity: 0.5, mb: 1 }} />
+                  <Typography color="textSecondary">No contacts linked to this organization</Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    Add contacts to track key people at this organization
+                  </Typography>
+                </Paper>
+              ) : (
+                <List sx={{ bgcolor: 'background.paper', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                  {customerContacts.map((contact, index) => (
+                    <Box key={contact.id}>
+                      {index > 0 && <Divider />}
+                      <ListItem>
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography fontWeight={500}>{contact.contactName}</Typography>
+                              <Chip 
+                                label={CONTACT_ROLES.find(r => r.value === parseInt(contact.role))?.label || contact.role}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                              />
+                              {contact.isPrimaryContact && (
+                                <Chip label="Primary" size="small" color="success" />
+                              )}
+                              {contact.isDecisionMaker && (
+                                <Chip label="Decision Maker" size="small" color="warning" />
+                              )}
+                            </Box>
+                          }
+                          secondary={
+                            <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+                              {contact.contactEmail && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <EmailIcon fontSize="small" sx={{ fontSize: 14, color: '#666' }} />
+                                  <Typography variant="caption">{contact.contactEmail}</Typography>
+                                </Box>
+                              )}
+                              {contact.contactPhone && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <PhoneIcon fontSize="small" sx={{ fontSize: 14, color: '#666' }} />
+                                  <Typography variant="caption">{contact.contactPhone}</Typography>
+                                </Box>
+                              )}
+                              {contact.positionAtCustomer && (
+                                <Typography variant="caption" color="textSecondary">
+                                  {contact.positionAtCustomer}
+                                </Typography>
+                              )}
+                            </Box>
+                          }
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton edge="end" onClick={() => handleRemoveContact(contact.contactId)} size="small" color="error">
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    </Box>
+                  ))}
+                </List>
+              )}
+            </TabPanel>
+          )}
+
+          <TabPanel value={dialogTab} index={formData.category === 1 && editingId ? 4 : 3}>
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <TextField fullWidth label="Territory" name="territory" value={formData.territory} onChange={handleInputChange} />
@@ -998,6 +1306,64 @@ function CustomersPage() {
           <Button onClick={handleCloseDialog}>Cancel</Button>
           <Button onClick={handleSaveCustomer} variant="contained" sx={{ backgroundColor: '#6750A4' }}>
             {editingId ? 'Update' : 'Create'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Contact Dialog */}
+      <Dialog open={addContactDialogOpen} onClose={() => setAddContactDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Link Contact to Organization</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <Autocomplete
+                options={contacts.filter(c => !customerContacts.some(cc => cc.contactId === c.id))}
+                getOptionLabel={(option) => `${option.firstName} ${option.lastName}${option.company ? ` (${option.company})` : ''}`}
+                value={contacts.find(c => c.id === selectedContactId) || null}
+                onChange={(_, newValue) => setSelectedContactId(newValue?.id || null)}
+                renderInput={(params) => (
+                  <TextField {...params} label="Select Contact" required />
+                )}
+                renderOption={(props, option) => (
+                  <li {...props}>
+                    <Box>
+                      <Typography>{option.firstName} {option.lastName}</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {option.emailPrimary} {option.company && `• ${option.company}`}
+                      </Typography>
+                    </Box>
+                  </li>
+                )}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Role</InputLabel>
+                <Select value={contactRole} onChange={(e) => setContactRole(e.target.value as number)} label="Role">
+                  {CONTACT_ROLES.map(r => (
+                    <MenuItem key={r.value} value={r.value}>{r.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={6}>
+              <FormControlLabel
+                control={<Checkbox checked={contactIsPrimary} onChange={(e) => setContactIsPrimary(e.target.checked)} />}
+                label="Primary Contact"
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <FormControlLabel
+                control={<Checkbox checked={contactIsDecisionMaker} onChange={(e) => setContactIsDecisionMaker(e.target.checked)} />}
+                label="Decision Maker"
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddContactDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleAddContact} variant="contained" disabled={!selectedContactId} sx={{ backgroundColor: '#6750A4' }}>
+            Add Contact
           </Button>
         </DialogActions>
       </Dialog>

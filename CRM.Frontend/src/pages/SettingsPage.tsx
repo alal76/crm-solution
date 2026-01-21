@@ -48,12 +48,14 @@ import {
   Add as AddIcon,
   Save as SaveIcon,
   Preview as PreviewIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import UserApprovalTab from '../components/settings/UserApprovalTab';
 import GroupManagementTab from '../components/settings/GroupManagementTab';
 import DatabaseSettingsTab from '../components/settings/DatabaseSettingsTab';
 import ModuleSettingsTab from '../components/settings/ModuleSettingsTab';
+import ModuleFieldSettingsTab from '../components/settings/ModuleFieldSettingsTab';
 import UserManagementTab from '../components/settings/UserManagementTab';
 import SocialLoginSettingsTab from '../components/settings/SocialLoginSettingsTab';
 import SecuritySettingsTab from '../components/settings/SecuritySettingsTab';
@@ -1350,6 +1352,12 @@ function SettingsPage() {
       icon: <ModuleIcon sx={{ mr: 0.5, fontSize: 20 }} />,
       component: <ModuleSettingsTab />,
     },
+      {
+        id: 'fieldconfig',
+        label: 'Field Configuration',
+        icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 20 }} />,
+        component: <ModuleFieldSettingsTab />,
+      },
     {
       id: 'sociallogin',
       label: 'Social Login',

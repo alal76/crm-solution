@@ -41,6 +41,7 @@ public interface ICrmDbContext
     DbSet<ServiceRequestSubcategory> ServiceRequestSubcategories { get; }
     DbSet<ServiceRequestCustomFieldDefinition> ServiceRequestCustomFieldDefinitions { get; }
     DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; }
+    DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; }
     
     DatabaseFacade Database { get; }
 
