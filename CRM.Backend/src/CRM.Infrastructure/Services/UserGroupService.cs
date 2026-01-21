@@ -26,15 +26,7 @@ public class UserGroupService : IUserGroupService
         {
             var groups = await _context.UserGroups
                 .Where(g => g.IsActive)
-                .Select(g => new UserGroupDto
-                {
-                    Id = g.Id,
-                    Name = g.Name,
-                    Description = g.Description,
-                    IsActive = g.IsActive,
-                    CreatedAt = g.CreatedAt,
-                    MemberCount = g.Members.Count
-                })
+                .Select(g => MapToDto(g))
                 .ToListAsync();
 
             return groups;
@@ -52,24 +44,181 @@ public class UserGroupService : IUserGroupService
         {
             var group = await _context.UserGroups
                 .Where(g => g.Id == id)
-                .Select(g => new UserGroupDto
-                {
-                    Id = g.Id,
-                    Name = g.Name,
-                    Description = g.Description,
-                    IsActive = g.IsActive,
-                    CreatedAt = g.CreatedAt,
-                    MemberCount = g.Members.Count
-                })
                 .FirstOrDefaultAsync();
 
-            return group;
+            return group != null ? MapToDto(group) : null;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error retrieving group {id}");
             throw;
         }
+    }
+    
+    private static UserGroupDto MapToDto(UserGroup g)
+    {
+        return new UserGroupDto
+        {
+            Id = g.Id,
+            Name = g.Name,
+            Description = g.Description,
+            IsActive = g.IsActive,
+            IsDefault = g.IsDefault,
+            DisplayOrder = g.DisplayOrder,
+            IsSystemAdmin = g.IsSystemAdmin,
+            CreatedAt = g.CreatedAt,
+            MemberCount = g.Members.Count,
+            
+            // Menu Permissions
+            CanAccessDashboard = g.CanAccessDashboard,
+            CanAccessCustomers = g.CanAccessCustomers,
+            CanAccessContacts = g.CanAccessContacts,
+            CanAccessLeads = g.CanAccessLeads,
+            CanAccessOpportunities = g.CanAccessOpportunities,
+            CanAccessProducts = g.CanAccessProducts,
+            CanAccessServices = g.CanAccessServices,
+            CanAccessCampaigns = g.CanAccessCampaigns,
+            CanAccessQuotes = g.CanAccessQuotes,
+            CanAccessTasks = g.CanAccessTasks,
+            CanAccessActivities = g.CanAccessActivities,
+            CanAccessNotes = g.CanAccessNotes,
+            CanAccessWorkflows = g.CanAccessWorkflows,
+            CanAccessReports = g.CanAccessReports,
+            CanAccessSettings = g.CanAccessSettings,
+            CanAccessUserManagement = g.CanAccessUserManagement,
+            
+            // Entity CRUD
+            CanCreateCustomers = g.CanCreateCustomers,
+            CanEditCustomers = g.CanEditCustomers,
+            CanDeleteCustomers = g.CanDeleteCustomers,
+            CanViewAllCustomers = g.CanViewAllCustomers,
+            
+            CanCreateContacts = g.CanCreateContacts,
+            CanEditContacts = g.CanEditContacts,
+            CanDeleteContacts = g.CanDeleteContacts,
+            
+            CanCreateLeads = g.CanCreateLeads,
+            CanEditLeads = g.CanEditLeads,
+            CanDeleteLeads = g.CanDeleteLeads,
+            CanConvertLeads = g.CanConvertLeads,
+            
+            CanCreateOpportunities = g.CanCreateOpportunities,
+            CanEditOpportunities = g.CanEditOpportunities,
+            CanDeleteOpportunities = g.CanDeleteOpportunities,
+            CanCloseOpportunities = g.CanCloseOpportunities,
+            
+            CanCreateProducts = g.CanCreateProducts,
+            CanEditProducts = g.CanEditProducts,
+            CanDeleteProducts = g.CanDeleteProducts,
+            CanManagePricing = g.CanManagePricing,
+            
+            CanCreateCampaigns = g.CanCreateCampaigns,
+            CanEditCampaigns = g.CanEditCampaigns,
+            CanDeleteCampaigns = g.CanDeleteCampaigns,
+            CanLaunchCampaigns = g.CanLaunchCampaigns,
+            
+            CanCreateQuotes = g.CanCreateQuotes,
+            CanEditQuotes = g.CanEditQuotes,
+            CanDeleteQuotes = g.CanDeleteQuotes,
+            CanApproveQuotes = g.CanApproveQuotes,
+            
+            CanCreateTasks = g.CanCreateTasks,
+            CanEditTasks = g.CanEditTasks,
+            CanDeleteTasks = g.CanDeleteTasks,
+            CanAssignTasks = g.CanAssignTasks,
+            
+            CanCreateWorkflows = g.CanCreateWorkflows,
+            CanEditWorkflows = g.CanEditWorkflows,
+            CanDeleteWorkflows = g.CanDeleteWorkflows,
+            CanActivateWorkflows = g.CanActivateWorkflows,
+            
+            // Data Access
+            DataAccessScope = g.DataAccessScope,
+            CanExportData = g.CanExportData,
+            CanImportData = g.CanImportData,
+            CanBulkEdit = g.CanBulkEdit,
+            CanBulkDelete = g.CanBulkDelete
+        };
+    }
+    
+    private static void MapFromRequest(UserGroup group, CreateUserGroupRequest request)
+    {
+        group.Name = request.Name;
+        group.Description = request.Description;
+        group.IsActive = request.IsActive;
+        group.IsDefault = request.IsDefault;
+        group.DisplayOrder = request.DisplayOrder;
+        group.IsSystemAdmin = request.IsSystemAdmin;
+        
+        // Menu Permissions
+        group.CanAccessDashboard = request.CanAccessDashboard;
+        group.CanAccessCustomers = request.CanAccessCustomers;
+        group.CanAccessContacts = request.CanAccessContacts;
+        group.CanAccessLeads = request.CanAccessLeads;
+        group.CanAccessOpportunities = request.CanAccessOpportunities;
+        group.CanAccessProducts = request.CanAccessProducts;
+        group.CanAccessServices = request.CanAccessServices;
+        group.CanAccessCampaigns = request.CanAccessCampaigns;
+        group.CanAccessQuotes = request.CanAccessQuotes;
+        group.CanAccessTasks = request.CanAccessTasks;
+        group.CanAccessActivities = request.CanAccessActivities;
+        group.CanAccessNotes = request.CanAccessNotes;
+        group.CanAccessWorkflows = request.CanAccessWorkflows;
+        group.CanAccessReports = request.CanAccessReports;
+        group.CanAccessSettings = request.CanAccessSettings;
+        group.CanAccessUserManagement = request.CanAccessUserManagement;
+        
+        // Entity CRUD
+        group.CanCreateCustomers = request.CanCreateCustomers;
+        group.CanEditCustomers = request.CanEditCustomers;
+        group.CanDeleteCustomers = request.CanDeleteCustomers;
+        group.CanViewAllCustomers = request.CanViewAllCustomers;
+        
+        group.CanCreateContacts = request.CanCreateContacts;
+        group.CanEditContacts = request.CanEditContacts;
+        group.CanDeleteContacts = request.CanDeleteContacts;
+        
+        group.CanCreateLeads = request.CanCreateLeads;
+        group.CanEditLeads = request.CanEditLeads;
+        group.CanDeleteLeads = request.CanDeleteLeads;
+        group.CanConvertLeads = request.CanConvertLeads;
+        
+        group.CanCreateOpportunities = request.CanCreateOpportunities;
+        group.CanEditOpportunities = request.CanEditOpportunities;
+        group.CanDeleteOpportunities = request.CanDeleteOpportunities;
+        group.CanCloseOpportunities = request.CanCloseOpportunities;
+        
+        group.CanCreateProducts = request.CanCreateProducts;
+        group.CanEditProducts = request.CanEditProducts;
+        group.CanDeleteProducts = request.CanDeleteProducts;
+        group.CanManagePricing = request.CanManagePricing;
+        
+        group.CanCreateCampaigns = request.CanCreateCampaigns;
+        group.CanEditCampaigns = request.CanEditCampaigns;
+        group.CanDeleteCampaigns = request.CanDeleteCampaigns;
+        group.CanLaunchCampaigns = request.CanLaunchCampaigns;
+        
+        group.CanCreateQuotes = request.CanCreateQuotes;
+        group.CanEditQuotes = request.CanEditQuotes;
+        group.CanDeleteQuotes = request.CanDeleteQuotes;
+        group.CanApproveQuotes = request.CanApproveQuotes;
+        
+        group.CanCreateTasks = request.CanCreateTasks;
+        group.CanEditTasks = request.CanEditTasks;
+        group.CanDeleteTasks = request.CanDeleteTasks;
+        group.CanAssignTasks = request.CanAssignTasks;
+        
+        group.CanCreateWorkflows = request.CanCreateWorkflows;
+        group.CanEditWorkflows = request.CanEditWorkflows;
+        group.CanDeleteWorkflows = request.CanDeleteWorkflows;
+        group.CanActivateWorkflows = request.CanActivateWorkflows;
+        
+        // Data Access
+        group.DataAccessScope = request.DataAccessScope;
+        group.CanExportData = request.CanExportData;
+        group.CanImportData = request.CanImportData;
+        group.CanBulkEdit = request.CanBulkEdit;
+        group.CanBulkDelete = request.CanBulkDelete;
     }
 
     public async Task<UserGroupDto> CreateGroupAsync(CreateUserGroupRequest request)
@@ -82,25 +231,13 @@ public class UserGroupService : IUserGroupService
             if (existingGroup != null)
                 throw new InvalidOperationException("Group with this name already exists");
 
-            var group = new UserGroup
-            {
-                Name = request.Name,
-                Description = request.Description,
-                IsActive = request.IsActive
-            };
+            var group = new UserGroup();
+            MapFromRequest(group, request);
 
             _context.UserGroups.Add(group);
             await _context.SaveChangesAsync();
 
-            return new UserGroupDto
-            {
-                Id = group.Id,
-                Name = group.Name,
-                Description = group.Description,
-                IsActive = group.IsActive,
-                CreatedAt = group.CreatedAt,
-                MemberCount = 0
-            };
+            return MapToDto(group);
         }
         catch (Exception ex)
         {
@@ -117,22 +254,12 @@ public class UserGroupService : IUserGroupService
             if (group == null)
                 throw new KeyNotFoundException($"Group with ID {id} not found");
 
-            group.Name = request.Name;
-            group.Description = request.Description;
-            group.IsActive = request.IsActive;
+            MapFromRequest(group, request);
 
             _context.UserGroups.Update(group);
             await _context.SaveChangesAsync();
 
-            return new UserGroupDto
-            {
-                Id = group.Id,
-                Name = group.Name,
-                Description = group.Description,
-                IsActive = group.IsActive,
-                CreatedAt = group.CreatedAt,
-                MemberCount = group.Members.Count
-            };
+            return MapToDto(group);
         }
         catch (Exception ex)
         {

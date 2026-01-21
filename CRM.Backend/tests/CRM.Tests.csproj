@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Version>1.2.0</Version>
+    <RollForward>Major</RollForward>
   </PropertyGroup>
 
   <ItemGroup>

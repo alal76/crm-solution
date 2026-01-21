@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # CRM Solution - Comprehensive Customer Relationship Management System
 
 A full-stack, enterprise-grade CRM solution built with **.NET Core** backend and **React** frontend with responsive UI supporting mobile and web platforms.
@@ -389,12 +388,111 @@ The frontend is fully responsive with breakpoints for:
 
 Bootstrap 5 grid system ensures mobile-first approach.
 
+## 🧪 Testing
+
+### Test Structure
+
+The solution includes comprehensive unit tests and Build Verification Tests (BVT):
+
+```
+CRM.Backend/tests/
+├── CRM.Tests.csproj                    # Test project configuration
+├── CRM.Tests/
+│   ├── EntityTests.cs                  # Entity creation tests
+│   └── UserEntityTests.cs              # User entity tests
+├── Controllers/
+│   ├── CustomersControllerTests.cs     # Customer API endpoint tests
+│   └── DepartmentsControllerTests.cs   # Department API tests
+├── Services/
+│   └── CustomerServiceTests.cs         # CustomerService business logic tests
+└── BVT/
+    └── CriticalPathTests.cs            # Build Verification Tests
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+cd CRM.Backend/tests
+dotnet test
+
+# Run with verbose output
+dotnet test --logger "console;verbosity=detailed"
+
+# Run specific test category
+dotnet test --filter "FullyQualifiedName~BVT"
+```
+
+### Test Categories
+
+| Category | Description | Count |
+|----------|-------------|-------|
+| Entity Tests | Verify entity creation and defaults | 15 |
+| Controller Tests | Test API endpoint responses | 22 |
+| Service Tests | Test business logic | 12 |
+| BVT Tests | Critical path verification | 12 |
+
+### Build Verification Tests (BVT)
+
+BVT tests should be run before every deployment:
+- BVT-001: Customer Entity Creation
+- BVT-002: Organization Customer with Company
+- BVT-003: User Entity Creation
+- BVT-004: CustomerDto Mapping
+- BVT-005: Category Enum Values
+- BVT-006: UserRole Enum Values
+- BVT-007: Lifecycle Stage Defaults
+- BVT-008: Product Entity
+- BVT-009: Opportunity Entity
+- BVT-010: Department Entity
+- BVT-011: AuthResponse DTO
+- BVT-012: CustomerContact Junction
+
+## 📖 Code Documentation
+
+### Documentation Standards
+
+All code includes XML documentation with two perspectives:
+
+1. **Functional View**: Business context - what the feature does from a user's perspective
+2. **Technical View**: Implementation details - how it works for developers
+
+### Example Documentation
+
+```csharp
+/// <summary>
+/// Customer service implementation providing CRUD operations.
+/// 
+/// FUNCTIONAL VIEW:
+/// This service handles all customer-related business operations including:
+/// - Creating Individual and Organization customers
+/// - Managing customer lifecycle
+/// 
+/// TECHNICAL VIEW:
+/// - Implements ICustomerService interface
+/// - Uses IRepository pattern for data access
+/// </summary>
+public class CustomerService : ICustomerService
+```
+
+### Key Documented Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| User Entity | `CRM.Core/Entities/User.cs` | User management with roles |
+| Customer Entity | `CRM.Core/Entities/Customer.cs` | Individual/Organization customers |
+| CustomerService | `CRM.Infrastructure/Services/CustomerService.cs` | Customer business logic |
+| CustomersController | `CRM.Api/Controllers/CustomersController.cs` | REST API endpoints |
+
 ## 🔐 Security Considerations
 
 - CORS enabled (configure as needed)
 - Input validation on both backend and frontend
 - Database connection strings in configuration
 - Recommend using Azure KeyVault or similar for production secrets
+- JWT Bearer authentication with refresh tokens
+- Password hashing using BCrypt
+- Two-factor authentication support
 
 ## 📄 License
 
@@ -406,9 +504,5 @@ For issues and questions, contact the development team.
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: January 2026
-=======
-# crm-solution
-A comprehensive .NET-based CRM solution with multi-database support - built by vibe coding
->>>>>>> 05d575add762148930a917a91f9482764c6a5ef9
+**Version**: 1.2.0  
+**Last Updated**: January 2025

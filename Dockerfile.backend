@@ -30,15 +30,10 @@ RUN apt-get update && apt-get install -y curl mariadb-client-core && rm -rf /var
 # Copy published application
 COPY --from=builder /app/publish .
 
-# Create a startup script that waits for database
+# Create a startup script
 RUN echo '#!/bin/bash\n\
 set -e\n\
-echo "Waiting for MariaDB to be ready..."\n\
-while ! mariadb -h "${DB_HOST:-mariadb}" -u "${DB_USER:-crm_user}" -p"${DB_PASSWORD:-CrmPass@2024}" -e "SELECT 1" > /dev/null 2>&1; do\n\
-  echo "MariaDB is unavailable - sleeping..."\n\
-  sleep 2\n\
-done\n\
-echo "MariaDB is ready!"\n\
+echo "Starting CRM API..."\n\
 exec "$@"' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # Health check

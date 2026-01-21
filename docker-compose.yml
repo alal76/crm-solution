@@ -34,8 +34,8 @@ services:
       - "5001:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
-      - ConnectionStrings__DefaultConnection=Data Source=/app/data/crm.db
-      - DatabaseProvider=sqlite
+      - ConnectionStrings__DefaultConnection=Server=mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;
+      - DatabaseProvider=mariadb
       - Jwt__Secret=${JWT_SECRET:-dev-secret-key-change-in-production-32chars}
       - Jwt__Issuer=CRMApp
       - Jwt__Audience=CRMUsers

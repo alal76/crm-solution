@@ -20,10 +20,17 @@ COPY CRM.Frontend/package*.json ./
 RUN npm install --legacy-peer-deps
 
 # Copy source code  
-# Cache invalidation: 2026-01-19T23:30:00Z
+# Cache invalidation: 2026-01-21T23:58:00Z
 COPY CRM.Frontend/src ./src
 COPY CRM.Frontend/public ./public
 COPY CRM.Frontend/tsconfig.json ./
+
+# Set version from package.json at build time
+RUN export REACT_APP_VERSION=$(node -p "require('./package.json').version") && \
+    export REACT_APP_BUILD_DATE=$(date -u +"%Y-%m-%d") && \
+    echo "REACT_APP_VERSION=$REACT_APP_VERSION" >> .env && \
+    echo "REACT_APP_BUILD_DATE=$REACT_APP_BUILD_DATE" >> .env && \
+    cat .env
 
 # Build the application
 RUN npm run build

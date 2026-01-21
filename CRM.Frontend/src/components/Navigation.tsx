@@ -41,7 +41,7 @@ import './Navigation.css';
 
 function NavigationContent() {
   const { isAuthenticated, user, logout } = useAuth();
-  const { profile, hasPermission } = useProfile();
+  const { profile, hasPermission, canAccessMenu } = useProfile();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -65,24 +65,28 @@ function NavigationContent() {
   }
 
   const navItems = [
-    { label: 'Dashboard', icon: DashboardIcon, path: '/', permission: 'Dashboard' },
-    { label: 'Customers', icon: PeopleIcon, path: '/customers', permission: 'Customers' },
-    { label: 'Contacts', icon: PeopleIcon, path: '/contacts', permission: 'Contacts' },
-    { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', permission: 'Opportunities' },
-    { label: 'Products', icon: PackageIcon, path: '/products', permission: 'Products' },
-    { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', permission: 'Campaigns' },
-    { label: 'Leads', icon: PeopleIcon, path: '/leads', permission: 'Customers' },
-    { label: 'Tasks', icon: TaskIcon, path: '/tasks', permission: 'Customers' },
-    { label: 'Quotes', icon: QuoteIcon, path: '/quotes', permission: 'Opportunities' },
-    { label: 'Notes', icon: NoteIcon, path: '/notes', permission: 'Customers' },
-    { label: 'Activities', icon: ActivityIcon, path: '/activities', permission: 'Dashboard' },
-    { label: 'Services', icon: SettingsIcon, path: '/services', permission: 'Products' },
+    { label: 'Dashboard', icon: DashboardIcon, path: '/', menuName: 'Dashboard' },
+    { label: 'Customers', icon: PeopleIcon, path: '/customers', menuName: 'Customers' },
+    { label: 'Contacts', icon: PeopleIcon, path: '/contacts', menuName: 'Contacts' },
+    { label: 'Leads', icon: PeopleIcon, path: '/leads', menuName: 'Leads' },
+    { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', menuName: 'Opportunities' },
+    { label: 'Products', icon: PackageIcon, path: '/products', menuName: 'Products' },
+    { label: 'Services', icon: SettingsIcon, path: '/services', menuName: 'Services' },
+    { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', menuName: 'Campaigns' },
+    { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
+    { label: 'Tasks', icon: TaskIcon, path: '/tasks', menuName: 'Tasks' },
+    { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
+    { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
   ];
 
   const adminItems = [
-    { label: 'Workflows', icon: AutomationIcon, path: '/workflows' },
-    { label: 'Admin Settings', icon: SettingsIcon, path: '/settings' },
+    { label: 'Workflows', icon: AutomationIcon, path: '/workflows', menuName: 'Workflows' },
+    { label: 'Admin Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
   ];
+  
+  // Filter nav items based on group permissions and module status
+  const visibleNavItems = navItems.filter(item => canAccessMenu(item.menuName));
+  const visibleAdminItems = adminItems.filter(item => canAccessMenu(item.menuName));
 
   return (
     <>
@@ -178,7 +182,7 @@ function NavigationContent() {
         </Box>
         <Divider />
         <List>
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <ListItem
               button
               key={item.path}
@@ -199,7 +203,7 @@ function NavigationContent() {
           ))}
         </List>
 
-        {(user?.role === 'Admin' || user?.role === 0 || user?.role === '0' || hasPermission('canManageUsers')) && (
+        {visibleAdminItems.length > 0 && (user?.role === 'Admin' || user?.role === 0 || user?.role === '0' || hasPermission('canManageUsers')) && (
           <>
             <Divider sx={{ my: 1 }} />
             <Box sx={{ p: 1.5, bgcolor: 'action.hover', m: 1, borderRadius: 1 }}>
@@ -208,7 +212,7 @@ function NavigationContent() {
               </Typography>
             </Box>
             <List>
-              {adminItems.map((item) => (
+              {visibleAdminItems.map((item) => (
                 <ListItem
                   button
                   key={item.path}

@@ -1,0 +1,245 @@
+namespace CRM.Core.Entities;
+
+/// <summary>
+/// FUNCTIONAL VIEW:
+/// ================
+/// System-wide settings entity that controls global configuration for the CRM.
+/// Administrators can enable/disable entire modules across the deployment.
+/// Disabled modules will not appear in navigation and their routes become inaccessible.
+/// 
+/// TECHNICAL VIEW:
+/// ===============
+/// Singleton-like entity (only one record expected in the database).
+/// JSON fields store complex configurations.
+/// Frontend reads these settings to show/hide navigation items.
+/// </summary>
+public class SystemSettings : BaseEntity
+{
+    #region Module Enable/Disable Settings
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Customers module is enabled
+    /// TECHNICAL: Controls /customers route and menu visibility
+    /// </summary>
+    public bool CustomersEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Contacts module is enabled
+    /// TECHNICAL: Controls /contacts route and menu visibility
+    /// </summary>
+    public bool ContactsEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Leads module is enabled
+    /// TECHNICAL: Controls /leads route and menu visibility
+    /// </summary>
+    public bool LeadsEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Opportunities module is enabled
+    /// TECHNICAL: Controls /opportunities route and menu visibility
+    /// </summary>
+    public bool OpportunitiesEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Products module is enabled
+    /// TECHNICAL: Controls /products route and menu visibility
+    /// </summary>
+    public bool ProductsEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Services module is enabled
+    /// TECHNICAL: Controls /services route and menu visibility
+    /// </summary>
+    public bool ServicesEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Campaigns module is enabled
+    /// TECHNICAL: Controls /campaigns route and menu visibility
+    /// </summary>
+    public bool CampaignsEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Quotes module is enabled
+    /// TECHNICAL: Controls /quotes route and menu visibility
+    /// </summary>
+    public bool QuotesEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Tasks module is enabled
+    /// TECHNICAL: Controls /tasks route and menu visibility
+    /// </summary>
+    public bool TasksEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Activities module is enabled
+    /// TECHNICAL: Controls /activities route and menu visibility
+    /// </summary>
+    public bool ActivitiesEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Notes module is enabled
+    /// TECHNICAL: Controls /notes route and menu visibility
+    /// </summary>
+    public bool NotesEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Workflows module is enabled
+    /// TECHNICAL: Controls /workflows route and menu visibility
+    /// </summary>
+    public bool WorkflowsEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Reports module is enabled
+    /// TECHNICAL: Controls reporting features
+    /// </summary>
+    public bool ReportsEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Dashboard analytics are enabled
+    /// TECHNICAL: Controls dashboard charts and widgets
+    /// </summary>
+    public bool DashboardEnabled { get; set; } = true;
+    
+    #endregion
+    
+    #region Company/Branding Settings
+    
+    /// <summary>
+    /// Company name displayed in the UI
+    /// </summary>
+    public string CompanyName { get; set; } = "CRM System";
+    
+    /// <summary>
+    /// URL to company logo
+    /// </summary>
+    public string? CompanyLogoUrl { get; set; }
+    
+    /// <summary>
+    /// Primary brand color (hex)
+    /// </summary>
+    public string PrimaryColor { get; set; } = "#6750A4";
+    
+    /// <summary>
+    /// Secondary brand color (hex)
+    /// </summary>
+    public string SecondaryColor { get; set; } = "#625B71";
+    
+    /// <summary>
+    /// Company website URL
+    /// </summary>
+    public string? CompanyWebsite { get; set; }
+    
+    /// <summary>
+    /// Company support email
+    /// </summary>
+    public string? CompanyEmail { get; set; }
+    
+    /// <summary>
+    /// Company phone number
+    /// </summary>
+    public string? CompanyPhone { get; set; }
+    
+    #endregion
+    
+    #region Security Settings
+    
+    /// <summary>
+    /// Whether two-factor authentication is required for all users
+    /// </summary>
+    public bool RequireTwoFactor { get; set; } = false;
+    
+    /// <summary>
+    /// Minimum password length
+    /// </summary>
+    public int MinPasswordLength { get; set; } = 8;
+    
+    /// <summary>
+    /// Session timeout in minutes
+    /// </summary>
+    public int SessionTimeoutMinutes { get; set; } = 60;
+    
+    /// <summary>
+    /// Whether user registration is enabled
+    /// </summary>
+    public bool AllowUserRegistration { get; set; } = true;
+    
+    /// <summary>
+    /// Whether new registrations require admin approval
+    /// </summary>
+    public bool RequireApprovalForNewUsers { get; set; } = true;
+    
+    #endregion
+    
+    #region Feature Flags
+    
+    /// <summary>
+    /// Whether to show the demo data option
+    /// </summary>
+    public bool ShowDemoData { get; set; } = false;
+    
+    /// <summary>
+    /// Whether API access is enabled
+    /// </summary>
+    public bool ApiAccessEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// Whether to enable email notifications
+    /// </summary>
+    public bool EmailNotificationsEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// Whether to enable audit logging
+    /// </summary>
+    public bool AuditLoggingEnabled { get; set; } = true;
+    
+    #endregion
+    
+    #region Customization
+    
+    /// <summary>
+    /// Custom fields configuration (JSON)
+    /// </summary>
+    public string? CustomFieldsConfig { get; set; }
+    
+    /// <summary>
+    /// Date format preference
+    /// </summary>
+    public string DateFormat { get; set; } = "MM/dd/yyyy";
+    
+    /// <summary>
+    /// Time format preference (12h or 24h)
+    /// </summary>
+    public string TimeFormat { get; set; } = "12h";
+    
+    /// <summary>
+    /// Default currency code
+    /// </summary>
+    public string DefaultCurrency { get; set; } = "USD";
+    
+    /// <summary>
+    /// Default timezone
+    /// </summary>
+    public string DefaultTimezone { get; set; } = "America/New_York";
+    
+    /// <summary>
+    /// Default language
+    /// </summary>
+    public string DefaultLanguage { get; set; } = "en";
+    
+    #endregion
+    
+    #region Audit
+    
+    /// <summary>
+    /// When settings were last modified
+    /// </summary>
+    public DateTime LastModified { get; set; } = DateTime.UtcNow;
+    
+    /// <summary>
+    /// User who last modified the settings
+    /// </summary>
+    public int? ModifiedByUserId { get; set; }
+    
+    #endregion
+}

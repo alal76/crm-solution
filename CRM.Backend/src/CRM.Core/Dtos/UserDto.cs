@@ -1,7 +1,7 @@
 namespace CRM.Core.Dtos;
 
 /// <summary>
-/// DTO for User with profile and department information
+/// DTO for User with profile, department, and contact information
 /// </summary>
 public class UserDto
 {
@@ -16,6 +16,9 @@ public class UserDto
     public string? DepartmentName { get; set; }
     public int? UserProfileId { get; set; }
     public string? UserProfileName { get; set; }
+    public int? ContactId { get; set; }
+    public string? ContactName { get; set; }
+    public string? ContactEmail { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginDate { get; set; }
 }

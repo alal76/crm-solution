@@ -77,24 +77,17 @@ const useStyles = () =>
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #6750A4 0%, #9575CD 50%, #7E57C2 100%)',
-        backgroundSize: '200% 200%',
-        animation: 'gradientShift 15s ease infinite',
+        background: 'linear-gradient(135deg, #6750A4 0%, #7E57C2 100%)',
         py: 3,
         px: 2,
-        '@keyframes gradientShift': {
-          '0%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
-          '100%': { backgroundPosition: '0% 50%' },
-        },
       },
       card: {
         borderRadius: 4,
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
         overflow: 'hidden',
-        backdropFilter: 'blur(10px)',
         maxWidth: 440,
         width: '100%',
+        backgroundColor: '#ffffff',
       },
       header: {
         background: 'linear-gradient(135deg, #5E35B1 0%, #7E57C2 100%)',
@@ -105,13 +98,6 @@ const useStyles = () =>
       input: {
         '& .MuiOutlinedInput-root': {
           borderRadius: 2,
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            boxShadow: '0 2px 8px rgba(103, 80, 164, 0.15)',
-          },
-          '&.Mui-focused': {
-            boxShadow: '0 4px 12px rgba(103, 80, 164, 0.2)',
-          },
         },
       },
       button: {
@@ -122,13 +108,12 @@ const useStyles = () =>
         borderRadius: 3,
         background: 'linear-gradient(135deg, #5E35B1 0%, #7E57C2 100%)',
         boxShadow: '0 4px 15px rgba(94, 53, 177, 0.35)',
-        transition: 'all 0.3s ease',
         '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: '0 8px 25px rgba(94, 53, 177, 0.45)',
+          background: 'linear-gradient(135deg, #4527A0 0%, #6A1B9A 100%)',
+          boxShadow: '0 6px 20px rgba(94, 53, 177, 0.45)',
         },
         '&:active': {
-          transform: 'translateY(0)',
+          background: 'linear-gradient(135deg, #4527A0 0%, #6A1B9A 100%)',
         },
         '&:disabled': {
           background: '#B8B5BD',

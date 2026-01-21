@@ -20,11 +20,15 @@ import {
   Groups as GroupsIcon,
   Storage as StorageIcon,
   Business as BusinessIcon,
+  ToggleOn as ModuleIcon,
+  People as PeopleIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import UserApprovalTab from '../components/settings/UserApprovalTab';
 import GroupManagementTab from '../components/settings/GroupManagementTab';
 import DatabaseSettingsTab from '../components/settings/DatabaseSettingsTab';
+import ModuleSettingsTab from '../components/settings/ModuleSettingsTab';
+import UserManagementTab from '../components/settings/UserManagementTab';
 import logo from '../assets/logo.png';
 
 interface SettingsTab {
@@ -270,6 +274,18 @@ function SettingsPage() {
       label: 'Company Branding',
       icon: <BusinessIcon sx={{ mr: 0.5, fontSize: 20 }} />,
       component: <CompanyBrandingTab />,
+    },
+    {
+      id: 'modules',
+      label: 'Module Settings',
+      icon: <ModuleIcon sx={{ mr: 0.5, fontSize: 20 }} />,
+      component: <ModuleSettingsTab />,
+    },
+    {
+      id: 'users',
+      label: 'User Management',
+      icon: <PeopleIcon sx={{ mr: 0.5, fontSize: 20 }} />,
+      component: <UserManagementTab />,
     },
     {
       id: 'approvals',
