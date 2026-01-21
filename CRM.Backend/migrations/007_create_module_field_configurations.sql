@@ -1,0 +1,28 @@
+-- Create ModuleFieldConfigurations table
+CREATE TABLE IF NOT EXISTS `ModuleFieldConfigurations` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `ModuleName` varchar(100) NOT NULL,
+    `FieldName` varchar(100) NOT NULL,
+    `FieldLabel` varchar(200) NOT NULL,
+    `FieldType` varchar(50) NOT NULL DEFAULT 'text',
+    `TabIndex` int NOT NULL DEFAULT 0,
+    `TabName` varchar(100) NOT NULL DEFAULT 'Basic Info',
+    `DisplayOrder` int NOT NULL DEFAULT 0,
+    `IsEnabled` tinyint(1) NOT NULL DEFAULT 1,
+    `IsRequired` tinyint(1) NOT NULL DEFAULT 0,
+    `GridSize` int NOT NULL DEFAULT 6,
+    `Placeholder` varchar(500) NULL,
+    `HelpText` text NULL,
+    `Options` text NULL,
+    `ParentField` varchar(100) NULL,
+    `ParentFieldValue` varchar(100) NULL,
+    `IsReorderable` tinyint(1) NOT NULL DEFAULT 1,
+    `IsRequiredConfigurable` tinyint(1) NOT NULL DEFAULT 1,
+    `IsHideable` tinyint(1) NOT NULL DEFAULT 1,
+    `CreatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `UpdatedAt` datetime NULL,
+    PRIMARY KEY (`Id`),
+    INDEX `idx_module_tab` (`ModuleName`, `TabIndex`),
+    INDEX `idx_field_name` (`FieldName`),
+    UNIQUE KEY `uk_module_field` (`ModuleName`, `FieldName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

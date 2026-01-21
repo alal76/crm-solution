@@ -82,6 +82,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     
     // Color palettes
     public DbSet<ColorPalette> ColorPalettes { get; set; }
+    
+        // Module field configurations
+        public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
