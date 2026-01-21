@@ -4,6 +4,7 @@ using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
@@ -15,6 +16,7 @@ public class AuthenticationService : IAuthenticationService
 {
     private readonly IRepository<User> _userRepository;
     private readonly IRepository<OAuthToken> _oauthTokenRepository;
+    private readonly ICrmDbContext _dbContext;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ITotpService _totpService;
     private readonly ILogger<AuthenticationService> _logger;
@@ -22,12 +24,14 @@ public class AuthenticationService : IAuthenticationService
     public AuthenticationService(
         IRepository<User> userRepository,
         IRepository<OAuthToken> oauthTokenRepository,
+        ICrmDbContext dbContext,
         IJwtTokenService jwtTokenService,
         ITotpService totpService,
         ILogger<AuthenticationService> logger)
     {
         _userRepository = userRepository;
         _oauthTokenRepository = oauthTokenRepository;
+        _dbContext = dbContext;
         _jwtTokenService = jwtTokenService;
         _totpService = totpService;
         _logger = logger;
@@ -68,18 +72,21 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
-        // Get user by email - trim both email from request and in database
-        var users = await _userRepository.GetAllAsync();
+        // Get user by email with navigation properties for permissions
         var normalizedEmail = request.Email?.Trim().ToLower() ?? "";
-        var user = users.FirstOrDefault(u => (u.Email?.Trim().ToLower() ?? "") == normalizedEmail);
+        var user = await _dbContext.Users
+            .Include(u => u.PrimaryGroup)
+            .Include(u => u.Department)
+            .Include(u => u.UserProfile)
+            .FirstOrDefaultAsync(u => !u.IsDeleted && u.Email != null && u.Email.ToLower() == normalizedEmail);
 
         if (user == null || !VerifyPassword(request.Password, user.PasswordHash))
         {
             // Add detailed logging for debugging
             if (user == null)
-                Console.WriteLine($"[LOGIN] User not found for email: '{normalizedEmail}'. Available users: {string.Join(", ", users.Select(u => u.Email?.Trim().ToLower() ?? "null"))}");
+                Console.WriteLine($"[LOGIN] User not found for email: '{normalizedEmail}'");
             else
-                Console.WriteLine($"[LOGIN] Password verification failed for user: '{user.Email}'. Hash from DB: {user.PasswordHash}");
+                Console.WriteLine($"[LOGIN] Password verification failed for user: '{user.Email}'");
 
             throw new UnauthorizedAccessException("Invalid email or password");
         }
@@ -251,6 +258,111 @@ public class AuthenticationService : IAuthenticationService
             };
         }
 
+        // Build group permissions from user's primary group or admin role
+        GroupPermissionsDto? groupPermissions = null;
+        
+        // Check if user is Admin role - grant all permissions
+        if (user.Role == (int)CRM.Core.Entities.UserRole.Admin)
+        {
+            groupPermissions = new GroupPermissionsDto
+            {
+                IsSystemAdmin = true,
+                CanAccessDashboard = true,
+                CanAccessCustomers = true,
+                CanAccessContacts = true,
+                CanAccessLeads = true,
+                CanAccessOpportunities = true,
+                CanAccessProducts = true,
+                CanAccessServices = true,
+                CanAccessCampaigns = true,
+                CanAccessQuotes = true,
+                CanAccessTasks = true,
+                CanAccessActivities = true,
+                CanAccessNotes = true,
+                CanAccessWorkflows = true,
+                CanAccessReports = true,
+                CanAccessSettings = true,
+                CanAccessUserManagement = true,
+                // All CRUD permissions
+                CanCreateCustomers = true, CanEditCustomers = true, CanDeleteCustomers = true, CanViewAllCustomers = true,
+                CanCreateContacts = true, CanEditContacts = true, CanDeleteContacts = true,
+                CanCreateLeads = true, CanEditLeads = true, CanDeleteLeads = true, CanConvertLeads = true,
+                CanCreateOpportunities = true, CanEditOpportunities = true, CanDeleteOpportunities = true, CanCloseOpportunities = true,
+                CanCreateProducts = true, CanEditProducts = true, CanDeleteProducts = true, CanManagePricing = true,
+                CanCreateCampaigns = true, CanEditCampaigns = true, CanDeleteCampaigns = true, CanLaunchCampaigns = true,
+                CanCreateQuotes = true, CanEditQuotes = true, CanDeleteQuotes = true, CanApproveQuotes = true,
+                CanCreateTasks = true, CanEditTasks = true, CanDeleteTasks = true, CanAssignTasks = true,
+                CanCreateWorkflows = true, CanEditWorkflows = true, CanDeleteWorkflows = true, CanActivateWorkflows = true,
+                DataAccessScope = "all",
+                CanExportData = true, CanImportData = true, CanBulkEdit = true, CanBulkDelete = true
+            };
+        }
+        else if (user.PrimaryGroup != null)
+        {
+            // Get permissions from user's primary group
+            var group = user.PrimaryGroup;
+            groupPermissions = new GroupPermissionsDto
+            {
+                IsSystemAdmin = group.IsSystemAdmin,
+                CanAccessDashboard = group.CanAccessDashboard,
+                CanAccessCustomers = group.CanAccessCustomers,
+                CanAccessContacts = group.CanAccessContacts,
+                CanAccessLeads = group.CanAccessLeads,
+                CanAccessOpportunities = group.CanAccessOpportunities,
+                CanAccessProducts = group.CanAccessProducts,
+                CanAccessServices = group.CanAccessServices,
+                CanAccessCampaigns = group.CanAccessCampaigns,
+                CanAccessQuotes = group.CanAccessQuotes,
+                CanAccessTasks = group.CanAccessTasks,
+                CanAccessActivities = group.CanAccessActivities,
+                CanAccessNotes = group.CanAccessNotes,
+                CanAccessWorkflows = group.CanAccessWorkflows,
+                CanAccessReports = group.CanAccessReports,
+                CanAccessSettings = group.CanAccessSettings,
+                CanAccessUserManagement = group.CanAccessUserManagement,
+                CanCreateCustomers = group.CanCreateCustomers,
+                CanEditCustomers = group.CanEditCustomers,
+                CanDeleteCustomers = group.CanDeleteCustomers,
+                CanViewAllCustomers = group.CanViewAllCustomers,
+                CanCreateContacts = group.CanCreateContacts,
+                CanEditContacts = group.CanEditContacts,
+                CanDeleteContacts = group.CanDeleteContacts,
+                CanCreateLeads = group.CanCreateLeads,
+                CanEditLeads = group.CanEditLeads,
+                CanDeleteLeads = group.CanDeleteLeads,
+                CanConvertLeads = group.CanConvertLeads,
+                CanCreateOpportunities = group.CanCreateOpportunities,
+                CanEditOpportunities = group.CanEditOpportunities,
+                CanDeleteOpportunities = group.CanDeleteOpportunities,
+                CanCloseOpportunities = group.CanCloseOpportunities,
+                CanCreateProducts = group.CanCreateProducts,
+                CanEditProducts = group.CanEditProducts,
+                CanDeleteProducts = group.CanDeleteProducts,
+                CanManagePricing = group.CanManagePricing,
+                CanCreateCampaigns = group.CanCreateCampaigns,
+                CanEditCampaigns = group.CanEditCampaigns,
+                CanDeleteCampaigns = group.CanDeleteCampaigns,
+                CanLaunchCampaigns = group.CanLaunchCampaigns,
+                CanCreateQuotes = group.CanCreateQuotes,
+                CanEditQuotes = group.CanEditQuotes,
+                CanDeleteQuotes = group.CanDeleteQuotes,
+                CanApproveQuotes = group.CanApproveQuotes,
+                CanCreateTasks = group.CanCreateTasks,
+                CanEditTasks = group.CanEditTasks,
+                CanDeleteTasks = group.CanDeleteTasks,
+                CanAssignTasks = group.CanAssignTasks,
+                CanCreateWorkflows = group.CanCreateWorkflows,
+                CanEditWorkflows = group.CanEditWorkflows,
+                CanDeleteWorkflows = group.CanDeleteWorkflows,
+                CanActivateWorkflows = group.CanActivateWorkflows,
+                DataAccessScope = group.DataAccessScope,
+                CanExportData = group.CanExportData,
+                CanImportData = group.CanImportData,
+                CanBulkEdit = group.CanBulkEdit,
+                CanBulkDelete = group.CanBulkDelete
+            };
+        }
+
         return new AuthResponse
         {
             UserId = user.Id,
@@ -266,8 +378,11 @@ public class AuthenticationService : IAuthenticationService
             DepartmentName = user.Department?.Name,
             UserProfileId = user.UserProfileId,
             UserProfileName = user.UserProfile?.Name,
+            PrimaryGroupId = user.PrimaryGroupId,
+            PrimaryGroupName = user.PrimaryGroup?.Name,
             AccessiblePages = accessiblePages,
-            Permissions = permissions
+            Permissions = permissions,
+            GroupPermissions = groupPermissions
         };
     }
 

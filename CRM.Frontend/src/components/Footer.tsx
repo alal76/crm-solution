@@ -16,7 +16,7 @@ function Footer() {
   const [dbStatus, setDbStatus] = useState<HealthStatus>({ status: 'down' });
   const [ports, setPorts] = useState(getServicePorts());
   const [buildInfo] = useState({
-    version: process.env.REACT_APP_VERSION || '1.1.0',
+    version: process.env.REACT_APP_VERSION || '1.3.0',
     buildDate: process.env.REACT_APP_BUILD_DATE || new Date().toISOString().split('T')[0],
   });
 

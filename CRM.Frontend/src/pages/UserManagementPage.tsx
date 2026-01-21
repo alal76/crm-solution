@@ -1,6 +1,6 @@
-import { Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, FormControl, InputLabel, Chip } from '@mui/material';
+import { Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, FormControl, InputLabel, Chip, IconButton, Tooltip, Autocomplete } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Lock as LockIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Lock as LockIcon, Link as LinkIcon, LinkOff as LinkOffIcon, Person as PersonIcon } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 
@@ -15,13 +15,18 @@ interface User {
   lastLoginDate?: string;
   departmentId?: number;
   userProfileId?: number;
+  contactId?: number;
+  contactName?: string;
+  contactEmail?: string;
 }
 
 interface Contact {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  emailPrimary?: string;
+  company?: string;
+  jobTitle?: string;
 }
 
 interface Department {
@@ -59,7 +64,7 @@ const getRoleLabel = (role: number) => roleOptions.find(r => r.value === role)?.
 
 function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
-  const [, setContacts] = useState<Contact[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,8 +72,10 @@ function UserManagementPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+  const [openContactDialog, setOpenContactDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [formData, setFormData] = useState<UserFormData>({
     username: '',
     email: '',
@@ -248,6 +255,61 @@ function UserManagementPage() {
     }
   };
 
+  // Contact linking functions
+  const handleOpenContactDialog = (user: User) => {
+    setSelectedUserId(user.id);
+    const linkedContact = user.contactId 
+      ? contacts.find(c => c.id === user.contactId) || null
+      : null;
+    setSelectedContact(linkedContact);
+    setOpenContactDialog(true);
+  };
+
+  const handleCloseContactDialog = () => {
+    setOpenContactDialog(false);
+    setSelectedUserId(null);
+    setSelectedContact(null);
+  };
+
+  const handleLinkContact = async () => {
+    if (!selectedUserId) return;
+
+    try {
+      await apiClient.post(`/users/${selectedUserId}/link-contact`, {
+        contactId: selectedContact?.id || null
+      });
+      setSuccessMessage(selectedContact 
+        ? `User linked to contact: ${selectedContact.firstName} ${selectedContact.lastName}`
+        : 'Contact unlinked from user');
+      handleCloseContactDialog();
+      fetchAllData();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to link contact');
+      console.error('Error linking contact:', err);
+    }
+  };
+
+  const handleUnlinkContact = async (userId: number) => {
+    if (window.confirm('Are you sure you want to unlink this contact from the user?')) {
+      try {
+        await apiClient.post(`/users/${userId}/unlink-contact`);
+        setSuccessMessage('Contact unlinked successfully');
+        fetchAllData();
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to unlink contact');
+        console.error('Error unlinking contact:', err);
+      }
+    }
+  };
+
+  // Get available contacts (not already linked to other users)
+  const getAvailableContacts = () => {
+    const linkedContactIds = users
+      .filter(u => u.id !== selectedUserId && u.contactId)
+      .map(u => u.contactId);
+    return contacts.filter(c => !linkedContactIds.includes(c.id));
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
@@ -287,6 +349,7 @@ function UserManagementPage() {
                   <TableCell><strong>Email</strong></TableCell>
                   <TableCell><strong>Role</strong></TableCell>
                   <TableCell><strong>Department</strong></TableCell>
+                  <TableCell><strong>Linked Contact</strong></TableCell>
                   <TableCell><strong>Status</strong></TableCell>
                   <TableCell align="center"><strong>Actions</strong></TableCell>
                 </TableRow>
@@ -298,6 +361,39 @@ function UserManagementPage() {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{getRoleLabel(user.role)}</TableCell>
                     <TableCell>{departments.find(d => d.id === user.departmentId)?.name || '-'}</TableCell>
+                    <TableCell>
+                      {user.contactId ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Chip
+                            icon={<PersonIcon />}
+                            label={user.contactName || 'Linked'}
+                            color="primary"
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleOpenContactDialog(user)}
+                          />
+                          <Tooltip title="Unlink contact">
+                            <IconButton
+                              size="small"
+                              color="warning"
+                              onClick={() => handleUnlinkContact(user.id)}
+                            >
+                              <LinkOffIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      ) : (
+                        <Tooltip title="Link to contact">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleOpenContactDialog(user)}
+                          >
+                            <LinkIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Chip
                         label={user.isActive ? 'Active' : 'Inactive'}
@@ -452,7 +548,7 @@ function UserManagementPage() {
             </Select>
           </FormControl>
           <Typography variant="caption" sx={{ mt: 2, display: 'block', color: 'textSecondary' }}>
-            Note: User details can be linked to a contact through the contacts page.
+            Note: Use the Link Contact button in the table to associate this user with a contact record.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -494,6 +590,74 @@ function UserManagementPage() {
           <Button onClick={handleClosePasswordDialog}>Cancel</Button>
           <Button onClick={handleResetPassword} variant="contained" color="primary">
             Reset Password
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Link Contact Dialog */}
+      <Dialog open={openContactDialog} onClose={handleCloseContactDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <LinkIcon color="primary" />
+            Link User to Contact
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+            Link this user account to a contact record. This allows you to track the user's contact information, activities, and interactions.
+          </Typography>
+          <Autocomplete
+            options={getAvailableContacts()}
+            value={selectedContact}
+            onChange={(_event, newValue) => setSelectedContact(newValue)}
+            getOptionLabel={(option) => `${option.firstName} ${option.lastName}${option.company ? ` (${option.company})` : ''}`}
+            renderOption={(props, option) => (
+              <Box component="li" {...props}>
+                <Box>
+                  <Typography variant="body1">
+                    {option.firstName} {option.lastName}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {option.emailPrimary || 'No email'} {option.company ? `• ${option.company}` : ''} {option.jobTitle ? `• ${option.jobTitle}` : ''}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Select Contact"
+                placeholder="Search contacts..."
+                fullWidth
+              />
+            )}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+          />
+          {selectedContact && (
+            <Card sx={{ mt: 2, backgroundColor: '#F5EFF7' }}>
+              <CardContent>
+                <Typography variant="subtitle2" color="primary">Selected Contact</Typography>
+                <Typography variant="body1">{selectedContact.firstName} {selectedContact.lastName}</Typography>
+                <Typography variant="body2" color="textSecondary">{selectedContact.emailPrimary || 'No email'}</Typography>
+                {selectedContact.company && (
+                  <Typography variant="body2" color="textSecondary">{selectedContact.company}</Typography>
+                )}
+                {selectedContact.jobTitle && (
+                  <Typography variant="body2" color="textSecondary">{selectedContact.jobTitle}</Typography>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseContactDialog}>Cancel</Button>
+          {selectedContact && (
+            <Button onClick={() => setSelectedContact(null)} color="warning">
+              Clear Selection
+            </Button>
+          )}
+          <Button onClick={handleLinkContact} variant="contained" color="primary">
+            {selectedContact ? 'Link Contact' : 'Unlink Contact'}
           </Button>
         </DialogActions>
       </Dialog>

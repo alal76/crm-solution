@@ -80,7 +80,7 @@ namespace CRM.Tests.Controllers
             var result = await _controller.GetDepartmentById(departmentId);
 
             // Assert
-            result.Result.Should().BeOfType<NotFoundResult>();
+            result.Result.Should().BeOfType<NotFoundObjectResult>();
         }
 
         [Fact]

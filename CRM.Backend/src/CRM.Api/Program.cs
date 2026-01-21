@@ -70,12 +70,12 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
             // Use explicit MariaDB version to avoid connection attempts during startup
             options.UseMySql(connectionString, new MariaDbServerVersion(new Version(11, 0, 0)));
             break;
-        case "sqlite":
-            options.UseSqlite(connectionString);
-            break;
         case "sqlserver":
+            options.UseSqlServer(connectionString);
+            break;
+        case "sqlite":
         default:
-            options.UseSqlite("Data Source=crm.db");
+            options.UseSqlite(connectionString ?? "Data Source=crm.db");
             break;
     }
 });
@@ -94,6 +94,7 @@ builder.Services.AddScoped<ITotpService, TotpService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserGroupService, UserGroupService>();
+builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
 builder.Services.AddScoped<IUserApprovalService, UserApprovalService>();
 builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
@@ -135,7 +136,14 @@ using (var scope = app.Services.CreateScope())
     {
         // Check if database exists and has tables
         var canConnect = await db.Database.CanConnectAsync();
-        if (canConnect)
+        
+        // For non-SQLite databases, use EnsureCreated (migrations are SQLite-specific)
+        if (databaseProvider.ToLower() != "sqlite")
+        {
+            Log.Information($"Using EnsureCreated for {databaseProvider} database...");
+            await db.Database.EnsureCreatedAsync();
+        }
+        else if (canConnect)
         {
             // Try to apply migrations if they haven't been applied
             try

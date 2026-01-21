@@ -142,21 +142,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCookie('crm_refresh_token', refreshToken, 30);
       setCookie('crm_user_data', JSON.stringify(response.data), 30);
       
-      // Store profile information
+      // Store profile information including group permissions
       const profileData = {
         departmentId: response.data.departmentId,
         departmentName: response.data.departmentName,
         userProfileId: response.data.userProfileId,
         userProfileName: response.data.userProfileName,
+        primaryGroupId: response.data.primaryGroupId,
+        primaryGroupName: response.data.primaryGroupName,
         accessiblePages: response.data.accessiblePages || [],
-        permissions: response.data.permissions || {}
+        permissions: response.data.permissions || {},
+        groupPermissions: response.data.groupPermissions || null
       };
       localStorage.setItem('userProfile', JSON.stringify(profileData));
       setCookie('crm_user_profile', JSON.stringify(profileData), 30);
       
       setUser(response.data);
       setIsAuthenticated(true);
-      console.log('[AuthContext] Login complete, user authenticated');
+      console.log('[AuthContext] Login complete, user authenticated, groupPermissions:', response.data.groupPermissions);
     } catch (error: any) {
       console.error('[AuthContext] Login failed:', {
         email,
@@ -189,14 +192,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCookie('crm_refresh_token', refreshToken, 30);
       setCookie('crm_user_data', JSON.stringify(response.data), 30);
       
-      // Store profile information
+      // Store profile information including group permissions
       const profileData = {
         departmentId: response.data.departmentId,
         departmentName: response.data.departmentName,
         userProfileId: response.data.userProfileId,
         userProfileName: response.data.userProfileName,
+        primaryGroupId: response.data.primaryGroupId,
+        primaryGroupName: response.data.primaryGroupName,
         accessiblePages: response.data.accessiblePages || [],
-        permissions: response.data.permissions || {}
+        permissions: response.data.permissions || {},
+        groupPermissions: response.data.groupPermissions || null
       };
       localStorage.setItem('userProfile', JSON.stringify(profileData));
       setCookie('crm_user_profile', JSON.stringify(profileData), 30);

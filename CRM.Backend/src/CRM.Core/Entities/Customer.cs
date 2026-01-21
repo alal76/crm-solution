@@ -1,6 +1,15 @@
 namespace CRM.Core.Entities;
 
 /// <summary>
+/// Customer category - Individual or Organization
+/// </summary>
+public enum CustomerCategory
+{
+    Individual = 0,
+    Organization = 1
+}
+
+/// <summary>
 /// Customer lifecycle stage enumeration
 /// </summary>
 public enum CustomerLifecycleStage
@@ -14,7 +23,7 @@ public enum CustomerLifecycleStage
 }
 
 /// <summary>
-/// Customer type enumeration
+/// Customer type enumeration (size/classification)
 /// </summary>
 public enum CustomerType
 {
@@ -39,21 +48,77 @@ public enum CustomerPriority
 
 /// <summary>
 /// Customer entity for managing customer information
+/// Supports both Individual and Organization customers
 /// </summary>
 public class Customer : BaseEntity
 {
-    // Basic Information
+    // === Category & Type ===
+    /// <summary>
+    /// Whether this is an Individual or Organization customer
+    /// </summary>
+    public CustomerCategory Category { get; set; } = CustomerCategory.Individual;
+    
+    // === Individual Customer Fields ===
+    // (Used when Category = Individual)
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
+    public string? Salutation { get; set; } // Mr., Mrs., Dr., etc.
+    public string? Suffix { get; set; } // Jr., Sr., III, etc.
+    public DateTime? DateOfBirth { get; set; }
+    public string? Gender { get; set; }
+    
+    /// <summary>
+    /// For Individual customers, optionally link to a Contact record
+    /// </summary>
+    public int? LinkedContactId { get; set; }
+    
+    // === Organization Customer Fields ===
+    // (Used when Category = Organization)
+    /// <summary>
+    /// Organization/Company name (primary name for Organization customers)
+    /// </summary>
+    public string Company { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Legal/registered name of the organization
+    /// </summary>
+    public string? LegalName { get; set; }
+    
+    /// <summary>
+    /// Doing Business As (DBA) name
+    /// </summary>
+    public string? DbaName { get; set; }
+    
+    /// <summary>
+    /// Tax ID / EIN / VAT number
+    /// </summary>
+    public string? TaxId { get; set; }
+    
+    /// <summary>
+    /// Organization registration number
+    /// </summary>
+    public string? RegistrationNumber { get; set; }
+    
+    /// <summary>
+    /// Year the organization was founded
+    /// </summary>
+    public int? YearFounded { get; set; }
+    
+    /// <summary>
+    /// Primary contact ID for the organization (from CustomerContacts)
+    /// </summary>
+    public int? PrimaryContactId { get; set; }
+    
+    // === Contact Information ===
     public string Email { get; set; } = string.Empty;
     public string? SecondaryEmail { get; set; }
     public string Phone { get; set; } = string.Empty;
     public string? MobilePhone { get; set; }
-    public string Company { get; set; } = string.Empty;
-    public string? JobTitle { get; set; }
+    public string? FaxNumber { get; set; }
+    public string? JobTitle { get; set; } // For individual customers
     public string? Website { get; set; }
     
-    // Address Information
+    // === Address Information - Primary/Billing ===
     public string Address { get; set; } = string.Empty;
     public string? Address2 { get; set; }
     public string City { get; set; } = string.Empty;
@@ -61,35 +126,51 @@ public class Customer : BaseEntity
     public string ZipCode { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
     
-    // Business Information
+    // === Address Information - Shipping ===
+    public string? ShippingAddress { get; set; }
+    public string? ShippingAddress2 { get; set; }
+    public string? ShippingCity { get; set; }
+    public string? ShippingState { get; set; }
+    public string? ShippingZipCode { get; set; }
+    public string? ShippingCountry { get; set; }
+    public bool ShippingSameAsBilling { get; set; } = true;
+    
+    // === Business Information ===
     public string? Industry { get; set; }
+    public string? SubIndustry { get; set; }
     public int? NumberOfEmployees { get; set; }
+    public string? EmployeeRange { get; set; } // 1-10, 11-50, 51-200, etc.
     public decimal AnnualRevenue { get; set; } = 0;
+    public string? RevenueRange { get; set; } // <1M, 1-10M, 10-50M, etc.
     public CustomerType CustomerType { get; set; } = CustomerType.Individual;
     public CustomerPriority Priority { get; set; } = CustomerPriority.Medium;
+    public string? StockSymbol { get; set; } // For public companies
+    public string? Ownership { get; set; } // Public, Private, Subsidiary, etc.
     
-    // Lifecycle & Status
+    // === Lifecycle & Status ===
     public CustomerLifecycleStage LifecycleStage { get; set; } = CustomerLifecycleStage.Lead;
-    public string? LeadSource { get; set; } // How did they find us?
+    public string? LeadSource { get; set; }
     public DateTime? FirstContactDate { get; set; }
-    public DateTime? ConversionDate { get; set; } // When became a customer
+    public DateTime? ConversionDate { get; set; }
     public DateTime? LastActivityDate { get; set; }
     public DateTime? NextFollowUpDate { get; set; }
     
-    // Financial
+    // === Financial ===
     public decimal TotalPurchases { get; set; } = 0;
     public decimal AccountBalance { get; set; } = 0;
     public decimal CreditLimit { get; set; } = 0;
-    public string? PaymentTerms { get; set; } // Net 30, Net 60, etc.
+    public string? PaymentTerms { get; set; }
     public string? PreferredPaymentMethod { get; set; }
+    public string? Currency { get; set; } // Preferred currency
+    public string? BillingCycle { get; set; } // Monthly, Quarterly, Annual
     
-    // Scoring & Rating
-    public int LeadScore { get; set; } = 0; // 0-100
-    public int CustomerHealthScore { get; set; } = 50; // 0-100
-    public int NpsScore { get; set; } = 0; // -100 to 100
-    public double SatisfactionRating { get; set; } = 0; // 0-5
+    // === Scoring & Rating ===
+    public int LeadScore { get; set; } = 0;
+    public int CustomerHealthScore { get; set; } = 50;
+    public int NpsScore { get; set; } = 0;
+    public double SatisfactionRating { get; set; } = 0;
     
-    // Social & Communication
+    // === Social & Communication ===
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }
     public string? FacebookUrl { get; set; }
@@ -99,30 +180,57 @@ public class Customer : BaseEntity
     public string? PreferredContactMethod { get; set; }
     public string? PreferredContactTime { get; set; }
     public string? Timezone { get; set; }
+    public string? PreferredLanguage { get; set; }
     
-    // Assignment & Ownership
+    // === Assignment & Ownership ===
     public int? AssignedToUserId { get; set; }
     public int? AccountManagerId { get; set; }
     public string? Territory { get; set; }
+    public string? Region { get; set; }
     
-    // Classification
-    public string? Tags { get; set; } // Comma-separated tags
-    public string? Segment { get; set; } // Customer segment
+    // === Classification ===
+    public string? Tags { get; set; }
+    public string? Segment { get; set; }
     public string? ReferralSource { get; set; }
     public int? ReferredByCustomerId { get; set; }
+    public int? ParentCustomerId { get; set; } // For subsidiary relationships
     
-    // Documentation
+    // === Lead Conversion ===
+    /// <summary>
+    /// The lead that was converted to create this customer
+    /// </summary>
+    public int? ConvertedFromLeadId { get; set; }
+    
+    /// <summary>
+    /// The campaign that generated the original lead
+    /// </summary>
+    public int? SourceCampaignId { get; set; }
+    
+    // === Documentation ===
     public string Notes { get; set; } = string.Empty;
     public string? InternalNotes { get; set; }
     public string? Description { get; set; }
     
-    // Custom Fields (JSON for flexibility)
-    public string? CustomFields { get; set; } // JSON object for custom data
+    // === Custom Fields ===
+    public string? CustomFields { get; set; }
 
-    // Navigation properties
+    // === Navigation Properties ===
     public ICollection<Opportunity>? Opportunities { get; set; }
     public ICollection<Interaction>? Interactions { get; set; }
+    public ICollection<CustomerContact>? CustomerContacts { get; set; } // Linked contacts for organizations
     public User? AssignedToUser { get; set; }
     public User? AccountManager { get; set; }
     public Customer? ReferredByCustomer { get; set; }
+    public Customer? ParentCustomer { get; set; }
+    public Lead? ConvertedFromLead { get; set; }
+    public MarketingCampaign? SourceCampaign { get; set; }
+    
+    // === Computed Properties ===
+    /// <summary>
+    /// Display name - returns full name for individuals, company name for organizations
+    /// </summary>
+    public string DisplayName => Category == CustomerCategory.Organization 
+        ? Company 
+        : $"{FirstName} {LastName}".Trim();
 }
+

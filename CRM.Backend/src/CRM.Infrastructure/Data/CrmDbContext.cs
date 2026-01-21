@@ -20,6 +20,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     }
 
     public DbSet<Customer> Customers { get; set; }
+    public DbSet<CustomerContact> CustomerContacts { get; set; }
     public DbSet<Opportunity> Opportunities { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Interaction> Interactions { get; set; }
@@ -44,11 +45,17 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Contact> Contacts { get; set; }
     public DbSet<SocialMediaLink> SocialMediaLinks { get; set; }
     
+    // Lead entity
+    public DbSet<Lead> Leads { get; set; }
+    
     // New comprehensive entities
     public DbSet<CrmTask> CrmTasks { get; set; }
     public DbSet<Note> Notes { get; set; }
     public DbSet<Quote> Quotes { get; set; }
     public DbSet<Activity> Activities { get; set; }
+    
+    // System settings
+    public DbSet<SystemSettings> SystemSettings { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -88,12 +95,46 @@ public class CrmDbContext : DbContext, ICrmDbContext
         modelBuilder.Entity<Customer>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.LastName).HasMaxLength(100);
             entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
             entity.Property(e => e.Phone).HasMaxLength(20);
             entity.Property(e => e.Company).HasMaxLength(255);
-            entity.HasIndex(e => e.Email).IsUnique();
+            entity.Property(e => e.LegalName).HasMaxLength(500);
+            entity.Property(e => e.DbaName).HasMaxLength(255);
+            entity.Property(e => e.TaxId).HasMaxLength(50);
+            entity.Property(e => e.RegistrationNumber).HasMaxLength(100);
+            entity.Property(e => e.Salutation).HasMaxLength(20);
+            entity.Property(e => e.Suffix).HasMaxLength(20);
+            entity.Property(e => e.Gender).HasMaxLength(20);
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.Company);
+            
+            // Self-referencing relationships
+            entity.HasOne(e => e.ReferredByCustomer)
+                .WithMany()
+                .HasForeignKey(e => e.ReferredByCustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.ParentCustomer)
+                .WithMany()
+                .HasForeignKey(e => e.ParentCustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure CustomerContact (junction table for organization contacts)
+        modelBuilder.Entity<CustomerContact>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.CustomerId, e.ContactId }).IsUnique();
+            entity.Property(e => e.PositionAtCustomer).HasMaxLength(100);
+            entity.Property(e => e.DepartmentAtCustomer).HasMaxLength(100);
+            
+            entity.HasOne(e => e.Customer)
+                .WithMany(c => c.CustomerContacts)
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configure Opportunity
@@ -170,6 +211,50 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(p => p.Users)
                 .HasForeignKey(e => e.UserProfileId)
                 .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.PrimaryGroup)
+                .WithMany(g => g.PrimaryUsers)
+                .HasForeignKey(e => e.PrimaryGroupId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // Configure UserGroup
+        modelBuilder.Entity<UserGroup>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+        });
+        
+        // Configure UserGroupMember
+        modelBuilder.Entity<UserGroupMember>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.GroupMemberships)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.UserGroup)
+                .WithMany(g => g.Members)
+                .HasForeignKey(e => e.UserGroupId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // Configure SystemSettings
+        modelBuilder.Entity<SystemSettings>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CompanyName).HasMaxLength(255);
+            entity.Property(e => e.CompanyLogoUrl).HasMaxLength(1000);
+            entity.Property(e => e.PrimaryColor).HasMaxLength(20);
+            entity.Property(e => e.SecondaryColor).HasMaxLength(20);
+            entity.Property(e => e.DateFormat).HasMaxLength(50);
+            entity.Property(e => e.TimeFormat).HasMaxLength(50);
+            entity.Property(e => e.DefaultCurrency).HasMaxLength(10);
+            entity.Property(e => e.DefaultTimezone).HasMaxLength(100);
+            entity.Property(e => e.DefaultLanguage).HasMaxLength(10);
         });
 
         // Configure Department
@@ -395,6 +480,96 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.ActivityDate);
             entity.HasIndex(e => e.ActivityType);
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
+        });
+
+        // Configure Lead
+        modelBuilder.Entity<Lead>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // Lead -> Customer (ConvertedCustomer) - Lead has ConvertedCustomerId
+            entity.HasOne(e => e.ConvertedCustomer)
+                .WithMany()
+                .HasForeignKey(e => e.ConvertedCustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Lead -> Opportunity (ConvertedOpportunity)
+            entity.HasOne(e => e.ConvertedOpportunity)
+                .WithMany()
+                .HasForeignKey(e => e.ConvertedOpportunityId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Lead -> Customer (ReferredByCustomer)
+            entity.HasOne(e => e.ReferredByCustomer)
+                .WithMany()
+                .HasForeignKey(e => e.ReferredByCustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Lead -> Product (PrimaryProductInterest)
+            entity.HasOne(e => e.PrimaryProductInterest)
+                .WithMany()
+                .HasForeignKey(e => e.PrimaryProductInterestId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Lead -> Lead (MasterLead for duplicates)
+            entity.HasOne(e => e.MasterLead)
+                .WithMany(l => l.DuplicateLeads)
+                .HasForeignKey(e => e.MasterLeadId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Lead -> User (Owner)
+            entity.HasOne(e => e.Owner)
+                .WithMany()
+                .HasForeignKey(e => e.OwnerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Lead -> User (ConvertedByUser)
+            entity.HasOne(e => e.ConvertedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ConvertedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Lead -> User (DisqualifiedByUser)
+            entity.HasOne(e => e.DisqualifiedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.DisqualifiedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Lead -> Campaign (PrimaryCampaign)
+            entity.HasOne(e => e.PrimaryCampaign)
+                .WithMany()
+                .HasForeignKey(e => e.PrimaryCampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Lead -> Campaign (ConvertingCampaign)
+            entity.HasOne(e => e.ConvertingCampaign)
+                .WithMany()
+                .HasForeignKey(e => e.ConvertingCampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Lead -> Campaign (LastCampaign)
+            entity.HasOne(e => e.LastCampaign)
+                .WithMany()
+                .HasForeignKey(e => e.LastCampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.LeadScore);
+        });
+
+        // Configure Customer -> Lead relationship (ConvertedFromLead)
+        modelBuilder.Entity<Customer>(entity =>
+        {
+            entity.HasOne(e => e.ConvertedFromLead)
+                .WithMany()
+                .HasForeignKey(e => e.ConvertedFromLeadId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.SourceCampaign)
+                .WithMany()
+                .HasForeignKey(e => e.SourceCampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

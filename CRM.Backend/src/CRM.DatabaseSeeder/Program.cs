@@ -248,6 +248,11 @@ class Program
         Console.WriteLine($"📢 Creating {campaignCount} campaigns...");
         var campaigns = await SeedCampaigns(context, users, campaignCount);
 
+        // Create Leads (linked to campaigns)
+        var leadCount = int.Parse(seedingConfig["Leads"] ?? "150");
+        Console.WriteLine($"🎯 Creating {leadCount} leads...");
+        var leads = await SeedLeads(context, campaigns, users, products, leadCount);
+
         // Create Opportunities
         var opportunityCount = int.Parse(seedingConfig["Opportunities"] ?? "30");
         Console.WriteLine($"💰 Creating {opportunityCount} opportunities...");
@@ -388,38 +393,185 @@ class Program
         var products = new List<Product>();
 
         var categories = new[] { "Software", "Hardware", "Services", "Subscriptions", "Training", "Support" };
+        var serviceTiers = new[] { ServiceTier.Basic, ServiceTier.Standard, ServiceTier.Professional, ServiceTier.Enterprise, ServiceTier.Premium };
+        var pricingModels = new[] { PricingModel.FixedPrice, PricingModel.TieredPricing, PricingModel.PerUser, PricingModel.Hourly, PricingModel.UsageBased };
 
         for (int i = 0; i < count; i++)
         {
             var price = faker.Random.Decimal(99, 9999);
             var cost = price * 0.4m;
+            var productType = (ProductType)faker.Random.Int(0, 12);
+            var isService = productType == ProductType.Service || productType == ProductType.Consulting || 
+                           productType == ProductType.ManagedService || productType == ProductType.SupportContract ||
+                           productType == ProductType.Training || productType == ProductType.ProfessionalServices;
+            var isSubscription = productType == ProductType.Subscription || productType == ProductType.ManagedService;
+            
             var product = new Product
             {
+                // Basic Information
                 Name = faker.Commerce.ProductName(),
                 Description = faker.Commerce.ProductDescription(),
                 ShortDescription = faker.Commerce.ProductAdjective() + " " + faker.Commerce.Product(),
-                SKU = $"SKU-{faker.Random.AlphaNumeric(8).ToUpper()}",
-                Barcode = faker.Commerce.Ean13(),
-                ProductType = (ProductType)faker.Random.Int(0, 5),
+                SKU = $"{(isService ? "SVC" : "PRD")}-{faker.Random.AlphaNumeric(8).ToUpper()}",
+                ProductCode = $"PC-{faker.Random.Int(10000, 99999)}",
+                Barcode = isService ? null : faker.Commerce.Ean13(),
+                ExternalId = faker.Random.Bool(0.3f) ? $"EXT-{faker.Random.Int(1000, 9999)}" : null,
+                InternalReference = $"{(isService ? "SVC" : "PRD")}-{faker.Random.Int(100000, 999999)}",
+                
+                // Classification
+                ProductType = productType,
                 Status = ProductStatus.Active,
                 Category = faker.PickRandom(categories),
+                SubCategory = faker.Commerce.Categories(1)[0],
+                ProductFamily = faker.PickRandom(new[] { "Enterprise", "Professional", "Starter", "Custom" }),
                 Brand = faker.Company.CompanyName(),
+                Manufacturer = isService ? null : faker.Company.CompanyName(),
+                Tags = string.Join(",", faker.Commerce.Categories(3)),
+                ServiceTier = isService ? faker.PickRandom(serviceTiers) : ServiceTier.Standard,
+                IsService = isService,
+                IsSubscription = isSubscription,
+                
+                // Unit Pricing
                 Price = price,
                 ListPrice = price * 1.2m,
                 Cost = cost,
+                MinimumPrice = price * 0.7m,
+                WholesalePrice = price * 0.75m,
+                PartnerPrice = price * 0.8m,
                 Margin = price - cost,
+                TargetMargin = 40m,
+                UnitOfMeasure = isService ? UnitOfMeasure.Hour : UnitOfMeasure.Each,
+                MinimumQuantity = 1,
+                MaximumQuantity = isService ? 1000 : 10000,
+                QuantityIncrement = 1,
+                
+                // Contract Pricing (for services)
+                WeeklyPrice = isService ? price * 0.3m : null,
+                MonthlyPrice = isService ? price : null,
+                QuarterlyPrice = isService ? price * 2.7m : null,
+                SemiAnnualPrice = isService ? price * 5m : null,
+                AnnualPrice = isService ? price * 9m : null,
+                TwoYearPrice = isService ? price * 16m : null,
+                ThreeYearPrice = isService ? price * 21m : null,
+                DefaultContractTerm = isSubscription ? ContractTermCategory.Annual : ContractTermCategory.NoContract,
+                MinimumContractTerm = isSubscription ? ContractTermCategory.Monthly : ContractTermCategory.NoContract,
+                
+                // Term Discounts
+                WeeklyTermDiscount = 0,
+                MonthlyTermDiscount = 0,
+                QuarterlyTermDiscount = 10,
+                SemiAnnualTermDiscount = 17,
+                AnnualTermDiscount = 25,
+                TwoYearTermDiscount = 33,
+                ThreeYearTermDiscount = 42,
+                MaxTermDiscount = 45,
+                
+                // Volume Discounts
+                MaxVolumeDiscount = 25,
+                MaxTotalDiscount = 50,
+                
+                // Subscription Fields
+                BillingFrequency = isSubscription ? (BillingFrequency)faker.Random.Int(4, 7) : BillingFrequency.OneTime,
+                PricingModel = faker.PickRandom(pricingModels),
+                RecurringPrice = isSubscription ? price : null,
+                SetupFee = isService ? faker.Random.Decimal(500, 5000) : null,
+                ActivationFee = isSubscription ? faker.Random.Decimal(0, 500) : null,
+                CancellationFee = isSubscription ? faker.Random.Decimal(0, 1000) : null,
+                TrialPeriodDays = isSubscription ? faker.Random.Int(7, 30) : null,
+                ContractLengthMonths = isSubscription ? faker.PickRandom(new[] { 12, 24, 36 }) : null,
+                MinContractLengthMonths = isSubscription ? 1 : null,
+                AutoRenewal = isSubscription,
+                CancellationNoticeDays = isSubscription ? 30 : null,
+                
+                // Service Fields
+                HourlyRate = isService ? faker.Random.Decimal(75, 350) : null,
+                DailyRate = isService ? faker.Random.Decimal(600, 2800) : null,
+                MinimumBillableHours = isService ? 1m : null,
+                BillableHourIncrement = isService ? 0.25m : 0.25m,
+                OvertimeMultiplier = isService ? 1.5m : null,
+                WeekendMultiplier = isService ? 1.5m : null,
+                HolidayMultiplier = isService ? 2m : null,
+                IncludesOnsiteWork = isService && faker.Random.Bool(0.3f),
+                TravelIncluded = isService && faker.Random.Bool(0.2f),
+                MaterialsIncluded = isService && faker.Random.Bool(0.5f),
+                DeliveryMethod = isService ? faker.PickRandom(new[] { "Remote", "On-site", "Hybrid" }) : null,
+                EstimatedDuration = isService ? faker.Random.Decimal(2, 80) : null,
+                DurationUnit = isService ? faker.PickRandom(new[] { "Hours", "Days", "Weeks" }) : null,
+                
+                // SLA Fields
+                UptimeGuaranteePercent = isSubscription ? faker.PickRandom(new[] { 99.0m, 99.5m, 99.9m, 99.99m }) : null,
+                ResponseTimeSlaHours = isService ? faker.PickRandom(new[] { 1m, 4m, 8m, 24m }) : null,
+                ResolutionTimeSlaHours = isService ? faker.PickRandom(new[] { 8m, 24m, 48m, 72m }) : null,
+                SupportHours = isService ? faker.PickRandom(new[] { "24/7", "Business Hours (9-5 EST)", "Extended (6am-10pm)" }) : null,
+                IncludedSupportIncidents = isSubscription ? faker.Random.Int(5, 50) : null,
+                AdditionalIncidentPrice = isSubscription ? faker.Random.Decimal(50, 250) : null,
+                
+                // Usage Limits
+                IncludedUnits = isSubscription ? faker.Random.Int(1000, 50000) : null,
+                UsageUnitType = isSubscription ? faker.PickRandom(new[] { "API Calls", "GB Storage", "Transactions", "Reports" }) : null,
+                OverageUnitPrice = isSubscription ? faker.Random.Decimal(0.001m, 0.1m) : null,
+                IncludedUsers = isSubscription ? faker.Random.Int(1, 25) : null,
+                AdditionalUserPrice = isSubscription ? faker.Random.Decimal(5, 50) : null,
+                IncludedStorageGb = isSubscription ? faker.Random.Decimal(10, 500) : null,
+                AdditionalStoragePrice = isSubscription ? faker.Random.Decimal(0.05m, 0.5m) : null,
+                
+                // Tax & Currency
+                CurrencyCode = "USD",
                 IsTaxable = true,
                 TaxRate = 8.25m,
-                Quantity = faker.Random.Int(0, 1000),
-                ReorderLevel = faker.Random.Int(10, 50),
-                TrackInventory = true,
+                TaxCategory = faker.PickRandom(new[] { "Standard", "Reduced", "Software", "Services" }),
+                RevenueRecognition = isSubscription ? RevenueRecognitionMethod.OverTime : RevenueRecognitionMethod.Immediate,
+                
+                // Inventory (physical products only)
+                Quantity = isService ? 0 : faker.Random.Int(0, 1000),
+                ReorderLevel = isService ? null : faker.Random.Int(10, 50),
+                ReorderQuantity = isService ? null : faker.Random.Int(50, 200),
+                MaxQuantity = isService ? null : faker.Random.Int(500, 2000),
+                WarehouseLocation = isService ? null : $"WH-{faker.Random.AlphaNumeric(4).ToUpper()}",
+                TrackInventory = !isService,
+                AllowBackorder = !isService && faker.Random.Bool(0.3f),
+                LeadTimeDays = isService ? null : faker.Random.Int(3, 21),
+                
+                // Physical Attributes
+                Weight = isService ? null : faker.Random.Decimal(0.5m, 50m),
+                WeightUnit = isService ? null : "kg",
+                Length = isService ? null : faker.Random.Decimal(10, 100),
+                Width = isService ? null : faker.Random.Decimal(10, 100),
+                Height = isService ? null : faker.Random.Decimal(5, 50),
+                DimensionUnit = isService ? null : "cm",
+                ShippingClass = isService ? null : faker.PickRandom(new[] { "Standard", "Express", "Freight", "Oversized" }),
+                IsHazardous = !isService && faker.Random.Bool(0.05f),
+                
+                // Media
                 ImageUrl = $"https://picsum.photos/seed/{i}/200/200",
+                ThumbnailUrl = $"https://picsum.photos/seed/{i}/100/100",
+                
+                // Features & Warranty
+                Warranty = isService ? null : $"{faker.Random.Int(1, 5)} Year Limited Warranty",
+                WarrantyMonths = isService ? null : faker.Random.Int(12, 60),
+                ExtendedWarrantyAvailable = !isService && faker.Random.Bool(0.5f),
+                ExtendedWarrantyPrice = !isService && faker.Random.Bool(0.5f) ? faker.Random.Decimal(50, 500) : null,
+                
+                // Sales Performance
                 TotalSold = faker.Random.Int(0, 500),
                 TotalRevenue = faker.Random.Decimal(10000, 500000),
                 AverageRating = faker.Random.Double(3.0, 5.0),
                 ReviewCount = faker.Random.Int(0, 100),
                 IsFeatured = faker.Random.Bool(0.2f),
+                IsBestSeller = faker.Random.Bool(0.1f),
+                IsNew = faker.Random.Bool(0.15f),
+                IsOnSale = faker.Random.Bool(0.1f),
+                SalePrice = faker.Random.Bool(0.1f) ? price * 0.85m : null,
+                
+                // Availability
+                AvailableFrom = faker.Date.Past(1),
+                LastPriceUpdate = faker.Date.Recent(90),
+                
+                // Status
                 IsActive = true,
+                IsVisible = true,
+                IsPurchasable = true,
+                
                 CreatedAt = faker.Date.Past(2)
             };
             products.Add(product);
@@ -484,37 +636,154 @@ class Program
 
         var faker = new Bogus.Faker();
         var campaigns = new List<MarketingCampaign>();
+        var campaignTypes = Enum.GetValues<CampaignType>();
+        var objectives = Enum.GetValues<CampaignObjective>();
+        var audienceTypes = Enum.GetValues<AudienceType>();
+        var successMetrics = Enum.GetValues<SuccessMetric>();
 
         for (int i = 0; i < count; i++)
         {
             var startDate = faker.Date.Past(1);
             var endDate = startDate.AddDays(faker.Random.Int(14, 90));
             var budget = faker.Random.Decimal(5000, 100000);
+            var actualCost = budget * faker.Random.Decimal(0.5m, 1.2m);
+            var leadsGenerated = faker.Random.Int(10, 500);
+            var mqlsGenerated = (int)(leadsGenerated * faker.Random.Double(0.2, 0.5));
+            var sqlsGenerated = (int)(mqlsGenerated * faker.Random.Double(0.3, 0.6));
+            var opportunitiesCreated = faker.Random.Int(5, 50);
+            var dealsWon = (int)(opportunitiesCreated * faker.Random.Double(0.1, 0.4));
+            var impressions = faker.Random.Int(10000, 500000);
+            var clicks = faker.Random.Int(500, 10000);
+            var emailsSent = faker.Random.Int(1000, 50000);
+            var emailsDelivered = (int)(emailsSent * faker.Random.Double(0.9, 0.98));
+            var emailsOpened = (int)(emailsDelivered * faker.Random.Double(0.15, 0.35));
+            var campaignType = faker.PickRandom(campaignTypes);
 
             var campaign = new MarketingCampaign
             {
-                Name = faker.Commerce.ProductAdjective() + " " + faker.PickRandom(new[] { "Launch", "Promotion", "Sale", "Event", "Webinar" }),
-                Description = faker.Lorem.Paragraph(),
+                // Basic Information
+                Name = faker.Commerce.ProductAdjective() + " " + faker.PickRandom(new[] { "Launch Campaign", "Promotion", "Flash Sale", "Executive Event", "Webinar Series", "Product Showcase" }),
+                CampaignCode = $"CMP-{faker.Random.Int(10000, 99999)}",
+                Description = faker.Lorem.Paragraphs(2),
                 Objective = faker.Lorem.Sentence(),
-                CampaignType = (CampaignType)faker.Random.Int(0, 15),
+                ObjectiveType = faker.PickRandom(objectives),
+                CampaignType = campaignType,
                 Status = (CampaignStatus)faker.Random.Int(0, 6),
-                Priority = (CampaignPriority)faker.Random.Int(0, 3),
+                Priority = (CampaignPriority)faker.Random.Int(0, 4),
+                PrimarySuccessMetric = faker.PickRandom(successMetrics),
+                Theme = faker.Commerce.ProductAdjective() + " " + faker.Commerce.ProductMaterial(),
+                ValueProposition = faker.Lorem.Sentence(),
+                
+                // Timeline
                 StartDate = startDate,
                 EndDate = endDate,
+                ActualStartDate = startDate.AddDays(faker.Random.Int(-2, 2)),
+                DurationDays = (int)(endDate - startDate).TotalDays,
+                IsEvergreen = faker.Random.Bool(0.1f),
+                
+                // Budget & Financials
                 Budget = budget,
-                ActualCost = budget * faker.Random.Decimal(0.5m, 1.2m),
+                ActualCost = actualCost,
+                DailyBudget = budget / 30,
+                ExpectedRevenue = budget * faker.Random.Decimal(3, 10),
+                ActualRevenue = dealsWon > 0 ? faker.Random.Decimal(10000, 500000) : 0,
+                PipelineCreated = opportunitiesCreated * faker.Random.Decimal(5000, 50000),
+                CostPerLead = leadsGenerated > 0 ? actualCost / leadsGenerated : 0,
+                CostPerMql = mqlsGenerated > 0 ? actualCost / mqlsGenerated : 0,
+                CostPerSql = sqlsGenerated > 0 ? actualCost / sqlsGenerated : 0,
+                CostPerOpportunity = opportunitiesCreated > 0 ? actualCost / opportunitiesCreated : 0,
+                CurrencyCode = "USD",
+                
+                // Target Audience
                 TargetAudience = faker.Random.Int(1000, 50000),
-                Impressions = faker.Random.Int(10000, 500000),
-                Clicks = faker.Random.Int(500, 10000),
-                LeadsGenerated = faker.Random.Int(10, 500),
-                OpportunitiesCreated = faker.Random.Int(5, 50),
-                CustomersAcquired = faker.Random.Int(0, 20),
-                EmailsSent = faker.Random.Int(1000, 50000),
-                EmailsOpened = faker.Random.Int(500, 25000),
+                TargetAudienceDescription = faker.Lorem.Sentence(),
+                AudienceType = faker.PickRandom(audienceTypes),
+                TargetGeography = faker.PickRandom(new[] { "North America", "EMEA", "APAC", "Global", "United States", "Enterprise Accounts" }),
+                TargetIndustries = string.Join(",", faker.Commerce.Categories(3)),
+                TargetSegments = faker.PickRandom(new[] { "Enterprise", "Mid-Market", "SMB", "Startups", "Government" }),
+                TargetJobTitles = string.Join(",", new[] { "CTO", "VP Engineering", "IT Director", "Developer", "Product Manager" }.OrderBy(x => faker.Random.Int()).Take(3)),
+                
+                // Lead Generation Metrics
+                LeadsGenerated = leadsGenerated,
+                MqlsGenerated = mqlsGenerated,
+                SqlsGenerated = sqlsGenerated,
+                SalsGenerated = (int)(sqlsGenerated * faker.Random.Double(0.5, 0.8)),
+                OpportunitiesCreated = opportunitiesCreated,
+                OpportunitiesInfluenced = faker.Random.Int(10, 100),
+                DealsWon = dealsWon,
+                CustomersAcquired = dealsWon,
+                LeadToMqlRate = leadsGenerated > 0 ? (double)mqlsGenerated / leadsGenerated * 100 : 0,
+                MqlToSqlRate = mqlsGenerated > 0 ? (double)sqlsGenerated / mqlsGenerated * 100 : 0,
                 ConversionRate = faker.Random.Double(1, 10),
+                AverageLeadScore = faker.Random.Double(30, 80),
+                
+                // Reach & Engagement
+                Impressions = impressions,
+                Reach = (int)(impressions * faker.Random.Double(0.3, 0.7)),
+                Frequency = faker.Random.Double(1.5, 4.0),
+                Clicks = clicks,
+                ClickThroughRate = impressions > 0 ? (double)clicks / impressions * 100 : 0,
+                LandingPageVisits = (int)(clicks * faker.Random.Double(0.7, 0.95)),
+                FormSubmissions = leadsGenerated,
+                ContentDownloads = faker.Random.Int(50, 500),
+                DemoRequests = faker.Random.Int(5, 50),
+                TrialSignups = faker.Random.Int(10, 100),
+                
+                // Email Metrics
+                EmailsSent = emailsSent,
+                EmailsDelivered = emailsDelivered,
+                DeliveryRate = emailsSent > 0 ? (double)emailsDelivered / emailsSent * 100 : 0,
+                EmailsOpened = emailsOpened,
+                OpenRate = emailsDelivered > 0 ? (double)emailsOpened / emailsDelivered * 100 : 0,
+                EmailClicks = (int)(emailsOpened * faker.Random.Double(0.1, 0.3)),
+                Bounces = emailsSent - emailsDelivered,
+                BounceRate = emailsSent > 0 ? (double)(emailsSent - emailsDelivered) / emailsSent * 100 : 0,
+                Unsubscribes = faker.Random.Int(10, 200),
+                SpamComplaints = faker.Random.Int(0, 10),
+                
+                // Social Metrics
+                SocialReach = faker.Random.Int(5000, 100000),
+                SocialEngagement = faker.Random.Int(100, 5000),
+                SocialShares = faker.Random.Int(20, 500),
+                SocialComments = faker.Random.Int(10, 200),
+                SocialLikes = faker.Random.Int(50, 2000),
+                NewFollowers = faker.Random.Int(10, 500),
+                
+                // Event Metrics (for event campaigns)
+                Registrations = campaignType == CampaignType.Event || campaignType == CampaignType.Webinar ? faker.Random.Int(50, 500) : 0,
+                Attendance = campaignType == CampaignType.Event || campaignType == CampaignType.Webinar ? faker.Random.Int(25, 300) : 0,
+                
+                // ROI
                 ROI = faker.Random.Double(-20, 200),
+                TargetRoi = faker.Random.Double(100, 300),
+                TargetLeads = leadsGenerated + faker.Random.Int(-50, 50),
+                GoalAchievementPercent = faker.Random.Double(60, 120),
+                CampaignHealthScore = faker.Random.Int(40, 95),
+                
+                // Content
+                MessageSubject = faker.Lorem.Sentence(5),
+                CallToAction = faker.PickRandom(new[] { "Learn More", "Get Started", "Request Demo", "Download Now", "Start Free Trial", "Register Now" }),
+                LandingPageUrl = $"https://example.com/campaign/{faker.Random.AlphaNumeric(8)}",
+                
+                // UTM Tracking
+                UtmSource = faker.PickRandom(new[] { "email", "google", "linkedin", "facebook", "twitter", "direct" }),
+                UtmMedium = faker.PickRandom(new[] { "email", "cpc", "social", "organic", "display", "referral" }),
+                UtmCampaign = faker.Lorem.Slug(3),
+                
+                // A/B Testing
+                IsABTest = faker.Random.Bool(0.3f),
+                
+                // Assignment
                 OwnerId = faker.PickRandom(users).Id,
+                AssignedToUserId = faker.PickRandom(users).Id,
+                Department = "Marketing",
+                
+                // Classification
                 Tags = string.Join(",", faker.Commerce.Categories(2)),
+                Category = faker.PickRandom(new[] { "Demand Generation", "Brand Awareness", "Product Marketing", "Customer Marketing", "Field Marketing" }),
+                FiscalQuarter = faker.PickRandom(new[] { "Q1", "Q2", "Q3", "Q4" }),
+                FiscalYear = DateTime.Now.Year,
+                
                 CreatedAt = startDate.AddDays(-7)
             };
             campaigns.Add(campaign);
@@ -524,6 +793,189 @@ class Program
         await context.SaveChangesAsync();
         Console.WriteLine($"   Created {count} campaigns");
         return campaigns;
+    }
+
+    static async Task<List<Lead>> SeedLeads(CrmDbContext context, List<MarketingCampaign> campaigns, List<User> users, List<Product> products, int count)
+    {
+        if (await context.Leads.AnyAsync())
+        {
+            return await context.Leads.ToListAsync();
+        }
+
+        var faker = new Bogus.Faker();
+        var leads = new List<Lead>();
+        var leadSources = Enum.GetValues<LeadSource>();
+        var industries = Enum.GetValues<LeadIndustry>();
+        var companySizes = Enum.GetValues<CompanySize>();
+        var disqualReasons = Enum.GetValues<DisqualificationReason>();
+
+        for (int i = 0; i < count; i++)
+        {
+            var status = (CRM.Core.Entities.LeadStatus)faker.Random.Int(0, 12);
+            var isConverted = status == CRM.Core.Entities.LeadStatus.Converted;
+            var isDisqualified = status == CRM.Core.Entities.LeadStatus.Disqualified;
+            var createdDate = faker.Date.Past(1);
+            var primaryCampaign = faker.Random.Bool(0.8f) ? faker.PickRandom(campaigns) : null;
+            var leadScore = faker.Random.Int(0, 100);
+            var emailsSent = faker.Random.Int(0, 20);
+            var emailsOpened = (int)(emailsSent * faker.Random.Double(0.2, 0.6));
+            
+            var lead = new Lead
+            {
+                // Contact Information
+                Salutation = faker.PickRandom(new[] { "Mr.", "Ms.", "Mrs.", "Dr.", null }),
+                FirstName = faker.Name.FirstName(),
+                LastName = faker.Name.LastName(),
+                Email = faker.Internet.Email(),
+                SecondaryEmail = faker.Random.Bool(0.2f) ? faker.Internet.Email() : null,
+                Phone = faker.Phone.PhoneNumber("+1-###-###-####"),
+                MobilePhone = faker.Random.Bool(0.5f) ? faker.Phone.PhoneNumber("+1-###-###-####") : null,
+                LinkedInUrl = faker.Random.Bool(0.4f) ? $"https://linkedin.com/in/{faker.Internet.UserName()}" : null,
+                
+                // Company Information
+                Company = faker.Company.CompanyName(),
+                JobTitle = faker.Name.JobTitle(),
+                Department = faker.Commerce.Department(),
+                Industry = faker.PickRandom(industries),
+                Website = faker.Internet.Url(),
+                NumberOfEmployees = faker.Random.Int(10, 10000),
+                CompanySize = faker.PickRandom(companySizes),
+                AnnualRevenue = faker.Random.Decimal(100000, 100000000),
+                RevenueRange = faker.PickRandom(new[] { "<$1M", "$1M-$10M", "$10M-$50M", "$50M-$100M", "$100M+" }),
+                
+                // Address
+                Address = faker.Address.StreetAddress(),
+                City = faker.Address.City(),
+                State = faker.Address.StateAbbr(),
+                ZipCode = faker.Address.ZipCode(),
+                Country = faker.PickRandom(new[] { "USA", "Canada", "UK", "Germany", "France", "Australia" }),
+                Region = faker.PickRandom(new[] { "North America", "EMEA", "APAC", "LATAM" }),
+                Timezone = faker.PickRandom(new[] { "EST", "PST", "CST", "GMT", "CET" }),
+                
+                // Status & Qualification
+                Status = status,
+                Rating = (LeadRating)faker.Random.Int(0, 4),
+                LeadScore = leadScore,
+                FitScore = faker.Random.Int(0, 100),
+                BehaviorScore = faker.Random.Int(0, 100),
+                Grade = faker.PickRandom(new[] { "A", "B", "C", "D", "F" }),
+                IsMql = leadScore >= 50,
+                MqlDate = leadScore >= 50 ? createdDate.AddDays(faker.Random.Int(1, 14)) : null,
+                IsSql = leadScore >= 70,
+                SqlDate = leadScore >= 70 ? createdDate.AddDays(faker.Random.Int(7, 21)) : null,
+                
+                // BANT Qualification
+                HasBudget = faker.Random.Bool(0.4f),
+                BudgetAmount = faker.Random.Bool(0.3f) ? faker.Random.Decimal(10000, 500000) : null,
+                BudgetRange = faker.PickRandom(new[] { "$10K-$25K", "$25K-$50K", "$50K-$100K", "$100K-$250K", "$250K+" }),
+                HasAuthority = faker.Random.Bool(0.3f),
+                AuthorityLevel = faker.PickRandom(new[] { "Decision Maker", "Influencer", "Recommender", "End User", "Evaluator" }),
+                HasNeed = faker.Random.Bool(0.5f),
+                PrimaryPainPoint = faker.PickRandom(new[] { "Efficiency", "Cost Reduction", "Scalability", "Compliance", "Integration", "Automation" }),
+                UseCase = faker.Lorem.Sentence(),
+                CurrentSolution = faker.Random.Bool(0.4f) ? faker.Company.CompanyName() : "None",
+                HasTimeline = faker.Random.Bool(0.3f),
+                ExpectedPurchaseDate = faker.Random.Bool(0.3f) ? faker.Date.Future(1) : null,
+                TimelineDescription = faker.PickRandom(new[] { "Immediate", "1-3 months", "3-6 months", "6-12 months", "Next fiscal year" }),
+                BantScore = faker.Random.Int(0, 4),
+                
+                // Lead Source & Attribution
+                Source = faker.PickRandom(leadSources),
+                SourceDescription = faker.Lorem.Sentence(3),
+                PrimaryCampaignId = primaryCampaign?.Id,
+                ConvertingCampaignId = isConverted && primaryCampaign != null ? primaryCampaign.Id : null,
+                LastCampaignId = primaryCampaign?.Id,
+                CampaignTouchCount = faker.Random.Int(1, 5),
+                UtmSource = faker.PickRandom(new[] { "google", "linkedin", "facebook", "email", "direct" }),
+                UtmMedium = faker.PickRandom(new[] { "cpc", "organic", "social", "email", "referral" }),
+                UtmCampaign = faker.Lorem.Slug(2),
+                LandingPageUrl = $"https://example.com/landing/{faker.Random.AlphaNumeric(6)}",
+                
+                // Engagement Tracking
+                WebsiteVisits = faker.Random.Int(1, 50),
+                PageViews = faker.Random.Int(2, 200),
+                LastWebsiteVisit = faker.Date.Recent(30),
+                ContentDownloads = faker.Random.Int(0, 5),
+                WebinarsAttended = faker.Random.Int(0, 3),
+                EmailsSent = emailsSent,
+                EmailsOpened = emailsOpened,
+                EmailClicks = (int)(emailsOpened * faker.Random.Double(0.1, 0.4)),
+                LastEmailOpenDate = faker.Random.Bool(0.5f) ? faker.Date.Recent(14) : null,
+                CallsMade = faker.Random.Int(0, 10),
+                CallsConnected = faker.Random.Int(0, 5),
+                MeetingsScheduled = faker.Random.Int(0, 3),
+                MeetingsCompleted = faker.Random.Int(0, 2),
+                TotalTouchpoints = faker.Random.Int(1, 20),
+                
+                // Product Interest
+                PrimaryProductInterestId = faker.Random.Bool(0.6f) && products.Count > 0 ? faker.PickRandom(products).Id : null,
+                RequestedDemo = faker.Random.Bool(0.2f),
+                DemoRequestDate = faker.Random.Bool(0.2f) ? faker.Date.Recent(60) : null,
+                DemoCompleted = faker.Random.Bool(0.1f),
+                StartedTrial = faker.Random.Bool(0.15f),
+                TrialStartDate = faker.Random.Bool(0.15f) ? faker.Date.Recent(30) : null,
+                TrialStatus = faker.PickRandom(new[] { "Active", "Expired", "Converted", null }),
+                EstimatedValue = faker.Random.Decimal(5000, 250000),
+                
+                // Communication Preferences
+                OptInEmail = faker.Random.Bool(0.9f),
+                OptInSms = faker.Random.Bool(0.3f),
+                OptInPhone = faker.Random.Bool(0.7f),
+                PreferredContactMethod = faker.PickRandom(new[] { "Email", "Phone", "LinkedIn", "SMS" }),
+                PreferredContactTime = faker.PickRandom(new[] { "Morning", "Afternoon", "Evening" }),
+                DoNotCall = faker.Random.Bool(0.05f),
+                DoNotEmail = faker.Random.Bool(0.05f),
+                PreferredLanguage = faker.PickRandom(new[] { "en", "es", "fr", "de" }),
+                
+                // Assignment
+                OwnerId = faker.PickRandom(users).Id,
+                AssignedDate = createdDate.AddHours(faker.Random.Int(1, 48)),
+                AssignmentMethod = faker.PickRandom(new[] { "Round Robin", "Territory", "Manual", "Auto-Assignment" }),
+                Territory = faker.PickRandom(new[] { "West", "East", "Central", "International" }),
+                LastActivityDate = faker.Date.Recent(14),
+                NextFollowUpDate = DateTime.UtcNow.AddDays(faker.Random.Int(1, 30)),
+                NextAction = faker.PickRandom(new[] { "Follow-up call", "Send proposal", "Schedule demo", "Email check-in", "Qualify budget" }),
+                IsStale = faker.Random.Bool(0.1f),
+                
+                // Conversion Information
+                IsConverted = isConverted,
+                ConvertedDate = isConverted ? createdDate.AddDays(faker.Random.Int(14, 90)) : null,
+                ConvertedByUserId = isConverted ? faker.PickRandom(users).Id : null,
+                ConversionType = isConverted ? (ConversionType)faker.Random.Int(1, 5) : ConversionType.NotConverted,
+                ConvertedRevenue = isConverted ? faker.Random.Decimal(10000, 500000) : null,
+                DaysToConvert = isConverted ? faker.Random.Int(14, 90) : null,
+                
+                // Disqualification
+                IsDisqualified = isDisqualified,
+                DisqualificationReason = isDisqualified ? faker.PickRandom(disqualReasons) : DisqualificationReason.NotSpecified,
+                DisqualificationNotes = isDisqualified ? faker.Lorem.Sentence() : null,
+                DisqualifiedDate = isDisqualified ? createdDate.AddDays(faker.Random.Int(1, 30)) : null,
+                DisqualifiedByUserId = isDisqualified ? faker.PickRandom(users).Id : null,
+                
+                // Duplicate Detection
+                IsDuplicate = faker.Random.Bool(0.02f),
+                DuplicateCheckPerformed = true,
+                
+                // Data Enrichment
+                IsEnriched = faker.Random.Bool(0.4f),
+                EnrichedDate = faker.Random.Bool(0.4f) ? faker.Date.Recent(60) : null,
+                EnrichmentSource = faker.PickRandom(new[] { "Clearbit", "ZoomInfo", "LinkedIn", null }),
+                
+                // Documentation
+                Description = faker.Lorem.Sentence(),
+                QualificationNotes = faker.Lorem.Paragraph(),
+                Notes = faker.Lorem.Paragraph(),
+                Tags = string.Join(",", faker.Commerce.Categories(2)),
+                
+                CreatedAt = createdDate
+            };
+            leads.Add(lead);
+        }
+
+        context.Leads.AddRange(leads);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"   Created {count} leads");
+        return leads;
     }
 
     static async Task<List<Opportunity>> SeedOpportunities(CrmDbContext context, List<Customer> customers, List<Product> products, List<User> users, List<MarketingCampaign> campaigns, int count)
@@ -561,7 +1013,13 @@ class Program
                 ProductId = faker.Random.Bool(0.7f) ? faker.PickRandom(products).Id : null,
                 AssignedToUserId = faker.PickRandom(salesUsers).Id,
                 CampaignId = faker.Random.Bool(0.4f) ? faker.PickRandom(campaigns).Id : null,
-                CompetitorName = faker.Random.Bool(0.3f) ? faker.Company.CompanyName() : null,
+                PrimaryCompetitor = faker.Random.Bool(0.3f) ? faker.Company.CompanyName() : null,
+                CompetitiveSituation = (CompetitiveSituation)faker.Random.Int(0, 7),
+                BudgetStatus = (BudgetStatus)faker.Random.Int(0, 4),
+                Health = (OpportunityHealth)faker.Random.Int(0, 2),
+                EngagementLevel = (EngagementLevel)faker.Random.Int(0, 4),
+                BantScore = faker.Random.Int(0, 4),
+                MeddicScore = faker.Random.Int(0, 100),
                 Tags = string.Join(",", faker.Commerce.Categories(2)),
                 Notes = faker.Lorem.Paragraph(),
                 CreatedAt = faker.Date.Past(1)
