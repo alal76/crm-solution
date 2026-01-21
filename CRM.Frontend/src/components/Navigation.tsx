@@ -32,19 +32,49 @@ import {
   Description as QuoteIcon,
   Note as NoteIcon,
   Timeline as ActivityIcon,
+  Business as BusinessIcon,
+  SupportAgent as SupportAgentIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../contexts/ProfileContext';
+import { useBranding } from '../contexts/BrandingContext';
 import logo from '../assets/logo.png';
 import './Navigation.css';
 
 function NavigationContent() {
   const { isAuthenticated, user, logout } = useAuth();
   const { profile, hasPermission, canAccessMenu } = useProfile();
+  const { branding } = useBranding();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Get header color: user's custom color, or red for admin, or primary color
+  const getHeaderColor = () => {
+    if (user?.headerColor) return user.headerColor;
+    if (user?.role === 'Admin' || user?.role === 0 || user?.role === '0') return '#C62828';
+    return branding.primaryColor || '#6750A4';
+  };
+
+  // Get user initials: first char of firstName + first char of lastName
+  const getUserInitials = () => {
+    const firstInitial = user?.firstName?.charAt(0)?.toUpperCase() || '';
+    const lastInitial = user?.lastName?.charAt(0)?.toUpperCase() || '';
+    return `${firstInitial}${lastInitial}` || 'U';
+  };
+
+  // Get logo URL: from branding settings or default
+  const getLogoUrl = () => {
+    if (branding.companyLogoUrl) {
+      // If it's a relative URL, it's from our uploads
+      if (branding.companyLogoUrl.startsWith('/uploads')) {
+        return branding.companyLogoUrl;
+      }
+      return branding.companyLogoUrl;
+    }
+    return logo;
+  };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -72,6 +102,7 @@ function NavigationContent() {
     { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', menuName: 'Opportunities' },
     { label: 'Products', icon: PackageIcon, path: '/products', menuName: 'Products' },
     { label: 'Services', icon: SettingsIcon, path: '/services', menuName: 'Services' },
+    { label: 'Service Requests', icon: SupportAgentIcon, path: '/service-requests', menuName: 'ServiceRequests' },
     { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', menuName: 'Campaigns' },
     { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
     { label: 'Tasks', icon: TaskIcon, path: '/tasks', menuName: 'Tasks' },
@@ -81,6 +112,7 @@ function NavigationContent() {
 
   const adminItems = [
     { label: 'Workflows', icon: AutomationIcon, path: '/workflows', menuName: 'Workflows' },
+    { label: 'Service Request Settings', icon: SupportAgentIcon, path: '/service-request-settings', menuName: 'Settings' },
     { label: 'Admin Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
   ];
   
@@ -90,7 +122,7 @@ function NavigationContent() {
 
   return (
     <>
-      <AppBar position="sticky" sx={{ boxShadow: 1 }}>
+      <AppBar position="sticky" sx={{ boxShadow: 1, backgroundColor: getHeaderColor() }}>
         <Toolbar>
           <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
             <IconButton
@@ -102,18 +134,32 @@ function NavigationContent() {
             >
               <MenuIcon />
             </IconButton>
-            <Box sx={{ width: 36, height: 36, mr: 1.5, flexShrink: 0 }}>
-              <img src={logo} alt="CRM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <Box sx={{ width: 36, height: 36, mr: 1.5, flexShrink: 0, backgroundColor: 'white', borderRadius: 1, p: 0.25 }}>
+              {branding.companyLogoUrl ? (
+                <img src={getLogoUrl()} alt="Company Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              ) : (
+                <BusinessIcon sx={{ width: '100%', height: '100%', color: getHeaderColor() }} />
+              )}
             </Box>
             <Typography variant="h6" component={RouterLink} to="/" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 600 }}>
-              CRM System
+              {branding.companyName || 'CRM System'}
             </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <IconButton color="inherit" onClick={handleMenuOpen}>
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main', fontSize: '0.9rem' }}>
-                {user?.firstName?.charAt(0)?.toUpperCase()}
+              <Avatar 
+                src={user?.photoUrl || undefined}
+                sx={{ 
+                  width: 36, 
+                  height: 36, 
+                  bgcolor: 'rgba(255,255,255,0.2)', 
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  border: '2px solid rgba(255,255,255,0.5)'
+                }}
+              >
+                {getUserInitials()}
               </Avatar>
             </IconButton>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
@@ -172,12 +218,16 @@ function NavigationContent() {
           },
         }}
       >
-        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 32, height: 32, flexShrink: 0 }}>
-            <img src={logo} alt="CRM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5, bgcolor: getHeaderColor(), color: 'white' }}>
+          <Box sx={{ width: 36, height: 36, flexShrink: 0, backgroundColor: 'white', borderRadius: 1, p: 0.25 }}>
+            {branding.companyLogoUrl ? (
+              <img src={getLogoUrl()} alt="Company Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            ) : (
+              <BusinessIcon sx={{ width: '100%', height: '100%', color: getHeaderColor() }} />
+            )}
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Menu
+            {branding.companyName || 'CRM System'}
           </Typography>
         </Box>
         <Divider />

@@ -21,8 +21,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
 WORKDIR /app
 
-# Create database directory with proper permissions
+# Create database directory and wwwroot/uploads with proper permissions
 RUN mkdir -p /app/data && chmod 777 /app/data
+RUN mkdir -p /app/wwwroot/uploads/logos /app/wwwroot/uploads/users /app/wwwroot/uploads/customers /app/wwwroot/uploads/contacts && chmod -R 755 /app/wwwroot
 
 # Install curl and mariadb-client for health checks and connection validation
 RUN apt-get update && apt-get install -y curl mariadb-client-core && rm -rf /var/lib/apt/lists/*

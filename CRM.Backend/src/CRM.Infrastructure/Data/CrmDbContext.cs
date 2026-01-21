@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
@@ -54,8 +70,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Quote> Quotes { get; set; }
     public DbSet<Activity> Activities { get; set; }
     
+    // Service Request entities
+    public DbSet<ServiceRequest> ServiceRequests { get; set; }
+    public DbSet<ServiceRequestCategory> ServiceRequestCategories { get; set; }
+    public DbSet<ServiceRequestSubcategory> ServiceRequestSubcategories { get; set; }
+    public DbSet<ServiceRequestCustomFieldDefinition> ServiceRequestCustomFieldDefinitions { get; set; }
+    public DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; set; }
+    
     // System settings
     public DbSet<SystemSettings> SystemSettings { get; set; }
+    
+    // Color palettes
+    public DbSet<ColorPalette> ColorPalettes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -569,6 +595,180 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasOne(e => e.SourceCampaign)
                 .WithMany()
                 .HasForeignKey(e => e.SourceCampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure ServiceRequestCategory
+        modelBuilder.Entity<ServiceRequestCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.IconName).HasMaxLength(50);
+            entity.Property(e => e.ColorCode).HasMaxLength(20);
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.DisplayOrder);
+        });
+
+        // Configure ServiceRequestSubcategory
+        modelBuilder.Entity<ServiceRequestSubcategory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.DisplayOrder);
+            
+            entity.HasOne(e => e.Category)
+                .WithMany(c => c.Subcategories)
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.DefaultWorkflow)
+                .WithMany()
+                .HasForeignKey(e => e.DefaultWorkflowId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure ServiceRequestCustomFieldDefinition
+        modelBuilder.Entity<ServiceRequestCustomFieldDefinition>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.FieldKey).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.DefaultValue).HasMaxLength(500);
+            entity.Property(e => e.Placeholder).HasMaxLength(200);
+            entity.Property(e => e.HelpText).HasMaxLength(500);
+            entity.Property(e => e.DropdownOptions).HasMaxLength(2000);
+            entity.Property(e => e.ValidationPattern).HasMaxLength(500);
+            entity.Property(e => e.ValidationMessage).HasMaxLength(200);
+            entity.Property(e => e.MinValue).HasPrecision(18, 4);
+            entity.Property(e => e.MaxValue).HasPrecision(18, 4);
+            entity.HasIndex(e => e.FieldKey);
+            entity.HasIndex(e => e.DisplayOrder);
+            
+            entity.HasOne(e => e.Category)
+                .WithMany()
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Subcategory)
+                .WithMany()
+                .HasForeignKey(e => e.SubcategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure ServiceRequestCustomFieldValue
+        modelBuilder.Entity<ServiceRequestCustomFieldValue>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TextValue).HasColumnType("TEXT");
+            entity.Property(e => e.NumericValue).HasPrecision(18, 4);
+            entity.HasIndex(e => new { e.ServiceRequestId, e.CustomFieldDefinitionId }).IsUnique();
+            
+            entity.HasOne(e => e.ServiceRequest)
+                .WithMany(sr => sr.CustomFieldValues)
+                .HasForeignKey(e => e.ServiceRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.CustomFieldDefinition)
+                .WithMany(f => f.FieldValues)
+                .HasForeignKey(e => e.CustomFieldDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure ServiceRequest
+        modelBuilder.Entity<ServiceRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TicketNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Subject).IsRequired().HasMaxLength(500);
+            // Use TEXT column type for large text fields to avoid row size limits
+            entity.Property(e => e.Description).HasColumnType("TEXT");
+            entity.Property(e => e.RequesterName).HasMaxLength(200);
+            entity.Property(e => e.RequesterEmail).HasMaxLength(200);
+            entity.Property(e => e.RequesterPhone).HasMaxLength(50);
+            entity.Property(e => e.CurrentWorkflowStep).HasMaxLength(100);
+            entity.Property(e => e.ExternalReferenceId).HasMaxLength(500);
+            entity.Property(e => e.SourcePhoneNumber).HasMaxLength(50);
+            entity.Property(e => e.SourceEmailAddress).HasMaxLength(200);
+            entity.Property(e => e.ConversationId).HasMaxLength(500);
+            entity.Property(e => e.ResolutionSummary).HasColumnType("TEXT");
+            entity.Property(e => e.ResolutionCode).HasMaxLength(100);
+            entity.Property(e => e.RootCause).HasColumnType("TEXT");
+            entity.Property(e => e.CustomerFeedback).HasColumnType("TEXT");
+            entity.Property(e => e.Tags).HasMaxLength(500);
+            entity.Property(e => e.InternalNotes).HasColumnType("TEXT");
+            entity.Property(e => e.EstimatedEffortHours).HasPrecision(18, 2);
+            entity.Property(e => e.ActualEffortHours).HasPrecision(18, 2);
+            
+            entity.HasIndex(e => e.TicketNumber).IsUnique();
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.Priority);
+            entity.HasIndex(e => e.Channel);
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.ResponseDueDate);
+            entity.HasIndex(e => e.ResolutionDueDate);
+            
+            entity.HasOne(e => e.Category)
+                .WithMany(c => c.ServiceRequests)
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Subcategory)
+                .WithMany(s => s.ServiceRequests)
+                .HasForeignKey(e => e.SubcategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Contact)
+                .WithMany()
+                .HasForeignKey(e => e.ContactId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.AssignedToUser)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.AssignedToGroup)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToGroupId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Workflow)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.WorkflowExecution)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowExecutionId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.RelatedOpportunity)
+                .WithMany()
+                .HasForeignKey(e => e.RelatedOpportunityId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.RelatedProduct)
+                .WithMany()
+                .HasForeignKey(e => e.RelatedProductId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.ParentServiceRequest)
+                .WithMany(sr => sr.ChildServiceRequests)
+                .HasForeignKey(e => e.ParentServiceRequestId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
     }

@@ -125,4 +125,57 @@ public class SystemSettingsController : ControllerBase
             return StatusCode(500, $"Error toggling module {moduleName}");
         }
     }
+
+    /// <summary>
+    /// Remove company logo (admin only)
+    /// </summary>
+    [HttpDelete("logo")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<SystemSettingsDto>> RemoveLogo()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+            
+            var request = new UpdateSystemSettingsRequest { CompanyLogoUrl = "" };
+            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing logo");
+            return StatusCode(500, "Error removing logo");
+        }
+    }
+
+    /// <summary>
+    /// Reset branding to defaults (admin only)
+    /// </summary>
+    [HttpPost("reset-branding")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<SystemSettingsDto>> ResetBranding()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+            
+            var request = new UpdateSystemSettingsRequest 
+            { 
+                CompanyLogoUrl = "",
+                PrimaryColor = "#6750A4",
+                SecondaryColor = "#625B71",
+                SelectedPaletteId = null,
+                SelectedPaletteName = null
+            };
+            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting branding");
+            return StatusCode(500, "Error resetting branding");
+        }
+    }
 }

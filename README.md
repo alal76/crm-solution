@@ -496,7 +496,27 @@ public class CustomerService : ICustomerService
 
 ## 📄 License
 
-This project is proprietary and confidential.
+**CRM Solution** is free software licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+Copyright (C) 2024-2026 Abhishek Lal
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+### Copyleft Notice
+
+This software is copyleft. Any derivative works must be distributed under the same license terms. If you modify this software and make it available to users over a network, you must provide them with access to the source code of your modified version under the terms of the AGPL-3.0.
+
+### No Liability
+
+In no event shall Abhishek Lal or any contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages arising out of the use of this software.
+
+### Free Use
+
+This software is provided free of charge for any use, including commercial use, subject to the terms of the AGPL-3.0 license.
 
 ## 🤝 Support
 
@@ -504,5 +524,6 @@ For issues and questions, contact the development team.
 
 ---
 
-**Version**: 1.2.0  
-**Last Updated**: January 2025
+**Version**: 1.3.0  
+**Last Updated**: January 2026  
+**Author**: Abhishek Lal

@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -93,6 +109,31 @@ public class AuthenticationService : IAuthenticationService
 
         if (!user.IsActive)
             throw new UnauthorizedAccessException("User account is inactive");
+
+        // Check if 2FA is enabled for this user
+        if (user.TwoFactorEnabled && !string.IsNullOrEmpty(user.TwoFactorSecret))
+        {
+            // Generate a temporary token for 2FA verification
+            var tempToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            
+            // Store the temp token (in production, use a cache with expiry)
+            // For now, we'll use a simple approach with the password reset token field temporarily
+            user.PasswordResetToken = tempToken;
+            user.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(5); // 5 minute expiry
+            await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveAsync();
+            
+            return new AuthResponse
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                RequiresTwoFactor = true,
+                TwoFactorEnabled = true,
+                TwoFactorToken = tempToken
+            };
+        }
 
         // Update last login date
         user.LastLoginDate = DateTime.UtcNow;
@@ -280,6 +321,7 @@ public class AuthenticationService : IAuthenticationService
                 CanAccessActivities = true,
                 CanAccessNotes = true,
                 CanAccessWorkflows = true,
+                CanAccessServiceRequests = true,
                 CanAccessReports = true,
                 CanAccessSettings = true,
                 CanAccessUserManagement = true,
@@ -317,6 +359,7 @@ public class AuthenticationService : IAuthenticationService
                 CanAccessActivities = group.CanAccessActivities,
                 CanAccessNotes = group.CanAccessNotes,
                 CanAccessWorkflows = group.CanAccessWorkflows,
+                CanAccessServiceRequests = group.CanAccessServiceRequests,
                 CanAccessReports = group.CanAccessReports,
                 CanAccessSettings = group.CanAccessSettings,
                 CanAccessUserManagement = group.CanAccessUserManagement,
@@ -382,7 +425,9 @@ public class AuthenticationService : IAuthenticationService
             PrimaryGroupName = user.PrimaryGroup?.Name,
             AccessiblePages = accessiblePages,
             Permissions = permissions,
-            GroupPermissions = groupPermissions
+            GroupPermissions = groupPermissions,
+            HeaderColor = user.HeaderColor ?? (user.Role == 0 ? "#C62828" : null), // Red for admin
+            PhotoUrl = user.PhotoUrl
         };
     }
 
@@ -519,6 +564,56 @@ public class AuthenticationService : IAuthenticationService
             throw new InvalidOperationException("User or 2FA not configured");
 
         return _totpService.VerifyCode(user.TwoFactorSecret, code);
+    }
+
+    public async Task<AuthResponse> VerifyTwoFactorLoginAsync(string tempToken, string code)
+    {
+        // Find user by temp token
+        var users = await _userRepository.GetAllAsync();
+        var user = users.FirstOrDefault(u => 
+            u.PasswordResetToken == tempToken && 
+            u.PasswordResetTokenExpiry > DateTime.UtcNow);
+        
+        if (user == null)
+            throw new UnauthorizedAccessException("Invalid or expired verification token");
+        
+        if (string.IsNullOrEmpty(user.TwoFactorSecret))
+            throw new InvalidOperationException("2FA not configured for this user");
+        
+        // Verify the TOTP code
+        var isValid = _totpService.VerifyCode(user.TwoFactorSecret, code);
+        
+        // Check backup codes if TOTP fails
+        if (!isValid && !string.IsNullOrEmpty(user.BackupCodes))
+        {
+            var backupCodes = System.Text.Json.JsonSerializer.Deserialize<List<string>>(user.BackupCodes) ?? new();
+            if (backupCodes.Contains(code))
+            {
+                isValid = true;
+                // Remove used backup code
+                backupCodes.Remove(code);
+                user.BackupCodes = System.Text.Json.JsonSerializer.Serialize(backupCodes);
+            }
+        }
+        
+        if (!isValid)
+            throw new UnauthorizedAccessException("Invalid verification code");
+        
+        // Clear the temp token
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiry = null;
+        user.LastLoginDate = DateTime.UtcNow;
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
+        
+        // Load navigation properties for full response
+        var fullUser = await _dbContext.Users
+            .Include(u => u.PrimaryGroup)
+            .Include(u => u.Department)
+            .Include(u => u.UserProfile)
+            .FirstOrDefaultAsync(u => u.Id == user.Id);
+        
+        return GenerateAuthResponse(fullUser ?? user);
     }
 
     public async Task EnableTwoFactorAsync(int userId, string secret, List<string> backupCodes)

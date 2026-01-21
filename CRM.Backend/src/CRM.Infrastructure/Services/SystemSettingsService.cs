@@ -115,6 +115,12 @@ public class SystemSettingsService : ISystemSettingsService
             if (request.CompanyLogoUrl != null) settings.CompanyLogoUrl = request.CompanyLogoUrl;
             if (!string.IsNullOrEmpty(request.PrimaryColor)) settings.PrimaryColor = request.PrimaryColor;
             if (!string.IsNullOrEmpty(request.SecondaryColor)) settings.SecondaryColor = request.SecondaryColor;
+            if (!string.IsNullOrEmpty(request.TertiaryColor)) settings.TertiaryColor = request.TertiaryColor;
+            if (!string.IsNullOrEmpty(request.SurfaceColor)) settings.SurfaceColor = request.SurfaceColor;
+            if (!string.IsNullOrEmpty(request.BackgroundColor)) settings.BackgroundColor = request.BackgroundColor;
+            if (request.UseGroupHeaderColor.HasValue) settings.UseGroupHeaderColor = request.UseGroupHeaderColor.Value;
+            if (request.SelectedPaletteId.HasValue) settings.SelectedPaletteId = request.SelectedPaletteId.Value;
+            if (request.SelectedPaletteName != null) settings.SelectedPaletteName = request.SelectedPaletteName;
             
             if (request.RequireTwoFactor.HasValue) settings.RequireTwoFactor = request.RequireTwoFactor.Value;
             if (request.MinPasswordLength.HasValue) settings.MinPasswordLength = request.MinPasswordLength.Value;
@@ -173,6 +179,13 @@ public class SystemSettingsService : ISystemSettingsService
             CompanyLogoUrl = settings.CompanyLogoUrl,
             PrimaryColor = settings.PrimaryColor,
             SecondaryColor = settings.SecondaryColor,
+            TertiaryColor = settings.TertiaryColor,
+            SurfaceColor = settings.SurfaceColor,
+            BackgroundColor = settings.BackgroundColor,
+            UseGroupHeaderColor = settings.UseGroupHeaderColor,
+            SelectedPaletteId = settings.SelectedPaletteId,
+            SelectedPaletteName = settings.SelectedPaletteName,
+            PalettesLastRefreshed = settings.PalettesLastRefreshed,
             
             RequireTwoFactor = settings.RequireTwoFactor,
             MinPasswordLength = settings.MinPasswordLength,

@@ -65,6 +65,7 @@ public class UserGroupService : IUserGroupService
             IsActive = g.IsActive,
             IsDefault = g.IsDefault,
             DisplayOrder = g.DisplayOrder,
+            HeaderColor = g.HeaderColor,
             IsSystemAdmin = g.IsSystemAdmin,
             CreatedAt = g.CreatedAt,
             MemberCount = g.Members.Count,
@@ -83,6 +84,7 @@ public class UserGroupService : IUserGroupService
             CanAccessActivities = g.CanAccessActivities,
             CanAccessNotes = g.CanAccessNotes,
             CanAccessWorkflows = g.CanAccessWorkflows,
+            CanAccessServiceRequests = g.CanAccessServiceRequests,
             CanAccessReports = g.CanAccessReports,
             CanAccessSettings = g.CanAccessSettings,
             CanAccessUserManagement = g.CanAccessUserManagement,
@@ -148,6 +150,7 @@ public class UserGroupService : IUserGroupService
         group.IsActive = request.IsActive;
         group.IsDefault = request.IsDefault;
         group.DisplayOrder = request.DisplayOrder;
+        group.HeaderColor = request.HeaderColor;
         group.IsSystemAdmin = request.IsSystemAdmin;
         
         // Menu Permissions
@@ -164,6 +167,7 @@ public class UserGroupService : IUserGroupService
         group.CanAccessActivities = request.CanAccessActivities;
         group.CanAccessNotes = request.CanAccessNotes;
         group.CanAccessWorkflows = request.CanAccessWorkflows;
+        group.CanAccessServiceRequests = request.CanAccessServiceRequests;
         group.CanAccessReports = request.CanAccessReports;
         group.CanAccessSettings = request.CanAccessSettings;
         group.CanAccessUserManagement = request.CanAccessUserManagement;

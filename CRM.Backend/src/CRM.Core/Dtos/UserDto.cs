@@ -21,4 +21,14 @@ public class UserDto
     public string? ContactEmail { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginDate { get; set; }
+    
+    /// <summary>
+    /// Custom header color for this user (hex format)
+    /// </summary>
+    public string? HeaderColor { get; set; }
+    
+    /// <summary>
+    /// URL to user's profile photo
+    /// </summary>
+    public string? PhotoUrl { get; set; }
 }

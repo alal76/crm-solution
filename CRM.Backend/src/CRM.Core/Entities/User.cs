@@ -161,6 +161,19 @@ public class User : BaseEntity
     /// </summary>
     public int? PrimaryGroupId { get; set; }
 
+    // === Customization ===
+    
+    /// <summary>
+    /// Custom header color for this user (hex format, e.g., #FF0000)
+    /// Admin users default to red header
+    /// </summary>
+    public string? HeaderColor { get; set; }
+    
+    /// <summary>
+    /// URL to user's profile photo
+    /// </summary>
+    public string? PhotoUrl { get; set; }
+
     // === Navigation Properties ===
     
     /// <summary>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { Settings as SettingsIcon } from '@mui/icons-material';
+import axios from 'axios';
 import { debugLog, debugError } from '../utils/debug';
 import { getHealthCheckUrl, getServicePorts } from '../config/ports';
+import { useBranding } from '../contexts/BrandingContext';
 import '../styles/Footer.css';
 
 interface HealthStatus {
@@ -15,6 +15,7 @@ function Footer() {
   const [apiStatus, setApiStatus] = useState<HealthStatus>({ status: 'down' });
   const [dbStatus, setDbStatus] = useState<HealthStatus>({ status: 'down' });
   const [ports, setPorts] = useState(getServicePorts());
+  const { branding } = useBranding();
   const [buildInfo] = useState({
     version: process.env.REACT_APP_VERSION || '1.3.0',
     buildDate: process.env.REACT_APP_BUILD_DATE || new Date().toISOString().split('T')[0],
@@ -66,45 +67,35 @@ function Footer() {
   };
 
   const getStatusText = (status: 'up' | 'down') => {
-    return status === 'up' ? '● Online' : '● Offline';
+    return status === 'up' ? '●' : '○';
   };
 
   return (
-    <footer className="footer">
-      <div className="footer-content">
-        <div className="footer-section">
-          <div className="build-info">
-            <span className="build-label">Version:</span>
-            <span className="build-value">{buildInfo.version}</span>
-            <span className="build-label">Build Date:</span>
-            <span className="build-value">{buildInfo.buildDate}</span>
+    <footer className="footer-compact">
+      <div className="footer-content-compact">
+        <div className="footer-left">
+          <span className="company-name">{branding.companyName || 'CRM System'}</span>
+          <span className="separator">|</span>
+          <span className="version">v{buildInfo.version}</span>
+        </div>
+
+        <div className="footer-center">
+          <div className="status-compact">
+            <span className={`status-dot ${getStatusClass(apiStatus.status)}`}>{getStatusText(apiStatus.status)}</span>
+            <span className="status-text">API</span>
+            <span className={`status-dot ${getStatusClass(dbStatus.status)}`}>{getStatusText(dbStatus.status)}</span>
+            <span className="status-text">DB</span>
           </div>
         </div>
 
-        <div className="footer-section">
-          <div className="status-info">
-            <div className={`status-item ${getStatusClass(apiStatus.status)}`}>
-              <span className="status-label">API:</span>
-              <span className="status-value">{getStatusText(apiStatus.status)}</span>
-            </div>
-            <div className={`status-item ${getStatusClass(dbStatus.status)}`}>
-              <span className="status-label">Database:</span>
-              <span className="status-value">{getStatusText(dbStatus.status)}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="footer-section">
-          <Link to="/settings" className="settings-link" title="Go to Settings">
-            <SettingsIcon sx={{ fontSize: '1.2rem', mr: 0.5 }} />
-            Settings
-          </Link>
-        </div>
-
-        <div className="footer-section">
-          <div className="copyright">
-            <span>&copy; 2026 CRM Solution. All rights reserved.</span>
-          </div>
+        <div className="footer-right">
+          <Link to="/about" className="footer-link">About</Link>
+          <span className="separator">|</span>
+          <Link to="/help" className="footer-link">Help</Link>
+          <span className="separator">|</span>
+          <Link to="/licenses" className="footer-link">Licenses</Link>
+          <span className="separator">|</span>
+          <span className="copyright">&copy; 2026 Abhishek Lal - AGPL-3.0</span>
         </div>
       </div>
     </footer>

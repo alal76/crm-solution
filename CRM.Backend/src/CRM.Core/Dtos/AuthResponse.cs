@@ -25,6 +25,31 @@ public class AuthResponse
     public List<string> AccessiblePages { get; set; } = new();
     public UserPermissions Permissions { get; set; } = new();
     public GroupPermissionsDto? GroupPermissions { get; set; }
+    
+    /// <summary>
+    /// Custom header color for this user (hex format)
+    /// </summary>
+    public string? HeaderColor { get; set; }
+    
+    /// <summary>
+    /// URL to user's profile photo
+    /// </summary>
+    public string? PhotoUrl { get; set; }
+    
+    /// <summary>
+    /// Whether 2FA verification is required to complete login
+    /// </summary>
+    public bool RequiresTwoFactor { get; set; } = false;
+    
+    /// <summary>
+    /// Whether 2FA is enabled for this user (for profile display)
+    /// </summary>
+    public bool TwoFactorEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// Temporary token for 2FA verification (only set when RequiresTwoFactor is true)
+    /// </summary>
+    public string? TwoFactorToken { get; set; }
 }
 
 /// <summary>
@@ -70,6 +95,7 @@ public class GroupPermissionsDto
     public bool CanAccessActivities { get; set; }
     public bool CanAccessNotes { get; set; }
     public bool CanAccessWorkflows { get; set; }
+    public bool CanAccessServiceRequests { get; set; }
     public bool CanAccessReports { get; set; }
     public bool CanAccessSettings { get; set; }
     public bool CanAccessUserManagement { get; set; }

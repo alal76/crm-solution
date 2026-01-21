@@ -1,3 +1,21 @@
+/**
+ * CRM Solution - Customer Relationship Management System
+ * Copyright (C) 2024-2026 Abhishek Lal
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axiosInstance from '../services/apiClient';
 import { debugLog, debugError } from '../utils/debug';
@@ -29,7 +47,8 @@ const deleteCookie = (name: string) => {
 interface AuthContextType {
   isAuthenticated: boolean;
   user: any | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ requiresTwoFactor?: boolean; twoFactorToken?: string }>;
+  verifyTwoFactor: (twoFactorToken: string, code: string) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
   googleLogin: (idToken: string) => Promise<void>;
@@ -121,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<{ requiresTwoFactor?: boolean; twoFactorToken?: string }> => {
     try {
       const endpoint = '/auth/login';
       console.log('[AuthContext] Login attempt', { email, endpoint });
@@ -129,6 +148,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const response = await axiosInstance.post(endpoint, { email, password });
       console.log('[AuthContext] Login response received:', { userId: response.data.userId, status: response.status });
+      
+      // Check if 2FA is required
+      if (response.data.requiresTwoFactor) {
+        console.log('[AuthContext] 2FA required for user');
+        return { 
+          requiresTwoFactor: true, 
+          twoFactorToken: response.data.twoFactorToken 
+        };
+      }
+      
       debugLog('Login successful', { userId: response.data.userId, email: response.data.email });
       
       const accessToken = response.data.accessToken;
@@ -160,6 +189,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data);
       setIsAuthenticated(true);
       console.log('[AuthContext] Login complete, user authenticated, groupPermissions:', response.data.groupPermissions);
+      
+      // Clear any branding update flags on successful login
+      localStorage.removeItem('brandingUpdated');
+      localStorage.removeItem('brandingReset');
+      
+      return {};
     } catch (error: any) {
       console.error('[AuthContext] Login failed:', {
         email,
@@ -174,6 +209,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         response: error.response?.data,
         status: error.response?.status,
       });
+      throw error;
+    }
+  };
+
+  const verifyTwoFactor = async (twoFactorToken: string, code: string): Promise<void> => {
+    try {
+      console.log('[AuthContext] 2FA verification attempt');
+      const response = await axiosInstance.post('/auth/login/2fa', { twoFactorToken, code });
+      console.log('[AuthContext] 2FA verification successful');
+      
+      const accessToken = response.data.accessToken;
+      const refreshToken = response.data.refreshToken;
+      
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      
+      // Store in cookies for auto-login persistence (30 days)
+      setCookie('crm_auth_token', accessToken, 30);
+      setCookie('crm_refresh_token', refreshToken, 30);
+      setCookie('crm_user_data', JSON.stringify(response.data), 30);
+      
+      // Store profile information including group permissions
+      const profileData = {
+        departmentId: response.data.departmentId,
+        departmentName: response.data.departmentName,
+        userProfileId: response.data.userProfileId,
+        userProfileName: response.data.userProfileName,
+        primaryGroupId: response.data.primaryGroupId,
+        primaryGroupName: response.data.primaryGroupName,
+        accessiblePages: response.data.accessiblePages || [],
+        permissions: response.data.permissions || {},
+        groupPermissions: response.data.groupPermissions || null
+      };
+      localStorage.setItem('userProfile', JSON.stringify(profileData));
+      setCookie('crm_user_profile', JSON.stringify(profileData), 30);
+      
+      setUser(response.data);
+      setIsAuthenticated(true);
+    } catch (error: any) {
+      console.error('[AuthContext] 2FA verification failed:', error.message);
       throw error;
     }
   };
@@ -301,7 +376,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout, googleLogin, initiateMicrosoftLogin }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, verifyTwoFactor, register, logout, googleLogin, initiateMicrosoftLogin }}>
       {children}
     </AuthContext.Provider>
   );
