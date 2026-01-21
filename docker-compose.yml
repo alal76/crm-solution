@@ -1,5 +1,6 @@
-version: '3.8'
-
+volumes:
+  db-data:
+  api-data:
 services:
   # Database Tier (MariaDB)
   mariadb:
@@ -16,12 +17,12 @@ services:
       - db-data:/var/lib/mysql
     networks:
       - crm-network
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    command: --default-authentication-plugin=mysql_native_password
+
+    # healthcheck:
+    #   test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
 
   # API Tier (Application/Business Logic)
   api:
@@ -31,28 +32,26 @@ services:
     image: crm-api:latest
     container_name: crm-api
     ports:
-      - "5001:5000"
+      - "5000:5000"
+    env_file:
+      - .env
     environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
-      - ConnectionStrings__DefaultConnection=Server=mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;
-      - DatabaseProvider=mariadb
-      - Jwt__Secret=${JWT_SECRET:-dev-secret-key-change-in-production-32chars}
-      - Jwt__Issuer=CRMApp
-      - Jwt__Audience=CRMUsers
-      - AllowedOrigins=${ALLOWED_ORIGINS:-http://localhost:3000}
+      DatabaseProvider: mariadb
+      ConnectionStrings__DefaultConnection: 'Server=mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD}'
+      Jwt__ExpirationMinutes: '15'
     volumes:
       - api-data:/app/data
-    depends_on:
-      mariadb:
-        condition: service_healthy
-    networks:
-      - crm-network
+    # depends_on:
+    #   mariadb:
+    #     condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 10s
+    networks:
+      - crm-network
 
   # Frontend Tier (Presentation)
   frontend:
@@ -61,27 +60,19 @@ services:
       dockerfile: Dockerfile.frontend
       args:
         BUILD_DATE: "2026-01-20T12:00:00Z"
-        REACT_APP_API_URL: http://api:5000/api
-    image: crm-frontend:latest
+        REACT_APP_API_URL: ${REACT_APP_API_URL}
+    # image: crm-frontend:latest
     container_name: crm-frontend
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
-      - REACT_APP_API_PORT=5000
-      - REACT_APP_API_EXTERNAL_PORT=5001
-      - REACT_APP_DB_PORT=3306
-      - REACT_APP_FRONTEND_PORT=3000
     depends_on:
       - api
     networks:
       - crm-network
-
-volumes:
-  db-data:
-    driver: local
-  api-data:
-    driver: local
 
 networks:
   crm-network:

@@ -255,7 +255,7 @@ jobs:
         dotnet build -c Release
         dotnet run -c Release &
         sleep 10
-        curl -f http://localhost:5001/health || true
+        curl -f http://localhost:5000/health || true
 
   # ==========================================================================
   # TEST REPORT

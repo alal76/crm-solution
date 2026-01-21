@@ -236,7 +236,7 @@ interface ServicePorts {
 // Default ports (used if environment variables are not set)
 const DEFAULT_PORTS: ServicePorts = <span class="cstat-no" title="statement not covered" >{</span>
   api: 5000,           // Internal API port (inside Docker)
-  apiExternal: 5001,   // External API port (exposed to browser)
+  apiExternal: 5000,   // External API port (exposed to browser)
   database: 3306,      // MariaDB port
   frontend: 3000,      // Frontend port
 };

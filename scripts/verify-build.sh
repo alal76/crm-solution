@@ -208,7 +208,7 @@ if [ "$ALL_FILES_EXIST" = true ]; then
     echo "🚀 Next steps:"
     echo "   docker compose up -d          # Start all services"
     echo "   http://localhost:3000         # Access frontend"
-    echo "   http://localhost:5001/swagger # Access API docs"
+    echo "   http://localhost:5000/swagger # Access API docs"
     exit 0
 else
     echo -e "${RED}════════════════════════════════════════════════════════════════════${NC}"

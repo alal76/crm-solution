@@ -134,6 +134,6 @@ Users can be linked to existing contacts through:
 
 For issues or questions:
 1. Check application logs: `docker logs crm-api`
-2. Verify API health: http://localhost:5001/health
+2. Verify API health: http://localhost:5000/health
 3. Check browser console for frontend errors
 4. Review USER_MANAGEMENT_FEATURE.md for technical details

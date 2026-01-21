@@ -18,7 +18,7 @@ if (typeof window !== 'undefined') {
 }
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: API_URL || 'http://localhost:5001/api',
+  baseURL: API_URL || 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -70,7 +70,21 @@ apiClient.interceptors.response.use(
         debugLog('Unauthorized - clearing tokens');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        // Only redirect to /login once per session to avoid redirect loops
+        try {
+          const alreadyRedirected = window.sessionStorage.getItem('crm_redirected_to_login');
+          if (!alreadyRedirected && typeof window !== 'undefined') {
+            window.sessionStorage.setItem('crm_redirected_to_login', '1');
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login';
+            }
+          }
+        } catch (e) {
+          // Fallback: direct navigate
+          if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        }
       }
     } else if (error.request) {
       debugError('API No Response:', {

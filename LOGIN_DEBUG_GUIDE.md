@@ -5,14 +5,14 @@
 ### 1. **API Status**
 ```bash
 # Check if API is running and healthy
-curl http://localhost:5001/health
+curl http://localhost:5000/health
 # Expected: { "status": "healthy", "timestamp": "..." }
 ```
 
 ### 2. **Direct Login Test**
 ```bash
 # Test login endpoint directly
-curl -X POST http://localhost:5001/api/auth/login \
+curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"abhi.lal@gmail.com","password":"Admin@123"}'
 # Expected: 200 OK with accessToken
@@ -20,7 +20,7 @@ curl -X POST http://localhost:5001/api/auth/login \
 
 ### 3. **Frontend Port Configuration**
 - Internal API port: `5000`
-- External API port: `5001`
+- External API port: `5000`
 - Database port: `3306`
 - Frontend port: `3000`
 
@@ -38,7 +38,7 @@ When login fails, check browser console (F12) for:
 - Check browser console for detailed error messages
 - Verify API is running: `docker-compose ps`
 - Check API logs: `docker logs crm-api`
-- Verify port 5001 is accessible: `curl localhost:5001/health`
+- Verify port 5000 is accessible: `curl localhost:5000/health`
 
 ### Issue: API returns 401 "Invalid email or password"
 **Solution**:
@@ -87,10 +87,10 @@ docker logs -f crm-api | grep -E "Login|Auth|Error"
 docker-compose ps
 
 # Health check
-curl http://localhost:5001/health
+curl http://localhost:5000/health
 
 # Test login
-curl -X POST http://localhost:5001/api/auth/login \
+curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"abhi.lal@gmail.com","password":"Admin@123"}'
 ```
@@ -115,7 +115,7 @@ docker logs crm-api -f
 docker exec crm-frontend curl http://api:5000/health
 
 # 3. Check from localhost
-curl http://localhost:5001/health
+curl http://localhost:5000/health
 
 # 4. Rebuild everything
 docker-compose down
@@ -131,7 +131,7 @@ The system uses `/CRM.Frontend/src/config/ports.ts` to:
 
 Environment variables:
 - `REACT_APP_API_PORT` (default: 5000)
-- `REACT_APP_API_EXTERNAL_PORT` (default: 5001)
+- `REACT_APP_API_EXTERNAL_PORT` (default: 5000)
 - `REACT_APP_DB_PORT` (default: 3306)
 - `REACT_APP_FRONTEND_PORT` (default: 3000)
 

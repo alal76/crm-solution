@@ -68,14 +68,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    // Prevent repeated restoration attempts in a single session
+    if (window.sessionStorage.getItem('crm_cookie_restore_attempted')) {
+      debugLog('Cookie restoration already attempted this session. Skipping.');
+      checkMicrosoftCallback();
+      return;
+    }
+    window.sessionStorage.setItem('crm_cookie_restore_attempted', '1');
+
     // Check if token exists in localStorage
     let token = localStorage.getItem('accessToken');
-    
+    let restorationFailed = false;
+
     // If no token in localStorage, try to recover from cookies
     if (!token) {
       const savedToken = getCookie('crm_auth_token');
       const savedUser = getCookie('crm_user_data');
-      
+
       if (savedToken && savedUser) {
         try {
           const userData = JSON.parse(savedUser);
@@ -87,19 +96,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           token = savedToken;
           debugLog('User auto-logged in from cookies', { userId: userData.id });
         } catch (error) {
-          debugError('Failed to restore user from cookies', { error });
+          debugError('Failed to restore user from cookies (invalid JSON or corrupted data)', { error, savedUser });
+          // Clear all related cookies and localStorage to break any reload loop
           deleteCookie('crm_auth_token');
           deleteCookie('crm_user_data');
           deleteCookie('crm_refresh_token');
           deleteCookie('crm_user_profile');
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userProfile');
+          restorationFailed = true;
         }
+      } else if (savedToken || savedUser) {
+        // If only one of the cookies exists, clear both to avoid partial state
+        debugError('Partial cookie state detected. Clearing all auth cookies.');
+        deleteCookie('crm_auth_token');
+        deleteCookie('crm_user_data');
+        deleteCookie('crm_refresh_token');
+        deleteCookie('crm_user_profile');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userProfile');
+        restorationFailed = true;
       }
     }
-    
-    if (token) {
+
+    if (token && !restorationFailed) {
       setIsAuthenticated(true);
       // Optionally fetch current user
-      fetchCurrentUser(token);
+      fetchCurrentUser(token).catch(() => {
+        // If /auth/me fails, clear tokens and show error, do not reload
+        deleteCookie('crm_auth_token');
+        deleteCookie('crm_user_data');
+        deleteCookie('crm_refresh_token');
+        deleteCookie('crm_user_profile');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userProfile');
+        setIsAuthenticated(false);
+        setUser(null);
+        window.sessionStorage.setItem('crm_login_error', 'Session expired or invalid. Please log in again.');
+      });
+    } else if (restorationFailed) {
+      setIsAuthenticated(false);
+      setUser(null);
+      window.sessionStorage.setItem('crm_login_error', 'Session restoration failed. Please log in again.');
     }
 
     // Check for Microsoft OAuth callback

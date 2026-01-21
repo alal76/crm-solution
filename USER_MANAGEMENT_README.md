@@ -178,7 +178,7 @@ JWT_SECRET=your_jwt_secret
 
 ### Docker Services
 - **Frontend:** port 3000
-- **API:** port 5001  
+- **API:** port 5000  
 - **Database:** port 3306
 
 ---
@@ -260,7 +260,7 @@ For detailed information, see:
 1. Verify you're logged in
 2. Check browser console for errors
 3. Refresh the page
-4. Check API is running: `curl http://localhost:5001/health`
+4. Check API is running: `curl http://localhost:5000/health`
 
 ### Can't Create User
 1. Verify all fields are filled

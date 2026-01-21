@@ -355,7 +355,7 @@
 - [x] Docker build successful
 - [x] All services running (3/3 healthy)
 - [x] Frontend accessible (port 3000)
-- [x] API accessible (port 5001)
+- [x] API accessible (port 5000)
 - [x] Database operational (port 3306)
 - [x] Migrations applied
 - [x] Ready for production

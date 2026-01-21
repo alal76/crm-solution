@@ -27,8 +27,8 @@ Implemented a centralized port caching system for the CRM Frontend to handle non
 
 ### 4. **Modified: `/docker-compose.yml`**
    - Added port environment variables to frontend service:
-     - `REACT_APP_API_PORT=5000` (internal Docker port)
-     - `REACT_APP_API_EXTERNAL_PORT=5001` (exposed to browser)
+   - `REACT_APP_API_PORT=5000` (internal Docker port)
+   - `REACT_APP_API_EXTERNAL_PORT=5000` (exposed to browser)
      - `REACT_APP_DB_PORT=3306` (database port)
      - `REACT_APP_FRONTEND_PORT=3000` (frontend port)
 
@@ -39,8 +39,8 @@ Implemented a centralized port caching system for the CRM Frontend to handle non
 
 ### Port Detection Logic
 1. **Browser on localhost/127.0.0.1/192.168.x.x**:
-   - Uses external port (5001) exposed by Docker
-   - URL: `http://localhost:5001/api`
+   - Uses external port (5000) exposed by Docker
+   - URL: `http://localhost:5000/api`
 
 2. **Browser in Docker container**:
    - Uses internal service name and internal port
@@ -63,8 +63,8 @@ Implemented a centralized port caching system for the CRM Frontend to handle non
 ✅ **Development & Production**: Automatic detection of deployment environment
 
 ## Testing
-All three services verified as healthy and accessible:
-- ✅ API: http://localhost:5001/health
+- All three services verified as healthy and accessible:
+- ✅ API: http://localhost:5000/health
 - ✅ Frontend: http://localhost:3000
 - ✅ Database: MariaDB on port 3306
 - ✅ Login: Working with JWT authentication

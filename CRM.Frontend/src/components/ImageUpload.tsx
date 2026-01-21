@@ -58,8 +58,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     try {
       const token = localStorage.getItem('accessToken');
       const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:5001/api'
-        : `http://${window.location.hostname}:5001/api`;
+        ? 'http://localhost:5000/api'
+        : `http://${window.location.hostname}:5000/api`;
 
       const formData = new FormData();
       formData.append('file', file);
@@ -91,8 +91,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       try {
         const token = localStorage.getItem('accessToken');
         const apiUrl = window.location.hostname === 'localhost' 
-          ? 'http://localhost:5001/api'
-          : `http://${window.location.hostname}:5001/api`;
+          ? 'http://localhost:5000/api'
+          : `http://${window.location.hostname}:5000/api`;
 
         await fetch(`${apiUrl}/fileupload?path=${encodeURIComponent(preview)}`, {
           method: 'DELETE',

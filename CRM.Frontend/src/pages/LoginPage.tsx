@@ -158,6 +158,18 @@ const LoginPage: React.FC = () => {
     if (savedEmail && rememberMe) {
       setFormData(prev => ({ ...prev, email: savedEmail }));
     }
+    // If there was a session restoration error, show it once
+    try {
+      const sessErr = window.sessionStorage.getItem('crm_login_error');
+      if (sessErr) {
+        setError(sessErr);
+        window.sessionStorage.removeItem('crm_login_error');
+      }
+      // clear redirected flag so future 401s can redirect once more
+      window.sessionStorage.removeItem('crm_redirected_to_login');
+    } catch (e) {
+      // ignore
+    }
   }, [rememberMe]);
 
   // Initialize Google OAuth lazily
@@ -198,13 +210,14 @@ const LoginPage: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Prevent duplicate Google login requests
+  const googleLoginInProgress = React.useRef(false);
   const handleGoogleResponse = useCallback(
     async (response: { credential?: string }) => {
-      if (!response.credential) return;
-      
+      if (!response.credential || googleLoginInProgress.current) return;
+      googleLoginInProgress.current = true;
       setError('');
       setLoading(true);
-      
       try {
         await googleLogin(response.credential);
         navigate('/');
@@ -213,6 +226,7 @@ const LoginPage: React.FC = () => {
         setError(error.response?.data?.message || 'Google login failed');
       } finally {
         setLoading(false);
+        googleLoginInProgress.current = false;
       }
     },
     [googleLogin, navigate]
@@ -226,29 +240,39 @@ const LoginPage: React.FC = () => {
     [error]
   );
 
+  const handleQuickLogin = useCallback(() => {
+    setFormData({ email: 'abhi.lal@gmail.com', password: 'Admin@123' });
+    setError('');
+  }, []);
+
+  // Prevent duplicate login submissions
+  const loginInProgress = React.useRef(false);
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      
+      if (loginInProgress.current || loading) return;
+      loginInProgress.current = true;
+      console.log('[LoginPage] Submit clicked', formData);
       if (!formData.email.trim() || !formData.password) {
         setError('Please enter both email and password');
+        console.warn('[LoginPage] Missing email or password');
+        loginInProgress.current = false;
         return;
       }
-
       setError('');
       setLoading(true);
-
       try {
         const result = await login(formData.email.trim(), formData.password);
-        
+        console.log('[LoginPage] Login result', result);
         // Check if 2FA is required
         if (result.requiresTwoFactor && result.twoFactorToken) {
           setTwoFactorToken(result.twoFactorToken);
           setShowTwoFactor(true);
           setLoading(false);
+          loginInProgress.current = false;
+          console.info('[LoginPage] 2FA required');
           return;
         }
-        
         if (rememberMe) {
           localStorage.setItem('savedEmail', formData.email.trim());
           localStorage.setItem('rememberMe', 'true');
@@ -256,16 +280,13 @@ const LoginPage: React.FC = () => {
           localStorage.removeItem('savedEmail');
           localStorage.removeItem('rememberMe');
         }
-        
         navigate('/');
       } catch (err: unknown) {
         const error = err as { 
           response?: { data?: { message?: string; error?: string }; status?: number };
           message?: string;
         };
-        
         let errorMessage = 'Login failed. Please check your credentials.';
-        
         if (error.response?.status === 401) {
           errorMessage = 'Invalid email or password';
         } else if (error.response?.data?.message) {
@@ -275,13 +296,15 @@ const LoginPage: React.FC = () => {
         } else if (error.message) {
           errorMessage = error.message;
         }
-        
         setError(errorMessage);
+        console.error('[LoginPage] Login error', errorMessage, error);
       } finally {
         setLoading(false);
+        loginInProgress.current = false;
+        console.log('[LoginPage] Login finished');
       }
     },
-    [formData, login, navigate, rememberMe]
+    [formData, login, navigate, rememberMe, loading]
   );
 
   const handleTwoFactorSubmit = useCallback(
@@ -533,6 +556,26 @@ const LoginPage: React.FC = () => {
                     Forgot password?
                   </MuiLink>
                 </Box>
+
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="medium"
+                  onClick={loading ? undefined : handleQuickLogin}
+                  disabled={loading}
+                  sx={{
+                    mb: 2,
+                    textTransform: 'none',
+                    borderColor: '#5E35B1',
+                    color: '#5E35B1',
+                    '&:hover': {
+                      borderColor: '#4527A0',
+                      backgroundColor: 'rgba(94, 53, 177, 0.04)',
+                    },
+                  }}
+                >
+                  Quick Admin Login
+                </Button>
 
                 <Button
                   fullWidth

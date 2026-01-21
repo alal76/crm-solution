@@ -328,7 +328,7 @@ Users can be linked to contacts through:
 
 ✅ **Docker Build:** All services compile successfully
 ✅ **Frontend:** Running on http://localhost:3000
-✅ **API:** Running on http://localhost:5001
+✅ **API:** Running on http://localhost:5000
 ✅ **Database:** MariaDB configured with migrations
 ✅ **User Management Page:** Accessible at http://localhost:3000/user-management
 
