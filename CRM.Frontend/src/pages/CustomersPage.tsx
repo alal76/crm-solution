@@ -480,19 +480,45 @@ function CustomersPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const validateRequiredFields = () => {
+    if (fieldConfigsLoading) return true;
+    if (!fieldConfigs.length) return true;
+
+    const visibleRequired = fieldConfigs.filter(cfg => cfg.isRequired && isFieldVisible(cfg, formData.category));
+    const missing = visibleRequired.filter(cfg => {
+      const value = (formData as any)[cfg.fieldName];
+      if (typeof value === 'boolean') return false;
+      if (value === null || value === undefined) return true;
+      if (typeof value === 'string') return value.trim() === '';
+      return false;
+    });
+
+    if (missing.length) {
+      setError(`Please fill in required fields: ${missing.map(m => m.fieldLabel).join(', ')}`);
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSaveCustomer = async () => {
-    // Validate based on category
-    if (formData.category === 0) {
-      // Individual - require first name, last name, email
-      if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {
-        setError('Please fill in required fields (First Name, Last Name, Email)');
-        return;
-      }
+    setError(null);
+
+    if (fieldConfigs.length) {
+      const valid = validateRequiredFields();
+      if (!valid) return;
     } else {
-      // Organization - require company name and email
-      if (!formData.company.trim() || !formData.email.trim()) {
-        setError('Please fill in required fields (Company Name, Email)');
-        return;
+      // Fallback validation based on category when no configs are present
+      if (formData.category === 0) {
+        if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {
+          setError('Please fill in required fields (First Name, Last Name, Email)');
+          return;
+        }
+      } else {
+        if (!formData.company.trim() || !formData.email.trim()) {
+          setError('Please fill in required fields (Company Name, Email)');
+          return;
+        }
       }
     }
 
@@ -916,291 +942,315 @@ function CustomersPage() {
             <Tab label="Basic Info" />
             <Tab label="Business" />
             <Tab label="Contact Preferences" />
-            {formData.category === 1 && editingId && <Tab label="Linked Contacts" icon={<GroupIcon fontSize="small" />} iconPosition="start" />}
             <Tab label="Additional" />
+            {formData.category === 1 && editingId && <Tab label="Linked Contacts" icon={<GroupIcon fontSize="small" />} iconPosition="start" />}
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
           <TabPanel value={dialogTab} index={0}>
-            <Grid container spacing={2}>
-              {/* Category Toggle */}
-              <Grid item xs={12}>
-                <Paper elevation={0} sx={{ p: 2, backgroundColor: '#F5EFF7', borderRadius: 2, mb: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: formData.category === 0 ? 1 : 0.5 }}>
-                      <PersonIcon color={formData.category === 0 ? 'primary' : 'disabled'} />
-                      <Typography fontWeight={formData.category === 0 ? 600 : 400}>Individual</Typography>
+            {fieldConfigsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : fieldConfigs.length ? (
+              renderTabFields(0)
+            ) : (
+              <Grid container spacing={2}>
+                {/* Category Toggle */}
+                <Grid item xs={12}>
+                  <Paper elevation={0} sx={{ p: 2, backgroundColor: '#F5EFF7', borderRadius: 2, mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: formData.category === 0 ? 1 : 0.5 }}>
+                        <PersonIcon color={formData.category === 0 ? 'primary' : 'disabled'} />
+                        <Typography fontWeight={formData.category === 0 ? 600 : 400}>Individual</Typography>
+                      </Box>
+                      <Switch
+                        checked={formData.category === 1}
+                        onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.checked ? 1 : 0 }))}
+                        disabled={!!editingId}
+                        color="primary"
+                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: formData.category === 1 ? 1 : 0.5 }}>
+                        <BusinessIcon color={formData.category === 1 ? 'primary' : 'disabled'} />
+                        <Typography fontWeight={formData.category === 1 ? 600 : 400}>Organization</Typography>
+                      </Box>
                     </Box>
-                    <Switch
-                      checked={formData.category === 1}
-                      onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.checked ? 1 : 0 }))}
-                      disabled={!!editingId}
-                      color="primary"
-                    />
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: formData.category === 1 ? 1 : 0.5 }}>
-                      <BusinessIcon color={formData.category === 1 ? 'primary' : 'disabled'} />
-                      <Typography fontWeight={formData.category === 1 ? 600 : 400}>Organization</Typography>
-                    </Box>
-                  </Box>
-                  {editingId && (
-                    <Typography variant="caption" color="textSecondary" sx={{ display: 'block', textAlign: 'center', mt: 1 }}>
-                      Category cannot be changed after creation
-                    </Typography>
-                  )}
-                </Paper>
-              </Grid>
-              
-              <Grid item xs={12}>
-                <Divider sx={{ my: 1 }} />
-              </Grid>
-
-              {/* Individual Fields */}
-              {formData.category === 0 && (
-                <>
-                  <Grid item xs={2}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Salutation</InputLabel>
-                      <Select name="salutation" value={formData.salutation} onChange={handleSelectChange} label="Salutation">
-                        <MenuItem value="">None</MenuItem>
-                        <MenuItem value="Mr.">Mr.</MenuItem>
-                        <MenuItem value="Mrs.">Mrs.</MenuItem>
-                        <MenuItem value="Ms.">Ms.</MenuItem>
-                        <MenuItem value="Dr.">Dr.</MenuItem>
-                        <MenuItem value="Prof.">Prof.</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="First Name" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Last Name" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
-                  </Grid>
-                  <Grid item xs={2}>
-                    <TextField fullWidth label="Suffix" name="suffix" value={formData.suffix} onChange={handleInputChange} placeholder="Jr., III" />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Date of Birth" name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Gender</InputLabel>
-                      <Select name="gender" value={formData.gender} onChange={handleSelectChange} label="Gender">
-                        <MenuItem value="">Prefer not to say</MenuItem>
-                        <MenuItem value="Male">Male</MenuItem>
-                        <MenuItem value="Female">Female</MenuItem>
-                        <MenuItem value="Other">Other</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                </>
-              )}
-
-              {/* Organization Fields */}
-              {formData.category === 1 && (
-                <>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Company Name" name="company" value={formData.company} onChange={handleInputChange} required />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Legal Name" name="legalName" value={formData.legalName} onChange={handleInputChange} placeholder="Full legal entity name" />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="DBA Name" name="dbaName" value={formData.dbaName} onChange={handleInputChange} placeholder="Doing Business As" />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Tax ID / EIN" name="taxId" value={formData.taxId} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Registration Number" name="registrationNumber" value={formData.registrationNumber} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Year Founded" name="yearFounded" type="number" value={formData.yearFounded || ''} onChange={handleInputChange} />
-                  </Grid>
-                </>
-              )}
-
-              {/* Common Contact Fields */}
-              <Grid item xs={12}>
-                <Divider sx={{ my: 1 }}>
-                  <Typography variant="caption" color="textSecondary">Contact Information</Typography>
-                </Divider>
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Email" name="email" type="email" value={formData.email} onChange={handleInputChange} required />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Secondary Email" name="secondaryEmail" type="email" value={formData.secondaryEmail} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Phone" name="phone" value={formData.phone} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Mobile Phone" name="mobilePhone" value={formData.mobilePhone} onChange={handleInputChange} />
-              </Grid>
-              {formData.category === 0 && (
-                <Grid item xs={6}>
-                  <TextField fullWidth label="Job Title" name="jobTitle" value={formData.jobTitle} onChange={handleInputChange} />
+                    {editingId && (
+                      <Typography variant="caption" color="textSecondary" sx={{ display: 'block', textAlign: 'center', mt: 1 }}>
+                        Category cannot be changed after creation
+                      </Typography>
+                    )}
+                  </Paper>
                 </Grid>
-              )}
-              <Grid item xs={formData.category === 0 ? 6 : 12}>
-                <TextField fullWidth label="Website" name="website" value={formData.website} onChange={handleInputChange} />
-              </Grid>
+                
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 1 }} />
+                </Grid>
 
-              {/* Address */}
-              <Grid item xs={12}>
-                <Divider sx={{ my: 1 }}>
-                  <Typography variant="caption" color="textSecondary">Address</Typography>
-                </Divider>
+                {/* Individual Fields */}
+                {formData.category === 0 && (
+                  <>
+                    <Grid item xs={2}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Salutation</InputLabel>
+                        <Select name="salutation" value={formData.salutation} onChange={handleSelectChange} label="Salutation">
+                          <MenuItem value="">None</MenuItem>
+                          <MenuItem value="Mr.">Mr.</MenuItem>
+                          <MenuItem value="Mrs.">Mrs.</MenuItem>
+                          <MenuItem value="Ms.">Ms.</MenuItem>
+                          <MenuItem value="Dr.">Dr.</MenuItem>
+                          <MenuItem value="Prof.">Prof.</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <TextField fullWidth label="First Name" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
+                    </Grid>
+                    <Grid item xs={4}>
+                      <TextField fullWidth label="Last Name" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
+                    </Grid>
+                    <Grid item xs={2}>
+                      <TextField fullWidth label="Suffix" name="suffix" value={formData.suffix} onChange={handleInputChange} placeholder="Jr., III" />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField fullWidth label="Date of Birth" name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Gender</InputLabel>
+                        <Select name="gender" value={formData.gender} onChange={handleSelectChange} label="Gender">
+                          <MenuItem value="">Prefer not to say</MenuItem>
+                          <MenuItem value="Male">Male</MenuItem>
+                          <MenuItem value="Female">Female</MenuItem>
+                          <MenuItem value="Other">Other</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </>
+                )}
+
+                {/* Organization Fields */}
+                {formData.category === 1 && (
+                  <>
+                    <Grid item xs={6}>
+                      <TextField fullWidth label="Company Name" name="company" value={formData.company} onChange={handleInputChange} required />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField fullWidth label="Legal Name" name="legalName" value={formData.legalName} onChange={handleInputChange} placeholder="Full legal entity name" />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField fullWidth label="DBA Name" name="dbaName" value={formData.dbaName} onChange={handleInputChange} placeholder="Doing Business As" />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField fullWidth label="Tax ID / EIN" name="taxId" value={formData.taxId} onChange={handleInputChange} />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField fullWidth label="Registration Number" name="registrationNumber" value={formData.registrationNumber} onChange={handleInputChange} />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField fullWidth label="Year Founded" name="yearFounded" type="number" value={formData.yearFounded || ''} onChange={handleInputChange} />
+                    </Grid>
+                  </>
+                )}
+
+                {/* Common Contact Fields */}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 1 }}>
+                    <Typography variant="caption" color="textSecondary">Contact Information</Typography>
+                  </Divider>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField fullWidth label="Email" name="email" type="email" value={formData.email} onChange={handleInputChange} required />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField fullWidth label="Secondary Email" name="secondaryEmail" type="email" value={formData.secondaryEmail} onChange={handleInputChange} />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField fullWidth label="Phone" name="phone" value={formData.phone} onChange={handleInputChange} />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField fullWidth label="Mobile Phone" name="mobilePhone" value={formData.mobilePhone} onChange={handleInputChange} />
+                </Grid>
+                {formData.category === 0 && (
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Job Title" name="jobTitle" value={formData.jobTitle} onChange={handleInputChange} />
+                  </Grid>
+                )}
+                <Grid item xs={formData.category === 0 ? 6 : 12}>
+                  <TextField fullWidth label="Website" name="website" value={formData.website} onChange={handleInputChange} />
+                </Grid>
+
+                {/* Address */}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 1 }}>
+                    <Typography variant="caption" color="textSecondary">Address</Typography>
+                  </Divider>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField fullWidth label="Address" name="address" value={formData.address} onChange={handleInputChange} />
+                </Grid>
+                <Grid item xs={4}>
+                  <TextField fullWidth label="City" name="city" value={formData.city} onChange={handleInputChange} />
+                </Grid>
+                <Grid item xs={4}>
+                  <TextField fullWidth label="State" name="state" value={formData.state} onChange={handleInputChange} />
+                </Grid>
+                <Grid item xs={4}>
+                  <TextField fullWidth label="Zip Code" name="zipCode" value={formData.zipCode} onChange={handleInputChange} />
+                </Grid>
               </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Address" name="address" value={formData.address} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="City" name="city" value={formData.city} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="State" name="state" value={formData.state} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Zip Code" name="zipCode" value={formData.zipCode} onChange={handleInputChange} />
-              </Grid>
-            </Grid>
+            )}
           </TabPanel>
 
           <TabPanel value={dialogTab} index={1}>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Customer Type</InputLabel>
-                  <Select name="customerType" value={formData.customerType} onChange={handleSelectChange} label="Customer Type">
-                    {CUSTOMER_TYPES.map(t => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
-                  </Select>
-                </FormControl>
+            {fieldConfigsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : fieldConfigs.length ? (
+              renderTabFields(1)
+            ) : (
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Customer Type</InputLabel>
+                    <Select name="customerType" value={formData.customerType} onChange={handleSelectChange} label="Customer Type">
+                      {CUSTOMER_TYPES.map(t => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Lifecycle Stage</InputLabel>
+                    <Select name="lifecycleStage" value={formData.lifecycleStage} onChange={handleSelectChange} label="Lifecycle Stage">
+                      {LIFECYCLE_STAGES.map(s => (
+                        <MenuItem key={s.value} value={s.value}>
+                          <Chip label={s.label} size="small" sx={{ backgroundColor: s.color, color: 'white' }} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Priority</InputLabel>
+                    <Select name="priority" value={formData.priority} onChange={handleSelectChange} label="Priority">
+                      {PRIORITIES.map(p => (
+                        <MenuItem key={p.value} value={p.value}>
+                          <Chip label={p.label} size="small" sx={{ backgroundColor: p.color, color: 'white' }} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Industry</InputLabel>
+                    <Select name="industry" value={formData.industry} onChange={handleSelectChange} label="Industry">
+                      {INDUSTRIES.map(i => <MenuItem key={i} value={i}>{i}</MenuItem>)}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField fullWidth label="Annual Revenue ($)" name="annualRevenue" type="number" value={formData.annualRevenue} onChange={handleInputChange} />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField fullWidth label="Number of Employees" name="numberOfEmployees" type="number" value={formData.numberOfEmployees} onChange={handleInputChange} />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField fullWidth label="Credit Limit ($)" name="creditLimit" type="number" value={formData.creditLimit} onChange={handleInputChange} />
+                </Grid>
+                <Grid item xs={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Lead Source</InputLabel>
+                    <Select name="leadSource" value={formData.leadSource} onChange={handleSelectChange} label="Lead Source">
+                      {LEAD_SOURCES.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography gutterBottom>Lead Score: {formData.leadScore}</Typography>
+                  <Slider
+                    value={formData.leadScore}
+                    onChange={(_, v) => setFormData(prev => ({ ...prev, leadScore: v as number }))}
+                    min={0}
+                    max={100}
+                    valueLabelDisplay="auto"
+                    sx={{ color: formData.leadScore > 70 ? '#4caf50' : formData.leadScore > 40 ? '#ff9800' : '#f44336' }}
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Lifecycle Stage</InputLabel>
-                  <Select name="lifecycleStage" value={formData.lifecycleStage} onChange={handleSelectChange} label="Lifecycle Stage">
-                    {LIFECYCLE_STAGES.map(s => (
-                      <MenuItem key={s.value} value={s.value}>
-                        <Chip label={s.label} size="small" sx={{ backgroundColor: s.color, color: 'white' }} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Priority</InputLabel>
-                  <Select name="priority" value={formData.priority} onChange={handleSelectChange} label="Priority">
-                    {PRIORITIES.map(p => (
-                      <MenuItem key={p.value} value={p.value}>
-                        <Chip label={p.label} size="small" sx={{ backgroundColor: p.color, color: 'white' }} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Industry</InputLabel>
-                  <Select name="industry" value={formData.industry} onChange={handleSelectChange} label="Industry">
-                    {INDUSTRIES.map(i => <MenuItem key={i} value={i}>{i}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Annual Revenue ($)" name="annualRevenue" type="number" value={formData.annualRevenue} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Number of Employees" name="numberOfEmployees" type="number" value={formData.numberOfEmployees} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Credit Limit ($)" name="creditLimit" type="number" value={formData.creditLimit} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Lead Source</InputLabel>
-                  <Select name="leadSource" value={formData.leadSource} onChange={handleSelectChange} label="Lead Source">
-                    {LEAD_SOURCES.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography gutterBottom>Lead Score: {formData.leadScore}</Typography>
-                <Slider
-                  value={formData.leadScore}
-                  onChange={(_, v) => setFormData(prev => ({ ...prev, leadScore: v as number }))}
-                  min={0}
-                  max={100}
-                  valueLabelDisplay="auto"
-                  sx={{ color: formData.leadScore > 70 ? '#4caf50' : formData.leadScore > 40 ? '#ff9800' : '#f44336' }}
-                />
-              </Grid>
-            </Grid>
+            )}
           </TabPanel>
 
           <TabPanel value={dialogTab} index={2}>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Preferred Contact Method</InputLabel>
-                  <Select name="preferredContactMethod" value={formData.preferredContactMethod} onChange={handleSelectChange} label="Preferred Contact Method">
-                    <MenuItem value="Email">Email</MenuItem>
-                    <MenuItem value="Phone">Phone</MenuItem>
-                    <MenuItem value="SMS">SMS</MenuItem>
-                    <MenuItem value="Mail">Mail</MenuItem>
-                  </Select>
-                </FormControl>
+            {fieldConfigsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : fieldConfigs.length ? (
+              renderTabFields(2)
+            ) : (
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Preferred Contact Method</InputLabel>
+                    <Select name="preferredContactMethod" value={formData.preferredContactMethod} onChange={handleSelectChange} label="Preferred Contact Method">
+                      <MenuItem value="Email">Email</MenuItem>
+                      <MenuItem value="Phone">Phone</MenuItem>
+                      <MenuItem value="SMS">SMS</MenuItem>
+                      <MenuItem value="Mail">Mail</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField fullWidth label="Timezone" name="timezone" value={formData.timezone} onChange={handleInputChange} placeholder="e.g., America/New_York" />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" gutterBottom>Communication Opt-In</Typography>
+                  <FormControlLabel
+                    control={<Checkbox name="optInEmail" checked={formData.optInEmail} onChange={handleInputChange} />}
+                    label="Email Communications"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox name="optInPhone" checked={formData.optInPhone} onChange={handleInputChange} />}
+                    label="Phone Calls"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox name="optInSms" checked={formData.optInSms} onChange={handleInputChange} />}
+                    label="SMS Messages"
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField 
+                    fullWidth 
+                    label="LinkedIn URL" 
+                    name="linkedInUrl" 
+                    value={formData.linkedInUrl} 
+                    onChange={handleInputChange}
+                    InputProps={{ startAdornment: <LinkedInIcon sx={{ mr: 1, color: '#0077b5' }} /> }}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField 
+                    fullWidth 
+                    label="Twitter Handle" 
+                    name="twitterHandle" 
+                    value={formData.twitterHandle} 
+                    onChange={handleInputChange}
+                    InputProps={{ startAdornment: <TwitterIcon sx={{ mr: 1, color: '#1da1f2' }} /> }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField fullWidth label="Website" name="website" value={formData.website} onChange={handleInputChange} />
+                </Grid>
               </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Timezone" name="timezone" value={formData.timezone} onChange={handleInputChange} placeholder="e.g., America/New_York" />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" gutterBottom>Communication Opt-In</Typography>
-                <FormControlLabel
-                  control={<Checkbox name="optInEmail" checked={formData.optInEmail} onChange={handleInputChange} />}
-                  label="Email Communications"
-                />
-                <FormControlLabel
-                  control={<Checkbox name="optInPhone" checked={formData.optInPhone} onChange={handleInputChange} />}
-                  label="Phone Calls"
-                />
-                <FormControlLabel
-                  control={<Checkbox name="optInSms" checked={formData.optInSms} onChange={handleInputChange} />}
-                  label="SMS Messages"
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField 
-                  fullWidth 
-                  label="LinkedIn URL" 
-                  name="linkedInUrl" 
-                  value={formData.linkedInUrl} 
-                  onChange={handleInputChange}
-                  InputProps={{ startAdornment: <LinkedInIcon sx={{ mr: 1, color: '#0077b5' }} /> }}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField 
-                  fullWidth 
-                  label="Twitter Handle" 
-                  name="twitterHandle" 
-                  value={formData.twitterHandle} 
-                  onChange={handleInputChange}
-                  InputProps={{ startAdornment: <TwitterIcon sx={{ mr: 1, color: '#1da1f2' }} /> }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Website" name="website" value={formData.website} onChange={handleInputChange} />
-              </Grid>
-            </Grid>
+            )}
           </TabPanel>
 
           {/* Linked Contacts Tab - Only for Organizations when editing */}
           {formData.category === 1 && editingId && (
-            <TabPanel value={dialogTab} index={3}>
+            <TabPanel value={dialogTab} index={4}>
               <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle1" fontWeight={600}>
                   Organization Contacts ({customerContacts.length})
@@ -1282,24 +1332,32 @@ function CustomersPage() {
             </TabPanel>
           )}
 
-          <TabPanel value={dialogTab} index={formData.category === 1 && editingId ? 4 : 3}>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Territory" name="territory" value={formData.territory} onChange={handleInputChange} />
+          <TabPanel value={dialogTab} index={3}>
+            {fieldConfigsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : fieldConfigs.length ? (
+              renderTabFields(3)
+            ) : (
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <TextField fullWidth label="Territory" name="territory" value={formData.territory} onChange={handleInputChange} />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField fullWidth label="Payment Terms" name="paymentTerms" value={formData.paymentTerms} onChange={handleInputChange} placeholder="e.g., Net 30" />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField fullWidth label="Tags (comma-separated)" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="vip, enterprise, priority" />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField fullWidth label="Description" name="description" value={formData.description} onChange={handleInputChange} multiline rows={2} />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField fullWidth label="Notes" name="notes" value={formData.notes} onChange={handleInputChange} multiline rows={3} />
+                </Grid>
               </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Payment Terms" name="paymentTerms" value={formData.paymentTerms} onChange={handleInputChange} placeholder="e.g., Net 30" />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Tags (comma-separated)" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="vip, enterprise, priority" />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Description" name="description" value={formData.description} onChange={handleInputChange} multiline rows={2} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Notes" name="notes" value={formData.notes} onChange={handleInputChange} multiline rows={3} />
-              </Grid>
-            </Grid>
+            )}
           </TabPanel>
         </DialogContent>
         <DialogActions>
