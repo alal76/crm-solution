@@ -70,6 +70,14 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Quote> Quotes { get; set; }
     public DbSet<Activity> Activities { get; set; }
     
+    // Contact info entities
+    public DbSet<Address> Addresses { get; set; }
+    public DbSet<ContactDetail> ContactDetails { get; set; }
+    public DbSet<SocialAccount> SocialAccounts { get; set; }
+    public DbSet<ContactInfoLink> ContactInfoLinks { get; set; }
+    public DbSet<LookupCategory> LookupCategories { get; set; }
+    public DbSet<LookupItem> LookupItems { get; set; }
+    
     // Service Request entities
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
     public DbSet<ServiceRequestCategory> ServiceRequestCategories { get; set; }
@@ -85,35 +93,46 @@ public class CrmDbContext : DbContext, ICrmDbContext
     
         // Module field configurations
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
+        public DbSet<Account> Accounts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (!optionsBuilder.IsConfigured && _configuration != null)
-        {
-            var databaseProvider = _configuration["DatabaseProvider"] ?? "sqlite";
-            var connectionString = _configuration.GetConnectionString("DefaultConnection") ?? "Data Source=crm.db";
-
-            switch (databaseProvider.ToLower())
+            if (!optionsBuilder.IsConfigured && _configuration != null)
             {
-                case "postgresql":
-                    optionsBuilder.UseNpgsql(connectionString);
-                    break;
-                case "oracle":
-                    optionsBuilder.UseOracle(connectionString);
-                    break;
-                case "mysql":
-                case "mariadb":
-                    optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-                    break;
-                case "sqlite":
-                    optionsBuilder.UseSqlite(connectionString);
-                    break;
-                case "sqlserver":
-                default:
-                    optionsBuilder.UseSqlite("Data Source=crm.db");
-                    break;
+                var databaseProvider = _configuration["DatabaseProvider"] ?? "mariadb";
+                var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+                if (string.IsNullOrWhiteSpace(connectionString) && (databaseProvider.ToLower() == "mysql" || databaseProvider.ToLower() == "mariadb"))
+                {
+                    var dbHost = _configuration["DB_HOST"] ?? _configuration["DbHost"] ?? "mariadb";
+                    var dbPort = _configuration["DB_PORT"] ?? "3306";
+                    var dbName = _configuration["DB_NAME"] ?? "crm_db";
+                    var dbUser = _configuration["DB_USER"] ?? "crm_user";
+                    var dbPass = _configuration["DB_PASSWORD"] ?? _configuration["DB_PASS"] ?? "crm_pass";
+                    connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};Uid={dbUser};Pwd={dbPass};";
+                }
+
+                switch (databaseProvider.ToLower())
+                {
+                    case "postgresql":
+                        optionsBuilder.UseNpgsql(connectionString);
+                        break;
+                    case "oracle":
+                        optionsBuilder.UseOracle(connectionString);
+                        break;
+                    case "mysql":
+                    case "mariadb":
+                        optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                        break;
+                    case "sqlite":
+                        optionsBuilder.UseSqlite(connectionString ?? "Data Source=crm.db");
+                        break;
+                    case "sqlserver":
+                    default:
+                        optionsBuilder.UseSqlite(connectionString ?? "Data Source=crm.db");
+                        break;
+                }
             }
-        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -190,6 +209,67 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Price).HasPrecision(18, 2);
             entity.Property(e => e.Cost).HasPrecision(18, 2);
             entity.HasIndex(e => e.SKU).IsUnique();
+        });
+
+        // Configure contact info tables
+        modelBuilder.Entity<Address>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Line1).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.City).HasMaxLength(200);
+            entity.Property(e => e.Country).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<ContactDetail>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Value).IsRequired().HasMaxLength(1000);
+        });
+
+        modelBuilder.Entity<SocialAccount>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.HandleOrUrl).IsRequired().HasMaxLength(2000);
+        });
+
+        modelBuilder.Entity<ContactInfoLink>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.OwnerType, e.OwnerId });
+            entity.HasIndex(e => new { e.InfoKind, e.InfoId });
+        });
+
+        // Configure Lookup tables
+        modelBuilder.Entity<LookupCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<LookupItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Key).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Value).IsRequired().HasMaxLength(500);
+            entity.HasOne(e => e.Category).WithMany(c => c.Items).HasForeignKey(e => e.LookupCategoryId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => new { e.LookupCategoryId, e.SortOrder });
+        });
+
+        // Configure foreign keys from entities to lookups
+        modelBuilder.Entity<Customer>(entity =>
+        {
+            entity.HasOne(c => c.CurrencyLookup).WithMany().HasForeignKey(c => c.CurrencyLookupId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(c => c.BillingCycleLookup).WithMany().HasForeignKey(c => c.BillingCycleLookupId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Account>(entity =>
+        {
+            entity.HasOne(a => a.CurrencyLookup).WithMany().HasForeignKey(a => a.CurrencyLookupId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Contact>(entity =>
+        {
+            entity.HasOne<Contact>().WithMany().HasForeignKey("PreferredContactMethodLookupId").OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure Interaction
@@ -397,6 +477,31 @@ public class CrmDbContext : DbContext, ICrmDbContext
             // Index for audit trail queries
             entity.HasIndex(e => new { e.WorkflowId, e.CreatedAt });
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
+        });
+
+        // Configure Account (Contract)
+        modelBuilder.Entity<Account>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.AccountNumber).HasMaxLength(100);
+            entity.Property(e => e.ContractReference).HasMaxLength(200);
+            entity.Property(e => e.ContractFileName).HasMaxLength(1000);
+            entity.Property(e => e.ContractFilePath).HasMaxLength(2000);
+            entity.Property(e => e.ContractContentType).HasMaxLength(200);
+            entity.Property(e => e.Currency).HasMaxLength(10);
+            entity.Property(e => e.BillingCycle).HasMaxLength(50);
+            entity.Property(e => e.BillingContactEmail).HasMaxLength(255);
+            entity.HasIndex(e => e.AccountNumber).IsUnique(false);
+
+            entity.HasOne(e => e.Customer)
+                .WithMany(c => c.Accounts)
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Product)
+                .WithMany(p => p.Accounts)
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure CrmTask

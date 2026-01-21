@@ -3,6 +3,7 @@ using System;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRM.Infrastructure.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260121221126_AddAccountEntity")]
+    partial class AddAccountEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,9 +112,6 @@ namespace CRM.Infrastructure.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("varchar(10)");
 
-                    b.Property<int?>("CurrencyLookupId")
-                        .HasColumnType("int");
-
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
@@ -161,8 +161,6 @@ namespace CRM.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountNumber");
-
-                    b.HasIndex("CurrencyLookupId");
 
                     b.HasIndex("CustomerId");
 
@@ -327,60 +325,6 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("Activities");
                 });
 
-            modelBuilder.Entity("CRM.Core.Entities.Address", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsPrimary")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Line1")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<string>("Line2")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("PostalCode")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("State")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Addresses");
-                });
-
             modelBuilder.Entity("CRM.Core.Entities.CampaignMetric", b =>
                 {
                     b.Property<int>("Id")
@@ -474,105 +418,6 @@ namespace CRM.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ColorPalettes");
-                });
-
-            modelBuilder.Entity("CRM.Core.Entities.ContactDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("DetailType")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsPrimary")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Label")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ContactDetails");
-                });
-
-            modelBuilder.Entity("CRM.Core.Entities.ContactInfoLink", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int?>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ContactId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("CustomerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("InfoId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("InfoKind")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsPrimaryForOwner")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<int?>("LeadId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("OwnerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OwnerType")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("ContactId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("LeadId");
-
-                    b.HasIndex("InfoKind", "InfoId");
-
-                    b.HasIndex("OwnerType", "OwnerId");
-
-                    b.ToTable("ContactInfoLinks");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.CrmTask", b =>
@@ -722,9 +567,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<string>("BillingCycle")
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("BillingCycleLookupId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Category")
                         .HasColumnType("int");
 
@@ -755,9 +597,6 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Property<string>("Currency")
                         .HasColumnType("longtext");
-
-                    b.Property<int?>("CurrencyLookupId")
-                        .HasColumnType("int");
 
                     b.Property<string>("CustomFields")
                         .HasColumnType("longtext");
@@ -1008,15 +847,11 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasIndex("AssignedToUserId");
 
-                    b.HasIndex("BillingCycleLookupId");
-
                     b.HasIndex("Category");
 
                     b.HasIndex("Company");
 
                     b.HasIndex("ConvertedFromLeadId");
-
-                    b.HasIndex("CurrencyLookupId");
 
                     b.HasIndex("Email");
 
@@ -1925,81 +1760,6 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("Leads");
-                });
-
-            modelBuilder.Entity("CRM.Core.Entities.LookupCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("LookupCategories");
-                });
-
-            modelBuilder.Entity("CRM.Core.Entities.LookupItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<int>("LookupCategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Meta")
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LookupCategoryId", "SortOrder");
-
-                    b.ToTable("LookupItems");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.MarketingCampaign", b =>
@@ -4600,43 +4360,6 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("ServiceRequestSubcategories");
                 });
 
-            modelBuilder.Entity("CRM.Core.Entities.SocialAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("HandleOrUrl")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsPrimary")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Label")
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("Network")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SocialAccounts");
-                });
-
             modelBuilder.Entity("CRM.Core.Entities.SystemSettings", b =>
                 {
                     b.Property<int>("Id")
@@ -5777,12 +5500,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<int>("PreferredContactMethod")
                         .HasColumnType("int");
 
-                    b.Property<int?>("PreferredContactMethodLookupId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PreferredContactMethodLookupId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("PreferredContactTime")
                         .HasColumnType("longtext");
 
@@ -5833,10 +5550,6 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PreferredContactMethodLookupId");
-
-                    b.HasIndex("PreferredContactMethodLookupId1");
-
                     b.ToTable("Contacts");
                 });
 
@@ -5886,11 +5599,6 @@ namespace CRM.Infrastructure.Migrations
 
             modelBuilder.Entity("CRM.Core.Entities.Account", b =>
                 {
-                    b.HasOne("CRM.Core.Entities.LookupItem", "CurrencyLookup")
-                        .WithMany()
-                        .HasForeignKey("CurrencyLookupId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("CRM.Core.Entities.Customer", "Customer")
                         .WithMany("Accounts")
                         .HasForeignKey("CustomerId")
@@ -5901,8 +5609,6 @@ namespace CRM.Infrastructure.Migrations
                         .WithMany("Accounts")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("CurrencyLookup");
 
                     b.Navigation("Customer");
 
@@ -5964,25 +5670,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("CRM.Core.Entities.ContactInfoLink", b =>
-                {
-                    b.HasOne("CRM.Core.Entities.Account", null)
-                        .WithMany("ContactInfoLinks")
-                        .HasForeignKey("AccountId");
-
-                    b.HasOne("CRM.Core.Models.Contact", null)
-                        .WithMany("ContactInfoLinks")
-                        .HasForeignKey("ContactId");
-
-                    b.HasOne("CRM.Core.Entities.Customer", null)
-                        .WithMany("ContactInfoLinks")
-                        .HasForeignKey("CustomerId");
-
-                    b.HasOne("CRM.Core.Entities.Lead", null)
-                        .WithMany("ContactInfoLinks")
-                        .HasForeignKey("LeadId");
-                });
-
             modelBuilder.Entity("CRM.Core.Entities.CrmTask", b =>
                 {
                     b.HasOne("CRM.Core.Entities.User", "AssignedToUser")
@@ -6036,19 +5723,9 @@ namespace CRM.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("AssignedToUserId");
 
-                    b.HasOne("CRM.Core.Entities.LookupItem", "BillingCycleLookup")
-                        .WithMany()
-                        .HasForeignKey("BillingCycleLookupId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("CRM.Core.Entities.Lead", "ConvertedFromLead")
                         .WithMany()
                         .HasForeignKey("ConvertedFromLeadId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("CRM.Core.Entities.LookupItem", "CurrencyLookup")
-                        .WithMany()
-                        .HasForeignKey("CurrencyLookupId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CRM.Core.Entities.Customer", "ParentCustomer")
@@ -6070,11 +5747,7 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Navigation("AssignedToUser");
 
-                    b.Navigation("BillingCycleLookup");
-
                     b.Navigation("ConvertedFromLead");
-
-                    b.Navigation("CurrencyLookup");
 
                     b.Navigation("ParentCustomer");
 
@@ -6248,17 +5921,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("PrimaryProductInterest");
 
                     b.Navigation("ReferredByCustomer");
-                });
-
-            modelBuilder.Entity("CRM.Core.Entities.LookupItem", b =>
-                {
-                    b.HasOne("CRM.Core.Entities.LookupCategory", "Category")
-                        .WithMany("Items")
-                        .HasForeignKey("LookupCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.MarketingCampaign", b =>
@@ -6723,20 +6385,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("WorkflowRule");
                 });
 
-            modelBuilder.Entity("CRM.Core.Models.Contact", b =>
-                {
-                    b.HasOne("CRM.Core.Models.Contact", null)
-                        .WithMany()
-                        .HasForeignKey("PreferredContactMethodLookupId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("CRM.Core.Entities.LookupItem", "PreferredContactMethodLookup")
-                        .WithMany()
-                        .HasForeignKey("PreferredContactMethodLookupId1");
-
-                    b.Navigation("PreferredContactMethodLookup");
-                });
-
             modelBuilder.Entity("CRM.Core.Models.SocialMediaLink", b =>
                 {
                     b.HasOne("CRM.Core.Models.Contact", "Contact")
@@ -6765,8 +6413,6 @@ namespace CRM.Infrastructure.Migrations
 
             modelBuilder.Entity("CRM.Core.Entities.Account", b =>
                 {
-                    b.Navigation("ContactInfoLinks");
-
                     b.Navigation("Opportunities");
                 });
 
@@ -6778,8 +6424,6 @@ namespace CRM.Infrastructure.Migrations
             modelBuilder.Entity("CRM.Core.Entities.Customer", b =>
                 {
                     b.Navigation("Accounts");
-
-                    b.Navigation("ContactInfoLinks");
 
                     b.Navigation("CustomerContacts");
 
@@ -6801,16 +6445,9 @@ namespace CRM.Infrastructure.Migrations
                 {
                     b.Navigation("Activities");
 
-                    b.Navigation("ContactInfoLinks");
-
                     b.Navigation("DuplicateLeads");
 
                     b.Navigation("Interactions");
-                });
-
-            modelBuilder.Entity("CRM.Core.Entities.LookupCategory", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.MarketingCampaign", b =>
@@ -6903,8 +6540,6 @@ namespace CRM.Infrastructure.Migrations
 
             modelBuilder.Entity("CRM.Core.Models.Contact", b =>
                 {
-                    b.Navigation("ContactInfoLinks");
-
                     b.Navigation("SocialMediaLinks");
                 });
 #pragma warning restore 612, 618

@@ -1,3 +1,5 @@
+using CRM.Core.Entities;
+
 namespace CRM.Core.Models;
 
 /// <summary>
@@ -177,7 +179,12 @@ public class Contact
     
     // Photo
     public string? PhotoUrl { get; set; }
+
+    // Lookup FKs for normalized dropdowns
+    public int? PreferredContactMethodLookupId { get; set; }
+    public LookupItem? PreferredContactMethodLookup { get; set; }
     
     // Navigation Properties
     public ICollection<SocialMediaLink> SocialMediaLinks { get; set; } = new List<SocialMediaLink>();
+    public ICollection<ContactInfoLink>? ContactInfoLinks { get; set; }
 }

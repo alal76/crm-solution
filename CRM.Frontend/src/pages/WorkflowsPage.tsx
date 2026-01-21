@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
 interface Workflow {
@@ -32,6 +33,20 @@ interface Workflow {
   entityType: string;
   isActive: boolean;
   priority: number;
+}
+
+interface QueueItem {
+  id: number;
+  workflowId: number;
+  workflowRuleId?: number;
+  entityType: string;
+  entityId: number;
+  sourceUserGroupId: number;
+  targetUserGroupId: number;
+  status: string;
+  errorMessage?: string;
+  entitySnapshotJson?: string;
+  createdAt: string;
 }
 
 interface TabPanelProps {
@@ -58,8 +73,11 @@ function TabPanel(props: TabPanelProps) {
 
 function WorkflowsPage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('All');
+  const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
@@ -72,7 +90,7 @@ function WorkflowsPage() {
   });
 
   useEffect(() => {
-    fetchWorkflows();
+    fetchQueue();
   }, []);
 
   const fetchWorkflows = async () => {
@@ -89,6 +107,43 @@ function WorkflowsPage() {
       setLoading(false);
     }
   };
+
+  const fetchQueue = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/workflows/queue');
+      setQueueItems(response.data || []);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch queue');
+      console.error('Error fetching queue:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getEntityRoute = (entityType: string, id: number) => {
+    const t = entityType?.toLowerCase();
+    switch (t) {
+      case 'customer':
+        return `/customers/${id}`;
+      case 'account':
+        return `/accounts/${id}`;
+      case 'contact':
+        return `/contacts/${id}`;
+      case 'opportunity':
+        return `/opportunities/${id}`;
+      case 'lead':
+        return `/leads/${id}`;
+      default:
+        return `/${t}/${id}`;
+    }
+  };
+
+  const filteredQueue = queueItems.filter((q) => {
+    if (statusFilter === 'All') return true;
+    return (q.status || '').toLowerCase() === statusFilter.toLowerCase();
+  });
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -166,21 +221,14 @@ function WorkflowsPage() {
           <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
           <Box>
             <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-              Workflow Rules Engine
+              My Queue
             </Typography>
             <Typography color="textSecondary" variant="body2">
-              Manage entity transfer rules and automation workflows
+              Entities requiring action for your group(s)
             </Typography>
           </Box>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-          sx={{ backgroundColor: '#6750A4', textTransform: 'none', borderRadius: 2 }}
-        >
-          Create Workflow
-        </Button>
+        {/* create workflow button hidden on My Queue view */}
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -201,66 +249,55 @@ function WorkflowsPage() {
         ) : (
           <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
             <CardContent sx={{ p: 0 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+                <TextField
+                  select
+                  variant="outlined"
+                  size="small"
+                  label="Status"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  SelectProps={{ native: true }}
+                  sx={{ width: 200 }}
+                >
+                  <option value="All">All</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Success">Success</option>
+                  <option value="Failed">Failed</option>
+                </TextField>
+                <Button size="small" onClick={() => fetchQueue()} sx={{ textTransform: 'none' }}>Refresh</Button>
+              </Box>
               <Table>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
-                    <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Workflow Name</TableCell>
                     <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Entity Type</TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Priority</TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Entity ID</TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Workflow</TableCell>
                     <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                      Actions
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Created</TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {workflows.map((workflow) => (
-                    <TableRow
-                      key={workflow.id}
-                      sx={{
-                        '&:hover': { backgroundColor: '#F5EFF7' },
-                        borderBottom: '1px solid #E8DEF8',
-                      }}
-                    >
-                      <TableCell sx={{ fontWeight: 500 }}>{workflow.name}</TableCell>
+                  {filteredQueue.map((item) => (
+                    <TableRow key={item.id} sx={{ '&:hover': { backgroundColor: '#F5EFF7' }, borderBottom: '1px solid #E8DEF8' }}>
+                      <TableCell>{item.entityType}</TableCell>
+                      <TableCell>{item.entityId}</TableCell>
+                      <TableCell>{item.workflowId}</TableCell>
                       <TableCell>
-                        <Chip label={workflow.entityType} size="small" />
+                        <Chip label={item.status} size="small" />
                       </TableCell>
-                      <TableCell>{workflow.priority}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={workflow.isActive ? 'Active' : 'Inactive'}
-                          size="small"
-                          sx={{
-                            backgroundColor: workflow.isActive ? '#E8F5E9' : '#FFEBEE',
-                            color: workflow.isActive ? '#06A77D' : '#B3261E',
-                            fontWeight: 600,
-                          }}
-                        />
-                      </TableCell>
+                      <TableCell>{new Date(item.createdAt).toLocaleString()}</TableCell>
                       <TableCell align="center">
-                        <Button
-                          size="small"
-                          onClick={() => handleOpenDialog(workflow)}
-                          sx={{ color: '#6750A4' }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          size="small"
-                          onClick={() => handleDelete(workflow.id)}
-                          sx={{ color: '#B3261E' }}
-                        >
-                          Delete
-                        </Button>
+                        <Button size="small" sx={{ color: '#6750A4' }} onClick={() => navigate(getEntityRoute(item.entityType, item.entityId))}>Open</Button>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              {workflows.length === 0 && !loading && (
+              {queueItems.length === 0 && !loading && (
                 <Typography sx={{ textAlign: 'center', py: 3, color: 'textSecondary' }}>
-                  No workflows found. Create one to get started.
+                  No items in your queue.
                 </Typography>
               )}
             </CardContent>

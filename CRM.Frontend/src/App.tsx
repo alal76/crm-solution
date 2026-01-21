@@ -50,6 +50,7 @@ import TasksPage from './pages/TasksPage';
 import QuotesPage from './pages/QuotesPage';
 import NotesPage from './pages/NotesPage';
 import ActivitiesPage from './pages/ActivitiesPage';
+import AccountPage from './pages/AccountPage';
 import AboutPage from './pages/AboutPage';
 import HelpPage from './pages/HelpPage';
 import LicensesPage from './pages/LicensesPage';
@@ -286,6 +287,16 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <ActivitiesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/accounts/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <AccountPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

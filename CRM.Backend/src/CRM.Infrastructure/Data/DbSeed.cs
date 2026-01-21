@@ -104,6 +104,57 @@ public class DbSeed
             await context.SaveChangesAsync();
         }
 
+        // Seed lookup master-data (currencies, billing cycles, preferred contact methods)
+        if (!context.LookupCategories.Any())
+        {
+            var currencyCategory = new LookupCategory
+            {
+                Name = "Currency",
+                Description = "Supported currencies",
+                IsActive = true
+            };
+
+            var billingCycleCategory = new LookupCategory
+            {
+                Name = "BillingCycle",
+                Description = "Billing frequency options",
+                IsActive = true
+            };
+
+            var preferredContactCategory = new LookupCategory
+            {
+                Name = "PreferredContactMethod",
+                Description = "Preferred contact method for contacts",
+                IsActive = true
+            };
+
+            context.LookupCategories.AddRange(currencyCategory, billingCycleCategory, preferredContactCategory);
+            await context.SaveChangesAsync();
+
+            var currencies = new[] {
+                new LookupItem { LookupCategoryId = currencyCategory.Id, Key = "USD", Value = "US Dollar", SortOrder = 1, IsActive = true },
+                new LookupItem { LookupCategoryId = currencyCategory.Id, Key = "EUR", Value = "Euro", SortOrder = 2, IsActive = true },
+                new LookupItem { LookupCategoryId = currencyCategory.Id, Key = "GBP", Value = "British Pound", SortOrder = 3, IsActive = true }
+            };
+
+            var billingCycles = new[] {
+                new LookupItem { LookupCategoryId = billingCycleCategory.Id, Key = "Monthly", Value = "Monthly", SortOrder = 1, IsActive = true },
+                new LookupItem { LookupCategoryId = billingCycleCategory.Id, Key = "Quarterly", Value = "Quarterly", SortOrder = 2, IsActive = true },
+                new LookupItem { LookupCategoryId = billingCycleCategory.Id, Key = "Yearly", Value = "Yearly", SortOrder = 3, IsActive = true }
+            };
+
+            var contactMethods = new[] {
+                new LookupItem { LookupCategoryId = preferredContactCategory.Id, Key = "Email", Value = "Email", SortOrder = 1, IsActive = true },
+                new LookupItem { LookupCategoryId = preferredContactCategory.Id, Key = "Phone", Value = "Phone", SortOrder = 2, IsActive = true },
+                new LookupItem { LookupCategoryId = preferredContactCategory.Id, Key = "SMS", Value = "SMS", SortOrder = 3, IsActive = true }
+            };
+
+            context.LookupItems.AddRange(currencies);
+            context.LookupItems.AddRange(billingCycles);
+            context.LookupItems.AddRange(contactMethods);
+            await context.SaveChangesAsync();
+        }
+
         // Seed sample contacts if none exist
         if (!context.Contacts.Any())
         {

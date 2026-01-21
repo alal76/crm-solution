@@ -178,7 +178,9 @@ public class Customer : BaseEntity
     public string? PaymentTerms { get; set; }
     public string? PreferredPaymentMethod { get; set; }
     public string? Currency { get; set; } // Preferred currency
+    public int? CurrencyLookupId { get; set; }
     public string? BillingCycle { get; set; } // Monthly, Quarterly, Annual
+    public int? BillingCycleLookupId { get; set; }
     
     // === Scoring & Rating ===
     public int LeadScore { get; set; } = 0;
@@ -240,6 +242,12 @@ public class Customer : BaseEntity
     public ICollection<Opportunity>? Opportunities { get; set; }
     public ICollection<Interaction>? Interactions { get; set; }
     public ICollection<CustomerContact>? CustomerContacts { get; set; } // Linked contacts for organizations
+    public ICollection<Account>? Accounts { get; set; }
+    // Contact information links (addresses, phones/emails, social accounts)
+    public ICollection<ContactInfoLink>? ContactInfoLinks { get; set; }
+    // Lookup navigation
+    public LookupItem? CurrencyLookup { get; set; }
+    public LookupItem? BillingCycleLookup { get; set; }
     public User? AssignedToUser { get; set; }
     public User? AccountManager { get; set; }
     public Customer? ReferredByCustomer { get; set; }

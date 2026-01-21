@@ -1420,6 +1420,9 @@ public class Lead : BaseEntity
     
     /// <summary>Interactions with this lead</summary>
     public ICollection<Interaction>? Interactions { get; set; }
+
+    /// <summary>Contact information links (addresses, phones/emails, social accounts)</summary>
+    public ICollection<ContactInfoLink>? ContactInfoLinks { get; set; }
     
     #endregion
     

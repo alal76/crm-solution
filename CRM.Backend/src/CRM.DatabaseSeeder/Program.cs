@@ -1272,8 +1272,18 @@ class Program
     static CrmDbContext CreateDbContext(IConfiguration configuration)
     {
         var optionsBuilder = new DbContextOptionsBuilder<CrmDbContext>();
-        var provider = configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
-        var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "Data Source=crm.db";
+        var provider = configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "mariadb";
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        if (string.IsNullOrWhiteSpace(connectionString) && (provider == "mysql" || provider == "mariadb"))
+        {
+            var dbHost = configuration["DB_HOST"] ?? configuration["DbHost"] ?? "mariadb";
+            var dbPort = configuration["DB_PORT"] ?? "3306";
+            var dbName = configuration["DB_NAME"] ?? "crm_db";
+            var dbUser = configuration["DB_USER"] ?? "crm_user";
+            var dbPass = configuration["DB_PASSWORD"] ?? configuration["DB_PASS"] ?? "crm_pass";
+            connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};Uid={dbUser};Pwd={dbPass};";
+        }
 
         switch (provider)
         {
