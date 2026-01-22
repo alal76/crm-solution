@@ -12,6 +12,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import LookupSelect from '../components/LookupSelect';
 
 // Enums matching backend
 const NOTE_TYPES = [
@@ -221,16 +222,14 @@ function NotesPage() {
               }}
               sx={{ width: 250 }}
             />
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)}>
-                <MenuItem value="all">All Types</MenuItem>
-                {NOTE_TYPES.map(t => (
-                  <MenuItem key={t.value} value={t.value}>
-                    <Chip label={t.label} size="small" sx={{ backgroundColor: t.color, color: 'white' }} />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <LookupSelect
+              category="NoteType"
+              name="typeFilter"
+              value={typeFilter}
+              onChange={(e:any) => setTypeFilter(e.target.value)}
+              label="Type"
+              fallback={[{ value: 'all', label: 'All Types' }, ...NOTE_TYPES.map(t => ({ value: t.value, label: t.label }))]}
+            />
             <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
               Add Note
             </Button>
@@ -372,40 +371,34 @@ function NotesPage() {
               <TextField fullWidth label="Title (optional)" name="title" value={formData.title} onChange={handleInputChange} />
             </Grid>
             <Grid item xs={4}>
-              <FormControl fullWidth>
-                <InputLabel>Note Type</InputLabel>
-                <Select name="noteType" value={formData.noteType} onChange={handleSelectChange} label="Note Type">
-                  {NOTE_TYPES.map(t => (
-                    <MenuItem key={t.value} value={t.value}>
-                      <Chip label={t.label} size="small" sx={{ backgroundColor: t.color, color: 'white' }} />
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <LookupSelect
+                category="NoteType"
+                name="noteType"
+                value={formData.noteType}
+                onChange={handleSelectChange}
+                label="Note Type"
+                fallback={NOTE_TYPES.map(t => ({ value: t.value, label: t.label }))}
+              />
             </Grid>
             <Grid item xs={4}>
-              <FormControl fullWidth>
-                <InputLabel>Visibility</InputLabel>
-                <Select name="visibility" value={formData.visibility} onChange={handleSelectChange} label="Visibility">
-                  {NOTE_VISIBILITY.map(v => (
-                    <MenuItem key={v.value} value={v.value}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {v.icon}
-                        <Typography>{v.label}</Typography>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <LookupSelect
+                category="NoteVisibility"
+                name="visibility"
+                value={formData.visibility}
+                onChange={handleSelectChange}
+                label="Visibility"
+                fallback={NOTE_VISIBILITY.map(v => ({ value: v.value, label: v.label }))}
+              />
             </Grid>
             <Grid item xs={4}>
-              <FormControl fullWidth>
-                <InputLabel>Link to Entity</InputLabel>
-                <Select name="entityType" value={formData.entityType} onChange={handleSelectChange} label="Link to Entity">
-                  <MenuItem value="">None</MenuItem>
-                  {ENTITY_TYPES.map(e => <MenuItem key={e} value={e}>{e}</MenuItem>)}
-                </Select>
-              </FormControl>
+              <LookupSelect
+                category="EntityType"
+                name="entityType"
+                value={formData.entityType}
+                onChange={handleSelectChange}
+                label="Link to Entity"
+                fallback={[{ value: '', label: 'None' }, ...ENTITY_TYPES.map(e => ({ value: e, label: e }))]}
+              />
             </Grid>
             <Grid item xs={12}>
               <TextField 

@@ -95,7 +95,7 @@
 
 ### Run All Tests
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh
 ```
 ⏱️ Time: ~60 seconds
@@ -315,7 +315,7 @@ The CRM solution now has:
 ## 🎬 Ready to Execute
 
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh
 ```
 

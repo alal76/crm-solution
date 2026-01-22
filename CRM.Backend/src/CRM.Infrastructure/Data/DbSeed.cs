@@ -351,5 +351,50 @@ public class DbSeed
             context.Contacts.AddRange(contacts);
             await context.SaveChangesAsync();
         }
+
+        // Ensure additional lookup categories/items required by the frontend
+        var ensureLookups = new Dictionary<string, string[]>
+        {
+            { "Salutation", new[] { "Mr", "Mrs", "Ms", "Dr" } },
+            { "Gender", new[] { "Male", "Female", "Other" } },
+            { "LifecycleStage", new[] { "Prospect", "Qualified", "Customer", "Churned" } },
+            { "LeadSource", new[] { "Website", "Email Campaign", "Referral", "Trade Show" } },
+            { "LeadStatus", new[] { "New", "Contacted", "Qualified", "Unqualified" } },
+            { "OpportunityStage", new[] { "Prospecting", "Negotiation", "ClosedWon", "ClosedLost" } },
+            { "ProductCategory", new[] { "Software", "Service", "Hardware" } },
+            { "ProductStatus", new[] { "Active", "Deprecated", "Draft" } },
+            { "QuoteStatus", new[] { "Draft", "Sent", "Accepted", "Rejected" } },
+            { "Priority", new[] { "Low", "Medium", "High", "Critical" } },
+            { "Industry", new[] { "Technology", "Finance", "Healthcare", "Manufacturing" } },
+            { "CustomerType", new[] { "Individual", "Company", "Government" } }
+        };
+
+        foreach (var kvp in ensureLookups)
+        {
+            var catName = kvp.Key;
+            if (!context.LookupCategories.Any(c => c.Name == catName))
+            {
+                var cat = new LookupCategory
+                {
+                    Name = catName,
+                    Description = catName + " values",
+                    IsActive = true
+                };
+                context.LookupCategories.Add(cat);
+                await context.SaveChangesAsync();
+
+                var items = kvp.Value.Select((key, idx) => new LookupItem
+                {
+                    LookupCategoryId = cat.Id,
+                    Key = key,
+                    Value = key,
+                    SortOrder = idx + 1,
+                    IsActive = true
+                }).ToArray();
+
+                context.LookupItems.AddRange(items);
+                await context.SaveChangesAsync();
+            }
+        }
     }
 }

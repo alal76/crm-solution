@@ -3,16 +3,19 @@ using System;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace CRM.Infrastructure.Migrations
+namespace CRM.Infrastructure.Migrations.Auto
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260122063617_NormalizeRelationships_Start")]
+    partial class NormalizeRelationships_Start
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -522,12 +525,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<int?>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AddressId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ContactDetailId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("ContactId")
                         .HasColumnType("int");
 
@@ -561,9 +558,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<int>("OwnerType")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SocialAccountId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -571,17 +565,11 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("AddressId");
-
-                    b.HasIndex("ContactDetailId");
-
                     b.HasIndex("ContactId");
 
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("LeadId");
-
-                    b.HasIndex("SocialAccountId");
 
                     b.HasIndex("InfoKind", "InfoId");
 
@@ -1696,6 +1684,15 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<string>("LinkedInUrl")
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("MarketingCampaignId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MarketingCampaignId1")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MarketingCampaignId2")
+                        .HasColumnType("int");
+
                     b.Property<int?>("MasterLeadId")
                         .HasColumnType("int");
 
@@ -1911,6 +1908,12 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("LastCampaignId");
 
                     b.HasIndex("LeadScore");
+
+                    b.HasIndex("MarketingCampaignId");
+
+                    b.HasIndex("MarketingCampaignId1");
+
+                    b.HasIndex("MarketingCampaignId2");
 
                     b.HasIndex("MasterLeadId");
 
@@ -5971,16 +5974,6 @@ namespace CRM.Infrastructure.Migrations
                         .WithMany("ContactInfoLinks")
                         .HasForeignKey("AccountId");
 
-                    b.HasOne("CRM.Core.Entities.Address", "Address")
-                        .WithMany()
-                        .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("CRM.Core.Entities.ContactDetail", "ContactDetail")
-                        .WithMany()
-                        .HasForeignKey("ContactDetailId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("CRM.Core.Models.Contact", null)
                         .WithMany("ContactInfoLinks")
                         .HasForeignKey("ContactId");
@@ -5992,17 +5985,6 @@ namespace CRM.Infrastructure.Migrations
                     b.HasOne("CRM.Core.Entities.Lead", null)
                         .WithMany("ContactInfoLinks")
                         .HasForeignKey("LeadId");
-
-                    b.HasOne("CRM.Core.Entities.SocialAccount", "SocialAccount")
-                        .WithMany()
-                        .HasForeignKey("SocialAccountId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Address");
-
-                    b.Navigation("ContactDetail");
-
-                    b.Navigation("SocialAccount");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.CrmTask", b =>
@@ -6200,7 +6182,7 @@ namespace CRM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CRM.Core.Entities.MarketingCampaign", "ConvertingCampaign")
-                        .WithMany("ConvertedLeads")
+                        .WithMany()
                         .HasForeignKey("ConvertingCampaignId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -6210,9 +6192,21 @@ namespace CRM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CRM.Core.Entities.MarketingCampaign", "LastCampaign")
-                        .WithMany("TouchedLeads")
+                        .WithMany()
                         .HasForeignKey("LastCampaignId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CRM.Core.Entities.MarketingCampaign", null)
+                        .WithMany("ConvertedLeads")
+                        .HasForeignKey("MarketingCampaignId");
+
+                    b.HasOne("CRM.Core.Entities.MarketingCampaign", null)
+                        .WithMany("GeneratedLeads")
+                        .HasForeignKey("MarketingCampaignId1");
+
+                    b.HasOne("CRM.Core.Entities.MarketingCampaign", null)
+                        .WithMany("TouchedLeads")
+                        .HasForeignKey("MarketingCampaignId2");
 
                     b.HasOne("CRM.Core.Entities.Lead", "MasterLead")
                         .WithMany("DuplicateLeads")
@@ -6225,7 +6219,7 @@ namespace CRM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CRM.Core.Entities.MarketingCampaign", "PrimaryCampaign")
-                        .WithMany("GeneratedLeads")
+                        .WithMany()
                         .HasForeignKey("PrimaryCampaignId")
                         .OnDelete(DeleteBehavior.SetNull);
 

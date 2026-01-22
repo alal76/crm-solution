@@ -372,7 +372,7 @@ Session 12 completion summary:
 
 ### Step 1: Run Tests (Recommended)
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh
 ```
 Expected output: All 39 tests passing with coverage report
@@ -479,7 +479,7 @@ The CRM solution now has:
 
 **To Get Started**:
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh
 ```
 

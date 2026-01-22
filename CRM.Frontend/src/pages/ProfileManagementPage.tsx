@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import LookupSelect from '../components/LookupSelect';
 
 interface UserProfile {
   id: number;
@@ -296,17 +297,14 @@ function ProfileManagementPage() {
             required
           />
           <FormControl fullWidth margin="normal" required>
-            <InputLabel>Department</InputLabel>
-            <Select
+            <LookupSelect
+              category="Department"
               name="departmentId"
               value={formData.departmentId}
               onChange={handleSelectChange}
               label="Department"
-            >
-              {departments.map(dept => (
-                <MenuItem key={dept.id} value={dept.id}>{dept.name}</MenuItem>
-              ))}
-            </Select>
+              fallback={departments.map(d => ({ value: d.id, label: d.name }))}
+            />
           </FormControl>
           <TextField
             fullWidth

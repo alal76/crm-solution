@@ -2,6 +2,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
 using CRM.Infrastructure.Data;
+using CRM.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Infrastructure.Services;
@@ -91,6 +92,92 @@ public class ContactsService : IContactsService
         _context.Contacts.Add(contact);
         await _context.SaveChangesAsync();
 
+        // Materialize normalized contact info for new contact
+        if (!string.IsNullOrWhiteSpace(request.Address) || !string.IsNullOrWhiteSpace(request.City) || !string.IsNullOrWhiteSpace(request.Country))
+        {
+            var addr = new Address
+            {
+                Label = "Primary",
+                Line1 = request.Address ?? string.Empty,
+                Line2 = null,
+                City = request.City ?? string.Empty,
+                State = request.State,
+                PostalCode = request.ZipCode,
+                Country = request.Country ?? string.Empty,
+                IsPrimary = true,
+                Notes = "created_from_api"
+            };
+            _context.Addresses.Add(addr);
+            await _context.SaveChangesAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Contact,
+                OwnerId = contact.Id,
+                InfoKind = ContactInfoKind.Address,
+                InfoId = addr.Id,
+                AddressId = addr.Id,
+                IsPrimaryForOwner = true,
+                Notes = "created_from_api"
+            };
+            _context.ContactInfoLinks.Add(link);
+            await _context.SaveChangesAsync();
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.EmailPrimary))
+        {
+            var email = new ContactDetail
+            {
+                DetailType = ContactDetailType.Email,
+                Value = request.EmailPrimary,
+                Label = "Primary",
+                IsPrimary = true,
+                Notes = "created_from_api"
+            };
+            _context.ContactDetails.Add(email);
+            await _context.SaveChangesAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Contact,
+                OwnerId = contact.Id,
+                InfoKind = ContactInfoKind.ContactDetail,
+                InfoId = email.Id,
+                ContactDetailId = email.Id,
+                IsPrimaryForOwner = true,
+                Notes = "created_from_api"
+            };
+            _context.ContactInfoLinks.Add(link);
+            await _context.SaveChangesAsync();
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.PhonePrimary))
+        {
+            var phone = new ContactDetail
+            {
+                DetailType = ContactDetailType.Phone,
+                Value = request.PhonePrimary,
+                Label = "Primary",
+                IsPrimary = true,
+                Notes = "created_from_api"
+            };
+            _context.ContactDetails.Add(phone);
+            await _context.SaveChangesAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Contact,
+                OwnerId = contact.Id,
+                InfoKind = ContactInfoKind.ContactDetail,
+                InfoId = phone.Id,
+                ContactDetailId = phone.Id,
+                IsPrimaryForOwner = true,
+                Notes = "created_from_api"
+            };
+            _context.ContactInfoLinks.Add(link);
+            await _context.SaveChangesAsync();
+        }
+
         return MapToDto(contact);
     }
 
@@ -168,6 +255,120 @@ public class ContactsService : IContactsService
 
         _context.Contacts.Update(contact);
         await _context.SaveChangesAsync();
+
+        // If inline contact fields were updated, materialize them into normalized tables
+        if (request.Address != null || request.City != null || request.Country != null)
+        {
+            // unset existing primary address links for this contact
+            var existingAddrLinks = await _context.ContactInfoLinks
+                .Where(l => l.OwnerType == ContactInfoOwnerType.Contact && l.OwnerId == contact.Id && l.InfoKind == ContactInfoKind.Address && l.IsPrimaryForOwner && !l.IsDeleted)
+                .ToListAsync();
+            foreach (var l in existingAddrLinks)
+            {
+                l.IsPrimaryForOwner = false;
+                _context.ContactInfoLinks.Update(l);
+            }
+
+            var addr = new Address
+            {
+                Label = "Primary",
+                Line1 = request.Address ?? string.Empty,
+                Line2 = null,
+                City = request.City ?? string.Empty,
+                State = request.State,
+                PostalCode = request.ZipCode,
+                Country = request.Country ?? string.Empty,
+                IsPrimary = true,
+                Notes = "updated_from_api"
+            };
+            _context.Addresses.Add(addr);
+            await _context.SaveChangesAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Contact,
+                OwnerId = contact.Id,
+                InfoKind = ContactInfoKind.Address,
+                InfoId = addr.Id,
+                AddressId = addr.Id,
+                IsPrimaryForOwner = true,
+                Notes = "updated_from_api"
+            };
+            _context.ContactInfoLinks.Add(link);
+            await _context.SaveChangesAsync();
+        }
+
+        if (request.EmailPrimary != null)
+        {
+            var existingEmailLinks = await _context.ContactInfoLinks
+                .Where(l => l.OwnerType == ContactInfoOwnerType.Contact && l.OwnerId == contact.Id && l.InfoKind == ContactInfoKind.ContactDetail && l.IsPrimaryForOwner && !l.IsDeleted)
+                .ToListAsync();
+            foreach (var l in existingEmailLinks)
+            {
+                l.IsPrimaryForOwner = false;
+                _context.ContactInfoLinks.Update(l);
+            }
+
+            var email = new ContactDetail
+            {
+                DetailType = ContactDetailType.Email,
+                Value = request.EmailPrimary,
+                Label = "Primary",
+                IsPrimary = true,
+                Notes = "updated_from_api"
+            };
+            _context.ContactDetails.Add(email);
+            await _context.SaveChangesAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Contact,
+                OwnerId = contact.Id,
+                InfoKind = ContactInfoKind.ContactDetail,
+                InfoId = email.Id,
+                ContactDetailId = email.Id,
+                IsPrimaryForOwner = true,
+                Notes = "updated_from_api"
+            };
+            _context.ContactInfoLinks.Add(link);
+            await _context.SaveChangesAsync();
+        }
+
+        if (request.PhonePrimary != null)
+        {
+            var existingPhoneLinks = await _context.ContactInfoLinks
+                .Where(l => l.OwnerType == ContactInfoOwnerType.Contact && l.OwnerId == contact.Id && l.InfoKind == ContactInfoKind.ContactDetail && l.IsPrimaryForOwner && !l.IsDeleted)
+                .ToListAsync();
+            foreach (var l in existingPhoneLinks)
+            {
+                l.IsPrimaryForOwner = false;
+                _context.ContactInfoLinks.Update(l);
+            }
+
+            var phone = new ContactDetail
+            {
+                DetailType = ContactDetailType.Phone,
+                Value = request.PhonePrimary,
+                Label = "Primary",
+                IsPrimary = true,
+                Notes = "updated_from_api"
+            };
+            _context.ContactDetails.Add(phone);
+            await _context.SaveChangesAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Contact,
+                OwnerId = contact.Id,
+                InfoKind = ContactInfoKind.ContactDetail,
+                InfoId = phone.Id,
+                ContactDetailId = phone.Id,
+                IsPrimaryForOwner = true,
+                Notes = "updated_from_api"
+            };
+            _context.ContactInfoLinks.Add(link);
+            await _context.SaveChangesAsync();
+        }
 
         return MapToDto(contact);
     }

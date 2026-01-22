@@ -179,7 +179,7 @@ Project Root/
 
 ### Step 1: Run Tests
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh
 ```
 Expected time: ~60 seconds

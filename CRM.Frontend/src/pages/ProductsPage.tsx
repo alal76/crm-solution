@@ -406,32 +406,34 @@ function ProductsPage() {
                 <TextField fullWidth label="Barcode" name="barcode" value={formData.barcode} onChange={handleInputChange} />
               </Grid>
               <Grid item xs={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Product Type</InputLabel>
-                  <Select name="productType" value={formData.productType} onChange={handleSelectChange} label="Product Type">
-                    {PRODUCT_TYPES.map(t => <MenuItem key={t.value} value={t.value}>{t.icon} {t.label}</MenuItem>)}
-                  </Select>
-                </FormControl>
+                <LookupSelect
+                  category="ProductType"
+                  name="productType"
+                  value={formData.productType}
+                  onChange={handleSelectChange}
+                  label="Product Type"
+                  fallback={PRODUCT_TYPES.map(t => ({ value: t.value, label: t.label }))}
+                />
               </Grid>
               <Grid item xs={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select name="status" value={formData.status} onChange={handleSelectChange} label="Status">
-                    {PRODUCT_STATUSES.map(s => (
-                      <MenuItem key={s.value} value={s.value}>
-                        <Chip label={s.label} size="small" sx={{ backgroundColor: s.color, color: 'white' }} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <LookupSelect
+                  category="ProductStatus"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleSelectChange}
+                  label="Status"
+                  fallback={PRODUCT_STATUSES.map(s => ({ value: s.value, label: s.label }))}
+                />
               </Grid>
               <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Category</InputLabel>
-                  <Select name="category" value={formData.category} onChange={handleSelectChange} label="Category">
-                    {CATEGORIES.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
-                  </Select>
-                </FormControl>
+                <LookupSelect
+                  category="ProductCategory"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleSelectChange}
+                  label="Category"
+                  fallback={CATEGORIES.map(c => ({ value: c, label: c }))}
+                />
               </Grid>
               <Grid item xs={6}>
                 <TextField fullWidth label="Subcategory" name="subcategory" value={formData.subcategory} onChange={handleInputChange} />

@@ -20,4 +20,5 @@ export const getLookupItems = (categoryName: string): Promise<LookupItem[]> => {
   return cache[key];
 };
 
-export default { getLookupItems };
+const lookupService = { getLookupItems };
+export default lookupService;

@@ -33,6 +33,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import LookupSelect from '../components/LookupSelect';
 
 // Lead sources for the dropdown
 const LEAD_SOURCES = [
@@ -513,44 +514,22 @@ function LeadsPage() {
             />
           </Box>
           <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Lead Source</InputLabel>
-              <Select
-                name="source"
-                value={formData.source}
-                onChange={handleSelectChange}
-                label="Lead Source"
-              >
-                {LEAD_SOURCES.map(source => (
-                  <MenuItem key={source.value} value={source.value}>
-                    <Chip
-                      label={source.label}
-                      size="small"
-                      sx={{ backgroundColor: source.bg, color: source.text }}
-                    />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Status</InputLabel>
-              <Select
-                name="status"
-                value={formData.status}
-                onChange={handleSelectChange}
-                label="Status"
-              >
-                {LEAD_STATUSES.map(status => (
-                  <MenuItem key={status.value} value={status.value}>
-                    <Chip
-                      label={status.label}
-                      size="small"
-                      sx={{ backgroundColor: status.bg, color: status.text }}
-                    />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <LookupSelect
+              category="LeadSource"
+              name="source"
+              value={formData.source}
+              onChange={handleSelectChange}
+              label="Lead Source"
+              fallback={LEAD_SOURCES.map(s => ({ value: s.value, label: s.label }))}
+            />
+            <LookupSelect
+              category="LeadStatus"
+              name="status"
+              value={formData.status}
+              onChange={handleSelectChange}
+              label="Status"
+              fallback={LEAD_STATUSES.map(s => ({ value: s.value, label: s.label }))}
+            />
           </Box>
           <TextField
             fullWidth

@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import LookupSelect from '../components/LookupSelect';
 
 interface Opportunity {
   id: number;
@@ -399,25 +400,14 @@ function OpportunitiesPage() {
             inputProps={{ step: "0.01", min: 0 }}
           />
 
-          <FormControl fullWidth margin="normal" required>
-            <InputLabel>Stage</InputLabel>
-            <Select
-              name="stage"
-              value={formData.stage}
-              onChange={handleSelectChange}
-              label="Stage"
-            >
-              {STAGES.map(stage => (
-                <MenuItem key={stage.value} value={stage.value}>
-                  <Chip 
-                    label={stage.label} 
-                    size="small"
-                    sx={{ backgroundColor: stage.color, color: 'white', mr: 1 }}
-                  />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <LookupSelect
+            category="OpportunityStage"
+            name="stage"
+            value={formData.stage}
+            onChange={handleSelectChange}
+            label="Stage"
+            fallback={STAGES.map(s => ({ value: s.value, label: s.label }))}
+          />
 
           <Box sx={{ mt: 2, mb: 1 }}>
             <Typography gutterBottom>Probability: {formData.probability}%</Typography>

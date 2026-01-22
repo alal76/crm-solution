@@ -38,6 +38,7 @@ import {
   Collapse,
   SelectChangeEvent,
 } from '@mui/material';
+import LookupSelect from '../components/LookupSelect';
 import { useState, useEffect, useCallback } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -655,55 +656,34 @@ function ServiceRequestsPage() {
             <Paper sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6} md={3}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Status</InputLabel>
-                    <Select
-                      value={filterStatus}
-                      onChange={(e: SelectChangeEvent<string>) => setFilterStatus(e.target.value)}
-                      label="Status"
-                    >
-                      <MenuItem value="">All</MenuItem>
-                      {Object.entries(STATUS_LABELS).map(([key, label]) => (
-                        <MenuItem key={key} value={key}>
-                          {label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <LookupSelect
+                    category="ServiceStatus"
+                    name="filterStatus"
+                    value={filterStatus}
+                    onChange={(e:any) => setFilterStatus(e.target.value)}
+                    label="Status"
+                    fallback={[{ value: '', label: 'All' }, ...Object.entries(STATUS_LABELS).map(([k, v]) => ({ value: k, label: v }))]}
+                  />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Priority</InputLabel>
-                    <Select
-                      value={filterPriority}
-                      onChange={(e: SelectChangeEvent<string>) => setFilterPriority(e.target.value)}
-                      label="Priority"
-                    >
-                      <MenuItem value="">All</MenuItem>
-                      {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
-                        <MenuItem key={key} value={key}>
-                          {label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <LookupSelect
+                    category="Priority"
+                    name="filterPriority"
+                    value={filterPriority}
+                    onChange={(e:any) => setFilterPriority(e.target.value)}
+                    label="Priority"
+                    fallback={[{ value: '', label: 'All' }, ...Object.entries(PRIORITY_LABELS).map(([k, v]) => ({ value: k, label: v }))]}
+                  />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Channel</InputLabel>
-                    <Select
-                      value={filterChannel}
-                      onChange={(e: SelectChangeEvent<string>) => setFilterChannel(e.target.value)}
-                      label="Channel"
-                    >
-                      <MenuItem value="">All</MenuItem>
-                      {Object.entries(CHANNEL_LABELS).map(([key, label]) => (
-                        <MenuItem key={key} value={key}>
-                          {label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <LookupSelect
+                    category="ServiceChannel"
+                    name="filterChannel"
+                    value={filterChannel}
+                    onChange={(e:any) => setFilterChannel(e.target.value)}
+                    label="Channel"
+                    fallback={[{ value: '', label: 'All' }, ...Object.entries(CHANNEL_LABELS).map(([k, v]) => ({ value: k, label: v }))]}
+                  />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <FormControl fullWidth size="small">

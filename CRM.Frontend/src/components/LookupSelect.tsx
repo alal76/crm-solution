@@ -16,17 +16,20 @@ const LookupSelect: React.FC<Props> = ({ category, name, value, onChange, fallba
   const ctx = useContext(LookupContext);
   const [items, setItems] = useState<LookupItem[] | null>(null);
 
+  const getFromCtx = ctx?.get;
+  const setToCtx = ctx?.set;
+
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       try {
-        const list = ctx?.get(category) ?? null;
+        const list = getFromCtx ? getFromCtx(category) : undefined;
         if (list) {
           if (mounted) setItems(list);
           return;
         }
         const res = await lookupService.getLookupItems(category);
-        ctx?.set(category, res);
+        setToCtx?.(category, res);
         if (mounted) setItems(res);
       } catch (err) {
         if (mounted) setItems([]);
@@ -34,7 +37,7 @@ const LookupSelect: React.FC<Props> = ({ category, name, value, onChange, fallba
     };
     load();
     return () => { mounted = false; };
-  }, [category]);
+  }, [category, getFromCtx, setToCtx]);
 
   const renderOptions = () => {
     if (items && items.length) return items.map(i => <MenuItem key={i.key || i.id} value={i.key || i.value}>{i.value}</MenuItem>);

@@ -12,6 +12,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import LookupSelect from '../components/LookupSelect';
 
 // Enums matching backend
 const QUOTE_STATUSES = [
@@ -457,16 +458,14 @@ function QuotesPage() {
                 </FormControl>
               </Grid>
               <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select name="status" value={formData.status} onChange={handleSelectChange} label="Status">
-                    {QUOTE_STATUSES.map(s => (
-                      <MenuItem key={s.value} value={s.value}>
-                        <Chip label={s.label} size="small" sx={{ backgroundColor: s.color, color: 'white' }} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <LookupSelect
+                  category="QuoteStatus"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleSelectChange}
+                  label="Status"
+                  fallback={QUOTE_STATUSES.map(s => ({ value: s.value, label: s.label }))}
+                />
               </Grid>
               <Grid item xs={6}>
                 <TextField fullWidth label="Valid Until" name="validUntil" type="date" value={formData.validUntil} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
