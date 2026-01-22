@@ -845,9 +845,26 @@ public class CustomerService : ICustomerService
             }
         }
 
-        // Prefer normalized tags/custom fields when available (use NormalizationService)
-        var tagsValue = await _normalizationService.GetTagsAsync("Customer", customer.Id) ?? customer.Tags;
-        var customFieldsValue = await _normalizationService.GetCustomFieldsAsync("Customer", customer.Id) ?? customer.CustomFields;
+            // Prefer normalized contact-info, tags and custom fields when available (use NormalizationService)
+            var primaryEmail = await _normalizationService.GetPrimaryEmailAsync(ContactInfoOwnerType.Customer, customer.Id) ?? customer.Email;
+            var primaryPhone = await _normalizationService.GetPrimaryPhoneAsync(ContactInfoOwnerType.Customer, customer.Id) ?? customer.Phone;
+            var primaryFax = await _normalizationService.GetPrimaryFaxAsync(ContactInfoOwnerType.Customer, customer.Id) ?? customer.FaxNumber;
+            var primaryAddressEntity = await _normalizationService.GetPrimaryAddressAsync(ContactInfoOwnerType.Customer, customer.Id);
+
+            var addrLine1 = primaryAddressEntity?.Line1 ?? customer.Address;
+            var addrLine2 = primaryAddressEntity?.Line2 ?? customer.Address2;
+            var addrCity = primaryAddressEntity?.City ?? customer.City;
+            var addrState = primaryAddressEntity?.State ?? customer.State;
+            var addrPostal = primaryAddressEntity?.PostalCode ?? customer.ZipCode;
+            var addrCountry = primaryAddressEntity?.Country ?? customer.Country;
+
+            var tagsValue = await _normalizationService.GetTagsAsync("Customer", customer.Id) ?? customer.Tags;
+            var customFieldsValue = await _normalizationService.GetCustomFieldsAsync("Customer", customer.Id) ?? customer.CustomFields;
+
+            // Prefer normalized social accounts when available
+            var linkedInUrl = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Customer, customer.Id, SocialNetwork.LinkedIn) ?? customer.LinkedInUrl;
+            var twitterHandle = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Customer, customer.Id, SocialNetwork.Twitter) ?? customer.TwitterHandle;
+            var facebookUrl = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Customer, customer.Id, SocialNetwork.Facebook) ?? customer.FacebookUrl;
 
         return new CustomerDto
         {
@@ -869,19 +886,19 @@ public class CustomerService : ICustomerService
             YearFounded = customer.YearFounded,
             PrimaryContactId = customer.PrimaryContactId,
             PrimaryContactName = primaryContactName,
-            Email = customer.Email,
+            Email = primaryEmail,
             SecondaryEmail = customer.SecondaryEmail,
-            Phone = customer.Phone,
+            Phone = primaryPhone,
             MobilePhone = customer.MobilePhone,
-            FaxNumber = customer.FaxNumber,
+            FaxNumber = primaryFax,
             JobTitle = customer.JobTitle,
             Website = customer.Website,
-            Address = customer.Address,
-            Address2 = customer.Address2,
-            City = customer.City,
-            State = customer.State,
-            ZipCode = customer.ZipCode,
-            Country = customer.Country,
+            Address = addrLine1,
+            Address2 = addrLine2,
+            City = addrCity,
+            State = addrState,
+            ZipCode = addrPostal,
+            Country = addrCountry,
             ShippingAddress = customer.ShippingAddress,
             ShippingAddress2 = customer.ShippingAddress2,
             ShippingCity = customer.ShippingCity,
@@ -916,9 +933,9 @@ public class CustomerService : ICustomerService
             CustomerHealthScore = customer.CustomerHealthScore,
             NpsScore = customer.NpsScore,
             SatisfactionRating = customer.SatisfactionRating,
-            LinkedInUrl = customer.LinkedInUrl,
-            TwitterHandle = customer.TwitterHandle,
-            FacebookUrl = customer.FacebookUrl,
+            LinkedInUrl = linkedInUrl,
+            TwitterHandle = twitterHandle,
+            FacebookUrl = facebookUrl,
             OptInEmail = customer.OptInEmail,
             OptInSms = customer.OptInSms,
             OptInPhone = customer.OptInPhone,

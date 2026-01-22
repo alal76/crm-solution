@@ -137,7 +137,7 @@ builder.Services.AddScoped<NormalizationService>();
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-super-secret-key-that-is-at-least-32-characters-long!!!";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "CRMApp";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "CRMUsers";
-var key = Encoding.ASCII.GetBytes(jwtSecret);
+var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -146,6 +146,19 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer("Bearer", options =>
 {
+    // Helpful defaults for local/dev environments
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = ctx =>
+        {
+            Log.Warning(ctx.Exception, "JWT authentication failed");
+            return Task.CompletedTask;
+        }
+    };
+
     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
