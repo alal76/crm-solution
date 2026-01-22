@@ -18,6 +18,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
+using CRM.Infrastructure.Services.WorkflowEngine;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -186,6 +187,10 @@ builder.Services.AddScoped<DemoDataSeederService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields
 builder.Services.AddScoped<NormalizationService>();
+
+// Register Workflow Engine services
+builder.Services.AddWorkflowEngine();
+builder.Services.AddWorkflowBackgroundWorkers();
 
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"];
