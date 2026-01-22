@@ -49,6 +49,8 @@ import {
   Save as SaveIcon,
   Preview as PreviewIcon,
   Settings as SettingsIcon,
+  Menu as MenuIcon,
+  SupportAgent as SupportAgentIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import UserApprovalTab from '../components/settings/UserApprovalTab';
@@ -59,6 +61,8 @@ import ModuleFieldSettingsTab from '../components/settings/ModuleFieldSettingsTa
 import UserManagementTab from '../components/settings/UserManagementTab';
 import SocialLoginSettingsTab from '../components/settings/SocialLoginSettingsTab';
 import SecuritySettingsTab from '../components/settings/SecuritySettingsTab';
+import NavigationSettingsTab from '../components/settings/NavigationSettingsTab';
+import ServiceRequestSettingsTab from '../components/settings/ServiceRequestSettingsTab';
 import logo from '../assets/logo.png';
 
 interface ColorPalette {
@@ -1347,17 +1351,29 @@ function SettingsPage() {
       component: <CompanyBrandingTab />,
     },
     {
+      id: 'navigation',
+      label: 'Navigation',
+      icon: <MenuIcon sx={{ mr: 0.5, fontSize: 20 }} />,
+      component: <NavigationSettingsTab />,
+    },
+    {
       id: 'modules',
       label: 'Module Settings',
       icon: <ModuleIcon sx={{ mr: 0.5, fontSize: 20 }} />,
       component: <ModuleSettingsTab />,
     },
-      {
-        id: 'fieldconfig',
-        label: 'Field Configuration',
-        icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 20 }} />,
-        component: <ModuleFieldSettingsTab />,
-      },
+    {
+      id: 'fieldconfig',
+      label: 'Field Configuration',
+      icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 20 }} />,
+      component: <ModuleFieldSettingsTab />,
+    },
+    {
+      id: 'servicerequests',
+      label: 'Service Requests',
+      icon: <SupportAgentIcon sx={{ mr: 0.5, fontSize: 20 }} />,
+      component: <ServiceRequestSettingsTab />,
+    },
     {
       id: 'sociallogin',
       label: 'Social Login',
@@ -1414,13 +1430,17 @@ function SettingsPage() {
         <Tabs
           value={activeTab}
           onChange={(e, newValue) => setActiveTab(newValue)}
-          variant="fullWidth"
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{
             borderBottom: '2px solid #E0E0E0',
             '& .MuiTab-root': {
               textTransform: 'none',
-              fontSize: '1rem',
+              fontSize: '0.9rem',
               fontWeight: 500,
+              minWidth: 'auto',
+              px: 2,
             },
           }}
         >
@@ -1429,16 +1449,16 @@ function SettingsPage() {
               key={tab.id}
               value={tab.id}
               label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   {tab.icon}
                   {tab.label}
                 </Box>
               }
               sx={{
                 textTransform: 'none',
-                fontSize: '1rem',
+                fontSize: '0.9rem',
                 fontWeight: 500,
-                py: 2,
+                py: 1.5,
               }}
             />
           ))}

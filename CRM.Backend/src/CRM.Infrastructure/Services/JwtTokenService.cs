@@ -22,7 +22,12 @@ public class JwtTokenService : IJwtTokenService
     public JwtTokenService(IConfiguration configuration)
     {
         _configuration = configuration;
-        _jwtSecret = configuration["Jwt:Secret"] ?? "your-super-secret-key-that-is-at-least-32-characters-long!!!";
+        _jwtSecret = configuration["Jwt:Secret"] 
+            ?? throw new InvalidOperationException("JWT Secret must be configured in appsettings.json or environment variables. Set 'Jwt:Secret' with a secure key at least 32 characters long.");
+        
+        if (_jwtSecret.Length < 32)
+            throw new InvalidOperationException("JWT Secret must be at least 32 characters long for security.");
+            
         _jwtIssuer = configuration["Jwt:Issuer"] ?? "CRMApp";
         _jwtAudience = configuration["Jwt:Audience"] ?? "CRMUsers";
         _jwtExpirationMinutes = int.Parse(configuration["Jwt:ExpirationMinutes"] ?? "60");

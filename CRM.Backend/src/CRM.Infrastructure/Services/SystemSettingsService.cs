@@ -132,6 +132,17 @@ public class SystemSettingsService : ISystemSettingsService
             if (request.EmailNotificationsEnabled.HasValue) settings.EmailNotificationsEnabled = request.EmailNotificationsEnabled.Value;
             if (request.AuditLoggingEnabled.HasValue) settings.AuditLoggingEnabled = request.AuditLoggingEnabled.Value;
             
+            // Navigation settings
+            if (request.NavOrderConfig != null) settings.NavOrderConfig = request.NavOrderConfig;
+            
+            // SSL/TLS settings
+            if (request.HttpsEnabled.HasValue) settings.HttpsEnabled = request.HttpsEnabled.Value;
+            if (request.SslCertificatePath != null) settings.SslCertificatePath = request.SslCertificatePath;
+            if (request.SslPrivateKeyPath != null) settings.SslPrivateKeyPath = request.SslPrivateKeyPath;
+            if (request.SslCertificateExpiry.HasValue) settings.SslCertificateExpiry = request.SslCertificateExpiry.Value;
+            if (request.SslCertificateSubject != null) settings.SslCertificateSubject = request.SslCertificateSubject;
+            if (request.ForceHttpsRedirect.HasValue) settings.ForceHttpsRedirect = request.ForceHttpsRedirect.Value;
+            
             if (!string.IsNullOrEmpty(request.DateFormat)) settings.DateFormat = request.DateFormat;
             if (!string.IsNullOrEmpty(request.TimeFormat)) settings.TimeFormat = request.TimeFormat;
             if (!string.IsNullOrEmpty(request.DefaultCurrency)) settings.DefaultCurrency = request.DefaultCurrency;
@@ -196,6 +207,15 @@ public class SystemSettingsService : ISystemSettingsService
             ApiAccessEnabled = settings.ApiAccessEnabled,
             EmailNotificationsEnabled = settings.EmailNotificationsEnabled,
             AuditLoggingEnabled = settings.AuditLoggingEnabled,
+            
+            NavOrderConfig = settings.NavOrderConfig,
+            
+            HttpsEnabled = settings.HttpsEnabled,
+            SslCertificatePath = settings.SslCertificatePath,
+            SslPrivateKeyPath = settings.SslPrivateKeyPath,
+            SslCertificateExpiry = settings.SslCertificateExpiry,
+            SslCertificateSubject = settings.SslCertificateSubject,
+            ForceHttpsRedirect = settings.ForceHttpsRedirect,
             
             DateFormat = settings.DateFormat,
             TimeFormat = settings.TimeFormat,

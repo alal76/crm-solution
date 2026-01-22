@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using AspNetCoreRateLimit;
 using Serilog;
 using System.Text;
 using System.IO;
@@ -37,6 +38,57 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+// Add rate limiting
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(options =>
+{
+    options.EnableEndpointRateLimiting = true;
+    options.StackBlockedRequests = false;
+    options.RealIpHeader = "X-Real-IP";
+    options.ClientIdHeader = "X-ClientId";
+    options.HttpStatusCode = 429;
+    options.GeneralRules = new List<RateLimitRule>
+    {
+        // General API limit
+        new RateLimitRule
+        {
+            Endpoint = "*",
+            Period = "1m",
+            Limit = 100
+        },
+        // Stricter limits for auth endpoints to prevent brute force attacks
+        new RateLimitRule
+        {
+            Endpoint = "*:/api/auth/login",
+            Period = "1m",
+            Limit = 10
+        },
+        new RateLimitRule
+        {
+            Endpoint = "*:/api/auth/register",
+            Period = "1h",
+            Limit = 5
+        },
+        new RateLimitRule
+        {
+            Endpoint = "*:/api/auth/verify-2fa",
+            Period = "1m",
+            Limit = 5
+        },
+        new RateLimitRule
+        {
+            Endpoint = "*:/api/auth/forgot-password",
+            Period = "1h",
+            Limit = 3
+        }
+    };
+});
+builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+builder.Services.AddInMemoryRateLimiting();
 
 // Add services
 builder.Services.AddControllers();
@@ -134,7 +186,20 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructu
 builder.Services.AddScoped<NormalizationService>();
 
 // Configure JWT Authentication
-var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-super-secret-key-that-is-at-least-32-characters-long!!!";
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 32)
+{
+    // Use a secure default for development only - in production, this should be configured
+    if (builder.Environment.IsDevelopment())
+    {
+        jwtSecret = "development-only-jwt-secret-key-minimum-32-chars";
+        Log.Warning("Using development JWT secret. Configure Jwt:Secret for production.");
+    }
+    else
+    {
+        throw new InvalidOperationException("JWT Secret must be configured in production. Set 'Jwt:Secret' with a secure key at least 32 characters long.");
+    }
+}
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "CRMApp";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "CRMUsers";
 var key = Encoding.UTF8.GetBytes(jwtSecret);
@@ -146,8 +211,8 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer("Bearer", options =>
 {
-    // Helpful defaults for local/dev environments
-    options.RequireHttpsMetadata = false;
+    // Require HTTPS in production, allow HTTP in development
+    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
     options.SaveToken = true;
 
     options.Events = new JwtBearerEvents
@@ -291,6 +356,8 @@ if (Directory.Exists(frontendBuildPath))
 app.UseRouting();
 // Use the default CORS policy globally
 app.UseCors();
+// Apply rate limiting before authentication
+app.UseIpRateLimiting();
 app.UseAuthentication();
 app.UseAuthorization();
 

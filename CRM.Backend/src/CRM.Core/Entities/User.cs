@@ -139,6 +139,18 @@ public class User : BaseEntity
     /// </summary>
     public string? EmailVerificationToken { get; set; }
 
+    // === Refresh Token ===
+    
+    /// <summary>
+    /// Current refresh token for session renewal
+    /// </summary>
+    public string? RefreshToken { get; set; }
+    
+    /// <summary>
+    /// Expiration time for refresh token
+    /// </summary>
+    public DateTime? RefreshTokenExpiry { get; set; }
+
     // === Department and Profile Management ===
     
     /// <summary>

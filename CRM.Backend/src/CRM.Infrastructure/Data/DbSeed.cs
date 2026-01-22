@@ -1,8 +1,7 @@
 using CRM.Core.Entities;
 using CRM.Core.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
+using BCrypt.Net;
 
 namespace CRM.Infrastructure.Data;
 
@@ -12,15 +11,11 @@ namespace CRM.Infrastructure.Data;
 public class DbSeed
 {
     /// <summary>
-    /// Hash a password using SHA-256
+    /// Hash a password using BCrypt
     /// </summary>
     private static string HashPassword(string password)
     {
-        using (var sha256 = SHA256.Create())
-        {
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
-        }
+        return BCrypt.Net.BCrypt.HashPassword(password);
     }
 
     /// <summary>

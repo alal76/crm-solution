@@ -3,6 +3,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CRM.API.Controllers;
 
@@ -178,4 +179,243 @@ public class SystemSettingsController : ControllerBase
             return StatusCode(500, "Error resetting branding");
         }
     }
+
+    /// <summary>
+    /// Upload SSL certificate and private key (admin only)
+    /// </summary>
+    [HttpPost("ssl/upload")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<SystemSettingsDto>> UploadSslCertificate(
+        [FromForm] IFormFile certificate,
+        [FromForm] IFormFile? privateKey)
+    {
+        try
+        {
+            if (certificate == null || certificate.Length == 0)
+                return BadRequest(new { message = "Certificate file is required" });
+
+            var certDir = Path.Combine(Directory.GetCurrentDirectory(), "ssl");
+            Directory.CreateDirectory(certDir);
+
+            var certFileName = $"certificate_{DateTime.UtcNow:yyyyMMddHHmmss}.crt";
+            var certPath = Path.Combine(certDir, certFileName);
+
+            // Save certificate file
+            using (var stream = new FileStream(certPath, FileMode.Create))
+            {
+                await certificate.CopyToAsync(stream);
+            }
+
+            string? keyPath = null;
+            if (privateKey != null && privateKey.Length > 0)
+            {
+                var keyFileName = $"private_{DateTime.UtcNow:yyyyMMddHHmmss}.key";
+                keyPath = Path.Combine(certDir, keyFileName);
+                using var keyStream = new FileStream(keyPath, FileMode.Create);
+                await privateKey.CopyToAsync(keyStream);
+            }
+
+            // Try to read certificate info
+            DateTime? expiry = null;
+            string? subject = null;
+            try
+            {
+                var certBytes = await System.IO.File.ReadAllBytesAsync(certPath);
+                var x509 = new X509Certificate2(certBytes);
+                expiry = x509.NotAfter;
+                subject = x509.Subject;
+                x509.Dispose();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not parse certificate details");
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+            var request = new UpdateSystemSettingsRequest
+            {
+                SslCertificatePath = certPath,
+                SslPrivateKeyPath = keyPath,
+                SslCertificateExpiry = expiry,
+                SslCertificateSubject = subject
+            };
+
+            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+            
+            _logger.LogInformation("SSL certificate uploaded by user {UserId}", userId);
+            
+            return Ok(new { 
+                message = "SSL certificate uploaded successfully",
+                certificatePath = certPath,
+                privateKeyPath = keyPath,
+                expiry = expiry,
+                subject = subject,
+                settings 
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading SSL certificate");
+            return StatusCode(500, "Error uploading SSL certificate");
+        }
+    }
+
+    /// <summary>
+    /// Toggle HTTPS mode (admin only)
+    /// </summary>
+    [HttpPost("ssl/toggle")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<SystemSettingsDto>> ToggleHttps([FromBody] ToggleHttpsRequest request)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+            var updateRequest = new UpdateSystemSettingsRequest
+            {
+                HttpsEnabled = request.Enabled,
+                ForceHttpsRedirect = request.ForceRedirect
+            };
+
+            var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
+            
+            _logger.LogInformation("HTTPS mode toggled to {Enabled} by user {UserId}", request.Enabled, userId);
+            
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling HTTPS mode");
+            return StatusCode(500, "Error toggling HTTPS mode");
+        }
+    }
+
+    /// <summary>
+    /// Get SSL certificate status (admin only)
+    /// </summary>
+    [HttpGet("ssl/status")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult> GetSslStatus()
+    {
+        try
+        {
+            var settings = await _settingsService.GetSettingsAsync();
+            
+            return Ok(new
+            {
+                httpsEnabled = settings.HttpsEnabled,
+                forceRedirect = settings.ForceHttpsRedirect,
+                hasCertificate = !string.IsNullOrEmpty(settings.SslCertificatePath),
+                hasPrivateKey = !string.IsNullOrEmpty(settings.SslPrivateKeyPath),
+                certificateExpiry = settings.SslCertificateExpiry,
+                certificateSubject = settings.SslCertificateSubject,
+                isExpired = settings.SslCertificateExpiry.HasValue && settings.SslCertificateExpiry < DateTime.UtcNow,
+                expiresInDays = settings.SslCertificateExpiry.HasValue 
+                    ? (int)(settings.SslCertificateExpiry.Value - DateTime.UtcNow).TotalDays 
+                    : (int?)null
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting SSL status");
+            return StatusCode(500, "Error getting SSL status");
+        }
+    }
+
+    /// <summary>
+    /// Remove SSL certificate (admin only)
+    /// </summary>
+    [HttpDelete("ssl")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<SystemSettingsDto>> RemoveSslCertificate()
+    {
+        try
+        {
+            var currentSettings = await _settingsService.GetSettingsAsync();
+            
+            // Delete certificate files if they exist
+            if (!string.IsNullOrEmpty(currentSettings.SslCertificatePath) && System.IO.File.Exists(currentSettings.SslCertificatePath))
+            {
+                System.IO.File.Delete(currentSettings.SslCertificatePath);
+            }
+            if (!string.IsNullOrEmpty(currentSettings.SslPrivateKeyPath) && System.IO.File.Exists(currentSettings.SslPrivateKeyPath))
+            {
+                System.IO.File.Delete(currentSettings.SslPrivateKeyPath);
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+            var request = new UpdateSystemSettingsRequest
+            {
+                HttpsEnabled = false,
+                ForceHttpsRedirect = false,
+                SslCertificatePath = "",
+                SslPrivateKeyPath = "",
+                SslCertificateExpiry = null,
+                SslCertificateSubject = ""
+            };
+
+            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+            
+            _logger.LogInformation("SSL certificate removed by user {UserId}", userId);
+            
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing SSL certificate");
+            return StatusCode(500, "Error removing SSL certificate");
+        }
+    }
+
+    /// <summary>
+    /// Update navigation order (admin only)
+    /// </summary>
+    [HttpPut("navigation/order")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<SystemSettingsDto>> UpdateNavigationOrder([FromBody] UpdateNavOrderRequest request)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+            var updateRequest = new UpdateSystemSettingsRequest
+            {
+                NavOrderConfig = request.NavOrderConfig
+            };
+
+            var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
+            
+            _logger.LogInformation("Navigation order updated by user {UserId}", userId);
+            
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating navigation order");
+            return StatusCode(500, "Error updating navigation order");
+        }
+    }
+}
+
+/// <summary>
+/// Request to toggle HTTPS mode
+/// </summary>
+public class ToggleHttpsRequest
+{
+    public bool Enabled { get; set; }
+    public bool ForceRedirect { get; set; }
+}
+
+/// <summary>
+/// Request to update navigation order
+/// </summary>
+public class UpdateNavOrderRequest
+{
+    public string NavOrderConfig { get; set; } = string.Empty;
 }

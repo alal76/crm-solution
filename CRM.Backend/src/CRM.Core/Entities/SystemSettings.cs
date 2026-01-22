@@ -388,4 +388,48 @@ public class SystemSettings : BaseEntity
     public int? ModifiedByUserId { get; set; }
     
     #endregion
+    
+    #region Navigation Settings
+    
+    /// <summary>
+    /// JSON configuration for navigation item ordering
+    /// Format: [{"menuName": "Dashboard", "order": 0, "visible": true}, ...]
+    /// </summary>
+    public string? NavOrderConfig { get; set; }
+    
+    #endregion
+    
+    #region SSL/TLS Settings
+    
+    /// <summary>
+    /// Whether HTTPS is enabled for frontend
+    /// </summary>
+    public bool HttpsEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// Path to SSL certificate file (stored on server)
+    /// </summary>
+    public string? SslCertificatePath { get; set; }
+    
+    /// <summary>
+    /// Path to SSL private key file (stored on server)
+    /// </summary>
+    public string? SslPrivateKeyPath { get; set; }
+    
+    /// <summary>
+    /// SSL certificate expiry date
+    /// </summary>
+    public DateTime? SslCertificateExpiry { get; set; }
+    
+    /// <summary>
+    /// SSL certificate subject/domain
+    /// </summary>
+    public string? SslCertificateSubject { get; set; }
+    
+    /// <summary>
+    /// Whether to force HTTPS redirect
+    /// </summary>
+    public bool ForceHttpsRedirect { get; set; } = false;
+    
+    #endregion
 }

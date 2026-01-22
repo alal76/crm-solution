@@ -207,6 +207,8 @@ function DatabaseSettingsTab() {
   });
   const [clearDataConfirmation, setClearDataConfirmation] = useState('');
 
+  // Note: localStorage is used for token storage. For enhanced security in production,
+  // consider using httpOnly cookies managed by the backend.
   const getToken = () => localStorage.getItem('accessToken');
 
   const databaseOptions = [
@@ -231,9 +233,14 @@ function DatabaseSettingsTab() {
       });
       if (response.ok) {
         setStatus(await response.json());
+      } else if (response.status === 401) {
+        setError('Session expired. Please log in again.');
+      } else {
+        setError('Failed to fetch database status. Please try again.');
       }
     } catch (err) {
       console.error('Failed to fetch database status', err);
+      setError('Unable to connect to server. Please check your connection.');
     }
   };
 
@@ -244,6 +251,9 @@ function DatabaseSettingsTab() {
       });
       if (response.ok) {
         setBackups(await response.json());
+      } else if (response.status !== 401) {
+        // Don't show error for 401 - already handled by fetchDatabaseStatus
+        console.error('Failed to fetch backups:', response.status);
       }
     } catch (err) {
       console.error('Failed to fetch backups', err);

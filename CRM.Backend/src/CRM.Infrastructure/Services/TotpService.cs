@@ -45,8 +45,14 @@ public class TotpService : ITotpService
         for (int i = -1; i <= 1; i++)
         {
             var timeWindow = (unixTime / TimeStepSeconds) + i;
-            var hmac = new HMACSHA1(secretBytes);
-            var hash = hmac.ComputeHash(BitConverter.GetBytes(timeWindow));
+            // Note: Using HMACSHA1 for compatibility with standard authenticator apps
+            // (Google Authenticator, Microsoft Authenticator, etc.)
+            // Most authenticator apps only support SHA1 for TOTP
+            using var hmac = new HMACSHA1(secretBytes);
+            var timeBytes = BitConverter.GetBytes(timeWindow);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(timeBytes);
+            var hash = hmac.ComputeHash(timeBytes);
             var offset = hash[hash.Length - 1] & 0x0f;
             var truncated = (hash[offset] & 0x7f) << 24
                 | (hash[offset + 1] & 0xff) << 16
