@@ -36,6 +36,7 @@ import {
   Business as BusinessIcon,
   SupportAgent as SupportAgentIcon,
   Science as ScienceIcon,
+  PersonSearch as PersonSearchIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -85,6 +86,7 @@ function NavigationContent() {
   const navItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
     'dashboard': { label: 'Dashboard', icon: DashboardIcon, path: '/', menuName: 'Dashboard' },
     'customers': { label: 'Customers', icon: PeopleIcon, path: '/customers', menuName: 'Customers' },
+    'customer-overview': { label: 'Customer Overview', icon: PersonSearchIcon, path: '/customer-overview', menuName: 'CustomerOverview' },
     'contacts': { label: 'Contacts', icon: PeopleIcon, path: '/contacts', menuName: 'Contacts' },
     'leads': { label: 'Leads', icon: PeopleIcon, path: '/leads', menuName: 'Leads' },
     'opportunities': { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', menuName: 'Opportunities' },
@@ -93,7 +95,7 @@ function NavigationContent() {
     'service-requests': { label: 'Service Requests', icon: SupportAgentIcon, path: '/service-requests', menuName: 'ServiceRequests' },
     'campaigns': { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', menuName: 'Campaigns' },
     'quotes': { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
-    'tasks': { label: 'Tasks', icon: TaskIcon, path: '/tasks', menuName: 'Tasks' },
+    'my-queue': { label: 'My Queue', icon: TaskIcon, path: '/my-queue', menuName: 'MyQueue' },
     'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
     'notes': { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
   }), []);
@@ -105,9 +107,9 @@ function NavigationContent() {
 
   // Default order for nav items
   const defaultNavOrder = useMemo(() => [
-    'dashboard', 'customers', 'contacts', 'leads', 'opportunities',
+    'dashboard', 'customers', 'customer-overview', 'contacts', 'leads', 'opportunities',
     'products', 'services', 'service-requests', 'campaigns', 'quotes',
-    'tasks', 'activities', 'notes'
+    'my-queue', 'activities', 'notes'
   ], []);
   const defaultAdminOrder = useMemo(() => ['workflows', 'settings'], []);
 

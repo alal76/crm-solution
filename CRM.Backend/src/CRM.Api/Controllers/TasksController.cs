@@ -210,4 +210,108 @@ public class TasksController : ControllerBase
 
         return Ok(tasks);
     }
+
+    /// <summary>
+    /// Get My Queue - tasks where action is pending for the logged-in user's group
+    /// For workflow admin users (CanActivateWorkflows), return all tasks with all statuses
+    /// </summary>
+    [HttpGet("my-queue")]
+    public async Task<ActionResult<object>> GetMyQueue()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            // Get the user's groups
+            var userGroupIds = await _context.UserGroupMembers
+                .Where(m => m.UserId == userId)
+                .Select(m => m.UserGroupId)
+                .ToListAsync();
+
+            // Check if user is a workflow admin (any of their groups has CanActivateWorkflows)
+            var isWorkflowAdmin = await _context.UserGroups
+                .Where(g => userGroupIds.Contains(g.Id) && g.CanActivateWorkflows)
+                .AnyAsync();
+
+            IQueryable<CrmTask> query = _context.CrmTasks
+                .Include(t => t.Customer)
+                .Include(t => t.Opportunity)
+                .Include(t => t.AssignedToUser)
+                .Include(t => t.AssignedToGroup)
+                .AsQueryable();
+
+            if (isWorkflowAdmin)
+            {
+                // Workflow admin sees all tasks
+                query = query.OrderByDescending(t => t.Priority)
+                    .ThenBy(t => t.DueDate);
+            }
+            else
+            {
+                // Regular users see only tasks assigned to their groups with pending status
+                query = query.Where(t => 
+                    (t.AssignedToGroupId.HasValue && userGroupIds.Contains(t.AssignedToGroupId.Value)) ||
+                    (t.AssignedToUserId.HasValue && t.AssignedToUserId == userId))
+                    .Where(t => t.Status != CrmTaskStatus.Completed && t.Status != CrmTaskStatus.Cancelled)
+                    .OrderByDescending(t => t.Priority)
+                    .ThenBy(t => t.DueDate);
+            }
+
+            var tasks = await query.ToListAsync();
+
+            // Get group names for the tasks
+            var groupIds = tasks.Where(t => t.AssignedToGroupId.HasValue).Select(t => t.AssignedToGroupId!.Value).Distinct().ToList();
+            var groupNames = await _context.UserGroups
+                .Where(g => groupIds.Contains(g.Id))
+                .ToDictionaryAsync(g => g.Id, g => g.Name);
+
+            // Map to response with additional info
+            var result = tasks.Select(t => new
+            {
+                t.Id,
+                t.Subject,
+                t.Description,
+                TaskType = t.TaskType.ToString(),
+                Status = t.Status.ToString(),
+                Priority = t.Priority.ToString(),
+                t.DueDate,
+                t.StartDate,
+                t.CompletedDate,
+                t.PercentComplete,
+                t.EstimatedMinutes,
+                t.ActualMinutes,
+                t.CustomerId,
+                CustomerName = t.Customer?.Company,
+                t.OpportunityId,
+                OpportunityName = t.Opportunity?.Name,
+                t.AssignedToUserId,
+                AssignedToUserName = t.AssignedToUser != null ? $"{t.AssignedToUser.FirstName} {t.AssignedToUser.LastName}" : null,
+                t.AssignedToGroupId,
+                AssignedToGroupName = t.AssignedToGroupId.HasValue && groupNames.ContainsKey(t.AssignedToGroupId.Value) 
+                    ? groupNames[t.AssignedToGroupId.Value] : null,
+                t.Tags,
+                t.Category,
+                t.CreatedAt,
+                IsOverdue = t.DueDate.HasValue && t.DueDate < DateTime.UtcNow && t.Status != CrmTaskStatus.Completed
+            }).ToList();
+
+            var overdueCount = result.Count(r => r.IsOverdue);
+
+            return Ok(new
+            {
+                isWorkflowAdmin,
+                tasks = result,
+                totalCount = result.Count,
+                pendingCount = result.Count(r => r.Status != "Completed" && r.Status != "Cancelled"),
+                overdueCount
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error retrieving my queue: {ex.Message}");
+            return BadRequest(new { message = "Error retrieving queue" });
+        }
+    }
 }

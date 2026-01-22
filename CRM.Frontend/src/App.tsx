@@ -56,6 +56,7 @@ import HelpPage from './pages/HelpPage';
 import LicensesPage from './pages/LicensesPage';
 import ServiceRequestsPage from './pages/ServiceRequestsPage';
 import ServiceRequestSettingsPage from './pages/ServiceRequestSettingsPage';
+import CustomerOverviewPage from './pages/CustomerOverviewPage';
 import './App.css';
 
 function App() {
@@ -105,6 +106,16 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Customers">
                       <CustomersPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/customer-overview"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Customers">
+                      <CustomerOverviewPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
@@ -252,7 +263,7 @@ function App() {
                 }
               />
               <Route
-                path="/tasks"
+                path="/my-queue"
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute>

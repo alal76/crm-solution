@@ -76,6 +76,7 @@ public class CrmTask : BaseEntity
     public int? OpportunityId { get; set; }
     public int? CampaignId { get; set; }
     public int? AssignedToUserId { get; set; }
+    public int? AssignedToGroupId { get; set; } // Group assignment for workflow queue
     public int? CreatedByUserId { get; set; }
     
     // Classification
@@ -93,6 +94,7 @@ public class CrmTask : BaseEntity
     public Opportunity? Opportunity { get; set; }
     public MarketingCampaign? Campaign { get; set; }
     public User? AssignedToUser { get; set; }
+    public UserGroup? AssignedToGroup { get; set; }
     public User? CreatedByUser { get; set; }
     public CrmTask? ParentTask { get; set; }
     public ICollection<CrmTask>? SubTasks { get; set; }

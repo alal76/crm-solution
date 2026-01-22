@@ -1,0 +1,826 @@
+import { useState, useEffect } from 'react';
+import {
+  Box, Container, Typography, Card, CardContent, TextField, Button, Grid,
+  CircularProgress, Alert, Tabs, Tab, Chip, Avatar, Divider, IconButton,
+  Table, TableBody, TableCell, TableHead, TableRow, Paper, InputAdornment,
+  List, ListItem, ListItemAvatar, ListItemText, Tooltip, Link, Autocomplete
+} from '@mui/material';
+import {
+  Search as SearchIcon, Business as BusinessIcon, Person as PersonIcon,
+  Email as EmailIcon, Phone as PhoneIcon, LinkedIn as LinkedInIcon,
+  Twitter as TwitterIcon, Language as WebIcon, LocationOn as LocationIcon,
+  AttachMoney as MoneyIcon, CalendarToday as CalendarIcon,
+  Article as NewsIcon, Public as SocialIcon, Refresh as RefreshIcon,
+  AccountCircle as AccountManagerIcon, OpenInNew as OpenInNewIcon
+} from '@mui/icons-material';
+import apiClient from '../services/apiClient';
+import logo from '../assets/logo.png';
+
+interface Customer {
+  id: number;
+  company: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  industry?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+  customerCategory?: number;
+  customerType?: number;
+  lifecycleStage?: number;
+  annualRevenue?: number;
+  employeeCount?: number;
+  accountManagerId?: number;
+  accountManagerName?: string;
+  createdAt?: string;
+  linkedInUrl?: string;
+  twitterHandle?: string;
+  facebookUrl?: string;
+  instagramHandle?: string;
+}
+
+interface Contact {
+  id: number;
+  firstName: string;
+  lastName: string;
+  emailPrimary?: string;
+  phonePrimary?: string;
+  jobTitle?: string;
+  role?: string;
+  isPrimaryContact?: boolean;
+  linkedInUrl?: string;
+  twitterHandle?: string;
+}
+
+interface NewsItem {
+  id: string;
+  title: string;
+  source: string;
+  url: string;
+  publishedAt: string;
+  summary?: string;
+  sentiment?: 'positive' | 'neutral' | 'negative';
+}
+
+interface SocialFeed {
+  id: string;
+  platform: 'linkedin' | 'twitter' | 'facebook';
+  content: string;
+  author: string;
+  publishedAt: string;
+  url?: string;
+  engagementCount?: number;
+}
+
+interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div role="tabpanel" hidden={value !== index} {...other}>
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+// Mock data for news and social feeds (in production, these would come from external APIs)
+const generateMockNews = (customerName: string): NewsItem[] => [
+  {
+    id: '1',
+    title: `${customerName} announces Q4 earnings exceeding expectations`,
+    source: 'Business Wire',
+    url: 'https://example.com/news/1',
+    publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    summary: 'Company reports strong growth in key markets...',
+    sentiment: 'positive'
+  },
+  {
+    id: '2',
+    title: `${customerName} expands operations to new markets`,
+    source: 'Reuters',
+    url: 'https://example.com/news/2',
+    publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    summary: 'Strategic expansion aims to capture emerging market opportunities...',
+    sentiment: 'positive'
+  },
+  {
+    id: '3',
+    title: `Industry analysis: ${customerName} maintains market position`,
+    source: 'Industry Today',
+    url: 'https://example.com/news/3',
+    publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    summary: 'Competitive landscape analysis shows steady performance...',
+    sentiment: 'neutral'
+  },
+];
+
+const generateMockSocialFeeds = (customerName: string): SocialFeed[] => [
+  {
+    id: '1',
+    platform: 'linkedin',
+    content: `Excited to announce our new partnership initiative! ${customerName} continues to innovate...`,
+    author: 'Company Official',
+    publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    url: 'https://linkedin.com/post/1',
+    engagementCount: 245
+  },
+  {
+    id: '2',
+    platform: 'twitter',
+    content: `Great Q4 results! Thank you to our amazing team and customers. #Growth #Innovation`,
+    author: '@CompanyHandle',
+    publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    url: 'https://twitter.com/post/1',
+    engagementCount: 892
+  },
+];
+
+const LIFECYCLE_STAGES = [
+  { value: 0, label: 'Lead', color: '#9e9e9e' },
+  { value: 1, label: 'Prospect', color: '#2196f3' },
+  { value: 2, label: 'Opportunity', color: '#ff9800' },
+  { value: 3, label: 'Customer', color: '#4caf50' },
+  { value: 4, label: 'Churned', color: '#f44336' },
+  { value: 5, label: 'Reactivated', color: '#9c27b0' },
+];
+
+const CUSTOMER_TYPES = [
+  { value: 0, label: 'Individual' },
+  { value: 1, label: 'Small Business' },
+  { value: 2, label: 'Mid-Market' },
+  { value: 3, label: 'Enterprise' },
+  { value: 4, label: 'Government' },
+  { value: 5, label: 'Non-Profit' },
+];
+
+function CustomerOverviewPage() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState<'all' | 'name' | 'email' | 'id' | 'phone' | 'accountManager'>('all');
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [socialFeeds, setSocialFeeds] = useState<SocialFeed[]>([]);
+  const [accountManagers, setAccountManagers] = useState<User[]>([]);
+  const [selectedAccountManager, setSelectedAccountManager] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [tabValue, setTabValue] = useState(0);
+  const [loadingNews, setLoadingNews] = useState(false);
+
+  useEffect(() => {
+    fetchCustomers();
+    fetchAccountManagers();
+  }, []);
+
+  useEffect(() => {
+    filterCustomers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, searchType, customers, selectedAccountManager]);
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/customers');
+      setCustomers(response.data || []);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch customers');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAccountManagers = async () => {
+    try {
+      const response = await apiClient.get('/users');
+      setAccountManagers(response.data || []);
+    } catch (err) {
+      console.error('Error fetching account managers:', err);
+    }
+  };
+
+  const filterCustomers = () => {
+    let filtered = [...customers];
+    const query = searchQuery.toLowerCase().trim();
+
+    if (selectedAccountManager) {
+      filtered = filtered.filter(c => c.accountManagerId === selectedAccountManager.id);
+    }
+
+    if (query) {
+      filtered = filtered.filter(customer => {
+        switch (searchType) {
+          case 'name':
+            return customer.company?.toLowerCase().includes(query) ||
+                   `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(query);
+          case 'email':
+            return customer.email?.toLowerCase().includes(query);
+          case 'id':
+            return customer.id.toString().includes(query);
+          case 'phone':
+            return customer.phone?.includes(query);
+          case 'accountManager':
+            return customer.accountManagerName?.toLowerCase().includes(query);
+          default:
+            return customer.company?.toLowerCase().includes(query) ||
+                   `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(query) ||
+                   customer.email?.toLowerCase().includes(query) ||
+                   customer.id.toString().includes(query) ||
+                   customer.phone?.includes(query) ||
+                   customer.accountManagerName?.toLowerCase().includes(query);
+        }
+      });
+    }
+
+    setFilteredCustomers(filtered);
+  };
+
+  const selectCustomer = async (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setTabValue(0);
+    await fetchCustomerDetails(customer.id);
+  };
+
+  const fetchCustomerDetails = async (customerId: number) => {
+    try {
+      setLoadingDetails(true);
+      
+      // Fetch contacts for this customer
+      const contactsResponse = await apiClient.get(`/customers/${customerId}/contacts`);
+      setContacts(contactsResponse.data || []);
+
+      // Generate mock news and social feeds (in production, call external APIs)
+      const customerName = selectedCustomer?.company || 'Company';
+      setNewsItems(generateMockNews(customerName));
+      setSocialFeeds(generateMockSocialFeeds(customerName));
+
+    } catch (err: any) {
+      console.error('Error fetching customer details:', err);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const refreshNewsFeed = async () => {
+    if (!selectedCustomer) return;
+    setLoadingNews(true);
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setNewsItems(generateMockNews(selectedCustomer.company || 'Company'));
+    setSocialFeeds(generateMockSocialFeeds(selectedCustomer.company || 'Company'));
+    setLoadingNews(false);
+  };
+
+  const getLifecycleStage = (value?: number) => LIFECYCLE_STAGES.find(s => s.value === value);
+  const getCustomerType = (value?: number) => CUSTOMER_TYPES.find(t => t.value === value);
+
+  const getSentimentColor = (sentiment?: string) => {
+    switch (sentiment) {
+      case 'positive': return '#4caf50';
+      case 'negative': return '#f44336';
+      default: return '#9e9e9e';
+    }
+  };
+
+  const getPlatformIcon = (platform: string) => {
+    switch (platform) {
+      case 'linkedin': return <LinkedInIcon sx={{ color: '#0077b5' }} />;
+      case 'twitter': return <TwitterIcon sx={{ color: '#1da1f2' }} />;
+      default: return <SocialIcon />;
+    }
+  };
+
+  return (
+    <Box sx={{ py: 2 }}>
+      <Container maxWidth="xl">
+        {/* Header */}
+        <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ width: 40, height: 40, flexShrink: 0 }}>
+            <img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          </Box>
+          <Box>
+            <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
+              Customer Overview
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              360° view of customer information, contacts, news and social feeds
+            </Typography>
+          </Box>
+        </Box>
+
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+        <Grid container spacing={3}>
+          {/* Left Panel - Search & Customer List */}
+          <Grid item xs={12} md={4}>
+            <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                  Find Customer
+                </Typography>
+
+                {/* Search Type Selector */}
+                <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                  {[
+                    { value: 'all', label: 'All' },
+                    { value: 'name', label: 'Name' },
+                    { value: 'email', label: 'Email' },
+                    { value: 'id', label: 'ID' },
+                    { value: 'phone', label: 'Phone' },
+                  ].map(type => (
+                    <Chip
+                      key={type.value}
+                      label={type.label}
+                      size="small"
+                      variant={searchType === type.value ? 'filled' : 'outlined'}
+                      color={searchType === type.value ? 'primary' : 'default'}
+                      onClick={() => setSearchType(type.value as any)}
+                      sx={{ cursor: 'pointer' }}
+                    />
+                  ))}
+                </Box>
+
+                {/* Search Input */}
+                <TextField
+                  fullWidth
+                  placeholder="Search customers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 2 }}
+                />
+
+                {/* Account Manager Filter */}
+                <Autocomplete
+                  options={accountManagers}
+                  getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
+                  value={selectedAccountManager}
+                  onChange={(_, newValue) => setSelectedAccountManager(newValue)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Filter by Account Manager"
+                      size="small"
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <InputAdornment position="start">
+                              <AccountManagerIcon color="action" />
+                            </InputAdornment>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  sx={{ mb: 2 }}
+                />
+
+                <Divider sx={{ my: 2 }} />
+
+                {/* Customer List */}
+                <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1 }}>
+                  {filteredCustomers.length} customer(s) found
+                </Typography>
+
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress size={30} />
+                  </Box>
+                ) : (
+                  <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+                    {filteredCustomers.slice(0, 50).map((customer) => (
+                      <ListItem
+                        key={customer.id}
+                        button
+                        selected={selectedCustomer?.id === customer.id}
+                        onClick={() => selectCustomer(customer)}
+                        sx={{
+                          borderRadius: 2,
+                          mb: 0.5,
+                          '&.Mui-selected': { backgroundColor: '#E8DEF8' },
+                        }}
+                      >
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: customer.customerCategory === 1 ? '#6750A4' : '#7D5260' }}>
+                            {customer.customerCategory === 1 ? <BusinessIcon /> : <PersonIcon />}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={customer.company || `${customer.firstName} ${customer.lastName}`}
+                          secondary={
+                            <Box component="span">
+                              <Typography variant="caption" display="block">
+                                ID: {customer.id} • {customer.email}
+                              </Typography>
+                              {customer.accountManagerName && (
+                                <Typography variant="caption" color="primary">
+                                  AM: {customer.accountManagerName}
+                                </Typography>
+                              )}
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                    {filteredCustomers.length === 0 && (
+                      <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
+                        No customers found
+                      </Typography>
+                    )}
+                  </List>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Right Panel - Customer Details */}
+          <Grid item xs={12} md={8}>
+            {selectedCustomer ? (
+              <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
+                <CardContent>
+                  {/* Customer Header */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                    <Avatar sx={{ width: 64, height: 64, bgcolor: '#6750A4', fontSize: 24 }}>
+                      {selectedCustomer.customerCategory === 1 ? <BusinessIcon /> : <PersonIcon />}
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                        {selectedCustomer.company || `${selectedCustomer.firstName} ${selectedCustomer.lastName}`}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.5 }}>
+                        <Chip
+                          label={`ID: ${selectedCustomer.id}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                        {selectedCustomer.lifecycleStage !== undefined && (
+                          <Chip
+                            label={getLifecycleStage(selectedCustomer.lifecycleStage)?.label}
+                            size="small"
+                            sx={{
+                              backgroundColor: getLifecycleStage(selectedCustomer.lifecycleStage)?.color,
+                              color: 'white'
+                            }}
+                          />
+                        )}
+                        {selectedCustomer.customerType !== undefined && (
+                          <Chip
+                            label={getCustomerType(selectedCustomer.customerType)?.label}
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                    {/* Social Links */}
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      {selectedCustomer.website && (
+                        <Tooltip title="Website">
+                          <IconButton href={selectedCustomer.website} target="_blank" size="small">
+                            <WebIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      {selectedCustomer.linkedInUrl && (
+                        <Tooltip title="LinkedIn">
+                          <IconButton href={selectedCustomer.linkedInUrl} target="_blank" size="small">
+                            <LinkedInIcon sx={{ color: '#0077b5' }} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      {selectedCustomer.twitterHandle && (
+                        <Tooltip title="Twitter">
+                          <IconButton href={`https://twitter.com/${selectedCustomer.twitterHandle}`} target="_blank" size="small">
+                            <TwitterIcon sx={{ color: '#1da1f2' }} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
+                  </Box>
+
+                  {/* Tabs */}
+                  <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} sx={{ mb: 2 }}>
+                    <Tab label="Overview" />
+                    <Tab label="Contacts" />
+                    <Tab label="News & Social" />
+                  </Tabs>
+
+                  {loadingDetails ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : (
+                    <>
+                      {/* Overview Tab */}
+                      <TabPanel value={tabValue} index={0}>
+                        <Grid container spacing={3}>
+                          {/* Contact Information */}
+                          <Grid item xs={12} md={6}>
+                            <Paper sx={{ p: 2, backgroundColor: '#F5EFF7', borderRadius: 2 }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                                Contact Information
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <EmailIcon fontSize="small" color="action" />
+                                  <Typography variant="body2">{selectedCustomer.email || 'N/A'}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <PhoneIcon fontSize="small" color="action" />
+                                  <Typography variant="body2">{selectedCustomer.phone || 'N/A'}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <LocationIcon fontSize="small" color="action" />
+                                  <Typography variant="body2">
+                                    {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.country]
+                                      .filter(Boolean).join(', ') || 'N/A'}
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <WebIcon fontSize="small" color="action" />
+                                  <Typography variant="body2">
+                                    {selectedCustomer.website ? (
+                                      <Link href={selectedCustomer.website} target="_blank">{selectedCustomer.website}</Link>
+                                    ) : 'N/A'}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Paper>
+                          </Grid>
+
+                          {/* Business Information */}
+                          <Grid item xs={12} md={6}>
+                            <Paper sx={{ p: 2, backgroundColor: '#FFF3E0', borderRadius: 2 }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                                Business Information
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <BusinessIcon fontSize="small" color="action" />
+                                  <Typography variant="body2">Industry: {selectedCustomer.industry || 'N/A'}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <MoneyIcon fontSize="small" color="action" />
+                                  <Typography variant="body2">
+                                    Annual Revenue: {selectedCustomer.annualRevenue 
+                                      ? `$${selectedCustomer.annualRevenue.toLocaleString()}` 
+                                      : 'N/A'}
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <PersonIcon fontSize="small" color="action" />
+                                  <Typography variant="body2">
+                                    Employees: {selectedCustomer.employeeCount || 'N/A'}
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <AccountManagerIcon fontSize="small" color="action" />
+                                  <Typography variant="body2">
+                                    Account Manager: {selectedCustomer.accountManagerName || 'N/A'}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Paper>
+                          </Grid>
+
+                          {/* Account Details */}
+                          <Grid item xs={12}>
+                            <Paper sx={{ p: 2, borderRadius: 2 }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                                Account Details
+                              </Typography>
+                              <Grid container spacing={2}>
+                                <Grid item xs={6} md={3}>
+                                  <Typography variant="caption" color="textSecondary">Customer Since</Typography>
+                                  <Typography variant="body2">
+                                    {selectedCustomer.createdAt 
+                                      ? new Date(selectedCustomer.createdAt).toLocaleDateString() 
+                                      : 'N/A'}
+                                  </Typography>
+                                </Grid>
+                                <Grid item xs={6} md={3}>
+                                  <Typography variant="caption" color="textSecondary">Lifecycle Stage</Typography>
+                                  <Typography variant="body2">
+                                    {getLifecycleStage(selectedCustomer.lifecycleStage)?.label || 'N/A'}
+                                  </Typography>
+                                </Grid>
+                                <Grid item xs={6} md={3}>
+                                  <Typography variant="caption" color="textSecondary">Customer Type</Typography>
+                                  <Typography variant="body2">
+                                    {getCustomerType(selectedCustomer.customerType)?.label || 'N/A'}
+                                  </Typography>
+                                </Grid>
+                                <Grid item xs={6} md={3}>
+                                  <Typography variant="caption" color="textSecondary">Total Contacts</Typography>
+                                  <Typography variant="body2">{contacts.length}</Typography>
+                                </Grid>
+                              </Grid>
+                            </Paper>
+                          </Grid>
+                        </Grid>
+                      </TabPanel>
+
+                      {/* Contacts Tab */}
+                      <TabPanel value={tabValue} index={1}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
+                              <TableCell><strong>Name</strong></TableCell>
+                              <TableCell><strong>Job Title</strong></TableCell>
+                              <TableCell><strong>Email</strong></TableCell>
+                              <TableCell><strong>Phone</strong></TableCell>
+                              <TableCell><strong>Role</strong></TableCell>
+                              <TableCell align="center"><strong>Social</strong></TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {contacts.map((contact) => (
+                              <TableRow key={contact.id} hover>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Avatar sx={{ width: 32, height: 32, bgcolor: '#6750A4' }}>
+                                      {contact.firstName?.[0]}{contact.lastName?.[0]}
+                                    </Avatar>
+                                    <Box>
+                                      <Typography variant="body2" fontWeight={500}>
+                                        {contact.firstName} {contact.lastName}
+                                      </Typography>
+                                      {contact.isPrimaryContact && (
+                                        <Chip label="Primary" size="small" color="primary" sx={{ height: 18, fontSize: 10 }} />
+                                      )}
+                                    </Box>
+                                  </Box>
+                                </TableCell>
+                                <TableCell>{contact.jobTitle || '—'}</TableCell>
+                                <TableCell>{contact.emailPrimary || '—'}</TableCell>
+                                <TableCell>{contact.phonePrimary || '—'}</TableCell>
+                                <TableCell>{contact.role || '—'}</TableCell>
+                                <TableCell align="center">
+                                  {contact.linkedInUrl && (
+                                    <IconButton href={contact.linkedInUrl} target="_blank" size="small">
+                                      <LinkedInIcon sx={{ color: '#0077b5', fontSize: 18 }} />
+                                    </IconButton>
+                                  )}
+                                  {contact.twitterHandle && (
+                                    <IconButton href={`https://twitter.com/${contact.twitterHandle}`} target="_blank" size="small">
+                                      <TwitterIcon sx={{ color: '#1da1f2', fontSize: 18 }} />
+                                    </IconButton>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            {contacts.length === 0 && (
+                              <TableRow>
+                                <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'textSecondary' }}>
+                                  No contacts found for this customer
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      </TabPanel>
+
+                      {/* News & Social Tab */}
+                      <TabPanel value={tabValue} index={2}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                          <Button
+                            startIcon={loadingNews ? <CircularProgress size={16} /> : <RefreshIcon />}
+                            onClick={refreshNewsFeed}
+                            disabled={loadingNews}
+                            size="small"
+                          >
+                            Refresh Feeds
+                          </Button>
+                        </Box>
+
+                        <Grid container spacing={3}>
+                          {/* News Feed */}
+                          <Grid item xs={12} md={6}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <NewsIcon color="primary" /> Latest News
+                            </Typography>
+                            <List>
+                              {newsItems.map((news) => (
+                                <Paper key={news.id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <Box sx={{ flex: 1 }}>
+                                      <Typography variant="body2" fontWeight={500}>
+                                        {news.title}
+                                      </Typography>
+                                      <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5 }}>
+                                        {news.source} • {new Date(news.publishedAt).toLocaleDateString()}
+                                      </Typography>
+                                      {news.summary && (
+                                        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                                          {news.summary}
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                      <Chip
+                                        label={news.sentiment}
+                                        size="small"
+                                        sx={{ 
+                                          backgroundColor: getSentimentColor(news.sentiment),
+                                          color: 'white',
+                                          textTransform: 'capitalize'
+                                        }}
+                                      />
+                                      <IconButton href={news.url} target="_blank" size="small">
+                                        <OpenInNewIcon fontSize="small" />
+                                      </IconButton>
+                                    </Box>
+                                  </Box>
+                                </Paper>
+                              ))}
+                            </List>
+                          </Grid>
+
+                          {/* Social Feeds */}
+                          <Grid item xs={12} md={6}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <SocialIcon color="primary" /> Social Media
+                            </Typography>
+                            <List>
+                              {socialFeeds.map((feed) => (
+                                <Paper key={feed.id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
+                                  <Box sx={{ display: 'flex', gap: 2 }}>
+                                    {getPlatformIcon(feed.platform)}
+                                    <Box sx={{ flex: 1 }}>
+                                      <Typography variant="body2" fontWeight={500}>
+                                        {feed.author}
+                                      </Typography>
+                                      <Typography variant="body2" sx={{ mt: 0.5 }}>
+                                        {feed.content}
+                                      </Typography>
+                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                                        <Typography variant="caption" color="textSecondary">
+                                          {new Date(feed.publishedAt).toLocaleDateString()} • {feed.engagementCount} engagements
+                                        </Typography>
+                                        {feed.url && (
+                                          <IconButton href={feed.url} target="_blank" size="small">
+                                            <OpenInNewIcon fontSize="small" />
+                                          </IconButton>
+                                        )}
+                                      </Box>
+                                    </Box>
+                                  </Box>
+                                </Paper>
+                              ))}
+                            </List>
+                          </Grid>
+                        </Grid>
+                      </TabPanel>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
+                <CardContent sx={{ textAlign: 'center', py: 10 }}>
+                  <BusinessIcon sx={{ fontSize: 80, color: '#E8DEF8', mb: 2 }} />
+                  <Typography variant="h6" color="textSecondary">
+                    Select a customer to view details
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Use the search panel on the left to find and select a customer
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
+  );
+}
+
+export default CustomerOverviewPage;

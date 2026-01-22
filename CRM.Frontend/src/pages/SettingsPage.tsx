@@ -62,7 +62,13 @@ import SocialLoginSettingsTab from '../components/settings/SocialLoginSettingsTa
 import SecuritySettingsTab from '../components/settings/SecuritySettingsTab';
 import NavigationSettingsTab from '../components/settings/NavigationSettingsTab';
 import ServiceRequestSettingsTab from '../components/settings/ServiceRequestSettingsTab';
+import DeploymentSettingsTab from '../components/settings/DeploymentSettingsTab';
+import MonitoringSettingsTab from '../components/settings/MonitoringSettingsTab';
 import logo from '../assets/logo.png';
+import {
+  Cloud as CloudIcon,
+  Monitor as MonitorIcon,
+} from '@mui/icons-material';
 
 interface ColorPalette {
   id: number;
@@ -1402,6 +1408,18 @@ function SettingsPage() {
       label: 'Database Settings',
       icon: <StorageIcon sx={{ mr: 0.5, fontSize: 20 }} />,
       component: <DatabaseSettingsTab />,
+    },
+    {
+      id: 'deployment',
+      label: 'Deployment & Hosting',
+      icon: <CloudIcon sx={{ mr: 0.5, fontSize: 20 }} />,
+      component: <DeploymentSettingsTab />,
+    },
+    {
+      id: 'monitoring',
+      label: 'Monitoring',
+      icon: <MonitorIcon sx={{ mr: 0.5, fontSize: 20 }} />,
+      component: <MonitoringSettingsTab />,
     },
   ];
 
