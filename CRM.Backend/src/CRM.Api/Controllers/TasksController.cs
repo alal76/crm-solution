@@ -1,5 +1,6 @@
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,13 @@ public class TasksController : ControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<TasksController> _logger;
+    private readonly NormalizationService _normalization;
 
-    public TasksController(CrmDbContext context, ILogger<TasksController> logger)
+    public TasksController(CrmDbContext context, ILogger<TasksController> logger, NormalizationService normalization)
     {
         _context = context;
         _logger = logger;
+        _normalization = normalization;
     }
 
     /// <summary>
@@ -60,6 +63,13 @@ public class TasksController : ControllerBase
             query = query.Where(t => t.DueDate < DateTime.UtcNow && t.Status != CrmTaskStatus.Completed);
 
         var tasks = await query.OrderByDescending(t => t.DueDate).ToListAsync();
+        foreach (var t in tasks)
+        {
+            var nt = await _normalization.GetTagsAsync("CrmTask", t.Id);
+            if (!string.IsNullOrWhiteSpace(nt)) t.Tags = nt;
+            var cf = await _normalization.GetCustomFieldsAsync("CrmTask", t.Id);
+            if (!string.IsNullOrWhiteSpace(cf)) t.CustomFields = cf;
+        }
         return Ok(tasks);
     }
 
@@ -78,6 +88,11 @@ public class TasksController : ControllerBase
 
         if (task == null)
             return NotFound();
+
+        var nt = await _normalization.GetTagsAsync("CrmTask", task.Id);
+        if (!string.IsNullOrWhiteSpace(nt)) task.Tags = nt;
+        var cf = await _normalization.GetCustomFieldsAsync("CrmTask", task.Id);
+        if (!string.IsNullOrWhiteSpace(cf)) task.CustomFields = cf;
 
         return Ok(task);
     }

@@ -34,11 +34,13 @@ public class ServiceRequestService : IServiceRequestService
     private readonly ILogger<ServiceRequestService> _logger;
     private static int _ticketCounter = 0;
     private static readonly object _ticketLock = new();
+    private readonly NormalizationService _normalizationService;
 
-    public ServiceRequestService(ICrmDbContext context, ILogger<ServiceRequestService> logger)
+    public ServiceRequestService(ICrmDbContext context, ILogger<ServiceRequestService> logger, NormalizationService normalizationService)
     {
         _context = context;
         _logger = logger;
+        _normalizationService = normalizationService;
     }
 
     #region Helper Methods
@@ -146,7 +148,8 @@ public class ServiceRequestService : IServiceRequestService
             RelatedProductName = entity.RelatedProduct?.Name,
             ParentServiceRequestId = entity.ParentServiceRequestId,
             ParentTicketNumber = entity.ParentServiceRequest?.TicketNumber,
-            Tags = entity.Tags,
+                 // Prefer normalized tags stored in EntityTags when available
+                 Tags = await _normalizationService.GetTagsAsync("ServiceRequest", entity.Id) ?? entity.Tags,
             InternalNotes = entity.InternalNotes,
             EscalationLevel = entity.EscalationLevel,
             ReopenCount = entity.ReopenCount,
@@ -164,7 +167,7 @@ public class ServiceRequestService : IServiceRequestService
             ChildRequestCount = entity.ChildServiceRequests?.Count ?? 0
         };
 
-        // Get custom field values
+        // Get custom field values (service-specific table)
         dto.CustomFieldValues = await GetCustomFieldValuesAsync(entity.Id);
 
         return dto;

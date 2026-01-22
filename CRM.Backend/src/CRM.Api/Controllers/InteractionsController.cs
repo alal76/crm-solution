@@ -1,14 +1,12 @@
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
-/// <summary>
-/// API endpoints for managing customer interactions
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -16,16 +14,15 @@ public class InteractionsController : ControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<InteractionsController> _logger;
+    private readonly NormalizationService _normalization;
 
-    public InteractionsController(CrmDbContext context, ILogger<InteractionsController> logger)
+    public InteractionsController(CrmDbContext context, ILogger<InteractionsController> logger, NormalizationService normalization)
     {
         _context = context;
         _logger = logger;
+        _normalization = normalization;
     }
 
-    /// <summary>
-    /// Get all interactions with optional filtering
-    /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Interaction>>> GetInteractions(
         [FromQuery] int? customerId = null,
@@ -44,32 +41,31 @@ public class InteractionsController : ControllerBase
 
         if (customerId.HasValue)
             query = query.Where(i => i.CustomerId == customerId);
-        
         if (opportunityId.HasValue)
             query = query.Where(i => i.OpportunityId == opportunityId);
-        
         if (assignedToUserId.HasValue)
             query = query.Where(i => i.AssignedToUserId == assignedToUserId);
-        
         if (interactionType.HasValue)
             query = query.Where(i => i.InteractionType == interactionType);
-        
         if (outcome.HasValue)
             query = query.Where(i => i.Outcome == outcome);
-        
         if (fromDate.HasValue)
             query = query.Where(i => i.InteractionDate >= fromDate);
-        
         if (toDate.HasValue)
             query = query.Where(i => i.InteractionDate <= toDate);
 
         var interactions = await query.OrderByDescending(i => i.InteractionDate).ToListAsync();
+        foreach (var it in interactions)
+        {
+            var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
+            if (!string.IsNullOrWhiteSpace(nt)) it.Tags = nt;
+            var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
+            if (!string.IsNullOrWhiteSpace(cf)) it.CustomFields = cf;
+        }
+
         return Ok(interactions);
     }
 
-    /// <summary>
-    /// Get an interaction by ID
-    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<Interaction>> GetInteraction(int id)
     {
@@ -83,12 +79,14 @@ public class InteractionsController : ControllerBase
         if (interaction == null)
             return NotFound();
 
+        var nt = await _normalization.GetTagsAsync("Interaction", interaction.Id);
+        if (!string.IsNullOrWhiteSpace(nt)) interaction.Tags = nt;
+        var cf = await _normalization.GetCustomFieldsAsync("Interaction", interaction.Id);
+        if (!string.IsNullOrWhiteSpace(cf)) interaction.CustomFields = cf;
+
         return Ok(interaction);
     }
 
-    /// <summary>
-    /// Create a new interaction
-    /// </summary>
     [HttpPost]
     public async Task<ActionResult<Interaction>> CreateInteraction(Interaction interaction)
     {
@@ -101,7 +99,6 @@ public class InteractionsController : ControllerBase
         _context.Interactions.Add(interaction);
         await _context.SaveChangesAsync();
 
-        // Update customer's last activity date
         if (interaction.CustomerId > 0)
         {
             var customer = await _context.Customers.FindAsync(interaction.CustomerId);
@@ -116,9 +113,6 @@ public class InteractionsController : ControllerBase
         return CreatedAtAction(nameof(GetInteraction), new { id = interaction.Id }, interaction);
     }
 
-    /// <summary>
-    /// Update an existing interaction
-    /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateInteraction(int id, Interaction interaction)
     {
@@ -136,9 +130,6 @@ public class InteractionsController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Delete an interaction
-    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteInteraction(int id)
     {
@@ -149,13 +140,9 @@ public class InteractionsController : ControllerBase
         _context.Interactions.Remove(interaction);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Interaction {InteractionId} deleted", id);
         return NoContent();
     }
 
-    /// <summary>
-    /// Mark an interaction as completed
-    /// </summary>
     [HttpPost("{id}/complete")]
     public async Task<IActionResult> CompleteInteraction(int id, [FromBody] CompleteInteractionRequest? request = null)
     {
@@ -179,9 +166,6 @@ public class InteractionsController : ControllerBase
         return Ok(interaction);
     }
 
-    /// <summary>
-    /// Log a quick interaction (simplified creation)
-    /// </summary>
     [HttpPost("log")]
     public async Task<ActionResult<Interaction>> LogInteraction([FromBody] LogInteractionRequest request)
     {
@@ -207,7 +191,6 @@ public class InteractionsController : ControllerBase
         _context.Interactions.Add(interaction);
         await _context.SaveChangesAsync();
 
-        // Update customer's last activity date
         if (interaction.CustomerId > 0)
         {
             var customer = await _context.Customers.FindAsync(interaction.CustomerId);
@@ -222,9 +205,6 @@ public class InteractionsController : ControllerBase
         return CreatedAtAction(nameof(GetInteraction), new { id = interaction.Id }, interaction);
     }
 
-    /// <summary>
-    /// Get customer interaction history
-    /// </summary>
     [HttpGet("customer/{customerId}/history")]
     public async Task<ActionResult<IEnumerable<Interaction>>> GetCustomerHistory(int customerId, [FromQuery] int limit = 50)
     {
@@ -236,12 +216,17 @@ public class InteractionsController : ControllerBase
             .Take(limit)
             .ToListAsync();
 
+        foreach (var it in interactions)
+        {
+            var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
+            if (!string.IsNullOrWhiteSpace(nt)) it.Tags = nt;
+            var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
+            if (!string.IsNullOrWhiteSpace(cf)) it.CustomFields = cf;
+        }
+
         return Ok(interactions);
     }
 
-    /// <summary>
-    /// Get interactions requiring follow-up
-    /// </summary>
     [HttpGet("follow-ups")]
     public async Task<ActionResult<IEnumerable<Interaction>>> GetFollowUps([FromQuery] int? userId = null)
     {
@@ -256,12 +241,17 @@ public class InteractionsController : ControllerBase
             .OrderBy(i => i.FollowUpDate)
             .ToListAsync();
 
+        foreach (var it in interactions)
+        {
+            var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
+            if (!string.IsNullOrWhiteSpace(nt)) it.Tags = nt;
+            var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
+            if (!string.IsNullOrWhiteSpace(cf)) it.CustomFields = cf;
+        }
+
         return Ok(interactions);
     }
 
-    /// <summary>
-    /// Get interaction statistics
-    /// </summary>
     [HttpGet("stats")]
     public async Task<ActionResult> GetInteractionStats([FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
     {

@@ -49,6 +49,9 @@ public interface ICrmDbContext
     DbSet<ContactInfoLink> ContactInfoLinks { get; }
     DbSet<LookupCategory> LookupCategories { get; }
     DbSet<LookupItem> LookupItems { get; }
+    DbSet<CRM.Core.Entities.Tag> Tags { get; }
+    DbSet<CRM.Core.Entities.EntityTag> EntityTags { get; }
+    DbSet<CRM.Core.Entities.CustomField> CustomFields { get; }
     
     DatabaseFacade Database { get; }
 

@@ -30,19 +30,19 @@ public class AccountService : IAccountService
     {
         var acc = await _accountRepo.GetByIdAsync(id);
         if (acc == null || acc.IsDeleted) return null;
-        return new { acc.Id, acc.Name, acc.CreatedAt, acc.UpdatedAt };
+        return new { acc.Id, acc.AccountNumber, acc.AccountOwner, acc.CreatedAt, acc.UpdatedAt };
     }
 
     public async Task<object> CreateAsync(CreateAccountRequest request, string modifiedBy)
     {
         var account = new Account
-        {
-            Name = request.Name ?? string.Empty,
-            Email = request.Email,
-            Phone = request.Phone,
-            Website = request.Website,
-            CreatedAt = DateTime.UtcNow
-        };
+            {
+                AccountNumber = request.Name ?? string.Empty,
+                AccountOwner = request.Name,
+                BillingContactEmail = request.Email,
+                BillingContactPhone = request.Phone,
+                CreatedAt = DateTime.UtcNow
+            };
 
         await _accountRepo.AddAsync(account);
         await _accountRepo.SaveAsync();
@@ -141,10 +141,10 @@ public class AccountService : IAccountService
         var acc = await _accountRepo.GetByIdAsync(id);
         if (acc == null || acc.IsDeleted) return null;
 
-        if (request.Name != null) acc.Name = request.Name;
-        if (request.Email != null) acc.Email = request.Email;
-        if (request.Phone != null) acc.Phone = request.Phone;
-        if (request.Website != null) acc.Website = request.Website;
+            if (request.Name != null) acc.AccountNumber = request.Name;
+            if (request.Name != null) acc.AccountOwner = request.Name;
+            if (request.Email != null) acc.BillingContactEmail = request.Email;
+            if (request.Phone != null) acc.BillingContactPhone = request.Phone;
         acc.UpdatedAt = DateTime.UtcNow;
 
         await _accountRepo.UpdateAsync(acc);

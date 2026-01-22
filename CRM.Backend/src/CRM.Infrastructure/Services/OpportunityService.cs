@@ -9,25 +9,61 @@ namespace CRM.Infrastructure.Services;
 public class OpportunityService : IOpportunityService
 {
     private readonly IRepository<Opportunity> _repository;
+    private readonly IRepository<CRM.Core.Entities.EntityTag> _entityTagRepository;
+    private readonly IRepository<CRM.Core.Entities.CustomField> _customFieldRepository;
+    private readonly NormalizationService _normalizationService;
 
-    public OpportunityService(IRepository<Opportunity> repository)
+    public OpportunityService(IRepository<Opportunity> repository,
+        IRepository<CRM.Core.Entities.EntityTag> entityTagRepository,
+        IRepository<CRM.Core.Entities.CustomField> customFieldRepository,
+        NormalizationService normalizationService)
     {
         _repository = repository;
+        _entityTagRepository = entityTagRepository;
+        _customFieldRepository = customFieldRepository;
+        _normalizationService = normalizationService;
     }
 
     public async Task<Opportunity?> GetOpportunityByIdAsync(int id)
     {
-        return await _repository.GetByIdAsync(id);
+        var opp = await _repository.GetByIdAsync(id);
+        if (opp == null) return null;
+
+        var tags = await _normalizationService.GetTagsAsync("Opportunity", opp.Id);
+        if (!string.IsNullOrWhiteSpace(tags)) opp.Tags = tags;
+
+        var cfs = await _normalizationService.GetCustomFieldsAsync("Opportunity", opp.Id);
+        if (!string.IsNullOrWhiteSpace(cfs)) opp.CustomFields = cfs;
+
+        return opp;
     }
 
     public async Task<IEnumerable<Opportunity>> GetOpportunitiesByCustomerAsync(int customerId)
     {
-        return await _repository.FindAsync(o => !o.IsDeleted && o.CustomerId == customerId);
+        var items = await _repository.FindAsync(o => !o.IsDeleted && o.CustomerId == customerId);
+        foreach (var opp in items)
+        {
+            var tags = await _normalizationService.GetTagsAsync("Opportunity", opp.Id);
+            if (!string.IsNullOrWhiteSpace(tags)) opp.Tags = tags;
+
+            var cfs = await _normalizationService.GetCustomFieldsAsync("Opportunity", opp.Id);
+            if (!string.IsNullOrWhiteSpace(cfs)) opp.CustomFields = cfs;
+        }
+        return items;
     }
 
     public async Task<IEnumerable<Opportunity>> GetOpenOpportunitiesAsync()
     {
-        return await _repository.FindAsync(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost);
+        var items = await _repository.FindAsync(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost);
+        foreach (var opp in items)
+        {
+            var tags = await _normalizationService.GetTagsAsync("Opportunity", opp.Id);
+            if (!string.IsNullOrWhiteSpace(tags)) opp.Tags = tags;
+
+            var cfs = await _normalizationService.GetCustomFieldsAsync("Opportunity", opp.Id);
+            if (!string.IsNullOrWhiteSpace(cfs)) opp.CustomFields = cfs;
+        }
+        return items;
     }
 
     public async Task<int> CreateOpportunityAsync(Opportunity opportunity)

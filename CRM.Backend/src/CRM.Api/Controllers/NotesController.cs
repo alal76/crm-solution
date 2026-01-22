@@ -1,5 +1,6 @@
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,13 @@ public class NotesController : ControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<NotesController> _logger;
+    private readonly NormalizationService _normalization;
 
-    public NotesController(CrmDbContext context, ILogger<NotesController> logger)
+    public NotesController(CrmDbContext context, ILogger<NotesController> logger, NormalizationService normalization)
     {
         _context = context;
         _logger = logger;
+        _normalization = normalization;
     }
 
     /// <summary>
@@ -59,7 +62,16 @@ public class NotesController : ControllerBase
             .OrderByDescending(n => n.IsPinned)
             .ThenByDescending(n => n.CreatedAt)
             .ToListAsync();
-        
+
+        // Prefer normalized tags/custom fields when available
+        foreach (var note in notes)
+        {
+            var nt = await _normalization.GetTagsAsync("Note", note.Id);
+            if (!string.IsNullOrWhiteSpace(nt)) note.Tags = nt;
+            var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
+            if (!string.IsNullOrWhiteSpace(cf)) note.CustomFields = cf;
+        }
+
         return Ok(notes);
     }
 
@@ -77,6 +89,11 @@ public class NotesController : ControllerBase
 
         if (note == null)
             return NotFound();
+
+        var nt = await _normalization.GetTagsAsync("Note", note.Id);
+        if (!string.IsNullOrWhiteSpace(nt)) note.Tags = nt;
+        var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
+        if (!string.IsNullOrWhiteSpace(cf)) note.CustomFields = cf;
 
         return Ok(note);
     }
@@ -172,6 +189,14 @@ public class NotesController : ControllerBase
             .OrderByDescending(n => n.IsPinned)
             .ThenByDescending(n => n.CreatedAt)
             .ToListAsync();
+
+        foreach (var note in notes)
+        {
+            var nt = await _normalization.GetTagsAsync("Note", note.Id);
+            if (!string.IsNullOrWhiteSpace(nt)) note.Tags = nt;
+            var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
+            if (!string.IsNullOrWhiteSpace(cf)) note.CustomFields = cf;
+        }
 
         return Ok(notes);
     }
