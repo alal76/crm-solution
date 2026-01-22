@@ -3,32 +3,51 @@ import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
-  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent
+  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Badge
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   CheckCircle as CheckIcon, Assignment as TaskIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon, Inbox as InboxIcon, 
+  Visibility as VisibilityIcon, Group as GroupIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+
+// Status mapping for display
+const STATUS_COLORS: Record<string, string> = {
+  'NotStarted': '#9e9e9e',
+  'InProgress': '#2196f3',
+  'Completed': '#4caf50',
+  'Deferred': '#ff9800',
+  'Waiting': '#607d8b',
+  'Cancelled': '#f44336',
+};
+
+const PRIORITY_COLORS: Record<string, string> = {
+  'Low': '#9e9e9e',
+  'Normal': '#2196f3',
+  'High': '#ff9800',
+  'Urgent': '#f44336',
+};
 
 // Enums matching backend
 const TASK_STATUSES = [
   { value: 0, label: 'Not Started', color: '#9e9e9e' },
   { value: 1, label: 'In Progress', color: '#2196f3' },
   { value: 2, label: 'Completed', color: '#4caf50' },
-  { value: 3, label: 'On Hold', color: '#ff9800' },
-  { value: 4, label: 'Cancelled', color: '#f44336' },
-  { value: 5, label: 'Deferred', color: '#607d8b' },
+  { value: 3, label: 'Deferred', color: '#ff9800' },
+  { value: 4, label: 'Waiting', color: '#607d8b' },
+  { value: 5, label: 'Cancelled', color: '#f44336' },
 ];
 
 const TASK_PRIORITIES = [
   { value: 0, label: 'Low', color: '#9e9e9e' },
-  { value: 1, label: 'Medium', color: '#2196f3' },
+  { value: 1, label: 'Normal', color: '#2196f3' },
   { value: 2, label: 'High', color: '#ff9800' },
-  { value: 3, label: 'Critical', color: '#f44336' },
+  { value: 3, label: 'Urgent', color: '#f44336' },
 ];
 
 const TASK_TYPES = [
@@ -44,6 +63,42 @@ const TASK_TYPES = [
   { value: 9, label: 'Approval' },
   { value: 10, label: 'Other' },
 ];
+
+// Queue item from my-queue endpoint
+interface QueueItem {
+  id: number;
+  subject: string;
+  description?: string;
+  taskType: string;
+  status: string;
+  priority: string;
+  dueDate?: string;
+  startDate?: string;
+  completedDate?: string;
+  percentComplete: number;
+  estimatedMinutes?: number;
+  actualMinutes?: number;
+  customerId?: number;
+  customerName?: string;
+  opportunityId?: number;
+  opportunityName?: string;
+  assignedToUserId?: number;
+  assignedToUserName?: string;
+  assignedToGroupId?: number;
+  assignedToGroupName?: string;
+  tags?: string;
+  category?: string;
+  createdAt: string;
+  isOverdue: boolean;
+}
+
+interface QueueResponse {
+  isWorkflowAdmin: boolean;
+  tasks: QueueItem[];
+  totalCount: number;
+  pendingCount: number;
+  overdueCount: number;
+}
 
 interface CrmTask {
   id: number;
@@ -109,15 +164,18 @@ function TabPanel(props: TabPanelProps) {
 }
 
 function TasksPage() {
+  const [queueData, setQueueData] = useState<QueueResponse | null>(null);
   const [tasks, setTasks] = useState<CrmTask[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [userGroups, setUserGroups] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
-  const [filter, setFilter] = useState<'all' | 'due-today' | 'overdue'>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('pending');
+  const [viewMode, setViewMode] = useState<'queue' | 'all'>('queue');
 
   const emptyForm: TaskForm = {
     title: '', description: '', taskType: 10, status: 0, priority: 1,
@@ -128,18 +186,29 @@ function TasksPage() {
   const [formData, setFormData] = useState<TaskForm>(emptyForm);
 
   useEffect(() => {
-    fetchTasks();
+    fetchMyQueue();
     fetchUsers();
+    fetchUserGroups();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  }, []);
+
+  const fetchMyQueue = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/tasks/my-queue');
+      setQueueData(response.data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch queue');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      let endpoint = '/tasks';
-      if (filter === 'due-today') endpoint = '/tasks/due-today';
-      else if (filter === 'overdue') endpoint = '/tasks/overdue';
-      const response = await apiClient.get(endpoint);
+      const response = await apiClient.get('/tasks');
       setTasks(response.data);
       setError(null);
     } catch (err: any) {
@@ -155,6 +224,15 @@ function TasksPage() {
       setUsers(response.data);
     } catch (err) {
       console.error('Error fetching users:', err);
+    }
+  };
+
+  const fetchUserGroups = async () => {
+    try {
+      const response = await apiClient.get('/usergroups');
+      setUserGroups(response.data || []);
+    } catch (err) {
+      console.error('Error fetching user groups:', err);
     }
   };
 
@@ -214,7 +292,7 @@ function TasksPage() {
         setSuccessMessage('Task created successfully');
       }
       handleCloseDialog();
-      fetchTasks();
+      fetchMyQueue();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save task');
@@ -225,7 +303,7 @@ function TasksPage() {
     try {
       await apiClient.put(`/tasks/${id}/complete`);
       setSuccessMessage('Task marked as completed');
-      fetchTasks();
+      fetchMyQueue();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to complete task');
@@ -237,7 +315,7 @@ function TasksPage() {
       try {
         await apiClient.delete(`/tasks/${id}`);
         setSuccessMessage('Task deleted successfully');
-        fetchTasks();
+        fetchMyQueue();
         setTimeout(() => setSuccessMessage(null), 3000);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to delete task');
@@ -249,10 +327,17 @@ function TasksPage() {
   const getPriority = (value: number) => TASK_PRIORITIES.find(p => p.value === value);
   const getType = (value: number) => TASK_TYPES.find(t => t.value === value);
 
-  const isOverdue = (task: CrmTask) => {
-    if (!task.dueDate || task.status === 2) return false;
-    return new Date(task.dueDate) < new Date();
-  };
+  // Filter queue items based on status
+  const filteredQueueItems = queueData?.tasks?.filter(item => {
+    if (statusFilter === 'pending') {
+      return item.status !== 'Completed' && item.status !== 'Cancelled';
+    } else if (statusFilter === 'completed') {
+      return item.status === 'Completed';
+    } else if (statusFilter === 'overdue') {
+      return item.isOverdue;
+    }
+    return true;
+  }) || [];
 
   if (loading) {
     return (
@@ -265,33 +350,113 @@ function TasksPage() {
   return (
     <Box sx={{ py: 4 }}>
       <Container maxWidth="xl">
+        {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ width: 40, height: 40, flexShrink: 0 }}>
               <img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>Tasks</Typography>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <InboxIcon /> My Queue
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {queueData?.isWorkflowAdmin 
+                  ? 'Workflow Admin: Viewing all tasks across all groups' 
+                  : 'Tasks pending action for your group(s)'}
+              </Typography>
+            </Box>
           </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <Select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as any)}
-              >
-                <MenuItem value="all">All Tasks</MenuItem>
-                <MenuItem value="due-today">Due Today</MenuItem>
-                <MenuItem value="overdue">Overdue</MenuItem>
-              </Select>
-            </FormControl>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            {queueData?.isWorkflowAdmin && (
+              <Chip 
+                icon={<VisibilityIcon />} 
+                label="Workflow Admin" 
+                color="primary" 
+                variant="outlined" 
+              />
+            )}
+            <IconButton onClick={fetchMyQueue} color="primary" title="Refresh">
+              <RefreshIcon />
+            </IconButton>
             <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
               Add Task
             </Button>
           </Box>
         </Box>
 
+        {/* Stats Cards */}
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={4}>
+            <Card sx={{ backgroundColor: '#E8DEF8' }}>
+              <CardContent sx={{ py: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <TaskIcon sx={{ fontSize: 40, color: '#6750A4' }} />
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: '#6750A4' }}>
+                      {queueData?.totalCount || 0}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">Total Tasks</Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Card sx={{ backgroundColor: '#FFF3E0' }}>
+              <CardContent sx={{ py: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Badge badgeContent={queueData?.pendingCount || 0} color="warning" max={999}>
+                    <InboxIcon sx={{ fontSize: 40, color: '#E65100' }} />
+                  </Badge>
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: '#E65100' }}>
+                      {queueData?.pendingCount || 0}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">Pending Actions</Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Card sx={{ backgroundColor: '#FFEBEE' }}>
+              <CardContent sx={{ py: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <WarningIcon sx={{ fontSize: 40, color: '#C62828' }} />
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: '#C62828' }}>
+                      {queueData?.overdueCount || 0}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">Overdue</Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
 
+        {/* Filter Controls */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel>Status Filter</InputLabel>
+            <Select
+              value={statusFilter}
+              label="Status Filter"
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <MenuItem value="all">All Tasks</MenuItem>
+              <MenuItem value="pending">Pending Only</MenuItem>
+              <MenuItem value="completed">Completed</MenuItem>
+              <MenuItem value="overdue">Overdue Only</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+
+        {/* Queue Table */}
         <Card>
           <CardContent sx={{ p: 0 }}>
             <Table>
@@ -302,97 +467,148 @@ function TasksPage() {
                   <TableCell><strong>Status</strong></TableCell>
                   <TableCell><strong>Priority</strong></TableCell>
                   <TableCell><strong>Assigned To</strong></TableCell>
+                  <TableCell><strong>Group</strong></TableCell>
                   <TableCell><strong>Due Date</strong></TableCell>
-                  <TableCell><strong>Progress</strong></TableCell>
+                  <TableCell><strong>Related To</strong></TableCell>
                   <TableCell align="center"><strong>Actions</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {tasks.map((task) => {
-                  const status = getStatus(task.status);
-                  const priority = getPriority(task.priority);
-                  const type = getType(task.taskType);
-                  const overdue = isOverdue(task);
-
-                  return (
-                    <TableRow key={task.id} hover sx={{ backgroundColor: overdue ? '#fff3e0' : 'inherit' }}>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <TaskIcon sx={{ color: task.status === 2 ? '#4caf50' : '#6750A4' }} />
-                          <Box>
-                            <Typography fontWeight={500} sx={{ textDecoration: task.status === 2 ? 'line-through' : 'none' }}>
-                              {task.title}
+                {filteredQueueItems.map((item) => (
+                  <TableRow 
+                    key={item.id} 
+                    hover 
+                    sx={{ 
+                      backgroundColor: item.isOverdue ? '#fff3e0' : 'inherit',
+                      opacity: item.status === 'Completed' || item.status === 'Cancelled' ? 0.6 : 1
+                    }}
+                  >
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <TaskIcon sx={{ color: item.status === 'Completed' ? '#4caf50' : '#6750A4' }} />
+                        <Box>
+                          <Typography 
+                            fontWeight={500} 
+                            sx={{ textDecoration: item.status === 'Completed' ? 'line-through' : 'none' }}
+                          >
+                            {item.subject}
+                          </Typography>
+                          {item.description && (
+                            <Typography variant="caption" color="textSecondary" sx={{ display: 'block', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {item.description}
                             </Typography>
-                            {task.description && (
-                              <Typography variant="caption" color="textSecondary" sx={{ display: 'block', maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {task.description}
-                              </Typography>
-                            )}
-                          </Box>
+                          )}
                         </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={type?.label || 'Other'} size="small" variant="outlined" />
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={status?.label || 'Unknown'} size="small" sx={{ backgroundColor: status?.color, color: 'white' }} />
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={priority?.label || 'Medium'} size="small" sx={{ backgroundColor: priority?.color, color: 'white' }} />
-                      </TableCell>
-                      <TableCell>
-                        {task.assignedToUser ? `${task.assignedToUser.firstName} ${task.assignedToUser.lastName}` : '—'}
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {overdue && <WarningIcon sx={{ color: '#f44336', fontSize: 18 }} />}
-                          <Box>
-                            <Typography variant="body2" sx={{ color: overdue ? '#f44336' : 'inherit' }}>
-                              {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '—'}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={item.taskType} size="small" variant="outlined" />
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={item.status} 
+                        size="small" 
+                        sx={{ backgroundColor: STATUS_COLORS[item.status] || '#9e9e9e', color: 'white' }} 
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={item.priority} 
+                        size="small" 
+                        sx={{ backgroundColor: PRIORITY_COLORS[item.priority] || '#9e9e9e', color: 'white' }} 
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {item.assignedToUserName || '—'}
+                    </TableCell>
+                    <TableCell>
+                      {item.assignedToGroupName ? (
+                        <Chip 
+                          icon={<GroupIcon />} 
+                          label={item.assignedToGroupName} 
+                          size="small" 
+                          variant="outlined" 
+                          color="primary"
+                        />
+                      ) : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {item.isOverdue && <WarningIcon sx={{ color: '#f44336', fontSize: 18 }} />}
+                        <Box>
+                          <Typography variant="body2" sx={{ color: item.isOverdue ? '#f44336' : 'inherit' }}>
+                            {item.dueDate ? new Date(item.dueDate).toLocaleDateString() : '—'}
+                          </Typography>
+                          {item.dueDate && (
+                            <Typography variant="caption" color="textSecondary">
+                              {new Date(item.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Typography>
-                            {task.dueDate && (
-                              <Typography variant="caption" color="textSecondary">
-                                {new Date(task.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </Typography>
-                            )}
-                          </Box>
+                          )}
                         </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box sx={{ width: 60, height: 6, backgroundColor: '#e0e0e0', borderRadius: 3, overflow: 'hidden' }}>
-                            <Box sx={{ width: `${task.percentComplete}%`, height: '100%', backgroundColor: '#4caf50', borderRadius: 3 }} />
-                          </Box>
-                          <Typography variant="caption">{task.percentComplete}%</Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell align="center">
-                        {task.status !== 2 && (
-                          <Tooltip title="Mark Complete">
-                            <IconButton size="small" onClick={() => handleCompleteTask(task.id)} sx={{ color: '#4caf50' }}>
-                              <CheckIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        <Tooltip title="Edit">
-                          <IconButton size="small" onClick={() => handleOpenDialog(task)} sx={{ color: '#6750A4' }}>
-                            <EditIcon fontSize="small" />
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      {item.customerName && (
+                        <Chip label={item.customerName} size="small" variant="outlined" sx={{ mr: 0.5, mb: 0.5 }} />
+                      )}
+                      {item.opportunityName && (
+                        <Chip label={item.opportunityName} size="small" variant="outlined" color="secondary" />
+                      )}
+                      {!item.customerName && !item.opportunityName && '—'}
+                    </TableCell>
+                    <TableCell align="center">
+                      {item.status !== 'Completed' && (
+                        <Tooltip title="Mark Complete">
+                          <IconButton size="small" onClick={() => handleCompleteTask(item.id)} sx={{ color: '#4caf50' }}>
+                            <CheckIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton size="small" onClick={() => handleDeleteTask(task.id)} sx={{ color: '#f44336' }}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                      )}
+                      <Tooltip title="View/Edit">
+                        <IconButton size="small" onClick={() => {
+                          // Fetch the full task and open dialog
+                          apiClient.get(`/tasks/${item.id}`).then(res => {
+                            const task = res.data;
+                            setEditingId(task.id);
+                            setFormData({
+                              title: task.subject || task.title || '',
+                              description: task.description || '',
+                              taskType: typeof task.taskType === 'number' ? task.taskType : 10,
+                              status: typeof task.status === 'number' ? task.status : 0,
+                              priority: typeof task.priority === 'number' ? task.priority : 1,
+                              dueDate: task.dueDate?.split('T')[0] || '',
+                              startDate: task.startDate?.split('T')[0] || '',
+                              estimatedHours: task.estimatedMinutes ? task.estimatedMinutes / 60 : 0,
+                              actualHours: task.actualMinutes ? task.actualMinutes / 60 : 0,
+                              percentComplete: task.percentComplete || 0,
+                              assignedToUserId: task.assignedToUserId || '',
+                              customerId: task.customerId || '',
+                              opportunityId: task.opportunityId || '',
+                              location: '',
+                              reminderDate: task.reminderDate?.split('T')[0] || '',
+                              tags: task.tags || '',
+                            });
+                            setOpenDialog(true);
+                          }).catch(() => setError('Failed to load task details'));
+                        }} sx={{ color: '#6750A4' }}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton size="small" onClick={() => handleDeleteTask(item.id)} sx={{ color: '#f44336' }}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
-            {tasks.length === 0 && (
+            {filteredQueueItems.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
-                No tasks found. Create your first task to get started.
+                {statusFilter === 'pending' 
+                  ? 'No pending tasks in your queue. Great job!' 
+                  : 'No tasks found matching the selected filter.'}
               </Typography>
             )}
           </CardContent>

@@ -198,7 +198,7 @@ const HelpPage: React.FC = () => {
     { icon: <PeopleIcon />, label: 'Customer Management', path: '/customers' },
     { icon: <ContactIcon />, label: 'Contact Management', path: '/contacts' },
     { icon: <SalesIcon />, label: 'Opportunities', path: '/opportunities' },
-    { icon: <TaskIcon />, label: 'Task Management', path: '/tasks' },
+    { icon: <TaskIcon />, label: 'My Queue', path: '/my-queue' },
     { icon: <CampaignIcon />, label: 'Campaigns', path: '/campaigns' },
     { icon: <SettingsIcon />, label: 'Settings', path: '/settings' },
   ];
