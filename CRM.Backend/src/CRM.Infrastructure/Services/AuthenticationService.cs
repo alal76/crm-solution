@@ -21,6 +21,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
@@ -35,6 +36,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly ICrmDbContext _dbContext;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ITotpService _totpService;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
@@ -43,6 +45,7 @@ public class AuthenticationService : IAuthenticationService
         ICrmDbContext dbContext,
         IJwtTokenService jwtTokenService,
         ITotpService totpService,
+        IMemoryCache cache,
         ILogger<AuthenticationService> logger)
     {
         _userRepository = userRepository;
@@ -50,6 +53,7 @@ public class AuthenticationService : IAuthenticationService
         _dbContext = dbContext;
         _jwtTokenService = jwtTokenService;
         _totpService = totpService;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -98,12 +102,7 @@ public class AuthenticationService : IAuthenticationService
 
         if (user == null || !VerifyPassword(request.Password, user.PasswordHash))
         {
-            // Add detailed logging for debugging
-            if (user == null)
-                Console.WriteLine($"[LOGIN] User not found for email: '{normalizedEmail}'");
-            else
-                Console.WriteLine($"[LOGIN] Password verification failed for user: '{user.Email}'");
-
+            _logger.LogWarning("Login failed for email: {Email}", normalizedEmail);
             throw new UnauthorizedAccessException("Invalid email or password");
         }
 
@@ -116,12 +115,9 @@ public class AuthenticationService : IAuthenticationService
             // Generate a temporary token for 2FA verification
             var tempToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
             
-            // Store the temp token (in production, use a cache with expiry)
-            // For now, we'll use a simple approach with the password reset token field temporarily
-            user.PasswordResetToken = tempToken;
-            user.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(5); // 5 minute expiry
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveAsync();
+            // Store the temp token in memory cache with 5 minute expiry
+            var cacheKey = $"2fa_token_{tempToken}";
+            _cache.Set(cacheKey, user.Id, TimeSpan.FromMinutes(5));
             
             return new AuthResponse
             {
@@ -137,10 +133,18 @@ public class AuthenticationService : IAuthenticationService
 
         // Update last login date
         user.LastLoginDate = DateTime.UtcNow;
+        
+        // Generate response with tokens
+        var response = GenerateAuthResponse(user);
+        
+        // Store refresh token for later validation
+        user.RefreshToken = response.RefreshToken;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();
 
-        return GenerateAuthResponse(user);
+        return response;
     }
 
     public async Task<AuthResponse> OAuthLoginAsync(OAuthLoginRequest request)
@@ -211,9 +215,41 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
     {
-        // In a production app, you would validate the refresh token against stored tokens
-        // For now, this is a placeholder
-        throw new NotImplementedException("Refresh token functionality is not yet implemented");
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            throw new ArgumentException("Refresh token is required");
+
+        // Find user with matching refresh token
+        // Note: In production, store refresh tokens in a separate table with expiry
+        var users = await _userRepository.GetAllAsync();
+        var user = users.FirstOrDefault(u => 
+            !u.IsDeleted && 
+            u.IsActive && 
+            u.RefreshToken == refreshToken && 
+            u.RefreshTokenExpiry > DateTime.UtcNow);
+
+        if (user == null)
+            throw new UnauthorizedAccessException("Invalid or expired refresh token");
+
+        // Load full user data for response
+        var fullUser = await _dbContext.Users
+            .Include(u => u.PrimaryGroup)
+            .Include(u => u.Department)
+            .Include(u => u.UserProfile)
+            .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+        if (fullUser == null)
+            throw new UnauthorizedAccessException("User not found");
+
+        // Generate new tokens
+        var response = GenerateAuthResponse(fullUser);
+
+        // Update refresh token (rotate on use for security)
+        fullUser.RefreshToken = response.RefreshToken;
+        fullUser.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        await _userRepository.UpdateAsync(fullUser);
+        await _userRepository.SaveAsync();
+
+        return response;
     }
 
     public async Task<bool> VerifyTokenAsync(string token)
@@ -245,21 +281,35 @@ public class AuthenticationService : IAuthenticationService
     // Helper methods
     private string HashPassword(string password)
     {
-        using (var sha256 = SHA256.Create())
-        {
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
-        }
+        return BCrypt.Net.BCrypt.HashPassword(password);
     }
 
     private bool VerifyPassword(string password, string hash)
     {
-        var hashOfInput = HashPassword(password);
-        var matches = hashOfInput == hash;
-        Console.WriteLine($"[PASSWORD_VERIFY] Input hash: {hashOfInput}");
-        Console.WriteLine($"[PASSWORD_VERIFY] Stored hash: {hash}");
-        Console.WriteLine($"[PASSWORD_VERIFY] Match: {matches}");
-        return matches;
+        if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))
+            return false;
+        
+        try
+        {
+            // Support BCrypt hashes (preferred)
+            if (hash.StartsWith("$2"))
+            {
+                return BCrypt.Net.BCrypt.Verify(password, hash);
+            }
+            
+            // Legacy support for old SHA-256 hashes (will be migrated on next password change)
+            using (var sha256 = SHA256.Create())
+            {
+                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                var hashOfInput = Convert.ToBase64String(hashedBytes);
+                return hashOfInput == hash;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Password verification failed");
+            return false;
+        }
     }
 
     private AuthResponse GenerateAuthResponse(User user)
@@ -269,13 +319,16 @@ public class AuthenticationService : IAuthenticationService
 
         // Extract accessible pages from profile
         var accessiblePages = new List<string>();
-        if (user.UserProfile != null)
+        if (user.UserProfile != null && !string.IsNullOrEmpty(user.UserProfile.AccessiblePages))
         {
             try
             {
                 accessiblePages = System.Text.Json.JsonSerializer.Deserialize<List<string>>(user.UserProfile.AccessiblePages) ?? new();
             }
-            catch { }
+            catch (System.Text.Json.JsonException ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse AccessiblePages for user {UserId}", user.Id);
+            }
         }
 
         // Build permissions object from profile
@@ -568,14 +621,17 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<AuthResponse> VerifyTwoFactorLoginAsync(string tempToken, string code)
     {
-        // Find user by temp token
-        var users = await _userRepository.GetAllAsync();
-        var user = users.FirstOrDefault(u => 
-            u.PasswordResetToken == tempToken && 
-            u.PasswordResetTokenExpiry > DateTime.UtcNow);
-        
-        if (user == null)
+        // Retrieve user ID from cache using temp token
+        var cacheKey = $"2fa_token_{tempToken}";
+        if (!_cache.TryGetValue(cacheKey, out int userId))
             throw new UnauthorizedAccessException("Invalid or expired verification token");
+        
+        // Remove token from cache immediately (one-time use)
+        _cache.Remove(cacheKey);
+        
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            throw new UnauthorizedAccessException("User not found");
         
         if (string.IsNullOrEmpty(user.TwoFactorSecret))
             throw new InvalidOperationException("2FA not configured for this user");
@@ -599,21 +655,25 @@ public class AuthenticationService : IAuthenticationService
         if (!isValid)
             throw new UnauthorizedAccessException("Invalid verification code");
         
-        // Clear the temp token
-        user.PasswordResetToken = null;
-        user.PasswordResetTokenExpiry = null;
         user.LastLoginDate = DateTime.UtcNow;
-        await _userRepository.UpdateAsync(user);
-        await _userRepository.SaveAsync();
         
-        // Load navigation properties for full response
+        // Generate response with tokens
         var fullUser = await _dbContext.Users
             .Include(u => u.PrimaryGroup)
             .Include(u => u.Department)
             .Include(u => u.UserProfile)
             .FirstOrDefaultAsync(u => u.Id == user.Id);
         
-        return GenerateAuthResponse(fullUser ?? user);
+        var response = GenerateAuthResponse(fullUser ?? user);
+        
+        // Store refresh token
+        user.RefreshToken = response.RefreshToken;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
+        
+        return response;
     }
 
     public async Task EnableTwoFactorAsync(int userId, string secret, List<string> backupCodes)

@@ -82,17 +82,27 @@ public class DatabaseController : ControllerBase
     {
         try
         {
+            // Validate input parameters
+            if (!ValidateConnectionParameters(request, out var validationError))
+            {
+                return Ok(new ConnectionTestResult
+                {
+                    Success = false,
+                    Message = $"Invalid connection parameters: {validationError}"
+                });
+            }
+            
             var result = await TestDatabaseConnectionAsync(request);
             return Ok(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error testing database connection");
+            // Return generic error message to avoid exposing internal details
             return Ok(new ConnectionTestResult
             {
                 Success = false,
-                Message = $"Connection failed: {ex.Message}",
-                Details = ex.InnerException?.Message
+                Message = "Connection test failed. Please verify your connection parameters."
             });
         }
     }
@@ -391,7 +401,10 @@ public class DatabaseController : ControllerBase
         var result = new ConnectionTestResult();
         try
         {
-            var connectionString = $"mongodb://{request.UserId}:{request.Password}@{request.Host}:{request.Port}/{request.Database}";
+            // URL-encode credentials to handle special characters safely
+            var encodedUser = Uri.EscapeDataString(request.UserId);
+            var encodedPassword = Uri.EscapeDataString(request.Password);
+            var connectionString = $"mongodb://{encodedUser}:{encodedPassword}@{request.Host}:{request.Port}/{request.Database}";
             var client = new MongoDB.Driver.MongoClient(connectionString);
             var database = client.GetDatabase(request.Database);
             
@@ -406,8 +419,8 @@ public class DatabaseController : ControllerBase
         catch (Exception ex)
         {
             result.Success = false;
-            result.Message = $"MongoDB connection failed: {ex.Message}";
-            result.Details = ex.InnerException?.Message;
+            result.Message = "MongoDB connection failed. Please verify your connection parameters.";
+            _logger.LogWarning(ex, "MongoDB connection test failed");
         }
         return result;
     }
@@ -568,7 +581,8 @@ Then restart the API container:
                     // Generate mysqldump command (requires mysqldump to be available)
                     backupPath = Path.Combine(backupDir, $"{backupName}.sql");
                     var connInfo = GetConnectionInfo();
-                    backupInstructions = $"mysqldump -h {connInfo.Host} -P {connInfo.Port} -u {connInfo.UserId} -p{connInfo.Password} {connInfo.Database} > {backupPath}";
+                    // Never include actual credentials in backup instructions
+                    backupInstructions = $"mysqldump -h {connInfo.Host} -P {connInfo.Port} -u <username> -p <database_name> > {backupPath}";
                     
                     // Try to execute mysqldump if available
                     try
@@ -584,9 +598,14 @@ Then restart the API container:
                         await writer.WriteLineAsync($"-- Database: {connInfo.Database}");
                         await writer.WriteLineAsync();
                         
-                        // Get tables
+                        // Get tables using parameterized query
                         using var cmd = connection.CreateCommand();
-                        cmd.CommandText = $"SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '{connInfo.Database}' AND TABLE_TYPE = 'BASE TABLE'";
+                        cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                        var dbParam = cmd.CreateParameter();
+                        dbParam.ParameterName = "@dbName";
+                        dbParam.Value = connInfo.Database;
+                        cmd.Parameters.Add(dbParam);
+                        
                         var tables = new List<string>();
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
@@ -744,7 +763,13 @@ Then restart the API container:
                     var dbName = GetConnectionInfo().Database;
                     using (var cmd = connection.CreateCommand())
                     {
-                        cmd.CommandText = $"SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '{dbName}' AND TABLE_TYPE = 'BASE TABLE'";
+                        // Use parameterized query to get table names
+                        cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                        var dbParam = cmd.CreateParameter();
+                        dbParam.ParameterName = "@dbName";
+                        dbParam.Value = dbName;
+                        cmd.Parameters.Add(dbParam);
+                        
                         var tables = new List<string>();
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
@@ -752,18 +777,25 @@ Then restart the API container:
                                 tables.Add(reader.GetString(0));
                         }
                         
+                        // Table names from information_schema are safe to use
                         foreach (var table in tables)
                         {
+                            // Validate table name contains only safe characters
+                            if (!IsValidIdentifier(table)) continue;
+                            
                             using var optimizeCmd = connection.CreateCommand();
                             optimizeCmd.CommandText = $"OPTIMIZE TABLE `{table}`";
                             await optimizeCmd.ExecuteNonQueryAsync();
                             result.Operations.Add($"OPTIMIZE TABLE {table} completed");
                         }
                         
-                        using var analyzeCmd = connection.CreateCommand();
-                        analyzeCmd.CommandText = $"ANALYZE TABLE {string.Join(", ", tables.Select(t => $"`{t}`"))}";
-                        await analyzeCmd.ExecuteNonQueryAsync();
-                        result.Operations.Add("ANALYZE completed - query statistics updated");
+                        if (tables.Any(t => IsValidIdentifier(t)))
+                        {
+                            using var analyzeCmd = connection.CreateCommand();
+                            analyzeCmd.CommandText = $"ANALYZE TABLE {string.Join(", ", tables.Where(IsValidIdentifier).Select(t => $"`{t}`"))}";
+                            await analyzeCmd.ExecuteNonQueryAsync();
+                            result.Operations.Add("ANALYZE completed - query statistics updated");
+                        }
                     }
                     break;
                     
@@ -854,7 +886,13 @@ Then restart the API container:
                     var dbName = GetConnectionInfo().Database;
                     using (var cmd = connection.CreateCommand())
                     {
-                        cmd.CommandText = $"SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '{dbName}' AND TABLE_TYPE = 'BASE TABLE'";
+                        // Use parameterized query
+                        cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                        var dbParam = cmd.CreateParameter();
+                        dbParam.ParameterName = "@dbName";
+                        dbParam.Value = dbName;
+                        cmd.Parameters.Add(dbParam);
+                        
                         var tables = new List<string>();
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
@@ -864,6 +902,9 @@ Then restart the API container:
                         
                         foreach (var table in tables)
                         {
+                            // Validate table name
+                            if (!IsValidIdentifier(table)) continue;
+                            
                             using var repairCmd = connection.CreateCommand();
                             repairCmd.CommandText = $"ALTER TABLE `{table}` ENGINE=InnoDB";
                             await repairCmd.ExecuteNonQueryAsync();
@@ -1120,7 +1161,10 @@ Then restart the API container:
                 default: // SQLite
                     foreach (var table in tablesToClear)
                     {
-                        await _context.Database.ExecuteSqlRawAsync($"DELETE FROM {table}");
+                        // Table names are hardcoded above, not user input - safe from SQL injection
+                        using var delCmd = connection.CreateCommand();
+                        delCmd.CommandText = $"DELETE FROM \"{table}\"";
+                        try { await delCmd.ExecuteNonQueryAsync(); } catch { /* Table may not exist */ }
                     }
                     break;
             }
@@ -1194,7 +1238,11 @@ Then restart the API container:
                     using (var cmd = connection.CreateCommand())
                     {
                         var dbName = GetConnectionInfo().Database;
-                        cmd.CommandText = $"SELECT ROUND(SUM(data_length + index_length), 2) FROM information_schema.tables WHERE table_schema = '{dbName}'";
+                        cmd.CommandText = "SELECT ROUND(SUM(data_length + index_length), 2) FROM information_schema.tables WHERE table_schema = @dbName";
+                        var dbParam = cmd.CreateParameter();
+                        dbParam.ParameterName = "@dbName";
+                        dbParam.Value = dbName;
+                        cmd.Parameters.Add(dbParam);
                         var result = await cmd.ExecuteScalarAsync();
                         if (result != null && result != DBNull.Value)
                             return FormatFileSize(Convert.ToInt64(result));
@@ -1275,15 +1323,19 @@ Then restart the API container:
                     using (var cmd = connection.CreateCommand())
                     {
                         var dbName = GetConnectionInfo().Database;
-                        cmd.CommandText = $@"
+                        cmd.CommandText = @"
                             SELECT 
                                 TABLE_NAME as TableName,
                                 TABLE_ROWS as RowCount,
                                 ROUND(AVG_ROW_LENGTH) as AvgRowLength,
                                 ROUND(DATA_LENGTH + INDEX_LENGTH) as TotalSize
                             FROM information_schema.TABLES 
-                            WHERE TABLE_SCHEMA = '{dbName}' AND TABLE_TYPE = 'BASE TABLE'
+                            WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'
                             ORDER BY TABLE_NAME";
+                        var dbParam = cmd.CreateParameter();
+                        dbParam.ParameterName = "@dbName";
+                        dbParam.Value = dbName;
+                        cmd.Parameters.Add(dbParam);
                         
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
@@ -1397,10 +1449,14 @@ Then restart the API container:
                     using (var cmd = connection.CreateCommand())
                     {
                         var dbName = GetConnectionInfo().Database;
-                        cmd.CommandText = $@"
+                        cmd.CommandText = @"
                             SELECT TABLE_NAME, VIEW_DEFINITION 
                             FROM information_schema.VIEWS 
-                            WHERE TABLE_SCHEMA = '{dbName}'";
+                            WHERE TABLE_SCHEMA = @dbName";
+                        var dbParam = cmd.CreateParameter();
+                        dbParam.ParameterName = "@dbName";
+                        dbParam.Value = dbName;
+                        cmd.Parameters.Add(dbParam);
                         
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
@@ -1496,7 +1552,7 @@ Then restart the API container:
                     using (var cmd = connection.CreateCommand())
                     {
                         var dbName = GetConnectionInfo().Database;
-                        cmd.CommandText = $@"
+                        cmd.CommandText = @"
                             SELECT 
                                 INDEX_NAME,
                                 TABLE_NAME,
@@ -1504,9 +1560,13 @@ Then restart the API container:
                                 IF(NON_UNIQUE = 0, 1, 0) as IsUnique,
                                 IF(INDEX_NAME = 'PRIMARY', 1, 0) as IsPrimary
                             FROM information_schema.STATISTICS 
-                            WHERE TABLE_SCHEMA = '{dbName}'
+                            WHERE TABLE_SCHEMA = @dbName
                             GROUP BY INDEX_NAME, TABLE_NAME, NON_UNIQUE
                             ORDER BY TABLE_NAME, INDEX_NAME";
+                        var dbParam = cmd.CreateParameter();
+                        dbParam.ParameterName = "@dbName";
+                        dbParam.Value = dbName;
+                        cmd.Parameters.Add(dbParam);
                         
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
@@ -1639,6 +1699,63 @@ Then restart the API container:
             size /= 1024;
         }
         return $"{size:0.##} {sizes[order]}";
+    }
+
+    /// <summary>
+    /// Validates that an identifier (table/column name) contains only safe characters
+    /// </summary>
+    private static bool IsValidIdentifier(string identifier)
+    {
+        if (string.IsNullOrEmpty(identifier) || identifier.Length > 128)
+            return false;
+        
+        // Allow only alphanumeric characters and underscores
+        return System.Text.RegularExpressions.Regex.IsMatch(identifier, @"^[a-zA-Z_][a-zA-Z0-9_]*$");
+    }
+
+    /// <summary>
+    /// Validates connection parameters to prevent injection attacks
+    /// </summary>
+    private static bool ValidateConnectionParameters(DatabaseConnectionRequest request, out string? error)
+    {
+        error = null;
+        
+        // Validate hostname (allow localhost, IP addresses, and hostnames)
+        if (string.IsNullOrWhiteSpace(request.Host) || request.Host.Length > 255)
+        {
+            error = "Invalid hostname";
+            return false;
+        }
+        
+        // Basic hostname validation
+        if (!System.Text.RegularExpressions.Regex.IsMatch(request.Host, @"^[a-zA-Z0-9.\-_]+$"))
+        {
+            error = "Hostname contains invalid characters";
+            return false;
+        }
+        
+        // Validate port range
+        if (request.Port < 1 || request.Port > 65535)
+        {
+            error = "Port must be between 1 and 65535";
+            return false;
+        }
+        
+        // Validate database name
+        if (string.IsNullOrWhiteSpace(request.Database) || !IsValidIdentifier(request.Database))
+        {
+            error = "Invalid database name";
+            return false;
+        }
+        
+        // Validate user ID (basic check)
+        if (string.IsNullOrWhiteSpace(request.UserId) || request.UserId.Length > 128)
+        {
+            error = "Invalid user ID";
+            return false;
+        }
+        
+        return true;
     }
 
     private Task GenerateInsertStatements<T>(StringBuilder script, string tableName, List<T> records) where T : class

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -50,6 +50,68 @@ function NavigationContent() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // Nav item ID to path/icon mapping (defined outside useMemo for stability)
+  const navItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
+    'dashboard': { label: 'Dashboard', icon: DashboardIcon, path: '/', menuName: 'Dashboard' },
+    'customers': { label: 'Customers', icon: PeopleIcon, path: '/customers', menuName: 'Customers' },
+    'contacts': { label: 'Contacts', icon: PeopleIcon, path: '/contacts', menuName: 'Contacts' },
+    'leads': { label: 'Leads', icon: PeopleIcon, path: '/leads', menuName: 'Leads' },
+    'opportunities': { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', menuName: 'Opportunities' },
+    'products': { label: 'Products', icon: PackageIcon, path: '/products', menuName: 'Products' },
+    'services': { label: 'Services', icon: SettingsIcon, path: '/services', menuName: 'Services' },
+    'service-requests': { label: 'Service Requests', icon: SupportAgentIcon, path: '/service-requests', menuName: 'ServiceRequests' },
+    'campaigns': { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', menuName: 'Campaigns' },
+    'quotes': { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
+    'tasks': { label: 'Tasks', icon: TaskIcon, path: '/tasks', menuName: 'Tasks' },
+    'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
+    'notes': { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
+  }), []);
+
+  const adminItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
+    'workflows': { label: 'Workflows', icon: AutomationIcon, path: '/workflows', menuName: 'Workflows' },
+    'settings': { label: 'Admin Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
+  }), []);
+
+  // Default order for nav items
+  const defaultNavOrder = useMemo(() => [
+    'dashboard', 'customers', 'contacts', 'leads', 'opportunities',
+    'products', 'services', 'service-requests', 'campaigns', 'quotes',
+    'tasks', 'activities', 'notes'
+  ], []);
+  const defaultAdminOrder = useMemo(() => ['workflows', 'settings'], []);
+
+  // Get nav order from localStorage or use defaults
+  const navOrder = useMemo(() => {
+    try {
+      const savedConfig = localStorage.getItem('crm_nav_order');
+      if (savedConfig) {
+        const parsed = JSON.parse(savedConfig);
+        return parsed;
+      }
+    } catch {
+      // Use defaults
+    }
+    return null;
+  }, []);
+
+  // Build ordered nav items
+  const navItems = useMemo(() => {
+    const order = navOrder || defaultNavOrder.map((id, idx) => ({ id, order: idx, visible: true }));
+    return order
+      .filter((item: { id: string; visible: boolean }) => item.visible && navItemsConfig[item.id])
+      .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
+      .map((item: { id: string }) => navItemsConfig[item.id]);
+  }, [navOrder, defaultNavOrder, navItemsConfig]);
+
+  const adminItems = useMemo(() => {
+    const order = navOrder?.filter((item: { id: string }) => adminItemsConfig[item.id]) || 
+      defaultAdminOrder.map((id, idx) => ({ id, order: idx + 100, visible: true }));
+    return order
+      .filter((item: { id: string; visible: boolean }) => item.visible && adminItemsConfig[item.id])
+      .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
+      .map((item: { id: string }) => adminItemsConfig[item.id]);
+  }, [navOrder, defaultAdminOrder, adminItemsConfig]);
+
   // Get header color: user's custom color, or red for admin, or primary color
   const getHeaderColor = () => {
     if (user?.headerColor) return user.headerColor;
@@ -93,28 +155,6 @@ function NavigationContent() {
   if (!isAuthenticated) {
     return null;
   }
-
-  const navItems = [
-    { label: 'Dashboard', icon: DashboardIcon, path: '/', menuName: 'Dashboard' },
-    { label: 'Customers', icon: PeopleIcon, path: '/customers', menuName: 'Customers' },
-    { label: 'Contacts', icon: PeopleIcon, path: '/contacts', menuName: 'Contacts' },
-    { label: 'Leads', icon: PeopleIcon, path: '/leads', menuName: 'Leads' },
-    { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', menuName: 'Opportunities' },
-    { label: 'Products', icon: PackageIcon, path: '/products', menuName: 'Products' },
-    { label: 'Services', icon: SettingsIcon, path: '/services', menuName: 'Services' },
-    { label: 'Service Requests', icon: SupportAgentIcon, path: '/service-requests', menuName: 'ServiceRequests' },
-    { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', menuName: 'Campaigns' },
-    { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
-    { label: 'Tasks', icon: TaskIcon, path: '/tasks', menuName: 'Tasks' },
-    { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
-    { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
-  ];
-
-  const adminItems = [
-    { label: 'Workflows', icon: AutomationIcon, path: '/workflows', menuName: 'Workflows' },
-    { label: 'Service Request Settings', icon: SupportAgentIcon, path: '/service-request-settings', menuName: 'Settings' },
-    { label: 'Admin Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
-  ];
   
   // Filter nav items based on group permissions and module status
   const visibleNavItems = navItems.filter(item => canAccessMenu(item.menuName));

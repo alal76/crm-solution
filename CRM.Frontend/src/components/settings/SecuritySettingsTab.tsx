@@ -23,6 +23,8 @@ import {
   IconButton,
   InputAdornment,
   Tooltip,
+  LinearProgress,
+  FormControlLabel,
 } from '@mui/material';
 import {
   Security as SecurityIcon,
@@ -31,6 +33,12 @@ import {
   Check as CheckIcon,
   Warning as WarningIcon,
   Shield as ShieldIcon,
+  Https as HttpsIcon,
+  CloudUpload as UploadIcon,
+  Delete as DeleteIcon,
+  Verified as VerifiedIcon,
+  Error as ErrorIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -62,6 +70,22 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
   const [disableCode, setDisableCode] = useState('');
 
+  // SSL/TLS state
+  const [sslStatus, setSslStatus] = useState<{
+    httpsEnabled: boolean;
+    forceRedirect: boolean;
+    hasCertificate: boolean;
+    hasPrivateKey: boolean;
+    certificateExpiry: string | null;
+    certificateSubject: string | null;
+    isExpired: boolean;
+    expiresInDays: number | null;
+  } | null>(null);
+  const [sslLoading, setSslLoading] = useState(false);
+  const [uploadingCert, setUploadingCert] = useState(false);
+  const [certFile, setCertFile] = useState<File | null>(null);
+  const [keyFile, setKeyFile] = useState<File | null>(null);
+
   const getApiUrl = () => {
     return window.location.hostname === 'localhost'
       ? 'http://localhost:5000/api'
@@ -70,7 +94,123 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
   useEffect(() => {
     loadTwoFactorStatus();
+    loadSslStatus();
   }, []);
+
+  const loadSslStatus = async () => {
+    try {
+      setSslLoading(true);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${getApiUrl()}/systemsettings/ssl/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSslStatus(data);
+      }
+    } catch (err) {
+      console.error('Error loading SSL status:', err);
+    } finally {
+      setSslLoading(false);
+    }
+  };
+
+  const handleCertificateUpload = async () => {
+    if (!certFile) {
+      setError('Please select a certificate file');
+      return;
+    }
+
+    setUploadingCert(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const formData = new FormData();
+      formData.append('certificate', certFile);
+      if (keyFile) {
+        formData.append('privateKey', keyFile);
+      }
+
+      const response = await fetch(`${getApiUrl()}/systemsettings/ssl/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (response.ok) {
+        setSuccess('SSL certificate uploaded successfully');
+        setCertFile(null);
+        setKeyFile(null);
+        await loadSslStatus();
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to upload certificate');
+      }
+    } catch (err) {
+      setError('Failed to upload SSL certificate');
+    } finally {
+      setUploadingCert(false);
+    }
+  };
+
+  const handleToggleHttps = async (enabled: boolean, forceRedirect: boolean = false) => {
+    setSslLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${getApiUrl()}/systemsettings/ssl/toggle`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ enabled, forceRedirect }),
+      });
+
+      if (response.ok) {
+        setSuccess(enabled ? 'HTTPS enabled' : 'HTTPS disabled');
+        await loadSslStatus();
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to toggle HTTPS');
+      }
+    } catch (err) {
+      setError('Failed to toggle HTTPS');
+    } finally {
+      setSslLoading(false);
+    }
+  };
+
+  const handleRemoveCertificate = async () => {
+    if (!window.confirm('Are you sure you want to remove the SSL certificate? HTTPS will be disabled.')) {
+      return;
+    }
+
+    setSslLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${getApiUrl()}/systemsettings/ssl`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        setSuccess('SSL certificate removed');
+        await loadSslStatus();
+      } else {
+        setError('Failed to remove certificate');
+      }
+    } catch (err) {
+      setError('Failed to remove SSL certificate');
+    } finally {
+      setSslLoading(false);
+    }
+  };
 
   const loadTwoFactorStatus = async () => {
     try {
@@ -263,6 +403,197 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
           {error}
         </Alert>
       )}
+
+      {/* SSL/TLS Certificate Management Card */}
+      <Card sx={{ borderRadius: 3, mb: 3 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 3 }}>
+            <HttpsIcon sx={{ fontSize: 40, color: sslStatus?.httpsEnabled ? '#4CAF50' : '#9E9E9E' }} />
+            <Box sx={{ flexGrow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  SSL/TLS Encryption
+                </Typography>
+                <Chip
+                  size="small"
+                  label={sslStatus?.httpsEnabled ? 'HTTPS Enabled' : 'HTTP Only'}
+                  color={sslStatus?.httpsEnabled ? 'success' : 'default'}
+                />
+              </Box>
+              <Typography variant="body2" color="textSecondary">
+                Enable encrypted HTTPS connections between the browser and server. Upload your SSL certificate and private key to enable secure communications.
+              </Typography>
+            </Box>
+          </Box>
+
+          {sslLoading && <LinearProgress sx={{ mb: 2 }} />}
+
+          {/* Certificate Status */}
+          {sslStatus?.hasCertificate && (
+            <Paper sx={{ p: 2, mb: 3, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                {sslStatus.isExpired ? (
+                  <ErrorIcon color="error" fontSize="small" />
+                ) : (
+                  <VerifiedIcon color="success" fontSize="small" />
+                )}
+                Current Certificate
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="body2" color="textSecondary">Subject</Typography>
+                  <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                    {sslStatus.certificateSubject || 'Unknown'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="body2" color="textSecondary">Expires</Typography>
+                  <Typography variant="body2" color={sslStatus.isExpired ? 'error' : 'textPrimary'}>
+                    {sslStatus.certificateExpiry ? new Date(sslStatus.certificateExpiry).toLocaleDateString() : 'Unknown'}
+                    {sslStatus.expiresInDays !== null && (
+                      <Chip 
+                        size="small" 
+                        label={sslStatus.isExpired ? 'Expired' : `${sslStatus.expiresInDays} days left`}
+                        color={sslStatus.isExpired ? 'error' : sslStatus.expiresInDays < 30 ? 'warning' : 'success'}
+                        sx={{ ml: 1 }}
+                      />
+                    )}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="body2" color="textSecondary">Certificate File</Typography>
+                  <Chip size="small" label="Uploaded" color="success" icon={<CheckIcon />} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="body2" color="textSecondary">Private Key</Typography>
+                  <Chip 
+                    size="small" 
+                    label={sslStatus.hasPrivateKey ? 'Uploaded' : 'Not Uploaded'} 
+                    color={sslStatus.hasPrivateKey ? 'success' : 'warning'}
+                    icon={sslStatus.hasPrivateKey ? <CheckIcon /> : <WarningIcon />}
+                  />
+                </Grid>
+              </Grid>
+              <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={sslStatus?.httpsEnabled || false}
+                      onChange={(e) => handleToggleHttps(e.target.checked, sslStatus?.forceRedirect || false)}
+                      disabled={sslLoading || !sslStatus?.hasCertificate}
+                    />
+                  }
+                  label="Enable HTTPS"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={sslStatus?.forceRedirect || false}
+                      onChange={(e) => handleToggleHttps(sslStatus?.httpsEnabled || false, e.target.checked)}
+                      disabled={sslLoading || !sslStatus?.httpsEnabled}
+                    />
+                  }
+                  label="Force HTTPS Redirect"
+                />
+                <Button
+                  size="small"
+                  color="error"
+                  startIcon={<DeleteIcon />}
+                  onClick={handleRemoveCertificate}
+                  disabled={sslLoading}
+                  sx={{ ml: 'auto', textTransform: 'none' }}
+                >
+                  Remove Certificate
+                </Button>
+              </Box>
+            </Paper>
+          )}
+
+          {/* Upload Certificate */}
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
+            {sslStatus?.hasCertificate ? 'Replace Certificate' : 'Upload SSL Certificate'}
+          </Typography>
+          
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <Paper
+                sx={{
+                  p: 2,
+                  border: '2px dashed',
+                  borderColor: certFile ? 'success.main' : 'divider',
+                  borderRadius: 2,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  '&:hover': { borderColor: 'primary.main' },
+                }}
+                component="label"
+              >
+                <input
+                  type="file"
+                  hidden
+                  accept=".crt,.pem,.cer"
+                  onChange={(e) => setCertFile(e.target.files?.[0] || null)}
+                />
+                <LockIcon sx={{ fontSize: 32, color: certFile ? 'success.main' : 'text.secondary', mb: 1 }} />
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {certFile ? certFile.name : 'SSL Certificate (.crt, .pem)'}
+                </Typography>
+                <Typography variant="caption" color="textSecondary">
+                  Click to select certificate file
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Paper
+                sx={{
+                  p: 2,
+                  border: '2px dashed',
+                  borderColor: keyFile ? 'success.main' : 'divider',
+                  borderRadius: 2,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  '&:hover': { borderColor: 'primary.main' },
+                }}
+                component="label"
+              >
+                <input
+                  type="file"
+                  hidden
+                  accept=".key,.pem"
+                  onChange={(e) => setKeyFile(e.target.files?.[0] || null)}
+                />
+                <SecurityIcon sx={{ fontSize: 32, color: keyFile ? 'success.main' : 'text.secondary', mb: 1 }} />
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {keyFile ? keyFile.name : 'Private Key (.key, .pem)'}
+                </Typography>
+                <Typography variant="caption" color="textSecondary">
+                  Click to select private key file
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={uploadingCert ? <CircularProgress size={16} color="inherit" /> : <UploadIcon />}
+              onClick={handleCertificateUpload}
+              disabled={!certFile || uploadingCert}
+              sx={{ textTransform: 'none' }}
+            >
+              Upload Certificate
+            </Button>
+          </Box>
+
+          <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
+            <Typography variant="body2">
+              <strong>Note:</strong> After uploading certificates, you may need to restart the server for HTTPS to take effect.
+              Ensure your certificate is issued by a trusted Certificate Authority for production use.
+            </Typography>
+          </Alert>
+        </CardContent>
+      </Card>
 
       {/* Two-Factor Authentication Card */}
       <Card sx={{ borderRadius: 3, mb: 3 }}>

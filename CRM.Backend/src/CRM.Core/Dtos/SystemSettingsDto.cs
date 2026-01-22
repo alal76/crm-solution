@@ -103,6 +103,23 @@ public class SystemSettingsDto
     
     #endregion
     
+    #region Navigation Settings
+    
+    public string? NavOrderConfig { get; set; }
+    
+    #endregion
+    
+    #region SSL/TLS Settings
+    
+    public bool HttpsEnabled { get; set; }
+    public string? SslCertificatePath { get; set; }
+    public string? SslPrivateKeyPath { get; set; }
+    public DateTime? SslCertificateExpiry { get; set; }
+    public string? SslCertificateSubject { get; set; }
+    public bool ForceHttpsRedirect { get; set; }
+    
+    #endregion
+    
     #region Customization
     
     public string DateFormat { get; set; } = "yyyy-MM-dd";
@@ -189,6 +206,17 @@ public class UpdateSystemSettingsRequest
     public bool? ApiAccessEnabled { get; set; }
     public bool? EmailNotificationsEnabled { get; set; }
     public bool? AuditLoggingEnabled { get; set; }
+    
+    // Navigation Settings
+    public string? NavOrderConfig { get; set; }
+    
+    // SSL/TLS Settings
+    public bool? HttpsEnabled { get; set; }
+    public string? SslCertificatePath { get; set; }
+    public string? SslPrivateKeyPath { get; set; }
+    public DateTime? SslCertificateExpiry { get; set; }
+    public string? SslCertificateSubject { get; set; }
+    public bool? ForceHttpsRedirect { get; set; }
     
     // Customization
     public string? DateFormat { get; set; }
