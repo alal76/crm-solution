@@ -143,6 +143,9 @@ public class SystemSettingsService : ISystemSettingsService
             if (request.SslCertificateSubject != null) settings.SslCertificateSubject = request.SslCertificateSubject;
             if (request.ForceHttpsRedirect.HasValue) settings.ForceHttpsRedirect = request.ForceHttpsRedirect.Value;
             
+            // Demo database settings
+            if (request.UseDemoDatabase.HasValue) settings.UseDemoDatabase = request.UseDemoDatabase.Value;
+            
             if (!string.IsNullOrEmpty(request.DateFormat)) settings.DateFormat = request.DateFormat;
             if (!string.IsNullOrEmpty(request.TimeFormat)) settings.TimeFormat = request.TimeFormat;
             if (!string.IsNullOrEmpty(request.DefaultCurrency)) settings.DefaultCurrency = request.DefaultCurrency;
@@ -216,6 +219,10 @@ public class SystemSettingsService : ISystemSettingsService
             SslCertificateExpiry = settings.SslCertificateExpiry,
             SslCertificateSubject = settings.SslCertificateSubject,
             ForceHttpsRedirect = settings.ForceHttpsRedirect,
+            
+            UseDemoDatabase = settings.UseDemoDatabase,
+            DemoDataSeeded = settings.DemoDataSeeded,
+            DemoDataLastSeeded = settings.DemoDataLastSeeded,
             
             DateFormat = settings.DateFormat,
             TimeFormat = settings.TimeFormat,

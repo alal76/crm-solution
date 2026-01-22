@@ -120,6 +120,14 @@ public class SystemSettingsDto
     
     #endregion
     
+    #region Demo Database Settings
+    
+    public bool UseDemoDatabase { get; set; }
+    public bool DemoDataSeeded { get; set; }
+    public DateTime? DemoDataLastSeeded { get; set; }
+    
+    #endregion
+    
     #region Customization
     
     public string DateFormat { get; set; } = "yyyy-MM-dd";
@@ -217,6 +225,9 @@ public class UpdateSystemSettingsRequest
     public DateTime? SslCertificateExpiry { get; set; }
     public string? SslCertificateSubject { get; set; }
     public bool? ForceHttpsRedirect { get; set; }
+    
+    // Demo Database Settings
+    public bool? UseDemoDatabase { get; set; }
     
     // Customization
     public string? DateFormat { get; set; }

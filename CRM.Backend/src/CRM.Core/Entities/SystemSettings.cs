@@ -432,4 +432,23 @@ public class SystemSettings : BaseEntity
     public bool ForceHttpsRedirect { get; set; } = false;
     
     #endregion
+    
+    #region Demo Database Settings
+    
+    /// <summary>
+    /// Whether the system is using the demo database instead of production
+    /// </summary>
+    public bool UseDemoDatabase { get; set; } = false;
+    
+    /// <summary>
+    /// Whether demo data has been seeded
+    /// </summary>
+    public bool DemoDataSeeded { get; set; } = false;
+    
+    /// <summary>
+    /// Last time demo data was seeded/refreshed
+    /// </summary>
+    public DateTime? DemoDataLastSeeded { get; set; }
+    
+    #endregion
 }
