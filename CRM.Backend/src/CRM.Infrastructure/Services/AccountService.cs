@@ -11,26 +11,33 @@ public class AccountService : IAccountService
     private readonly IRepository<ContactDetail> _contactDetailRepo;
     private readonly IRepository<SocialAccount> _socialAccountRepo;
     private readonly IRepository<ContactInfoLink> _linkRepo;
+        private readonly NormalizationService _normalizationService;
 
     public AccountService(
         IRepository<Account> accountRepo,
         IRepository<Address> addressRepo,
         IRepository<ContactDetail> contactDetailRepo,
         IRepository<SocialAccount> socialAccountRepo,
-        IRepository<ContactInfoLink> linkRepo)
+        IRepository<ContactInfoLink> linkRepo,
+        NormalizationService normalizationService)
     {
         _accountRepo = accountRepo;
         _addressRepo = addressRepo;
         _contactDetailRepo = contactDetailRepo;
         _socialAccountRepo = socialAccountRepo;
         _linkRepo = linkRepo;
+        _normalizationService = normalizationService;
     }
 
     public async Task<object?> GetByIdAsync(int id)
     {
         var acc = await _accountRepo.GetByIdAsync(id);
         if (acc == null || acc.IsDeleted) return null;
-        return new { acc.Id, acc.AccountNumber, acc.AccountOwner, acc.CreatedAt, acc.UpdatedAt };
+
+        var billingEmail = await _normalizationService.GetPrimaryEmailAsync(ContactInfoOwnerType.Account, acc.Id) ?? acc.BillingContactEmail;
+        var billingPhone = await _normalizationService.GetPrimaryPhoneAsync(ContactInfoOwnerType.Account, acc.Id) ?? acc.BillingContactPhone;
+
+        return new { acc.Id, acc.AccountNumber, acc.AccountOwner, BillingContactEmail = billingEmail, BillingContactPhone = billingPhone, acc.CreatedAt, acc.UpdatedAt };
     }
 
     public async Task<object> CreateAsync(CreateAccountRequest request, string modifiedBy)

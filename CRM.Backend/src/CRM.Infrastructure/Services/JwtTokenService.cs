@@ -31,7 +31,7 @@ public class JwtTokenService : IJwtTokenService
     public string GenerateAccessToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_jwtSecret);
+        var key = Encoding.UTF8.GetBytes(_jwtSecret);
 
         var claims = new List<Claim>
         {
@@ -71,7 +71,7 @@ public class JwtTokenService : IJwtTokenService
         try
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtSecret);
+            var key = Encoding.UTF8.GetBytes(_jwtSecret);
 
             tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
