@@ -401,6 +401,59 @@ public class SystemSettingsController : ControllerBase
             return StatusCode(500, "Error updating navigation order");
         }
     }
+
+    /// <summary>
+    /// Toggle demo database mode
+    /// </summary>
+    [HttpPost("demo/toggle")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<SystemSettingsDto>> ToggleDemoMode([FromBody] ToggleDemoModeRequest request)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+            var updateRequest = new UpdateSystemSettingsRequest
+            {
+                UseDemoDatabase = request.Enabled
+            };
+
+            var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
+            
+            _logger.LogInformation("Demo mode {Action} by user {UserId}", request.Enabled ? "enabled" : "disabled", userId);
+            
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling demo mode");
+            return StatusCode(500, "Error toggling demo mode");
+        }
+    }
+
+    /// <summary>
+    /// Get demo database status
+    /// </summary>
+    [HttpGet("demo/status")]
+    public async Task<ActionResult<DemoStatusResponse>> GetDemoStatus()
+    {
+        try
+        {
+            var settings = await _settingsService.GetSettingsAsync();
+            return Ok(new DemoStatusResponse
+            {
+                UseDemoDatabase = settings.UseDemoDatabase,
+                DemoDataSeeded = settings.DemoDataSeeded,
+                DemoDataLastSeeded = settings.DemoDataLastSeeded
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting demo status");
+            return StatusCode(500, "Error getting demo status");
+        }
+    }
 }
 
 /// <summary>
@@ -418,4 +471,22 @@ public class ToggleHttpsRequest
 public class UpdateNavOrderRequest
 {
     public string NavOrderConfig { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request to toggle demo mode
+/// </summary>
+public class ToggleDemoModeRequest
+{
+    public bool Enabled { get; set; }
+}
+
+/// <summary>
+/// Response for demo status
+/// </summary>
+public class DemoStatusResponse
+{
+    public bool UseDemoDatabase { get; set; }
+    public bool DemoDataSeeded { get; set; }
+    public DateTime? DemoDataLastSeeded { get; set; }
 }
