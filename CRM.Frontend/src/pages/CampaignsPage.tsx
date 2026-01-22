@@ -13,6 +13,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import LookupSelect from '../components/LookupSelect';
 
 // Enums matching backend
 const CAMPAIGN_TYPES = [
@@ -431,36 +432,34 @@ function CampaignsPage() {
                 <TextField fullWidth label="Campaign Name" name="name" value={formData.name} onChange={handleInputChange} required />
               </Grid>
               <Grid item xs={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Campaign Type</InputLabel>
-                  <Select name="campaignType" value={formData.campaignType} onChange={handleSelectChange} label="Campaign Type">
-                    {CAMPAIGN_TYPES.map(t => <MenuItem key={t.value} value={t.value}>{t.icon} {t.label}</MenuItem>)}
-                  </Select>
-                </FormControl>
+                <LookupSelect
+                  category="CampaignType"
+                  name="campaignType"
+                  value={formData.campaignType}
+                  onChange={handleSelectChange}
+                  label="Campaign Type"
+                  fallback={CAMPAIGN_TYPES.map(t => ({ value: t.value, label: t.label }))}
+                />
               </Grid>
               <Grid item xs={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select name="status" value={formData.status} onChange={handleSelectChange} label="Status">
-                    {CAMPAIGN_STATUSES.map(s => (
-                      <MenuItem key={s.value} value={s.value}>
-                        <Chip label={s.label} size="small" sx={{ backgroundColor: s.color, color: 'white' }} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <LookupSelect
+                  category="CampaignStatus"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleSelectChange}
+                  label="Status"
+                  fallback={CAMPAIGN_STATUSES.map(s => ({ value: s.value, label: s.label }))}
+                />
               </Grid>
               <Grid item xs={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Priority</InputLabel>
-                  <Select name="priority" value={formData.priority} onChange={handleSelectChange} label="Priority">
-                    {CAMPAIGN_PRIORITIES.map(p => (
-                      <MenuItem key={p.value} value={p.value}>
-                        <Chip label={p.label} size="small" sx={{ backgroundColor: p.color, color: 'white' }} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <LookupSelect
+                  category="Priority"
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleSelectChange}
+                  label="Priority"
+                  fallback={CAMPAIGN_PRIORITIES.map(p => ({ value: p.value, label: p.label }))}
+                />
               </Grid>
               <Grid item xs={6}>
                 <TextField fullWidth label="Start Date" name="startDate" type="date" value={formData.startDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} required />

@@ -12,6 +12,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import LookupSelect from '../components/LookupSelect';
 
 // Enums matching backend
 const TASK_STATUSES = [
@@ -415,36 +416,34 @@ function TasksPage() {
                 <TextField fullWidth label="Task Title" name="title" value={formData.title} onChange={handleInputChange} required />
               </Grid>
               <Grid item xs={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Task Type</InputLabel>
-                  <Select name="taskType" value={formData.taskType} onChange={handleSelectChange} label="Task Type">
-                    {TASK_TYPES.map(t => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
-                  </Select>
-                </FormControl>
+                <LookupSelect
+                  category="TaskType"
+                  name="taskType"
+                  value={formData.taskType}
+                  onChange={handleSelectChange}
+                  label="Task Type"
+                  fallback={TASK_TYPES.map(t => ({ value: t.value, label: t.label }))}
+                />
               </Grid>
               <Grid item xs={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select name="status" value={formData.status} onChange={handleSelectChange} label="Status">
-                    {TASK_STATUSES.map(s => (
-                      <MenuItem key={s.value} value={s.value}>
-                        <Chip label={s.label} size="small" sx={{ backgroundColor: s.color, color: 'white' }} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <LookupSelect
+                  category="TaskStatus"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleSelectChange}
+                  label="Status"
+                  fallback={TASK_STATUSES.map(s => ({ value: s.value, label: s.label }))}
+                />
               </Grid>
               <Grid item xs={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Priority</InputLabel>
-                  <Select name="priority" value={formData.priority} onChange={handleSelectChange} label="Priority">
-                    {TASK_PRIORITIES.map(p => (
-                      <MenuItem key={p.value} value={p.value}>
-                        <Chip label={p.label} size="small" sx={{ backgroundColor: p.color, color: 'white' }} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <LookupSelect
+                  category="Priority"
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleSelectChange}
+                  label="Priority"
+                  fallback={TASK_PRIORITIES.map(p => ({ value: p.value, label: p.label }))}
+                />
               </Grid>
               <Grid item xs={12}>
                 <TextField fullWidth label="Description" name="description" value={formData.description} onChange={handleInputChange} multiline rows={3} />

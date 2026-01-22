@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Lock as LockIcon, Link as LinkIcon, LinkOff as LinkOffIcon, Person as PersonIcon } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import LookupSelect from '../components/LookupSelect';
 
 interface User {
   id: number;
@@ -507,45 +508,34 @@ function UserManagementPage() {
             />
           )}
           <FormControl fullWidth margin="normal">
-            <InputLabel>Role</InputLabel>
-            <Select
+            <LookupSelect
+              category="UserRole"
               name="role"
               value={formData.role}
-              onChange={(e) => handleSelectChange('role', e.target.value)}
+              onChange={(e:any) => handleSelectChange('role', e.target.value)}
               label="Role"
-            >
-              {roleOptions.map(option => (
-                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-              ))}
-            </Select>
+              fallback={roleOptions.map(o => ({ value: o.value, label: o.label }))}
+            />
           </FormControl>
           <FormControl fullWidth margin="normal">
-            <InputLabel>Department</InputLabel>
-            <Select
+            <LookupSelect
+              category="Department"
               name="departmentId"
               value={formData.departmentId || ''}
-              onChange={(e) => handleSelectChange('departmentId', e.target.value || undefined)}
+              onChange={(e:any) => handleSelectChange('departmentId', e.target.value || undefined)}
               label="Department"
-            >
-              <MenuItem value="">None</MenuItem>
-              {departments.map(dept => (
-                <MenuItem key={dept.id} value={dept.id}>{dept.name}</MenuItem>
-              ))}
-            </Select>
+              fallback={[{ value: '', label: 'None' }, ...departments.map(d => ({ value: d.id, label: d.name }))]}
+            />
           </FormControl>
           <FormControl fullWidth margin="normal">
-            <InputLabel>User Profile</InputLabel>
-            <Select
+            <LookupSelect
+              category="UserProfile"
               name="userProfileId"
               value={formData.userProfileId || ''}
-              onChange={(e) => handleSelectChange('userProfileId', e.target.value || undefined)}
+              onChange={(e:any) => handleSelectChange('userProfileId', e.target.value || undefined)}
               label="User Profile"
-            >
-              <MenuItem value="">None</MenuItem>
-              {profiles.map(profile => (
-                <MenuItem key={profile.id} value={profile.id}>{profile.name}</MenuItem>
-              ))}
-            </Select>
+              fallback={[{ value: '', label: 'None' }, ...profiles.map(p => ({ value: p.id, label: p.name }))]}
+            />
           </FormControl>
           <Typography variant="caption" sx={{ mt: 2, display: 'block', color: 'textSecondary' }}>
             Note: Use the Link Contact button in the table to associate this user with a contact record.

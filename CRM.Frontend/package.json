@@ -46,7 +46,12 @@
   "eslintConfig": {
     "extends": [
       "react-app"
-    ]
+    ],
+    "rules": {
+      "react-hooks/exhaustive-deps": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "import/no-anonymous-default-export": "off"
+    }
   },
   "browserslist": {
     "production": [

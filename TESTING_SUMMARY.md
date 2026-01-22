@@ -59,7 +59,7 @@ The CRM solution now includes a **comprehensive, production-ready testing framew
 
 ### Run All Tests
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh
 ```
 ⏱️ Execution time: ~60 seconds
@@ -305,7 +305,7 @@ public void GetAll_ReturnsOkResult_WithDepartments()
 ## 📢 Ready to Execute
 
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh
 ```
 

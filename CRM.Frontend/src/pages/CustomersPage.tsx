@@ -16,6 +16,7 @@ import {
 import apiClient from '../services/apiClient';
 import lookupService, { LookupItem } from '../services/lookupService';
 import FieldRenderer from '../components/FieldRenderer';
+import LookupSelect from '../components/LookupSelect';
 import logo from '../assets/logo.png';
 
 // Customer Categories
@@ -878,17 +879,14 @@ function CustomersPage() {
                 {formData.category === 0 && (
                   <>
                     <Grid item xs={2}>
-                      <FormControl fullWidth size="small">
-                        <InputLabel>Salutation</InputLabel>
-                        <Select name="salutation" value={formData.salutation} onChange={handleSelectChange} label="Salutation">
-                          <MenuItem value="">None</MenuItem>
-                          <MenuItem value="Mr.">Mr.</MenuItem>
-                          <MenuItem value="Mrs.">Mrs.</MenuItem>
-                          <MenuItem value="Ms.">Ms.</MenuItem>
-                          <MenuItem value="Dr.">Dr.</MenuItem>
-                          <MenuItem value="Prof.">Prof.</MenuItem>
-                        </Select>
-                      </FormControl>
+                      <LookupSelect
+                        category="Salutation"
+                        name="salutation"
+                        value={formData.salutation}
+                        onChange={handleSelectChange}
+                        label="Salutation"
+                        fallback={[{ value: '', label: 'None' }, { value: 'Mr.', label: 'Mr.' }, { value: 'Mrs.', label: 'Mrs.' }, { value: 'Ms.', label: 'Ms.' }, { value: 'Dr.', label: 'Dr.' }, { value: 'Prof.', label: 'Prof.' }]}
+                      />
                     </Grid>
                     <Grid item xs={4}>
                       <TextField fullWidth label="First Name" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
@@ -903,15 +901,14 @@ function CustomersPage() {
                       <TextField fullWidth label="Date of Birth" name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
                     </Grid>
                     <Grid item xs={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Gender</InputLabel>
-                        <Select name="gender" value={formData.gender} onChange={handleSelectChange} label="Gender">
-                          <MenuItem value="">Prefer not to say</MenuItem>
-                          <MenuItem value="Male">Male</MenuItem>
-                          <MenuItem value="Female">Female</MenuItem>
-                          <MenuItem value="Other">Other</MenuItem>
-                        </Select>
-                      </FormControl>
+                      <LookupSelect
+                        category="Gender"
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleSelectChange}
+                        label="Gender"
+                        fallback={[{ value: '', label: 'Prefer not to say' }, { value: 'Male', label: 'Male' }, { value: 'Female', label: 'Female' }, { value: 'Other', label: 'Other' }]}
+                      />
                     </Grid>
                   </>
                 )}
@@ -999,44 +996,44 @@ function CustomersPage() {
             ) : (
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Customer Type</InputLabel>
-                    <Select name="customerType" value={formData.customerType} onChange={handleSelectChange} label="Customer Type">
-                      {CUSTOMER_TYPES.map(t => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
-                    </Select>
-                  </FormControl>
+                  <LookupSelect
+                    category="CustomerType"
+                    name="customerType"
+                    value={formData.customerType}
+                    onChange={handleSelectChange}
+                    label="Customer Type"
+                    fallback={CUSTOMER_TYPES.map(t => ({ value: t.value, label: t.label }))}
+                  />
                 </Grid>
                 <Grid item xs={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Lifecycle Stage</InputLabel>
-                    <Select name="lifecycleStage" value={formData.lifecycleStage} onChange={handleSelectChange} label="Lifecycle Stage">
-                      {LIFECYCLE_STAGES.map(s => (
-                        <MenuItem key={s.value} value={s.value}>
-                          <Chip label={s.label} size="small" sx={{ backgroundColor: s.color, color: 'white' }} />
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <LookupSelect
+                    category="LifecycleStage"
+                    name="lifecycleStage"
+                    value={formData.lifecycleStage}
+                    onChange={handleSelectChange}
+                    label="Lifecycle Stage"
+                    fallback={LIFECYCLE_STAGES.map(s => ({ value: s.value, label: s.label }))}
+                  />
                 </Grid>
                 <Grid item xs={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Priority</InputLabel>
-                    <Select name="priority" value={formData.priority} onChange={handleSelectChange} label="Priority">
-                      {PRIORITIES.map(p => (
-                        <MenuItem key={p.value} value={p.value}>
-                          <Chip label={p.label} size="small" sx={{ backgroundColor: p.color, color: 'white' }} />
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <LookupSelect
+                    category="Priority"
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleSelectChange}
+                    label="Priority"
+                    fallback={PRIORITIES.map(p => ({ value: p.value, label: p.label }))}
+                  />
                 </Grid>
                 <Grid item xs={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Industry</InputLabel>
-                    <Select name="industry" value={formData.industry} onChange={handleSelectChange} label="Industry">
-                      {INDUSTRIES.map(i => <MenuItem key={i} value={i}>{i}</MenuItem>)}
-                    </Select>
-                  </FormControl>
+                  <LookupSelect
+                    category="Industry"
+                    name="industry"
+                    value={formData.industry}
+                    onChange={handleSelectChange}
+                    label="Industry"
+                    fallback={INDUSTRIES.map(i => ({ value: i, label: i }))}
+                  />
                 </Grid>
                 <Grid item xs={6}>
                   <TextField fullWidth label="Annual Revenue ($)" name="annualRevenue" type="number" value={formData.annualRevenue} onChange={handleInputChange} />
@@ -1048,12 +1045,14 @@ function CustomersPage() {
                   <TextField fullWidth label="Credit Limit ($)" name="creditLimit" type="number" value={formData.creditLimit} onChange={handleInputChange} />
                 </Grid>
                 <Grid item xs={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Lead Source</InputLabel>
-                    <Select name="leadSource" value={formData.leadSource} onChange={handleSelectChange} label="Lead Source">
-                      {LEAD_SOURCES.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-                    </Select>
-                  </FormControl>
+                  <LookupSelect
+                    category="LeadSource"
+                    name="leadSource"
+                    value={formData.leadSource}
+                    onChange={handleSelectChange}
+                    label="Lead Source"
+                    fallback={LEAD_SOURCES.map(s => ({ value: s, label: s }))}
+                  />
                 </Grid>
                 <Grid item xs={12}>
                   <Typography gutterBottom>Lead Score: {formData.leadScore}</Typography>
@@ -1080,14 +1079,14 @@ function CustomersPage() {
             ) : (
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Preferred Contact Method</InputLabel>
-                    <Select name="preferredContactMethod" value={formData.preferredContactMethod} onChange={handleSelectChange} label="Preferred Contact Method">
-                      {(lookupItems['PreferredContactMethod'] ? lookupItems['PreferredContactMethod'].map(i => (
-                        <MenuItem key={i.key || i.id} value={i.key || i.value}>{i.value}</MenuItem>
-                      )) : [ 'Email', 'Phone', 'SMS', 'Mail' ].map(v => <MenuItem key={v} value={v}>{v}</MenuItem>))}
-                    </Select>
-                  </FormControl>
+                  <LookupSelect
+                    category="PreferredContactMethod"
+                    name="preferredContactMethod"
+                    value={formData.preferredContactMethod}
+                    onChange={handleSelectChange}
+                    label="Preferred Contact Method"
+                    fallback={[{ value: 'Email', label: 'Email' }, { value: 'Phone', label: 'Phone' }, { value: 'SMS', label: 'SMS' }, { value: 'Mail', label: 'Mail' }]}
+                  />
                 </Grid>
                 <Grid item xs={6}>
                   <TextField fullWidth label="Timezone" name="timezone" value={formData.timezone} onChange={handleInputChange} placeholder="e.g., America/New_York" />

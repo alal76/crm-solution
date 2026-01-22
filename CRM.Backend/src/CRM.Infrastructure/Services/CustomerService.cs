@@ -30,6 +30,10 @@ public class CustomerService : ICustomerService
     private readonly IRepository<Customer> _customerRepository;
     private readonly IRepository<CustomerContact> _customerContactRepository;
     private readonly IContactsService _contactsService;
+    private readonly IRepository<Address> _addressRepository;
+    private readonly IRepository<ContactDetail> _contactDetailRepository;
+    private readonly IRepository<SocialAccount> _socialAccountRepository;
+    private readonly IRepository<ContactInfoLink> _contactInfoLinkRepository;
 
     /// <summary>
     /// Initializes a new instance of CustomerService with required dependencies.
@@ -40,11 +44,19 @@ public class CustomerService : ICustomerService
     public CustomerService(
         IRepository<Customer> customerRepository,
         IRepository<CustomerContact> customerContactRepository,
-        IContactsService contactsService)
+        IContactsService contactsService,
+        IRepository<Address> addressRepository,
+        IRepository<ContactDetail> contactDetailRepository,
+        IRepository<SocialAccount> socialAccountRepository,
+        IRepository<ContactInfoLink> contactInfoLinkRepository)
     {
         _customerRepository = customerRepository;
         _customerContactRepository = customerContactRepository;
         _contactsService = contactsService;
+        _addressRepository = addressRepository;
+        _contactDetailRepository = contactDetailRepository;
+        _socialAccountRepository = socialAccountRepository;
+        _contactInfoLinkRepository = contactInfoLinkRepository;
     }
 
     /// <summary>
@@ -194,7 +206,95 @@ public class CustomerService : ICustomerService
 
         await _customerRepository.AddAsync(customer);
         await _customerRepository.SaveAsync();
+
+        // Materialize normalized contact info for new customer
+        if (!string.IsNullOrWhiteSpace(dto.Address) || !string.IsNullOrWhiteSpace(dto.City) || !string.IsNullOrWhiteSpace(dto.Country))
+        {
+            var addr = new Address
+            {
+                Label = "Primary",
+                Line1 = dto.Address ?? string.Empty,
+                Line2 = dto.Address2,
+                City = dto.City ?? string.Empty,
+                State = dto.State,
+                PostalCode = dto.ZipCode,
+                Country = dto.Country ?? string.Empty,
+                IsPrimary = true,
+                Notes = "created_from_api"
+            };
+            await _addressRepository.AddAsync(addr);
+            await _addressRepository.SaveAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Customer,
+                OwnerId = customer.Id,
+                InfoKind = ContactInfoKind.Address,
+                InfoId = addr.Id,
+                AddressId = addr.Id,
+                IsPrimaryForOwner = true,
+                Notes = "created_from_api"
+            };
+            await _contactInfoLinkRepository.AddAsync(link);
+            await _contactInfoLinkRepository.SaveAsync();
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.Email))
+        {
+            var email = new ContactDetail
+            {
+                DetailType = ContactDetailType.Email,
+                Value = dto.Email,
+                Label = "Primary",
+                IsPrimary = true,
+                Notes = "created_from_api"
+            };
+            await _contactDetailRepository.AddAsync(email);
+            await _contactDetailRepository.SaveAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Customer,
+                OwnerId = customer.Id,
+                InfoKind = ContactInfoKind.ContactDetail,
+                InfoId = email.Id,
+                ContactDetailId = email.Id,
+                IsPrimaryForOwner = true,
+                Notes = "created_from_api"
+            };
+            await _contactInfoLinkRepository.AddAsync(link);
+            await _contactInfoLinkRepository.SaveAsync();
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.Phone))
+        {
+            var phone = new ContactDetail
+            {
+                DetailType = ContactDetailType.Phone,
+                Value = dto.Phone,
+                Label = "Primary",
+                IsPrimary = true,
+                Notes = "created_from_api"
+            };
+            await _contactDetailRepository.AddAsync(phone);
+            await _contactDetailRepository.SaveAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Customer,
+                OwnerId = customer.Id,
+                InfoKind = ContactInfoKind.ContactDetail,
+                InfoId = phone.Id,
+                ContactDetailId = phone.Id,
+                IsPrimaryForOwner = true,
+                Notes = "created_from_api"
+            };
+            await _contactInfoLinkRepository.AddAsync(link);
+            await _contactInfoLinkRepository.SaveAsync();
+        }
+
         
+
         return await MapToDto(customer);
     }
 
@@ -292,6 +392,148 @@ public class CustomerService : ICustomerService
         await _customerRepository.UpdateAsync(customer);
         await _customerRepository.SaveAsync();
         
+        // If inline contact fields were updated, materialize them into normalized tables
+        if (dto.Address != null || dto.City != null || dto.Country != null)
+        {
+            // unset existing primary address links for this customer
+            var existingAddrLinks = await _contactInfoLinkRepository.FindAsync(l => l.OwnerType == ContactInfoOwnerType.Customer && l.OwnerId == customer.Id && l.InfoKind == ContactInfoKind.Address && l.IsPrimaryForOwner && !l.IsDeleted);
+            foreach (var l in existingAddrLinks)
+            {
+                l.IsPrimaryForOwner = false;
+                await _contactInfoLinkRepository.UpdateAsync(l);
+            }
+
+            var addr = new Address
+            {
+                Label = "Primary",
+                Line1 = dto.Address ?? string.Empty,
+                Line2 = dto.Address2,
+                City = dto.City ?? string.Empty,
+                State = dto.State,
+                PostalCode = dto.ZipCode,
+                Country = dto.Country ?? string.Empty,
+                IsPrimary = true,
+                Notes = "updated_from_api"
+            };
+            await _addressRepository.AddAsync(addr);
+            await _addressRepository.SaveAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Customer,
+                OwnerId = customer.Id,
+                InfoKind = ContactInfoKind.Address,
+                InfoId = addr.Id,
+                AddressId = addr.Id,
+                IsPrimaryForOwner = true,
+                Notes = "updated_from_api"
+            };
+            await _contactInfoLinkRepository.AddAsync(link);
+            await _contactInfoLinkRepository.SaveAsync();
+        }
+
+        if (dto.Email != null)
+        {
+            var existingEmailLinks = await _contactInfoLinkRepository.FindAsync(l => l.OwnerType == ContactInfoOwnerType.Customer && l.OwnerId == customer.Id && l.InfoKind == ContactInfoKind.ContactDetail && l.IsPrimaryForOwner && !l.IsDeleted);
+            foreach (var l in existingEmailLinks)
+            {
+                l.IsPrimaryForOwner = false;
+                await _contactInfoLinkRepository.UpdateAsync(l);
+            }
+
+            var email = new ContactDetail
+            {
+                DetailType = ContactDetailType.Email,
+                Value = dto.Email,
+                Label = "Primary",
+                IsPrimary = true,
+                Notes = "updated_from_api"
+            };
+            await _contactDetailRepository.AddAsync(email);
+            await _contactDetailRepository.SaveAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Customer,
+                OwnerId = customer.Id,
+                InfoKind = ContactInfoKind.ContactDetail,
+                InfoId = email.Id,
+                ContactDetailId = email.Id,
+                IsPrimaryForOwner = true,
+                Notes = "updated_from_api"
+            };
+            await _contactInfoLinkRepository.AddAsync(link);
+            await _contactInfoLinkRepository.SaveAsync();
+        }
+
+        if (dto.Phone != null)
+        {
+            var existingPhoneLinks = await _contactInfoLinkRepository.FindAsync(l => l.OwnerType == ContactInfoOwnerType.Customer && l.OwnerId == customer.Id && l.InfoKind == ContactInfoKind.ContactDetail && l.IsPrimaryForOwner && !l.IsDeleted);
+            foreach (var l in existingPhoneLinks)
+            {
+                l.IsPrimaryForOwner = false;
+                await _contactInfoLinkRepository.UpdateAsync(l);
+            }
+
+            var phone = new ContactDetail
+            {
+                DetailType = ContactDetailType.Phone,
+                Value = dto.Phone,
+                Label = "Primary",
+                IsPrimary = true,
+                Notes = "updated_from_api"
+            };
+            await _contactDetailRepository.AddAsync(phone);
+            await _contactDetailRepository.SaveAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Customer,
+                OwnerId = customer.Id,
+                InfoKind = ContactInfoKind.ContactDetail,
+                InfoId = phone.Id,
+                ContactDetailId = phone.Id,
+                IsPrimaryForOwner = true,
+                Notes = "updated_from_api"
+            };
+            await _contactInfoLinkRepository.AddAsync(link);
+            await _contactInfoLinkRepository.SaveAsync();
+        }
+
+        if (dto.LinkedInUrl != null)
+        {
+            var existingSocialLinks = await _contactInfoLinkRepository.FindAsync(l => l.OwnerType == ContactInfoOwnerType.Customer && l.OwnerId == customer.Id && l.InfoKind == ContactInfoKind.SocialAccount && l.IsPrimaryForOwner && !l.IsDeleted);
+            foreach (var l in existingSocialLinks)
+            {
+                l.IsPrimaryForOwner = false;
+                await _contactInfoLinkRepository.UpdateAsync(l);
+            }
+
+            var sa = new SocialAccount
+            {
+                Network = SocialNetwork.LinkedIn,
+                HandleOrUrl = dto.LinkedInUrl,
+                Label = "LinkedIn",
+                IsPrimary = true,
+                Notes = "updated_from_api"
+            };
+            await _socialAccountRepository.AddAsync(sa);
+            await _socialAccountRepository.SaveAsync();
+
+            var link = new ContactInfoLink
+            {
+                OwnerType = ContactInfoOwnerType.Customer,
+                OwnerId = customer.Id,
+                InfoKind = ContactInfoKind.SocialAccount,
+                InfoId = sa.Id,
+                SocialAccountId = sa.Id,
+                IsPrimaryForOwner = true,
+                Notes = "updated_from_api"
+            };
+            await _contactInfoLinkRepository.AddAsync(link);
+            await _contactInfoLinkRepository.SaveAsync();
+        }
+
         return await MapToDto(customer);
     }
 

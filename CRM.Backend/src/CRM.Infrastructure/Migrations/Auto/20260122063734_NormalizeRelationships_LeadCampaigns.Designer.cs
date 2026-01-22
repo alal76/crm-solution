@@ -3,16 +3,19 @@ using System;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace CRM.Infrastructure.Migrations
+namespace CRM.Infrastructure.Migrations.Auto
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260122063734_NormalizeRelationships_LeadCampaigns")]
+    partial class NormalizeRelationships_LeadCampaigns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -522,12 +525,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<int?>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AddressId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ContactDetailId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("ContactId")
                         .HasColumnType("int");
 
@@ -561,9 +558,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<int>("OwnerType")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SocialAccountId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -571,17 +565,11 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("AddressId");
-
-                    b.HasIndex("ContactDetailId");
-
                     b.HasIndex("ContactId");
 
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("LeadId");
-
-                    b.HasIndex("SocialAccountId");
 
                     b.HasIndex("InfoKind", "InfoId");
 
@@ -5971,16 +5959,6 @@ namespace CRM.Infrastructure.Migrations
                         .WithMany("ContactInfoLinks")
                         .HasForeignKey("AccountId");
 
-                    b.HasOne("CRM.Core.Entities.Address", "Address")
-                        .WithMany()
-                        .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("CRM.Core.Entities.ContactDetail", "ContactDetail")
-                        .WithMany()
-                        .HasForeignKey("ContactDetailId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("CRM.Core.Models.Contact", null)
                         .WithMany("ContactInfoLinks")
                         .HasForeignKey("ContactId");
@@ -5992,17 +5970,6 @@ namespace CRM.Infrastructure.Migrations
                     b.HasOne("CRM.Core.Entities.Lead", null)
                         .WithMany("ContactInfoLinks")
                         .HasForeignKey("LeadId");
-
-                    b.HasOne("CRM.Core.Entities.SocialAccount", "SocialAccount")
-                        .WithMany()
-                        .HasForeignKey("SocialAccountId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Address");
-
-                    b.Navigation("ContactDetail");
-
-                    b.Navigation("SocialAccount");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.CrmTask", b =>

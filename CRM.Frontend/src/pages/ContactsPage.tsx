@@ -29,6 +29,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LinkIcon from '@mui/icons-material/Link';
 import logo from '../assets/logo.png';
+import LookupSelect from '../components/LookupSelect';
 
 interface SocialMediaLink {
   id: number;
@@ -297,23 +298,14 @@ function ContactsPage() {
 
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <TextField
-              select
-              label="Filter by Type"
+            <LookupSelect
+              category="ContactType"
+              name="filterType"
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              size="small"
-              sx={{ minWidth: 200 }}
-            >
-              <MenuItem value="">All Types</MenuItem>
-              {(lookupItems['ContactType'] && lookupItems['ContactType'].length ? lookupItems['ContactType'].map(i => (
-                <MenuItem key={i.key || i.id} value={i.key || i.value}>{i.value}</MenuItem>
-              )) : CONTACT_TYPES.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              )))}
-            </TextField>
+              onChange={(e:any) => setFilterType(e.target.value)}
+              label="Filter by Type"
+              fallback={[{ value: '', label: 'All Types' }, ...CONTACT_TYPES.map(t => ({ value: t, label: t }))]}
+            />
           </CardContent>
         </Card>
 
@@ -428,20 +420,14 @@ function ContactsPage() {
         </DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2}>
-            <TextField
-              select
-              label="Contact Type"
+            <LookupSelect
+              category="ContactType"
               name="contactType"
               value={formData.contactType}
               onChange={handleFormChange}
-              fullWidth
-            >
-              {CONTACT_TYPES.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </TextField>
+              label="Contact Type"
+              fallback={CONTACT_TYPES.map(t => ({ value: t, label: t }))}
+            />
 
             <TextField
               label="First Name"
@@ -609,21 +595,14 @@ function ContactsPage() {
         <DialogTitle>Add Social Media Link</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2}>
-            <TextField
-              select
-              label="Platform"
+            <LookupSelect
+              category="SocialMediaPlatform"
+              name="platform"
               value={socialMediaData.platform}
-              onChange={(e) => setSocialMediaData({ ...socialMediaData, platform: e.target.value })}
-              fullWidth
-            >
-              {(lookupItems['SocialMediaPlatform'] && lookupItems['SocialMediaPlatform'].length ? lookupItems['SocialMediaPlatform'].map(i => (
-                <MenuItem key={i.key || i.id} value={i.key || i.value}>{i.value}</MenuItem>
-              )) : SOCIAL_MEDIA_PLATFORMS.map((platform) => (
-                <MenuItem key={platform} value={platform}>
-                  {platform}
-                </MenuItem>
-              )))}
-            </TextField>
+              onChange={(e:any) => setSocialMediaData({ ...socialMediaData, platform: e.target.value })}
+              label="Platform"
+              fallback={SOCIAL_MEDIA_PLATFORMS.map(p => ({ value: p, label: p }))}
+            />
 
             <TextField
               label="URL"

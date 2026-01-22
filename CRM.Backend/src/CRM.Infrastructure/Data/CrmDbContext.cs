@@ -198,6 +198,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(p => p.Opportunities)
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.SetNull);
+            
+            // Link Opportunity -> MarketingCampaign
+            entity.HasOne(e => e.Campaign)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure Product
@@ -237,6 +243,21 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.OwnerType, e.OwnerId });
             entity.HasIndex(e => new { e.InfoKind, e.InfoId });
+            // Explicit FKs to concrete info tables to avoid EF creating ambiguous shadow FKs
+            entity.HasOne(e => e.Address)
+                .WithMany()
+                .HasForeignKey(e => e.AddressId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.ContactDetail)
+                .WithMany()
+                .HasForeignKey(e => e.ContactDetailId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.SocialAccount)
+                .WithMany()
+                .HasForeignKey(e => e.SocialAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure Lookup tables
@@ -269,7 +290,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
         modelBuilder.Entity<Contact>(entity =>
         {
-            entity.HasOne<Contact>().WithMany().HasForeignKey("PreferredContactMethodLookupId").OnDelete(DeleteBehavior.SetNull);
+            // Preferred contact method uses LookupItem
+            entity.HasOne(c => c.PreferredContactMethodLookup)
+                .WithMany()
+                .HasForeignKey(c => c.PreferredContactMethodLookupId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure Interaction
@@ -281,6 +306,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(c => c.Interactions)
                 .HasForeignKey(e => e.CustomerId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Link Interaction -> MarketingCampaign
+            entity.HasOne(e => e.Campaign)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure MarketingCampaign
@@ -532,6 +563,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             
             entity.HasIndex(e => e.DueDate);
             entity.HasIndex(e => e.Status);
+
+            // Link CrmTask -> MarketingCampaign
+            entity.HasOne(e => e.Campaign)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure Note
@@ -551,6 +588,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.OpportunityId)
                 .OnDelete(DeleteBehavior.Cascade);
             
+            // Link Note -> MarketingCampaign
+            entity.HasOne(e => e.Campaign)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             entity.HasOne(e => e.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.CreatedByUserId)
@@ -614,6 +657,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.ActivityDate);
             entity.HasIndex(e => e.ActivityType);
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
+
+            // Link Activity -> MarketingCampaign
+            entity.HasOne(e => e.Campaign)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure Lead
@@ -671,19 +720,19 @@ public class CrmDbContext : DbContext, ICrmDbContext
             
             // Lead -> Campaign (PrimaryCampaign)
             entity.HasOne(e => e.PrimaryCampaign)
-                .WithMany()
+                .WithMany(c => c.GeneratedLeads)
                 .HasForeignKey(e => e.PrimaryCampaignId)
                 .OnDelete(DeleteBehavior.SetNull);
             
             // Lead -> Campaign (ConvertingCampaign)
             entity.HasOne(e => e.ConvertingCampaign)
-                .WithMany()
+                .WithMany(c => c.ConvertedLeads)
                 .HasForeignKey(e => e.ConvertingCampaignId)
                 .OnDelete(DeleteBehavior.SetNull);
             
             // Lead -> Campaign (LastCampaign)
             entity.HasOne(e => e.LastCampaign)
-                .WithMany()
+                .WithMany(c => c.TouchedLeads)
                 .HasForeignKey(e => e.LastCampaignId)
                 .OnDelete(DeleteBehavior.SetNull);
             

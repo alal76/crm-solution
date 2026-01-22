@@ -29,6 +29,17 @@ public class ContactInfoLink : BaseEntity
     public ContactInfoKind InfoKind { get; set; }
     public int InfoId { get; set; }
 
+    // Explicit nullable FKs to the concrete info tables to avoid EF creating shadow FKs
+    // Only one of these will be populated depending on `InfoKind`.
+    public int? AddressId { get; set; }
+    public Address? Address { get; set; }
+
+    public int? ContactDetailId { get; set; }
+    public ContactDetail? ContactDetail { get; set; }
+
+    public int? SocialAccountId { get; set; }
+    public SocialAccount? SocialAccount { get; set; }
+
     // Optional metadata for the link
     public bool IsPrimaryForOwner { get; set; } = false;
     public string? Notes { get; set; }

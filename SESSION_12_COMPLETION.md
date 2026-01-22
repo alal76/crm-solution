@@ -146,7 +146,7 @@ SESSION_12_COMPLETION.md (this file)
 
 ### Quick Start
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh
 ```
 
@@ -359,7 +359,7 @@ Results Reported
 
 ```bash
 # Run all tests
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh
 
 # Expected output: All 39 tests passing with coverage report

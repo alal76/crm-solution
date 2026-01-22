@@ -16,17 +16,19 @@ public class AccountsController : ControllerBase
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<AccountsController> _logger;
     private readonly IConfiguration _config;
+    private readonly CRM.Core.Interfaces.IAccountService _accountService;
 
     // defaults
     private const long DefaultMaxFileSize = 10 * 1024 * 1024; // 10 MB
     private static readonly string[] DefaultAllowedMimeTypes = new[] { "application/pdf", "image/png", "image/jpeg", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" };
 
-    public AccountsController(CrmDbContext db, IWebHostEnvironment env, ILogger<AccountsController> logger, IConfiguration config)
+    public AccountsController(CrmDbContext db, IWebHostEnvironment env, ILogger<AccountsController> logger, IConfiguration config, CRM.Core.Interfaces.IAccountService accountService)
     {
         _db = db;
         _env = env;
         _logger = logger;
         _config = config;
+        _accountService = accountService;
     }
 
     private string GetStoragePath()

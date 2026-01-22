@@ -138,35 +138,35 @@ CI/CD Pipeline: Ready
 
 ### Option 1: Run All Tests (Recommended)
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh
 ```
 Expected time: ~60 seconds
 
 ### Option 2: Frontend Tests Only
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Frontend"
+cd CRM.Frontend
 npm test -- --coverage --watchAll=false
 ```
 Expected time: ~20 seconds
 
 ### Option 3: Backend Tests Only
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend"
+cd CRM.Backend
 dotnet test tests/CRM.Tests.csproj
 ```
 Expected time: ~15 seconds
 
 ### Option 4: Validate Build
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/verify-build.sh
 ```
 Expected time: ~2 minutes
 
 ### Option 5: Validate Test Infrastructure
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/validate-tests.sh
 ```
 Expected time: ~5 seconds
@@ -176,7 +176,7 @@ Expected time: ~5 seconds
 ## 📁 Project Structure
 
 ```
-/Users/alal/Code/Git CRM Solution/crm-solution/
+crm-solution/
 ├── CRM.Frontend/
 │   ├── src/
 │   │   ├── __tests__/                     # Test files
@@ -385,7 +385,7 @@ For questions about testing:
 
 ### Ready to Execute:
 ```bash
-cd "/Users/alal/Code/Git CRM Solution/crm-solution"
+cd crm-solution
 ./scripts/run-tests.sh           # Run all tests
 ./scripts/verify-build.sh        # Verify complete build
 ./scripts/validate-tests.sh      # Validate test infrastructure
