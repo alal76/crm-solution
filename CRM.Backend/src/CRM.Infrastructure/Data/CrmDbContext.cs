@@ -78,6 +78,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<LookupCategory> LookupCategories { get; set; }
     public DbSet<LookupItem> LookupItems { get; set; }
     
+    // Normalization helper tables
+    public DbSet<CRM.Core.Entities.Tag> Tags { get; set; }
+    public DbSet<CRM.Core.Entities.EntityTag> EntityTags { get; set; }
+    public DbSet<CRM.Core.Entities.CustomField> CustomFields { get; set; }
+    
     // Service Request entities
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
     public DbSet<ServiceRequestCategory> ServiceRequestCategories { get; set; }
@@ -898,6 +903,32 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.AssignedToGroupId)
                 .OnDelete(DeleteBehavior.SetNull);
             
+        // Configure Tags
+        modelBuilder.Entity<CRM.Core.Entities.Tag>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.CreatedAt).IsRequired();
+        });
+
+        modelBuilder.Entity<CRM.Core.Entities.EntityTag>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Tag).IsRequired().HasMaxLength(500);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => e.TagId);
+        });
+
+        modelBuilder.Entity<CRM.Core.Entities.CustomField>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Key).HasMaxLength(200);
+            entity.Property(e => e.Value).HasColumnType("TEXT");
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+        });
+
             entity.HasOne(e => e.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.CreatedByUserId)

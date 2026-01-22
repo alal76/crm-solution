@@ -155,6 +155,17 @@ public class ModuleFieldConfigurationService
 
     private ModuleFieldConfigurationDto MapToDto(ModuleFieldConfiguration entity)
     {
+        var help = entity.HelpText;
+        // Mark tags/customFields as normalized so UI can prefer normalized rows
+        if (!string.IsNullOrWhiteSpace(entity.FieldName))
+        {
+            var fn = entity.FieldName.Trim().ToLower();
+            if (fn == "tags" || fn == "customfields")
+            {
+                help = string.IsNullOrWhiteSpace(help) ? "(populated from normalized table)" : help + " (populated from normalized table)";
+            }
+        }
+
         return new ModuleFieldConfigurationDto
         {
             Id = entity.Id,
@@ -169,7 +180,7 @@ public class ModuleFieldConfigurationService
             IsRequired = entity.IsRequired,
             GridSize = entity.GridSize,
             Placeholder = entity.Placeholder,
-            HelpText = entity.HelpText,
+            HelpText = help,
             Options = entity.Options,
             ParentField = entity.ParentField,
             ParentFieldValue = entity.ParentFieldValue,

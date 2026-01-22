@@ -129,6 +129,9 @@ builder.Services.AddScoped<IServiceRequestCustomFieldService, ServiceRequestCust
 builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
+// Normalization helper for tags/custom fields
+builder.Services.AddScoped<NormalizationService>();
 
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-super-secret-key-that-is-at-least-32-characters-long!!!";

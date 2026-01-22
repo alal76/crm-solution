@@ -1,5 +1,6 @@
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,13 @@ public class ActivitiesController : ControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<ActivitiesController> _logger;
+    private readonly NormalizationService _normalization;
 
-    public ActivitiesController(CrmDbContext context, ILogger<ActivitiesController> logger)
+    public ActivitiesController(CrmDbContext context, ILogger<ActivitiesController> logger, NormalizationService normalization)
     {
         _context = context;
         _logger = logger;
+        _normalization = normalization;
     }
 
     /// <summary>
@@ -65,6 +68,14 @@ public class ActivitiesController : ControllerBase
             .Take(limit)
             .ToListAsync();
 
+        foreach (var a in activities)
+        {
+            var nt = await _normalization.GetTagsAsync("Activity", a.Id);
+            if (!string.IsNullOrWhiteSpace(nt)) a.Tags = nt;
+            var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
+            if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
+        }
+
         return Ok(activities);
     }
 
@@ -82,6 +93,11 @@ public class ActivitiesController : ControllerBase
 
         if (activity == null)
             return NotFound();
+
+        var nt = await _normalization.GetTagsAsync("Activity", activity.Id);
+        if (!string.IsNullOrWhiteSpace(nt)) activity.Tags = nt;
+        var cf = await _normalization.GetCustomFieldsAsync("Activity", activity.Id);
+        if (!string.IsNullOrWhiteSpace(cf)) activity.CustomFields = cf;
 
         return Ok(activity);
     }
@@ -138,6 +154,14 @@ public class ActivitiesController : ControllerBase
             .Take(limit)
             .ToListAsync();
 
+        foreach (var a in activities)
+        {
+            var nt = await _normalization.GetTagsAsync("Activity", a.Id);
+            if (!string.IsNullOrWhiteSpace(nt)) a.Tags = nt;
+            var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
+            if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
+        }
+
         return Ok(activities);
     }
 
@@ -170,6 +194,14 @@ public class ActivitiesController : ControllerBase
             .Take(limit)
             .ToListAsync();
 
+        foreach (var a in activities)
+        {
+            var nt = await _normalization.GetTagsAsync("Activity", a.Id);
+            if (!string.IsNullOrWhiteSpace(nt)) a.Tags = nt;
+            var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
+            if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
+        }
+
         return Ok(activities);
     }
 
@@ -185,6 +217,14 @@ public class ActivitiesController : ControllerBase
             .OrderByDescending(a => a.ActivityDate)
             .Take(limit)
             .ToListAsync();
+
+        foreach (var a in activities)
+        {
+            var nt = await _normalization.GetTagsAsync("Activity", a.Id);
+            if (!string.IsNullOrWhiteSpace(nt)) a.Tags = nt;
+            var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
+            if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
+        }
 
         return Ok(activities);
     }

@@ -34,6 +34,9 @@ public class CustomerService : ICustomerService
     private readonly IRepository<ContactDetail> _contactDetailRepository;
     private readonly IRepository<SocialAccount> _socialAccountRepository;
     private readonly IRepository<ContactInfoLink> _contactInfoLinkRepository;
+    private readonly IRepository<CRM.Core.Entities.EntityTag> _entityTagRepository;
+    private readonly IRepository<CRM.Core.Entities.CustomField> _customFieldRepository;
+    private readonly NormalizationService _normalizationService;
 
     /// <summary>
     /// Initializes a new instance of CustomerService with required dependencies.
@@ -48,7 +51,10 @@ public class CustomerService : ICustomerService
         IRepository<Address> addressRepository,
         IRepository<ContactDetail> contactDetailRepository,
         IRepository<SocialAccount> socialAccountRepository,
-        IRepository<ContactInfoLink> contactInfoLinkRepository)
+        IRepository<ContactInfoLink> contactInfoLinkRepository,
+        IRepository<CRM.Core.Entities.EntityTag> entityTagRepository,
+        IRepository<CRM.Core.Entities.CustomField> customFieldRepository,
+        NormalizationService normalizationService)
     {
         _customerRepository = customerRepository;
         _customerContactRepository = customerContactRepository;
@@ -57,6 +63,9 @@ public class CustomerService : ICustomerService
         _contactDetailRepository = contactDetailRepository;
         _socialAccountRepository = socialAccountRepository;
         _contactInfoLinkRepository = contactInfoLinkRepository;
+        _entityTagRepository = entityTagRepository;
+        _customFieldRepository = customFieldRepository;
+        _normalizationService = normalizationService;
     }
 
     /// <summary>
@@ -836,6 +845,10 @@ public class CustomerService : ICustomerService
             }
         }
 
+        // Prefer normalized tags/custom fields when available (use NormalizationService)
+        var tagsValue = await _normalizationService.GetTagsAsync("Customer", customer.Id) ?? customer.Tags;
+        var customFieldsValue = await _normalizationService.GetCustomFieldsAsync("Customer", customer.Id) ?? customer.CustomFields;
+
         return new CustomerDto
         {
             Id = customer.Id,
@@ -919,7 +932,7 @@ public class CustomerService : ICustomerService
             AccountManagerName = customer.AccountManager?.Username,
             Territory = customer.Territory,
             Region = customer.Region,
-            Tags = customer.Tags,
+            Tags = tagsValue,
             Segment = customer.Segment,
             ReferralSource = customer.ReferralSource,
             ReferredByCustomerId = customer.ReferredByCustomerId,
@@ -929,7 +942,7 @@ public class CustomerService : ICustomerService
             Notes = customer.Notes,
             InternalNotes = customer.InternalNotes,
             Description = customer.Description,
-            CustomFields = customer.CustomFields,
+            CustomFields = customFieldsValue,
             CreatedAt = customer.CreatedAt,
             UpdatedAt = customer.UpdatedAt,
             DisplayName = customer.DisplayName,
