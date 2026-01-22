@@ -23,7 +23,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -43,15 +43,18 @@ namespace CRM.Tests.Services;
 /// 
 /// TECHNICAL VIEW:
 /// - Uses InMemory database for testing
+/// - Uses mock repositories and services
 /// - Tests service layer authentication logic
-/// - Validates security-related operations
 /// </summary>
-public class AuthenticationServiceTests
+public class AuthenticationServiceTests : IDisposable
 {
-    private readonly Mock<IConfiguration> _mockConfiguration;
-    private readonly Mock<ILogger<AuthenticationService>> _mockLogger;
-    private readonly Mock<ISystemSettingsService> _mockSystemSettings;
+    private readonly Mock<IRepository<User>> _mockUserRepo;
+    private readonly Mock<IRepository<OAuthToken>> _mockOAuthTokenRepo;
     private readonly CrmDbContext _dbContext;
+    private readonly Mock<IJwtTokenService> _mockJwtTokenService;
+    private readonly Mock<ITotpService> _mockTotpService;
+    private readonly IMemoryCache _memoryCache;
+    private readonly Mock<ILogger<AuthenticationService>> _mockLogger;
     private readonly AuthenticationService _service;
 
     public AuthenticationServiceTests()
@@ -63,29 +66,36 @@ public class AuthenticationServiceTests
         
         _dbContext = new CrmDbContext(options, null);
 
-        // Setup configuration
-        _mockConfiguration = new Mock<IConfiguration>();
-        _mockConfiguration.Setup(x => x["Jwt:Key"]).Returns("ThisIsASecretKeyForTestingPurposesOnly12345");
-        _mockConfiguration.Setup(x => x["Jwt:Issuer"]).Returns("TestIssuer");
-        _mockConfiguration.Setup(x => x["Jwt:Audience"]).Returns("TestAudience");
-
+        _mockUserRepo = new Mock<IRepository<User>>();
+        _mockOAuthTokenRepo = new Mock<IRepository<OAuthToken>>();
+        _mockJwtTokenService = new Mock<IJwtTokenService>();
+        _mockTotpService = new Mock<ITotpService>();
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
         _mockLogger = new Mock<ILogger<AuthenticationService>>();
-        _mockSystemSettings = new Mock<ISystemSettingsService>();
+
+        // Setup JWT token service mock to return valid tokens
+        _mockJwtTokenService.Setup(x => x.GenerateAccessToken(It.IsAny<User>()))
+            .Returns("test-access-token");
+        _mockJwtTokenService.Setup(x => x.GenerateRefreshToken())
+            .Returns("test-refresh-token");
 
         _service = new AuthenticationService(
+            _mockUserRepo.Object,
+            _mockOAuthTokenRepo.Object,
             _dbContext,
-            _mockConfiguration.Object,
-            _mockLogger.Object,
-            _mockSystemSettings.Object);
+            _mockJwtTokenService.Object,
+            _mockTotpService.Object,
+            _memoryCache,
+            _mockLogger.Object);
     }
 
     #region Login Tests
 
     /// <summary>
-    /// Verifies login returns null for non-existent user
+    /// Verifies login throws exception for non-existent user
     /// </summary>
     [Fact]
-    public async Task LoginAsync_WithNonExistentEmail_ReturnsNull()
+    public async Task LoginAsync_WithNonExistentEmail_ThrowsUnauthorizedException()
     {
         // Arrange
         var loginRequest = new LoginRequest
@@ -95,17 +105,17 @@ public class AuthenticationServiceTests
         };
 
         // Act
-        var result = await _service.LoginAsync(loginRequest);
+        Func<Task> act = async () => await _service.LoginAsync(loginRequest);
 
         // Assert
-        result.Should().BeNull();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }
 
     /// <summary>
-    /// Verifies login returns null for incorrect password
+    /// Verifies login throws exception for incorrect password
     /// </summary>
     [Fact]
-    public async Task LoginAsync_WithIncorrectPassword_ReturnsNull()
+    public async Task LoginAsync_WithIncorrectPassword_ThrowsUnauthorizedException()
     {
         // Arrange
         var user = new User
@@ -130,17 +140,17 @@ public class AuthenticationServiceTests
         };
 
         // Act
-        var result = await _service.LoginAsync(loginRequest);
+        Func<Task> act = async () => await _service.LoginAsync(loginRequest);
 
         // Assert
-        result.Should().BeNull();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }
 
     /// <summary>
-    /// Verifies login returns null for inactive user
+    /// Verifies login throws exception for inactive user
     /// </summary>
     [Fact]
-    public async Task LoginAsync_WithInactiveUser_ReturnsNull()
+    public async Task LoginAsync_WithInactiveUser_ThrowsUnauthorizedException()
     {
         // Arrange
         var user = new User
@@ -165,14 +175,14 @@ public class AuthenticationServiceTests
         };
 
         // Act
-        var result = await _service.LoginAsync(loginRequest);
+        Func<Task> act = async () => await _service.LoginAsync(loginRequest);
 
         // Assert
-        result.Should().BeNull();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }
 
     /// <summary>
-    /// Verifies successful login returns auth response with token
+    /// Verifies successful login returns auth response with tokens
     /// </summary>
     [Fact]
     public async Task LoginAsync_WithValidCredentials_ReturnsAuthResponse()
@@ -195,6 +205,10 @@ public class AuthenticationServiceTests
         await _dbContext.Users.AddAsync(user);
         await _dbContext.SaveChangesAsync();
 
+        // Setup user repo for update
+        _mockUserRepo.Setup(r => r.UpdateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
+        _mockUserRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask);
+
         var loginRequest = new LoginRequest
         {
             Email = "valid@example.com",
@@ -206,7 +220,7 @@ public class AuthenticationServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Token.Should().NotBeNullOrEmpty();
+        result.AccessToken.Should().NotBeNullOrEmpty();
         result.Email.Should().Be("valid@example.com");
         result.Username.Should().Be("validuser");
     }
@@ -219,7 +233,7 @@ public class AuthenticationServiceTests
     /// Verifies registration fails for existing email
     /// </summary>
     [Fact]
-    public async Task RegisterAsync_WithExistingEmail_ReturnsNull()
+    public async Task RegisterAsync_WithExistingEmail_ThrowsException()
     {
         // Arrange
         var existingUser = new User
@@ -233,40 +247,71 @@ public class AuthenticationServiceTests
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
-        await _dbContext.Users.AddAsync(existingUser);
-        await _dbContext.SaveChangesAsync();
+
+        _mockUserRepo.Setup(r => r.GetAllAsync())
+            .ReturnsAsync(new List<User> { existingUser });
 
         var registerRequest = new RegisterRequest
         {
             Email = "existing@example.com",
             Password = "NewPassword123!",
+            ConfirmPassword = "NewPassword123!",
             Username = "newuser",
             FirstName = "New",
             LastName = "User"
         };
 
         // Act
-        var result = await _service.RegisterAsync(registerRequest);
+        Func<Task> act = async () => await _service.RegisterAsync(registerRequest);
 
         // Assert
-        result.Should().BeNull();
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*already exists*");
     }
 
     /// <summary>
-    /// Verifies successful registration creates user
+    /// Verifies registration fails when passwords don't match
+    /// </summary>
+    [Fact]
+    public async Task RegisterAsync_WithMismatchedPasswords_ThrowsException()
+    {
+        // Arrange
+        var registerRequest = new RegisterRequest
+        {
+            Email = "newuser@example.com",
+            Password = "Password123!",
+            ConfirmPassword = "DifferentPassword123!",
+            FirstName = "New",
+            LastName = "User"
+        };
+
+        // Act
+        Func<Task> act = async () => await _service.RegisterAsync(registerRequest);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*Passwords do not match*");
+    }
+
+    /// <summary>
+    /// Verifies successful registration creates user and returns tokens
     /// </summary>
     [Fact]
     public async Task RegisterAsync_WithValidData_ReturnsAuthResponse()
     {
         // Arrange
-        _mockSystemSettings
-            .Setup(x => x.GetSettingAsync("RequireApproval"))
-            .ReturnsAsync((SystemSettings?)null);
+        _mockUserRepo.Setup(r => r.GetAllAsync())
+            .ReturnsAsync(new List<User>());
+        _mockUserRepo.Setup(r => r.AddAsync(It.IsAny<User>()))
+            .Returns(Task.CompletedTask);
+        _mockUserRepo.Setup(r => r.SaveAsync())
+            .Returns(Task.CompletedTask);
 
         var registerRequest = new RegisterRequest
         {
             Email = "newuser@example.com",
             Password = "SecurePassword123!",
+            ConfirmPassword = "SecurePassword123!",
             Username = "newuser",
             FirstName = "New",
             LastName = "User"
@@ -277,12 +322,32 @@ public class AuthenticationServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Email.Should().Be("newuser@example.com");
-        result.Username.Should().Be("newuser");
-        
-        // Verify user was created in database
-        var createdUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == "newuser@example.com");
-        createdUser.Should().NotBeNull();
+        result.Email.Should().Be("newuser@example.com");
+        result.FirstName.Should().Be("New");
+        result.LastName.Should().Be("User");
+    }
+
+    /// <summary>
+    /// Verifies registration fails with missing email
+    /// </summary>
+    [Fact]
+    public async Task RegisterAsync_WithMissingEmail_ThrowsException()
+    {
+        // Arrange
+        var registerRequest = new RegisterRequest
+        {
+            Email = "",
+            Password = "Password123!",
+            ConfirmPassword = "Password123!",
+            FirstName = "New",
+            LastName = "User"
+        };
+
+        // Act
+        Func<Task> act = async () => await _service.RegisterAsync(registerRequest);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
     }
 
     #endregion
@@ -345,78 +410,84 @@ public class AuthenticationServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.RequiresTwoFactor.Should().BeTrue();
+        result.RequiresTwoFactor.Should().BeTrue();
         result.TwoFactorToken.Should().NotBeNullOrEmpty();
-        result.Token.Should().BeNullOrEmpty(); // Token not issued until 2FA verified
+        result.AccessToken.Should().BeNullOrEmpty(); // Token not issued until 2FA verified
     }
 
     /// <summary>
-    /// Verifies 2FA verification with invalid token returns null
+    /// Verifies 2FA verification with invalid token throws exception
     /// </summary>
     [Fact]
-    public async Task VerifyTwoFactorLoginAsync_WithInvalidToken_ReturnsNull()
+    public async Task VerifyTwoFactorLoginAsync_WithInvalidToken_ThrowsException()
     {
-        // Arrange
-        var request = new TwoFactorLoginRequest
-        {
-            TwoFactorToken = "invalid_token",
-            Code = "123456"
-        };
-
         // Act
-        var result = await _service.VerifyTwoFactorLoginAsync(request);
+        Func<Task> act = async () => await _service.VerifyTwoFactorLoginAsync("invalid_token", "123456");
 
         // Assert
-        result.Should().BeNull();
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }
 
     #endregion
 
-    #region Token Tests
+    #region Token Refresh Tests
 
     /// <summary>
-    /// Verifies JWT token contains expected claims
+    /// Verifies token refresh with invalid token throws exception
     /// </summary>
     [Fact]
-    public async Task LoginAsync_ReturnsTokenWithCorrectClaims()
+    public async Task RefreshTokenAsync_WithInvalidToken_ThrowsException()
     {
-        // Arrange
-        var password = "SecurePassword123!";
-        var user = new User
-        {
-            Id = 30,
-            Email = "claims@example.com",
-            Username = "claimsuser",
-            FirstName = "Claims",
-            LastName = "User",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-            IsActive = true,
-            IsDeleted = false,
-            Role = (int)UserRole.Admin,
-            CreatedAt = DateTime.UtcNow
-        };
-        await _dbContext.Users.AddAsync(user);
-        await _dbContext.SaveChangesAsync();
-
-        var loginRequest = new LoginRequest
-        {
-            Email = "claims@example.com",
-            Password = password
-        };
-
         // Act
-        var result = await _service.LoginAsync(loginRequest);
+        Func<Task> act = async () => await _service.RefreshTokenAsync("invalid-refresh-token");
 
         // Assert
-        result.Should().NotBeNull();
-        result!.Token.Should().NotBeNullOrEmpty();
-        result.Role.Should().Be("Admin");
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    #endregion
+
+    #region Verify Token Tests
+
+    /// <summary>
+    /// Verifies VerifyTokenAsync returns false for invalid token
+    /// </summary>
+    [Fact]
+    public async Task VerifyTokenAsync_WithInvalidToken_ReturnsFalse()
+    {
+        // Arrange
+        _mockJwtTokenService.Setup(x => x.ValidateToken(It.IsAny<string>()))
+            .Returns(false);
+
+        // Act
+        var result = await _service.VerifyTokenAsync("invalid-token");
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Verifies VerifyTokenAsync returns true for valid token
+    /// </summary>
+    [Fact]
+    public async Task VerifyTokenAsync_WithValidToken_ReturnsTrue()
+    {
+        // Arrange
+        _mockJwtTokenService.Setup(x => x.ValidateToken(It.IsAny<string>()))
+            .Returns(true);
+
+        // Act
+        var result = await _service.VerifyTokenAsync("valid-token");
+
+        // Assert
+        result.Should().BeTrue();
     }
 
     #endregion
 
     public void Dispose()
     {
+        _memoryCache.Dispose();
         _dbContext.Dispose();
     }
 }

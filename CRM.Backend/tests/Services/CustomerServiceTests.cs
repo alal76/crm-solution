@@ -20,7 +20,9 @@ using FluentAssertions;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,14 +42,23 @@ namespace CRM.Tests.Services;
 /// 
 /// TECHNICAL VIEW:
 /// - Uses Moq to mock repository dependencies
+/// - Uses InMemory database for NormalizationService
 /// - Tests service layer in isolation from database
 /// - Validates DTO mapping and business logic
 /// </summary>
-public class CustomerServiceTests
+public class CustomerServiceTests : IDisposable
 {
     private readonly Mock<IRepository<Customer>> _mockCustomerRepo;
     private readonly Mock<IRepository<CustomerContact>> _mockCustomerContactRepo;
     private readonly Mock<IContactsService> _mockContactsService;
+    private readonly Mock<IRepository<Address>> _mockAddressRepo;
+    private readonly Mock<IRepository<ContactDetail>> _mockContactDetailRepo;
+    private readonly Mock<IRepository<SocialAccount>> _mockSocialAccountRepo;
+    private readonly Mock<IRepository<ContactInfoLink>> _mockContactInfoLinkRepo;
+    private readonly Mock<IRepository<EntityTag>> _mockEntityTagRepo;
+    private readonly Mock<IRepository<CustomField>> _mockCustomFieldRepo;
+    private readonly CrmDbContext _dbContext;
+    private readonly NormalizationService _normalizationService;
     private readonly CustomerService _service;
 
     public CustomerServiceTests()
@@ -55,11 +66,32 @@ public class CustomerServiceTests
         _mockCustomerRepo = new Mock<IRepository<Customer>>();
         _mockCustomerContactRepo = new Mock<IRepository<CustomerContact>>();
         _mockContactsService = new Mock<IContactsService>();
+        _mockAddressRepo = new Mock<IRepository<Address>>();
+        _mockContactDetailRepo = new Mock<IRepository<ContactDetail>>();
+        _mockSocialAccountRepo = new Mock<IRepository<SocialAccount>>();
+        _mockContactInfoLinkRepo = new Mock<IRepository<ContactInfoLink>>();
+        _mockEntityTagRepo = new Mock<IRepository<EntityTag>>();
+        _mockCustomFieldRepo = new Mock<IRepository<CustomField>>();
+        
+        // Setup InMemory database for NormalizationService
+        var options = new DbContextOptionsBuilder<CrmDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+        
+        _dbContext = new CrmDbContext(options, null);
+        _normalizationService = new NormalizationService(_dbContext);
         
         _service = new CustomerService(
             _mockCustomerRepo.Object,
             _mockCustomerContactRepo.Object,
-            _mockContactsService.Object);
+            _mockContactsService.Object,
+            _mockAddressRepo.Object,
+            _mockContactDetailRepo.Object,
+            _mockSocialAccountRepo.Object,
+            _mockContactInfoLinkRepo.Object,
+            _mockEntityTagRepo.Object,
+            _mockCustomFieldRepo.Object,
+            _normalizationService);
     }
 
     #region GetCustomerByIdAsync Tests
@@ -77,8 +109,7 @@ public class CustomerServiceTests
         
         _mockCustomerRepo.Setup(r => r.GetByIdAsync(customerId))
             .ReturnsAsync(customer);
-        _mockCustomerContactRepo.Setup(r => r.FindAsync(It.IsAny<Func<CustomerContact, bool>>()))
-            .ReturnsAsync(new List<CustomerContact>());
+        SetupEmptyRelatedEntities();
 
         // Act
         var result = await _service.GetCustomerByIdAsync(customerId);
@@ -153,8 +184,7 @@ public class CustomerServiceTests
         
         _mockCustomerRepo.Setup(r => r.GetAllAsync())
             .ReturnsAsync(customers);
-        _mockCustomerContactRepo.Setup(r => r.FindAsync(It.IsAny<Func<CustomerContact, bool>>()))
-            .ReturnsAsync(new List<CustomerContact>());
+        SetupEmptyRelatedEntities();
 
         // Act
         var result = await _service.GetAllCustomersAsync();
@@ -162,6 +192,23 @@ public class CustomerServiceTests
         // Assert
         result.Should().HaveCount(2);
         result.All(c => c.Id != 3).Should().BeTrue();
+    }
+
+    /// <summary>
+    /// FUNCTIONAL: Verify empty collection returned when no customers exist
+    /// </summary>
+    [Fact]
+    public async Task GetAllCustomersAsync_WhenNoCustomers_ReturnsEmptyCollection()
+    {
+        // Arrange
+        _mockCustomerRepo.Setup(r => r.GetAllAsync())
+            .ReturnsAsync(new List<Customer>());
+
+        // Act
+        var result = await _service.GetAllCustomersAsync();
+
+        // Assert
+        result.Should().BeEmpty();
     }
 
     #endregion
@@ -189,6 +236,7 @@ public class CustomerServiceTests
             .Returns(Task.CompletedTask);
         _mockCustomerRepo.Setup(r => r.SaveAsync())
             .Returns(Task.CompletedTask);
+        SetupEmptyRelatedEntities();
 
         // Act
         var result = await _service.CreateCustomerAsync(createDto);
@@ -223,6 +271,7 @@ public class CustomerServiceTests
             .Returns(Task.CompletedTask);
         _mockCustomerRepo.Setup(r => r.SaveAsync())
             .Returns(Task.CompletedTask);
+        SetupEmptyRelatedEntities();
 
         // Act
         var result = await _service.CreateCustomerAsync(createDto);
@@ -254,8 +303,7 @@ public class CustomerServiceTests
             .Returns(Task.CompletedTask);
         _mockCustomerRepo.Setup(r => r.SaveAsync())
             .Returns(Task.CompletedTask);
-        _mockCustomerContactRepo.Setup(r => r.FindAsync(It.IsAny<Func<CustomerContact, bool>>()))
-            .ReturnsAsync(new List<CustomerContact>());
+        SetupEmptyRelatedEntities();
 
         // Act
         var result = await _service.UpdateCustomerAsync(1, updateDto);
@@ -353,8 +401,7 @@ public class CustomerServiceTests
         
         _mockCustomerRepo.Setup(r => r.FindAsync(It.IsAny<Func<Customer, bool>>()))
             .ReturnsAsync(customers.Where(c => c.Category == CustomerCategory.Individual).ToList());
-        _mockCustomerContactRepo.Setup(r => r.FindAsync(It.IsAny<Func<CustomerContact, bool>>()))
-            .ReturnsAsync(new List<CustomerContact>());
+        SetupEmptyRelatedEntities();
 
         // Act
         var result = await _service.GetIndividualCustomersAsync();
@@ -381,8 +428,7 @@ public class CustomerServiceTests
         
         _mockCustomerRepo.Setup(r => r.FindAsync(It.IsAny<Func<Customer, bool>>()))
             .ReturnsAsync(customers.Where(c => c.Category == CustomerCategory.Organization).ToList());
-        _mockCustomerContactRepo.Setup(r => r.FindAsync(It.IsAny<Func<CustomerContact, bool>>()))
-            .ReturnsAsync(new List<CustomerContact>());
+        SetupEmptyRelatedEntities();
 
         // Act
         var result = await _service.GetOrganizationCustomersAsync();
@@ -417,6 +463,32 @@ public class CustomerServiceTests
             Country = "USA",
             CreatedAt = DateTime.UtcNow
         };
+    }
+
+    /// <summary>
+    /// Setup mock repositories for related entities to return empty collections
+    /// </summary>
+    private void SetupEmptyRelatedEntities()
+    {
+        _mockCustomerContactRepo.Setup(r => r.FindAsync(It.IsAny<Func<CustomerContact, bool>>()))
+            .ReturnsAsync(new List<CustomerContact>());
+        _mockAddressRepo.Setup(r => r.FindAsync(It.IsAny<Func<Address, bool>>()))
+            .ReturnsAsync(new List<Address>());
+        _mockContactDetailRepo.Setup(r => r.FindAsync(It.IsAny<Func<ContactDetail, bool>>()))
+            .ReturnsAsync(new List<ContactDetail>());
+        _mockSocialAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<SocialAccount, bool>>()))
+            .ReturnsAsync(new List<SocialAccount>());
+        _mockContactInfoLinkRepo.Setup(r => r.FindAsync(It.IsAny<Func<ContactInfoLink, bool>>()))
+            .ReturnsAsync(new List<ContactInfoLink>());
+        _mockEntityTagRepo.Setup(r => r.FindAsync(It.IsAny<Func<EntityTag, bool>>()))
+            .ReturnsAsync(new List<EntityTag>());
+        _mockCustomFieldRepo.Setup(r => r.FindAsync(It.IsAny<Func<CustomField, bool>>()))
+            .ReturnsAsync(new List<CustomField>());
+    }
+
+    public void Dispose()
+    {
+        _dbContext.Dispose();
     }
 
     #endregion
