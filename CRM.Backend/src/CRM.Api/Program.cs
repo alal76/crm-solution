@@ -181,6 +181,7 @@ builder.Services.AddScoped<IServiceRequestCustomFieldService, ServiceRequestCust
 builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
+builder.Services.AddScoped<ModuleUIConfigService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields
 builder.Services.AddScoped<NormalizationService>();

@@ -56,8 +56,7 @@ import { useAuth } from '../contexts/AuthContext';
 import UserApprovalTab from '../components/settings/UserApprovalTab';
 import GroupManagementTab from '../components/settings/GroupManagementTab';
 import DatabaseSettingsTab from '../components/settings/DatabaseSettingsTab';
-import ModuleSettingsTab from '../components/settings/ModuleSettingsTab';
-import ModuleFieldSettingsTab from '../components/settings/ModuleFieldSettingsTab';
+import ModuleFieldSettingsTab from '../components/settings/ModuleFieldSettingsTabNew';
 import UserManagementTab from '../components/settings/UserManagementTab';
 import SocialLoginSettingsTab from '../components/settings/SocialLoginSettingsTab';
 import SecuritySettingsTab from '../components/settings/SecuritySettingsTab';
@@ -1358,14 +1357,8 @@ function SettingsPage() {
     },
     {
       id: 'modules',
-      label: 'Module Settings',
+      label: 'Module & Field Settings',
       icon: <ModuleIcon sx={{ mr: 0.5, fontSize: 20 }} />,
-      component: <ModuleSettingsTab />,
-    },
-    {
-      id: 'fieldconfig',
-      label: 'Field Configuration',
-      icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 20 }} />,
       component: <ModuleFieldSettingsTab />,
     },
     {

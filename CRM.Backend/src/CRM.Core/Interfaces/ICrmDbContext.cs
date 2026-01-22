@@ -52,6 +52,7 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.Tag> Tags { get; }
     DbSet<CRM.Core.Entities.EntityTag> EntityTags { get; }
     DbSet<CRM.Core.Entities.CustomField> CustomFields { get; }
+    DbSet<ModuleUIConfig> ModuleUIConfigs { get; }
     
     DatabaseFacade Database { get; }
 

@@ -98,6 +98,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     
         // Module field configurations
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
+        public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
         public DbSet<Account> Accounts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
