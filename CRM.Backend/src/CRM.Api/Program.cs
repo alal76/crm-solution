@@ -173,6 +173,7 @@ builder.Services.AddScoped<IUserGroupService, UserGroupService>();
 builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
 builder.Services.AddScoped<IUserApprovalService, UserApprovalService>();
 builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
+builder.Services.AddHostedService<BackupSchedulerHostedService>();
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
@@ -183,6 +184,7 @@ builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();
+builder.Services.AddSingleton<IDemoDbContextFactory, DemoDbContextFactory>();
 builder.Services.AddScoped<DemoDataSeederService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields

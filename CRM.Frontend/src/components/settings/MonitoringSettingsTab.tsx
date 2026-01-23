@@ -68,154 +68,172 @@ const LOAD_COLORS = {
 };
 
 function MonitoringSettingsTab() {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Mock data - in real implementation, this would come from API
-  const [services, setServices] = useState<ServiceStatus[]>([
-    {
-      name: 'CRM Frontend',
-      type: 'frontend',
-      status: 'healthy',
-      endpoint: 'https://crm.example.com',
-      uptime: '99.99%',
-      lastCheck: new Date().toISOString(),
-      responseTime: 45,
-      version: '2.5.0'
-    },
-    {
-      name: 'CRM API',
-      type: 'api',
-      status: 'healthy',
-      endpoint: 'https://api.crm.example.com',
-      uptime: '99.95%',
-      lastCheck: new Date().toISOString(),
-      responseTime: 120,
-      version: '2.5.0'
-    },
-    {
-      name: 'MariaDB Database',
-      type: 'database',
-      status: 'healthy',
-      endpoint: 'db.crm.example.com:3306',
-      uptime: '99.99%',
-      lastCheck: new Date().toISOString(),
-      responseTime: 15,
-      version: '10.11'
-    },
-  ]);
+  // Real data from API
+  const [services, setServices] = useState<ServiceStatus[]>([]);
 
   const [serverMetrics, setServerMetrics] = useState<Record<string, ServerMetrics>>({
-    frontend: {
-      cpu: { current: 25, max: 100, unit: '%' },
-      memory: { current: 512, max: 2048, unit: 'MB' },
-      disk: { current: 45, max: 100, unit: 'GB' },
-      network: { current: 150, max: 1000, unit: 'Mbps' },
-      threads: 12,
-      connections: 85,
-    },
     api: {
-      cpu: { current: 45, max: 100, unit: '%' },
-      memory: { current: 1024, max: 4096, unit: 'MB' },
-      disk: { current: 25, max: 100, unit: 'GB' },
-      network: { current: 250, max: 1000, unit: 'Mbps' },
-      threads: 48,
-      connections: 320,
+      cpu: { current: 0, max: 100, unit: '%' },
+      memory: { current: 0, max: 4096, unit: 'MB' },
+      disk: { current: 0, max: 100, unit: 'GB' },
+      network: { current: 0, max: 1000, unit: 'Mbps' },
+      threads: 0,
+      connections: 0,
     },
     database: {
-      cpu: { current: 35, max: 100, unit: '%' },
-      memory: { current: 2048, max: 8192, unit: 'MB' },
-      disk: { current: 60, max: 500, unit: 'GB' },
-      network: { current: 100, max: 1000, unit: 'Mbps' },
-      threads: 64,
-      connections: 156,
+      cpu: { current: 0, max: 100, unit: '%' },
+      memory: { current: 0, max: 8192, unit: 'MB' },
+      disk: { current: 0, max: 500, unit: 'GB' },
+      network: { current: 0, max: 1000, unit: 'Mbps' },
+      threads: 0,
+      connections: 0,
     },
   });
 
-  const [loggedInUsers, setLoggedInUsers] = useState<LoggedInUser[]>([
-    {
-      id: '1',
-      name: 'John Admin',
-      email: 'john@example.com',
-      loginTime: new Date(Date.now() - 3600000).toISOString(),
-      lastActivity: new Date(Date.now() - 60000).toISOString(),
-      ipAddress: '192.168.1.100',
-      sessionId: 'sess_abc123',
-    },
-    {
-      id: '2',
-      name: 'Jane Manager',
-      email: 'jane@example.com',
-      loginTime: new Date(Date.now() - 7200000).toISOString(),
-      lastActivity: new Date(Date.now() - 300000).toISOString(),
-      ipAddress: '192.168.1.105',
-      sessionId: 'sess_def456',
-    },
-    {
-      id: '3',
-      name: 'Bob Sales',
-      email: 'bob@example.com',
-      loginTime: new Date(Date.now() - 1800000).toISOString(),
-      lastActivity: new Date().toISOString(),
-      ipAddress: '10.0.0.50',
-      sessionId: 'sess_ghi789',
-    },
-  ]);
+  const [loggedInUsers, setLoggedInUsers] = useState<LoggedInUser[]>([]);
 
-  const [serverLoads, setServerLoads] = useState<ServerLoad[]>([
-    { service: 'Frontend Server', load: 35, status: 'green' },
-    { service: 'API Server 1', load: 65, status: 'amber' },
-    { service: 'API Server 2', load: 45, status: 'green' },
-    { service: 'Database Primary', load: 55, status: 'amber' },
-    { service: 'Database Replica', load: 30, status: 'green' },
-    { service: 'Cache Server', load: 20, status: 'green' },
-  ]);
+  const [serverLoads, setServerLoads] = useState<ServerLoad[]>([]);
 
-  const refreshData = useCallback(() => {
+  const refreshData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     
-    // Simulate API call with random variations
-    setTimeout(() => {
-      // Update metrics with slight variations
-      setServerMetrics(prev => ({
-        frontend: {
-          ...prev.frontend,
-          cpu: { ...prev.frontend.cpu, current: Math.min(100, Math.max(10, prev.frontend.cpu.current + (Math.random() * 10 - 5))) },
-          memory: { ...prev.frontend.memory, current: Math.min(2048, Math.max(256, prev.frontend.memory.current + (Math.random() * 100 - 50))) },
-        },
-        api: {
-          ...prev.api,
-          cpu: { ...prev.api.cpu, current: Math.min(100, Math.max(20, prev.api.cpu.current + (Math.random() * 10 - 5))) },
-          memory: { ...prev.api.memory, current: Math.min(4096, Math.max(512, prev.api.memory.current + (Math.random() * 100 - 50))) },
-        },
-        database: {
-          ...prev.database,
-          cpu: { ...prev.database.cpu, current: Math.min(100, Math.max(15, prev.database.cpu.current + (Math.random() * 10 - 5))) },
-          memory: { ...prev.database.memory, current: Math.min(8192, Math.max(1024, prev.database.memory.current + (Math.random() * 100 - 50))) },
-        },
-      }));
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      };
 
-      // Update server loads
-      setServerLoads(prev => prev.map(load => {
-        const newLoad = Math.min(100, Math.max(0, load.load + (Math.random() * 20 - 10)));
-        return {
-          ...load,
-          load: Math.round(newLoad),
-          status: newLoad < 50 ? 'green' : newLoad < 75 ? 'amber' : 'red',
-        };
-      }));
+      // Fetch all monitoring data in one call
+      const response = await fetch('/api/monitoring/all', { headers });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Update services
+        if (data.services && data.services.length > 0) {
+          setServices(data.services.map((s: any) => ({
+            name: s.name,
+            type: s.type,
+            status: s.status as 'healthy' | 'degraded' | 'error',
+            endpoint: s.endpoint,
+            uptime: s.uptime,
+            lastCheck: s.lastCheck,
+            responseTime: s.responseTime,
+            version: s.version,
+          })));
+        }
 
-      setServices(prev => prev.map(s => ({
-        ...s,
-        lastCheck: new Date().toISOString(),
-        responseTime: Math.max(10, s.responseTime + (Math.random() * 20 - 10)),
-      })));
+        // Update server metrics
+        if (data.systemMetrics) {
+          const sm = data.systemMetrics;
+          setServerMetrics({
+            api: {
+              cpu: { current: sm.process?.cpuTimeMs ? Math.min(100, sm.process.cpuTimeMs / 10000) : 0, max: 100, unit: '%' },
+              memory: { current: sm.process?.workingSetMB || 0, max: 4096, unit: 'MB' },
+              disk: { current: sm.database?.databaseSizeMB || 0, max: 500, unit: 'MB' },
+              network: { current: 0, max: 1000, unit: 'Mbps' },
+              threads: sm.process?.threadCount || 0,
+              connections: sm.database?.activeConnections || 0,
+            },
+            database: {
+              cpu: { current: 0, max: 100, unit: '%' },
+              memory: { current: 0, max: 8192, unit: 'MB' },
+              disk: { current: sm.database?.databaseSizeMB || 0, max: 500, unit: 'MB' },
+              network: { current: 0, max: 1000, unit: 'Mbps' },
+              threads: 0,
+              connections: sm.database?.activeConnections || 0,
+            },
+          });
+        }
+
+        // Update server loads
+        if (data.serverLoad?.services && data.serverLoad.services.length > 0) {
+          setServerLoads(data.serverLoad.services.map((s: any) => ({
+            service: s.service,
+            load: Math.round(s.cpuLoad || 0),
+            status: (s.status || 'green') as 'green' | 'amber' | 'red',
+          })));
+        }
+
+        // Update logged in users
+        if (data.activeSessions && data.activeSessions.length > 0) {
+          setLoggedInUsers(data.activeSessions.map((u: any) => ({
+            id: u.userId,
+            name: u.name,
+            email: u.email,
+            loginTime: u.loginTime,
+            lastActivity: u.lastActivity,
+            ipAddress: u.ipAddress || 'N/A',
+            sessionId: `session_${u.userId}`,
+          })));
+        }
+      } else {
+        // Fallback to individual endpoints if /all fails
+        const [servicesRes, loadRes, sessionsRes] = await Promise.allSettled([
+          fetch('/api/monitoring/services', { headers }),
+          fetch('/api/monitoring/load', { headers }),
+          fetch('/api/monitoring/sessions', { headers }),
+        ]);
+
+        if (servicesRes.status === 'fulfilled' && servicesRes.value.ok) {
+          const servicesData = await servicesRes.value.json();
+          setServices(servicesData.map((s: any) => ({
+            name: s.name,
+            type: s.type,
+            status: s.status as 'healthy' | 'degraded' | 'error',
+            endpoint: s.endpoint,
+            uptime: s.uptime,
+            lastCheck: s.lastCheck,
+            responseTime: s.responseTime,
+            version: s.version,
+          })));
+        }
+
+        if (loadRes.status === 'fulfilled' && loadRes.value.ok) {
+          const loadData = await loadRes.value.json();
+          if (loadData.services) {
+            setServerLoads(loadData.services.map((s: any) => ({
+              service: s.service,
+              load: Math.round(s.cpuLoad || 0),
+              status: (s.status || 'green') as 'green' | 'amber' | 'red',
+            })));
+          }
+        }
+
+        if (sessionsRes.status === 'fulfilled' && sessionsRes.value.ok) {
+          const sessionsData = await sessionsRes.value.json();
+          setLoggedInUsers(sessionsData.map((u: any) => ({
+            id: u.userId,
+            name: u.name,
+            email: u.email,
+            loginTime: u.loginTime,
+            lastActivity: u.lastActivity,
+            ipAddress: u.ipAddress || 'N/A',
+            sessionId: `session_${u.userId}`,
+          })));
+        }
+      }
 
       setLastRefresh(new Date());
+    } catch (err) {
+      console.error('Error fetching monitoring data:', err);
+      setError('Failed to fetch monitoring data');
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   }, []);
+
+  // Initial load
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
   useEffect(() => {
     if (autoRefresh) {
@@ -288,6 +306,13 @@ function MonitoringSettingsTab() {
           </Tooltip>
         </Box>
       </Box>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
 
       {/* Overall Health Banner */}
       <Alert

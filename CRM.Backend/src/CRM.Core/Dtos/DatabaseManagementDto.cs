@@ -62,3 +62,60 @@ public class DatabaseConfigRequest
     public string Password { get; set; } = string.Empty;
     public string DatabaseName { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// DTO for backup schedule information
+/// </summary>
+public class BackupScheduleDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; }
+    public string BackupType { get; set; } = "Full";
+    public string CronExpression { get; set; } = "0 2 * * *";
+    public string CronDescription { get; set; } = string.Empty;
+    public string BackupPath { get; set; } = "DatabaseBackups";
+    public int RetentionDays { get; set; }
+    public int MaxBackupsToKeep { get; set; }
+    public bool CompressBackups { get; set; }
+    public DateTime? LastBackupAt { get; set; }
+    public DateTime? NextBackupAt { get; set; }
+    public string? LastError { get; set; }
+    public int SuccessfulBackups { get; set; }
+    public int FailedBackups { get; set; }
+}
+
+/// <summary>
+/// DTO for creating or updating a backup schedule
+/// </summary>
+public class CreateBackupScheduleRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; } = true;
+    public string BackupType { get; set; } = "Full";
+    public string CronExpression { get; set; } = "0 2 * * *";
+    public string BackupPath { get; set; } = "DatabaseBackups";
+    public int RetentionDays { get; set; } = 30;
+    public int MaxBackupsToKeep { get; set; } = 10;
+    public bool CompressBackups { get; set; } = true;
+}
+
+/// <summary>
+/// DTO for backup upload request
+/// </summary>
+public class UploadBackupRequest
+{
+    public string? Description { get; set; }
+    public string? SourceDatabase { get; set; }
+}
+
+/// <summary>
+/// DTO for backup settings configuration
+/// </summary>
+public class BackupSettingsDto
+{
+    public string DefaultBackupPath { get; set; } = "DatabaseBackups";
+    public bool AutoDeleteOldBackups { get; set; } = true;
+    public int DefaultRetentionDays { get; set; } = 30;
+    public List<BackupScheduleDto> Schedules { get; set; } = new();
+}

@@ -26,6 +26,7 @@ public interface ICrmDbContext
     DbSet<UserGroupMember> UserGroupMembers { get; }
     DbSet<UserApprovalRequest> UserApprovalRequests { get; }
     DbSet<DatabaseBackup> DatabaseBackups { get; }
+    DbSet<BackupSchedule> BackupSchedules { get; }
     DbSet<Workflow> Workflows { get; }
     DbSet<WorkflowRule> WorkflowRules { get; }
     DbSet<WorkflowRuleCondition> WorkflowRuleConditions { get; }

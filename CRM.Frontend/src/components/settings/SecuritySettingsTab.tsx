@@ -428,6 +428,42 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
           {sslLoading && <LinearProgress sx={{ mb: 2 }} />}
 
+          {/* HTTPS Toggle - Always Visible */}
+          <Paper sx={{ p: 2, mb: 3, bgcolor: '#fafafa', borderRadius: 2, border: '1px solid #e0e0e0' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  HTTPS Mode
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Enable HTTPS for secure connections {!sslStatus?.hasCertificate && '(certificate not required for reverse proxy setups)'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={sslStatus?.httpsEnabled || false}
+                      onChange={(e) => handleToggleHttps(e.target.checked, sslStatus?.forceRedirect || false)}
+                      disabled={sslLoading}
+                    />
+                  }
+                  label="Enable HTTPS"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={sslStatus?.forceRedirect || false}
+                      onChange={(e) => handleToggleHttps(sslStatus?.httpsEnabled || false, e.target.checked)}
+                      disabled={sslLoading || !sslStatus?.httpsEnabled}
+                    />
+                  }
+                  label="Force HTTPS Redirect"
+                />
+              </Box>
+            </Box>
+          </Paper>
+
           {/* Certificate Status */}
           {sslStatus?.hasCertificate && (
             <Paper sx={{ p: 2, mb: 3, bgcolor: '#f5f5f5', borderRadius: 2 }}>
@@ -474,34 +510,14 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                   />
                 </Grid>
               </Grid>
-              <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={sslStatus?.httpsEnabled || false}
-                      onChange={(e) => handleToggleHttps(e.target.checked, sslStatus?.forceRedirect || false)}
-                      disabled={sslLoading || !sslStatus?.hasCertificate}
-                    />
-                  }
-                  label="Enable HTTPS"
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={sslStatus?.forceRedirect || false}
-                      onChange={(e) => handleToggleHttps(sslStatus?.httpsEnabled || false, e.target.checked)}
-                      disabled={sslLoading || !sslStatus?.httpsEnabled}
-                    />
-                  }
-                  label="Force HTTPS Redirect"
-                />
+              <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                 <Button
                   size="small"
                   color="error"
                   startIcon={<DeleteIcon />}
                   onClick={handleRemoveCertificate}
                   disabled={sslLoading}
-                  sx={{ ml: 'auto', textTransform: 'none' }}
+                  sx={{ textTransform: 'none' }}
                 >
                   Remove Certificate
                 </Button>

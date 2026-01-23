@@ -60,6 +60,11 @@ import {
   TableChart as TableChartIcon,
   ViewList as ViewListIcon,
   List as ListIcon,
+  Upload as UploadIcon,
+  Schedule as ScheduleIcon,
+  Add as AddIcon,
+  Edit as EditIcon,
+  FolderOpen as FolderIcon,
 } from '@mui/icons-material';
 import { getApiEndpoint } from '../../config/ports';
 
@@ -148,6 +153,24 @@ interface MigrationResult {
   configurationInstructions?: string;
 }
 
+interface BackupSchedule {
+  id: number;
+  name: string;
+  isEnabled: boolean;
+  backupType: string;
+  cronExpression: string;
+  cronDescription: string;
+  backupPath: string;
+  retentionDays: number;
+  maxBackupsToKeep: number;
+  compressBackups: boolean;
+  lastBackupAt: string | null;
+  nextBackupAt: string | null;
+  lastError: string | null;
+  successfulBackups: number;
+  failedBackups: number;
+}
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -167,6 +190,10 @@ interface DemoStatus {
   useDemoDatabase: boolean;
   demoDataSeeded: boolean;
   demoDataLastSeeded: string | null;
+  // New fields for separate demo database
+  isConfigured?: boolean;
+  isAvailable?: boolean;
+  message?: string;
 }
 
 function DatabaseSettingsTab() {
@@ -192,6 +219,23 @@ function DatabaseSettingsTab() {
   const [scriptDialogOpen, setScriptDialogOpen] = useState(false);
   const [generatedScript, setGeneratedScript] = useState('');
   const [scriptTitle, setScriptTitle] = useState('');
+  
+  // Backup schedule states
+  const [schedules, setSchedules] = useState<BackupSchedule[]>([]);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<BackupSchedule | null>(null);
+  const [backupPath, setBackupPath] = useState('DatabaseBackups');
+  const [scheduleForm, setScheduleForm] = useState({
+    name: '',
+    isEnabled: true,
+    backupType: 'Full',
+    cronExpression: '0 2 * * *',
+    backupPath: 'DatabaseBackups',
+    retentionDays: 30,
+    maxBackupsToKeep: 10,
+    compressBackups: true,
+  });
   
   // Migration Wizard states
   const [wizardStep, setWizardStep] = useState(0);
@@ -238,16 +282,70 @@ function DatabaseSettingsTab() {
     fetchBackups();
     fetchProviders();
     fetchDemoStatus();
+    fetchSchedules();
   }, []);
 
-  const fetchDemoStatus = async () => {
+  const fetchSchedules = async () => {
     try {
-      const response = await fetch(getApiEndpoint('/systemsettings/demo/status'), {
+      const response = await fetch(getApiEndpoint('/adminsettings/database/schedules'), {
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
       if (response.ok) {
-        setDemoStatus(await response.json());
+        setSchedules(await response.json());
       }
+    } catch (err) {
+      console.error('Failed to fetch backup schedules', err);
+    }
+  };
+
+  const fetchBackupSettings = async () => {
+    try {
+      const response = await fetch(getApiEndpoint('/adminsettings/database/backup-settings'), {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      if (response.ok) {
+        const settings = await response.json();
+        setBackupPath(settings.defaultBackupPath);
+        setSchedules(settings.schedules);
+      }
+    } catch (err) {
+      console.error('Failed to fetch backup settings', err);
+    }
+  };
+
+  const fetchDemoStatus = async () => {
+    try {
+      // Fetch demo database status from the new endpoint
+      const demoDbResponse = await fetch(getApiEndpoint('/demodata/status'), {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      
+      // Also fetch settings-based demo status
+      const settingsResponse = await fetch(getApiEndpoint('/systemsettings/demo/status'), {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      
+      let combinedStatus: DemoStatus = {
+        useDemoDatabase: false,
+        demoDataSeeded: false,
+        demoDataLastSeeded: null
+      };
+      
+      if (demoDbResponse.ok) {
+        const demoDbStatus = await demoDbResponse.json();
+        combinedStatus.isConfigured = demoDbStatus.isConfigured;
+        combinedStatus.isAvailable = demoDbStatus.isAvailable;
+        combinedStatus.message = demoDbStatus.message;
+      }
+      
+      if (settingsResponse.ok) {
+        const settingsStatus = await settingsResponse.json();
+        combinedStatus.useDemoDatabase = settingsStatus.useDemoDatabase;
+        combinedStatus.demoDataSeeded = settingsStatus.demoDataSeeded;
+        combinedStatus.demoDataLastSeeded = settingsStatus.demoDataLastSeeded;
+      }
+      
+      setDemoStatus(combinedStatus);
     } catch (err) {
       console.error('Failed to fetch demo status', err);
     }
@@ -499,6 +597,247 @@ function DatabaseSettingsTab() {
       setLoading(false);
     }
   };
+
+  const handleDownloadBackup = async (backupId: number, backupName: string) => {
+    try {
+      const response = await fetch(getApiEndpoint(`/adminsettings/database/backups/${backupId}/download`), {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${backupName}.sql`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setSuccess('Backup downloaded successfully');
+      } else {
+        throw new Error('Failed to download backup');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleUploadBackup = async (file: File) => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('description', `Uploaded: ${file.name}`);
+      formData.append('sourceDatabase', 'Unknown');
+
+      const response = await fetch(getApiEndpoint('/adminsettings/database/backups/upload'), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${getToken()}` },
+        body: formData
+      });
+
+      if (response.ok) {
+        setSuccess('Backup uploaded successfully');
+        setUploadDialogOpen(false);
+        fetchBackups();
+      } else {
+        throw new Error('Failed to upload backup');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestoreFromUpload = async (file: File) => {
+    if (!window.confirm('Are you sure you want to restore from this file? This will overwrite current data.')) return;
+    
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(getApiEndpoint('/adminsettings/database/restore/upload'), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${getToken()}` },
+        body: formData
+      });
+
+      if (response.ok) {
+        setSuccess('Database restore from uploaded file initiated');
+        setUploadDialogOpen(false);
+      } else {
+        throw new Error('Failed to restore from uploaded file');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Schedule handlers
+  const handleCreateSchedule = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(getApiEndpoint('/adminsettings/database/schedules'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(scheduleForm)
+      });
+      if (response.ok) {
+        setSuccess('Backup schedule created successfully');
+        setScheduleDialogOpen(false);
+        fetchSchedules();
+        resetScheduleForm();
+      } else {
+        throw new Error('Failed to create schedule');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateSchedule = async () => {
+    if (!editingSchedule) return;
+    setLoading(true);
+    try {
+      const response = await fetch(getApiEndpoint(`/adminsettings/database/schedules/${editingSchedule.id}`), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(scheduleForm)
+      });
+      if (response.ok) {
+        setSuccess('Backup schedule updated successfully');
+        setScheduleDialogOpen(false);
+        setEditingSchedule(null);
+        fetchSchedules();
+        resetScheduleForm();
+      } else {
+        throw new Error('Failed to update schedule');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteSchedule = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this schedule?')) return;
+    try {
+      const response = await fetch(getApiEndpoint(`/adminsettings/database/schedules/${id}`), {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      if (response.ok) {
+        setSuccess('Schedule deleted successfully');
+        fetchSchedules();
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleToggleSchedule = async (id: number, enabled: boolean) => {
+    try {
+      const response = await fetch(getApiEndpoint(`/adminsettings/database/schedules/${id}/toggle`), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ enabled })
+      });
+      if (response.ok) {
+        fetchSchedules();
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleRunScheduleNow = async (id: number) => {
+    try {
+      setLoading(true);
+      const response = await fetch(getApiEndpoint(`/adminsettings/database/schedules/${id}/run`), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      if (response.ok) {
+        setSuccess('Backup job triggered successfully');
+        fetchSchedules();
+        fetchBackups();
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateBackupPath = async () => {
+    try {
+      const response = await fetch(getApiEndpoint('/adminsettings/database/backup-path'), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ path: backupPath })
+      });
+      if (response.ok) {
+        setSuccess('Backup path updated successfully');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const openEditSchedule = (schedule: BackupSchedule) => {
+    setEditingSchedule(schedule);
+    setScheduleForm({
+      name: schedule.name,
+      isEnabled: schedule.isEnabled,
+      backupType: schedule.backupType,
+      cronExpression: schedule.cronExpression,
+      backupPath: schedule.backupPath,
+      retentionDays: schedule.retentionDays,
+      maxBackupsToKeep: schedule.maxBackupsToKeep,
+      compressBackups: schedule.compressBackups,
+    });
+    setScheduleDialogOpen(true);
+  };
+
+  const resetScheduleForm = () => {
+    setScheduleForm({
+      name: '',
+      isEnabled: true,
+      backupType: 'Full',
+      cronExpression: '0 2 * * *',
+      backupPath: 'DatabaseBackups',
+      retentionDays: 30,
+      maxBackupsToKeep: 10,
+      compressBackups: true,
+    });
+    setEditingSchedule(null);
+  };
+
+  const cronPresets = [
+    { label: 'Daily at 2 AM', value: '0 2 * * *' },
+    { label: 'Daily at midnight', value: '0 0 * * *' },
+    { label: 'Every 6 hours', value: '0 */6 * * *' },
+    { label: 'Every 12 hours', value: '0 */12 * * *' },
+    { label: 'Weekly (Sunday 2 AM)', value: '0 2 * * 0' },
+    { label: 'Monthly (1st at 2 AM)', value: '0 2 1 * *' },
+  ];
 
   const handleOptimize = async () => {
     setLoading(true);
@@ -805,6 +1144,15 @@ function DatabaseSettingsTab() {
                     {demoStatus?.useDemoDatabase && (
                       <Chip label="ACTIVE" color="warning" size="small" sx={{ ml: 2 }} />
                     )}
+                    {demoStatus?.isAvailable && (
+                      <Chip label="DB CONNECTED" color="success" size="small" sx={{ ml: 1 }} />
+                    )}
+                    {demoStatus?.isConfigured && !demoStatus?.isAvailable && (
+                      <Chip label="DB NOT REACHABLE" color="error" size="small" sx={{ ml: 1 }} />
+                    )}
+                    {!demoStatus?.isConfigured && (
+                      <Chip label="DB NOT CONFIGURED" color="default" size="small" sx={{ ml: 1 }} />
+                    )}
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="body2" color="text.secondary">
@@ -813,23 +1161,30 @@ function DatabaseSettingsTab() {
                     <Switch
                       checked={demoStatus?.useDemoDatabase || false}
                       onChange={(e) => handleToggleDemoMode(e.target.checked)}
-                      disabled={demoLoading}
+                      disabled={demoLoading || !demoStatus?.isAvailable}
                       color="warning"
                     />
                   </Box>
                 </Box>
                 
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Demo mode allows you to test the system with sample data without affecting production data.
+                  Demo mode uses a completely separate database from production to test the system with sample data.
                   When enabled, a "Demo" indicator will be shown in the navigation header.
+                  {demoStatus?.message && (
+                    <Box component="span" sx={{ display: 'block', mt: 1, fontStyle: 'italic' }}>
+                      Status: {demoStatus.message}
+                    </Box>
+                  )}
                 </Typography>
 
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Box sx={{ p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
-                      <Typography variant="body2" color="text.secondary">Demo Data Status</Typography>
+                      <Typography variant="body2" color="text.secondary">Demo Database Status</Typography>
                       <Typography variant="h6">
-                        {demoStatus?.demoDataSeeded ? 'Seeded' : 'Not Seeded'}
+                        {demoStatus?.isAvailable 
+                          ? (demoStatus?.demoDataSeeded ? 'Ready & Seeded' : 'Ready - Not Seeded')
+                          : (demoStatus?.isConfigured ? 'Not Reachable' : 'Not Configured')}
                       </Typography>
                       {demoStatus?.demoDataLastSeeded && (
                         <Typography variant="caption" color="text.secondary">
@@ -840,11 +1195,41 @@ function DatabaseSettingsTab() {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {!demoStatus?.isAvailable && demoStatus?.isConfigured && (
+                        <Button
+                          variant="contained"
+                          color="secondary"
+                          onClick={async () => {
+                            setDemoLoading(true);
+                            try {
+                              const response = await fetch(getApiEndpoint('/demodata/initialize'), {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${getToken()}` }
+                              });
+                              if (response.ok) {
+                                await fetchDemoStatus();
+                                setSuccess('Demo database initialized successfully');
+                              } else {
+                                const errorData = await response.json();
+                                setError(errorData.message || 'Failed to initialize demo database');
+                              }
+                            } catch (err) {
+                              setError('Failed to initialize demo database');
+                            } finally {
+                              setDemoLoading(false);
+                            }
+                          }}
+                          disabled={demoLoading}
+                          fullWidth
+                        >
+                          {demoLoading ? <CircularProgress size={24} /> : 'Initialize Demo Database'}
+                        </Button>
+                      )}
                       <Button
                         variant="contained"
                         color="primary"
                         onClick={() => setSeedDialogOpen(true)}
-                        disabled={demoLoading}
+                        disabled={demoLoading || !demoStatus?.isAvailable}
                         fullWidth
                       >
                         {demoLoading ? <CircularProgress size={24} /> : 'Seed Demo Data'}
@@ -853,7 +1238,7 @@ function DatabaseSettingsTab() {
                         variant="outlined"
                         color="error"
                         onClick={() => setClearDemoDialogOpen(true)}
-                        disabled={demoLoading || !demoStatus?.demoDataSeeded}
+                        disabled={demoLoading || !demoStatus?.demoDataSeeded || !demoStatus?.isAvailable}
                         fullWidth
                       >
                         Clear Demo Data
@@ -995,9 +1380,37 @@ function DatabaseSettingsTab() {
 
       {/* Backup & Restore Tab */}
       <TabPanel value={tabValue} index={1}>
+        {/* Backup Path Configuration */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant="h6" sx={{ mb: 2 }}>Create Backup</Typography>
+            <Typography variant="h6" sx={{ mb: 2 }}>Backup Storage Location</Typography>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Backup Path"
+                value={backupPath}
+                onChange={(e) => setBackupPath(e.target.value)}
+                fullWidth
+                size="small"
+                helperText="Directory where backups will be stored"
+                InputProps={{
+                  startAdornment: <FolderIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                }}
+              />
+              <Button
+                variant="outlined"
+                onClick={handleUpdateBackupPath}
+                sx={{ minWidth: 100 }}
+              >
+                Update
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Manual Backup Actions */}
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>Manual Backup</Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <Button
                 variant="contained"
@@ -1006,6 +1419,13 @@ function DatabaseSettingsTab() {
                 sx={{ backgroundColor: '#06A77D' }}
               >
                 Create Full Backup
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<UploadIcon />}
+                onClick={() => setUploadDialogOpen(true)}
+              >
+                Upload Backup
               </Button>
               <Button
                 variant="outlined"
@@ -1018,9 +1438,111 @@ function DatabaseSettingsTab() {
           </CardContent>
         </Card>
 
+        {/* Backup Schedules */}
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                <ScheduleIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Backup Schedules
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => { resetScheduleForm(); setScheduleDialogOpen(true); }}
+                size="small"
+              >
+                Add Schedule
+              </Button>
+            </Box>
+            
+            {schedules.length === 0 ? (
+              <Alert severity="info">
+                No backup schedules configured. Create a schedule to automate your backups.
+              </Alert>
+            ) : (
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Type</TableCell>
+                      <TableCell>Schedule</TableCell>
+                      <TableCell>Path</TableCell>
+                      <TableCell>Last Backup</TableCell>
+                      <TableCell>Next Backup</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {schedules.map((schedule) => (
+                      <TableRow key={schedule.id}>
+                        <TableCell>{schedule.name}</TableCell>
+                        <TableCell>
+                          <Chip label={schedule.backupType} size="small" color={schedule.backupType === 'Full' ? 'primary' : 'default'} />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption">{schedule.cronDescription || schedule.cronExpression}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption" sx={{ maxWidth: 150, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {schedule.backupPath}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {schedule.lastBackupAt ? new Date(schedule.lastBackupAt).toLocaleString() : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {schedule.nextBackupAt ? new Date(schedule.nextBackupAt).toLocaleString() : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Switch
+                            checked={schedule.isEnabled}
+                            onChange={(e) => handleToggleSchedule(schedule.id, e.target.checked)}
+                            size="small"
+                          />
+                          {schedule.lastError && (
+                            <Tooltip title={schedule.lastError}>
+                              <ErrorIcon color="error" sx={{ fontSize: 16, ml: 1 }} />
+                            </Tooltip>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Tooltip title="Run Now">
+                            <IconButton size="small" onClick={() => handleRunScheduleNow(schedule.id)}>
+                              <PlayArrowIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => openEditSchedule(schedule)}>
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton size="small" onClick={() => handleDeleteSchedule(schedule.id)}>
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Backup History */}
         <Card>
           <CardContent>
-            <Typography variant="h6" sx={{ mb: 2 }}>Backup History</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">Backup History</Typography>
+              <IconButton onClick={fetchBackups} size="small">
+                <RefreshIcon />
+              </IconButton>
+            </Box>
             <TableContainer>
               <Table>
                 <TableHead>
@@ -1042,7 +1564,11 @@ function DatabaseSettingsTab() {
                       <TableRow key={backup.id}>
                         <TableCell>{backup.backupName}</TableCell>
                         <TableCell>
-                          <Chip label={backup.backupType} size="small" />
+                          <Chip 
+                            label={backup.backupType} 
+                            size="small" 
+                            color={backup.backupType === 'Full' ? 'primary' : backup.backupType === 'Uploaded' ? 'secondary' : 'default'}
+                          />
                         </TableCell>
                         <TableCell>{formatBytes(backup.fileSizeBytes)}</TableCell>
                         <TableCell>{new Date(backup.createdAt).toLocaleString()}</TableCell>
@@ -1053,8 +1579,24 @@ function DatabaseSettingsTab() {
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Download">
-                            <IconButton size="small">
+                            <IconButton size="small" onClick={() => handleDownloadBackup(backup.id, backup.backupName)}>
                               <DownloadIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton size="small" onClick={async () => {
+                              if (!window.confirm('Delete this backup?')) return;
+                              try {
+                                await fetch(getApiEndpoint(`/adminsettings/database/backups/${backup.id}`), {
+                                  method: 'DELETE',
+                                  headers: { 'Authorization': `Bearer ${getToken()}` }
+                                });
+                                fetchBackups();
+                              } catch (err) {
+                                setError('Failed to delete backup');
+                              }
+                            }}>
+                              <DeleteIcon />
                             </IconButton>
                           </Tooltip>
                         </TableCell>
@@ -1855,6 +2397,189 @@ function DatabaseSettingsTab() {
             disabled={demoLoading}
           >
             {demoLoading ? <CircularProgress size={24} /> : 'Clear Demo Data'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Upload Backup Dialog */}
+      <Dialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Upload Backup</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2 }}>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Upload a backup file (.sql, .sql.gz) to add it to the backup history or restore from it directly.
+            </Alert>
+            <input
+              type="file"
+              accept=".sql,.sql.gz,.gz"
+              id="backup-file-upload"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleUploadBackup(file);
+              }}
+            />
+            <label htmlFor="backup-file-upload">
+              <Button
+                variant="contained"
+                component="span"
+                startIcon={<UploadIcon />}
+                fullWidth
+                disabled={loading}
+              >
+                {loading ? <CircularProgress size={24} /> : 'Select & Upload Backup File'}
+              </Button>
+            </label>
+            <Divider sx={{ my: 3 }}>OR</Divider>
+            <Typography variant="subtitle2" gutterBottom>Restore Directly from File</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Upload and restore immediately without saving the backup file.
+            </Typography>
+            <input
+              type="file"
+              accept=".sql,.sql.gz,.gz"
+              id="restore-file-upload"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleRestoreFromUpload(file);
+              }}
+            />
+            <label htmlFor="restore-file-upload">
+              <Button
+                variant="outlined"
+                component="span"
+                startIcon={<RestoreIcon />}
+                fullWidth
+                color="warning"
+                disabled={loading}
+              >
+                Select & Restore from File
+              </Button>
+            </label>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setUploadDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Backup Schedule Dialog */}
+      <Dialog open={scheduleDialogOpen} onClose={() => { setScheduleDialogOpen(false); resetScheduleForm(); }} maxWidth="md" fullWidth>
+        <DialogTitle>{editingSchedule ? 'Edit Backup Schedule' : 'Create Backup Schedule'}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ pt: 2 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Schedule Name"
+                value={scheduleForm.name}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, name: e.target.value })}
+                fullWidth
+                required
+                placeholder="e.g., Daily Full Backup"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Backup Type</InputLabel>
+                <Select
+                  value={scheduleForm.backupType}
+                  label="Backup Type"
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, backupType: e.target.value })}
+                >
+                  <MenuItem value="Full">Full Backup</MenuItem>
+                  <MenuItem value="Incremental">Incremental</MenuItem>
+                  <MenuItem value="Differential">Differential</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={8}>
+              <TextField
+                label="Backup Storage Path"
+                value={scheduleForm.backupPath}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, backupPath: e.target.value })}
+                fullWidth
+                helperText="Directory where scheduled backups will be stored"
+                InputProps={{
+                  startAdornment: <FolderIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={scheduleForm.compressBackups}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, compressBackups: e.target.checked })}
+                  />
+                }
+                label="Compress"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle2" gutterBottom>Schedule Frequency</Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                {cronPresets.map((preset) => (
+                  <Chip
+                    key={preset.value}
+                    label={preset.label}
+                    onClick={() => setScheduleForm({ ...scheduleForm, cronExpression: preset.value })}
+                    color={scheduleForm.cronExpression === preset.value ? 'primary' : 'default'}
+                    variant={scheduleForm.cronExpression === preset.value ? 'filled' : 'outlined'}
+                    size="small"
+                  />
+                ))}
+              </Box>
+              <TextField
+                label="Cron Expression"
+                value={scheduleForm.cronExpression}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, cronExpression: e.target.value })}
+                fullWidth
+                size="small"
+                helperText="Format: minute hour day-of-month month day-of-week (e.g., '0 2 * * *' = daily at 2 AM)"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Retention Days"
+                type="number"
+                value={scheduleForm.retentionDays}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, retentionDays: parseInt(e.target.value) || 0 })}
+                fullWidth
+                helperText="Delete backups older than X days (0 = keep forever)"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Max Backups to Keep"
+                type="number"
+                value={scheduleForm.maxBackupsToKeep}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, maxBackupsToKeep: parseInt(e.target.value) || 0 })}
+                fullWidth
+                helperText="Keep only the last X backups (0 = unlimited)"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={scheduleForm.isEnabled}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, isEnabled: e.target.checked })}
+                  />
+                }
+                label="Enable Schedule"
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setScheduleDialogOpen(false); resetScheduleForm(); }}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={editingSchedule ? handleUpdateSchedule : handleCreateSchedule}
+            disabled={loading || !scheduleForm.name}
+          >
+            {loading ? <CircularProgress size={24} /> : editingSchedule ? 'Update Schedule' : 'Create Schedule'}
           </Button>
         </DialogActions>
       </Dialog>
