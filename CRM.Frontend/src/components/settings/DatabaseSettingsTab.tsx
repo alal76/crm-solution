@@ -171,6 +171,24 @@ interface BackupSchedule {
   failedBackups: number;
 }
 
+interface StatisticsSchedule {
+  isEnabled: boolean;
+  intervalMinutes: number;
+  lastRefreshed: string | null;
+  nextScheduledRefresh: string | null;
+  databaseProvider: string;
+}
+
+interface StatisticsRefreshResult {
+  startTime: string;
+  endTime: string;
+  success: boolean;
+  databaseProvider: string;
+  command: string;
+  message: string;
+  tablesAnalyzed: string[];
+}
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -237,6 +255,14 @@ function DatabaseSettingsTab() {
     compressBackups: true,
   });
   
+  // Statistics schedule states
+  const [statisticsSchedule, setStatisticsSchedule] = useState<StatisticsSchedule | null>(null);
+  const [statisticsRefreshing, setStatisticsRefreshing] = useState(false);
+  const [statisticsScheduleForm, setStatisticsScheduleForm] = useState({
+    isEnabled: false,
+    intervalMinutes: 60,
+  });
+  
   // Migration Wizard states
   const [wizardStep, setWizardStep] = useState(0);
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -283,6 +309,7 @@ function DatabaseSettingsTab() {
     fetchProviders();
     fetchDemoStatus();
     fetchSchedules();
+    fetchStatisticsSchedule();
   }, []);
 
   const fetchSchedules = async () => {
@@ -295,6 +322,76 @@ function DatabaseSettingsTab() {
       }
     } catch (err) {
       console.error('Failed to fetch backup schedules', err);
+    }
+  };
+
+  const fetchStatisticsSchedule = async () => {
+    try {
+      const response = await fetch(getApiEndpoint('/database/statistics-schedule'), {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      if (response.ok) {
+        const schedule = await response.json();
+        setStatisticsSchedule(schedule);
+        setStatisticsScheduleForm({
+          isEnabled: schedule.isEnabled,
+          intervalMinutes: schedule.intervalMinutes,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch statistics schedule', err);
+    }
+  };
+
+  const handleRefreshStatistics = async () => {
+    setStatisticsRefreshing(true);
+    setError(null);
+    try {
+      const response = await fetch(getApiEndpoint('/database/refresh-statistics'), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      if (response.ok) {
+        const result: StatisticsRefreshResult = await response.json();
+        setSuccess(`Statistics refreshed: ${result.tablesAnalyzed.length} table(s) analyzed using ${result.command}`);
+        // Refresh status to get updated table stats
+        fetchDatabaseStatus();
+        fetchStatisticsSchedule();
+      } else {
+        const err = await response.json();
+        setError(err.message || 'Failed to refresh statistics');
+      }
+    } catch (err) {
+      setError('Failed to refresh statistics');
+    } finally {
+      setStatisticsRefreshing(false);
+    }
+  };
+
+  const handleUpdateStatisticsSchedule = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(getApiEndpoint('/database/statistics-schedule'), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(statisticsScheduleForm)
+      });
+      if (response.ok) {
+        const schedule = await response.json();
+        setStatisticsSchedule(schedule);
+        setSuccess('Statistics schedule updated successfully');
+      } else {
+        const err = await response.json();
+        setError(err.message || 'Failed to update statistics schedule');
+      }
+    } catch (err) {
+      setError('Failed to update statistics schedule');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1262,10 +1359,106 @@ function DatabaseSettingsTab() {
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <TableChartIcon sx={{ mr: 1 }} />
-                  <Typography variant="h6">Table Statistics</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <TableChartIcon sx={{ mr: 1 }} />
+                    <Typography variant="h6">Table Statistics</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {statisticsSchedule?.lastRefreshed && (
+                      <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                        Last refreshed: {new Date(statisticsSchedule.lastRefreshed).toLocaleString()}
+                      </Typography>
+                    )}
+                    <Tooltip title="Refresh statistics now">
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={statisticsRefreshing ? <CircularProgress size={16} /> : <RefreshIcon />}
+                        onClick={handleRefreshStatistics}
+                        disabled={statisticsRefreshing}
+                      >
+                        Refresh
+                      </Button>
+                    </Tooltip>
+                  </Box>
                 </Box>
+                
+                {/* Statistics Refresh Schedule */}
+                <Box sx={{ mb: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <ScheduleIcon color="action" />
+                      <Typography variant="subtitle2">Auto-Refresh Schedule</Typography>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            size="small"
+                            checked={statisticsScheduleForm.isEnabled}
+                            onChange={(e) => setStatisticsScheduleForm(prev => ({
+                              ...prev,
+                              isEnabled: e.target.checked
+                            }))}
+                          />
+                        }
+                        label={statisticsScheduleForm.isEnabled ? 'Enabled' : 'Disabled'}
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <FormControl size="small" sx={{ minWidth: 150 }}>
+                        <InputLabel>Refresh Interval</InputLabel>
+                        <Select
+                          value={statisticsScheduleForm.intervalMinutes}
+                          label="Refresh Interval"
+                          onChange={(e) => setStatisticsScheduleForm(prev => ({
+                            ...prev,
+                            intervalMinutes: Number(e.target.value)
+                          }))}
+                        >
+                          <MenuItem value={15}>Every 15 mins</MenuItem>
+                          <MenuItem value={30}>Every 30 mins</MenuItem>
+                          <MenuItem value={60}>Every hour</MenuItem>
+                          <MenuItem value={120}>Every 2 hours</MenuItem>
+                          <MenuItem value={360}>Every 6 hours</MenuItem>
+                          <MenuItem value={720}>Every 12 hours</MenuItem>
+                          <MenuItem value={1440}>Once a day</MenuItem>
+                        </Select>
+                      </FormControl>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={handleUpdateStatisticsSchedule}
+                        disabled={loading || (
+                          statisticsSchedule?.isEnabled === statisticsScheduleForm.isEnabled &&
+                          statisticsSchedule?.intervalMinutes === statisticsScheduleForm.intervalMinutes
+                        )}
+                      >
+                        Save Schedule
+                      </Button>
+                    </Box>
+                  </Box>
+                  {statisticsSchedule?.nextScheduledRefresh && statisticsSchedule.isEnabled && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                      Next scheduled refresh: {new Date(statisticsSchedule.nextScheduledRefresh).toLocaleString()}
+                    </Typography>
+                  )}
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                    Database: {statisticsSchedule?.databaseProvider?.toUpperCase() || status?.currentProvider?.toUpperCase() || 'Unknown'}
+                    {' | Command: '}
+                    {(() => {
+                      const provider = statisticsSchedule?.databaseProvider || status?.currentProvider?.toLowerCase();
+                      switch (provider) {
+                        case 'mysql':
+                        case 'mariadb': return 'ANALYZE TABLE';
+                        case 'postgresql': return 'ANALYZE';
+                        case 'sqlserver': return 'sp_updatestats';
+                        case 'oracle': return 'GATHER_SCHEMA_STATS';
+                        default: return 'ANALYZE';
+                      }
+                    })()}
+                  </Typography>
+                </Box>
+                
                 {status?.tables && status.tables.length > 0 ? (
                   <TableContainer sx={{ maxHeight: 300 }}>
                     <Table size="small" stickyHeader>
