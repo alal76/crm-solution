@@ -40,48 +40,49 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Add rate limiting
+// Add rate limiting (disabled in Development for testing)
 builder.Services.AddMemoryCache();
+var isDevelopment = builder.Environment.IsDevelopment();
 builder.Services.Configure<IpRateLimitOptions>(options =>
 {
-    options.EnableEndpointRateLimiting = true;
+    options.EnableEndpointRateLimiting = !isDevelopment; // Disable in Development
     options.StackBlockedRequests = false;
     options.RealIpHeader = "X-Real-IP";
     options.ClientIdHeader = "X-ClientId";
     options.HttpStatusCode = 429;
     options.GeneralRules = new List<RateLimitRule>
     {
-        // General API limit
+        // General API limit - relaxed in development
         new RateLimitRule
         {
             Endpoint = "*",
             Period = "1m",
-            Limit = 100
+            Limit = isDevelopment ? 1000 : 100
         },
         // Stricter limits for auth endpoints to prevent brute force attacks
         new RateLimitRule
         {
             Endpoint = "*:/api/auth/login",
             Period = "1m",
-            Limit = 10
+            Limit = isDevelopment ? 100 : 10
         },
         new RateLimitRule
         {
             Endpoint = "*:/api/auth/register",
             Period = "1h",
-            Limit = 5
+            Limit = isDevelopment ? 100 : 5
         },
         new RateLimitRule
         {
             Endpoint = "*:/api/auth/verify-2fa",
             Period = "1m",
-            Limit = 5
+            Limit = isDevelopment ? 100 : 5
         },
         new RateLimitRule
         {
             Endpoint = "*:/api/auth/forgot-password",
             Period = "1h",
-            Limit = 3
+            Limit = isDevelopment ? 100 : 3
         }
     };
 });
