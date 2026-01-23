@@ -859,6 +859,183 @@ Then restart the API container:
     }
 
     /// <summary>
+    /// Refresh table statistics (ANALYZE) for the current database
+    /// </summary>
+    [HttpPost("refresh-statistics")]
+    public async Task<ActionResult<StatisticsRefreshResultDto>> RefreshTableStatistics()
+    {
+        try
+        {
+            var result = new StatisticsRefreshResultDto
+            {
+                StartTime = DateTime.UtcNow,
+                TablesAnalyzed = new List<string>()
+            };
+
+            var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+            var connection = _context.Database.GetDbConnection();
+            
+            if (connection.State != System.Data.ConnectionState.Open)
+                await connection.OpenAsync();
+
+            switch (provider)
+            {
+                case "mysql":
+                case "mariadb":
+                    var dbName = GetConnectionInfo().Database;
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                        var dbParam = cmd.CreateParameter();
+                        dbParam.ParameterName = "@dbName";
+                        dbParam.Value = dbName;
+                        cmd.Parameters.Add(dbParam);
+                        
+                        var tables = new List<string>();
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                                tables.Add(reader.GetString(0));
+                        }
+                        
+                        foreach (var table in tables.Where(IsValidIdentifier))
+                        {
+                            using var analyzeCmd = connection.CreateCommand();
+                            analyzeCmd.CommandText = $"ANALYZE TABLE `{table}`";
+                            await analyzeCmd.ExecuteNonQueryAsync();
+                            result.TablesAnalyzed.Add(table);
+                        }
+                    }
+                    result.Command = "ANALYZE TABLE";
+                    break;
+                    
+                case "postgresql":
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = "ANALYZE";
+                        await cmd.ExecuteNonQueryAsync();
+                        result.Command = "ANALYZE";
+                        result.TablesAnalyzed.Add("All tables");
+                    }
+                    break;
+                    
+                case "sqlserver":
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = "EXEC sp_updatestats";
+                        await cmd.ExecuteNonQueryAsync();
+                        result.Command = "sp_updatestats";
+                        result.TablesAnalyzed.Add("All tables");
+                    }
+                    break;
+                    
+                case "oracle":
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = "BEGIN DBMS_STATS.GATHER_SCHEMA_STATS(USER); END;";
+                        await cmd.ExecuteNonQueryAsync();
+                        result.Command = "GATHER_SCHEMA_STATS";
+                        result.TablesAnalyzed.Add("All tables");
+                    }
+                    break;
+                    
+                default: // SQLite
+                    await _context.Database.ExecuteSqlRawAsync("ANALYZE");
+                    result.Command = "ANALYZE";
+                    result.TablesAnalyzed.Add("All tables");
+                    break;
+            }
+
+            result.EndTime = DateTime.UtcNow;
+            result.Success = true;
+            result.DatabaseProvider = provider;
+            result.Message = $"Statistics refreshed successfully for {result.TablesAnalyzed.Count} table(s)";
+
+            // Update last statistics refresh time in system settings
+            var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+            if (settings != null)
+            {
+                settings.StatisticsLastRefreshed = DateTime.UtcNow;
+                settings.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+
+            _logger.LogInformation("Table statistics refreshed for {Provider}: {TableCount} tables", provider, result.TablesAnalyzed.Count);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error refreshing table statistics");
+            return StatusCode(500, new { message = "Error refreshing table statistics", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get statistics refresh schedule configuration
+    /// </summary>
+    [HttpGet("statistics-schedule")]
+    public async Task<ActionResult<StatisticsScheduleDto>> GetStatisticsSchedule()
+    {
+        try
+        {
+            var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+
+            var schedule = new StatisticsScheduleDto
+            {
+                IsEnabled = settings?.StatisticsRefreshEnabled ?? false,
+                IntervalMinutes = settings?.StatisticsRefreshIntervalMinutes ?? 60,
+                LastRefreshed = settings?.StatisticsLastRefreshed,
+                DatabaseProvider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite"
+            };
+
+            // Calculate next scheduled refresh
+            if (schedule.IsEnabled && schedule.LastRefreshed.HasValue)
+            {
+                schedule.NextScheduledRefresh = schedule.LastRefreshed.Value.AddMinutes(schedule.IntervalMinutes);
+            }
+
+            return Ok(schedule);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting statistics schedule");
+            return StatusCode(500, new { message = "Error getting statistics schedule" });
+        }
+    }
+
+    /// <summary>
+    /// Update statistics refresh schedule configuration
+    /// </summary>
+    [HttpPut("statistics-schedule")]
+    public async Task<ActionResult<StatisticsScheduleDto>> UpdateStatisticsSchedule([FromBody] StatisticsScheduleUpdateDto request)
+    {
+        try
+        {
+            var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+            if (settings == null)
+            {
+                return NotFound(new { message = "System settings not found" });
+            }
+
+            settings.StatisticsRefreshEnabled = request.IsEnabled;
+            settings.StatisticsRefreshIntervalMinutes = request.IntervalMinutes;
+            settings.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Statistics schedule updated: Enabled={Enabled}, Interval={Interval}min", request.IsEnabled, request.IntervalMinutes);
+
+            return await GetStatisticsSchedule();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating statistics schedule");
+            return StatusCode(500, new { message = "Error updating statistics schedule" });
+        }
+    }
+
+    /// <summary>
     /// Rebuild indexes
     /// </summary>
     [HttpPost("rebuild-indexes")]
@@ -2108,4 +2285,30 @@ public class DatabaseProviderDto
     public string Code { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool IsCurrentProvider { get; set; }
+}
+
+public class StatisticsRefreshResultDto
+{
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public bool Success { get; set; }
+    public string DatabaseProvider { get; set; } = string.Empty;
+    public string Command { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public List<string> TablesAnalyzed { get; set; } = new();
+}
+
+public class StatisticsScheduleDto
+{
+    public bool IsEnabled { get; set; }
+    public int IntervalMinutes { get; set; }
+    public DateTime? LastRefreshed { get; set; }
+    public DateTime? NextScheduledRefresh { get; set; }
+    public string DatabaseProvider { get; set; } = string.Empty;
+}
+
+public class StatisticsScheduleUpdateDto
+{
+    public bool IsEnabled { get; set; }
+    public int IntervalMinutes { get; set; }
 }

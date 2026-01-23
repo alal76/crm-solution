@@ -16,9 +16,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
 import axiosInstance from '../services/apiClient';
 import { debugLog, debugError } from '../utils/debug';
+import { getApiEndpoint } from '../config/ports';
 
 // Cookie utility functions
 const setCookie = (name: string, value: string, days: number = 30) => {
@@ -63,9 +64,15 @@ declare global {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Default inactivity timeout: 15 minutes (in milliseconds)
+const DEFAULT_INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [sessionTimeoutMinutes, setSessionTimeoutMinutes] = useState(15);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
 
   useEffect(() => {
     // Prevent repeated restoration attempts in a single session
@@ -146,6 +153,107 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for Microsoft OAuth callback
     checkMicrosoftCallback();
   }, []);
+
+  // Fetch session timeout from system settings
+  useEffect(() => {
+    const fetchSessionTimeout = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) return;
+        
+        const response = await fetch(getApiEndpoint('/systemsettings'), {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.sessionTimeoutMinutes) {
+            setSessionTimeoutMinutes(data.sessionTimeoutMinutes);
+            debugLog('Session timeout fetched', { minutes: data.sessionTimeoutMinutes });
+          }
+        }
+      } catch (err) {
+        debugError('Failed to fetch session timeout', err);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchSessionTimeout();
+    }
+  }, [isAuthenticated]);
+
+  // Handle inactivity logout
+  const handleLogoutDueToInactivity = useCallback(() => {
+    debugLog('Logging out due to inactivity');
+    window.sessionStorage.setItem('crm_login_error', 'Session expired due to inactivity. Please log in again.');
+    
+    // Clear localStorage
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userProfile');
+    sessionStorage.removeItem('microsoft_code');
+    sessionStorage.removeItem('microsoft_state');
+    
+    // Clear cookies
+    deleteCookie('crm_auth_token');
+    deleteCookie('crm_refresh_token');
+    deleteCookie('crm_user_data');
+    deleteCookie('crm_user_profile');
+    
+    setUser(null);
+    setIsAuthenticated(false);
+  }, []);
+
+  // Reset inactivity timer on user activity
+  const resetInactivityTimer = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    if (isAuthenticated) {
+      const timeoutMs = sessionTimeoutMinutes * 60 * 1000;
+      inactivityTimerRef.current = setTimeout(() => {
+        handleLogoutDueToInactivity();
+      }, timeoutMs);
+    }
+  }, [isAuthenticated, sessionTimeoutMinutes, handleLogoutDueToInactivity]);
+
+  // Set up activity listeners for inactivity timeout
+  useEffect(() => {
+    if (!isAuthenticated) {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
+      }
+      return;
+    }
+
+    // Activity events to track
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    
+    const handleActivity = () => {
+      resetInactivityTimer();
+    };
+
+    // Add event listeners
+    activityEvents.forEach(event => {
+      document.addEventListener(event, handleActivity, { passive: true });
+    });
+
+    // Start the initial timer
+    resetInactivityTimer();
+
+    return () => {
+      // Cleanup event listeners
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, handleActivity);
+      });
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    };
+  }, [isAuthenticated, resetInactivityTimer]);
 
   const checkMicrosoftCallback = () => {
     // Check if we're returning from Microsoft OAuth

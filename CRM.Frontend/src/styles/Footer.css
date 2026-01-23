@@ -74,6 +74,31 @@
   margin-right: 0.5rem;
 }
 
+.db-mode {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  margin-left: 0.25rem;
+  cursor: help;
+}
+
+.db-mode.demo-mode {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  animation: pulse-demo 2s infinite;
+}
+
+.db-mode.prod-mode {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  color: white;
+}
+
+@keyframes pulse-demo {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
 .footer-right {
   display: flex;
   align-items: center;

@@ -451,4 +451,23 @@ public class SystemSettings : BaseEntity
     public DateTime? DemoDataLastSeeded { get; set; }
     
     #endregion
+    
+    #region Table Statistics Settings
+    
+    /// <summary>
+    /// Whether automatic table statistics refresh is enabled
+    /// </summary>
+    public bool StatisticsRefreshEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// Interval in minutes between automatic statistics refreshes
+    /// </summary>
+    public int StatisticsRefreshIntervalMinutes { get; set; } = 60;
+    
+    /// <summary>
+    /// Last time table statistics were refreshed
+    /// </summary>
+    public DateTime? StatisticsLastRefreshed { get; set; }
+    
+    #endregion
 }

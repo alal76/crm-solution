@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { debugLog, debugError } from '../utils/debug';
-import { getHealthCheckUrl, getServicePorts } from '../config/ports';
+import { getHealthCheckUrl, getServicePorts, getApiEndpoint } from '../config/ports';
 import { useBranding } from '../contexts/BrandingContext';
 import '../styles/Footer.css';
 
@@ -11,9 +11,16 @@ interface HealthStatus {
   timestamp?: string;
 }
 
+interface DemoStatus {
+  useDemoDatabase: boolean;
+  demoDataSeeded: boolean;
+  demoDataLastSeeded?: string;
+}
+
 function Footer() {
   const [apiStatus, setApiStatus] = useState<HealthStatus>({ status: 'down' });
   const [dbStatus, setDbStatus] = useState<HealthStatus>({ status: 'down' });
+  const [demoStatus, setDemoStatus] = useState<DemoStatus | null>(null);
   const [ports, setPorts] = useState(getServicePorts());
   const { branding } = useBranding();
   const [buildInfo] = useState({
@@ -24,6 +31,31 @@ function Footer() {
   useEffect(() => {
     // Cache the port configuration
     setPorts(getServicePorts());
+  }, []);
+
+  // Fetch demo database status
+  useEffect(() => {
+    const fetchDemoStatus = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) return;
+        
+        const response = await fetch(getApiEndpoint('/systemsettings/demo/status'), {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setDemoStatus(data);
+        }
+      } catch (err) {
+        debugError('Failed to fetch demo status', err);
+      }
+    };
+
+    fetchDemoStatus();
+    // Refresh demo status every 60 seconds
+    const interval = setInterval(fetchDemoStatus, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -85,6 +117,19 @@ function Footer() {
             <span className="status-text">API</span>
             <span className={`status-dot ${getStatusClass(dbStatus.status)}`}>{getStatusText(dbStatus.status)}</span>
             <span className="status-text">DB</span>
+            {demoStatus && (
+              <>
+                <span className="separator">|</span>
+                <span 
+                  className={`db-mode ${demoStatus.useDemoDatabase ? 'demo-mode' : 'prod-mode'}`}
+                  title={demoStatus.useDemoDatabase && demoStatus.demoDataLastSeeded 
+                    ? `Demo data seeded: ${new Date(demoStatus.demoDataLastSeeded).toLocaleDateString()}` 
+                    : 'Production database'}
+                >
+                  {demoStatus.useDemoDatabase ? '🧪 Demo' : '🏭 Prod'}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
