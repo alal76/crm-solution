@@ -1,0 +1,629 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="2b3d93d9-1386-4e91-a387-0c974fcc1197" name="@Abhisheks-MacBook-Pro 2026-01-23 02:27:49" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-01-23T02:27:49.7477750+01:00" queuing="2026-01-23T02:27:49.7477750+01:00" start="2026-01-23T02:27:49.2120530+01:00" finish="2026-01-23T02:27:49.9257000+01:00" />
+  <TestSettings name="default" id="4972c390-b9af-40c5-a45b-3bb63fd24ab3">
+    <Deployment runDeploymentRoot="_Abhisheks-MacBook-Pro_2026-01-23_02_27_49" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="ab3b68dc-5467-41be-835e-c9ef86a43bad" testId="af3abd87-7c21-e931-c2bf-4fa103bb3aae" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT031_Get_Pipelines_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0023138" startTime="2026-01-23T02:27:49.7616080+01:00" endTime="2026-01-23T02:27:49.7616080+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ab3b68dc-5467-41be-835e-c9ef86a43bad">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got NotFound: Not Found</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT031_Get_Pipelines_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 302
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="ff7e68a6-277c-4afc-9e1f-fddf14e2eac2" testId="548e2117-51a5-7f6f-5cb0-5506311664a6" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT043_Get_Workflow_Tasks_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0019954" startTime="2026-01-23T02:27:49.6748240+01:00" endTime="2026-01-23T02:27:49.6748240+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ff7e68a6-277c-4afc-9e1f-fddf14e2eac2">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got NotFound: Not Found</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT043_Get_Workflow_Tasks_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 386
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="2dee7696-bee2-4e41-8ca6-99411632229d" testId="90d7494b-f2dc-6e2c-83fa-cff3b979dc8a" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT061_Get_Current_User_Profile_Should_Return_User" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0023149" startTime="2026-01-23T02:27:49.7806120+01:00" endTime="2026-01-23T02:27:49.7806120+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2dee7696-bee2-4e41-8ca6-99411632229d">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got NotFound: Not Found</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT061_Get_Current_User_Profile_Should_Return_User() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 458
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="8f850452-b1c4-4604-9b1d-d87b9fbf5ac6" testId="2c4ab5fd-1e1e-ee8c-10b7-3361c06a6f1d" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT012_Create_Customer_Should_Return_Created" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0697977" startTime="2026-01-23T02:27:49.8591120+01:00" endTime="2026-01-23T02:27:49.8591120+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8f850452-b1c4-4604-9b1d-d87b9fbf5ac6">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected Created/OK but got Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT012_Create_Customer_Should_Return_Created() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 165
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e30dbc0c-7a49-4892-8c38-c34f08091c9d" testId="12b59496-6782-379c-3e97-cae0465f0e26" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT014_Search_Customers_Should_Return_Filtered_Results" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0030092" startTime="2026-01-23T02:27:49.7864410+01:00" endTime="2026-01-23T02:27:49.7864410+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e30dbc0c-7a49-4892-8c38-c34f08091c9d">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT014_Search_Customers_Should_Return_Filtered_Results() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 215
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e54f084c-eccb-4d3f-ad7a-2e160c526106" testId="1273bb1c-b0ca-1859-c89b-4fa535bc1926" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT072_Create_Contact_Should_Return_Created" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0043052" startTime="2026-01-23T02:27:49.6990350+01:00" endTime="2026-01-23T02:27:49.6990350+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e54f084c-eccb-4d3f-ad7a-2e160c526106">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected Created/OK/BadRequest but got Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT072_Create_Contact_Should_Return_Created() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 532
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b6f0681e-d086-4929-965e-acb9a1c00b62" testId="1fc52e49-f43e-52cc-a37f-5f070013fad7" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT062_Get_System_Settings_Should_Return_Settings" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0022547" startTime="2026-01-23T02:27:49.6411340+01:00" endTime="2026-01-23T02:27:49.6411340+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b6f0681e-d086-4929-965e-acb9a1c00b62">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT062_Get_System_Settings_Should_Return_Settings() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 474
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="af3b0087-56c4-4b5d-8d36-8092d8b90c27" testId="e0b82699-2a8f-fca1-ecd2-52f1608eb139" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT013_Get_Customer_By_Id_Should_Return_Customer" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0024126" startTime="2026-01-23T02:27:49.6594030+01:00" endTime="2026-01-23T02:27:49.6594030+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="af3b0087-56c4-4b5d-8d36-8092d8b90c27">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT013_Get_Customer_By_Id_Should_Return_Customer() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 181
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="20c51121-cffb-44a6-ba3a-ef980019edc4" testId="a1df34bd-f818-cdc5-1b43-c1ff7295ffe7" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT003_Login_With_Valid_Credentials_Should_Return_Token" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0011377" startTime="2026-01-23T02:27:49.7248900+01:00" endTime="2026-01-23T02:27:49.7248900+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="20c51121-cffb-44a6-ba3a-ef980019edc4">
+      <Output>
+        <ErrorInfo>
+          <Message>Authentication should succeed with valid credentials</Message>
+          <StackTrace>   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT003_Login_With_Valid_Credentials_Should_Return_Token() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 70
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a2959f7a-fd24-4e7b-8b99-c71daf22fa2b" testId="b8b3be32-589c-bd9c-e3d8-320928744f3c" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT006_Protected_Endpoint_With_Token_Should_Return_Success" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0060832" startTime="2026-01-23T02:27:49.6999040+01:00" endTime="2026-01-23T02:27:49.6999040+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a2959f7a-fd24-4e7b-8b99-c71daf22fa2b">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT006_Protected_Endpoint_With_Token_Should_Return_Success() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 120
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c1fec505-040a-40e6-a521-08f5817924ab" testId="f4adb751-fb00-dbbf-8797-f238b2347228" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT022_Create_Product_Should_Return_Created" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0089453" startTime="2026-01-23T02:27:49.7566800+01:00" endTime="2026-01-23T02:27:49.7566800+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c1fec505-040a-40e6-a521-08f5817924ab">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected Created/OK/BadRequest but got Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT022_Create_Product_Should_Return_Created() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 279
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e4057c15-e31d-4815-b33b-f795f24c1b90" testId="7a5a60e2-64ae-3ea5-6f77-d8ef6a3cadaf" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT033_Get_Stages_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0031752" startTime="2026-01-23T02:27:49.8920070+01:00" endTime="2026-01-23T02:27:49.8920070+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e4057c15-e31d-4815-b33b-f795f24c1b90">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got NotFound: Not Found</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT033_Get_Stages_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 334
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="cc855cf6-2fd0-4ea5-be07-02f3f5262945" testId="ca42fa4d-a2b0-c514-3239-d787e5a8b23c" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT005_Protected_Endpoint_Without_Token_Should_Return_401" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0039170" startTime="2026-01-23T02:27:49.6664080+01:00" endTime="2026-01-23T02:27:49.6664090+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cc855cf6-2fd0-4ea5-be07-02f3f5262945">
+      <Output>
+        <StdOut>FT-005 PASSED: Protected endpoint returned 401 without token</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="62bebbb0-5e6d-40bb-90f8-fe113cd7078e" testId="59efe189-8a30-8cdf-ec6c-5e4b833621f3" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT052_Get_Activities_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0181569" startTime="2026-01-23T02:27:49.6366490+01:00" endTime="2026-01-23T02:27:49.6366590+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="62bebbb0-5e6d-40bb-90f8-fe113cd7078e">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT052_Get_Activities_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 422
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="8e759532-03f0-4822-8837-5372087bee67" testId="c61eb01e-20d1-37ac-1b47-04aad009a8d1" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT021_Get_Products_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0021408" startTime="2026-01-23T02:27:49.6498250+01:00" endTime="2026-01-23T02:27:49.6498250+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8e759532-03f0-4822-8837-5372087bee67">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT021_Get_Products_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 256
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="373a736c-c211-4128-9bda-706f528fa4c8" testId="2f310257-196c-1a64-da52-08077606af26" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT053_Get_Lookups_Should_Return_Categories" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0037796" startTime="2026-01-23T02:27:49.7078910+01:00" endTime="2026-01-23T02:27:49.7078910+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="373a736c-c211-4128-9bda-706f528fa4c8">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT053_Get_Lookups_Should_Return_Categories() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 438
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e4c4fc1e-a335-4c43-b80a-bc0facf0a9cf" testId="5ea343a9-a592-597b-5617-44190edb9826" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT081_Get_Communication_Channels_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0215123" startTime="2026-01-23T02:27:49.8840930+01:00" endTime="2026-01-23T02:27:49.8840940+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e4c4fc1e-a335-4c43-b80a-bc0facf0a9cf">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected OK or NotFound but got Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT081_Get_Communication_Channels_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 555
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c2a1139c-1c4d-4d4e-9164-81d6a90f8ef5" testId="d207bba7-7fff-4d9b-3287-fd195cb2272b" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT015_Customer_Pagination_Should_Work" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0027698" startTime="2026-01-23T02:27:49.7214380+01:00" endTime="2026-01-23T02:27:49.7214380+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c2a1139c-1c4d-4d4e-9164-81d6a90f8ef5">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT015_Customer_Pagination_Should_Work() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 231
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="cf773277-e6bd-434a-88d9-36b40650b737" testId="fb81279a-72f8-7448-d2be-cfcd06e6fb1b" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT002_Swagger_Should_Be_Available_In_Development" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0020461" startTime="2026-01-23T02:27:49.6701660+01:00" endTime="2026-01-23T02:27:49.6701660+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cf773277-e6bd-434a-88d9-36b40650b737">
+      <Output>
+        <StdOut>FT-002 PASSED: Swagger UI is accessible</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="540c22ac-1b35-46df-b544-81eaef403f20" testId="4c1cd5ac-9a8f-9676-9fa1-2de5551b8985" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT041_Get_Workflow_Definitions_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0037986" startTime="2026-01-23T02:27:49.7454240+01:00" endTime="2026-01-23T02:27:49.7454240+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="540c22ac-1b35-46df-b544-81eaef403f20">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got NotFound: Not Found</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT041_Get_Workflow_Definitions_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 354
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a9c5b6e9-7f1b-4b74-b858-b7abc94669e4" testId="2d091fa9-8a7d-2437-c4de-14cb54969434" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT071_Get_Contacts_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0029882" startTime="2026-01-23T02:27:49.7311200+01:00" endTime="2026-01-23T02:27:49.7311200+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a9c5b6e9-7f1b-4b74-b858-b7abc94669e4">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT071_Get_Contacts_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 510
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="777f6416-542a-44ed-a8d5-4a3ed9c6ba24" testId="38aadcc7-4623-0676-f7bd-41b83b90eaa7" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT042_Get_Workflow_Instances_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0043319" startTime="2026-01-23T02:27:49.7153190+01:00" endTime="2026-01-23T02:27:49.7153190+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="777f6416-542a-44ed-a8d5-4a3ed9c6ba24">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got NotFound: Not Found</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT042_Get_Workflow_Instances_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 370
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="2655e3cb-9d38-4760-af51-dca75fbdb201" testId="b6992b10-49f2-cba0-2aa0-d9d4ae48a47c" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT032_Get_Opportunities_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0024324" startTime="2026-01-23T02:27:49.7660920+01:00" endTime="2026-01-23T02:27:49.7660920+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2655e3cb-9d38-4760-af51-dca75fbdb201">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT032_Get_Opportunities_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 318
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e402b294-cad9-4a90-9add-f9c6975240ee" testId="34321ed0-a055-46ef-93d5-8b61444e427b" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT004_Login_With_Invalid_Credentials_Should_Return_401" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0030802" startTime="2026-01-23T02:27:49.7759430+01:00" endTime="2026-01-23T02:27:49.7759430+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e402b294-cad9-4a90-9add-f9c6975240ee">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ
+Expected: Unauthorized
+Actual:   TooManyRequests</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertStatusCode(HttpResponseMessage response, HttpStatusCode expected) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 82
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT004_Login_With_Invalid_Credentials_Should_Return_401() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 89
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b4de4c23-683d-40a7-b1d7-01feb468918a" testId="aebe048c-b747-83bb-7c0c-bc42f5b51daa" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT001_Health_Endpoint_Should_Return_Healthy" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0025319" startTime="2026-01-23T02:27:49.6987970+01:00" endTime="2026-01-23T02:27:49.6987970+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b4de4c23-683d-40a7-b1d7-01feb468918a">
+      <Output>
+        <StdOut>FT-001 PASSED: Health endpoint returned healthy status</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="371c8550-d645-459a-bc39-f36ce2d6db8c" testId="74ccaa2c-16f5-350f-72bf-22f499c1be4f" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT011_Get_Customers_Should_Return_List" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0027514" startTime="2026-01-23T02:27:49.6547690+01:00" endTime="2026-01-23T02:27:49.6547690+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="371c8550-d645-459a-bc39-f36ce2d6db8c">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT011_Get_Customers_Should_Return_List() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 140
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="8c39edae-95e2-4108-9744-a1b7a62e9a63" testId="8b77a2b1-a915-a762-39b7-3d27bf391185" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT063_Get_Users_List_Should_Return_Users" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0021692" startTime="2026-01-23T02:27:49.7709110+01:00" endTime="2026-01-23T02:27:49.7709110+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8c39edae-95e2-4108-9744-a1b7a62e9a63">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got Unauthorized: Unauthorized</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT063_Get_Users_List_Should_Return_Users() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 490
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="743bd7ed-5049-4f3a-8910-57454f724b2c" testId="eaca4207-13c7-5f58-3aca-52f1b540979e" testName="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT051_Get_Dashboard_Stats_Should_Return_Data" computerName="Abhisheks-MacBook-Pro" duration="00:00:00.0016191" startTime="2026-01-23T02:27:49.6458950+01:00" endTime="2026-01-23T02:27:49.6458950+01:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="743bd7ed-5049-4f3a-8910-57454f724b2c">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected success but got NotFound: Not Found</Message>
+          <StackTrace>   at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response) in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs:line 73
+   at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT051_Get_Dashboard_Stats_Should_Return_Data() in /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs:line 406
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT005_Protected_Endpoint_Without_Token_Should_Return_401" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="ca42fa4d-a2b0-c514-3239-d787e5a8b23c">
+      <Execution id="cc855cf6-2fd0-4ea5-be07-02f3f5262945" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT005_Protected_Endpoint_Without_Token_Should_Return_401" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT043_Get_Workflow_Tasks_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="548e2117-51a5-7f6f-5cb0-5506311664a6">
+      <Execution id="ff7e68a6-277c-4afc-9e1f-fddf14e2eac2" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT043_Get_Workflow_Tasks_Should_Return_List" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT042_Get_Workflow_Instances_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="38aadcc7-4623-0676-f7bd-41b83b90eaa7">
+      <Execution id="777f6416-542a-44ed-a8d5-4a3ed9c6ba24" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT042_Get_Workflow_Instances_Should_Return_List" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT032_Get_Opportunities_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="b6992b10-49f2-cba0-2aa0-d9d4ae48a47c">
+      <Execution id="2655e3cb-9d38-4760-af51-dca75fbdb201" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT032_Get_Opportunities_Should_Return_List" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT004_Login_With_Invalid_Credentials_Should_Return_401" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="34321ed0-a055-46ef-93d5-8b61444e427b">
+      <Execution id="e402b294-cad9-4a90-9add-f9c6975240ee" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT004_Login_With_Invalid_Credentials_Should_Return_401" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT003_Login_With_Valid_Credentials_Should_Return_Token" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="a1df34bd-f818-cdc5-1b43-c1ff7295ffe7">
+      <Execution id="20c51121-cffb-44a6-ba3a-ef980019edc4" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT003_Login_With_Valid_Credentials_Should_Return_Token" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT013_Get_Customer_By_Id_Should_Return_Customer" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="e0b82699-2a8f-fca1-ecd2-52f1608eb139">
+      <Execution id="af3b0087-56c4-4b5d-8d36-8092d8b90c27" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT013_Get_Customer_By_Id_Should_Return_Customer" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT001_Health_Endpoint_Should_Return_Healthy" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="aebe048c-b747-83bb-7c0c-bc42f5b51daa">
+      <Execution id="b4de4c23-683d-40a7-b1d7-01feb468918a" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT001_Health_Endpoint_Should_Return_Healthy" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT014_Search_Customers_Should_Return_Filtered_Results" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="12b59496-6782-379c-3e97-cae0465f0e26">
+      <Execution id="e30dbc0c-7a49-4892-8c38-c34f08091c9d" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT014_Search_Customers_Should_Return_Filtered_Results" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT031_Get_Pipelines_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="af3abd87-7c21-e931-c2bf-4fa103bb3aae">
+      <Execution id="ab3b68dc-5467-41be-835e-c9ef86a43bad" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT031_Get_Pipelines_Should_Return_List" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT002_Swagger_Should_Be_Available_In_Development" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="fb81279a-72f8-7448-d2be-cfcd06e6fb1b">
+      <Execution id="cf773277-e6bd-434a-88d9-36b40650b737" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT002_Swagger_Should_Be_Available_In_Development" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT061_Get_Current_User_Profile_Should_Return_User" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="90d7494b-f2dc-6e2c-83fa-cff3b979dc8a">
+      <Execution id="2dee7696-bee2-4e41-8ca6-99411632229d" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT061_Get_Current_User_Profile_Should_Return_User" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT021_Get_Products_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="c61eb01e-20d1-37ac-1b47-04aad009a8d1">
+      <Execution id="8e759532-03f0-4822-8837-5372087bee67" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT021_Get_Products_Should_Return_List" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT006_Protected_Endpoint_With_Token_Should_Return_Success" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="b8b3be32-589c-bd9c-e3d8-320928744f3c">
+      <Execution id="a2959f7a-fd24-4e7b-8b99-c71daf22fa2b" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT006_Protected_Endpoint_With_Token_Should_Return_Success" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT052_Get_Activities_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="59efe189-8a30-8cdf-ec6c-5e4b833621f3">
+      <Execution id="62bebbb0-5e6d-40bb-90f8-fe113cd7078e" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT052_Get_Activities_Should_Return_List" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT041_Get_Workflow_Definitions_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="4c1cd5ac-9a8f-9676-9fa1-2de5551b8985">
+      <Execution id="540c22ac-1b35-46df-b544-81eaef403f20" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT041_Get_Workflow_Definitions_Should_Return_List" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT015_Customer_Pagination_Should_Work" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="d207bba7-7fff-4d9b-3287-fd195cb2272b">
+      <Execution id="c2a1139c-1c4d-4d4e-9164-81d6a90f8ef5" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT015_Customer_Pagination_Should_Work" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT072_Create_Contact_Should_Return_Created" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="1273bb1c-b0ca-1859-c89b-4fa535bc1926">
+      <Execution id="e54f084c-eccb-4d3f-ad7a-2e160c526106" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT072_Create_Contact_Should_Return_Created" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT062_Get_System_Settings_Should_Return_Settings" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="1fc52e49-f43e-52cc-a37f-5f070013fad7">
+      <Execution id="b6f0681e-d086-4929-965e-acb9a1c00b62" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT062_Get_System_Settings_Should_Return_Settings" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT063_Get_Users_List_Should_Return_Users" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="8b77a2b1-a915-a762-39b7-3d27bf391185">
+      <Execution id="8c39edae-95e2-4108-9744-a1b7a62e9a63" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT063_Get_Users_List_Should_Return_Users" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT071_Get_Contacts_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="2d091fa9-8a7d-2437-c4de-14cb54969434">
+      <Execution id="a9c5b6e9-7f1b-4b74-b858-b7abc94669e4" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT071_Get_Contacts_Should_Return_List" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT053_Get_Lookups_Should_Return_Categories" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="2f310257-196c-1a64-da52-08077606af26">
+      <Execution id="373a736c-c211-4128-9bda-706f528fa4c8" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT053_Get_Lookups_Should_Return_Categories" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT033_Get_Stages_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="7a5a60e2-64ae-3ea5-6f77-d8ef6a3cadaf">
+      <Execution id="e4057c15-e31d-4815-b33b-f795f24c1b90" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT033_Get_Stages_Should_Return_List" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT081_Get_Communication_Channels_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="5ea343a9-a592-597b-5617-44190edb9826">
+      <Execution id="e4c4fc1e-a335-4c43-b80a-bc0facf0a9cf" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT081_Get_Communication_Channels_Should_Return_List" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT012_Create_Customer_Should_Return_Created" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="2c4ab5fd-1e1e-ee8c-10b7-3361c06a6f1d">
+      <Execution id="8f850452-b1c4-4604-9b1d-d87b9fbf5ac6" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT012_Create_Customer_Should_Return_Created" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT051_Get_Dashboard_Stats_Should_Return_Data" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="eaca4207-13c7-5f58-3aca-52f1b540979e">
+      <Execution id="743bd7ed-5049-4f3a-8910-57454f724b2c" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT051_Get_Dashboard_Stats_Should_Return_Data" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT022_Create_Product_Should_Return_Created" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="f4adb751-fb00-dbbf-8797-f238b2347228">
+      <Execution id="c1fec505-040a-40e6-a521-08f5817924ab" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT022_Create_Product_Should_Return_Created" />
+    </UnitTest>
+    <UnitTest name="CRM.Tests.Functional.ApiEndpointFunctionalTests.FT011_Get_Customers_Should_Return_List" storage="/users/alal/code/git crm solution/crm-solution/crm.backend/tests/bin/debug/net8.0/crm.tests.dll" id="74ccaa2c-16f5-350f-72bf-22f499c1be4f">
+      <Execution id="371c8550-d645-459a-bc39-f36ce2d6db8c" />
+      <TestMethod codeBase="/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/bin/Debug/net8.0/CRM.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CRM.Tests.Functional.ApiEndpointFunctionalTests" name="FT011_Get_Customers_Should_Return_List" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="af3abd87-7c21-e931-c2bf-4fa103bb3aae" executionId="ab3b68dc-5467-41be-835e-c9ef86a43bad" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="548e2117-51a5-7f6f-5cb0-5506311664a6" executionId="ff7e68a6-277c-4afc-9e1f-fddf14e2eac2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="90d7494b-f2dc-6e2c-83fa-cff3b979dc8a" executionId="2dee7696-bee2-4e41-8ca6-99411632229d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2c4ab5fd-1e1e-ee8c-10b7-3361c06a6f1d" executionId="8f850452-b1c4-4604-9b1d-d87b9fbf5ac6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="12b59496-6782-379c-3e97-cae0465f0e26" executionId="e30dbc0c-7a49-4892-8c38-c34f08091c9d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1273bb1c-b0ca-1859-c89b-4fa535bc1926" executionId="e54f084c-eccb-4d3f-ad7a-2e160c526106" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1fc52e49-f43e-52cc-a37f-5f070013fad7" executionId="b6f0681e-d086-4929-965e-acb9a1c00b62" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e0b82699-2a8f-fca1-ecd2-52f1608eb139" executionId="af3b0087-56c4-4b5d-8d36-8092d8b90c27" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a1df34bd-f818-cdc5-1b43-c1ff7295ffe7" executionId="20c51121-cffb-44a6-ba3a-ef980019edc4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b8b3be32-589c-bd9c-e3d8-320928744f3c" executionId="a2959f7a-fd24-4e7b-8b99-c71daf22fa2b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f4adb751-fb00-dbbf-8797-f238b2347228" executionId="c1fec505-040a-40e6-a521-08f5817924ab" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7a5a60e2-64ae-3ea5-6f77-d8ef6a3cadaf" executionId="e4057c15-e31d-4815-b33b-f795f24c1b90" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ca42fa4d-a2b0-c514-3239-d787e5a8b23c" executionId="cc855cf6-2fd0-4ea5-be07-02f3f5262945" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="59efe189-8a30-8cdf-ec6c-5e4b833621f3" executionId="62bebbb0-5e6d-40bb-90f8-fe113cd7078e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c61eb01e-20d1-37ac-1b47-04aad009a8d1" executionId="8e759532-03f0-4822-8837-5372087bee67" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2f310257-196c-1a64-da52-08077606af26" executionId="373a736c-c211-4128-9bda-706f528fa4c8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5ea343a9-a592-597b-5617-44190edb9826" executionId="e4c4fc1e-a335-4c43-b80a-bc0facf0a9cf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d207bba7-7fff-4d9b-3287-fd195cb2272b" executionId="c2a1139c-1c4d-4d4e-9164-81d6a90f8ef5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fb81279a-72f8-7448-d2be-cfcd06e6fb1b" executionId="cf773277-e6bd-434a-88d9-36b40650b737" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4c1cd5ac-9a8f-9676-9fa1-2de5551b8985" executionId="540c22ac-1b35-46df-b544-81eaef403f20" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2d091fa9-8a7d-2437-c4de-14cb54969434" executionId="a9c5b6e9-7f1b-4b74-b858-b7abc94669e4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="38aadcc7-4623-0676-f7bd-41b83b90eaa7" executionId="777f6416-542a-44ed-a8d5-4a3ed9c6ba24" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b6992b10-49f2-cba0-2aa0-d9d4ae48a47c" executionId="2655e3cb-9d38-4760-af51-dca75fbdb201" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="34321ed0-a055-46ef-93d5-8b61444e427b" executionId="e402b294-cad9-4a90-9add-f9c6975240ee" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="aebe048c-b747-83bb-7c0c-bc42f5b51daa" executionId="b4de4c23-683d-40a7-b1d7-01feb468918a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="74ccaa2c-16f5-350f-72bf-22f499c1be4f" executionId="371c8550-d645-459a-bc39-f36ce2d6db8c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8b77a2b1-a915-a762-39b7-3d27bf391185" executionId="8c39edae-95e2-4108-9744-a1b7a62e9a63" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="eaca4207-13c7-5f58-3aca-52f1b540979e" executionId="743bd7ed-5049-4f3a-8910-57454f724b2c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="28" executed="28" passed="3" failed="25" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.1.1+5fe7eebc65 (64-bit .NET 8.0.23)
+[xUnit.net 00:00:00.04]   Discovering: CRM.Tests
+[xUnit.net 00:00:00.07]   Discovered:  CRM.Tests
+[xUnit.net 00:00:00.07]   Starting:    CRM.Tests
+[xUnit.net 00:00:00.15]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.15]       Stack Trace:
+[xUnit.net 00:00:00.15]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.15]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(422,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT052_Get_Activities_Should_Return_List()
+[xUnit.net 00:00:00.15]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.15]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.15]       Stack Trace:
+[xUnit.net 00:00:00.15]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.15]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(474,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT062_Get_System_Settings_Should_Return_Settings()
+[xUnit.net 00:00:00.15]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.16]       Expected success but got NotFound: Not Found
+[xUnit.net 00:00:00.16]       Stack Trace:
+[xUnit.net 00:00:00.16]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.16]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(406,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT051_Get_Dashboard_Stats_Should_Return_Data()
+[xUnit.net 00:00:00.16]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.16]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.16]       Stack Trace:
+[xUnit.net 00:00:00.16]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.16]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(256,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT021_Get_Products_Should_Return_List()
+[xUnit.net 00:00:00.16]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.17]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.17]       Stack Trace:
+[xUnit.net 00:00:00.17]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.17]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(140,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT011_Get_Customers_Should_Return_List()
+[xUnit.net 00:00:00.17]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.17]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.17]       Stack Trace:
+[xUnit.net 00:00:00.17]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.17]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(181,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT013_Get_Customer_By_Id_Should_Return_Customer()
+[xUnit.net 00:00:00.17]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.19]       Expected success but got NotFound: Not Found
+[xUnit.net 00:00:00.19]       Stack Trace:
+[xUnit.net 00:00:00.19]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.19]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(386,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT043_Get_Workflow_Tasks_Should_Return_List()
+[xUnit.net 00:00:00.19]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.21]       Expected Created/OK/BadRequest but got Unauthorized
+[xUnit.net 00:00:00.21]       Stack Trace:
+[xUnit.net 00:00:00.21]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(532,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT072_Create_Contact_Should_Return_Created()
+[xUnit.net 00:00:00.21]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.21]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.21]       Stack Trace:
+[xUnit.net 00:00:00.21]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.21]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(120,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT006_Protected_Endpoint_With_Token_Should_Return_Success()
+[xUnit.net 00:00:00.21]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.22]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.22]       Stack Trace:
+[xUnit.net 00:00:00.22]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.22]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(438,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT053_Get_Lookups_Should_Return_Categories()
+[xUnit.net 00:00:00.22]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.23]       Expected success but got NotFound: Not Found
+[xUnit.net 00:00:00.23]       Stack Trace:
+[xUnit.net 00:00:00.23]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.23]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(370,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT042_Get_Workflow_Instances_Should_Return_List()
+[xUnit.net 00:00:00.23]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.23]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.23]       Stack Trace:
+[xUnit.net 00:00:00.23]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.23]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(231,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT015_Customer_Pagination_Should_Work()
+[xUnit.net 00:00:00.23]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.24]       Authentication should succeed with valid credentials
+[xUnit.net 00:00:00.24]       Stack Trace:
+[xUnit.net 00:00:00.24]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(70,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT003_Login_With_Valid_Credentials_Should_Return_Token()
+[xUnit.net 00:00:00.24]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.24]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.24]       Stack Trace:
+[xUnit.net 00:00:00.24]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.24]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(510,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT071_Get_Contacts_Should_Return_List()
+[xUnit.net 00:00:00.24]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.25]       Expected success but got NotFound: Not Found
+[xUnit.net 00:00:00.26]       Stack Trace:
+[xUnit.net 00:00:00.26]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.26]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(354,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT041_Get_Workflow_Definitions_Should_Return_List()
+[xUnit.net 00:00:00.26]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.27]       Expected Created/OK/BadRequest but got Unauthorized
+[xUnit.net 00:00:00.27]       Stack Trace:
+[xUnit.net 00:00:00.27]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(279,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT022_Create_Product_Should_Return_Created()
+[xUnit.net 00:00:00.27]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.27]       Expected success but got NotFound: Not Found
+[xUnit.net 00:00:00.27]       Stack Trace:
+[xUnit.net 00:00:00.27]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.27]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(302,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT031_Get_Pipelines_Should_Return_List()
+[xUnit.net 00:00:00.27]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.28]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.28]       Stack Trace:
+[xUnit.net 00:00:00.28]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.28]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(318,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT032_Get_Opportunities_Should_Return_List()
+[xUnit.net 00:00:00.28]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.28]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.28]       Stack Trace:
+[xUnit.net 00:00:00.28]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.28]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(490,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT063_Get_Users_List_Should_Return_Users()
+[xUnit.net 00:00:00.28]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.29]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.29]       Expected: Unauthorized
+[xUnit.net 00:00:00.29]       Actual:   TooManyRequests
+[xUnit.net 00:00:00.29]       Stack Trace:
+[xUnit.net 00:00:00.29]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(82,0): at CRM.Tests.Functional.FunctionalTestBase.AssertStatusCode(HttpResponseMessage response, HttpStatusCode expected)
+[xUnit.net 00:00:00.29]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(89,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT004_Login_With_Invalid_Credentials_Should_Return_401()
+[xUnit.net 00:00:00.29]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.29]       Expected success but got NotFound: Not Found
+[xUnit.net 00:00:00.29]       Stack Trace:
+[xUnit.net 00:00:00.29]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.29]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(458,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT061_Get_Current_User_Profile_Should_Return_User()
+[xUnit.net 00:00:00.29]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.30]       Expected success but got Unauthorized: Unauthorized
+[xUnit.net 00:00:00.30]       Stack Trace:
+[xUnit.net 00:00:00.30]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.30]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(215,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT014_Search_Customers_Should_Return_Filtered_Results()
+[xUnit.net 00:00:00.30]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.37]       Expected Created/OK but got Unauthorized
+[xUnit.net 00:00:00.37]       Stack Trace:
+[xUnit.net 00:00:00.37]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(165,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT012_Create_Customer_Should_Return_Created()
+[xUnit.net 00:00:00.37]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.40]       Expected OK or NotFound but got Unauthorized
+[xUnit.net 00:00:00.40]       Stack Trace:
+[xUnit.net 00:00:00.40]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(555,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT081_Get_Communication_Channels_Should_Return_List()
+[xUnit.net 00:00:00.40]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.40]       Expected success but got NotFound: Not Found
+[xUnit.net 00:00:00.40]       Stack Trace:
+[xUnit.net 00:00:00.40]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/FunctionalTestBase.cs(73,0): at CRM.Tests.Functional.FunctionalTestBase.AssertSuccess(HttpResponseMessage response)
+[xUnit.net 00:00:00.40]         /Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/tests/Functional/ApiEndpointFunctionalTests.cs(334,0): at CRM.Tests.Functional.ApiEndpointFunctionalTests.FT033_Get_Stages_Should_Return_List()
+[xUnit.net 00:00:00.40]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.41]   Finished:    CRM.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.6356070+01:00">
+        <Text>[xUnit.net 00:00:00.15]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT052_Get_Activities_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.6412540+01:00">
+        <Text>[xUnit.net 00:00:00.15]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT062_Get_System_Settings_Should_Return_Settings [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.6460790+01:00">
+        <Text>[xUnit.net 00:00:00.16]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT051_Get_Dashboard_Stats_Should_Return_Data [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.6500120+01:00">
+        <Text>[xUnit.net 00:00:00.16]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT021_Get_Products_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.6548680+01:00">
+        <Text>[xUnit.net 00:00:00.17]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT011_Get_Customers_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.6595460+01:00">
+        <Text>[xUnit.net 00:00:00.17]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT013_Get_Customer_By_Id_Should_Return_Customer [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.6749160+01:00">
+        <Text>[xUnit.net 00:00:00.19]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT043_Get_Workflow_Tasks_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7536150+01:00">
+        <Text>[xUnit.net 00:00:00.21]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT072_Create_Contact_Should_Return_Created [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7536310+01:00">
+        <Text>[xUnit.net 00:00:00.21]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT006_Protected_Endpoint_With_Token_Should_Return_Success [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7537240+01:00">
+        <Text>[xUnit.net 00:00:00.22]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT053_Get_Lookups_Should_Return_Categories [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7537720+01:00">
+        <Text>[xUnit.net 00:00:00.23]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT042_Get_Workflow_Instances_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7538130+01:00">
+        <Text>[xUnit.net 00:00:00.23]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT015_Customer_Pagination_Should_Work [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7538280+01:00">
+        <Text>[xUnit.net 00:00:00.24]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT003_Login_With_Valid_Credentials_Should_Return_Token [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7538360+01:00">
+        <Text>[xUnit.net 00:00:00.24]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT071_Get_Contacts_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7538490+01:00">
+        <Text>[xUnit.net 00:00:00.25]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT041_Get_Workflow_Definitions_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7568220+01:00">
+        <Text>[xUnit.net 00:00:00.27]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT022_Create_Product_Should_Return_Created [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7617710+01:00">
+        <Text>[xUnit.net 00:00:00.27]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT031_Get_Pipelines_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7662660+01:00">
+        <Text>[xUnit.net 00:00:00.28]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT032_Get_Opportunities_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7709100+01:00">
+        <Text>[xUnit.net 00:00:00.28]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT063_Get_Users_List_Should_Return_Users [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7760570+01:00">
+        <Text>[xUnit.net 00:00:00.29]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT004_Login_With_Invalid_Credentials_Should_Return_401 [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7807890+01:00">
+        <Text>[xUnit.net 00:00:00.29]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT061_Get_Current_User_Profile_Should_Return_User [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.7864400+01:00">
+        <Text>[xUnit.net 00:00:00.30]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT014_Search_Customers_Should_Return_Filtered_Results [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.8593830+01:00">
+        <Text>[xUnit.net 00:00:00.37]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT012_Create_Customer_Should_Return_Created [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.8841280+01:00">
+        <Text>[xUnit.net 00:00:00.40]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT081_Get_Communication_Channels_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Abhisheks-MacBook-Pro" outcome="Error" timestamp="2026-01-23T02:27:49.8921930+01:00">
+        <Text>[xUnit.net 00:00:00.40]     CRM.Tests.Functional.ApiEndpointFunctionalTests.FT033_Get_Stages_Should_Return_List [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>
