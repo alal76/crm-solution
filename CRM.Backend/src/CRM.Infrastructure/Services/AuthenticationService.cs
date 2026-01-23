@@ -23,13 +23,19 @@ using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Authentication Service for handling user registration, login, and token management
+/// Authentication Service for handling user registration, login, and token management.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IAuthInputPort (primary/driving port)
+/// - Implements IAuthenticationService (backward compatibility)
+/// - Uses IRepository and IJwtTokenService (secondary/driven ports)
 /// </summary>
-public class AuthenticationService : IAuthenticationService
+public class AuthenticationService : IAuthenticationService, IAuthInputPort
 {
     private readonly IRepository<User> _userRepository;
     private readonly IRepository<OAuthToken> _oauthTokenRepository;

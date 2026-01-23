@@ -1,13 +1,22 @@
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
+using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Infrastructure.Services;
 
-public class ContactsService : IContactsService
+/// <summary>
+/// Contact service implementation.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IContactInputPort (primary/driving port)
+/// - Implements IContactsService (backward compatibility)
+/// - Uses CrmDbContext for data access (secondary/driven port)
+/// </summary>
+public class ContactsService : IContactsService, IContactInputPort
 {
     private readonly CrmDbContext _context;
 

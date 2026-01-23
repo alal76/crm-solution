@@ -1,10 +1,19 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
-public class AccountService : IAccountService
+/// <summary>
+/// Service for account management.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IAccountInputPort (primary/driving port)
+/// - Implements IAccountService (backward compatibility)
+/// - Uses IRepository (secondary/driven port)
+/// </summary>
+public class AccountService : IAccountService, IAccountInputPort
 {
     private readonly IRepository<Account> _accountRepo;
     private readonly IRepository<Address> _addressRepo;

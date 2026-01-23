@@ -1,12 +1,18 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Marketing campaign service implementation
+/// Marketing campaign service implementation.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements ICampaignInputPort (primary/driving port)
+/// - Implements IMarketingCampaignService (backward compatibility)
+/// - Uses IRepository for data access (secondary/driven port)
 /// </summary>
-public class MarketingCampaignService : IMarketingCampaignService
+public class MarketingCampaignService : IMarketingCampaignService, ICampaignInputPort
 {
     private readonly IRepository<MarketingCampaign> _repository;
     private readonly IRepository<CampaignMetric> _metricRepository;

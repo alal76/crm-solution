@@ -22,13 +22,19 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Service implementation for managing service requests
+/// Service implementation for managing service requests.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IServiceRequestInputPort (primary/driving port)
+/// - Implements IServiceRequestService (backward compatibility)
+/// - Uses ICrmDbContext (secondary/driven port)
 /// </summary>
-public class ServiceRequestService : IServiceRequestService
+public class ServiceRequestService : IServiceRequestService, IServiceRequestInputPort
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<ServiceRequestService> _logger;

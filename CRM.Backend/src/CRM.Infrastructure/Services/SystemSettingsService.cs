@@ -1,15 +1,21 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Service for managing system settings
+/// Service for managing system settings.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements ISystemSettingsInputPort (primary/driving port)
+/// - Implements ISystemSettingsService (backward compatibility)
+/// - Uses ICrmDbContext (secondary/driven port)
 /// </summary>
-public class SystemSettingsService : ISystemSettingsService
+public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInputPort
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<SystemSettingsService> _logger;

@@ -386,7 +386,7 @@ export const serviceRequestService = {
     apiClient.post<ServiceRequest>(`/servicerequests/${id}/assign/group/${groupId}`, { notes }),
   
   // Custom fields
-  updateCustomFields: (id: number, values: { fieldDefinitionId: number; value: string }[]) =>
+  updateCustomFields: (id: number, values: { customFieldDefinitionId: number; textValue?: string; numericValue?: number; dateValue?: string; booleanValue?: boolean }[]) =>
     apiClient.put(`/servicerequests/${id}/custom-fields`, values),
   
   // Feedback
