@@ -13,7 +13,7 @@ namespace CRM.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_MarketingCampaignProduct_MarketingCampaigns_MarketingCampaignsId",
+                name: "FK_MarketingCampaignProduct_MarketingCampaigns_MarketingCampaign",
                 table: "MarketingCampaignProduct");
 
             migrationBuilder.DropIndex(

@@ -23,10 +23,98 @@ public class DbSeed
     /// </summary>
     public static async Task SeedAsync(CrmDbContext context)
     {
-        // Seed Admin User
-        if (!context.Users.Any(u => u.Email == "abhi.lal@gmail.com"))
+        // Seed SysAdmin Group - always required for system administration
+        var sysAdminGroup = await context.UserGroups.FirstOrDefaultAsync(g => g.Name == "SysAdmin");
+        if (sysAdminGroup == null)
         {
-            var adminUser = new User
+            sysAdminGroup = new UserGroup
+            {
+                Name = "SysAdmin",
+                Description = "System Administrators with full access to all features and settings",
+                IsActive = true,
+                IsDefault = false,
+                IsSystemAdmin = true,
+                DisplayOrder = 0,
+                HeaderColor = "#DC2626", // Red for admin visibility
+                // Menu/Page Access
+                CanAccessDashboard = true,
+                CanAccessCustomers = true,
+                CanAccessContacts = true,
+                CanAccessLeads = true,
+                CanAccessOpportunities = true,
+                CanAccessProducts = true,
+                CanAccessServices = true,
+                CanAccessCampaigns = true,
+                CanAccessQuotes = true,
+                CanAccessTasks = true,
+                CanAccessActivities = true,
+                CanAccessNotes = true,
+                CanAccessWorkflows = true,
+                CanAccessServiceRequests = true,
+                CanAccessReports = true,
+                CanAccessSettings = true,
+                CanAccessUserManagement = true,
+                // Customer CRUD
+                CanCreateCustomers = true,
+                CanEditCustomers = true,
+                CanDeleteCustomers = true,
+                CanViewAllCustomers = true,
+                // Contact CRUD
+                CanCreateContacts = true,
+                CanEditContacts = true,
+                CanDeleteContacts = true,
+                // Lead CRUD
+                CanCreateLeads = true,
+                CanEditLeads = true,
+                CanDeleteLeads = true,
+                CanConvertLeads = true,
+                // Opportunity CRUD
+                CanCreateOpportunities = true,
+                CanEditOpportunities = true,
+                CanDeleteOpportunities = true,
+                CanCloseOpportunities = true,
+                // Product CRUD
+                CanCreateProducts = true,
+                CanEditProducts = true,
+                CanDeleteProducts = true,
+                CanManagePricing = true,
+                // Campaign CRUD
+                CanCreateCampaigns = true,
+                CanEditCampaigns = true,
+                CanDeleteCampaigns = true,
+                CanLaunchCampaigns = true,
+                // Quote CRUD
+                CanCreateQuotes = true,
+                CanEditQuotes = true,
+                CanDeleteQuotes = true,
+                CanApproveQuotes = true,
+                // Task CRUD
+                CanCreateTasks = true,
+                CanEditTasks = true,
+                CanDeleteTasks = true,
+                CanAssignTasks = true,
+                // Workflow CRUD
+                CanCreateWorkflows = true,
+                CanEditWorkflows = true,
+                CanDeleteWorkflows = true,
+                CanActivateWorkflows = true,
+                // Data Access
+                DataAccessScope = "all",
+                CanExportData = true,
+                CanImportData = true,
+                CanBulkEdit = true,
+                CanBulkDelete = true,
+                AccessibleMenuItems = "[\"Dashboard\",\"Customers\",\"Contacts\",\"Leads\",\"Opportunities\",\"Products\",\"Services\",\"Campaigns\",\"Quotes\",\"Tasks\",\"Activities\",\"Notes\",\"Workflows\",\"ServiceRequests\",\"Reports\",\"Settings\",\"UserManagement\",\"Admin\"]"
+            };
+            context.UserGroups.Add(sysAdminGroup);
+            await context.SaveChangesAsync();
+        }
+
+        // Seed Admin User
+        var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "abhi.lal@gmail.com");
+        if (adminUser == null)
+        {
+            adminUser = new User
             {
                 Username = "admin",
                 Email = "abhi.lal@gmail.com",
@@ -36,10 +124,33 @@ public class DbSeed
                 Role = (int)UserRole.Admin,
                 IsActive = true,
                 EmailVerified = true,
-                TwoFactorEnabled = false
+                TwoFactorEnabled = false,
+                PrimaryGroupId = sysAdminGroup.Id
             };
 
             context.Users.Add(adminUser);
+            await context.SaveChangesAsync();
+        }
+        else if (adminUser.PrimaryGroupId != sysAdminGroup.Id)
+        {
+            // Ensure existing admin user has SysAdmin as primary group
+            adminUser.PrimaryGroupId = sysAdminGroup.Id;
+            await context.SaveChangesAsync();
+        }
+
+        // Ensure admin user is a member of SysAdmin group
+        var isMember = await context.UserGroupMembers
+            .AnyAsync(m => m.UserId == adminUser.Id && m.UserGroupId == sysAdminGroup.Id);
+        
+        if (!isMember)
+        {
+            var membership = new UserGroupMember
+            {
+                UserId = adminUser.Id,
+                UserGroupId = sysAdminGroup.Id,
+                AddedAt = DateTime.UtcNow
+            };
+            context.UserGroupMembers.Add(membership);
             await context.SaveChangesAsync();
         }
 

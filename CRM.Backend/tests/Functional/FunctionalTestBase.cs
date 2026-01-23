@@ -53,9 +53,9 @@ public abstract class FunctionalTestBase : IAsyncLifetime
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            if (result?.Token != null)
+            if (result?.AccessToken != null)
             {
-                AuthToken = result.Token;
+                AuthToken = result.AccessToken;
                 Client.DefaultRequestHeaders.Authorization = 
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AuthToken);
                 return true;
@@ -82,7 +82,7 @@ public abstract class FunctionalTestBase : IAsyncLifetime
         Assert.Equal(expected, response.StatusCode);
     }
     
-    private record LoginResponse(string Token, string RefreshToken, DateTime ExpiresAt);
+    private record LoginResponse(string AccessToken, string RefreshToken, DateTime ExpiresAt);
 }
 
 /// <summary>
