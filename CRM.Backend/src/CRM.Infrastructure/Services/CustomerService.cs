@@ -1,11 +1,17 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Customer service implementation providing CRUD operations for Customer entities.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements ICustomerInputPort (primary/driving port)
+/// - Implements ICustomerService (backward compatibility)
+/// - Uses IRepository pattern for data access (secondary/driven ports)
 /// 
 /// FUNCTIONAL VIEW:
 /// This service handles all customer-related business operations including:
@@ -16,16 +22,15 @@ namespace CRM.Infrastructure.Services;
 /// - Soft-deleting customers (preserves data for audit/recovery)
 /// 
 /// TECHNICAL VIEW:
-/// - Implements ICustomerService interface for dependency injection
 /// - Uses IRepository pattern for data access abstraction
 /// - Maps between Customer entities and CustomerDto for API responses
 /// - Supports async/await pattern for non-blocking database operations
 /// - Integrates with IContactsService for contact management
 /// 
-/// ARCHITECTURE:
-/// [Controller] → [ICustomerService] → [CustomerService] → [IRepository] → [Database]
+/// PATTERN:
+/// [Controller] → [ICustomerInputPort] → [CustomerService] → [IRepository] → [Database]
 /// </summary>
-public class CustomerService : ICustomerService
+public class CustomerService : ICustomerService, ICustomerInputPort
 {
     private readonly IRepository<Customer> _customerRepository;
     private readonly IRepository<CustomerContact> _customerContactRepository;
