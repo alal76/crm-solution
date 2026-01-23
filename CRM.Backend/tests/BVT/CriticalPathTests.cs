@@ -662,4 +662,281 @@ public class CriticalPathTests
     }
 
     #endregion
+
+    #region BVT-021: CommunicationChannel Entity
+
+    /// <summary>
+    /// BVT-021: Verify CommunicationChannel entity for multi-channel communications
+    /// 
+    /// FUNCTIONAL: System must support multiple communication channels (Email, WhatsApp, Social)
+    /// TECHNICAL: Tests CommunicationChannel entity fields and enums
+    /// </summary>
+    [Fact]
+    public void BVT021_CommunicationChannel_CanBeCreatedForEmail()
+    {
+        // Arrange & Act
+        var channel = new CommunicationChannel
+        {
+            Id = 1,
+            ChannelType = ChannelType.Email,
+            Name = "Primary Email",
+            Status = ChannelStatus.Connected,
+            IsEnabled = true,
+            IsDefault = true,
+            SmtpServer = "smtp.example.com",
+            SmtpPort = 587,
+            SmtpUseSsl = true,
+            FromEmail = "sales@example.com",
+            FromName = "Sales Team",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        channel.ChannelType.Should().Be(ChannelType.Email);
+        channel.Name.Should().Be("Primary Email");
+        channel.Status.Should().Be(ChannelStatus.Connected);
+        channel.IsEnabled.Should().BeTrue();
+        channel.SmtpPort.Should().Be(587);
+    }
+
+    /// <summary>
+    /// BVT-021b: Verify WhatsApp channel configuration
+    /// </summary>
+    [Fact]
+    public void BVT021b_CommunicationChannel_CanBeCreatedForWhatsApp()
+    {
+        // Arrange & Act
+        var channel = new CommunicationChannel
+        {
+            Id = 2,
+            ChannelType = ChannelType.WhatsApp,
+            Name = "WhatsApp Business",
+            Status = ChannelStatus.Connected,
+            IsEnabled = true,
+            WhatsAppBusinessAccountId = "123456789",
+            WhatsAppPhoneNumberId = "987654321",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        channel.ChannelType.Should().Be(ChannelType.WhatsApp);
+        channel.WhatsAppBusinessAccountId.Should().Be("123456789");
+    }
+
+    /// <summary>
+    /// BVT-021c: Verify social media channel (X/Twitter)
+    /// </summary>
+    [Fact]
+    public void BVT021c_CommunicationChannel_CanBeCreatedForTwitter()
+    {
+        // Arrange & Act
+        var channel = new CommunicationChannel
+        {
+            Id = 3,
+            ChannelType = ChannelType.Twitter,
+            Name = "Company X Account",
+            Status = ChannelStatus.Connected,
+            IsEnabled = true,
+            SocialUsername = "@companycrm",
+            SocialAccountId = "twitter_123",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        channel.ChannelType.Should().Be(ChannelType.Twitter);
+        channel.SocialUsername.Should().Be("@companycrm");
+    }
+
+    #endregion
+
+    #region BVT-022: CommunicationMessage Entity
+
+    /// <summary>
+    /// BVT-022: Verify CommunicationMessage entity for tracking messages
+    /// 
+    /// FUNCTIONAL: Messages must track sender, recipient, status, and CRM entity links
+    /// TECHNICAL: Tests CommunicationMessage entity with all core fields
+    /// </summary>
+    [Fact]
+    public void BVT022_CommunicationMessage_CanBeCreatedForOutboundEmail()
+    {
+        // Arrange & Act
+        var message = new CommunicationMessage
+        {
+            Id = 1,
+            ChannelType = ChannelType.Email,
+            ChannelId = 1,
+            Subject = "Follow-up on your inquiry",
+            Body = "Thank you for your interest in our products.",
+            Direction = MessageDirection.Outbound,
+            Status = MessageStatus.Sent,
+            FromAddress = "sales@example.com",
+            FromName = "Sales Team",
+            ToAddress = "customer@example.com",
+            ToName = "John Doe",
+            CustomerId = 10,
+            SentAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        message.ChannelType.Should().Be(ChannelType.Email);
+        message.Direction.Should().Be(MessageDirection.Outbound);
+        message.Status.Should().Be(MessageStatus.Sent);
+        message.CustomerId.Should().Be(10);
+        message.Subject.Should().Contain("Follow-up");
+    }
+
+    /// <summary>
+    /// BVT-022b: Verify inbound message handling
+    /// </summary>
+    [Fact]
+    public void BVT022b_CommunicationMessage_CanBeCreatedForInboundMessage()
+    {
+        // Arrange & Act
+        var message = new CommunicationMessage
+        {
+            Id = 2,
+            ChannelType = ChannelType.WhatsApp,
+            Direction = MessageDirection.Inbound,
+            Status = MessageStatus.Delivered,
+            Body = "Hi, I have a question about pricing",
+            FromAddress = "+1234567890",
+            FromName = "Prospect User",
+            ReceivedAt = DateTime.UtcNow,
+            IsRead = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        message.Direction.Should().Be(MessageDirection.Inbound);
+        message.Status.Should().Be(MessageStatus.Delivered);
+        message.IsRead.Should().BeFalse();
+    }
+
+    #endregion
+
+    #region BVT-023: EmailTemplate Entity
+
+    /// <summary>
+    /// BVT-023: Verify EmailTemplate entity for reusable templates
+    /// 
+    /// FUNCTIONAL: Email templates must support merge fields and categories
+    /// TECHNICAL: Tests EmailTemplate entity fields
+    /// </summary>
+    [Fact]
+    public void BVT023_EmailTemplate_CanBeCreatedWithMergeFields()
+    {
+        // Arrange & Act
+        var template = new EmailTemplate
+        {
+            Id = 1,
+            Name = "Welcome Email",
+            Description = "Sent to new customers after registration",
+            Category = EmailTemplateCategory.Welcome,
+            Subject = "Welcome to {{CompanyName}}, {{FirstName}}!",
+            PlainTextBody = "Dear {{FirstName}}, welcome to our service.",
+            HtmlBody = "<h1>Welcome, {{FirstName}}!</h1>",
+            MergeFieldsJson = "[\"FirstName\", \"CompanyName\", \"Email\"]",
+            IsActive = true,
+            UsageCount = 100,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        template.Name.Should().Be("Welcome Email");
+        template.Category.Should().Be(EmailTemplateCategory.Welcome);
+        template.Subject.Should().Contain("{{FirstName}}");
+        template.MergeFieldsJson.Should().Contain("FirstName");
+        template.UsageCount.Should().Be(100);
+    }
+
+    #endregion
+
+    #region BVT-024: Conversation Entity
+
+    /// <summary>
+    /// BVT-024: Verify Conversation entity for message threading
+    /// 
+    /// FUNCTIONAL: Conversations must group related messages
+    /// TECHNICAL: Tests Conversation entity with message counts
+    /// </summary>
+    [Fact]
+    public void BVT024_Conversation_CanGroupRelatedMessages()
+    {
+        // Arrange & Act
+        var conversation = new Conversation
+        {
+            Id = 1,
+            ConversationId = "CONV-2024-001",
+            PrimaryChannelType = ChannelType.Email,
+            Subject = "Product Inquiry - Enterprise License",
+            Status = ConversationStatus.Open,
+            Priority = MessagePriority.High,
+            ParticipantAddress = "customer@example.com",
+            ParticipantName = "John Doe",
+            CustomerId = 10,
+            MessageCount = 5,
+            UnreadCount = 2,
+            InboundCount = 3,
+            OutboundCount = 2,
+            FirstMessageAt = DateTime.UtcNow.AddDays(-3),
+            LastMessageAt = DateTime.UtcNow,
+            IsStarred = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        conversation.ConversationId.Should().Be("CONV-2024-001");
+        conversation.Status.Should().Be(ConversationStatus.Open);
+        conversation.MessageCount.Should().Be(5);
+        conversation.UnreadCount.Should().Be(2);
+        conversation.InboundCount.Should().Be(3);
+        conversation.OutboundCount.Should().Be(2);
+    }
+
+    #endregion
+
+    #region BVT-025: Channel Type Enum
+
+    /// <summary>
+    /// BVT-025: Verify ChannelType enum has all required values
+    /// 
+    /// FUNCTIONAL: System must support Email, WhatsApp, Twitter, Facebook
+    /// TECHNICAL: Tests ChannelType enum values
+    /// </summary>
+    [Fact]
+    public void BVT025_ChannelType_HasAllRequiredValues()
+    {
+        // Assert
+        Enum.IsDefined(typeof(ChannelType), ChannelType.Email).Should().BeTrue();
+        Enum.IsDefined(typeof(ChannelType), ChannelType.WhatsApp).Should().BeTrue();
+        Enum.IsDefined(typeof(ChannelType), ChannelType.Twitter).Should().BeTrue();
+        Enum.IsDefined(typeof(ChannelType), ChannelType.Facebook).Should().BeTrue();
+        Enum.IsDefined(typeof(ChannelType), ChannelType.SMS).Should().BeTrue();
+    }
+
+    #endregion
+
+    #region BVT-026: Message Status Flow
+
+    /// <summary>
+    /// BVT-026: Verify MessageStatus enum for message lifecycle
+    /// 
+    /// FUNCTIONAL: Messages must track through Draft->Queued->Sent->Delivered states
+    /// TECHNICAL: Tests MessageStatus enum values
+    /// </summary>
+    [Fact]
+    public void BVT026_MessageStatus_HasCorrectLifecycleStates()
+    {
+        // Assert - verify lifecycle states exist
+        Enum.IsDefined(typeof(MessageStatus), MessageStatus.Draft).Should().BeTrue();
+        Enum.IsDefined(typeof(MessageStatus), MessageStatus.Queued).Should().BeTrue();
+        Enum.IsDefined(typeof(MessageStatus), MessageStatus.Sent).Should().BeTrue();
+        Enum.IsDefined(typeof(MessageStatus), MessageStatus.Delivered).Should().BeTrue();
+        Enum.IsDefined(typeof(MessageStatus), MessageStatus.Read).Should().BeTrue();
+        Enum.IsDefined(typeof(MessageStatus), MessageStatus.Failed).Should().BeTrue();
+    }
+
+    #endregion
 }
