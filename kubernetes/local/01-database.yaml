@@ -10,6 +10,19 @@ spec:
     requests:
       storage: 2Gi
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crm-db-init
+  namespace: crm-app
+data:
+  init-demo-db.sql: |
+    -- Create demo database on same server as production
+    CREATE DATABASE IF NOT EXISTS crm_demodb;
+    -- Grant privileges to crm_user on demo database
+    GRANT ALL PRIVILEGES ON crm_demodb.* TO 'crm_user'@'%';
+    FLUSH PRIVILEGES;
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -54,6 +67,9 @@ spec:
         volumeMounts:
         - name: db-storage
           mountPath: /var/lib/mysql
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
+          readOnly: true
         resources:
           requests:
             memory: "256Mi"
@@ -83,6 +99,9 @@ spec:
       - name: db-storage
         persistentVolumeClaim:
           claimName: crm-db-pvc
+      - name: init-scripts
+        configMap:
+          name: crm-db-init
 ---
 apiVersion: v1
 kind: Service

@@ -17,7 +17,37 @@ import apiClient from '../services/apiClient';
 import lookupService, { LookupItem } from '../services/lookupService';
 import FieldRenderer from '../components/FieldRenderer';
 import LookupSelect from '../components/LookupSelect';
+import ImportExportButtons from '../components/ImportExportButtons';
+import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import logo from '../assets/logo.png';
+
+// Search fields for Advanced Search
+const SEARCH_FIELDS: SearchField[] = [
+  { name: 'customerType', label: 'Customer Type', type: 'select', options: [
+    { value: 0, label: 'Individual' },
+    { value: 1, label: 'Small Business' },
+    { value: 2, label: 'Mid-Market' },
+    { value: 3, label: 'Enterprise' },
+    { value: 4, label: 'Government' },
+    { value: 5, label: 'Non-Profit' },
+  ]},
+  { name: 'firstName', label: 'First Name', type: 'text' },
+  { name: 'lastName', label: 'Last Name', type: 'text' },
+  { name: 'company', label: 'Business Name', type: 'text' },
+  { name: 'email', label: 'Email', type: 'text' },
+  { name: 'lifecycleStage', label: 'Status', type: 'select', options: [
+    { value: 0, label: 'Lead' },
+    { value: 1, label: 'Prospect' },
+    { value: 2, label: 'Opportunity' },
+    { value: 3, label: 'Customer' },
+    { value: 4, label: 'Churned' },
+    { value: 5, label: 'Reactivated' },
+  ]},
+  { name: 'industry', label: 'Industry', type: 'text' },
+  { name: 'city', label: 'City', type: 'text' },
+];
+
+const SEARCHABLE_FIELDS = ['firstName', 'lastName', 'company', 'email', 'industry', 'city', 'phone'];
 
 // Customer Categories
 const CUSTOMER_CATEGORIES = [
@@ -281,6 +311,15 @@ function CustomersPage() {
   const [fieldConfigs, setFieldConfigs] = useState<ModuleFieldConfiguration[]>([]);
   const [fieldConfigsLoading, setFieldConfigsLoading] = useState(false);
   const [lookupItems, setLookupItems] = useState<Record<string, LookupItem[]>>({});
+  const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+  const [searchText, setSearchText] = useState('');
+
+  const handleSearch = (filters: SearchFilter[], text: string) => {
+    setSearchFilters(filters);
+    setSearchText(text);
+  };
+
+  const filteredCustomers = filterData(customers, searchFilters, searchText, SEARCHABLE_FIELDS);
   const [formData, setFormData] = useState<CustomerForm>({
     category: 0,
     firstName: '',
@@ -686,19 +725,32 @@ function CustomersPage() {
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Customers</Typography>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{ backgroundColor: '#6750A4' }}
-          >
-            Add Customer
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <ImportExportButtons
+              entityType="customers"
+              entityLabel="Customers"
+              onImportComplete={fetchCustomers}
+            />
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
+              sx={{ backgroundColor: '#6750A4' }}
+            >
+              Add Customer
+            </Button>
+          </Box>
         </Box>
         
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
         
+        <AdvancedSearch
+          fields={SEARCH_FIELDS}
+          onSearch={handleSearch}
+          placeholder="Search customers by name, email, company..."
+        />
+
         <Card>
           <CardContent sx={{ p: 0 }}>
             <Table>
@@ -716,7 +768,7 @@ function CustomersPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {customers.map((customer) => {
+                {filteredCustomers.map((customer) => {
                   const stage = getLifecycleStage(customer.lifecycleStage);
                   const priority = getPriority(customer.priority);
                   const type = getCustomerType(customer.customerType);

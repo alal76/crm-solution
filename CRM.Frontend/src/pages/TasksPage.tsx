@@ -15,6 +15,31 @@ import {
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import ImportExportButtons from '../components/ImportExportButtons';
+import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+
+// Search fields for Advanced Search
+const SEARCH_FIELDS: SearchField[] = [
+  { name: 'subject', label: 'Title', type: 'text' },
+  { name: 'status', label: 'Status', type: 'select', options: [
+    { value: 'NotStarted', label: 'Not Started' },
+    { value: 'InProgress', label: 'In Progress' },
+    { value: 'Completed', label: 'Completed' },
+    { value: 'Deferred', label: 'Deferred' },
+    { value: 'Waiting', label: 'Waiting' },
+    { value: 'Cancelled', label: 'Cancelled' },
+  ]},
+  { name: 'priority', label: 'Priority', type: 'select', options: [
+    { value: 'Low', label: 'Low' },
+    { value: 'Normal', label: 'Normal' },
+    { value: 'High', label: 'High' },
+    { value: 'Urgent', label: 'Urgent' },
+  ]},
+  { name: 'assignedToUserName', label: 'Assigned To', type: 'text' },
+  { name: 'dueDate', label: 'Due Date', type: 'dateRange' },
+];
+
+const SEARCHABLE_FIELDS = ['subject', 'description', 'assignedToUserName', 'customerName', 'opportunityName', 'tags'];
 
 // Status mapping for display
 const STATUS_COLORS: Record<string, string> = {
@@ -176,6 +201,8 @@ function TasksPage() {
   const [dialogTab, setDialogTab] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [viewMode, setViewMode] = useState<'queue' | 'all'>('queue');
+  const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+  const [searchText, setSearchText] = useState('');
 
   const emptyForm: TaskForm = {
     title: '', description: '', taskType: 10, status: 0, priority: 1,
@@ -327,8 +354,13 @@ function TasksPage() {
   const getPriority = (value: number) => TASK_PRIORITIES.find(p => p.value === value);
   const getType = (value: number) => TASK_TYPES.find(t => t.value === value);
 
+  const handleSearch = (filters: SearchFilter[], text: string) => {
+    setSearchFilters(filters);
+    setSearchText(text);
+  };
+
   // Filter queue items based on status
-  const filteredQueueItems = queueData?.tasks?.filter(item => {
+  const statusFilteredItems = queueData?.tasks?.filter(item => {
     if (statusFilter === 'pending') {
       return item.status !== 'Completed' && item.status !== 'Cancelled';
     } else if (statusFilter === 'completed') {
@@ -338,6 +370,9 @@ function TasksPage() {
     }
     return true;
   }) || [];
+
+  // Apply advanced search filters
+  const filteredQueueItems = filterData(statusFilteredItems, searchFilters, searchText, SEARCHABLE_FIELDS);
 
   if (loading) {
     return (
@@ -379,6 +414,7 @@ function TasksPage() {
             <IconButton onClick={fetchMyQueue} color="primary" title="Refresh">
               <RefreshIcon />
             </IconButton>
+            <ImportExportButtons entityType="tasks" entityLabel="Tasks" onImportComplete={fetchMyQueue} />
             <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
               Add Task
             </Button>
@@ -438,6 +474,12 @@ function TasksPage() {
 
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+
+        <AdvancedSearch
+          fields={SEARCH_FIELDS}
+          onSearch={handleSearch}
+          placeholder="Search tasks by title, description, assignee..."
+        />
 
         {/* Filter Controls */}
         <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>

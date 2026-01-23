@@ -196,6 +196,63 @@ export interface CreateServiceRequestSubcategory {
   slaResolutionHours?: number;
 }
 
+// Service Request Type interfaces
+export interface ServiceRequestType {
+  id: number;
+  name: string;
+  requestType: string; // 'Complaint' or 'Request'
+  detailedDescription?: string;
+  workflowName?: string;
+  possibleResolutions?: string;
+  finalCustomerResolutions?: string;
+  possibleResolutionsList: string[];
+  finalCustomerResolutionsList: string[];
+  categoryId: number;
+  categoryName?: string;
+  subcategoryId: number;
+  subcategoryName?: string;
+  displayOrder: number;
+  isActive: boolean;
+  defaultPriority?: string;
+  responseTimeHours?: number;
+  resolutionTimeHours?: number;
+  tags?: string;
+  tagsList: string[];
+}
+
+export interface ServiceRequestTypeGrouped {
+  categoryId: number;
+  categoryName: string;
+  subcategories: SubcategoryWithTypes[];
+}
+
+export interface SubcategoryWithTypes {
+  subcategoryId: number;
+  subcategoryName: string;
+  types: ServiceRequestType[];
+}
+
+export interface CreateServiceRequestType {
+  name: string;
+  requestType: string;
+  detailedDescription?: string;
+  workflowName?: string;
+  possibleResolutions?: string;
+  finalCustomerResolutions?: string;
+  categoryId: number;
+  subcategoryId: number;
+  displayOrder?: number;
+  isActive?: boolean;
+  defaultPriority?: string;
+  responseTimeHours?: number;
+  resolutionTimeHours?: number;
+  tags?: string;
+}
+
+export interface UpdateServiceRequestType extends CreateServiceRequestType {
+  id: number;
+}
+
 export interface ServiceRequestCustomFieldDefinition {
   id?: number;
   name: string;
@@ -469,4 +526,32 @@ export const serviceRequestCustomFieldService = {
   getCount: () => apiClient.get<{ activeCount: number; maxAllowed: number }>(
     '/service-request-settings/custom-fields/count'
   ),
+};
+
+export const serviceRequestTypeService = {
+  getAll: (includeInactive = false) => 
+    apiClient.get<ServiceRequestType[]>('/service-request-settings/types', { 
+      params: { includeInactive } 
+    }),
+  getGrouped: (includeInactive = false) => 
+    apiClient.get<ServiceRequestTypeGrouped[]>('/service-request-settings/types/grouped', { 
+      params: { includeInactive } 
+    }),
+  getByCategory: (categoryId: number, includeInactive = false) => 
+    apiClient.get<ServiceRequestType[]>(`/service-request-settings/types/by-category/${categoryId}`, { 
+      params: { includeInactive } 
+    }),
+  getBySubcategory: (subcategoryId: number, includeInactive = false) => 
+    apiClient.get<ServiceRequestType[]>(`/service-request-settings/types/by-subcategory/${subcategoryId}`, { 
+      params: { includeInactive } 
+    }),
+  getById: (id: number) => 
+    apiClient.get<ServiceRequestType>(`/service-request-settings/types/${id}`),
+  create: (data: CreateServiceRequestType) => 
+    apiClient.post<ServiceRequestType>('/service-request-settings/types', data),
+  update: (id: number, data: Partial<CreateServiceRequestType>) => 
+    apiClient.put<ServiceRequestType>(`/service-request-settings/types/${id}`, data),
+  delete: (id: number) => apiClient.delete(`/service-request-settings/types/${id}`),
+  reorder: (subcategoryId: number, typeIds: number[]) => 
+    apiClient.post(`/service-request-settings/types/reorder/${subcategoryId}`, typeIds),
 };

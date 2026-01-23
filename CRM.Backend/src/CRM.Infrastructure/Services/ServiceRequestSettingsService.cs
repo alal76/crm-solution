@@ -555,3 +555,229 @@ public class ServiceRequestCustomFieldService : IServiceRequestCustomFieldServic
         };
     }
 }
+
+/// <summary>
+/// Service implementation for managing service request types
+/// </summary>
+public class ServiceRequestTypeService : IServiceRequestTypeService
+{
+    private readonly ICrmDbContext _context;
+    private readonly ILogger<ServiceRequestTypeService> _logger;
+
+    public ServiceRequestTypeService(ICrmDbContext context, ILogger<ServiceRequestTypeService> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
+    public async Task<List<ServiceRequestTypeDto>> GetAllTypesAsync(bool includeInactive = false)
+    {
+        var query = _context.ServiceRequestTypes
+            .Include(t => t.Category)
+            .Include(t => t.Subcategory)
+            .Where(t => !t.IsDeleted);
+
+        if (!includeInactive)
+        {
+            query = query.Where(t => t.IsActive);
+        }
+
+        var types = await query
+            .OrderBy(t => t.Category!.Name)
+            .ThenBy(t => t.Subcategory!.Name)
+            .ThenBy(t => t.DisplayOrder)
+            .ThenBy(t => t.Name)
+            .ToListAsync();
+
+        return types.Select(MapToDto).ToList();
+    }
+
+    public async Task<List<ServiceRequestTypeDto>> GetTypesBySubcategoryAsync(int subcategoryId, bool includeInactive = false)
+    {
+        var query = _context.ServiceRequestTypes
+            .Include(t => t.Category)
+            .Include(t => t.Subcategory)
+            .Where(t => !t.IsDeleted && t.SubcategoryId == subcategoryId);
+
+        if (!includeInactive)
+        {
+            query = query.Where(t => t.IsActive);
+        }
+
+        var types = await query
+            .OrderBy(t => t.DisplayOrder)
+            .ThenBy(t => t.Name)
+            .ToListAsync();
+
+        return types.Select(MapToDto).ToList();
+    }
+
+    public async Task<List<ServiceRequestTypeDto>> GetTypesByCategoryAsync(int categoryId, bool includeInactive = false)
+    {
+        var query = _context.ServiceRequestTypes
+            .Include(t => t.Category)
+            .Include(t => t.Subcategory)
+            .Where(t => !t.IsDeleted && t.CategoryId == categoryId);
+
+        if (!includeInactive)
+        {
+            query = query.Where(t => t.IsActive);
+        }
+
+        var types = await query
+            .OrderBy(t => t.Subcategory!.Name)
+            .ThenBy(t => t.DisplayOrder)
+            .ThenBy(t => t.Name)
+            .ToListAsync();
+
+        return types.Select(MapToDto).ToList();
+    }
+
+    public async Task<List<ServiceRequestTypeGroupedDto>> GetTypesGroupedAsync(bool includeInactive = false)
+    {
+        var types = await GetAllTypesAsync(includeInactive);
+
+        return types
+            .GroupBy(t => new { t.CategoryId, t.CategoryName })
+            .Select(catGroup => new ServiceRequestTypeGroupedDto
+            {
+                CategoryId = catGroup.Key.CategoryId,
+                CategoryName = catGroup.Key.CategoryName ?? "",
+                Subcategories = catGroup
+                    .GroupBy(t => new { t.SubcategoryId, t.SubcategoryName })
+                    .Select(subGroup => new SubcategoryWithTypesDto
+                    {
+                        SubcategoryId = subGroup.Key.SubcategoryId,
+                        SubcategoryName = subGroup.Key.SubcategoryName ?? "",
+                        Types = subGroup.OrderBy(t => t.DisplayOrder).ThenBy(t => t.Name).ToList()
+                    })
+                    .OrderBy(s => s.SubcategoryName)
+                    .ToList()
+            })
+            .OrderBy(c => c.CategoryName)
+            .ToList();
+    }
+
+    public async Task<ServiceRequestTypeDto?> GetTypeByIdAsync(int id)
+    {
+        var type = await _context.ServiceRequestTypes
+            .Include(t => t.Category)
+            .Include(t => t.Subcategory)
+            .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
+
+        return type != null ? MapToDto(type) : null;
+    }
+
+    public async Task<ServiceRequestTypeDto> CreateTypeAsync(CreateServiceRequestTypeDto dto)
+    {
+        var type = new ServiceRequestType
+        {
+            Name = dto.Name,
+            RequestType = dto.RequestType,
+            DetailedDescription = dto.DetailedDescription,
+            WorkflowName = dto.WorkflowName,
+            PossibleResolutions = dto.PossibleResolutions,
+            FinalCustomerResolutions = dto.FinalCustomerResolutions,
+            CategoryId = dto.CategoryId,
+            SubcategoryId = dto.SubcategoryId,
+            DisplayOrder = dto.DisplayOrder,
+            IsActive = dto.IsActive,
+            DefaultPriority = dto.DefaultPriority,
+            ResponseTimeHours = dto.ResponseTimeHours,
+            ResolutionTimeHours = dto.ResolutionTimeHours,
+            Tags = dto.Tags,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.ServiceRequestTypes.Add(type);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Created service request type: {Name}", type.Name);
+
+        return await GetTypeByIdAsync(type.Id) ?? throw new InvalidOperationException();
+    }
+
+    public async Task<ServiceRequestTypeDto> UpdateTypeAsync(int id, UpdateServiceRequestTypeDto dto)
+    {
+        var type = await _context.ServiceRequestTypes.FindAsync(id)
+            ?? throw new KeyNotFoundException($"Service request type {id} not found");
+
+        type.Name = dto.Name;
+        type.RequestType = dto.RequestType;
+        type.DetailedDescription = dto.DetailedDescription;
+        type.WorkflowName = dto.WorkflowName;
+        type.PossibleResolutions = dto.PossibleResolutions;
+        type.FinalCustomerResolutions = dto.FinalCustomerResolutions;
+        type.CategoryId = dto.CategoryId;
+        type.SubcategoryId = dto.SubcategoryId;
+        type.DisplayOrder = dto.DisplayOrder;
+        type.IsActive = dto.IsActive;
+        type.DefaultPriority = dto.DefaultPriority;
+        type.ResponseTimeHours = dto.ResponseTimeHours;
+        type.ResolutionTimeHours = dto.ResolutionTimeHours;
+        type.Tags = dto.Tags;
+        type.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Updated service request type: {Name}", type.Name);
+
+        return await GetTypeByIdAsync(id) ?? throw new InvalidOperationException();
+    }
+
+    public async Task<bool> DeleteTypeAsync(int id)
+    {
+        var type = await _context.ServiceRequestTypes.FindAsync(id);
+        if (type == null) return false;
+
+        type.IsDeleted = true;
+        type.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Deleted service request type: {Id}", id);
+        return true;
+    }
+
+    public async Task<bool> ReorderTypesAsync(int subcategoryId, List<int> typeIds)
+    {
+        for (int i = 0; i < typeIds.Count; i++)
+        {
+            var type = await _context.ServiceRequestTypes
+                .FirstOrDefaultAsync(t => t.Id == typeIds[i] && t.SubcategoryId == subcategoryId);
+            if (type != null)
+            {
+                type.DisplayOrder = i;
+                type.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    private static ServiceRequestTypeDto MapToDto(ServiceRequestType t)
+    {
+        return new ServiceRequestTypeDto
+        {
+            Id = t.Id,
+            Name = t.Name,
+            RequestType = t.RequestType,
+            DetailedDescription = t.DetailedDescription,
+            WorkflowName = t.WorkflowName,
+            PossibleResolutions = t.PossibleResolutions,
+            FinalCustomerResolutions = t.FinalCustomerResolutions,
+            CategoryId = t.CategoryId,
+            CategoryName = t.Category?.Name,
+            SubcategoryId = t.SubcategoryId,
+            SubcategoryName = t.Subcategory?.Name,
+            DisplayOrder = t.DisplayOrder,
+            IsActive = t.IsActive,
+            DefaultPriority = t.DefaultPriority,
+            ResponseTimeHours = t.ResponseTimeHours,
+            ResolutionTimeHours = t.ResolutionTimeHours,
+            Tags = t.Tags,
+            CreatedAt = t.CreatedAt,
+            UpdatedAt = t.UpdatedAt
+        };
+    }
+}

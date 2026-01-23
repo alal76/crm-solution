@@ -42,6 +42,7 @@ import {
   Checkbox,
   Autocomplete,
   Stack,
+  Breadcrumbs,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -72,6 +73,10 @@ import {
   Delete as DeleteIcon,
   ArrowUpward as ArrowUpIcon,
   ArrowDownward as ArrowDownIcon,
+  ArrowBack as ArrowBackIcon,
+  ChevronRight as ChevronRightIcon,
+  Storage as StorageIcon,
+  TableChart as TableChartIcon,
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import apiClient from '../../services/apiClient';
@@ -190,6 +195,11 @@ const ModuleFieldSettingsTab: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
+  // Unified view mode
+  const [showUnifiedView, setShowUnifiedView] = useState(false);
+  const [unifiedConfigModule, setUnifiedConfigModule] = useState<ModuleUIConfig | null>(null);
+  const [unifiedSubTab, setUnifiedSubTab] = useState(0); // 0: Overview, 1: Fields, 2: Tabs, 3: Linked Entities
+  
   // Module list state
   const [modules, setModules] = useState<ModuleUIConfig[]>([]);
   
@@ -208,6 +218,10 @@ const ModuleFieldSettingsTab: React.FC = () => {
   const [linkedEntities, setLinkedEntities] = useState<LinkedEntity[]>([]);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [newLinkEntity, setNewLinkEntity] = useState('');
+  
+  // Database foreign keys state
+  const [databaseForeignKeys, setDatabaseForeignKeys] = useState<Record<string, any[]>>({});
+  const [loadingForeignKeys, setLoadingForeignKeys] = useState(false);
 
   // Load all module configurations
   const loadModules = useCallback(async () => {
@@ -266,9 +280,24 @@ const ModuleFieldSettingsTab: React.FC = () => {
     }
   }, [selectedModule]);
 
+  // Load database foreign keys
+  const loadDatabaseForeignKeys = useCallback(async () => {
+    try {
+      setLoadingForeignKeys(true);
+      const response = await apiClient.get('/database/linked-entities-schema');
+      setDatabaseForeignKeys(response.data || {});
+    } catch (err: any) {
+      console.error('Failed to load database foreign keys:', err);
+      // Non-critical error, don't show to user
+    } finally {
+      setLoadingForeignKeys(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadModules();
-  }, [loadModules]);
+    loadDatabaseForeignKeys();
+  }, [loadModules, loadDatabaseForeignKeys]);
 
   useEffect(() => {
     if (selectedModule && selectedSection > 0) {
@@ -569,7 +598,9 @@ const ModuleFieldSettingsTab: React.FC = () => {
               }}
               onClick={() => {
                 setSelectedModule(module.moduleName);
-                setSelectedSection(1);
+                setUnifiedConfigModule(module);
+                setShowUnifiedView(true);
+                setUnifiedSubTab(0);
               }}
             >
               <CardContent>
@@ -981,30 +1012,572 @@ const ModuleFieldSettingsTab: React.FC = () => {
     );
   }
 
+  // Unified Module Configuration View
+  const renderUnifiedConfigView = () => {
+    if (!unifiedConfigModule) return null;
+
+    const moduleFields = fields.filter(f => f.moduleName === selectedModule);
+    const moduleTabs = tabs.length > 0 ? tabs : 
+      Array.from(new Set(moduleFields.map(f => f.tabName))).map((name, idx) => ({
+        index: idx,
+        name: name as string,
+        enabled: true,
+        order: idx
+      }));
+
+    return (
+      <Box>
+        {/* Breadcrumb and Back Button */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={() => {
+              setShowUnifiedView(false);
+              setUnifiedConfigModule(null);
+            }}
+            variant="outlined"
+            size="small"
+          >
+            Back to Modules
+          </Button>
+          <Breadcrumbs separator={<ChevronRightIcon fontSize="small" />}>
+            <Typography color="text.secondary">Module Settings</Typography>
+            <Typography color="primary" sx={{ fontWeight: 600 }}>
+              {unifiedConfigModule.displayName || unifiedConfigModule.moduleName}
+            </Typography>
+          </Breadcrumbs>
+        </Box>
+
+        {/* Module Header Card */}
+        <Card sx={{ mb: 3, borderRadius: 2 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ 
+                  color: unifiedConfigModule.isEnabled ? 'primary.main' : 'text.disabled',
+                  p: 1.5,
+                  bgcolor: 'action.hover',
+                  borderRadius: 2,
+                  display: 'flex',
+                }}>
+                  {moduleIcons[unifiedConfigModule.moduleName] || <ViewModuleIcon fontSize="large" />}
+                </Box>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                    {unifiedConfigModule.displayName || unifiedConfigModule.moduleName}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {unifiedConfigModule.description || 'Configure all aspects of this module'}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Chip 
+                  label={unifiedConfigModule.isEnabled ? 'Enabled' : 'Disabled'}
+                  color={unifiedConfigModule.isEnabled ? 'success' : 'default'}
+                />
+                <Switch
+                  checked={unifiedConfigModule.isEnabled}
+                  onChange={(e) => handleToggleModule(unifiedConfigModule.moduleName, e.target.checked)}
+                  color="primary"
+                />
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Configuration Sub-Tabs */}
+        <Paper sx={{ borderRadius: 2 }}>
+          <Tabs 
+            value={unifiedSubTab} 
+            onChange={(_, v) => setUnifiedSubTab(v)}
+            sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}
+          >
+            <Tab icon={<SettingsIcon />} label="Overview" iconPosition="start" />
+            <Tab icon={<TableChartIcon />} label="Fields" iconPosition="start" />
+            <Tab icon={<DashboardIcon />} label="Tabs" iconPosition="start" />
+            <Tab icon={<LinkIcon />} label="Linked Entities" iconPosition="start" />
+          </Tabs>
+
+          {/* Overview Tab */}
+          {unifiedSubTab === 0 && (
+            <Box sx={{ p: 3 }}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                        <SettingsIcon sx={{ mr: 1, verticalAlign: 'middle', fontSize: 20 }} />
+                        Module Settings
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            label="Display Name"
+                            value={unifiedConfigModule.displayName || ''}
+                            size="small"
+                            disabled
+                            helperText="Module display name (contact admin to change)"
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            label="Description"
+                            value={unifiedConfigModule.description || ''}
+                            size="small"
+                            multiline
+                            rows={2}
+                            disabled
+                          />
+                        </Grid>
+                        <Grid item xs={6}>
+                          <TextField
+                            fullWidth
+                            label="Display Order"
+                            value={unifiedConfigModule.displayOrder}
+                            size="small"
+                            type="number"
+                            disabled
+                          />
+                        </Grid>
+                        <Grid item xs={6}>
+                          <TextField
+                            fullWidth
+                            label="Icon"
+                            value={unifiedConfigModule.iconName || 'Default'}
+                            size="small"
+                            disabled
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                        <StorageIcon sx={{ mr: 1, verticalAlign: 'middle', fontSize: 20 }} />
+                        Statistics
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                          <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'action.hover' }}>
+                            <Typography variant="h4" color="primary">{moduleFields.length}</Typography>
+                            <Typography variant="caption">Total Fields</Typography>
+                          </Paper>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'action.hover' }}>
+                            <Typography variant="h4" color="success.main">
+                              {moduleFields.filter(f => f.isEnabled).length}
+                            </Typography>
+                            <Typography variant="caption">Visible Fields</Typography>
+                          </Paper>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'action.hover' }}>
+                            <Typography variant="h4" color="secondary">{moduleTabs.length}</Typography>
+                            <Typography variant="caption">Tabs</Typography>
+                          </Paper>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'action.hover' }}>
+                            <Typography variant="h4" color="info.main">{linkedEntities.length}</Typography>
+                            <Typography variant="caption">Linked Entities</Typography>
+                          </Paper>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12}>
+                  <Alert severity="info" sx={{ borderRadius: 2 }}>
+                    <Typography variant="body2">
+                      <strong>Quick Actions:</strong> Use the tabs above to configure fields, form tabs, and entity relationships.
+                      Changes to fields take effect immediately. Tab and linked entity changes require saving.
+                    </Typography>
+                  </Alert>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+
+          {/* Fields Tab - Inline edit */}
+          {unifiedSubTab === 1 && (
+            <Box sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Field Configuration
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<RefreshIcon />}
+                  onClick={handleInitializeDefaults}
+                  size="small"
+                >
+                  Initialize Defaults
+                </Button>
+              </Box>
+              {moduleFields.length === 0 ? (
+                <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover', borderRadius: 2 }}>
+                  <SettingsIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+                  <Typography>No fields configured. Click "Initialize Defaults" to create field configurations.</Typography>
+                </Paper>
+              ) : (
+                <Box>
+                  <Tabs 
+                    value={selectedFieldTab} 
+                    onChange={(_, v) => setSelectedFieldTab(v)} 
+                    sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+                    variant="scrollable"
+                    scrollButtons="auto"
+                  >
+                    {fieldTabs.map((tabName) => (
+                      <Tab key={tabName} label={tabName} />
+                    ))}
+                  </Tabs>
+                  {fieldTabs.map((tabName, index) => (
+                    <TabPanel key={tabName} value={selectedFieldTab} index={index}>
+                      <DragDropContext onDragEnd={(result) => handleFieldDragEnd(result, tabName)}>
+                        <Droppable droppableId={`unified-fields-${tabName}`}>
+                          {(provided) => (
+                            <Table {...provided.droppableProps} ref={provided.innerRef} size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell width="40"></TableCell>
+                                  <TableCell><strong>Field</strong></TableCell>
+                                  <TableCell><strong>Type</strong></TableCell>
+                                  <TableCell><strong>Grid</strong></TableCell>
+                                  <TableCell><strong>Visible</strong></TableCell>
+                                  <TableCell><strong>Required</strong></TableCell>
+                                  <TableCell><strong>Actions</strong></TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {getFieldsForTab(tabName).map((field, idx) => (
+                                  <Draggable
+                                    key={field.id}
+                                    draggableId={`unified-${field.id.toString()}`}
+                                    index={idx}
+                                    isDragDisabled={!field.isReorderable}
+                                  >
+                                    {(provided, snapshot) => (
+                                      <TableRow
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        sx={{
+                                          backgroundColor: snapshot.isDragging ? '#f5f5f5' : 'transparent',
+                                          opacity: field.isEnabled ? 1 : 0.5,
+                                        }}
+                                      >
+                                        <TableCell {...provided.dragHandleProps}>
+                                          {field.isReorderable ? (
+                                            <DragIcon sx={{ color: '#999', cursor: 'grab' }} />
+                                          ) : (
+                                            <Tooltip title="Cannot reorder">
+                                              <DragIcon sx={{ color: '#ddd' }} />
+                                            </Tooltip>
+                                          )}
+                                        </TableCell>
+                                        <TableCell>
+                                          <Typography variant="body2" fontWeight={500}>
+                                            {field.fieldLabel}
+                                          </Typography>
+                                          <Typography variant="caption" color="textSecondary">
+                                            {field.fieldName}
+                                          </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                          <Chip label={field.fieldType} size="small" variant="outlined" />
+                                        </TableCell>
+                                        <TableCell>
+                                          <Chip label={`${field.gridSize}/12`} size="small" />
+                                        </TableCell>
+                                        <TableCell>
+                                          <IconButton
+                                            size="small"
+                                            onClick={() => handleToggleFieldEnabled(field)}
+                                            disabled={!field.isHideable}
+                                            color={field.isEnabled ? 'primary' : 'default'}
+                                          >
+                                            {field.isEnabled ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                                          </IconButton>
+                                        </TableCell>
+                                        <TableCell>
+                                          <Switch
+                                            checked={field.isRequired}
+                                            onChange={() => handleToggleFieldRequired(field)}
+                                            disabled={!field.isRequiredConfigurable}
+                                            size="small"
+                                          />
+                                        </TableCell>
+                                        <TableCell>
+                                          <IconButton size="small" onClick={() => handleEditField(field)} sx={{ color: '#6750A4' }}>
+                                            <EditIcon fontSize="small" />
+                                          </IconButton>
+                                        </TableCell>
+                                      </TableRow>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </TableBody>
+                            </Table>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
+                    </TabPanel>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          )}
+
+          {/* Tabs Configuration Tab */}
+          {unifiedSubTab === 2 && (
+            <Box sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Form Tab Configuration
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<SaveIcon />}
+                  onClick={handleSaveTabs}
+                  size="small"
+                >
+                  Save Changes
+                </Button>
+              </Box>
+              <Paper variant="outlined" sx={{ borderRadius: 2 }}>
+                <List>
+                  {moduleTabs.sort((a, b) => a.order - b.order).map((tab, index) => (
+                    <ListItem key={tab.name} divider={index < moduleTabs.length - 1}>
+                      <ListItemIcon>
+                        <DragIcon sx={{ color: '#999' }} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={tab.name}
+                        secondary={`Order: ${tab.order + 1}`}
+                      />
+                      <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <IconButton size="small" onClick={() => moveTab(index, 'up')} disabled={index === 0}>
+                          <ArrowUpIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => moveTab(index, 'down')} disabled={index === moduleTabs.length - 1}>
+                          <ArrowDownIcon fontSize="small" />
+                        </IconButton>
+                        <Switch
+                          checked={tab.enabled}
+                          onChange={() => handleToggleTab(tab.name)}
+                          size="small"
+                        />
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+                </List>
+                {moduleTabs.length === 0 && (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography color="textSecondary">
+                      No tabs configured. Initialize field defaults first.
+                    </Typography>
+                  </Box>
+                )}
+              </Paper>
+            </Box>
+          )}
+
+          {/* Linked Entities Tab */}
+          {unifiedSubTab === 3 && (
+            <Box sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Linked Entities Configuration
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    onClick={() => setLinkDialogOpen(true)}
+                    size="small"
+                  >
+                    Add Link
+                  </Button>
+                  <Button
+                    variant="contained"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSaveLinkedEntities}
+                    size="small"
+                  >
+                    Save Changes
+                  </Button>
+                </Box>
+              </Box>
+
+              {/* Database Foreign Keys Section */}
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, mt: 2 }}>
+                <StorageIcon sx={{ fontSize: 18, mr: 0.5, verticalAlign: 'middle' }} />
+                Database Foreign Keys
+              </Typography>
+              <Paper variant="outlined" sx={{ borderRadius: 2, mb: 3 }}>
+                {loadingForeignKeys ? (
+                  <Box sx={{ p: 3, textAlign: 'center' }}>
+                    <CircularProgress size={24} />
+                    <Typography variant="body2" sx={{ mt: 1 }}>Loading database schema...</Typography>
+                  </Box>
+                ) : (
+                  <List dense>
+                    {(() => {
+                      // Get the table name for the current module (assuming plural form)
+                      const tableName = selectedModule;
+                      const tableKeys = databaseForeignKeys[tableName] || [];
+                      
+                      if (tableKeys.length === 0) {
+                        return (
+                          <ListItem>
+                            <ListItemText 
+                              primary="No foreign keys found"
+                              secondary={`Table "${tableName}" has no foreign key relationships defined in the database.`}
+                            />
+                          </ListItem>
+                        );
+                      }
+                      
+                      return tableKeys.map((fk: any, idx: number) => (
+                        <ListItem key={`${fk.constraintName}-${idx}`} divider={idx < tableKeys.length - 1}>
+                          <ListItemIcon>
+                            <StorageIcon color="primary" />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {fk.sourceColumn}
+                                </Typography>
+                                <ChevronRightIcon sx={{ color: 'text.secondary', fontSize: 16 }} />
+                                <Typography variant="body2" color="primary">
+                                  {fk.referencedTable}.{fk.referencedColumn}
+                                </Typography>
+                              </Box>
+                            }
+                            secondary={
+                              <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                <Chip label={fk.constraintName} size="small" sx={{ height: 18, fontSize: '0.65rem' }} />
+                                <Chip 
+                                  label={`ON DELETE: ${fk.onDelete}`} 
+                                  size="small" 
+                                  variant="outlined"
+                                  sx={{ height: 18, fontSize: '0.65rem' }} 
+                                />
+                                <Chip 
+                                  label={`ON UPDATE: ${fk.onUpdate}`} 
+                                  size="small" 
+                                  variant="outlined"
+                                  sx={{ height: 18, fontSize: '0.65rem' }} 
+                                />
+                              </Box>
+                            }
+                          />
+                        </ListItem>
+                      ));
+                    })()}
+                  </List>
+                )}
+              </Paper>
+
+              {/* Configured Linked Entities Section */}
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                <LinkIcon sx={{ fontSize: 18, mr: 0.5, verticalAlign: 'middle' }} />
+                Configured Linked Entities
+              </Typography>
+              <Paper variant="outlined" sx={{ borderRadius: 2 }}>
+                <List>
+                  {linkedEntities.map((entity, idx) => (
+                    <ListItem key={entity.entityName} divider={idx < linkedEntities.length - 1}>
+                      <ListItemIcon>
+                        {moduleIcons[entity.entityName] || <LinkIcon />}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={entity.entityName}
+                        secondary={
+                          <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                            <Chip label={entity.relationshipType} size="small" variant="outlined" />
+                            {entity.foreignKeyField && (
+                              <Chip label={`FK: ${entity.foreignKeyField}`} size="small" color="info" variant="outlined" />
+                            )}
+                          </Box>
+                        }
+                      />
+                      <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Switch
+                          checked={entity.enabled}
+                          onChange={() => handleToggleLinkedEntity(entity.entityName)}
+                          size="small"
+                        />
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleRemoveLinkedEntity(entity.entityName)}
+                          color="error"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+                </List>
+                {linkedEntities.length === 0 && (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <LinkIcon sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
+                    <Typography color="textSecondary">
+                      No linked entities configured. Click "Add Link" to connect entities.
+                    </Typography>
+                  </Box>
+                )}
+              </Paper>
+              <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
+                <Typography variant="body2">
+                  <strong>Note:</strong> Database foreign keys show actual database relationships. Configured linked entities control UI behavior.
+                </Typography>
+              </Alert>
+            </Box>
+          )}
+        </Paper>
+      </Box>
+    );
+  };
+
   return (
     <Box>
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
-      {/* Section tabs */}
-      <Paper sx={{ mb: 3, borderRadius: 2 }}>
-        <Tabs 
-          value={selectedSection} 
-          onChange={(_, v) => setSelectedSection(v)}
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
-        >
-          <Tab icon={<ViewModuleIcon />} label="Modules" iconPosition="start" />
-          <Tab icon={<SettingsIcon />} label="Fields" iconPosition="start" />
-          <Tab icon={<DashboardIcon />} label="Tabs" iconPosition="start" />
-          <Tab icon={<LinkIcon />} label="Linked Entities" iconPosition="start" />
-        </Tabs>
-      </Paper>
+      {/* Show unified view when a module is selected */}
+      {showUnifiedView ? renderUnifiedConfigView() : (
+        <>
+          {/* Section tabs */}
+          <Paper sx={{ mb: 3, borderRadius: 2 }}>
+            <Tabs 
+              value={selectedSection} 
+              onChange={(_, v) => setSelectedSection(v)}
+              sx={{ borderBottom: 1, borderColor: 'divider' }}
+            >
+              <Tab icon={<ViewModuleIcon />} label="Modules" iconPosition="start" />
+              <Tab icon={<SettingsIcon />} label="Fields" iconPosition="start" />
+              <Tab icon={<DashboardIcon />} label="Tabs" iconPosition="start" />
+              <Tab icon={<LinkIcon />} label="Linked Entities" iconPosition="start" />
+            </Tabs>
+          </Paper>
 
-      {/* Section content */}
-      {selectedSection === 0 && renderModulesSection()}
-      {selectedSection === 1 && renderFieldsSection()}
-      {selectedSection === 2 && renderTabsSection()}
-      {selectedSection === 3 && renderLinkedEntitiesSection()}
+          {/* Section content */}
+          {selectedSection === 0 && renderModulesSection()}
+          {selectedSection === 1 && renderFieldsSection()}
+          {selectedSection === 2 && renderTabsSection()}
+          {selectedSection === 3 && renderLinkedEntitiesSection()}
+        </>
+      )}
 
       {/* Edit Field Dialog */}
       <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>

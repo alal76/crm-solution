@@ -1,5 +1,6 @@
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -17,11 +18,19 @@ public class SystemSettingsController : ControllerBase
 {
     private readonly ISystemSettingsService _settingsService;
     private readonly ILogger<SystemSettingsController> _logger;
+    private readonly IDbContextResolver? _contextResolver;
+    private readonly IDemoModeState _demoModeState;
 
-    public SystemSettingsController(ISystemSettingsService settingsService, ILogger<SystemSettingsController> logger)
+    public SystemSettingsController(
+        ISystemSettingsService settingsService, 
+        ILogger<SystemSettingsController> logger,
+        IDemoModeState demoModeState,
+        IDbContextResolver? contextResolver = null)
     {
         _settingsService = settingsService;
         _logger = logger;
+        _demoModeState = demoModeState;
+        _contextResolver = contextResolver;
     }
 
     /// <summary>
@@ -407,23 +416,25 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpPost("demo/toggle")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<SystemSettingsDto>> ToggleDemoMode([FromBody] ToggleDemoModeRequest request)
+    public ActionResult<DemoStatusResponse> ToggleDemoMode([FromBody] ToggleDemoModeRequest request)
     {
         try
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
 
-            var updateRequest = new UpdateSystemSettingsRequest
+            // Update the API-layer singleton state (immediate effect)
+            _demoModeState.IsDemoMode = request.Enabled;
+            
+            _logger.LogInformation("Demo mode {Action} by user {UserId}. Current state: {State}", 
+                request.Enabled ? "ENABLED" : "DISABLED", userId, _demoModeState.IsDemoMode);
+            
+            return Ok(new DemoStatusResponse
             {
-                UseDemoDatabase = request.Enabled
-            };
-
-            var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
-            
-            _logger.LogInformation("Demo mode {Action} by user {UserId}", request.Enabled ? "enabled" : "disabled", userId);
-            
-            return Ok(settings);
+                UseDemoDatabase = _demoModeState.IsDemoMode,
+                DemoDataSeeded = true, // Demo data is always seeded
+                DemoDataLastSeeded = DateTime.UtcNow
+            });
         }
         catch (Exception ex)
         {
@@ -436,16 +447,16 @@ public class SystemSettingsController : ControllerBase
     /// Get demo database status
     /// </summary>
     [HttpGet("demo/status")]
-    public async Task<ActionResult<DemoStatusResponse>> GetDemoStatus()
+    public ActionResult<DemoStatusResponse> GetDemoStatus()
     {
         try
         {
-            var settings = await _settingsService.GetSettingsAsync();
+            // Return the current API-layer state
             return Ok(new DemoStatusResponse
             {
-                UseDemoDatabase = settings.UseDemoDatabase,
-                DemoDataSeeded = settings.DemoDataSeeded,
-                DemoDataLastSeeded = settings.DemoDataLastSeeded
+                UseDemoDatabase = _demoModeState.IsDemoMode,
+                DemoDataSeeded = true,
+                DemoDataLastSeeded = null
             });
         }
         catch (Exception ex)

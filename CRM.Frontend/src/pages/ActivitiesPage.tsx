@@ -18,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import ImportExportButtons from '../components/ImportExportButtons';
 
 // Activity type mappings
 const ACTIVITY_ICONS: Record<string, React.ReactElement> = {
@@ -224,6 +225,7 @@ function ActivitiesPage() {
                 <MenuItem value={200}>200</MenuItem>
               </Select>
             </FormControl>
+            <ImportExportButtons entityType="activities" entityLabel="Activities" onImportComplete={fetchData} />
           </Box>
         </Box>
 

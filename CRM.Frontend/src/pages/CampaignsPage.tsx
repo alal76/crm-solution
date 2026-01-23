@@ -14,6 +14,7 @@ import {
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import ImportExportButtons from '../components/ImportExportButtons';
 
 // Enums matching backend
 const CAMPAIGN_TYPES = [
@@ -289,9 +290,12 @@ function CampaignsPage() {
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Campaigns</Typography>
           </Box>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
-            Add Campaign
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <ImportExportButtons entityType="campaigns" entityLabel="Campaigns" onImportComplete={fetchCampaigns} />
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
+              Add Campaign
+            </Button>
+          </Box>
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}

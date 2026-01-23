@@ -503,8 +503,60 @@ public class DbSeed
             }
         }
 
+        // Seed default system settings with navigation configuration
+        await SeedSystemSettingsAsync(context);
+
         // Seed default module field configurations
         await SeedModuleFieldConfigurationsAsync(context);
+    }
+
+    /// <summary>
+    /// Seed default system settings with navigation config and all items visible
+    /// </summary>
+    private static async Task SeedSystemSettingsAsync(CrmDbContext context)
+    {
+        var settings = await context.SystemSettings.FirstOrDefaultAsync();
+        
+        // Default navigation configuration with all items visible
+        var defaultNavConfig = @"[
+            {""id"":""dashboard"",""order"":0,""visible"":true},
+            {""id"":""customers"",""order"":1,""visible"":true},
+            {""id"":""customer-overview"",""order"":2,""visible"":true},
+            {""id"":""contacts"",""order"":3,""visible"":true},
+            {""id"":""leads"",""order"":4,""visible"":true},
+            {""id"":""opportunities"",""order"":5,""visible"":true},
+            {""id"":""products"",""order"":6,""visible"":true},
+            {""id"":""services"",""order"":7,""visible"":true},
+            {""id"":""service-requests"",""order"":8,""visible"":true},
+            {""id"":""campaigns"",""order"":9,""visible"":true},
+            {""id"":""quotes"",""order"":10,""visible"":true},
+            {""id"":""tasks"",""order"":11,""visible"":true},
+            {""id"":""activities"",""order"":12,""visible"":true},
+            {""id"":""notes"",""order"":13,""visible"":true},
+            {""id"":""workflows"",""order"":14,""visible"":true},
+            {""id"":""settings"",""order"":15,""visible"":true}
+        ]".Replace(" ", "").Replace("\n", "").Replace("\r", "");
+        
+        if (settings == null)
+        {
+            settings = new SystemSettings
+            {
+                NavOrderConfig = defaultNavConfig,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow
+            };
+            context.SystemSettings.Add(settings);
+            await context.SaveChangesAsync();
+        }
+        else if (string.IsNullOrEmpty(settings.NavOrderConfig))
+        {
+            // Only update if no nav config exists
+            settings.NavOrderConfig = defaultNavConfig;
+            settings.UpdatedAt = DateTime.UtcNow;
+            settings.LastModified = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+        }
     }
 
     /// <summary>

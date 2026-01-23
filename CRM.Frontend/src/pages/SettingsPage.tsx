@@ -64,10 +64,12 @@ import NavigationSettingsTab from '../components/settings/NavigationSettingsTab'
 import ServiceRequestSettingsTab from '../components/settings/ServiceRequestSettingsTab';
 import DeploymentSettingsTab from '../components/settings/DeploymentSettingsTab';
 import MonitoringSettingsTab from '../components/settings/MonitoringSettingsTab';
+import MasterDataSettingsTab from '../components/settings/MasterDataSettingsTab';
 import logo from '../assets/logo.png';
 import {
   Cloud as CloudIcon,
   Monitor as MonitorIcon,
+  Storage as MasterDataIcon,
 } from '@mui/icons-material';
 
 interface ColorPalette {
@@ -1363,7 +1365,7 @@ function SettingsPage() {
     },
     {
       id: 'modules',
-      label: 'Module & Field Settings',
+      label: 'Modules',
       icon: <ModuleIcon sx={{ mr: 0.5, fontSize: 20 }} />,
       component: <ModuleFieldSettingsTab />,
     },
@@ -1402,6 +1404,12 @@ function SettingsPage() {
       label: 'Group Management',
       icon: <GroupsIcon sx={{ mr: 0.5, fontSize: 20 }} />,
       component: <GroupManagementTab />,
+    },
+    {
+      id: 'masterdata',
+      label: 'Master Data',
+      icon: <MasterDataIcon sx={{ mr: 0.5, fontSize: 20 }} />,
+      component: <MasterDataSettingsTab />,
     },
     {
       id: 'database',

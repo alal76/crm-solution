@@ -30,6 +30,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import LinkIcon from '@mui/icons-material/Link';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import ImportExportButtons from '../components/ImportExportButtons';
+import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 
 interface SocialMediaLink {
   id: number;
@@ -90,11 +92,35 @@ interface CreateContactRequest {
 const CONTACT_TYPES = ['Employee', 'Customer', 'Partner', 'Lead', 'Vendor', 'Other'];
 const SOCIAL_MEDIA_PLATFORMS = ['LinkedIn', 'Twitter', 'Facebook', 'Instagram', 'GitHub', 'Website', 'Other'];
 
+// Search fields configuration for contacts
+const CONTACT_SEARCH_FIELDS: SearchField[] = [
+  {
+    name: 'contactType',
+    label: 'Contact Type',
+    type: 'select',
+    options: CONTACT_TYPES.map((t) => ({ value: t, label: t })),
+  },
+  { name: 'firstName', label: 'First Name', type: 'text' },
+  { name: 'lastName', label: 'Last Name', type: 'text' },
+  { name: 'emailPrimary', label: 'Email', type: 'text' },
+  { name: 'company', label: 'Company', type: 'text' },
+  { name: 'jobTitle', label: 'Job Title', type: 'text' },
+  { name: 'city', label: 'City', type: 'text' },
+  { name: 'state', label: 'State', type: 'text' },
+  { name: 'country', label: 'Country', type: 'text' },
+];
+
+const CONTACT_SEARCHABLE_FIELDS = [
+  'firstName', 'lastName', 'emailPrimary', 'phonePrimary', 'company', 'jobTitle', 'city', 'state', 'country'
+];
+
 function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string>('');
+  const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+  const [searchText, setSearchText] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [socialMediaDialog, setSocialMediaDialog] = useState(false);
@@ -270,9 +296,13 @@ function ContactsPage() {
     return colors[type] || 'default';
   };
 
-  const filteredContacts = filterType
-    ? contacts
-    : contacts;
+  const handleSearch = (filters: SearchFilter[], text: string) => {
+    setSearchFilters(filters);
+    setSearchText(text);
+  };
+
+  // Apply filters and search text to contacts
+  const filteredContacts = filterData(contacts, searchFilters, searchText, CONTACT_SEARCHABLE_FIELDS);
 
   return (
     <Box sx={{ py: 4 }}>
@@ -284,30 +314,30 @@ function ContactsPage() {
               Contacts
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddContact}
-          >
-            Add Contact
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <ImportExportButtons
+              entityType="contacts"
+              entityLabel="Contacts"
+              onImportComplete={fetchContacts}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleAddContact}
+            >
+              Add Contact
+            </Button>
+          </Box>
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <LookupSelect
-              category="ContactType"
-              name="filterType"
-              value={filterType}
-              onChange={(e:any) => setFilterType(e.target.value)}
-              label="Filter by Type"
-              fallback={[{ value: '', label: 'All Types' }, ...CONTACT_TYPES.map(t => ({ value: t, label: t }))]}
-            />
-          </CardContent>
-        </Card>
+        <AdvancedSearch
+          fields={CONTACT_SEARCH_FIELDS}
+          onSearch={handleSearch}
+          placeholder="Search contacts by name, email, company..."
+        />
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>

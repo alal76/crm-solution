@@ -40,6 +40,7 @@ public interface ICrmDbContext
     DbSet<ServiceRequest> ServiceRequests { get; }
     DbSet<ServiceRequestCategory> ServiceRequestCategories { get; }
     DbSet<ServiceRequestSubcategory> ServiceRequestSubcategories { get; }
+    DbSet<ServiceRequestType> ServiceRequestTypes { get; }
     DbSet<ServiceRequestCustomFieldDefinition> ServiceRequestCustomFieldDefinitions { get; }
     DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; }
     DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; }
@@ -56,6 +57,11 @@ public interface ICrmDbContext
     DbSet<ModuleUIConfig> ModuleUIConfigs { get; }
     
     DatabaseFacade Database { get; }
+    
+    /// <summary>
+    /// Gets a DbSet for the specified entity type, enabling generic repository pattern
+    /// </summary>
+    DbSet<TEntity> Set<TEntity>() where TEntity : class;
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

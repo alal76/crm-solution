@@ -56,6 +56,17 @@ spec:
             secretKeyRef:
               name: crm-secrets
               key: DB_CONNECTION_STRING
+        # Demo database configuration - same server, auto-seeded
+        - name: DemoDatabase__AutoSeed
+          valueFrom:
+            configMapKeyRef:
+              name: crm-config
+              key: DemoDatabase__AutoSeed
+        - name: DemoDatabase__DatabaseName
+          valueFrom:
+            configMapKeyRef:
+              name: crm-config
+              key: DemoDatabase__DatabaseName
         resources:
           requests:
             memory: "256Mi"

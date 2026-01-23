@@ -461,7 +461,11 @@ function DatabaseSettingsTab() {
       });
       if (response.ok) {
         await fetchDemoStatus();
-        setSuccess(enabled ? 'Demo mode enabled' : 'Demo mode disabled');
+        setSuccess(enabled ? 'Demo mode enabled - refreshing page...' : 'Demo mode disabled - refreshing page...');
+        // Force page reload after a brief delay to clear all cached data and load from the new database
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       } else {
         setError('Failed to toggle demo mode');
       }
@@ -1265,7 +1269,8 @@ function DatabaseSettingsTab() {
                 </Box>
                 
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Demo mode uses a completely separate database from production to test the system with sample data.
+                  Demo mode uses a separate database (crm_demodb) on the same server as production to test the system with sample data.
+                  This keeps demo data completely isolated while sharing the same database server.
                   When enabled, a "Demo" indicator will be shown in the navigation header.
                   {demoStatus?.message && (
                     <Box component="span" sx={{ display: 'block', mt: 1, fontStyle: 'italic' }}>

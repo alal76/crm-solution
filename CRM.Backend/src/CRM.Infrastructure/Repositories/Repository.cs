@@ -5,13 +5,14 @@ using CRM.Infrastructure.Data;
 namespace CRM.Infrastructure.Repositories;
 
 /// <summary>
-/// Generic repository implementation
+/// Generic repository implementation.
+/// Uses ICrmDbContext for dynamic database resolution (supports demo mode switching).
 /// </summary>
 public class Repository<T> : IRepository<T> where T : BaseEntity
 {
-    protected readonly CrmDbContext _context;
+    protected readonly ICrmDbContext _context;
 
-    public Repository(CrmDbContext context)
+    public Repository(ICrmDbContext context)
     {
         _context = context;
     }

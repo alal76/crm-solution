@@ -13,6 +13,7 @@ import {
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import ImportExportButtons from '../components/ImportExportButtons';
 
 // Enums matching backend
 const NOTE_TYPES = [
@@ -230,6 +231,7 @@ function NotesPage() {
               label="Type"
               fallback={[{ value: 'all', label: 'All Types' }, ...NOTE_TYPES.map(t => ({ value: t.value, label: t.label }))]}
             />
+            <ImportExportButtons entityType="notes" entityLabel="Notes" onImportComplete={fetchNotes} />
             <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
               Add Note
             </Button>

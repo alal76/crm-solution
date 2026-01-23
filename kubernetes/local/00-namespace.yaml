@@ -15,6 +15,9 @@ data:
   DatabaseProvider: "MariaDb"
   NODE_ENV: "production"
   REACT_APP_API_URL: "/api"
+  # Demo database configuration - on same server as production
+  DemoDatabase__AutoSeed: "true"
+  DemoDatabase__DatabaseName: "crm_demodb"
 ---
 apiVersion: v1
 kind: Secret

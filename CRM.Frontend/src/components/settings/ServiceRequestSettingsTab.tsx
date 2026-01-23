@@ -38,6 +38,14 @@ import {
   Paper,
   Divider,
   SelectChangeEvent,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Collapse,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -47,6 +55,14 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import CategoryIcon from '@mui/icons-material/Category';
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
 import InputIcon from '@mui/icons-material/Input';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import InfoIcon from '@mui/icons-material/Info';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import {
   ServiceRequestCategory,
   CreateServiceRequestCategory,
@@ -59,6 +75,9 @@ import {
   serviceRequestCategoryService,
   serviceRequestSubcategoryService,
   serviceRequestCustomFieldService,
+  ServiceRequestType,
+  ServiceRequestTypeGrouped,
+  serviceRequestTypeService,
 } from '../../services/apiService';
 import apiClient from '../../services/apiClient';
 
@@ -157,6 +176,15 @@ function ServiceRequestSettingsTab() {
   });
   const [activeFieldCount, setActiveFieldCount] = useState(0);
 
+  // Service Request Types
+  const [typesGrouped, setTypesGrouped] = useState<ServiceRequestTypeGrouped[]>([]);
+  const [selectedType, setSelectedType] = useState<ServiceRequestType | null>(null);
+  const [typeDetailDialogOpen, setTypeDetailDialogOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
+  const [expandedSubcategories, setExpandedSubcategories] = useState<Set<number>>(new Set());
+  const [typesLoading, setTypesLoading] = useState(false);
+  const [typesCount, setTypesCount] = useState(0);
+
   // Reference data
   const [groups, setGroups] = useState<UserGroup[]>([]);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
@@ -178,6 +206,23 @@ function ServiceRequestSettingsTab() {
         setSubcategories(subRes.data);
         setCustomFields(fieldRes.data);
         setActiveFieldCount(countRes.data.activeCount);
+        
+        // Service Request Types - grouped by category/subcategory
+        try {
+          const typesRes = await serviceRequestTypeService.getGrouped(true);
+          setTypesGrouped(typesRes.data);
+          // Calculate total count
+          let count = 0;
+          typesRes.data.forEach(cat => {
+            cat.subcategories.forEach(sub => {
+              count += sub.types.length;
+            });
+          });
+          setTypesCount(count);
+        } catch (e) {
+          console.warn('Could not load service request types:', e);
+          setTypesGrouped([]);
+        }
         
         // Optional reference data - don't fail if these are unavailable
         try {
@@ -432,6 +477,47 @@ function ServiceRequestSettingsTab() {
     }
   };
 
+  // Service Request Type handlers
+  const handleToggleCategory = (categoryId: number) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  const handleToggleSubcategory = (subcategoryId: number) => {
+    const newExpanded = new Set(expandedSubcategories);
+    if (newExpanded.has(subcategoryId)) {
+      newExpanded.delete(subcategoryId);
+    } else {
+      newExpanded.add(subcategoryId);
+    }
+    setExpandedSubcategories(newExpanded);
+  };
+
+  const handleExpandAllCategories = () => {
+    const allCategoryIds = new Set(typesGrouped.map(cat => cat.categoryId));
+    setExpandedCategories(allCategoryIds);
+    const allSubcategoryIds = new Set<number>();
+    typesGrouped.forEach(cat => {
+      cat.subcategories.forEach(sub => allSubcategoryIds.add(sub.subcategoryId));
+    });
+    setExpandedSubcategories(allSubcategoryIds);
+  };
+
+  const handleCollapseAllCategories = () => {
+    setExpandedCategories(new Set());
+    setExpandedSubcategories(new Set());
+  };
+
+  const handleViewTypeDetails = (type: ServiceRequestType) => {
+    setSelectedType(type);
+    setTypeDetailDialogOpen(true);
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -463,7 +549,7 @@ function ServiceRequestSettingsTab() {
 
       {/* Quick Stats */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={3}>
           <Card sx={{ borderRadius: 2 }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <CategoryIcon color="primary" sx={{ fontSize: 32 }} />
@@ -474,7 +560,7 @@ function ServiceRequestSettingsTab() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={3}>
           <Card sx={{ borderRadius: 2 }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <SubdirectoryArrowRightIcon color="secondary" sx={{ fontSize: 32 }} />
@@ -485,7 +571,18 @@ function ServiceRequestSettingsTab() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={3}>
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <AssignmentIcon color="info" sx={{ fontSize: 32 }} />
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 700 }}>{typesCount}</Typography>
+                <Typography variant="body2" color="textSecondary">Request Types</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={3}>
           <Card sx={{ borderRadius: 2 }}>
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <InputIcon color="success" sx={{ fontSize: 32 }} />
@@ -508,6 +605,7 @@ function ServiceRequestSettingsTab() {
         >
           <Tab label="Categories" icon={<CategoryIcon />} iconPosition="start" sx={{ textTransform: 'none' }} />
           <Tab label="Subcategories" icon={<SubdirectoryArrowRightIcon />} iconPosition="start" sx={{ textTransform: 'none' }} />
+          <Tab label="Request Types" icon={<AssignmentIcon />} iconPosition="start" sx={{ textTransform: 'none' }} />
           <Tab label="Custom Fields" icon={<InputIcon />} iconPosition="start" sx={{ textTransform: 'none' }} />
         </Tabs>
 
@@ -649,8 +747,142 @@ function ServiceRequestSettingsTab() {
             </Table>
           </TabPanel>
 
-          {/* Custom Fields Tab */}
+          {/* Request Types Tab */}
           <TabPanel value={tabValue} index={2}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="body2" color="textSecondary">
+                {typesCount} request types across {typesGrouped.length} categories
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <Button size="small" onClick={handleExpandAllCategories}>
+                  Expand All
+                </Button>
+                <Button size="small" onClick={handleCollapseAllCategories}>
+                  Collapse All
+                </Button>
+              </Stack>
+            </Box>
+
+            {typesGrouped.length === 0 ? (
+              <Alert severity="info" sx={{ borderRadius: 2 }}>
+                No service request types found. Types are seeded from the demo database.
+              </Alert>
+            ) : (
+              typesGrouped.map((category) => (
+                <Accordion 
+                  key={category.categoryId}
+                  expanded={expandedCategories.has(category.categoryId)}
+                  onChange={() => handleToggleCategory(category.categoryId)}
+                  sx={{ mb: 1, borderRadius: 2, '&:before': { display: 'none' } }}
+                >
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
+                      <CategoryIcon color="primary" />
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="subtitle1" fontWeight="bold">{category.categoryName}</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {category.subcategories.length} subcategories, {category.subcategories.reduce((acc, sub) => acc + sub.types.length, 0)} types
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    {category.subcategories.map((subcategory) => (
+                      <Card key={subcategory.subcategoryId} sx={{ mb: 1, borderRadius: 2 }}>
+                        <CardContent sx={{ py: 1, '&:last-child': { pb: 1 } }}>
+                          <Box 
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              cursor: 'pointer',
+                              py: 1 
+                            }}
+                            onClick={() => handleToggleSubcategory(subcategory.subcategoryId)}
+                          >
+                            <SubdirectoryArrowRightIcon color="secondary" sx={{ mr: 1 }} />
+                            <Typography variant="subtitle2" fontWeight="medium" sx={{ flexGrow: 1 }}>
+                              {subcategory.subcategoryName}
+                            </Typography>
+                            <Chip 
+                              label={`${subcategory.types.length} types`} 
+                              size="small" 
+                              variant="outlined"
+                              sx={{ mr: 1 }}
+                            />
+                            {expandedSubcategories.has(subcategory.subcategoryId) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                          </Box>
+                          
+                          <Collapse in={expandedSubcategories.has(subcategory.subcategoryId)}>
+                            <Divider sx={{ my: 1 }} />
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>Name</TableCell>
+                                  <TableCell>Type</TableCell>
+                                  <TableCell>Workflow</TableCell>
+                                  <TableCell>Priority</TableCell>
+                                  <TableCell>Status</TableCell>
+                                  <TableCell align="right">Actions</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {subcategory.types.map((type) => (
+                                  <TableRow key={type.id} hover>
+                                    <TableCell>
+                                      <Typography variant="body2" fontWeight="medium">{type.name}</Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                      <Chip 
+                                        icon={type.requestType === 'Complaint' ? <ReportProblemIcon /> : <HelpOutlineIcon />}
+                                        label={type.requestType} 
+                                        size="small" 
+                                        color={type.requestType === 'Complaint' ? 'warning' : 'info'}
+                                        variant="outlined"
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      {type.workflowName ? (
+                                        <Chip 
+                                          icon={<AccountTreeIcon />}
+                                          label={type.workflowName} 
+                                          size="small" 
+                                          variant="outlined"
+                                        />
+                                      ) : '-'}
+                                    </TableCell>
+                                    <TableCell>
+                                      {type.defaultPriority || '-'}
+                                    </TableCell>
+                                    <TableCell>
+                                      <Chip 
+                                        label={type.isActive ? 'Active' : 'Inactive'} 
+                                        color={type.isActive ? 'success' : 'default'} 
+                                        size="small" 
+                                      />
+                                    </TableCell>
+                                    <TableCell align="right">
+                                      <Tooltip title="View Details">
+                                        <IconButton size="small" onClick={() => handleViewTypeDetails(type)}>
+                                          <InfoIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </Collapse>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </AccordionDetails>
+                </Accordion>
+              ))
+            )}
+          </TabPanel>
+
+          {/* Custom Fields Tab */}
+          <TabPanel value={tabValue} index={3}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="body2" color="textSecondary">
                 Active custom fields: {activeFieldCount} / 15
@@ -947,6 +1179,218 @@ function ServiceRequestSettingsTab() {
         <DialogActions>
           <Button onClick={() => setFieldDialogOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleSaveField}>{selectedField ? 'Update' : 'Create'}</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Type Detail Dialog */}
+      <Dialog 
+        open={typeDetailDialogOpen} 
+        onClose={() => setTypeDetailDialogOpen(false)} 
+        maxWidth="md" 
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AssignmentIcon color="primary" />
+          Service Request Type Details
+        </DialogTitle>
+        <DialogContent>
+          {selectedType && (
+            <Grid container spacing={3} sx={{ mt: 0 }}>
+              {/* Header Info */}
+              <Grid item xs={12}>
+                <Paper sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom>
+                    {selectedType.name}
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Chip 
+                      icon={selectedType.requestType === 'Complaint' ? <ReportProblemIcon /> : <HelpOutlineIcon />}
+                      label={selectedType.requestType} 
+                      color={selectedType.requestType === 'Complaint' ? 'warning' : 'info'}
+                    />
+                    <Chip 
+                      label={selectedType.isActive ? 'Active' : 'Inactive'} 
+                      color={selectedType.isActive ? 'success' : 'default'} 
+                    />
+                    {selectedType.defaultPriority && (
+                      <Chip label={`Priority: ${selectedType.defaultPriority}`} variant="outlined" />
+                    )}
+                  </Stack>
+                </Paper>
+              </Grid>
+
+              {/* Category & Subcategory */}
+              <Grid item xs={12} sm={6}>
+                <Card sx={{ height: '100%', borderRadius: 2 }}>
+                  <CardContent>
+                    <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                      Category
+                    </Typography>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <CategoryIcon color="primary" />
+                      <Typography variant="body1">{selectedType.categoryName || '-'}</Typography>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Card sx={{ height: '100%', borderRadius: 2 }}>
+                  <CardContent>
+                    <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                      Subcategory
+                    </Typography>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <SubdirectoryArrowRightIcon color="secondary" />
+                      <Typography variant="body1">{selectedType.subcategoryName || '-'}</Typography>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Workflow */}
+              <Grid item xs={12}>
+                <Card sx={{ borderRadius: 2 }}>
+                  <CardContent>
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                      <AccountTreeIcon color="info" />
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        Workflow
+                      </Typography>
+                    </Stack>
+                    {selectedType.workflowName ? (
+                      <Chip 
+                        icon={<AccountTreeIcon />}
+                        label={selectedType.workflowName} 
+                        color="info"
+                        variant="outlined"
+                        sx={{ fontSize: '1rem', py: 2 }}
+                      />
+                    ) : (
+                      <Typography color="textSecondary" fontStyle="italic">
+                        No workflow assigned
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Description */}
+              {selectedType.detailedDescription && (
+                <Grid item xs={12}>
+                  <Card sx={{ borderRadius: 2 }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                        Detailed Description
+                      </Typography>
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                        {selectedType.detailedDescription}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Possible Resolutions */}
+              {selectedType.possibleResolutionsList && selectedType.possibleResolutionsList.length > 0 && (
+                <Grid item xs={12} sm={6}>
+                  <Card sx={{ height: '100%', borderRadius: 2 }}>
+                    <CardContent>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                        <CheckCircleIcon color="success" />
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          Possible Resolutions
+                        </Typography>
+                      </Stack>
+                      <List dense>
+                        {selectedType.possibleResolutionsList.map((resolution, index) => (
+                          <ListItem key={index} sx={{ py: 0.5 }}>
+                            <ListItemIcon sx={{ minWidth: 30 }}>
+                              <CheckCircleIcon color="success" fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText primary={resolution} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Final Customer Resolutions */}
+              {selectedType.finalCustomerResolutionsList && selectedType.finalCustomerResolutionsList.length > 0 && (
+                <Grid item xs={12} sm={6}>
+                  <Card sx={{ height: '100%', borderRadius: 2 }}>
+                    <CardContent>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                        <InfoIcon color="primary" />
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          Final Customer Resolutions
+                        </Typography>
+                      </Stack>
+                      <List dense>
+                        {selectedType.finalCustomerResolutionsList.map((resolution, index) => (
+                          <ListItem key={index} sx={{ py: 0.5 }}>
+                            <ListItemIcon sx={{ minWidth: 30 }}>
+                              <CheckCircleIcon color="primary" fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText primary={resolution} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* SLA Info */}
+              {(selectedType.responseTimeHours || selectedType.resolutionTimeHours) && (
+                <Grid item xs={12}>
+                  <Card sx={{ borderRadius: 2 }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                        SLA Information
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {selectedType.responseTimeHours && (
+                          <Grid item xs={6}>
+                            <Typography variant="body2" color="textSecondary">Response Time</Typography>
+                            <Typography variant="h6">{selectedType.responseTimeHours} hours</Typography>
+                          </Grid>
+                        )}
+                        {selectedType.resolutionTimeHours && (
+                          <Grid item xs={6}>
+                            <Typography variant="body2" color="textSecondary">Resolution Time</Typography>
+                            <Typography variant="h6">{selectedType.resolutionTimeHours} hours</Typography>
+                          </Grid>
+                        )}
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Tags */}
+              {selectedType.tagsList && selectedType.tagsList.length > 0 && (
+                <Grid item xs={12}>
+                  <Card sx={{ borderRadius: 2 }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                        Tags
+                      </Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {selectedType.tagsList.map((tag, index) => (
+                          <Chip key={index} label={tag} size="small" variant="outlined" />
+                        ))}
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTypeDetailDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>

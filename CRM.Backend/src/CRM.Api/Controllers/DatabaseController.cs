@@ -75,6 +75,57 @@ public class DatabaseController : ControllerBase
     }
 
     /// <summary>
+    /// Get foreign key relationships from the database schema
+    /// </summary>
+    [HttpGet("foreign-keys")]
+    public async Task<ActionResult<List<ForeignKeyDto>>> GetForeignKeys([FromQuery] string? tableName = null)
+    {
+        try
+        {
+            var foreignKeys = await GetForeignKeyRelationshipsAsync(tableName);
+            return Ok(foreignKeys);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting foreign keys");
+            return StatusCode(500, new { message = "Error getting foreign keys" });
+        }
+    }
+
+    /// <summary>
+    /// Get schema information for linked entities (foreign keys grouped by source table)
+    /// </summary>
+    [HttpGet("linked-entities-schema")]
+    public async Task<ActionResult<Dictionary<string, List<LinkedEntitySchemaDto>>>> GetLinkedEntitiesSchema()
+    {
+        try
+        {
+            var foreignKeys = await GetForeignKeyRelationshipsAsync(null);
+            var grouped = foreignKeys
+                .GroupBy(fk => fk.SourceTable)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(fk => new LinkedEntitySchemaDto
+                    {
+                        SourceTable = fk.SourceTable,
+                        SourceColumn = fk.SourceColumn,
+                        ReferencedTable = fk.ReferencedTable,
+                        ReferencedColumn = fk.ReferencedColumn,
+                        ConstraintName = fk.ConstraintName,
+                        OnDelete = fk.OnDelete,
+                        OnUpdate = fk.OnUpdate
+                    }).ToList()
+                );
+            return Ok(grouped);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting linked entities schema");
+            return StatusCode(500, new { message = "Error getting linked entities schema" });
+        }
+    }
+
+    /// <summary>
     /// Test connection to a new database
     /// </summary>
     [HttpPost("test-connection")]
@@ -281,7 +332,9 @@ public class DatabaseController : ControllerBase
     private ConnectionInfo GetConnectionInfo()
     {
         var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
-        var connectionString = _configuration.GetConnectionString("DefaultConnection") ?? "";
+        // Get connection string from the actual resolved context, not from static configuration
+        // This ensures we get the correct database (demo or production) based on current mode
+        var connectionString = _context.Database.GetConnectionString() ?? _configuration.GetConnectionString("DefaultConnection") ?? "";
         var info = new ConnectionInfo();
 
         if (provider == "sqlite")
@@ -1399,6 +1452,184 @@ Then restart the API container:
     }
 
     // Helper methods
+
+    private async Task<List<ForeignKeyDto>> GetForeignKeyRelationshipsAsync(string? tableName)
+    {
+        var foreignKeys = new List<ForeignKeyDto>();
+        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+
+        try
+        {
+            var connection = _context.Database.GetDbConnection();
+            if (connection.State != System.Data.ConnectionState.Open)
+                await connection.OpenAsync();
+
+            switch (provider)
+            {
+                case "mysql":
+                case "mariadb":
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        var dbName = GetConnectionInfo().Database;
+                        var query = @"
+                            SELECT 
+                                kcu.CONSTRAINT_NAME as ConstraintName,
+                                kcu.TABLE_NAME as SourceTable,
+                                kcu.COLUMN_NAME as SourceColumn,
+                                kcu.REFERENCED_TABLE_NAME as ReferencedTable,
+                                kcu.REFERENCED_COLUMN_NAME as ReferencedColumn,
+                                rc.DELETE_RULE as OnDelete,
+                                rc.UPDATE_RULE as OnUpdate
+                            FROM information_schema.KEY_COLUMN_USAGE kcu
+                            INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS rc 
+                                ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME 
+                                AND kcu.CONSTRAINT_SCHEMA = rc.CONSTRAINT_SCHEMA
+                            WHERE kcu.TABLE_SCHEMA = @dbName 
+                                AND kcu.REFERENCED_TABLE_NAME IS NOT NULL";
+
+                        if (!string.IsNullOrEmpty(tableName))
+                        {
+                            query += " AND kcu.TABLE_NAME = @tableName";
+                        }
+
+                        query += " ORDER BY kcu.TABLE_NAME, kcu.ORDINAL_POSITION";
+
+                        cmd.CommandText = query;
+                        var dbParam = cmd.CreateParameter();
+                        dbParam.ParameterName = "@dbName";
+                        dbParam.Value = dbName;
+                        cmd.Parameters.Add(dbParam);
+
+                        if (!string.IsNullOrEmpty(tableName))
+                        {
+                            var tableParam = cmd.CreateParameter();
+                            tableParam.ParameterName = "@tableName";
+                            tableParam.Value = tableName;
+                            cmd.Parameters.Add(tableParam);
+                        }
+
+                        using var reader = await cmd.ExecuteReaderAsync();
+                        while (await reader.ReadAsync())
+                        {
+                            foreignKeys.Add(new ForeignKeyDto
+                            {
+                                ConstraintName = reader["ConstraintName"]?.ToString() ?? "",
+                                SourceTable = reader["SourceTable"]?.ToString() ?? "",
+                                SourceColumn = reader["SourceColumn"]?.ToString() ?? "",
+                                ReferencedTable = reader["ReferencedTable"]?.ToString() ?? "",
+                                ReferencedColumn = reader["ReferencedColumn"]?.ToString() ?? "",
+                                OnDelete = reader["OnDelete"]?.ToString() ?? "NO ACTION",
+                                OnUpdate = reader["OnUpdate"]?.ToString() ?? "NO ACTION"
+                            });
+                        }
+                    }
+                    break;
+
+                case "postgresql":
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        var query = @"
+                            SELECT 
+                                tc.constraint_name as ConstraintName,
+                                tc.table_name as SourceTable,
+                                kcu.column_name as SourceColumn,
+                                ccu.table_name as ReferencedTable,
+                                ccu.column_name as ReferencedColumn,
+                                rc.delete_rule as OnDelete,
+                                rc.update_rule as OnUpdate
+                            FROM information_schema.table_constraints tc
+                            JOIN information_schema.key_column_usage kcu 
+                                ON tc.constraint_name = kcu.constraint_name 
+                                AND tc.table_schema = kcu.table_schema
+                            JOIN information_schema.constraint_column_usage ccu 
+                                ON ccu.constraint_name = tc.constraint_name 
+                                AND ccu.table_schema = tc.table_schema
+                            JOIN information_schema.referential_constraints rc 
+                                ON tc.constraint_name = rc.constraint_name
+                            WHERE tc.constraint_type = 'FOREIGN KEY'";
+
+                        if (!string.IsNullOrEmpty(tableName))
+                        {
+                            query += " AND tc.table_name = @tableName";
+                        }
+
+                        query += " ORDER BY tc.table_name, kcu.ordinal_position";
+
+                        cmd.CommandText = query;
+
+                        if (!string.IsNullOrEmpty(tableName))
+                        {
+                            var tableParam = cmd.CreateParameter();
+                            tableParam.ParameterName = "@tableName";
+                            tableParam.Value = tableName;
+                            cmd.Parameters.Add(tableParam);
+                        }
+
+                        using var reader = await cmd.ExecuteReaderAsync();
+                        while (await reader.ReadAsync())
+                        {
+                            foreignKeys.Add(new ForeignKeyDto
+                            {
+                                ConstraintName = reader["ConstraintName"]?.ToString() ?? "",
+                                SourceTable = reader["SourceTable"]?.ToString() ?? "",
+                                SourceColumn = reader["SourceColumn"]?.ToString() ?? "",
+                                ReferencedTable = reader["ReferencedTable"]?.ToString() ?? "",
+                                ReferencedColumn = reader["ReferencedColumn"]?.ToString() ?? "",
+                                OnDelete = reader["OnDelete"]?.ToString() ?? "NO ACTION",
+                                OnUpdate = reader["OnUpdate"]?.ToString() ?? "NO ACTION"
+                            });
+                        }
+                    }
+                    break;
+
+                case "sqlite":
+                default:
+                    // SQLite uses PRAGMA for foreign key info
+                    using (var tablesCmd = connection.CreateCommand())
+                    {
+                        tablesCmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+                        var tables = new List<string>();
+                        using (var reader = await tablesCmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var table = reader.GetString(0);
+                                if (string.IsNullOrEmpty(tableName) || table.Equals(tableName, StringComparison.OrdinalIgnoreCase))
+                                    tables.Add(table);
+                            }
+                        }
+
+                        foreach (var table in tables)
+                        {
+                            using var fkCmd = connection.CreateCommand();
+                            fkCmd.CommandText = $"PRAGMA foreign_key_list({table})";
+                            using var fkReader = await fkCmd.ExecuteReaderAsync();
+                            while (await fkReader.ReadAsync())
+                            {
+                                foreignKeys.Add(new ForeignKeyDto
+                                {
+                                    ConstraintName = $"FK_{table}_{fkReader["id"]}",
+                                    SourceTable = table,
+                                    SourceColumn = fkReader["from"]?.ToString() ?? "",
+                                    ReferencedTable = fkReader["table"]?.ToString() ?? "",
+                                    ReferencedColumn = fkReader["to"]?.ToString() ?? "",
+                                    OnDelete = fkReader["on_delete"]?.ToString() ?? "NO ACTION",
+                                    OnUpdate = fkReader["on_update"]?.ToString() ?? "NO ACTION"
+                                });
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting foreign keys for table: {TableName}", tableName ?? "all");
+        }
+
+        return foreignKeys;
+    }
+
     private async Task<string> GetDatabaseSizeAsync()
     {
         var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
@@ -2311,4 +2542,26 @@ public class StatisticsScheduleUpdateDto
 {
     public bool IsEnabled { get; set; }
     public int IntervalMinutes { get; set; }
+}
+
+public class ForeignKeyDto
+{
+    public string ConstraintName { get; set; } = string.Empty;
+    public string SourceTable { get; set; } = string.Empty;
+    public string SourceColumn { get; set; } = string.Empty;
+    public string ReferencedTable { get; set; } = string.Empty;
+    public string ReferencedColumn { get; set; } = string.Empty;
+    public string OnDelete { get; set; } = "NO ACTION";
+    public string OnUpdate { get; set; } = "NO ACTION";
+}
+
+public class LinkedEntitySchemaDto
+{
+    public string SourceTable { get; set; } = string.Empty;
+    public string SourceColumn { get; set; } = string.Empty;
+    public string ReferencedTable { get; set; } = string.Empty;
+    public string ReferencedColumn { get; set; } = string.Empty;
+    public string ConstraintName { get; set; } = string.Empty;
+    public string OnDelete { get; set; } = "NO ACTION";
+    public string OnUpdate { get; set; } = "NO ACTION";
 }

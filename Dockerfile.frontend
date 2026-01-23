@@ -49,9 +49,9 @@ COPY --from=builder /app/build ./build
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+  CMD node -e "require('http').get('http://localhost:80', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
-EXPOSE 3000
+EXPOSE 80
 
-# Use serve with cache control headers
-CMD ["serve", "-s", "build", "-l", "3000", "-n", "--single"]
+# Use serve with cache control headers on port 80
+CMD ["serve", "-s", "build", "-l", "80", "-n", "--single"]

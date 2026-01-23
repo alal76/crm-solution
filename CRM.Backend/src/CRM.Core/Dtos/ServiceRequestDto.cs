@@ -486,6 +486,102 @@ public class PagedServiceRequestResult
 
 #endregion
 
+#region Service Request Type DTOs
+
+/// <summary>
+/// DTO for service request type with full details
+/// </summary>
+public class ServiceRequestTypeDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string RequestType { get; set; } = "Request"; // Complaint or Request
+    public string? DetailedDescription { get; set; }
+    public string? WorkflowName { get; set; }
+    public string? PossibleResolutions { get; set; }
+    public string? FinalCustomerResolutions { get; set; }
+    public int CategoryId { get; set; }
+    public string? CategoryName { get; set; }
+    public int SubcategoryId { get; set; }
+    public string? SubcategoryName { get; set; }
+    public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; }
+    public ServiceRequestPriority? DefaultPriority { get; set; }
+    public int? ResponseTimeHours { get; set; }
+    public int? ResolutionTimeHours { get; set; }
+    public string? Tags { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    
+    // Parsed arrays for convenience
+    public List<string> PossibleResolutionsList => 
+        string.IsNullOrEmpty(PossibleResolutions) ? new List<string>() : 
+        PossibleResolutions.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+    
+    public List<string> FinalCustomerResolutionsList => 
+        string.IsNullOrEmpty(FinalCustomerResolutions) ? new List<string>() : 
+        FinalCustomerResolutions.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+    
+    public List<string> TagsList => 
+        string.IsNullOrEmpty(Tags) ? new List<string>() : 
+        Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+}
+
+/// <summary>
+/// Grouped view of service request types by category and subcategory
+/// </summary>
+public class ServiceRequestTypeGroupedDto
+{
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = string.Empty;
+    public List<SubcategoryWithTypesDto> Subcategories { get; set; } = new();
+}
+
+public class SubcategoryWithTypesDto
+{
+    public int SubcategoryId { get; set; }
+    public string SubcategoryName { get; set; } = string.Empty;
+    public List<ServiceRequestTypeDto> Types { get; set; } = new();
+}
+
+public class CreateServiceRequestTypeDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string RequestType { get; set; } = "Request";
+    public string? DetailedDescription { get; set; }
+    public string? WorkflowName { get; set; }
+    public string? PossibleResolutions { get; set; }
+    public string? FinalCustomerResolutions { get; set; }
+    public int CategoryId { get; set; }
+    public int SubcategoryId { get; set; }
+    public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; } = true;
+    public ServiceRequestPriority? DefaultPriority { get; set; }
+    public int? ResponseTimeHours { get; set; }
+    public int? ResolutionTimeHours { get; set; }
+    public string? Tags { get; set; }
+}
+
+public class UpdateServiceRequestTypeDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string RequestType { get; set; } = "Request";
+    public string? DetailedDescription { get; set; }
+    public string? WorkflowName { get; set; }
+    public string? PossibleResolutions { get; set; }
+    public string? FinalCustomerResolutions { get; set; }
+    public int CategoryId { get; set; }
+    public int SubcategoryId { get; set; }
+    public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; }
+    public ServiceRequestPriority? DefaultPriority { get; set; }
+    public int? ResponseTimeHours { get; set; }
+    public int? ResolutionTimeHours { get; set; }
+    public string? Tags { get; set; }
+}
+
+#endregion
+
 #region Dashboard & Statistics DTOs
 
 public class ServiceRequestStatisticsDto

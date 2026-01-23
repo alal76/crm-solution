@@ -13,6 +13,27 @@ import {
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import ImportExportButtons from '../components/ImportExportButtons';
+import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+
+// Search fields for Advanced Search
+const SEARCH_FIELDS: SearchField[] = [
+  { name: 'quoteNumber', label: 'Quote Number', type: 'text' },
+  { name: 'title', label: 'Title', type: 'text' },
+  { name: 'status', label: 'Status', type: 'select', options: [
+    { value: 0, label: 'Draft' },
+    { value: 1, label: 'Pending' },
+    { value: 2, label: 'Sent' },
+    { value: 3, label: 'Viewed' },
+    { value: 4, label: 'Accepted' },
+    { value: 5, label: 'Rejected' },
+    { value: 6, label: 'Expired' },
+    { value: 7, label: 'Revised' },
+  ]},
+  { name: 'totalAmount', label: 'Total Amount', type: 'numberRange' },
+];
+
+const SEARCHABLE_FIELDS = ['quoteNumber', 'title', 'description', 'notes'];
 
 // Enums matching backend
 const QUOTE_STATUSES = [
@@ -103,6 +124,15 @@ function QuotesPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
+  const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+  const [searchText, setSearchText] = useState('');
+
+  const handleSearch = (filters: SearchFilter[], text: string) => {
+    setSearchFilters(filters);
+    setSearchText(text);
+  };
+
+  const filteredQuotes = filterData(quotes, searchFilters, searchText, SEARCHABLE_FIELDS);
 
   const emptyForm: QuoteForm = {
     title: '', description: '', customerId: '', opportunityId: '', status: 0,
@@ -295,13 +325,22 @@ function QuotesPage() {
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Quotes</Typography>
           </Box>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
-            Create Quote
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <ImportExportButtons entityType="quotes" entityLabel="Quotes" onImportComplete={fetchData} />
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
+              Create Quote
+            </Button>
+          </Box>
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+
+        <AdvancedSearch
+          fields={SEARCH_FIELDS}
+          onSearch={handleSearch}
+          placeholder="Search quotes by number, title..."
+        />
 
         <Card>
           <CardContent sx={{ p: 0 }}>
@@ -319,7 +358,7 @@ function QuotesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {quotes.map((quote) => {
+                {filteredQuotes.map((quote) => {
                   const status = getStatus(quote.status);
                   const expired = isExpired(quote);
 

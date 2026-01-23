@@ -197,8 +197,13 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
     }
 });
 
-// Register ICrmDbContext interface
-builder.Services.AddScoped<ICrmDbContext>(provider => provider.GetRequiredService<CrmDbContext>());
+// Register Demo Mode State as Singleton (API-layer state management, defaults to demo mode)
+builder.Services.AddSingleton<IDemoModeState, DemoModeState>();
+
+// Register ICrmDbContext interface with dynamic resolution (production or demo based on settings)
+builder.Services.AddScoped<IDbContextResolver, DynamicDbContextResolver>();
+builder.Services.AddScoped<ICrmDbContext>(provider => 
+    provider.GetRequiredService<IDbContextResolver>().ResolveContext());
 
 // Register Services (backward compatibility)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -221,6 +226,7 @@ builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 builder.Services.AddScoped<IServiceRequestCategoryService, ServiceRequestCategoryService>();
 builder.Services.AddScoped<IServiceRequestSubcategoryService, ServiceRequestSubcategoryService>();
 builder.Services.AddScoped<IServiceRequestCustomFieldService, ServiceRequestCustomFieldService>();
+builder.Services.AddScoped<IServiceRequestTypeService, ServiceRequestTypeService>();
 builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
@@ -230,6 +236,8 @@ builder.Services.AddScoped<DemoDataSeederService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields
 builder.Services.AddScoped<NormalizationService>();
+// Master data - ZIP code lookups
+builder.Services.AddScoped<IZipCodeService, ZipCodeService>();
 
 // HEXAGONAL ARCHITECTURE - Register Input Ports (Primary/Driving Ports)
 // These allow controllers to depend on ports instead of concrete services
@@ -385,6 +393,41 @@ using (var scope = app.Services.CreateScope())
         // Seed data
         await DbSeed.SeedAsync(db);
         Log.Information("Database setup completed successfully");
+        
+        // Auto-seed demo database if configured
+        var autoSeedDemo = builder.Configuration.GetValue<bool>("DemoDatabase:AutoSeed", false);
+        if (autoSeedDemo)
+        {
+            Log.Information("Auto-seeding demo database...");
+            try
+            {
+                var demoSeeder = scope.ServiceProvider.GetRequiredService<DemoDataSeederService>();
+                var demoDbFactory = scope.ServiceProvider.GetRequiredService<IDemoDbContextFactory>();
+                
+                // Always ensure demo database schema exists
+                Log.Information("Ensuring demo database schema exists...");
+                await demoSeeder.InitializeDemoDbAsync();
+                
+                // Check if already seeded
+                using var demoContext = demoDbFactory.CreateDemoContext();
+                var settings = await demoContext.SystemSettings.FirstOrDefaultAsync();
+                
+                if (settings == null || !settings.DemoDataSeeded)
+                {
+                    Log.Information("Seeding demo database with sample data...");
+                    await demoSeeder.SeedAllDemoDataAsync();
+                    Log.Information("Demo database seeded successfully");
+                }
+                else
+                {
+                    Log.Information("Demo database already seeded (last seeded: {LastSeeded})", settings.DemoDataLastSeeded);
+                }
+            }
+            catch (Exception demoEx)
+            {
+                Log.Warning(demoEx, "Failed to auto-seed demo database - continuing with production database");
+            }
+        }
     }
     catch (Exception ex)
     {

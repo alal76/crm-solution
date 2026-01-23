@@ -195,6 +195,7 @@ public class ServiceRequestCategory : BaseEntity
     // Navigation properties
     public virtual ICollection<ServiceRequestSubcategory> Subcategories { get; set; } = new List<ServiceRequestSubcategory>();
     public virtual ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
+    public virtual ICollection<ServiceRequestType> ServiceRequestTypes { get; set; } = new List<ServiceRequestType>();
 }
 
 #endregion
@@ -242,6 +243,76 @@ public class ServiceRequestSubcategory : BaseEntity
     public virtual Workflow? DefaultWorkflow { get; set; }
     
     public virtual ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
+    public virtual ICollection<ServiceRequestType> ServiceRequestTypes { get; set; } = new List<ServiceRequestType>();
+}
+
+#endregion
+
+#region Service Request Type
+
+/// <summary>
+/// Defines a specific type of service request within a subcategory.
+/// Contains templates for handling specific service request scenarios including
+/// descriptions, workflows, possible resolutions, and customer resolution options.
+/// </summary>
+public class ServiceRequestType : BaseEntity
+{
+    [Required]
+    [MaxLength(200)]
+    public string Name { get; set; } = string.Empty;
+    
+    /// <summary>Type classification: Complaint or Request</summary>
+    [Required]
+    [MaxLength(50)]
+    public string RequestType { get; set; } = "Request";
+    
+    /// <summary>Detailed description explaining when this type applies</summary>
+    [MaxLength(2000)]
+    public string? DetailedDescription { get; set; }
+    
+    /// <summary>Name of the workflow to apply for this request type</summary>
+    [MaxLength(200)]
+    public string? WorkflowName { get; set; }
+    
+    /// <summary>Possible technical/internal resolutions (semicolon-separated)</summary>
+    [MaxLength(4000)]
+    public string? PossibleResolutions { get; set; }
+    
+    /// <summary>Final customer-facing resolution options (semicolon-separated)</summary>
+    [MaxLength(2000)]
+    public string? FinalCustomerResolutions { get; set; }
+    
+    /// <summary>Parent category ID</summary>
+    public int CategoryId { get; set; }
+    
+    /// <summary>Parent subcategory ID</summary>
+    public int SubcategoryId { get; set; }
+    
+    /// <summary>Display order within subcategory</summary>
+    public int DisplayOrder { get; set; } = 0;
+    
+    /// <summary>Whether this type is active</summary>
+    public bool IsActive { get; set; } = true;
+    
+    /// <summary>Default priority for this request type</summary>
+    public ServiceRequestPriority? DefaultPriority { get; set; }
+    
+    /// <summary>Default SLA response time in hours</summary>
+    public int? ResponseTimeHours { get; set; }
+    
+    /// <summary>Default SLA resolution time in hours</summary>
+    public int? ResolutionTimeHours { get; set; }
+    
+    /// <summary>Tags for quick filtering (comma-separated)</summary>
+    [MaxLength(500)]
+    public string? Tags { get; set; }
+    
+    // Navigation properties
+    [ForeignKey("CategoryId")]
+    public virtual ServiceRequestCategory? Category { get; set; }
+    
+    [ForeignKey("SubcategoryId")]
+    public virtual ServiceRequestSubcategory? Subcategory { get; set; }
 }
 
 #endregion

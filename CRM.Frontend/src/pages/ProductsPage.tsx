@@ -12,7 +12,38 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import LookupSelect from '../components/LookupSelect';
+import ImportExportButtons from '../components/ImportExportButtons';
+import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import logo from '../assets/logo.png';
+
+// Search fields for Advanced Search
+const SEARCH_FIELDS: SearchField[] = [
+  { name: 'name', label: 'Product Name', type: 'text' },
+  { name: 'sku', label: 'SKU', type: 'text' },
+  { name: 'category', label: 'Category', type: 'select', options: [
+    { value: 'Software', label: 'Software' },
+    { value: 'Hardware', label: 'Hardware' },
+    { value: 'Services', label: 'Services' },
+    { value: 'Consulting', label: 'Consulting' },
+    { value: 'Training', label: 'Training' },
+    { value: 'Support', label: 'Support' },
+    { value: 'Maintenance', label: 'Maintenance' },
+    { value: 'Licensing', label: 'Licensing' },
+    { value: 'Subscription', label: 'Subscription' },
+    { value: 'Other', label: 'Other' },
+  ]},
+  { name: 'description', label: 'Description', type: 'text' },
+  { name: 'status', label: 'Status', type: 'select', options: [
+    { value: 0, label: 'Draft' },
+    { value: 1, label: 'Active' },
+    { value: 2, label: 'Discontinued' },
+    { value: 3, label: 'Out of Stock' },
+    { value: 4, label: 'Coming Soon' },
+    { value: 5, label: 'Archived' },
+  ]},
+];
+
+const SEARCHABLE_FIELDS = ['name', 'sku', 'category', 'description', 'shortDescription', 'tags'];
 
 // Enums matching backend
 const PRODUCT_TYPES = [
@@ -156,6 +187,15 @@ function ProductsPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
+  const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+  const [searchText, setSearchText] = useState('');
+
+  const handleSearch = (filters: SearchFilter[], text: string) => {
+    setSearchFilters(filters);
+    setSearchText(text);
+  };
+
+  const filteredProducts = filterData(products, searchFilters, searchText, SEARCHABLE_FIELDS);
   const emptyForm: ProductForm = {
     name: '', sku: '', barcode: '', category: '', subcategory: '', price: 0,
     listPrice: 0, minimumPrice: 0, costPrice: 0, stock: 0, productType: 0, status: 1,
@@ -283,13 +323,22 @@ function ProductsPage() {
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Products</Typography>
           </Box>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
-            Add Product
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <ImportExportButtons entityType="products" entityLabel="Products" onImportComplete={fetchProducts} />
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
+              Add Product
+            </Button>
+          </Box>
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+
+        <AdvancedSearch
+          fields={SEARCH_FIELDS}
+          onSearch={handleSearch}
+          placeholder="Search products by name, SKU, category..."
+        />
 
         <Card>
           <CardContent sx={{ p: 0 }}>
@@ -307,7 +356,7 @@ function ProductsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {products.map((product) => {
+                {filteredProducts.map((product) => {
                   const status = getStatus(product.status);
                   const type = getType(product.productType);
                   return (

@@ -101,6 +101,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
     public DbSet<ServiceRequestCategory> ServiceRequestCategories { get; set; }
     public DbSet<ServiceRequestSubcategory> ServiceRequestSubcategories { get; set; }
+    public DbSet<ServiceRequestType> ServiceRequestTypes { get; set; }
     public DbSet<ServiceRequestCustomFieldDefinition> ServiceRequestCustomFieldDefinitions { get; set; }
     public DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; set; }
     
@@ -120,6 +121,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<CommunicationMessage> CommunicationMessages { get; set; }
     public DbSet<EmailTemplate> EmailTemplates { get; set; }
     public DbSet<Conversation> Conversations { get; set; }
+    
+    // Master data entities
+    public DbSet<ZipCode> ZipCodes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -1158,6 +1162,29 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Key).HasMaxLength(200);
             entity.Property(e => e.Value).HasColumnType("TEXT");
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
+        });
+        
+        // Configure ZipCodes (Master Data)
+        modelBuilder.Entity<ZipCode>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Country).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.CountryCode).IsRequired().HasMaxLength(10);
+            entity.Property(e => e.PostalCode).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.City).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.State).HasMaxLength(100);
+            entity.Property(e => e.StateCode).HasMaxLength(10);
+            entity.Property(e => e.County).HasMaxLength(100);
+            entity.Property(e => e.CountyCode).HasMaxLength(20);
+            entity.Property(e => e.Community).HasMaxLength(100);
+            entity.Property(e => e.CommunityCode).HasMaxLength(20);
+            entity.Property(e => e.Latitude).HasPrecision(10, 6);
+            entity.Property(e => e.Longitude).HasPrecision(10, 6);
+            entity.HasIndex(e => e.PostalCode);
+            entity.HasIndex(e => e.CountryCode);
+            entity.HasIndex(e => new { e.CountryCode, e.PostalCode });
+            entity.HasIndex(e => e.City);
+            entity.HasIndex(e => e.State);
         });
 
             entity.HasOne(e => e.CreatedByUser)
