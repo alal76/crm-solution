@@ -326,7 +326,7 @@ function QuotesPage() {
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Quotes</Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <ImportExportButtons entityType="quotes" entityLabel="Quotes" onImportComplete={fetchData} />
+            <ImportExportButtons entityType="quotes" entityLabel="Quotes" onImportComplete={fetchQuotes} />
             <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
               Create Quote
             </Button>

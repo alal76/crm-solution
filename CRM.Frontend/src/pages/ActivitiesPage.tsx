@@ -225,7 +225,7 @@ function ActivitiesPage() {
                 <MenuItem value={200}>200</MenuItem>
               </Select>
             </FormControl>
-            <ImportExportButtons entityType="activities" entityLabel="Activities" onImportComplete={fetchData} />
+            <ImportExportButtons entityType="activities" entityLabel="Activities" onImportComplete={fetchActivities} />
           </Box>
         </Box>
 

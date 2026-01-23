@@ -708,17 +708,20 @@ function ServiceRequestsPage() {
                 <RefreshIcon />
               </IconButton>
             </Stack>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <ImportExportButtons entityType="service-requests" entityLabel="Service Requests" onImportComplete={fetchRequests} />
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleAddRequest}
-            >
-              New Request
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <ImportExportButtons entityType="service-requests" entityLabel="Service Requests" onImportComplete={fetchRequests} />
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={handleAddRequest}
+              >
+                New Request
+              </Button>
+            </Box>
           </Box>
+          <Collapse in={showFilters}>
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6} md={3}>
                   <LookupSelect

@@ -1,67 +1,56 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 using System.Text.Json;
 
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// Controller for managing master data (lookup categories, lookup items, color palettes, etc.)
+/// Controller for managing master data (Lookups, Color Palettes)
 /// </summary>
-[ApiController]
 [Route("api/[controller]")]
+[ApiController]
 [Authorize]
 public class MasterDataController : ControllerBase
 {
     private readonly ICrmDbContext _context;
+    private readonly CrmDbContext _dbContext;
     private readonly ILogger<MasterDataController> _logger;
 
-    public MasterDataController(ICrmDbContext context, ILogger<MasterDataController> logger)
+    public MasterDataController(ICrmDbContext context, CrmDbContext dbContext, ILogger<MasterDataController> logger)
     {
         _context = context;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
-    #region Master Data Overview
-
     /// <summary>
-    /// Get overview of all master data types and their counts
+    /// Get overview of all master data
     /// </summary>
     [HttpGet("overview")]
-    public async Task<ActionResult<MasterDataOverviewDto>> GetOverview()
+    public async Task<IActionResult> GetOverview()
     {
         try
         {
-            var overview = new MasterDataOverviewDto
+            var overview = new
             {
-                LookupCategoriesCount = await _context.LookupCategories.CountAsync(),
-                LookupItemsCount = await _context.LookupItems.CountAsync(),
-                ColorPalettesCount = await _context.ColorPalettes.CountAsync(),
-                ZipCodesCount = await _context.ZipCodes.CountAsync(),
-                ServiceRequestCategoriesCount = await _context.ServiceRequestCategories.CountAsync(),
-                ServiceRequestTypesCount = await _context.ServiceRequestTypes.CountAsync(),
-                DataTypes = new List<MasterDataTypeInfo>
-                {
-                    new() { Name = "Lookup Categories", TableName = "LookupCategories", Count = await _context.LookupCategories.CountAsync(), CanImportExport = true },
-                    new() { Name = "Lookup Items", TableName = "LookupItems", Count = await _context.LookupItems.CountAsync(), CanImportExport = true },
-                    new() { Name = "Color Palettes", TableName = "ColorPalettes", Count = await _context.ColorPalettes.CountAsync(), CanImportExport = true },
-                    new() { Name = "ZIP Codes", TableName = "ZipCodes", Count = await _context.ZipCodes.CountAsync(), CanImportExport = true },
-                    new() { Name = "Service Request Categories", TableName = "ServiceRequestCategories", Count = await _context.ServiceRequestCategories.CountAsync(), CanImportExport = true },
-                    new() { Name = "Service Request Types", TableName = "ServiceRequestTypes", Count = await _context.ServiceRequestTypes.CountAsync(), CanImportExport = true },
-                }
+                lookupCategories = await _context.LookupCategories.CountAsync(),
+                lookupItems = await _context.LookupItems.CountAsync(),
+                colorPalettes = await _dbContext.ColorPalettes.CountAsync()
             };
+
             return Ok(overview);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting master data overview");
-            return StatusCode(500, new { message = "Error getting master data overview" });
+            return StatusCode(500, new { message = "Error getting overview" });
         }
     }
-
-    #endregion
 
     #region Lookup Categories
 
@@ -69,42 +58,16 @@ public class MasterDataController : ControllerBase
     /// Get all lookup categories with their items
     /// </summary>
     [HttpGet("lookup-categories")]
-    public async Task<ActionResult<List<LookupCategoryDto>>> GetLookupCategories([FromQuery] string? search = null)
+    public async Task<IActionResult> GetLookupCategories()
     {
         try
         {
-            var query = _context.LookupCategories.AsQueryable();
-            
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                search = search.ToLower();
-                query = query.Where(c => c.Name.ToLower().Contains(search) || 
-                                        (c.Description != null && c.Description.ToLower().Contains(search)));
-            }
-
-            var categories = await query
+            var categories = await _context.LookupCategories
                 .Include(c => c.Items)
                 .OrderBy(c => c.Name)
                 .ToListAsync();
 
-            return Ok(categories.Select(c => new LookupCategoryDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                IsActive = c.IsActive,
-                ItemCount = c.Items.Count,
-                Items = c.Items.OrderBy(i => i.SortOrder).Select(i => new LookupItemDto
-                {
-                    Id = i.Id,
-                    Key = i.Key,
-                    Value = i.Value,
-                    Meta = i.Meta,
-                    SortOrder = i.SortOrder,
-                    IsActive = i.IsActive,
-                    ParentItemId = i.ParentItemId
-                }).ToList()
-            }).ToList());
+            return Ok(categories);
         }
         catch (Exception ex)
         {
@@ -117,8 +80,7 @@ public class MasterDataController : ControllerBase
     /// Create a new lookup category
     /// </summary>
     [HttpPost("lookup-categories")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<LookupCategoryDto>> CreateLookupCategory([FromBody] CreateLookupCategoryRequest request)
+    public async Task<IActionResult> CreateLookupCategory([FromBody] CreateLookupCategoryRequest request)
     {
         try
         {
@@ -126,21 +88,13 @@ public class MasterDataController : ControllerBase
             {
                 Name = request.Name,
                 Description = request.Description,
-                IsActive = true
+                IsActive = request.IsActive ?? true
             };
 
             _context.LookupCategories.Add(category);
             await _context.SaveChangesAsync();
 
-            return Ok(new LookupCategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Description = category.Description,
-                IsActive = category.IsActive,
-                ItemCount = 0,
-                Items = new List<LookupItemDto>()
-            });
+            return Ok(category);
         }
         catch (Exception ex)
         {
@@ -153,24 +107,27 @@ public class MasterDataController : ControllerBase
     /// Update a lookup category
     /// </summary>
     [HttpPut("lookup-categories/{id}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateLookupCategory(int id, [FromBody] UpdateLookupCategoryRequest request)
+    public async Task<IActionResult> UpdateLookupCategory(int id, [FromBody] CreateLookupCategoryRequest request)
     {
         try
         {
             var category = await _context.LookupCategories.FindAsync(id);
-            if (category == null) return NotFound();
+            if (category == null)
+            {
+                return NotFound(new { message = "Category not found" });
+            }
 
-            category.Name = request.Name ?? category.Name;
-            category.Description = request.Description ?? category.Description;
+            category.Name = request.Name;
+            category.Description = request.Description;
             category.IsActive = request.IsActive ?? category.IsActive;
 
             await _context.SaveChangesAsync();
-            return Ok(new { message = "Category updated successfully" });
+
+            return Ok(category);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating lookup category");
+            _logger.LogError(ex, "Error updating lookup category {Id}", id);
             return StatusCode(500, new { message = "Error updating lookup category" });
         }
     }
@@ -179,21 +136,24 @@ public class MasterDataController : ControllerBase
     /// Delete a lookup category
     /// </summary>
     [HttpDelete("lookup-categories/{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteLookupCategory(int id)
     {
         try
         {
             var category = await _context.LookupCategories.FindAsync(id);
-            if (category == null) return NotFound();
+            if (category == null)
+            {
+                return NotFound(new { message = "Category not found" });
+            }
 
             _context.LookupCategories.Remove(category);
             await _context.SaveChangesAsync();
-            return Ok(new { message = "Category deleted successfully" });
+
+            return Ok(new { message = "Category deleted" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting lookup category");
+            _logger.LogError(ex, "Error deleting lookup category {Id}", id);
             return StatusCode(500, new { message = "Error deleting lookup category" });
         }
     }
@@ -206,8 +166,7 @@ public class MasterDataController : ControllerBase
     /// Create a new lookup item
     /// </summary>
     [HttpPost("lookup-items")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<LookupItemDto>> CreateLookupItem([FromBody] CreateLookupItemRequest request)
+    public async Task<IActionResult> CreateLookupItem([FromBody] CreateLookupItemRequest request)
     {
         try
         {
@@ -218,23 +177,13 @@ public class MasterDataController : ControllerBase
                 Value = request.Value,
                 Meta = request.Meta,
                 SortOrder = request.SortOrder ?? 0,
-                IsActive = true,
-                ParentItemId = request.ParentItemId
+                IsActive = request.IsActive ?? true
             };
 
             _context.LookupItems.Add(item);
             await _context.SaveChangesAsync();
 
-            return Ok(new LookupItemDto
-            {
-                Id = item.Id,
-                Key = item.Key,
-                Value = item.Value,
-                Meta = item.Meta,
-                SortOrder = item.SortOrder,
-                IsActive = item.IsActive,
-                ParentItemId = item.ParentItemId
-            });
+            return Ok(item);
         }
         catch (Exception ex)
         {
@@ -247,27 +196,29 @@ public class MasterDataController : ControllerBase
     /// Update a lookup item
     /// </summary>
     [HttpPut("lookup-items/{id}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateLookupItem(int id, [FromBody] UpdateLookupItemRequest request)
+    public async Task<IActionResult> UpdateLookupItem(int id, [FromBody] CreateLookupItemRequest request)
     {
         try
         {
             var item = await _context.LookupItems.FindAsync(id);
-            if (item == null) return NotFound();
+            if (item == null)
+            {
+                return NotFound(new { message = "Item not found" });
+            }
 
-            item.Key = request.Key ?? item.Key;
-            item.Value = request.Value ?? item.Value;
-            item.Meta = request.Meta ?? item.Meta;
+            item.Key = request.Key;
+            item.Value = request.Value;
+            item.Meta = request.Meta;
             item.SortOrder = request.SortOrder ?? item.SortOrder;
             item.IsActive = request.IsActive ?? item.IsActive;
-            item.ParentItemId = request.ParentItemId;
 
             await _context.SaveChangesAsync();
-            return Ok(new { message = "Item updated successfully" });
+
+            return Ok(item);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating lookup item");
+            _logger.LogError(ex, "Error updating lookup item {Id}", id);
             return StatusCode(500, new { message = "Error updating lookup item" });
         }
     }
@@ -276,21 +227,24 @@ public class MasterDataController : ControllerBase
     /// Delete a lookup item
     /// </summary>
     [HttpDelete("lookup-items/{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteLookupItem(int id)
     {
         try
         {
             var item = await _context.LookupItems.FindAsync(id);
-            if (item == null) return NotFound();
+            if (item == null)
+            {
+                return NotFound(new { message = "Item not found" });
+            }
 
             _context.LookupItems.Remove(item);
             await _context.SaveChangesAsync();
-            return Ok(new { message = "Item deleted successfully" });
+
+            return Ok(new { message = "Item deleted" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting lookup item");
+            _logger.LogError(ex, "Error deleting lookup item {Id}", id);
             return StatusCode(500, new { message = "Error deleting lookup item" });
         }
     }
@@ -303,29 +257,16 @@ public class MasterDataController : ControllerBase
     /// Get all color palettes
     /// </summary>
     [HttpGet("color-palettes")]
-    public async Task<ActionResult<List<ColorPaletteDto>>> GetColorPalettes([FromQuery] string? search = null)
+    public async Task<IActionResult> GetColorPalettes()
     {
         try
         {
-            var query = _context.ColorPalettes.AsQueryable();
-            
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                search = search.ToLower();
-                query = query.Where(p => p.Name.ToLower().Contains(search) || 
-                                        (p.Category != null && p.Category.ToLower().Contains(search)));
-            }
+            var palettes = await _dbContext.ColorPalettes
+                .OrderBy(p => p.Category)
+                .ThenBy(p => p.Name)
+                .ToListAsync();
 
-            var palettes = await query.OrderBy(p => p.Category).ThenBy(p => p.Name).ToListAsync();
-
-            return Ok(palettes.Select(p => new ColorPaletteDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Category = p.Category,
-                Colors = JsonSerializer.Deserialize<List<string>>(p.Colors) ?? new List<string>(),
-                IsUserDefined = p.IsUserDefined
-            }).ToList());
+            return Ok(palettes);
         }
         catch (Exception ex)
         {
@@ -338,8 +279,7 @@ public class MasterDataController : ControllerBase
     /// Create a new color palette
     /// </summary>
     [HttpPost("color-palettes")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ColorPaletteDto>> CreateColorPalette([FromBody] CreateColorPaletteRequest request)
+    public async Task<IActionResult> CreateColorPalette([FromBody] CreateColorPaletteRequest request)
     {
         try
         {
@@ -347,21 +287,18 @@ public class MasterDataController : ControllerBase
             {
                 Name = request.Name,
                 Category = request.Category,
-                Colors = JsonSerializer.Serialize(request.Colors),
+                Color1 = request.Color1 ?? "#000000",
+                Color2 = request.Color2 ?? "#333333",
+                Color3 = request.Color3 ?? "#666666",
+                Color4 = request.Color4 ?? "#999999",
+                Color5 = request.Color5 ?? "#CCCCCC",
                 IsUserDefined = true
             };
 
-            _context.ColorPalettes.Add(palette);
-            await _context.SaveChangesAsync();
+            _dbContext.ColorPalettes.Add(palette);
+            await _dbContext.SaveChangesAsync();
 
-            return Ok(new ColorPaletteDto
-            {
-                Id = palette.Id,
-                Name = palette.Name,
-                Category = palette.Category,
-                Colors = request.Colors,
-                IsUserDefined = true
-            });
+            return Ok(palette);
         }
         catch (Exception ex)
         {
@@ -374,204 +311,78 @@ public class MasterDataController : ControllerBase
     /// Delete a color palette
     /// </summary>
     [HttpDelete("color-palettes/{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteColorPalette(int id)
     {
         try
         {
-            var palette = await _context.ColorPalettes.FindAsync(id);
-            if (palette == null) return NotFound();
+            var palette = await _dbContext.ColorPalettes.FindAsync(id);
+            if (palette == null)
+            {
+                return NotFound(new { message = "Palette not found" });
+            }
 
-            _context.ColorPalettes.Remove(palette);
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Palette deleted successfully" });
+            _dbContext.ColorPalettes.Remove(palette);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { message = "Palette deleted" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting color palette");
+            _logger.LogError(ex, "Error deleting color palette {Id}", id);
             return StatusCode(500, new { message = "Error deleting color palette" });
         }
     }
 
     #endregion
 
-    #region ZIP Codes
+    #region Export
 
     /// <summary>
-    /// Search ZIP codes with pagination
-    /// </summary>
-    [HttpGet("zipcodes")]
-    public async Task<ActionResult<PagedResult<ZipCodeDto>>> GetZipCodes(
-        [FromQuery] string? search = null,
-        [FromQuery] string? country = null,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50)
-    {
-        try
-        {
-            var query = _context.ZipCodes.AsQueryable();
-            
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                search = search.ToLower();
-                query = query.Where(z => z.PostalCode.ToLower().Contains(search) || 
-                                        z.City.ToLower().Contains(search) ||
-                                        (z.State != null && z.State.ToLower().Contains(search)));
-            }
-            
-            if (!string.IsNullOrWhiteSpace(country))
-            {
-                query = query.Where(z => z.CountryCode == country.ToUpper());
-            }
-
-            var totalCount = await query.CountAsync();
-            var items = await query
-                .OrderBy(z => z.CountryCode)
-                .ThenBy(z => z.PostalCode)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return Ok(new PagedResult<ZipCodeDto>
-            {
-                Items = items.Select(z => new ZipCodeDto
-                {
-                    Id = z.Id,
-                    PostalCode = z.PostalCode,
-                    City = z.City,
-                    State = z.State,
-                    StateCode = z.StateCode,
-                    County = z.County,
-                    CountryCode = z.CountryCode,
-                    Latitude = z.Latitude,
-                    Longitude = z.Longitude
-                }).ToList(),
-                TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting ZIP codes");
-            return StatusCode(500, new { message = "Error getting ZIP codes" });
-        }
-    }
-
-    /// <summary>
-    /// Get unique countries in ZIP code database
-    /// </summary>
-    [HttpGet("zipcodes/countries")]
-    public async Task<ActionResult<List<string>>> GetZipCodeCountries()
-    {
-        try
-        {
-            var countries = await _context.ZipCodes
-                .Select(z => z.CountryCode)
-                .Distinct()
-                .OrderBy(c => c)
-                .ToListAsync();
-            return Ok(countries);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting ZIP code countries");
-            return StatusCode(500, new { message = "Error getting ZIP code countries" });
-        }
-    }
-
-    #endregion
-
-    #region Export/Import
-
-    /// <summary>
-    /// Export master data as JSON
+    /// Export master data
     /// </summary>
     [HttpGet("export/{dataType}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> ExportData(string dataType, [FromQuery] string? format = "json")
+    public async Task<IActionResult> ExportData(string dataType)
     {
         try
         {
-            object data = dataType.ToLower() switch
+            object? data = dataType.ToLowerInvariant() switch
             {
                 "lookup-categories" => await _context.LookupCategories.Include(c => c.Items).ToListAsync(),
-                "color-palettes" => await _context.ColorPalettes.ToListAsync(),
-                "service-request-categories" => await _context.ServiceRequestCategories.ToListAsync(),
-                "service-request-types" => await _context.ServiceRequestTypes.ToListAsync(),
-                _ => throw new ArgumentException($"Unknown data type: {dataType}")
+                "lookup-items" => await _context.LookupItems.Include(i => i.Category).ToListAsync(),
+                "color-palettes" => await _dbContext.ColorPalettes.ToListAsync(),
+                _ => null
             };
 
-            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-            var bytes = System.Text.Encoding.UTF8.GetBytes(json);
-            return File(bytes, "application/json", $"{dataType}-export-{DateTime.UtcNow:yyyyMMdd}.json");
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
+            if (data == null)
+            {
+                return BadRequest(new { message = $"Unknown data type: {dataType}" });
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+            };
+            var json = JsonSerializer.Serialize(data, options);
+            var jsonBytes = Encoding.UTF8.GetBytes(json);
+            return File(jsonBytes, "application/json", $"{dataType}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error exporting data");
-            return StatusCode(500, new { message = "Error exporting data" });
+            _logger.LogError(ex, "Error exporting {DataType}", dataType);
+            return StatusCode(500, new { message = $"Error exporting data: {ex.Message}" });
         }
     }
 
     #endregion
 }
 
-#region DTOs
-
-public class MasterDataOverviewDto
-{
-    public int LookupCategoriesCount { get; set; }
-    public int LookupItemsCount { get; set; }
-    public int ColorPalettesCount { get; set; }
-    public int ZipCodesCount { get; set; }
-    public int ServiceRequestCategoriesCount { get; set; }
-    public int ServiceRequestTypesCount { get; set; }
-    public List<MasterDataTypeInfo> DataTypes { get; set; } = new();
-}
-
-public class MasterDataTypeInfo
-{
-    public string Name { get; set; } = string.Empty;
-    public string TableName { get; set; } = string.Empty;
-    public int Count { get; set; }
-    public bool CanImportExport { get; set; }
-}
-
-public class LookupCategoryDto
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public bool IsActive { get; set; }
-    public int ItemCount { get; set; }
-    public List<LookupItemDto> Items { get; set; } = new();
-}
-
-public class LookupItemDto
-{
-    public int Id { get; set; }
-    public string Key { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
-    public string? Meta { get; set; }
-    public int SortOrder { get; set; }
-    public bool IsActive { get; set; }
-    public int? ParentItemId { get; set; }
-}
+#region Request DTOs
 
 public class CreateLookupCategoryRequest
 {
     public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-}
-
-public class UpdateLookupCategoryRequest
-{
-    public string? Name { get; set; }
     public string? Description { get; set; }
     public bool? IsActive { get; set; }
 }
@@ -583,55 +394,18 @@ public class CreateLookupItemRequest
     public string Value { get; set; } = string.Empty;
     public string? Meta { get; set; }
     public int? SortOrder { get; set; }
-    public int? ParentItemId { get; set; }
-}
-
-public class UpdateLookupItemRequest
-{
-    public string? Key { get; set; }
-    public string? Value { get; set; }
-    public string? Meta { get; set; }
-    public int? SortOrder { get; set; }
     public bool? IsActive { get; set; }
-    public int? ParentItemId { get; set; }
-}
-
-public class ColorPaletteDto
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Category { get; set; }
-    public List<string> Colors { get; set; } = new();
-    public bool IsUserDefined { get; set; }
 }
 
 public class CreateColorPaletteRequest
 {
     public string Name { get; set; } = string.Empty;
     public string? Category { get; set; }
-    public List<string> Colors { get; set; } = new();
-}
-
-public class ZipCodeDto
-{
-    public int Id { get; set; }
-    public string PostalCode { get; set; } = string.Empty;
-    public string City { get; set; } = string.Empty;
-    public string? State { get; set; }
-    public string? StateCode { get; set; }
-    public string? County { get; set; }
-    public string CountryCode { get; set; } = string.Empty;
-    public decimal? Latitude { get; set; }
-    public decimal? Longitude { get; set; }
-}
-
-public class PagedResult<T>
-{
-    public List<T> Items { get; set; } = new();
-    public int TotalCount { get; set; }
-    public int Page { get; set; }
-    public int PageSize { get; set; }
-    public int TotalPages { get; set; }
+    public string? Color1 { get; set; }
+    public string? Color2 { get; set; }
+    public string? Color3 { get; set; }
+    public string? Color4 { get; set; }
+    public string? Color5 { get; set; }
 }
 
 #endregion

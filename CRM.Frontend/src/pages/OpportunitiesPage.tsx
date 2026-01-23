@@ -305,7 +305,7 @@ function OpportunitiesPage() {
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Opportunities</Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <ImportExportButtons entityType="opportunities" entityLabel="Opportunities" onImportComplete={fetchData} />
+            <ImportExportButtons entityType="opportunities" entityLabel="Opportunities" onImportComplete={fetchAllData} />
             <Button
               variant="contained"
               color="primary"
