@@ -433,18 +433,35 @@ const ModuleFieldSettingsTab: React.FC = () => {
 
   // Initialize defaults for a module
   const handleInitializeDefaults = async () => {
-    if (!window.confirm(`Initialize default field configurations for ${selectedModule}?`)) {
+    console.log('[ModuleFieldSettings] Initialize Defaults clicked for module:', selectedModule);
+    
+    if (!selectedModule) {
+      setError('Please select a module first');
+      return;
+    }
+
+    // Use confirm but proceed even if blocked (some browsers block confirm in iframes)
+    const confirmed = window.confirm(`Initialize default field configurations for ${selectedModule}?`);
+    console.log('[ModuleFieldSettings] User confirmed:', confirmed);
+    
+    if (!confirmed) {
+      console.log('[ModuleFieldSettings] User cancelled initialization');
       return;
     }
 
     try {
       setLoading(true);
-      await apiClient.post(`/modulefieldconfigurations/initialize/${selectedModule}`);
-      setSuccess('Default configurations initialized successfully');
-      setTimeout(() => setSuccess(null), 3000);
-      loadModuleConfig();
+      setError(null);
+      console.log('[ModuleFieldSettings] Calling API to initialize:', selectedModule);
+      const response = await apiClient.post(`/modulefieldconfigurations/initialize/${selectedModule}`);
+      console.log('[ModuleFieldSettings] API response:', response.data);
+      setSuccess(`Default configurations initialized successfully for ${selectedModule}`);
+      setTimeout(() => setSuccess(null), 5000);
+      await loadModuleConfig();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to initialize default configurations');
+      console.error('[ModuleFieldSettings] Initialize error:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to initialize default configurations';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
