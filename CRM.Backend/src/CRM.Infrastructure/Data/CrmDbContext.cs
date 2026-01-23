@@ -51,6 +51,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<UserGroupMember> UserGroupMembers { get; set; }
     public DbSet<UserApprovalRequest> UserApprovalRequests { get; set; }
     public DbSet<DatabaseBackup> DatabaseBackups { get; set; }
+    public DbSet<BackupSchedule> BackupSchedules { get; set; }
     
     // Workflow entities (legacy)
     public DbSet<Workflow> Workflows { get; set; }

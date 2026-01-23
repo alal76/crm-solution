@@ -166,20 +166,35 @@ function ServiceRequestSettingsTab() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [catRes, subRes, fieldRes, groupRes, workflowRes, countRes] = await Promise.all([
+        
+        // Core service request settings - these are required
+        const [catRes, subRes, fieldRes, countRes] = await Promise.all([
           serviceRequestCategoryService.getAll(true),
           serviceRequestSubcategoryService.getAll(true),
           serviceRequestCustomFieldService.getAll(true),
-          apiClient.get('/user-groups'),
-          apiClient.get('/workflows'),
           serviceRequestCustomFieldService.getCount(),
         ]);
         setCategories(catRes.data);
         setSubcategories(subRes.data);
         setCustomFields(fieldRes.data);
-        setGroups(groupRes.data);
-        setWorkflows(workflowRes.data);
         setActiveFieldCount(countRes.data.activeCount);
+        
+        // Optional reference data - don't fail if these are unavailable
+        try {
+          const groupRes = await apiClient.get('/usergroups');
+          setGroups(groupRes.data || []);
+        } catch (e) {
+          console.warn('Could not load user groups:', e);
+          setGroups([]);
+        }
+        
+        try {
+          const workflowRes = await apiClient.get('/workflowdefinitions');
+          setWorkflows(workflowRes.data || []);
+        } catch (e) {
+          console.warn('Could not load workflows:', e);
+          setWorkflows([]);
+        }
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to load settings');
       } finally {

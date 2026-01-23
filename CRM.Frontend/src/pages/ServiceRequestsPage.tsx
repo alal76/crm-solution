@@ -208,15 +208,14 @@ function ServiceRequestsPage() {
   useEffect(() => {
     const fetchReferenceData = async () => {
       try {
-        const [catRes, subRes, fieldRes, custRes, contactRes, userRes, groupRes, workflowRes] = await Promise.all([
+        // Core reference data
+        const [catRes, subRes, fieldRes, custRes, contactRes, userRes] = await Promise.all([
           serviceRequestCategoryService.getAll(),
           serviceRequestSubcategoryService.getAll(),
           serviceRequestCustomFieldService.getAll(),
           customerService.getAll(),
           apiClient.get('/contacts'),
           apiClient.get('/users'),
-          apiClient.get('/user-groups'),
-          apiClient.get('/workflows'),
         ]);
         setCategories(catRes.data);
         setSubcategories(subRes.data);
@@ -224,8 +223,21 @@ function ServiceRequestsPage() {
         setCustomers(custRes.data);
         setContacts(contactRes.data);
         setUsers(userRes.data);
-        setGroups(groupRes.data);
-        setWorkflows(workflowRes.data);
+        
+        // Optional reference data
+        try {
+          const groupRes = await apiClient.get('/usergroups');
+          setGroups(groupRes.data || []);
+        } catch (e) {
+          console.warn('Could not load user groups:', e);
+        }
+        
+        try {
+          const workflowRes = await apiClient.get('/workflowdefinitions');
+          setWorkflows(workflowRes.data || []);
+        } catch (e) {
+          console.warn('Could not load workflows:', e);
+        }
       } catch (err) {
         console.error('Error fetching reference data:', err);
       }

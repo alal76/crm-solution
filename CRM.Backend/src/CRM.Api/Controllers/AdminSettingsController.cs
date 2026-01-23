@@ -423,5 +423,296 @@ public class AdminSettingsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Download a backup file
+    /// </summary>
+    [HttpGet("database/backups/{id}/download")]
+    public async Task<ActionResult> DownloadBackup(int id)
+    {
+        try
+        {
+            var backup = await _backupService.GetBackupByIdAsync(id);
+            if (backup == null)
+                return NotFound(new { error = "Backup not found" });
+
+            var fileBytes = await _backupService.DownloadBackupAsync(id);
+            var fileName = $"{backup.BackupName}.sql";
+            
+            return File(fileBytes, "application/octet-stream", fileName);
+        }
+        catch (FileNotFoundException)
+        {
+            return NotFound(new { error = "Backup file not found on disk" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error downloading backup {id}");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Upload a backup file
+    /// </summary>
+    [HttpPost("database/backups/upload")]
+    [RequestSizeLimit(500_000_000)] // 500MB limit
+    public async Task<ActionResult<DatabaseBackupDto>> UploadBackup([FromForm] IFormFile file, [FromForm] string? description = null, [FromForm] string? sourceDatabase = null)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { error = "No file provided" });
+
+            var userId = User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { error = "User ID not found in token" });
+
+            var request = new UploadBackupRequest
+            {
+                Description = description,
+                SourceDatabase = sourceDatabase
+            };
+
+            using var stream = file.OpenReadStream();
+            var backup = await _backupService.UploadBackupAsync(stream, file.FileName, int.Parse(userId), request);
+            
+            return CreatedAtAction(nameof(GetBackup), new { id = backup.Id }, backup);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading backup");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Restore from uploaded backup file (without saving)
+    /// </summary>
+    [HttpPost("database/restore/upload")]
+    [RequestSizeLimit(500_000_000)] // 500MB limit
+    public async Task<ActionResult> RestoreFromUpload([FromForm] IFormFile file)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { error = "No file provided" });
+
+            var userId = User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { error = "User ID not found in token" });
+
+            using var stream = file.OpenReadStream();
+            await _backupService.RestoreFromFileAsync(stream, file.FileName, int.Parse(userId));
+            
+            return Ok(new { message = "Database restore from uploaded file initiated successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error restoring from uploaded file");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
     #endregion
+
+    #region Backup Schedules
+
+    /// <summary>
+    /// Get all backup schedules
+    /// </summary>
+    [HttpGet("database/schedules")]
+    public async Task<ActionResult<IEnumerable<BackupScheduleDto>>> GetSchedules()
+    {
+        try
+        {
+            var schedules = await _backupService.GetAllSchedulesAsync();
+            return Ok(schedules);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving backup schedules");
+            return StatusCode(500, new { error = "Failed to retrieve backup schedules" });
+        }
+    }
+
+    /// <summary>
+    /// Get backup schedule by ID
+    /// </summary>
+    [HttpGet("database/schedules/{id}")]
+    public async Task<ActionResult<BackupScheduleDto>> GetSchedule(int id)
+    {
+        try
+        {
+            var schedule = await _backupService.GetScheduleByIdAsync(id);
+            if (schedule == null)
+                return NotFound(new { error = "Schedule not found" });
+
+            return Ok(schedule);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error retrieving schedule {id}");
+            return StatusCode(500, new { error = "Failed to retrieve schedule" });
+        }
+    }
+
+    /// <summary>
+    /// Create a new backup schedule
+    /// </summary>
+    [HttpPost("database/schedules")]
+    public async Task<ActionResult<BackupScheduleDto>> CreateSchedule([FromBody] CreateBackupScheduleRequest request)
+    {
+        try
+        {
+            var schedule = await _backupService.CreateScheduleAsync(request);
+            return CreatedAtAction(nameof(GetSchedule), new { id = schedule.Id }, schedule);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating backup schedule");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Update a backup schedule
+    /// </summary>
+    [HttpPut("database/schedules/{id}")]
+    public async Task<ActionResult<BackupScheduleDto>> UpdateSchedule(int id, [FromBody] CreateBackupScheduleRequest request)
+    {
+        try
+        {
+            var schedule = await _backupService.UpdateScheduleAsync(id, request);
+            return Ok(schedule);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { error = "Schedule not found" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error updating schedule {id}");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Delete a backup schedule
+    /// </summary>
+    [HttpDelete("database/schedules/{id}")]
+    public async Task<ActionResult> DeleteSchedule(int id)
+    {
+        try
+        {
+            await _backupService.DeleteScheduleAsync(id);
+            return Ok(new { message = "Schedule deleted successfully" });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { error = "Schedule not found" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error deleting schedule {id}");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Toggle backup schedule enabled/disabled
+    /// </summary>
+    [HttpPost("database/schedules/{id}/toggle")]
+    public async Task<ActionResult<BackupScheduleDto>> ToggleSchedule(int id, [FromBody] ToggleScheduleRequest request)
+    {
+        try
+        {
+            var schedule = await _backupService.ToggleScheduleAsync(id, request.Enabled);
+            return Ok(schedule);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { error = "Schedule not found" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error toggling schedule {id}");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Run a scheduled backup immediately
+    /// </summary>
+    [HttpPost("database/schedules/{id}/run")]
+    public async Task<ActionResult> RunScheduleNow(int id)
+    {
+        try
+        {
+            await _backupService.RunScheduledBackupAsync(id);
+            return Ok(new { message = "Backup job triggered successfully" });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { error = "Schedule not found" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error running schedule {id}");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get backup settings
+    /// </summary>
+    [HttpGet("database/backup-settings")]
+    public async Task<ActionResult<BackupSettingsDto>> GetBackupSettings()
+    {
+        try
+        {
+            var settings = await _backupService.GetBackupSettingsAsync();
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving backup settings");
+            return StatusCode(500, new { error = "Failed to retrieve backup settings" });
+        }
+    }
+
+    /// <summary>
+    /// Update default backup path
+    /// </summary>
+    [HttpPut("database/backup-path")]
+    public async Task<ActionResult> UpdateBackupPath([FromBody] UpdateBackupPathRequest request)
+    {
+        try
+        {
+            await _backupService.UpdateBackupPathAsync(request.Path);
+            return Ok(new { message = "Backup path updated successfully", path = request.Path });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating backup path");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// Request to toggle schedule enabled state
+/// </summary>
+public class ToggleScheduleRequest
+{
+    public bool Enabled { get; set; }
+}
+
+/// <summary>
+/// Request to update backup path
+/// </summary>
+public class UpdateBackupPathRequest
+{
+    public string Path { get; set; } = string.Empty;
 }
