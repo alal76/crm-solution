@@ -57,6 +57,7 @@ import LicensesPage from './pages/LicensesPage';
 import ServiceRequestsPage from './pages/ServiceRequestsPage';
 import ServiceRequestSettingsPage from './pages/ServiceRequestSettingsPage';
 import CustomerOverviewPage from './pages/CustomerOverviewPage';
+import CommunicationsPage from './pages/CommunicationsPage';
 import './App.css';
 
 function App() {
@@ -298,6 +299,16 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <ActivitiesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/communications"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Communications">
+                      <CommunicationsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

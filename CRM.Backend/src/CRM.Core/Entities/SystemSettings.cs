@@ -101,6 +101,30 @@ public class SystemSettings : BaseEntity
     /// </summary>
     public bool DashboardEnabled { get; set; } = true;
     
+    /// <summary>
+    /// FUNCTIONAL: Whether the Email module is enabled
+    /// TECHNICAL: Controls /email route and email communication features
+    /// </summary>
+    public bool EmailEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the WhatsApp module is enabled
+    /// TECHNICAL: Controls /whatsapp route and WhatsApp communication features
+    /// </summary>
+    public bool WhatsAppEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Social Media module is enabled (X, Facebook)
+    /// TECHNICAL: Controls /social route and social media communication features
+    /// </summary>
+    public bool SocialMediaEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether the Communications Hub is enabled
+    /// TECHNICAL: Controls /communications route for unified inbox
+    /// </summary>
+    public bool CommunicationsEnabled { get; set; } = true;
+    
     #endregion
     
     #region Company/Branding Settings

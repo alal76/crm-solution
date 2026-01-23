@@ -110,10 +110,16 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // Color palettes
     public DbSet<ColorPalette> ColorPalettes { get; set; }
     
-        // Module field configurations
+    // Module field configurations
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
         public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
         public DbSet<Account> Accounts { get; set; }
+    
+    // Communication entities
+    public DbSet<CommunicationChannel> CommunicationChannels { get; set; }
+    public DbSet<CommunicationMessage> CommunicationMessages { get; set; }
+    public DbSet<EmailTemplate> EmailTemplates { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

@@ -37,6 +37,7 @@ import {
   SupportAgent as SupportAgentIcon,
   Science as ScienceIcon,
   PersonSearch as PersonSearchIcon,
+  Forum as CommunicationsIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -98,6 +99,7 @@ function NavigationContent() {
     'my-queue': { label: 'My Queue', icon: TaskIcon, path: '/my-queue', menuName: 'MyQueue' },
     'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
     'notes': { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
+    'communications': { label: 'Communications', icon: CommunicationsIcon, path: '/communications', menuName: 'Communications' },
   }), []);
 
   const adminItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
@@ -109,7 +111,7 @@ function NavigationContent() {
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'customers', 'customer-overview', 'contacts', 'leads', 'opportunities',
     'products', 'services', 'service-requests', 'campaigns', 'quotes',
-    'my-queue', 'activities', 'notes'
+    'my-queue', 'activities', 'notes', 'communications'
   ], []);
   const defaultAdminOrder = useMemo(() => ['workflows', 'settings'], []);
 
