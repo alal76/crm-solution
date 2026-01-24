@@ -21,13 +21,25 @@ public class ZipCodesController : ControllerBase
     }
 
     /// <summary>
+    /// Get all available countries with postal code formats
+    /// </summary>
+    /// <returns>List of countries</returns>
+    [HttpGet("countries")]
+    [AllowAnonymous]
+    public async Task<ActionResult<IEnumerable<CountryInfo>>> GetCountries()
+    {
+        var results = await _zipCodeService.GetCountriesAsync();
+        return Ok(results);
+    }
+
+    /// <summary>
     /// Lookup address information by postal code
     /// </summary>
     /// <param name="postalCode">The postal/ZIP code to lookup</param>
     /// <param name="countryCode">Optional country code (defaults to all countries)</param>
     /// <returns>List of matching address details</returns>
     [HttpGet("lookup/{postalCode}")]
-    [AllowAnonymous] // Allow anonymous for address auto-population in forms
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> LookupByPostalCode(
         string postalCode, 
         [FromQuery] string? countryCode = null)
@@ -99,6 +111,47 @@ public class ZipCodesController : ControllerBase
 
         var results = await _zipCodeService.GetCitiesAsync(countryCode, stateCode);
         return Ok(results);
+    }
+
+    /// <summary>
+    /// Get postal codes for a specific city
+    /// </summary>
+    /// <param name="countryCode">Country code</param>
+    /// <param name="stateCode">State code</param>
+    /// <param name="city">City name</param>
+    /// <returns>List of postal codes</returns>
+    [HttpGet("postalcodes/{countryCode}/{stateCode}/{city}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> GetPostalCodes(string countryCode, string stateCode, string city)
+    {
+        if (string.IsNullOrWhiteSpace(countryCode) || string.IsNullOrWhiteSpace(stateCode) || string.IsNullOrWhiteSpace(city))
+        {
+            return BadRequest("Country code, state code, and city are required");
+        }
+
+        var results = await _zipCodeService.GetPostalCodesForCityAsync(countryCode, stateCode, city);
+        return Ok(results);
+    }
+
+    /// <summary>
+    /// Validate a postal code for a country
+    /// </summary>
+    /// <param name="postalCode">Postal code to validate</param>
+    /// <param name="countryCode">Country code</param>
+    /// <returns>Validation result</returns>
+    [HttpGet("validate")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ZipCodeValidationResult>> ValidatePostalCode(
+        [FromQuery] string postalCode,
+        [FromQuery] string countryCode)
+    {
+        if (string.IsNullOrWhiteSpace(postalCode) || string.IsNullOrWhiteSpace(countryCode))
+        {
+            return BadRequest("Postal code and country code are required");
+        }
+
+        var result = await _zipCodeService.ValidatePostalCodeAsync(postalCode, countryCode);
+        return Ok(result);
     }
 
     /// <summary>

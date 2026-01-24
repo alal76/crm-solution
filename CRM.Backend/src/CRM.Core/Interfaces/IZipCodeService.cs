@@ -25,6 +25,12 @@ public interface IZipCodeService
     Task<IEnumerable<ZipCodeLookupResult>> SearchByCityAsync(string city, string? countryCode = null, int limit = 20);
     
     /// <summary>
+    /// Get all countries available in the database
+    /// </summary>
+    /// <returns>List of countries with codes</returns>
+    Task<IEnumerable<CountryInfo>> GetCountriesAsync();
+    
+    /// <summary>
     /// Get all states/provinces for a country
     /// </summary>
     /// <param name="countryCode">Country code</param>
@@ -38,6 +44,23 @@ public interface IZipCodeService
     /// <param name="stateCode">State code</param>
     /// <returns>List of cities</returns>
     Task<IEnumerable<string>> GetCitiesAsync(string countryCode, string stateCode);
+    
+    /// <summary>
+    /// Get postal codes for a city
+    /// </summary>
+    /// <param name="countryCode">Country code</param>
+    /// <param name="stateCode">State code</param>
+    /// <param name="city">City name</param>
+    /// <returns>List of postal codes with location details</returns>
+    Task<IEnumerable<ZipCodeLookupResult>> GetPostalCodesForCityAsync(string countryCode, string stateCode, string city);
+    
+    /// <summary>
+    /// Validate a postal code format for a specific country
+    /// </summary>
+    /// <param name="postalCode">The postal code to validate</param>
+    /// <param name="countryCode">Country code</param>
+    /// <returns>Validation result</returns>
+    Task<ZipCodeValidationResult> ValidatePostalCodeAsync(string postalCode, string countryCode);
     
     /// <summary>
     /// Get count of zip codes in the database
@@ -63,6 +86,17 @@ public class ZipCodeLookupResult
 }
 
 /// <summary>
+/// Country information
+/// </summary>
+public class CountryInfo
+{
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string PostalCodeFormat { get; set; } = string.Empty;
+    public string PostalCodeRegex { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// State/province information
 /// </summary>
 public class StateInfo
@@ -70,4 +104,16 @@ public class StateInfo
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string CountryCode { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Postal code validation result
+/// </summary>
+public class ZipCodeValidationResult
+{
+    public bool IsValid { get; set; }
+    public bool ExistsInDatabase { get; set; }
+    public bool FormatValid { get; set; }
+    public string? Message { get; set; }
+    public string? ExpectedFormat { get; set; }
 }

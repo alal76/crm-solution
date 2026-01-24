@@ -126,6 +126,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
         public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
         public DbSet<Account> Accounts { get; set; }
+        public DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; set; }
     
     // Communication entities
     public DbSet<CommunicationChannel> CommunicationChannels { get; set; }

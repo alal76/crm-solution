@@ -1,8 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace CRM.Core.Entities;
 
 public class LookupItem : BaseEntity
 {
     public int LookupCategoryId { get; set; }
+    
+    [JsonIgnore]
     public LookupCategory? Category { get; set; }
 
     public string Key { get; set; } = string.Empty; // machine key

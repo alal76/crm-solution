@@ -103,9 +103,19 @@ interface ColorPalette {
   id: number;
   name: string;
   category?: string;
-  colors: string[];
+  color1?: string;
+  color2?: string;
+  color3?: string;
+  color4?: string;
+  color5?: string;
   isUserDefined: boolean;
 }
+
+// Helper function to get colors array from palette
+const getPaletteColors = (palette: ColorPalette): string[] => {
+  return [palette.color1, palette.color2, palette.color3, palette.color4, palette.color5]
+    .filter((c): c is string => !!c);
+};
 
 interface ZipCode {
   id: number;
@@ -117,6 +127,16 @@ interface ZipCode {
   countryCode: string;
   latitude?: number;
   longitude?: number;
+}
+
+interface QuickSearchResult {
+  id: number;
+  postalCode: string;
+  city: string;
+  state?: string;
+  stateCode?: string;
+  countryCode: string;
+  display: string;
 }
 
 interface TabPanelProps {
@@ -163,6 +183,13 @@ function MasterDataSettingsTab() {
   const [zipPage, setZipPage] = useState(0);
   const [zipRowsPerPage, setZipRowsPerPage] = useState(25);
   const [zipTotalCount, setZipTotalCount] = useState(0);
+  
+  // Quick search for global ZIP lookup
+  const [quickSearch, setQuickSearch] = useState('');
+  const [quickSearchResults, setQuickSearchResults] = useState<QuickSearchResult[]>([]);
+  const [quickSearchLoading, setQuickSearchLoading] = useState(false);
+  const [showQuickSearch, setShowQuickSearch] = useState(true);
+  const quickSearchDebounceRef = React.useRef<NodeJS.Timeout | null>(null);
   
   // Dialogs
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
@@ -220,6 +247,7 @@ function MasterDataSettingsTab() {
   const loadZipCodes = useCallback(async () => {
     try {
       setZipCodesLoading(true);
+      setError(null); // Clear previous errors
       const params: any = {
         page: zipPage + 1,
         pageSize: zipRowsPerPage,
@@ -228,10 +256,13 @@ function MasterDataSettingsTab() {
       if (zipCountryFilter) params.country = zipCountryFilter;
       
       const response = await apiClient.get('/masterdata/zipcodes', { params });
-      setZipCodes(response.data.items);
-      setZipTotalCount(response.data.totalCount);
+      setZipCodes(response.data.items || []);
+      setZipTotalCount(response.data.totalCount || 0);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load ZIP codes');
+      console.error('Failed to load ZIP codes:', err);
+      setError(err.response?.data?.message || 'Failed to load ZIP codes. Please try again.');
+      setZipCodes([]);
+      setZipTotalCount(0);
     } finally {
       setZipCodesLoading(false);
     }
@@ -247,6 +278,42 @@ function MasterDataSettingsTab() {
     }
   }, []);
 
+  // Quick search for global ZIP lookup with debounce
+  const performQuickSearch = useCallback(async (query: string) => {
+    if (!query || query.length < 2) {
+      setQuickSearchResults([]);
+      return;
+    }
+    
+    try {
+      setQuickSearchLoading(true);
+      const response = await apiClient.get('/masterdata/zipcodes/search', { 
+        params: { q: query, limit: 20 } 
+      });
+      setQuickSearchResults(response.data.items || []);
+    } catch (err) {
+      console.error('Quick search failed:', err);
+      setQuickSearchResults([]);
+    } finally {
+      setQuickSearchLoading(false);
+    }
+  }, []);
+
+  // Debounced quick search handler
+  const handleQuickSearchChange = useCallback((value: string) => {
+    setQuickSearch(value);
+    
+    // Clear previous debounce timer
+    if (quickSearchDebounceRef.current) {
+      clearTimeout(quickSearchDebounceRef.current);
+    }
+    
+    // Set new debounce timer (300ms)
+    quickSearchDebounceRef.current = setTimeout(() => {
+      performQuickSearch(value);
+    }, 300);
+  }, [performQuickSearch]);
+
   useEffect(() => {
     loadOverview();
     loadZipCountries();
@@ -257,6 +324,13 @@ function MasterDataSettingsTab() {
     if (selectedTab === 2) loadPalettes();
     if (selectedTab === 3) loadZipCodes();
   }, [selectedTab, loadCategories, loadPalettes, loadZipCodes]);
+
+  // Reload ZIP codes when pagination changes
+  useEffect(() => {
+    if (selectedTab === 3) {
+      loadZipCodes();
+    }
+  }, [zipPage, zipRowsPerPage]);
 
   // CRUD handlers
   const handleCreateCategory = async () => {
@@ -579,7 +653,7 @@ function MasterDataSettingsTab() {
                       )}
                     </Box>
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                      {palette.colors.map((color, idx) => (
+                      {getPaletteColors(palette).map((color, idx) => (
                         <Tooltip key={idx} title={color}>
                           <Box
                             sx={{
@@ -611,10 +685,71 @@ function MasterDataSettingsTab() {
 
       {/* ZIP Codes Tab */}
       <TabPanel value={selectedTab} index={3}>
+        {/* Quick Global Search */}
+        <Paper sx={{ p: 2, mb: 3, bgcolor: 'primary.50', borderRadius: 2 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'primary.main' }}>
+            🔍 Quick Global Search ({overview?.zipCodesCount?.toLocaleString() || 0}+ locations)
+          </Typography>
+          <TextField
+            fullWidth
+            placeholder="Type ZIP code or city name (e.g., 90210, London, Paris)..."
+            size="small"
+            value={quickSearch}
+            onChange={(e) => handleQuickSearchChange(e.target.value)}
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>,
+              endAdornment: quickSearchLoading ? <CircularProgress size={20} /> : null
+            }}
+            sx={{ 
+              bgcolor: 'white', 
+              borderRadius: 1,
+              '& .MuiOutlinedInput-root': { borderRadius: 2 }
+            }}
+          />
+          {quickSearchResults.length > 0 && (
+            <Box sx={{ mt: 1, maxHeight: 300, overflowY: 'auto' }}>
+              <Table size="small" sx={{ bgcolor: 'white', borderRadius: 1 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>ZIP/Postal</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>City</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>State</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Country</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {quickSearchResults.map((result) => (
+                    <TableRow key={result.id} hover>
+                      <TableCell><strong>{result.postalCode}</strong></TableCell>
+                      <TableCell>{result.city}</TableCell>
+                      <TableCell>{result.state} {result.stateCode && `(${result.stateCode})`}</TableCell>
+                      <TableCell><Chip label={result.countryCode} size="small" variant="outlined" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          )}
+          {quickSearch.length >= 2 && quickSearchResults.length === 0 && !quickSearchLoading && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              No results found for "{quickSearch}"
+            </Typography>
+          )}
+          {quickSearch.length > 0 && quickSearch.length < 2 && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Type at least 2 characters to search
+            </Typography>
+          )}
+        </Paper>
+
+        {/* Detailed Browse Section */}
+        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
+          Browse & Filter
+        </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <TextField
-              placeholder="Search ZIP/City/State..."
+              placeholder="Filter by ZIP/City/State..."
               size="small"
               value={zipSearch}
               onChange={(e) => setZipSearch(e.target.value)}

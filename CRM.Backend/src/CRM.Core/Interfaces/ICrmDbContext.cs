@@ -44,6 +44,7 @@ public interface ICrmDbContext
     DbSet<ServiceRequestCustomFieldDefinition> ServiceRequestCustomFieldDefinitions { get; }
     DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; }
     DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; }
+    DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; }
     DbSet<Account> Accounts { get; }
     DbSet<Address> Addresses { get; }
     DbSet<ContactDetail> ContactDetails { get; }
@@ -51,6 +52,7 @@ public interface ICrmDbContext
     DbSet<ContactInfoLink> ContactInfoLinks { get; }
     DbSet<LookupCategory> LookupCategories { get; }
     DbSet<LookupItem> LookupItems { get; }
+    DbSet<ZipCode> ZipCodes { get; }
     DbSet<CRM.Core.Entities.Tag> Tags { get; }
     DbSet<CRM.Core.Entities.EntityTag> EntityTags { get; }
     DbSet<CRM.Core.Entities.CustomField> CustomFields { get; }

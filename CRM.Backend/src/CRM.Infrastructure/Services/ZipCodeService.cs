@@ -3,6 +3,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 namespace CRM.Infrastructure.Services;
 
@@ -13,6 +14,51 @@ public class ZipCodeService : IZipCodeService
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<ZipCodeService> _logger;
+    
+    // Postal code formats and regex patterns by country
+    private static readonly Dictionary<string, (string Format, string Regex)> PostalCodeFormats = new()
+    {
+        { "US", ("12345 or 12345-6789", @"^\d{5}(-\d{4})?$") },
+        { "CA", ("A1A 1A1", @"^[A-Z]\d[A-Z]\s?\d[A-Z]\d$") },
+        { "GB", ("AA9A 9AA", @"^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$") },
+        { "UK", ("AA9A 9AA", @"^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$") },
+        { "AU", ("1234", @"^\d{4}$") },
+        { "DE", ("12345", @"^\d{5}$") },
+        { "FR", ("12345", @"^\d{5}$") },
+        { "IT", ("12345", @"^\d{5}$") },
+        { "ES", ("12345", @"^\d{5}$") },
+        { "NL", ("1234 AB", @"^\d{4}\s?[A-Z]{2}$") },
+        { "BE", ("1234", @"^\d{4}$") },
+        { "CH", ("1234", @"^\d{4}$") },
+        { "AT", ("1234", @"^\d{4}$") },
+        { "JP", ("123-4567", @"^\d{3}-?\d{4}$") },
+        { "CN", ("123456", @"^\d{6}$") },
+        { "IN", ("123456", @"^\d{6}$") },
+        { "BR", ("12345-678", @"^\d{5}-?\d{3}$") },
+        { "MX", ("12345", @"^\d{5}$") },
+        { "RU", ("123456", @"^\d{6}$") },
+        { "PL", ("12-345", @"^\d{2}-?\d{3}$") },
+        { "PT", ("1234-567", @"^\d{4}-?\d{3}$") },
+        { "SE", ("123 45", @"^\d{3}\s?\d{2}$") },
+        { "NO", ("1234", @"^\d{4}$") },
+        { "DK", ("1234", @"^\d{4}$") },
+        { "FI", ("12345", @"^\d{5}$") },
+        { "IE", ("A65 F4E2", @"^[A-Z\d]{3}\s?[A-Z\d]{4}$") },
+        { "NZ", ("1234", @"^\d{4}$") },
+        { "SG", ("123456", @"^\d{6}$") },
+        { "ZA", ("1234", @"^\d{4}$") },
+        { "AE", ("12345", @"^\d{5}$") },
+        { "KR", ("12345", @"^\d{5}$") },
+        { "ID", ("12345", @"^\d{5}$") },
+        { "TH", ("12345", @"^\d{5}$") },
+        { "MY", ("12345", @"^\d{5}$") },
+        { "PH", ("1234", @"^\d{4}$") },
+        { "VN", ("123456", @"^\d{6}$") },
+        { "AR", ("1234", @"^[A-Z]?\d{4}[A-Z]{0,3}$") },
+        { "CL", ("1234567", @"^\d{7}$") },
+        { "CO", ("123456", @"^\d{6}$") },
+        { "PE", ("12345", @"^\d{5}$") },
+    };
 
     public ZipCodeService(CrmDbContext context, ILogger<ZipCodeService> logger)
     {
@@ -204,5 +250,139 @@ public class ZipCodeService : IZipCodeService
             _logger.LogError(ex, "Error getting zip code count");
             return 0;
         }
+    }
+    
+    /// <inheritdoc />
+    public async Task<IEnumerable<CountryInfo>> GetCountriesAsync()
+    {
+        try
+        {
+            var countries = await _context.ZipCodes
+                .Where(z => z.IsActive)
+                .Select(z => new { z.CountryCode, z.Country })
+                .Distinct()
+                .OrderBy(c => c.Country)
+                .ToListAsync();
+            
+            return countries.Select(c => new CountryInfo
+            {
+                Code = c.CountryCode,
+                Name = c.Country,
+                PostalCodeFormat = PostalCodeFormats.TryGetValue(c.CountryCode, out var format) ? format.Format : "",
+                PostalCodeRegex = PostalCodeFormats.TryGetValue(c.CountryCode, out var regex) ? regex.Regex : ""
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting countries");
+            return Enumerable.Empty<CountryInfo>();
+        }
+    }
+    
+    /// <inheritdoc />
+    public async Task<IEnumerable<ZipCodeLookupResult>> GetPostalCodesForCityAsync(string countryCode, string stateCode, string city)
+    {
+        if (string.IsNullOrWhiteSpace(countryCode) || string.IsNullOrWhiteSpace(stateCode) || string.IsNullOrWhiteSpace(city))
+        {
+            return Enumerable.Empty<ZipCodeLookupResult>();
+        }
+
+        try
+        {
+            var normalizedCountryCode = countryCode.Trim().ToUpperInvariant();
+            var normalizedStateCode = stateCode.Trim().ToUpperInvariant();
+            var normalizedCity = city.Trim().ToLower();
+
+            return await _context.ZipCodes
+                .Where(z => z.IsActive && 
+                       z.CountryCode == normalizedCountryCode && 
+                       z.StateCode == normalizedStateCode &&
+                       z.City.ToLower() == normalizedCity)
+                .Select(z => new ZipCodeLookupResult
+                {
+                    PostalCode = z.PostalCode,
+                    City = z.City,
+                    State = z.State,
+                    StateCode = z.StateCode,
+                    County = z.County,
+                    Country = z.Country,
+                    CountryCode = z.CountryCode,
+                    Latitude = z.Latitude,
+                    Longitude = z.Longitude
+                })
+                .OrderBy(z => z.PostalCode)
+                .Take(100)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting postal codes for city: {CountryCode}/{StateCode}/{City}", countryCode, stateCode, city);
+            return Enumerable.Empty<ZipCodeLookupResult>();
+        }
+    }
+    
+    /// <inheritdoc />
+    public async Task<ZipCodeValidationResult> ValidatePostalCodeAsync(string postalCode, string countryCode)
+    {
+        var result = new ZipCodeValidationResult
+        {
+            IsValid = false,
+            ExistsInDatabase = false,
+            FormatValid = false
+        };
+
+        if (string.IsNullOrWhiteSpace(postalCode) || string.IsNullOrWhiteSpace(countryCode))
+        {
+            result.Message = "Postal code and country code are required";
+            return result;
+        }
+
+        var normalizedCountryCode = countryCode.Trim().ToUpperInvariant();
+        var normalizedPostalCode = postalCode.Trim().ToUpperInvariant();
+
+        // Check format
+        if (PostalCodeFormats.TryGetValue(normalizedCountryCode, out var format))
+        {
+            result.ExpectedFormat = format.Format;
+            result.FormatValid = Regex.IsMatch(normalizedPostalCode, format.Regex, RegexOptions.IgnoreCase);
+            
+            if (!result.FormatValid)
+            {
+                result.Message = $"Invalid format. Expected: {format.Format}";
+                return result;
+            }
+        }
+        else
+        {
+            // Unknown country - accept any format
+            result.FormatValid = true;
+        }
+
+        // Check if exists in database
+        try
+        {
+            result.ExistsInDatabase = await _context.ZipCodes
+                .AnyAsync(z => z.IsActive && 
+                          z.CountryCode == normalizedCountryCode && 
+                          z.PostalCode.Replace(" ", "").ToUpper() == normalizedPostalCode.Replace(" ", ""));
+            
+            result.IsValid = result.FormatValid && result.ExistsInDatabase;
+            
+            if (!result.ExistsInDatabase && result.FormatValid)
+            {
+                result.Message = "Format is valid but postal code not found in database";
+            }
+            else if (result.IsValid)
+            {
+                result.Message = "Valid postal code";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating postal code: {PostalCode}", postalCode);
+            result.Message = "Error validating postal code";
+        }
+
+        return result;
     }
 }

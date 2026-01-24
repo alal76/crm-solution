@@ -242,6 +242,8 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructu
 builder.Services.AddScoped<NormalizationService>();
 // Master data - ZIP code lookups
 builder.Services.AddScoped<IZipCodeService, ZipCodeService>();
+// Master data - Field-to-master-data linking service
+builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
 
 // HEXAGONAL ARCHITECTURE - Register Input Ports (Primary/Driving Ports)
 // These allow controllers to depend on ports instead of concrete services

@@ -356,6 +356,179 @@ public class MasterDataController : ControllerBase
 
     #endregion
 
+    #region ZIP Codes
+
+    /// <summary>
+    /// Get paginated ZIP codes for the Master Data management UI
+    /// Optimized for large datasets with proper indexing hints
+    /// </summary>
+    [HttpGet("zipcodes")]
+    public async Task<IActionResult> GetZipCodes(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] string? country = null)
+    {
+        try
+        {
+            // Limit page size to prevent excessive data transfer
+            pageSize = Math.Min(pageSize, 100);
+            
+            var query = _dbContext.ZipCodes.AsNoTracking().AsQueryable();
+
+            // Apply country filter first (most selective)
+            if (!string.IsNullOrWhiteSpace(country))
+            {
+                query = query.Where(z => z.CountryCode == country);
+            }
+
+            // Apply search filter - optimized for indexed columns
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchTerm = search.Trim();
+                
+                // For postal code searches, use StartsWith for better index usage
+                if (searchTerm.Length <= 10 && searchTerm.All(c => char.IsLetterOrDigit(c) || c == '-' || c == ' '))
+                {
+                    // Likely a postal code search - use prefix matching
+                    query = query.Where(z => 
+                        z.PostalCode.StartsWith(searchTerm) ||
+                        z.City.StartsWith(searchTerm) ||
+                        (z.State != null && z.State.StartsWith(searchTerm)) ||
+                        (z.StateCode != null && z.StateCode == searchTerm));
+                }
+                else
+                {
+                    // Full text search for longer terms
+                    var searchLower = searchTerm.ToLower();
+                    query = query.Where(z => 
+                        z.PostalCode.ToLower().Contains(searchLower) ||
+                        z.City.ToLower().Contains(searchLower) ||
+                        (z.State != null && z.State.ToLower().Contains(searchLower)));
+                }
+            }
+
+            // Get total count using a more efficient approach
+            var totalCount = await query.CountAsync();
+            
+            // Use efficient ordering based on filters applied
+            IOrderedQueryable<ZipCode> orderedQuery;
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                // When searching, order by relevance (postal code match first)
+                orderedQuery = query.OrderBy(z => z.PostalCode);
+            }
+            else if (!string.IsNullOrWhiteSpace(country))
+            {
+                // When filtering by country, order by state then city
+                orderedQuery = query.OrderBy(z => z.State).ThenBy(z => z.City).ThenBy(z => z.PostalCode);
+            }
+            else
+            {
+                // Default: order by country, state, city
+                orderedQuery = query.OrderBy(z => z.CountryCode).ThenBy(z => z.State).ThenBy(z => z.City);
+            }
+            
+            var items = await orderedQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(z => new
+                {
+                    z.Id,
+                    z.PostalCode,
+                    z.City,
+                    z.State,
+                    z.StateCode,
+                    z.County,
+                    z.CountryCode,
+                    z.Latitude,
+                    z.Longitude
+                })
+                .ToListAsync();
+
+            return Ok(new { items, totalCount, page, pageSize });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting ZIP codes");
+            return StatusCode(500, new { message = "Error getting ZIP codes" });
+        }
+    }
+
+    /// <summary>
+    /// Fast global ZIP code search - returns top matches quickly
+    /// </summary>
+    [HttpGet("zipcodes/search")]
+    public async Task<IActionResult> SearchZipCodes(
+        [FromQuery] string q,
+        [FromQuery] int limit = 20)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+            {
+                return Ok(new { items = Array.Empty<object>(), message = "Enter at least 2 characters" });
+            }
+
+            limit = Math.Min(limit, 50); // Cap at 50 results
+            var searchTerm = q.Trim();
+            
+            var query = _dbContext.ZipCodes.AsNoTracking();
+
+            // Optimized search using StartsWith for better index usage
+            var items = await query
+                .Where(z => 
+                    z.PostalCode.StartsWith(searchTerm) ||
+                    z.City.StartsWith(searchTerm))
+                .OrderBy(z => z.PostalCode.StartsWith(searchTerm) ? 0 : 1)
+                .ThenBy(z => z.PostalCode)
+                .Take(limit)
+                .Select(z => new
+                {
+                    z.Id,
+                    z.PostalCode,
+                    z.City,
+                    z.State,
+                    z.StateCode,
+                    z.CountryCode,
+                    display = $"{z.PostalCode} - {z.City}, {z.State ?? ""} ({z.CountryCode})"
+                })
+                .ToListAsync();
+
+            return Ok(new { items, count = items.Count });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching ZIP codes");
+            return StatusCode(500, new { message = "Error searching ZIP codes" });
+        }
+    }
+
+    /// <summary>
+    /// Get list of distinct country codes that have ZIP codes
+    /// </summary>
+    [HttpGet("zipcodes/countries")]
+    public async Task<IActionResult> GetZipCodeCountries()
+    {
+        try
+        {
+            var countries = await _dbContext.ZipCodes
+                .Select(z => z.CountryCode)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+
+            return Ok(countries);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting ZIP code countries");
+            return StatusCode(500, new { message = "Error getting countries" });
+        }
+    }
+
+    #endregion
+
     #region Export
 
     /// <summary>
