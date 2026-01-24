@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using CRM.Core.Models;
+
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -243,6 +245,12 @@ public class Customer : BaseEntity
     public ICollection<Interaction>? Interactions { get; set; }
     public ICollection<CustomerContact>? CustomerContacts { get; set; } // Linked contacts for organizations
     public ICollection<Account>? Accounts { get; set; }
+    
+    /// <summary>
+    /// Contacts directly owned by this customer (one-to-many relationship)
+    /// </summary>
+    public ICollection<Contact>? Contacts { get; set; }
+    
     // Contact information links (addresses, phones/emails, social accounts)
     public ICollection<ContactInfoLink>? ContactInfoLinks { get; set; }
     // Lookup navigation

@@ -38,6 +38,10 @@ public class ContactDto
     public DateTime? LastModified { get; set; }
     public string? ModifiedBy { get; set; }
     
+    // Customer relationship
+    public int? CustomerId { get; set; }
+    public string Status { get; set; } = "Active";
+    
     public List<SocialMediaLinkDto> SocialMediaLinks { get; set; } = new();
 }
 

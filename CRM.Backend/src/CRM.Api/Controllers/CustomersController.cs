@@ -324,7 +324,79 @@ public class CustomersController : ControllerBase
         }
     }
 
-    // === Contact Management for Organization Customers ===
+    // === Direct Contact Management (One-to-Many) ===
+
+    /// <summary>
+    /// Get all contacts that directly belong to a customer (via CustomerId FK)
+    /// </summary>
+    [HttpGet("{id}/direct-contacts")]
+    [ProducesResponseType(typeof(IEnumerable<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetDirectContacts(int id)
+    {
+        try
+        {
+            var customer = await _customerService.GetCustomerByIdAsync(id);
+            if (customer == null)
+                return NotFound(new { message = "Customer not found" });
+
+            var contacts = await _customerService.GetDirectContactsAsync(id);
+            return Ok(contacts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving direct contacts for customer {Id}", id);
+            return StatusCode(500, new { message = "Error retrieving direct contacts", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Assign a contact to a customer (sets the contact's CustomerId)
+    /// </summary>
+    [HttpPost("{id}/direct-contacts/{contactId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AssignContactToCustomer(int id, int contactId)
+    {
+        try
+        {
+            var result = await _customerService.AssignContactToCustomerAsync(id, contactId);
+            if (!result)
+                return NotFound(new { message = "Customer or Contact not found" });
+
+            return Ok(new { message = "Contact assigned to customer successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error assigning contact {ContactId} to customer {Id}", contactId, id);
+            return StatusCode(500, new { message = "Error assigning contact", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Remove a contact from a customer (clears the contact's CustomerId)
+    /// </summary>
+    [HttpDelete("{id}/direct-contacts/{contactId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UnassignContactFromCustomer(int id, int contactId)
+    {
+        try
+        {
+            var result = await _customerService.UnassignContactFromCustomerAsync(id, contactId);
+            if (!result)
+                return NotFound(new { message = "Customer or Contact not found" });
+
+            return Ok(new { message = "Contact removed from customer successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unassigning contact {ContactId} from customer {Id}", contactId, id);
+            return StatusCode(500, new { message = "Error unassigning contact", error = ex.Message });
+        }
+    }
+
+    // === Contact Management for Organization Customers (Many-to-Many via CustomerContact) ===
 
     /// <summary>
     /// Get all contacts linked to a customer (organization)

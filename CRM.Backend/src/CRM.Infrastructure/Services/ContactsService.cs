@@ -470,6 +470,8 @@ public class ContactsService : IContactsService, IContactInputPort
             DateAdded = contact.DateAdded,
             LastModified = contact.LastModified,
             ModifiedBy = contact.ModifiedBy,
+            Status = contact.Status.ToString(),
+            CustomerId = contact.CustomerId,
             SocialMediaLinks = contact.SocialMediaLinks
                 .Select(l => new SocialMediaLinkDto
                 {
@@ -480,5 +482,41 @@ public class ContactsService : IContactsService, IContactInputPort
                 })
                 .ToList()
         };
+    }
+
+    // === Customer Assignment Methods ===
+
+    public async Task<List<ContactDto>> GetByCustomerIdAsync(int customerId)
+    {
+        var contacts = await _context.Contacts
+            .Include(c => c.SocialMediaLinks)
+            .Where(c => c.CustomerId == customerId)
+            .OrderBy(c => c.LastName)
+            .ThenBy(c => c.FirstName)
+            .ToListAsync();
+
+        return contacts.Select(MapToDto).ToList();
+    }
+
+    public async Task AssignToCustomerAsync(int contactId, int customerId)
+    {
+        var contact = await _context.Contacts.FindAsync(contactId);
+        if (contact == null)
+            throw new InvalidOperationException($"Contact with ID {contactId} not found");
+
+        contact.CustomerId = customerId;
+        contact.LastModified = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UnassignFromCustomerAsync(int contactId)
+    {
+        var contact = await _context.Contacts.FindAsync(contactId);
+        if (contact == null)
+            throw new InvalidOperationException($"Contact with ID {contactId} not found");
+
+        contact.CustomerId = null;
+        contact.LastModified = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
     }
 }

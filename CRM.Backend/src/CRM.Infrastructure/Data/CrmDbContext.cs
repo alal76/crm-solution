@@ -225,6 +225,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(c => c.CustomerContacts)
                 .HasForeignKey(e => e.CustomerId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Contact)
+                .WithMany(c => c.CustomerContacts)
+                .HasForeignKey(e => e.ContactId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configure Opportunity
@@ -429,6 +434,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasOne(c => c.PreferredContactMethodLookup)
                 .WithMany()
                 .HasForeignKey(c => c.PreferredContactMethodLookupId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Contact belongs to Customer (one-to-many)
+            entity.HasOne(c => c.Customer)
+                .WithMany(cust => cust.Contacts)
+                .HasForeignKey(c => c.CustomerId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 

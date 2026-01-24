@@ -74,6 +74,7 @@ import {
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import apiClient from '../../services/apiClient';
 import { useProfile } from '../../contexts/ProfileContext';
+import { dispatchFieldConfigUpdate } from '../../hooks/useFieldConfig';
 
 // Types
 interface FieldConfig {
@@ -583,6 +584,9 @@ const ModuleFieldSettingsTab: React.FC = () => {
         })),
         linkedEntities: config.linkedEntities
       });
+
+      // Dispatch event to notify other components that field configs have been updated
+      dispatchFieldConfigUpdate(moduleName);
 
       setSuccess(`Configuration saved for ${moduleName}`);
       setTimeout(() => setSuccess(null), 3000);

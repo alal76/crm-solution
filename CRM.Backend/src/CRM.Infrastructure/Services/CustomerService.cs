@@ -776,6 +776,57 @@ public class CustomerService : ICustomerService, ICustomerInputPort
         return true;
     }
 
+    // === Direct Contact Management (One-to-Many via Contact.CustomerId) ===
+
+    public async Task<IEnumerable<object>> GetDirectContactsAsync(int customerId)
+    {
+        var contacts = await _contactsService.GetByCustomerIdAsync(customerId);
+        return contacts.Select(c => new
+        {
+            c.Id,
+            c.FirstName,
+            c.LastName,
+            FullName = $"{c.FirstName} {c.LastName}".Trim(),
+            c.EmailPrimary,
+            c.PhonePrimary,
+            c.JobTitle,
+            c.Company,
+            c.ContactType,
+            c.Status,
+            c.DateAdded
+        }).ToList();
+    }
+
+    public async Task<bool> AssignContactToCustomerAsync(int customerId, int contactId)
+    {
+        var customer = await _customerRepository.GetByIdAsync(customerId);
+        if (customer == null || customer.IsDeleted)
+            return false;
+
+        var contact = await _contactsService.GetByIdAsync(contactId);
+        if (contact == null)
+            return false;
+
+        // Update the contact's CustomerId
+        await _contactsService.AssignToCustomerAsync(contactId, customerId);
+        return true;
+    }
+
+    public async Task<bool> UnassignContactFromCustomerAsync(int customerId, int contactId)
+    {
+        var customer = await _customerRepository.GetByIdAsync(customerId);
+        if (customer == null || customer.IsDeleted)
+            return false;
+
+        var contact = await _contactsService.GetByIdAsync(contactId);
+        if (contact == null || contact.CustomerId != customerId)
+            return false;
+
+        // Clear the contact's CustomerId
+        await _contactsService.UnassignFromCustomerAsync(contactId);
+        return true;
+    }
+
     public async Task<IEnumerable<CustomerDto>> GetCustomersByAssignedUserAsync(int userId)
     {
         var customers = await _customerRepository.FindAsync(c => 
