@@ -38,6 +38,8 @@ import {
   Science as ScienceIcon,
   PersonSearch as PersonSearchIcon,
   Forum as CommunicationsIcon,
+  SwapHoriz as InteractionsIcon,
+  SettingsInputAntenna as ChannelSettingsIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -100,10 +102,12 @@ function NavigationContent() {
     'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
     'notes': { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
     'communications': { label: 'Communications', icon: CommunicationsIcon, path: '/communications', menuName: 'Communications' },
+    'interactions': { label: 'Interactions', icon: InteractionsIcon, path: '/interactions', menuName: 'Interactions' },
   }), []);
 
   const adminItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
     'workflows': { label: 'Workflows', icon: AutomationIcon, path: '/workflows', menuName: 'Workflows' },
+    'channel-settings': { label: 'Channel Settings', icon: ChannelSettingsIcon, path: '/channel-settings', menuName: 'ChannelSettings' },
     'settings': { label: 'Admin Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
   }), []);
 
@@ -111,9 +115,9 @@ function NavigationContent() {
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'customers', 'customer-overview', 'contacts', 'leads', 'opportunities',
     'products', 'services', 'service-requests', 'campaigns', 'quotes',
-    'my-queue', 'activities', 'notes', 'communications'
+    'my-queue', 'activities', 'notes', 'communications', 'interactions'
   ], []);
-  const defaultAdminOrder = useMemo(() => ['workflows', 'settings'], []);
+  const defaultAdminOrder = useMemo(() => ['workflows', 'channel-settings', 'settings'], []);
 
   // Default categories
   const defaultCategories = useMemo(() => [
@@ -141,8 +145,10 @@ function NavigationContent() {
     { id: 'activities', order: 12, visible: true, category: 'productivity' },
     { id: 'notes', order: 13, visible: true, category: 'productivity' },
     { id: 'communications', order: 14, visible: true, category: 'productivity' },
-    { id: 'workflows', order: 15, visible: true, category: 'admin' },
-    { id: 'settings', order: 16, visible: true, category: 'admin' },
+    { id: 'interactions', order: 15, visible: true, category: 'productivity' },
+    { id: 'workflows', order: 16, visible: true, category: 'admin' },
+    { id: 'channel-settings', order: 17, visible: true, category: 'admin' },
+    { id: 'settings', order: 18, visible: true, category: 'admin' },
   ], []);
 
   // Get nav config from localStorage or use defaults

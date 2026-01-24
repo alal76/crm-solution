@@ -1,7 +1,7 @@
 {
   "major": 1,
-  "minor": 3,
-  "patch": 1,
+  "minor": 4,
+  "patch": 0,
   "lastUpdate": "2026-01-22",
-  "description": "Enhanced test suite with 129 tests and About page test results tab"
+  "description": "Interaction Management Module - multi-channel ingestion, entity linking, service request creation"
 }

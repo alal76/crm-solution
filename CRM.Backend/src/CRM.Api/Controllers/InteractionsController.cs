@@ -286,6 +286,308 @@ public class InteractionsController : ControllerBase
 
         return Ok(stats);
     }
+
+    /// <summary>
+    /// Create a service request from an interaction
+    /// </summary>
+    [HttpPost("{id}/create-service-request")]
+    public async Task<ActionResult<ServiceRequest>> CreateServiceRequestFromInteraction(
+        int id, 
+        [FromBody] CreateServiceRequestFromInteractionRequest request)
+    {
+        try
+        {
+            var interaction = await _context.Interactions
+                .Include(i => i.Customer)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (interaction == null)
+                return NotFound(new { message = "Interaction not found" });
+
+            if (interaction.CustomerId <= 0)
+                return BadRequest(new { message = "Interaction must be linked to a customer before creating a service request" });
+
+            // Determine priority
+            var priority = ServiceRequestPriority.Normal;
+            if (!string.IsNullOrEmpty(request.Priority) && 
+                Enum.TryParse<ServiceRequestPriority>(request.Priority, true, out var parsedPriority))
+            {
+                priority = parsedPriority;
+            }
+            
+            // If expediting, increase priority
+            if (request.Expedite && priority < ServiceRequestPriority.Urgent)
+            {
+                priority = priority == ServiceRequestPriority.Normal ? ServiceRequestPriority.High : ServiceRequestPriority.Urgent;
+            }
+
+            var description = request.CopyInteractionDescription 
+                ? $"{request.Description}\n\n--- From Interaction ---\n{interaction.Description}".Trim()
+                : request.Description ?? "";
+
+            var serviceRequest = new ServiceRequest
+            {
+                Title = interaction.Subject ?? "Service Request from Interaction",
+                Description = description,
+                RequestType = request.RequestType,
+                ServiceRequestTypeId = request.ServiceRequestTypeId,
+                CustomerId = interaction.CustomerId,
+                ContactId = interaction.ContactId,
+                Status = ServiceRequestStatus.New,
+                Priority = priority,
+                Channel = GetChannelFromInteractionType(interaction.InteractionType),
+                SourceInteractionId = interaction.Id,
+                IsExpedited = request.Expedite,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.ServiceRequests.Add(serviceRequest);
+            await _context.SaveChangesAsync();
+
+            // Update interaction with linked service request
+            interaction.CustomFields = System.Text.Json.JsonSerializer.Serialize(new 
+            { 
+                LinkedServiceRequestId = serviceRequest.Id 
+            });
+            interaction.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Created service request {ServiceRequestId} from interaction {InteractionId}", 
+                serviceRequest.Id, interaction.Id);
+
+            return CreatedAtAction(nameof(GetInteraction), new { id = serviceRequest.Id }, serviceRequest);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating service request from interaction {InteractionId}", id);
+            return StatusCode(500, new { message = "Error creating service request" });
+        }
+    }
+
+    /// <summary>
+    /// Create a contact from an interaction
+    /// </summary>
+    [HttpPost("{id}/create-contact")]
+    public async Task<ActionResult> CreateContactFromInteraction(
+        int id, 
+        [FromBody] CreateContactFromInteractionRequest request)
+    {
+        try
+        {
+            var interaction = await _context.Interactions.FindAsync(id);
+            if (interaction == null)
+                return NotFound(new { message = "Interaction not found" });
+
+            var customerId = request.CustomerId ?? interaction.CustomerId;
+
+            // Create customer if needed and none exists
+            if (customerId <= 0 && request.CreateCustomerIfNeeded)
+            {
+                var newCustomer = new Customer
+                {
+                    Category = 0, // Individual
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Email = request.Email ?? interaction.EmailAddress ?? "",
+                    Phone = request.Phone ?? interaction.PhoneNumber,
+                    Status = "Active",
+                    LifecycleStage = "Lead",
+                    LeadSource = $"Interaction-{interaction.InteractionType}",
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.Customers.Add(newCustomer);
+                await _context.SaveChangesAsync();
+                customerId = newCustomer.Id;
+            }
+
+            if (customerId <= 0)
+                return BadRequest(new { message = "CustomerId is required or CreateCustomerIfNeeded must be true" });
+
+            var contact = new Contact
+            {
+                CustomerId = customerId,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Email = request.Email ?? interaction.EmailAddress,
+                Phone = request.Phone ?? interaction.PhoneNumber,
+                Title = request.Title,
+                IsPrimary = false,
+                Status = "Active",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Contacts.Add(contact);
+            await _context.SaveChangesAsync();
+
+            // Link interaction to the new contact
+            interaction.ContactId = contact.Id;
+            if (interaction.CustomerId <= 0)
+                interaction.CustomerId = customerId;
+            interaction.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Created contact {ContactId} from interaction {InteractionId}", 
+                contact.Id, interaction.Id);
+
+            return Ok(new { contactId = contact.Id, customerId = customerId });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating contact from interaction {InteractionId}", id);
+            return StatusCode(500, new { message = "Error creating contact" });
+        }
+    }
+
+    /// <summary>
+    /// Link an interaction to entities (customer, contact, opportunity, service request)
+    /// </summary>
+    [HttpPost("{id}/link")]
+    public async Task<IActionResult> LinkInteraction(int id, [FromBody] LinkInteractionRequest request)
+    {
+        try
+        {
+            var interaction = await _context.Interactions.FindAsync(id);
+            if (interaction == null)
+                return NotFound(new { message = "Interaction not found" });
+
+            if (request.CustomerId.HasValue)
+            {
+                var customer = await _context.Customers.FindAsync(request.CustomerId.Value);
+                if (customer == null)
+                    return BadRequest(new { message = "Customer not found" });
+                interaction.CustomerId = request.CustomerId.Value;
+            }
+
+            if (request.ContactId.HasValue)
+            {
+                var contact = await _context.Contacts.FindAsync(request.ContactId.Value);
+                if (contact == null)
+                    return BadRequest(new { message = "Contact not found" });
+                interaction.ContactId = request.ContactId.Value;
+            }
+
+            if (request.OpportunityId.HasValue)
+            {
+                var opportunity = await _context.Opportunities.FindAsync(request.OpportunityId.Value);
+                if (opportunity == null)
+                    return BadRequest(new { message = "Opportunity not found" });
+                interaction.OpportunityId = request.OpportunityId.Value;
+            }
+
+            if (!string.IsNullOrEmpty(request.Notes))
+            {
+                interaction.Description = $"{interaction.Description}\n\n[Link Note]: {request.Notes}".Trim();
+            }
+
+            interaction.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Linked interaction {InteractionId} to entities", id);
+
+            return Ok(interaction);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error linking interaction {InteractionId}", id);
+            return StatusCode(500, new { message = "Error linking interaction" });
+        }
+    }
+
+    /// <summary>
+    /// Add a note to an interaction
+    /// </summary>
+    [HttpPost("{id}/notes")]
+    public async Task<IActionResult> AddNote(int id, [FromBody] AddInteractionNoteRequest request)
+    {
+        try
+        {
+            var interaction = await _context.Interactions.FindAsync(id);
+            if (interaction == null)
+                return NotFound(new { message = "Interaction not found" });
+
+            var notePrefix = request.IsInternal ? "[Internal Note]" : "[Note]";
+            var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm");
+            var newNote = $"\n\n{notePrefix} ({timestamp}): {request.Note}";
+
+            interaction.Description = (interaction.Description ?? "") + newNote;
+            interaction.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Note added successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding note to interaction {InteractionId}", id);
+            return StatusCode(500, new { message = "Error adding note" });
+        }
+    }
+
+    /// <summary>
+    /// Update tags for an interaction
+    /// </summary>
+    [HttpPost("{id}/tags")]
+    public async Task<IActionResult> UpdateTags(int id, [FromBody] TagInteractionRequest request)
+    {
+        try
+        {
+            var interaction = await _context.Interactions.FindAsync(id);
+            if (interaction == null)
+                return NotFound(new { message = "Interaction not found" });
+
+            interaction.Tags = string.Join(",", request.Tags);
+            interaction.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            // Also update normalized tags
+            await _normalization.SetTagsAsync("Interaction", id, request.Tags);
+
+            return Ok(new { success = true, tags = request.Tags });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating tags for interaction {InteractionId}", id);
+            return StatusCode(500, new { message = "Error updating tags" });
+        }
+    }
+
+    /// <summary>
+    /// Get interactions that need attention (follow-ups due, unlinked, etc.)
+    /// </summary>
+    [HttpGet("needs-attention")]
+    public async Task<ActionResult<IEnumerable<Interaction>>> GetNeedsAttention([FromQuery] int limit = 50)
+    {
+        var now = DateTime.UtcNow;
+        
+        var interactions = await _context.Interactions
+            .Include(i => i.Customer)
+            .Where(i => 
+                // Unlinked to customer
+                (i.CustomerId <= 0) ||
+                // Follow-up overdue
+                (i.FollowUpDate != null && i.FollowUpDate < now && !i.IsCompleted) ||
+                // High priority not completed
+                (i.Priority >= 3 && !i.IsCompleted && i.CreatedAt < now.AddHours(-4)))
+            .OrderByDescending(i => i.Priority)
+            .ThenBy(i => i.FollowUpDate)
+            .Take(limit)
+            .ToListAsync();
+
+        return Ok(interactions);
+    }
+
+    private static ServiceRequestChannel GetChannelFromInteractionType(InteractionType type)
+    {
+        return type switch
+        {
+            InteractionType.Email => ServiceRequestChannel.Email,
+            InteractionType.Phone => ServiceRequestChannel.Phone,
+            InteractionType.Chat => ServiceRequestChannel.LiveChat,
+            InteractionType.SocialMedia => ServiceRequestChannel.SocialMedia,
+            InteractionType.WebForm => ServiceRequestChannel.SelfServicePortal,
+            InteractionType.InPerson => ServiceRequestChannel.InPerson,
+            _ => ServiceRequestChannel.API
+        };
+    }
 }
 
 public class CompleteInteractionRequest
@@ -305,4 +607,47 @@ public class LogInteractionRequest
     public int? DurationMinutes { get; set; }
     public InteractionOutcome Outcome { get; set; } = InteractionOutcome.None;
     public int? UserId { get; set; }
+}
+
+public class CreateServiceRequestFromInteractionRequest
+{
+    public int InteractionId { get; set; }
+    public string RequestType { get; set; } = string.Empty;
+    public int? ServiceRequestTypeId { get; set; }
+    public string? Priority { get; set; }
+    public string? Description { get; set; }
+    public bool CopyInteractionDescription { get; set; } = true;
+    public bool Expedite { get; set; } = false;
+}
+
+public class CreateContactFromInteractionRequest
+{
+    public int InteractionId { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? Title { get; set; }
+    public int? CustomerId { get; set; }
+    public bool CreateCustomerIfNeeded { get; set; } = false;
+}
+
+public class LinkInteractionRequest
+{
+    public int? CustomerId { get; set; }
+    public int? ContactId { get; set; }
+    public int? OpportunityId { get; set; }
+    public int? ServiceRequestId { get; set; }
+    public string? Notes { get; set; }
+}
+
+public class AddInteractionNoteRequest
+{
+    public string Note { get; set; } = string.Empty;
+    public bool IsInternal { get; set; } = false;
+}
+
+public class TagInteractionRequest
+{
+    public List<string> Tags { get; set; } = new();
 }

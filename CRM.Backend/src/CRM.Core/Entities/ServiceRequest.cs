@@ -614,6 +614,26 @@ public class ServiceRequest : BaseEntity
     /// <summary>Parent service request (for linked cases)</summary>
     public int? ParentServiceRequestId { get; set; }
     
+    /// <summary>Source interaction that triggered this service request</summary>
+    public int? SourceInteractionId { get; set; }
+    
+    #endregion
+    
+    #region Expedite & Priority Handling
+    
+    /// <summary>Whether this request was marked for expedited handling</summary>
+    public bool IsExpedited { get; set; } = false;
+    
+    /// <summary>Reason for expedite (if expedited)</summary>
+    [MaxLength(500)]
+    public string? ExpediteReason { get; set; }
+    
+    /// <summary>User who requested expedite</summary>
+    public int? ExpeditedByUserId { get; set; }
+    
+    /// <summary>When the request was expedited</summary>
+    public DateTime? ExpeditedAt { get; set; }
+    
     #endregion
     
     #region Additional Information
@@ -680,6 +700,12 @@ public class ServiceRequest : BaseEntity
     
     [ForeignKey("ParentServiceRequestId")]
     public virtual ServiceRequest? ParentServiceRequest { get; set; }
+    
+    [ForeignKey("SourceInteractionId")]
+    public virtual Interaction? SourceInteraction { get; set; }
+    
+    [ForeignKey("ExpeditedByUserId")]
+    public virtual User? ExpeditedByUser { get; set; }
     
     public virtual ICollection<ServiceRequest> ChildServiceRequests { get; set; } = new List<ServiceRequest>();
     public virtual ICollection<ServiceRequestCustomFieldValue> CustomFieldValues { get; set; } = new List<ServiceRequestCustomFieldValue>();

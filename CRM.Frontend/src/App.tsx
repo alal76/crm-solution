@@ -58,6 +58,8 @@ import ServiceRequestsPage from './pages/ServiceRequestsPage';
 import ServiceRequestSettingsPage from './pages/ServiceRequestSettingsPage';
 import CustomerOverviewPage from './pages/CustomerOverviewPage';
 import CommunicationsPage from './pages/CommunicationsPage';
+import InteractionsPage from './pages/InteractionsPage';
+import ChannelSettingsPage from './pages/ChannelSettingsPage';
 import './App.css';
 
 function App() {
@@ -309,6 +311,26 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Communications">
                       <CommunicationsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/interactions"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Interactions">
+                      <InteractionsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/channel-settings"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ChannelSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
