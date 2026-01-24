@@ -579,6 +579,41 @@ public class DbSeed
             return;
         }
 
+        await SeedModuleFieldConfigurationsAsync(context, forceReseed: false);
+    }
+
+    /// <summary>
+    /// Force reseed module field configurations - deletes existing configs and reseeds
+    /// </summary>
+    public static async Task ForceReseedModuleFieldConfigurationsAsync(CrmDbContext context)
+    {
+        await SeedModuleFieldConfigurationsAsync(context, forceReseed: true);
+    }
+
+    /// <summary>
+    /// Seed default module field configurations for all entities with optional force reseed
+    /// </summary>
+    private static async Task SeedModuleFieldConfigurationsAsync(CrmDbContext context, bool forceReseed)
+    {
+        // If force reseed, delete all existing configurations first
+        if (forceReseed)
+        {
+            var existingConfigs = await context.ModuleFieldConfigurations.ToListAsync();
+            if (existingConfigs.Any())
+            {
+                context.ModuleFieldConfigurations.RemoveRange(existingConfigs);
+                await context.SaveChangesAsync();
+            }
+        }
+        else
+        {
+            // Check if any configurations exist - if so, skip seeding
+            if (await context.ModuleFieldConfigurations.AnyAsync())
+            {
+                return;
+            }
+        }
+
         var now = DateTime.UtcNow;
         var configs = new List<ModuleFieldConfiguration>();
 

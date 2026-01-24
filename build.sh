@@ -326,6 +326,47 @@ generate_report() {
     print_success "Build report saved to: $report_file"
 }
 
+# Rebuild module field configurations
+rebuild_module_configs() {
+    print_step "Rebuilding Module Field Configurations"
+    
+    # Check if running in Kubernetes environment
+    if command -v kubectl &> /dev/null; then
+        local api_pod=$(kubectl get pods -l app=crm-api -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+        
+        if [ -n "$api_pod" ] && [ "$api_pod" != "" ]; then
+            echo -e "${CYAN}Calling reseed API via port-forward...${NC}"
+            
+            # Start port-forward in background
+            kubectl port-forward "$api_pod" 5001:5000 &>/dev/null &
+            local pf_pid=$!
+            sleep 2
+            
+            # Call the reseed endpoint
+            local response=$(curl -s -X POST "http://localhost:5001/api/database/reseed" \
+                -H "Content-Type: application/json" \
+                -H "Authorization: Bearer admin-build-token" \
+                --max-time 30 2>/dev/null)
+            
+            # Kill port-forward
+            kill $pf_pid 2>/dev/null
+            
+            if echo "$response" | grep -q "reseeded successfully"; then
+                print_success "Module field configurations rebuilt successfully"
+            else
+                echo -e "${YELLOW}Note: Reseed may require authentication. Configs will be rebuilt on next authenticated reseed.${NC}"
+                echo -e "${YELLOW}Response: $response${NC}"
+            fi
+        else
+            echo -e "${YELLOW}No CRM API pod found. Skipping config rebuild - will apply on next deployment.${NC}"
+        fi
+    else
+        echo -e "${YELLOW}kubectl not available. Skipping config rebuild - will apply on next deployment.${NC}"
+    fi
+    
+    print_success "Module config rebuild step completed"
+}
+
 # Main execution
 main() {
     print_header
@@ -344,6 +385,9 @@ main() {
     build_frontend
     run_unit_tests
     run_bvt_tests
+    
+    # Always rebuild module configs to ensure UI stays in sync
+    rebuild_module_configs
     
     if [ "$BUILD_ENV" == "Production" ] || [ "$BUILD_ENV" == "Performance" ]; then
         publish_artifacts

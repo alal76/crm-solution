@@ -11,7 +11,7 @@ import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Business as BusinessIcon, Person as PersonIcon, Email as EmailIcon,
   Phone as PhoneIcon, LinkedIn as LinkedInIcon, Twitter as TwitterIcon,
-  PersonAdd as PersonAddIcon, Group as GroupIcon
+  PersonAdd as PersonAddIcon, Group as GroupIcon, ContactPhone as ContactPhoneIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import lookupService, { LookupItem } from '../services/lookupService';
@@ -19,6 +19,7 @@ import FieldRenderer from '../components/FieldRenderer';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import { ContactInfoPanel } from '../components/ContactInfo';
 import logo from '../assets/logo.png';
 
 // Search fields for Advanced Search
@@ -883,6 +884,7 @@ function CustomersPage() {
             <Tab label="Business" />
             <Tab label="Contact Preferences" />
             <Tab label="Additional" />
+            {editingId && <Tab label="Contact Info" icon={<ContactPhoneIcon fontSize="small" />} iconPosition="start" />}
             {formData.category === 1 && editingId && <Tab label="Linked Contacts" icon={<GroupIcon fontSize="small" />} iconPosition="start" />}
           </Tabs>
         </Box>
@@ -1185,9 +1187,27 @@ function CustomersPage() {
             )}
           </TabPanel>
 
+          {/* Contact Info Tab - Only when editing */}
+          {editingId && (
+            <TabPanel value={dialogTab} index={4}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                Manage Contact Information
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                Add and manage multiple addresses, phone numbers, emails, and social media accounts for this customer.
+              </Typography>
+              <ContactInfoPanel
+                entityType="Customer"
+                entityId={editingId}
+                layout="tabs"
+                showCounts={true}
+              />
+            </TabPanel>
+          )}
+
           {/* Linked Contacts Tab - Only for Organizations when editing */}
           {formData.category === 1 && editingId && (
-            <TabPanel value={dialogTab} index={4}>
+            <TabPanel value={dialogTab} index={5}>
               <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle1" fontWeight={600}>
                   Organization Contacts ({customerContacts.length})

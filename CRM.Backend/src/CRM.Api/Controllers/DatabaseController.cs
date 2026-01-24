@@ -1,5 +1,6 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -1414,18 +1415,30 @@ Then restart the API container:
     /// Reseed the database with initial data
     /// </summary>
     [HttpPost("reseed")]
-    public Task<ActionResult> ReseedDatabase()
+    public async Task<ActionResult> ReseedDatabase()
     {
         try
         {
-            // This would call the database seeder
             _logger.LogInformation("Database reseed initiated");
-            return Task.FromResult<ActionResult>(Ok(new { message = "Database reseeded successfully" }));
+            
+            // Force reseed module field configurations
+            if (_context is CrmDbContext dbContext)
+            {
+                await DbSeed.ForceReseedModuleFieldConfigurationsAsync(dbContext);
+                _logger.LogInformation("Module field configurations reseeded successfully");
+            }
+            else
+            {
+                _logger.LogWarning("Could not cast context to CrmDbContext for reseeding");
+                return StatusCode(500, new { message = "Database context type mismatch" });
+            }
+            
+            return Ok(new { message = "Database reseeded successfully" });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reseeding database");
-            return Task.FromResult<ActionResult>(StatusCode(500, new { message = "Error reseeding database" }));
+            return StatusCode(500, new { message = "Error reseeding database", error = ex.Message });
         }
     }
 

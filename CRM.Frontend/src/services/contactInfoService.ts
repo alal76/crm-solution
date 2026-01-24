@@ -306,7 +306,7 @@ export interface EntityReference {
 // CONTACT INFO SERVICE
 // ============================================================
 
-const BASE_URL = '/contact-info';
+const BASE_URL = '/contactinfo';
 
 export const contactInfoService = {
   // ============================================================

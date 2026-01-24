@@ -20,6 +20,8 @@ import {
   MenuItem,
   Stack,
   Chip,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
@@ -28,10 +30,12 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LinkIcon from '@mui/icons-material/Link';
+import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import { ContactInfoPanel } from '../components/ContactInfo';
 
 interface SocialMediaLink {
   id: number;
@@ -122,6 +126,7 @@ function ContactsPage() {
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogTab, setDialogTab] = useState(0);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [socialMediaDialog, setSocialMediaDialog] = useState(false);
   const [selectedContactForSocial, setSelectedContactForSocial] = useState<Contact | null>(null);
@@ -180,6 +185,7 @@ function ContactsPage() {
       lastName: '',
     });
     setSelectedContact(null);
+    setDialogTab(0);
     setOpenDialog(true);
   };
 
@@ -206,6 +212,7 @@ function ContactsPage() {
       dateOfBirth: contact.dateOfBirth,
     });
     setSelectedContact(contact);
+    setDialogTab(0);
     setOpenDialog(true);
   };
 
@@ -444,173 +451,195 @@ function ContactsPage() {
       </Container>
 
       {/* Contact Form Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle>
           {selectedContact ? 'Edit Contact' : 'Add New Contact'}
         </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Stack spacing={2}>
-            <LookupSelect
-              category="ContactType"
-              name="contactType"
-              value={formData.contactType}
-              onChange={handleFormChange}
-              label="Contact Type"
-              fallback={CONTACT_TYPES.map(t => ({ value: t, label: t }))}
-            />
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
+            <Tab label="Basic Info" />
+            <Tab label="Work Info" />
+            <Tab label="Address" />
+            {selectedContact && <Tab label="Contact Info" icon={<ContactPhoneIcon fontSize="small" />} iconPosition="start" />}
+          </Tabs>
+        </Box>
+        <DialogContent sx={{ pt: 2, minHeight: 400 }}>
+          {/* Basic Info Tab */}
+          {dialogTab === 0 && (
+            <Stack spacing={2}>
+              <LookupSelect
+                category="ContactType"
+                name="contactType"
+                value={formData.contactType}
+                onChange={handleFormChange}
+                label="Contact Type"
+                fallback={CONTACT_TYPES.map(t => ({ value: t, label: t }))}
+              />
 
-            <TextField
-              label="First Name"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleFormChange}
-              fullWidth
-              required
-            />
+              <TextField
+                label="First Name"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleFormChange}
+                fullWidth
+                required
+              />
 
-            <TextField
-              label="Last Name"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleFormChange}
-              fullWidth
-              required
-            />
+              <TextField
+                label="Last Name"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleFormChange}
+                fullWidth
+                required
+              />
 
-            <TextField
-              label="Middle Name"
-              name="middleName"
-              value={formData.middleName || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="Middle Name"
+                name="middleName"
+                value={formData.middleName || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
 
-            <TextField
-              label="Email (Primary)"
-              name="emailPrimary"
-              type="email"
-              value={formData.emailPrimary || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="Email (Primary)"
+                name="emailPrimary"
+                type="email"
+                value={formData.emailPrimary || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
 
-            <TextField
-              label="Email (Secondary)"
-              name="emailSecondary"
-              type="email"
-              value={formData.emailSecondary || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="Phone (Primary)"
+                name="phonePrimary"
+                value={formData.phonePrimary || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
 
-            <TextField
-              label="Phone (Primary)"
-              name="phonePrimary"
-              value={formData.phonePrimary || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="Date of Birth"
+                name="dateOfBirth"
+                type="date"
+                value={formData.dateOfBirth || ''}
+                onChange={handleFormChange}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+              />
 
-            <TextField
-              label="Phone (Secondary)"
-              name="phoneSecondary"
-              value={formData.phoneSecondary || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="Notes"
+                name="notes"
+                value={formData.notes || ''}
+                onChange={handleFormChange}
+                fullWidth
+                multiline
+                rows={3}
+              />
+            </Stack>
+          )}
 
-            <TextField
-              label="Company"
-              name="company"
-              value={formData.company || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+          {/* Work Info Tab */}
+          {dialogTab === 1 && (
+            <Stack spacing={2}>
+              <TextField
+                label="Company"
+                name="company"
+                value={formData.company || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
 
-            <TextField
-              label="Job Title"
-              name="jobTitle"
-              value={formData.jobTitle || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="Job Title"
+                name="jobTitle"
+                value={formData.jobTitle || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
 
-            <TextField
-              label="Department"
-              name="department"
-              value={formData.department || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="Department"
+                name="department"
+                value={formData.department || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
 
-            <TextField
-              label="Reports To"
-              name="reportsTo"
-              value={formData.reportsTo || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="Reports To"
+                name="reportsTo"
+                value={formData.reportsTo || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
+            </Stack>
+          )}
 
-            <TextField
-              label="Address"
-              name="address"
-              value={formData.address || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+          {/* Address Tab */}
+          {dialogTab === 2 && (
+            <Stack spacing={2}>
+              <TextField
+                label="Address"
+                name="address"
+                value={formData.address || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
 
-            <TextField
-              label="City"
-              name="city"
-              value={formData.city || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="City"
+                name="city"
+                value={formData.city || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
 
-            <TextField
-              label="State"
-              name="state"
-              value={formData.state || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="State"
+                name="state"
+                value={formData.state || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
 
-            <TextField
-              label="Country"
-              name="country"
-              value={formData.country || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="Country"
+                name="country"
+                value={formData.country || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
 
-            <TextField
-              label="Zip Code"
-              name="zipCode"
-              value={formData.zipCode || ''}
-              onChange={handleFormChange}
-              fullWidth
-            />
+              <TextField
+                label="Zip Code"
+                name="zipCode"
+                value={formData.zipCode || ''}
+                onChange={handleFormChange}
+                fullWidth
+              />
+            </Stack>
+          )}
 
-            <TextField
-              label="Date of Birth"
-              name="dateOfBirth"
-              type="date"
-              value={formData.dateOfBirth || ''}
-              onChange={handleFormChange}
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-            />
-
-            <TextField
-              label="Notes"
-              name="notes"
-              value={formData.notes || ''}
-              onChange={handleFormChange}
-              fullWidth
-              multiline
-              rows={3}
-            />
-          </Stack>
+          {/* Contact Info Tab - Only when editing */}
+          {dialogTab === 3 && selectedContact && (
+            <Box>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                Manage Contact Information
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                Add and manage multiple addresses, phone numbers, emails, and social media accounts.
+              </Typography>
+              <ContactInfoPanel
+                entityType="Contact"
+                entityId={selectedContact.id}
+                layout="tabs"
+                showCounts={true}
+              />
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>

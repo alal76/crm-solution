@@ -24,16 +24,21 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
+  Tabs,
+  Tab,
+  Stack,
 } from '@mui/material';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
   PersonAdd as PersonAddIcon,
+  ContactPhone as ContactPhoneIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import { ContactInfoPanel } from '../components/ContactInfo';
 
 // Lead sources for the dropdown
 const LEAD_SOURCES = [
@@ -87,6 +92,7 @@ function LeadsPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogTab, setDialogTab] = useState(0);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<LeadFormData>({
     firstName: '',
@@ -172,6 +178,7 @@ function LeadsPage() {
         notes: '',
       });
     }
+    setDialogTab(0);
     setOpenDialog(true);
   };
 
@@ -447,100 +454,123 @@ function LeadsPage() {
       </Card>
 
       {/* Add/Edit Lead Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, color: '#6750A4' }}>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600, color: '#6750A4', pb: 0 }}>
           {editingId ? 'Edit Lead' : 'Add Lead'}
         </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
+            <Tab label="Lead Info" />
+            {editingId && <Tab label="Contact Info" icon={<ContactPhoneIcon fontSize="small" />} iconPosition="start" />}
+          </Tabs>
+        </Box>
+        <DialogContent sx={{ pt: 2, minHeight: 350 }}>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              fullWidth
-              label="First Name"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Last Name"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              margin="normal"
-              required
-            />
-          </Box>
-          <TextField
-            fullWidth
-            label="Email"
-            name="emailPrimary"
-            type="email"
-            value={formData.emailPrimary}
-            onChange={handleInputChange}
-            margin="normal"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Phone"
-            name="phonePrimary"
-            value={formData.phonePrimary}
-            onChange={handleInputChange}
-            margin="normal"
-          />
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              fullWidth
-              label="Company"
-              name="company"
-              value={formData.company}
-              onChange={handleInputChange}
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Job Title"
-              name="jobTitle"
-              value={formData.jobTitle}
-              onChange={handleInputChange}
-              margin="normal"
-            />
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-            <LookupSelect
-              category="LeadSource"
-              name="source"
-              value={formData.source}
-              onChange={handleSelectChange}
-              label="Lead Source"
-              fallback={LEAD_SOURCES.map(s => ({ value: s.value, label: s.label }))}
-            />
-            <LookupSelect
-              category="LeadStatus"
-              name="status"
-              value={formData.status}
-              onChange={handleSelectChange}
-              label="Status"
-              fallback={LEAD_STATUSES.map(s => ({ value: s.value, label: s.label }))}
-            />
-          </Box>
-          <TextField
-            fullWidth
-            label="Notes"
-            name="notes"
-            value={formData.notes}
-            onChange={handleInputChange}
-            margin="normal"
-            multiline
-            rows={3}
-          />
+
+          {/* Lead Info Tab */}
+          {dialogTab === 0 && (
+            <Stack spacing={2}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="First Name"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  required
+                />
+                <TextField
+                  fullWidth
+                  label="Last Name"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Box>
+              <TextField
+                fullWidth
+                label="Email"
+                name="emailPrimary"
+                type="email"
+                value={formData.emailPrimary}
+                onChange={handleInputChange}
+                required
+              />
+              <TextField
+                fullWidth
+                label="Phone"
+                name="phonePrimary"
+                value={formData.phonePrimary}
+                onChange={handleInputChange}
+              />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Company"
+                  name="company"
+                  value={formData.company}
+                  onChange={handleInputChange}
+                />
+                <TextField
+                  fullWidth
+                  label="Job Title"
+                  name="jobTitle"
+                  value={formData.jobTitle}
+                  onChange={handleInputChange}
+                />
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <LookupSelect
+                  category="LeadSource"
+                  name="source"
+                  value={formData.source}
+                  onChange={handleSelectChange}
+                  label="Lead Source"
+                  fallback={LEAD_SOURCES.map(s => ({ value: s.value, label: s.label }))}
+                />
+                <LookupSelect
+                  category="LeadStatus"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleSelectChange}
+                  label="Status"
+                  fallback={LEAD_STATUSES.map(s => ({ value: s.value, label: s.label }))}
+                />
+              </Box>
+              <TextField
+                fullWidth
+                label="Notes"
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                multiline
+                rows={3}
+              />
+            </Stack>
+          )}
+
+          {/* Contact Info Tab - Only when editing */}
+          {dialogTab === 1 && editingId && (
+            <Box>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                Manage Contact Information
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                Add and manage multiple addresses, phone numbers, emails, and social media accounts for this lead.
+              </Typography>
+              <ContactInfoPanel
+                entityType="Lead"
+                entityId={editingId}
+                layout="tabs"
+                showCounts={true}
+              />
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
