@@ -161,7 +161,7 @@ builder.Services.AddCors(options =>
 // Configure Database
 var databaseProvider = builder.Configuration["DatabaseProvider"] ?? "mariadb";
 // Build connection string from configuration or environment variables
-string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString) && (databaseProvider.ToLower() == "mysql" || databaseProvider.ToLower() == "mariadb"))
 {
     var dbHost = builder.Configuration["DB_HOST"] ?? builder.Configuration["DbHost"] ?? "mariadb";
@@ -222,6 +222,7 @@ builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
 builder.Services.AddHostedService<BackupSchedulerHostedService>();
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
+builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 builder.Services.AddScoped<IServiceRequestCategoryService, ServiceRequestCategoryService>();
 builder.Services.AddScoped<IServiceRequestSubcategoryService, ServiceRequestSubcategoryService>();

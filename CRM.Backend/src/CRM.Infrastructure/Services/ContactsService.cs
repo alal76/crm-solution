@@ -5,6 +5,7 @@ using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using SocialPlatform = CRM.Core.Models.SocialMediaPlatform;
 
 namespace CRM.Infrastructure.Services;
 
@@ -405,9 +406,9 @@ public class ContactsService : IContactsService, IContactInputPort
         if (contact == null)
             throw new InvalidOperationException($"Contact with ID {contactId} not found");
 
-        var platform = Enum.TryParse<SocialMediaPlatform>(request.Platform, true, out var p)
+        var platform = Enum.TryParse<SocialPlatform>(request.Platform, true, out var p)
             ? p
-            : SocialMediaPlatform.Other;
+            : SocialPlatform.Other;
 
         var link = new SocialMediaLink
         {

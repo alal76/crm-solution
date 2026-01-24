@@ -88,6 +88,17 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Address> Addresses { get; set; }
     public DbSet<ContactDetail> ContactDetails { get; set; }
     public DbSet<SocialAccount> SocialAccounts { get; set; }
+    
+    // Consolidated contact info entities (new)
+    public DbSet<PhoneNumber> PhoneNumbers { get; set; }
+    public DbSet<EmailAddress> EmailAddresses { get; set; }
+    public DbSet<SocialMediaAccount> SocialMediaAccounts { get; set; }
+    
+    // Contact info junction tables
+    public DbSet<EntityAddressLink> EntityAddressLinks { get; set; }
+    public DbSet<EntityPhoneLink> EntityPhoneLinks { get; set; }
+    public DbSet<EntityEmailLink> EntityEmailLinks { get; set; }
+    public DbSet<EntitySocialMediaLink> EntitySocialMediaLinks { get; set; }
     public DbSet<ContactInfoLink> ContactInfoLinks { get; set; }
     public DbSet<LookupCategory> LookupCategories { get; set; }
     public DbSet<LookupItem> LookupItems { get; set; }
@@ -288,6 +299,99 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.SocialAccountId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure consolidated contact info entities
+        modelBuilder.Entity<PhoneNumber>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Number).IsRequired().HasMaxLength(30);
+            entity.Property(e => e.CountryCode).HasMaxLength(5).HasDefaultValue("+1");
+            entity.Property(e => e.AreaCode).HasMaxLength(10);
+            entity.Property(e => e.Extension).HasMaxLength(10);
+            entity.Property(e => e.FormattedNumber).HasMaxLength(50);
+            entity.Property(e => e.Label).HasMaxLength(100);
+            entity.Property(e => e.BestTimeToCall).HasMaxLength(100);
+            entity.HasIndex(e => e.Number);
+            entity.HasIndex(e => e.IsDeleted);
+        });
+
+        modelBuilder.Entity<EmailAddress>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Label).HasMaxLength(100);
+            entity.Property(e => e.DisplayName).HasMaxLength(200);
+            entity.Property(e => e.EmailEngagementScore).HasPrecision(3, 2);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.IsDeleted);
+        });
+
+        modelBuilder.Entity<SocialMediaAccount>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.HandleOrUsername).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Platform).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.PlatformOther).HasMaxLength(100);
+            entity.Property(e => e.AccountType).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.ProfileUrl).HasMaxLength(500);
+            entity.Property(e => e.DisplayName).HasMaxLength(200);
+            entity.Property(e => e.EngagementLevel).HasConversion<string>().HasMaxLength(20);
+            entity.HasIndex(e => e.Platform);
+            entity.HasIndex(e => e.HandleOrUsername);
+            entity.HasIndex(e => e.IsDeleted);
+        });
+
+        // Configure junction tables for consolidated contact info
+        modelBuilder.Entity<EntityAddressLink>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.AddressType).HasConversion<string>().HasMaxLength(50).HasDefaultValue(AddressType.Primary);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.AddressId, e.AddressType }).IsUnique();
+            entity.HasOne(e => e.Address)
+                .WithMany(a => a.EntityAddressLinks)
+                .HasForeignKey(e => e.AddressId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EntityPhoneLink>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.PhoneType).HasConversion<string>().HasMaxLength(50).HasDefaultValue(PhoneType.Office);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.PhoneId, e.PhoneType }).IsUnique();
+            entity.HasOne(e => e.PhoneNumber)
+                .WithMany(p => p.EntityPhoneLinks)
+                .HasForeignKey(e => e.PhoneId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EntityEmailLink>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.EmailType).HasConversion<string>().HasMaxLength(50).HasDefaultValue(EmailType.General);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.EmailId, e.EmailType }).IsUnique();
+            entity.HasOne(e => e.EmailAddress)
+                .WithMany(e => e.EntityEmailLinks)
+                .HasForeignKey(e => e.EmailId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EntitySocialMediaLink>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).HasConversion<string>().HasMaxLength(50);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.SocialMediaAccountId }).IsUnique();
+            entity.HasOne(e => e.SocialMediaAccount)
+                .WithMany(s => s.EntitySocialMediaLinks)
+                .HasForeignKey(e => e.SocialMediaAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configure Lookup tables

@@ -25,13 +25,14 @@ public class FileUploadController : ControllerBase
     }
 
     /// <summary>
-    /// Upload a company logo
+    /// Upload a company logo - returns base64 data URL for database storage
     /// </summary>
     [HttpPost("logo")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<FileUploadResponse>> UploadLogo(IFormFile file)
     {
-        return await UploadFile(file, "logos");
+        // For logos, return base64 data URL to store in database (persists across pod restarts)
+        return await UploadFileAsBase64(file);
     }
 
     /// <summary>
@@ -40,7 +41,7 @@ public class FileUploadController : ControllerBase
     [HttpPost("user-photo")]
     public async Task<ActionResult<FileUploadResponse>> UploadUserPhoto(IFormFile file)
     {
-        return await UploadFile(file, "users");
+        return await UploadFileAsBase64(file);
     }
 
     /// <summary>
@@ -49,7 +50,7 @@ public class FileUploadController : ControllerBase
     [HttpPost("customer-logo")]
     public async Task<ActionResult<FileUploadResponse>> UploadCustomerLogo(IFormFile file)
     {
-        return await UploadFile(file, "customers");
+        return await UploadFileAsBase64(file);
     }
 
     /// <summary>
@@ -58,10 +59,13 @@ public class FileUploadController : ControllerBase
     [HttpPost("contact-photo")]
     public async Task<ActionResult<FileUploadResponse>> UploadContactPhoto(IFormFile file)
     {
-        return await UploadFile(file, "contacts");
+        return await UploadFileAsBase64(file);
     }
 
-    private async Task<ActionResult<FileUploadResponse>> UploadFile(IFormFile file, string folder)
+    /// <summary>
+    /// Upload file and return as base64 data URL (for database storage)
+    /// </summary>
+    private async Task<ActionResult<FileUploadResponse>> UploadFileAsBase64(IFormFile file)
     {
         try
         {
@@ -81,33 +85,32 @@ public class FileUploadController : ControllerBase
                 return BadRequest(new { message = "Invalid file type. Allowed: jpg, jpeg, png, gif, webp" });
             }
 
-            // Create uploads directory if it doesn't exist
-            var uploadsPath = Path.Combine(_environment.ContentRootPath, "wwwroot", "uploads", folder);
-            if (!Directory.Exists(uploadsPath))
+            // Read file into memory and convert to base64
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+            var bytes = memoryStream.ToArray();
+            var base64 = Convert.ToBase64String(bytes);
+
+            // Determine MIME type
+            var mimeType = extension switch
             {
-                Directory.CreateDirectory(uploadsPath);
-            }
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".webp" => "image/webp",
+                _ => "application/octet-stream"
+            };
 
-            // Generate unique filename
-            var uniqueFileName = $"{Guid.NewGuid()}{extension}";
-            var filePath = Path.Combine(uploadsPath, uniqueFileName);
+            // Create data URL
+            var dataUrl = $"data:{mimeType};base64,{base64}";
 
-            // Save file
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            // Return URL path
-            var urlPath = $"/uploads/{folder}/{uniqueFileName}";
-            
-            _logger.LogInformation("File uploaded successfully: {UrlPath}", urlPath);
+            _logger.LogInformation("File uploaded as base64: {FileName}, size: {Size} bytes", file.FileName, file.Length);
 
             return Ok(new FileUploadResponse
             {
                 Success = true,
-                Url = urlPath,
-                FileName = uniqueFileName,
+                Url = dataUrl,
+                FileName = file.FileName,
                 OriginalFileName = file.FileName,
                 FileSize = file.Length
             });

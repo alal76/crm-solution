@@ -53,7 +53,7 @@ public class WebhooksController : ControllerBase
                 EmailAddress = dto.Email,
                 PhoneNumber = dto.Phone,
                 Sentiment = InteractionSentiment.Neutral,
-                CustomerId = customerId ?? 0,
+                CustomerId = customerId,
                 ContactId = contactId,
                 Tags = dto.FormType,
                 CustomFields = dto.CustomFieldsJson,
@@ -210,7 +210,7 @@ public class WebhooksController : ControllerBase
                 EmailAddress = dto.From,
                 IsCompleted = true,
                 CompletedDate = DateTime.UtcNow,
-                CustomerId = customerId ?? 0,
+                CustomerId = customerId,
                 ContactId = contactId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -337,7 +337,7 @@ public class WebhooksController : ControllerBase
                 InteractionDate = dto.Timestamp ?? DateTime.UtcNow,
                 PhoneNumber = dto.FromPhone,
                 IsCompleted = true,
-                CustomerId = customerId ?? 0,
+                CustomerId = customerId,
                 ContactId = contactId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -447,7 +447,7 @@ public class WebhooksController : ControllerBase
                 Description = dto.Text ?? "",
                 InteractionDate = dto.Timestamp ?? DateTime.UtcNow,
                 IsCompleted = true,
-                CustomerId = customerId ?? 0,
+                CustomerId = customerId,
                 ContactId = contactId,
                 Tags = dto.Hashtags != null ? string.Join(",", dto.Hashtags) : null,
                 CreatedAt = DateTime.UtcNow
@@ -486,10 +486,10 @@ public class WebhooksController : ControllerBase
                 return (customer.Id, null);
 
             var contact = await _context.Contacts
-                .Where(c => c.Email == email && !c.IsDeleted)
+                .Where(c => c.EmailPrimary == email)
                 .FirstOrDefaultAsync();
             if (contact != null)
-                return (contact.CustomerId, contact.Id);
+                return (contact.AccountId, contact.Id);
         }
 
         // Try by phone
@@ -504,11 +504,11 @@ public class WebhooksController : ControllerBase
                 return (customer.Id, null);
 
             var contact = await _context.Contacts
-                .Where(c => (c.Phone == phone || c.Phone == normalizedPhone || 
-                           c.MobilePhone == phone || c.MobilePhone == normalizedPhone) && !c.IsDeleted)
+                .Where(c => c.PhonePrimary == phone || c.PhonePrimary == normalizedPhone || 
+                           c.PhoneMobile == phone || c.PhoneMobile == normalizedPhone)
                 .FirstOrDefaultAsync();
             if (contact != null)
-                return (contact.CustomerId, contact.Id);
+                return (contact.AccountId, contact.Id);
         }
 
         return (null, null);

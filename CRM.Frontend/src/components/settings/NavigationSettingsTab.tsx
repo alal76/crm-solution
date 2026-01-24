@@ -63,6 +63,9 @@ import {
   Category as CategoryIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
+  Message as CommunicationsIcon,
+  SwapHoriz as InteractionsIcon,
+  Tune as ChannelSettingsIcon,
 } from '@mui/icons-material';
 
 interface NavCategory {
@@ -104,11 +107,14 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
   { id: 'service-requests', label: 'Service Requests', menuName: 'ServiceRequests', icon: 'SupportAgentIcon', order: 8, visible: true, isAdmin: false, category: 'support' },
   { id: 'campaigns', label: 'Campaigns', menuName: 'Campaigns', icon: 'MegaphoneIcon', order: 9, visible: true, isAdmin: false, category: 'sales' },
   { id: 'quotes', label: 'Quotes', menuName: 'Quotes', icon: 'QuoteIcon', order: 10, visible: true, isAdmin: false, category: 'sales' },
-  { id: 'tasks', label: 'Tasks', menuName: 'Tasks', icon: 'TaskIcon', order: 11, visible: true, isAdmin: false, category: 'productivity' },
+  { id: 'my-queue', label: 'My Queue', menuName: 'MyQueue', icon: 'TaskIcon', order: 11, visible: true, isAdmin: false, category: 'productivity' },
   { id: 'activities', label: 'Activities', menuName: 'Activities', icon: 'ActivityIcon', order: 12, visible: true, isAdmin: false, category: 'productivity' },
   { id: 'notes', label: 'Notes', menuName: 'Notes', icon: 'NoteIcon', order: 13, visible: true, isAdmin: false, category: 'productivity' },
-  { id: 'workflows', label: 'Workflows', menuName: 'Workflows', icon: 'AutomationIcon', order: 14, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'settings', label: 'Admin Settings', menuName: 'Settings', icon: 'SettingsIcon', order: 15, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'communications', label: 'Communications', menuName: 'Communications', icon: 'CommunicationsIcon', order: 14, visible: true, isAdmin: false, category: 'productivity' },
+  { id: 'interactions', label: 'Interactions', menuName: 'Interactions', icon: 'InteractionsIcon', order: 15, visible: true, isAdmin: false, category: 'productivity' },
+  { id: 'workflows', label: 'Workflows', menuName: 'Workflows', icon: 'AutomationIcon', order: 16, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'channel-settings', label: 'Channel Settings', menuName: 'ChannelSettings', icon: 'ChannelSettingsIcon', order: 17, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'settings', label: 'Admin Settings', menuName: 'Settings', icon: 'SettingsIcon', order: 18, visible: true, isAdmin: true, category: 'admin' },
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -125,6 +131,9 @@ const iconMap: Record<string, React.ReactNode> = {
   NoteIcon: <NoteIcon />,
   ActivityIcon: <ActivityIcon />,
   AutomationIcon: <AutomationIcon />,
+  CommunicationsIcon: <CommunicationsIcon />,
+  InteractionsIcon: <InteractionsIcon />,
+  ChannelSettingsIcon: <ChannelSettingsIcon />,
 };
 
 function NavigationSettingsTab() {

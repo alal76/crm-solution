@@ -125,6 +125,12 @@ public class SystemSettings : BaseEntity
     /// </summary>
     public bool CommunicationsEnabled { get; set; } = true;
     
+    /// <summary>
+    /// FUNCTIONAL: Whether the Interactions module is enabled
+    /// TECHNICAL: Controls /interactions route for customer interaction history
+    /// </summary>
+    public bool InteractionsEnabled { get; set; } = true;
+    
     #endregion
     
     #region Company/Branding Settings

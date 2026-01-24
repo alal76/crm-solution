@@ -180,7 +180,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         {
             // Check if user with this email exists
             var allUsers = await _userRepository.GetAllAsync();
-            user = allUsers.FirstOrDefault(u => u.Email == email);
+            user = allUsers.FirstOrDefault(u => u.Email == email)!;
 
             if (user == null)
             {
@@ -262,9 +262,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         return response;
     }
 
-    public async Task<bool> VerifyTokenAsync(string token)
+    public Task<bool> VerifyTokenAsync(string token)
     {
-        return _jwtTokenService.ValidateToken(token);
+        return Task.FromResult(_jwtTokenService.ValidateToken(token));
     }
 
     public async Task<User?> GetUserByIdAsync(int userId)

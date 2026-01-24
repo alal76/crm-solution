@@ -1,4 +1,5 @@
 using CRM.Core.Entities;
+using CRM.Core.Models;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -308,7 +309,7 @@ public class InteractionsController : ControllerBase
                 return BadRequest(new { message = "Interaction must be linked to a customer before creating a service request" });
 
             // Determine priority
-            var priority = ServiceRequestPriority.Normal;
+            var priority = ServiceRequestPriority.Medium;
             if (!string.IsNullOrEmpty(request.Priority) && 
                 Enum.TryParse<ServiceRequestPriority>(request.Priority, true, out var parsedPriority))
             {
@@ -318,7 +319,7 @@ public class InteractionsController : ControllerBase
             // If expediting, increase priority
             if (request.Expedite && priority < ServiceRequestPriority.Urgent)
             {
-                priority = priority == ServiceRequestPriority.Normal ? ServiceRequestPriority.High : ServiceRequestPriority.Urgent;
+                priority = priority == ServiceRequestPriority.Medium ? ServiceRequestPriority.High : ServiceRequestPriority.Urgent;
             }
 
             var description = request.CopyInteractionDescription 
@@ -327,10 +328,9 @@ public class InteractionsController : ControllerBase
 
             var serviceRequest = new ServiceRequest
             {
-                Title = interaction.Subject ?? "Service Request from Interaction",
+                TicketNumber = $"SR-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                Subject = interaction.Subject ?? "Service Request from Interaction",
                 Description = description,
-                RequestType = request.RequestType,
-                ServiceRequestTypeId = request.ServiceRequestTypeId,
                 CustomerId = interaction.CustomerId,
                 ContactId = interaction.ContactId,
                 Status = ServiceRequestStatus.New,
@@ -385,13 +385,12 @@ public class InteractionsController : ControllerBase
             {
                 var newCustomer = new Customer
                 {
-                    Category = 0, // Individual
+                    Category = CustomerCategory.Individual,
                     FirstName = request.FirstName,
                     LastName = request.LastName,
                     Email = request.Email ?? interaction.EmailAddress ?? "",
-                    Phone = request.Phone ?? interaction.PhoneNumber,
-                    Status = "Active",
-                    LifecycleStage = "Lead",
+                    Phone = request.Phone ?? interaction.PhoneNumber ?? "",
+                    LifecycleStage = CustomerLifecycleStage.Lead,
                     LeadSource = $"Interaction-{interaction.InteractionType}",
                     CreatedAt = DateTime.UtcNow
                 };
@@ -405,15 +404,14 @@ public class InteractionsController : ControllerBase
 
             var contact = new Contact
             {
-                CustomerId = customerId,
+                AccountId = customerId,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Email = request.Email ?? interaction.EmailAddress,
-                Phone = request.Phone ?? interaction.PhoneNumber,
-                Title = request.Title,
-                IsPrimary = false,
-                Status = "Active",
-                CreatedAt = DateTime.UtcNow
+                EmailPrimary = request.Email ?? interaction.EmailAddress,
+                PhonePrimary = request.Phone ?? interaction.PhoneNumber,
+                JobTitle = request.Title,
+                Status = ContactStatus.Active,
+                DateAdded = DateTime.UtcNow
             };
 
             _context.Contacts.Add(contact);
@@ -538,9 +536,6 @@ public class InteractionsController : ControllerBase
             interaction.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            // Also update normalized tags
-            await _normalization.SetTagsAsync("Interaction", id, request.Tags);
-
             return Ok(new { success = true, tags = request.Tags });
         }
         catch (Exception ex)
@@ -612,8 +607,8 @@ public class LogInteractionRequest
 public class CreateServiceRequestFromInteractionRequest
 {
     public int InteractionId { get; set; }
-    public string RequestType { get; set; } = string.Empty;
-    public int? ServiceRequestTypeId { get; set; }
+    public int? CategoryId { get; set; }
+    public int? SubcategoryId { get; set; }
     public string? Priority { get; set; }
     public string? Description { get; set; }
     public bool CopyInteractionDescription { get; set; } = true;

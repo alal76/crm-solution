@@ -1248,7 +1248,7 @@ Then restart the API container:
     /// Generate migration script for target database
     /// </summary>
     [HttpPost("generate-migration-script")]
-    public async Task<ActionResult<MigrationScriptDto>> GenerateMigrationScript([FromBody] MigrationRequest request)
+    public Task<ActionResult<MigrationScriptDto>> GenerateMigrationScript([FromBody] MigrationRequest request)
     {
         try
         {
@@ -1277,7 +1277,7 @@ Then restart the API container:
                 script.AppendLine("-- =============================================");
                 script.AppendLine();
 
-                await GenerateDataMigrationScript(script, targetDb);
+                GenerateDataMigrationScript(script, targetDb);
             }
 
             if (request.IncludeIndexes)
@@ -1300,12 +1300,12 @@ Then restart the API container:
                 IncludesIndexes = request.IncludeIndexes
             };
 
-            return Ok(result);
+            return Task.FromResult<ActionResult<MigrationScriptDto>>(Ok(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating migration script");
-            return StatusCode(500, new { message = "Error generating migration script" });
+            return Task.FromResult<ActionResult<MigrationScriptDto>>(StatusCode(500, new { message = "Error generating migration script" }));
         }
     }
 
@@ -1414,18 +1414,18 @@ Then restart the API container:
     /// Reseed the database with initial data
     /// </summary>
     [HttpPost("reseed")]
-    public async Task<ActionResult> ReseedDatabase()
+    public Task<ActionResult> ReseedDatabase()
     {
         try
         {
             // This would call the database seeder
             _logger.LogInformation("Database reseed initiated");
-            return Ok(new { message = "Database reseeded successfully" });
+            return Task.FromResult<ActionResult>(Ok(new { message = "Database reseeded successfully" }));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reseeding database");
-            return StatusCode(500, new { message = "Error reseeding database" });
+            return Task.FromResult<ActionResult>(StatusCode(500, new { message = "Error reseeding database" }));
         }
     }
 
@@ -2309,7 +2309,7 @@ Then restart the API container:
     private string GetQuotesSchema(string db) => "-- Quotes schema";
     private string GetQuoteLineItemsSchema(string db) => "-- QuoteLineItems schema with FK to Quotes, Products";
 
-    private async Task GenerateDataMigrationScript(StringBuilder script, string targetDb)
+    private void GenerateDataMigrationScript(StringBuilder script, string targetDb)
     {
         script.AppendLine("-- Data will be exported in INSERT format compatible with target database");
         // Real implementation would iterate through all tables and generate INSERT statements

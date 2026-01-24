@@ -2,6 +2,7 @@ using CRM.Core.Entities;
 using CRM.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
+using SocialPlatform = CRM.Core.Models.SocialMediaPlatform;
 
 namespace CRM.Infrastructure.Data;
 
@@ -290,14 +291,14 @@ public class DbSeed
                     {
                         new SocialMediaLink
                         {
-                            Platform = SocialMediaPlatform.LinkedIn,
+                            Platform = SocialPlatform.LinkedIn,
                             Url = "https://linkedin.com/in/michaeljohnson",
                             Handle = "michaeljohnson",
                             DateAdded = DateTime.UtcNow
                         },
                         new SocialMediaLink
                         {
-                            Platform = SocialMediaPlatform.Twitter,
+                            Platform = SocialPlatform.Twitter,
                             Url = "https://twitter.com/mjohnson",
                             Handle = "mjohnson",
                             DateAdded = DateTime.UtcNow
@@ -325,7 +326,7 @@ public class DbSeed
                     {
                         new SocialMediaLink
                         {
-                            Platform = SocialMediaPlatform.LinkedIn,
+                            Platform = SocialPlatform.LinkedIn,
                             Url = "https://linkedin.com/in/sarahwilliams",
                             Handle = "sarahwilliams",
                             DateAdded = DateTime.UtcNow
@@ -352,7 +353,7 @@ public class DbSeed
                     {
                         new SocialMediaLink
                         {
-                            Platform = SocialMediaPlatform.Website,
+                            Platform = SocialPlatform.Website,
                             Url = "https://partnerco.com",
                             Handle = "PartnerCorp",
                             DateAdded = DateTime.UtcNow
@@ -380,7 +381,7 @@ public class DbSeed
                     {
                         new SocialMediaLink
                         {
-                            Platform = SocialMediaPlatform.LinkedIn,
+                            Platform = SocialPlatform.LinkedIn,
                             Url = "https://linkedin.com/in/emilychen",
                             Handle = "emilychen",
                             DateAdded = DateTime.UtcNow
@@ -411,7 +412,7 @@ public class DbSeed
                     {
                         new SocialMediaLink
                         {
-                            Platform = SocialMediaPlatform.GitHub,
+                            Platform = SocialPlatform.GitHub,
                             Url = "https://github.com/danderson",
                             Handle = "danderson",
                             DateAdded = DateTime.UtcNow
@@ -438,14 +439,14 @@ public class DbSeed
                     {
                         new SocialMediaLink
                         {
-                            Platform = SocialMediaPlatform.LinkedIn,
+                            Platform = SocialPlatform.LinkedIn,
                             Url = "https://linkedin.com/in/lisathompson",
                             Handle = "lisathompson",
                             DateAdded = DateTime.UtcNow
                         },
                         new SocialMediaLink
                         {
-                            Platform = SocialMediaPlatform.Website,
+                            Platform = SocialPlatform.Website,
                             Url = "https://softwarevendor.com",
                             Handle = "info",
                             DateAdded = DateTime.UtcNow
@@ -518,24 +519,32 @@ public class DbSeed
         var settings = await context.SystemSettings.FirstOrDefaultAsync();
         
         // Default navigation configuration with all items visible
-        var defaultNavConfig = @"[
-            {""id"":""dashboard"",""order"":0,""visible"":true},
-            {""id"":""customers"",""order"":1,""visible"":true},
-            {""id"":""customer-overview"",""order"":2,""visible"":true},
-            {""id"":""contacts"",""order"":3,""visible"":true},
-            {""id"":""leads"",""order"":4,""visible"":true},
-            {""id"":""opportunities"",""order"":5,""visible"":true},
-            {""id"":""products"",""order"":6,""visible"":true},
-            {""id"":""services"",""order"":7,""visible"":true},
-            {""id"":""service-requests"",""order"":8,""visible"":true},
-            {""id"":""campaigns"",""order"":9,""visible"":true},
-            {""id"":""quotes"",""order"":10,""visible"":true},
-            {""id"":""tasks"",""order"":11,""visible"":true},
-            {""id"":""activities"",""order"":12,""visible"":true},
-            {""id"":""notes"",""order"":13,""visible"":true},
-            {""id"":""workflows"",""order"":14,""visible"":true},
-            {""id"":""settings"",""order"":15,""visible"":true}
-        ]".Replace(" ", "").Replace("\n", "").Replace("\r", "");
+        var defaultNavConfig = @"{
+            ""navItems"":[{""id"":""dashboard"",""order"":0,""visible"":true,""category"":""main""},
+                {""id"":""customers"",""order"":1,""visible"":true,""category"":""main""},
+                {""id"":""customer-overview"",""order"":2,""visible"":true,""category"":""main""},
+                {""id"":""contacts"",""order"":3,""visible"":true,""category"":""main""},
+                {""id"":""leads"",""order"":4,""visible"":true,""category"":""sales""},
+                {""id"":""opportunities"",""order"":5,""visible"":true,""category"":""sales""},
+                {""id"":""products"",""order"":6,""visible"":true,""category"":""sales""},
+                {""id"":""services"",""order"":7,""visible"":true,""category"":""support""},
+                {""id"":""service-requests"",""order"":8,""visible"":true,""category"":""support""},
+                {""id"":""campaigns"",""order"":9,""visible"":true,""category"":""sales""},
+                {""id"":""quotes"",""order"":10,""visible"":true,""category"":""sales""},
+                {""id"":""my-queue"",""order"":11,""visible"":true,""category"":""productivity""},
+                {""id"":""activities"",""order"":12,""visible"":true,""category"":""productivity""},
+                {""id"":""notes"",""order"":13,""visible"":true,""category"":""productivity""},
+                {""id"":""communications"",""order"":14,""visible"":true,""category"":""productivity""},
+                {""id"":""interactions"",""order"":15,""visible"":true,""category"":""productivity""},
+                {""id"":""workflows"",""order"":16,""visible"":true,""category"":""admin""},
+                {""id"":""channel-settings"",""order"":17,""visible"":true,""category"":""admin""},
+                {""id"":""settings"",""order"":18,""visible"":true,""category"":""admin""}],
+            ""categories"":[{""id"":""main"",""label"":""Main"",""order"":0},
+                {""id"":""sales"",""label"":""Sales & Marketing"",""order"":1},
+                {""id"":""support"",""label"":""Customer Support"",""order"":2},
+                {""id"":""productivity"",""label"":""Productivity"",""order"":3},
+                {""id"":""admin"",""label"":""Administration"",""order"":4}]
+        }".Replace(" ", "").Replace("\n", "").Replace("\r", "");
         
         if (settings == null)
         {

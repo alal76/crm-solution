@@ -36,11 +36,32 @@ public class MasterDataController : ControllerBase
     {
         try
         {
+            var zipCodesCount = 0;
+            try { zipCodesCount = await _dbContext.ZipCodes.CountAsync(); } catch { }
+            
+            var serviceRequestCategoriesCount = 0;
+            try { serviceRequestCategoriesCount = await _context.ServiceRequestCategories.CountAsync(); } catch { }
+            
+            var serviceRequestTypesCount = 0;
+            try { serviceRequestTypesCount = await _context.ServiceRequestTypes.CountAsync(); } catch { }
+
             var overview = new
             {
-                lookupCategories = await _context.LookupCategories.CountAsync(),
-                lookupItems = await _context.LookupItems.CountAsync(),
-                colorPalettes = await _dbContext.ColorPalettes.CountAsync()
+                lookupCategoriesCount = await _context.LookupCategories.CountAsync(),
+                lookupItemsCount = await _context.LookupItems.CountAsync(),
+                colorPalettesCount = await _dbContext.ColorPalettes.CountAsync(),
+                zipCodesCount = zipCodesCount,
+                serviceRequestCategoriesCount = serviceRequestCategoriesCount,
+                serviceRequestTypesCount = serviceRequestTypesCount,
+                dataTypes = new[]
+                {
+                    new { name = "Lookup Categories", tableName = "LookupCategories", count = await _context.LookupCategories.CountAsync(), canImportExport = true },
+                    new { name = "Lookup Items", tableName = "LookupItems", count = await _context.LookupItems.CountAsync(), canImportExport = true },
+                    new { name = "Color Palettes", tableName = "ColorPalettes", count = await _dbContext.ColorPalettes.CountAsync(), canImportExport = true },
+                    new { name = "ZIP Codes", tableName = "ZipCodes", count = zipCodesCount, canImportExport = true },
+                    new { name = "Service Categories", tableName = "ServiceRequestCategories", count = serviceRequestCategoriesCount, canImportExport = false },
+                    new { name = "Service Types", tableName = "ServiceRequestTypes", count = serviceRequestTypesCount, canImportExport = false }
+                }
             };
 
             return Ok(overview);

@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
+#pragma warning disable EF1002 // Risk of vulnerability to SQL injection. The database/table names are from config, not user input.
+
 namespace CRM.Infrastructure.Data;
 
 /// <summary>

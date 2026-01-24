@@ -256,4 +256,6 @@ public class ModuleStatusDto
     public bool WorkflowsEnabled { get; set; }
     public bool ReportsEnabled { get; set; }
     public bool DashboardEnabled { get; set; }
+    public bool CommunicationsEnabled { get; set; }
+    public bool InteractionsEnabled { get; set; }
 }

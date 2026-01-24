@@ -229,12 +229,23 @@ function NavigationContent() {
     return `${firstInitial}${lastInitial}` || 'U';
   };
 
+  // Get API base URL for uploads
+  const getApiBaseUrl = () => {
+    return window.location.hostname === 'localhost'
+      ? 'http://localhost:5000'
+      : `http://${window.location.hostname}:5000`;
+  };
+
   // Get logo URL: from branding settings or default
   const getLogoUrl = () => {
     if (branding.companyLogoUrl) {
-      // If it's a relative URL, it's from our uploads
-      if (branding.companyLogoUrl.startsWith('/uploads')) {
+      // If it's a data URL (base64), use it directly
+      if (branding.companyLogoUrl.startsWith('data:')) {
         return branding.companyLogoUrl;
+      }
+      // If it's a relative URL starting with /uploads, prepend API base URL
+      if (branding.companyLogoUrl.startsWith('/uploads')) {
+        return `${getApiBaseUrl()}${branding.companyLogoUrl}`;
       }
       return branding.companyLogoUrl;
     }

@@ -85,7 +85,30 @@ function TabPanel(props: TabPanelProps) {
 const AboutPage: React.FC = () => {
   const { branding } = useBranding();
   const companyName = branding.companyName;
-  const logoUrl = branding.companyLogoUrl;
+  
+  // Get API base URL for uploads
+  const getApiBaseUrl = () => {
+    return window.location.hostname === 'localhost'
+      ? 'http://localhost:5000'
+      : `http://${window.location.hostname}:5000`;
+  };
+  
+  // Get logo URL with proper API base
+  const getLogoUrl = () => {
+    if (branding.companyLogoUrl) {
+      // If it's a data URL (base64), use it directly
+      if (branding.companyLogoUrl.startsWith('data:')) {
+        return branding.companyLogoUrl;
+      }
+      if (branding.companyLogoUrl.startsWith('/uploads')) {
+        return `${getApiBaseUrl()}${branding.companyLogoUrl}`;
+      }
+      return branding.companyLogoUrl;
+    }
+    return null;
+  };
+  
+  const logoUrl = getLogoUrl();
   const [tabValue, setTabValue] = useState(0);
 
   const version = '1.3.1';

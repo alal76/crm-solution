@@ -76,7 +76,9 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
                 NotesEnabled = settings?.NotesEnabled ?? true,
                 WorkflowsEnabled = settings?.WorkflowsEnabled ?? true,
                 ReportsEnabled = settings?.ReportsEnabled ?? true,
-                DashboardEnabled = settings?.DashboardEnabled ?? true
+                DashboardEnabled = settings?.DashboardEnabled ?? true,
+                CommunicationsEnabled = settings?.CommunicationsEnabled ?? true,
+                InteractionsEnabled = settings?.InteractionsEnabled ?? true
             };
         }
         catch (Exception ex)

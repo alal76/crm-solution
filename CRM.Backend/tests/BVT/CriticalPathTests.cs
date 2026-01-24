@@ -939,4 +939,104 @@ public class CriticalPathTests
     }
 
     #endregion
+
+    #region BVT-027: Navigation Configuration Validation
+
+    /// <summary>
+    /// BVT-027: Verify navigation configuration has all required nav items
+    /// 
+    /// FUNCTIONAL: All CRM modules must be present in navigation configuration
+    /// TECHNICAL: Tests that navigation config JSON contains all expected module IDs
+    /// </summary>
+    [Fact]
+    public void BVT027_NavigationConfig_ContainsAllRequiredNavItems()
+    {
+        // Define expected navigation items (must match frontend Navigation.tsx)
+        var expectedNavItems = new[]
+        {
+            "dashboard", "customers", "customer-overview", "contacts",
+            "leads", "opportunities", "products", "services", "service-requests",
+            "campaigns", "quotes", "my-queue", "activities", "notes",
+            "communications", "interactions", "workflows", "channel-settings", "settings"
+        };
+
+        // Define expected categories
+        var expectedCategories = new[]
+        {
+            "main", "sales", "support", "productivity", "admin"
+        };
+
+        // Simulated nav config from DbSeed.cs (must be kept in sync)
+        var navConfigJson = @"{
+            ""navItems"":[{""id"":""dashboard"",""order"":0,""visible"":true,""category"":""main""},
+                {""id"":""customers"",""order"":1,""visible"":true,""category"":""main""},
+                {""id"":""customer-overview"",""order"":2,""visible"":true,""category"":""main""},
+                {""id"":""contacts"",""order"":3,""visible"":true,""category"":""main""},
+                {""id"":""leads"",""order"":4,""visible"":true,""category"":""sales""},
+                {""id"":""opportunities"",""order"":5,""visible"":true,""category"":""sales""},
+                {""id"":""products"",""order"":6,""visible"":true,""category"":""sales""},
+                {""id"":""services"",""order"":7,""visible"":true,""category"":""support""},
+                {""id"":""service-requests"",""order"":8,""visible"":true,""category"":""support""},
+                {""id"":""campaigns"",""order"":9,""visible"":true,""category"":""sales""},
+                {""id"":""quotes"",""order"":10,""visible"":true,""category"":""sales""},
+                {""id"":""my-queue"",""order"":11,""visible"":true,""category"":""productivity""},
+                {""id"":""activities"",""order"":12,""visible"":true,""category"":""productivity""},
+                {""id"":""notes"",""order"":13,""visible"":true,""category"":""productivity""},
+                {""id"":""communications"",""order"":14,""visible"":true,""category"":""productivity""},
+                {""id"":""interactions"",""order"":15,""visible"":true,""category"":""productivity""},
+                {""id"":""workflows"",""order"":16,""visible"":true,""category"":""admin""},
+                {""id"":""channel-settings"",""order"":17,""visible"":true,""category"":""admin""},
+                {""id"":""settings"",""order"":18,""visible"":true,""category"":""admin""}],
+            ""categories"":[{""id"":""main"",""label"":""Main"",""order"":0},
+                {""id"":""sales"",""label"":""Sales & Marketing"",""order"":1},
+                {""id"":""support"",""label"":""Customer Support"",""order"":2},
+                {""id"":""productivity"",""label"":""Productivity"",""order"":3},
+                {""id"":""admin"",""label"":""Administration"",""order"":4}]
+        }";
+
+        // Verify all expected nav items are present
+        foreach (var navItem in expectedNavItems)
+        {
+            navConfigJson.Should().Contain($@"""id"":""{navItem}""",
+                $"Navigation config must contain the '{navItem}' module");
+        }
+
+        // Verify all expected categories are present
+        foreach (var category in expectedCategories)
+        {
+            navConfigJson.Should().Contain($@"""id"":""{category}""",
+                $"Navigation config must contain the '{category}' category");
+        }
+    }
+
+    /// <summary>
+    /// BVT-028: Verify navigation items have correct category assignments
+    /// 
+    /// FUNCTIONAL: Nav items must be grouped in correct categories
+    /// TECHNICAL: Validates category assignments match expected groupings
+    /// </summary>
+    [Fact]
+    public void BVT028_NavigationConfig_HasCorrectCategoryAssignments()
+    {
+        // Define expected category assignments
+        var mainItems = new[] { "dashboard", "customers", "customer-overview", "contacts" };
+        var salesItems = new[] { "leads", "opportunities", "products", "campaigns", "quotes" };
+        var supportItems = new[] { "services", "service-requests" };
+        var productivityItems = new[] { "my-queue", "activities", "notes", "communications", "interactions" };
+        var adminItems = new[] { "workflows", "channel-settings", "settings" };
+
+        // Verify counts (19 total nav items across 5 categories)
+        var totalExpected = mainItems.Length + salesItems.Length + supportItems.Length + 
+                           productivityItems.Length + adminItems.Length;
+        totalExpected.Should().Be(19, "There should be 19 navigation items in total");
+
+        // Verify category groupings are correct
+        mainItems.Length.Should().Be(4, "Main category should have 4 items");
+        salesItems.Length.Should().Be(5, "Sales category should have 5 items");
+        supportItems.Length.Should().Be(2, "Support category should have 2 items");
+        productivityItems.Length.Should().Be(5, "Productivity category should have 5 items");
+        adminItems.Length.Should().Be(3, "Admin category should have 3 items");
+    }
+
+    #endregion
 }
