@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
+  Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Tabs, Tab,
   FormControlLabel, Checkbox, Grid, IconButton, Tooltip, SelectChangeEvent
@@ -342,7 +342,8 @@ function ProductsPage() {
 
         <Card>
           <CardContent sx={{ p: 0 }}>
-            <Table>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 800 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                   <TableCell><strong>Product</strong></TableCell>
@@ -420,7 +421,8 @@ function ProductsPage() {
                   );
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </TableContainer>
             {products.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
                 No products found. Add your first product to get started.

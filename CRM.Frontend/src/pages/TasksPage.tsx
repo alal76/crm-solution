@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
+  Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
   IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Badge
@@ -501,7 +501,8 @@ function TasksPage() {
         {/* Queue Table */}
         <Card>
           <CardContent sx={{ p: 0 }}>
-            <Table>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 1000 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                   <TableCell><strong>Task</strong></TableCell>
@@ -645,7 +646,8 @@ function TasksPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
+            </TableContainer>
             {filteredQueueItems.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
                 {statusFilter === 'pending' 

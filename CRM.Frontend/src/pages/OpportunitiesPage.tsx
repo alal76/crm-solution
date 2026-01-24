@@ -8,6 +8,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   Dialog,
@@ -328,8 +329,9 @@ function OpportunitiesPage() {
         />
 
         <Card>
-          <CardContent sx={{ overflowX: 'auto' }}>
-            <Table>
+          <CardContent sx={{ p: 0 }}>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 950 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                   <TableCell><strong>Name</strong></TableCell>
@@ -385,7 +387,8 @@ function OpportunitiesPage() {
                   );
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </TableContainer>
             {filteredOpportunities.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
                 No opportunities found

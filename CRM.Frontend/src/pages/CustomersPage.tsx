@@ -1,5 +1,5 @@
 import { 
-  Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, 
+  Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, CircularProgress, Alert, Button, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, 
   MenuItem, Chip, Tabs, Tab, Slider, FormControlLabel, Checkbox, Grid,
@@ -754,7 +754,8 @@ function CustomersPage() {
 
         <Card>
           <CardContent sx={{ p: 0 }}>
-            <Table>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 950 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                   <TableCell><strong>Category</strong></TableCell>
@@ -865,7 +866,8 @@ function CustomersPage() {
                   );
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </TableContainer>
             {customers.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
                 No customers found. Add your first customer to get started.

@@ -7,6 +7,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   CircularProgress,
@@ -338,7 +339,7 @@ function ContactsPage() {
           </Box>
         </Box>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
 
         <AdvancedSearch
           fields={CONTACT_SEARCH_FIELDS}
@@ -353,7 +354,8 @@ function ContactsPage() {
         ) : (
           <Card>
             <CardContent>
-              <Table>
+              <TableContainer sx={{ overflowX: 'auto' }}>
+                <Table sx={{ minWidth: 900 }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                     <TableCell><strong>Name</strong></TableCell>
@@ -439,7 +441,8 @@ function ContactsPage() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+                </Table>
+              </TableContainer>
               {filteredContacts.length === 0 && !loading && (
                 <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
                   No contacts found

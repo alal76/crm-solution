@@ -368,15 +368,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<{ requiresTwoFactor?: boolean; twoFactorToken?: string }> => {
     try {
       const endpoint = '/auth/login';
-      console.log('[AuthContext] Login attempt', { email, endpoint });
-      debugLog('Login attempt', { email, endpoint });
+      debugLog('[AuthContext] Login attempt', { email, endpoint });
       
       const response = await axiosInstance.post(endpoint, { email, password });
-      console.log('[AuthContext] Login response received:', { userId: response.data.userId, status: response.status });
+      debugLog('[AuthContext] Login response received', { userId: response.data.userId, status: response.status });
       
       // Check if 2FA is required
       if (response.data.requiresTwoFactor) {
-        console.log('[AuthContext] 2FA required for user');
+        debugLog('[AuthContext] 2FA required for user');
         return { 
           requiresTwoFactor: true, 
           twoFactorToken: response.data.twoFactorToken 
@@ -413,7 +412,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(response.data);
       setIsAuthenticated(true);
-      console.log('[AuthContext] Login complete, user authenticated, groupPermissions:', response.data.groupPermissions);
+      debugLog('[AuthContext] Login complete, user authenticated', { groupPermissions: response.data.groupPermissions });
       
       // Clear any branding update flags on successful login
       localStorage.removeItem('brandingUpdated');
@@ -421,18 +420,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return {};
     } catch (error: any) {
-      console.error('[AuthContext] Login failed:', {
+      debugError('[AuthContext] Login failed', {
         email,
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
         code: error.code,
-      });
-      debugError('Login failed', {
-        email,
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
       });
       throw error;
     }
@@ -440,9 +433,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const verifyTwoFactor = async (twoFactorToken: string, code: string): Promise<void> => {
     try {
-      console.log('[AuthContext] 2FA verification attempt');
+      debugLog('[AuthContext] 2FA verification attempt');
       const response = await axiosInstance.post('/auth/login/2fa', { twoFactorToken, code });
-      console.log('[AuthContext] 2FA verification successful');
+      debugLog('[AuthContext] 2FA verification successful');
       
       const accessToken = response.data.accessToken;
       const refreshToken = response.data.refreshToken;
@@ -473,7 +466,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data);
       setIsAuthenticated(true);
     } catch (error: any) {
-      console.error('[AuthContext] 2FA verification failed:', error.message);
+      debugError('[AuthContext] 2FA verification failed', error.message);
       throw error;
     }
   };
@@ -510,7 +503,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Registration failed', error);
+      debugError('[AuthContext] Registration failed', error);
       throw error;
     }
   };
@@ -551,7 +544,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Google login failed', error);
+      debugError('[AuthContext] Google login failed', error);
       throw error;
     }
   };

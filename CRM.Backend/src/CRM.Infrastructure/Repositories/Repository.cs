@@ -1,12 +1,14 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Infrastructure.Repositories;
 
 /// <summary>
 /// Generic repository implementation.
 /// Uses ICrmDbContext for dynamic database resolution (supports demo mode switching).
+/// Optimized with AsNoTracking() for read-only operations.
 /// </summary>
 public class Repository<T> : IRepository<T> where T : BaseEntity
 {
@@ -19,17 +21,26 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public virtual async Task<T?> GetByIdAsync(int id)
     {
-        return await _context.Set<T>().FindAsync(id);
+        return await _context.Set<T>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted);
     }
 
     public virtual async Task<IEnumerable<T>> GetAllAsync()
     {
-        return await Task.FromResult(_context.Set<T>().Where(e => !e.IsDeleted).ToList());
+        return await _context.Set<T>()
+            .AsNoTracking()
+            .Where(e => !e.IsDeleted)
+            .ToListAsync();
     }
 
     public virtual async Task<IEnumerable<T>> FindAsync(Func<T, bool> predicate)
     {
-        return await Task.FromResult(_context.Set<T>().Where(predicate).ToList());
+        return await Task.FromResult(_context.Set<T>()
+            .AsNoTracking()
+            .Where(e => !e.IsDeleted)
+            .Where(predicate)
+            .ToList());
     }
 
     public virtual async Task AddAsync(T entity)

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
+  Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
   IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Divider
@@ -344,7 +344,8 @@ function QuotesPage() {
 
         <Card>
           <CardContent sx={{ p: 0 }}>
-            <Table>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 850 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                   <TableCell><strong>Quote #</strong></TableCell>
@@ -458,7 +459,8 @@ function QuotesPage() {
                   );
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </TableContainer>
             {quotes.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
                 No quotes found. Create your first quote to get started.
