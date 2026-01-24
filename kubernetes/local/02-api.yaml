@@ -25,6 +25,8 @@ spec:
         ports:
         - containerPort: 5000
           name: http
+        - containerPort: 5001
+          name: https
         env:
         - name: ASPNETCORE_ENVIRONMENT
           valueFrom:
@@ -67,6 +69,23 @@ spec:
             configMapKeyRef:
               name: crm-config
               key: DemoDatabase__DatabaseName
+        # SSL Configuration
+        - name: SSL_CERT_PATH
+          value: "/app/ssl/server.pfx"
+        - name: SSL_CERT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crm-ssl-secret
+              key: SSL_CERT_PASSWORD
+              optional: true
+        - name: HTTPS_PORT
+          value: "5001"
+        - name: HTTP_PORT
+          value: "5000"
+        volumeMounts:
+        - name: ssl-certs
+          mountPath: /app/ssl
+          readOnly: true
         resources:
           requests:
             memory: "256Mi"
@@ -88,6 +107,11 @@ spec:
           initialDelaySeconds: 60
           periodSeconds: 30
           timeoutSeconds: 5
+      volumes:
+      - name: ssl-certs
+        secret:
+          secretName: crm-ssl-secret
+          optional: true
 ---
 apiVersion: v1
 kind: Service
@@ -106,3 +130,6 @@ spec:
   - port: 5000
     targetPort: 5000
     name: http
+  - port: 5001
+    targetPort: 5001
+    name: https

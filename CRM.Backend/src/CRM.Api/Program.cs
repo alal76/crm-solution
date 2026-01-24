@@ -30,8 +30,45 @@ using Serilog;
 using System.Text;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Kestrel for HTTPS
+var sslCertPath = builder.Configuration["SSL_CERT_PATH"] ?? Path.Combine(Directory.GetCurrentDirectory(), "ssl", "server.pfx");
+var sslCertPassword = builder.Configuration["SSL_CERT_PASSWORD"] ?? "CrmSslCert2024";
+var httpsPort = int.TryParse(builder.Configuration["HTTPS_PORT"], out var hp) ? hp : 5001;
+var httpPort = int.TryParse(builder.Configuration["HTTP_PORT"], out var p) ? p : 5000;
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    // Always listen on HTTP
+    serverOptions.ListenAnyIP(httpPort);
+    
+    // Try to enable HTTPS if certificate exists
+    if (File.Exists(sslCertPath))
+    {
+        try
+        {
+            var cert = new X509Certificate2(sslCertPath, sslCertPassword);
+            serverOptions.ListenAnyIP(httpsPort, listenOptions =>
+            {
+                listenOptions.UseHttps(cert);
+            });
+            Console.WriteLine($"HTTPS enabled on port {httpsPort} with certificate: {cert.Subject}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Warning: Could not load SSL certificate from {sslCertPath}: {ex.Message}");
+            Console.WriteLine("HTTPS will not be available. Server running on HTTP only.");
+        }
+    }
+    else
+    {
+        Console.WriteLine($"SSL certificate not found at {sslCertPath}. Server running on HTTP only (port {httpPort}).");
+        Console.WriteLine("To enable HTTPS, upload a certificate via Admin Settings or place server.pfx in the ssl folder.");
+    }
+});
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -449,7 +486,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CRM API V1"));
 }
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirect if we have SSL enabled and not in development
+// Skip redirect for health endpoints to allow Kubernetes health checks on HTTP
+var forceHttpsRedirect = builder.Configuration.GetValue<bool>("ForceHttpsRedirect", false);
+if (forceHttpsRedirect && File.Exists(sslCertPath))
+{
+    app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health"), appBuilder =>
+    {
+        appBuilder.UseHttpsRedirection();
+    });
+}
 
 // Serve static files from wwwroot (for uploaded files)
 var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");

@@ -83,8 +83,10 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   } | null>(null);
   const [sslLoading, setSslLoading] = useState(false);
   const [uploadingCert, setUploadingCert] = useState(false);
+  const [generatingCert, setGeneratingCert] = useState(false);
   const [certFile, setCertFile] = useState<File | null>(null);
   const [keyFile, setKeyFile] = useState<File | null>(null);
+  const [certPassword, setCertPassword] = useState('');
 
   const getApiUrl = () => {
     return window.location.hostname === 'localhost'
@@ -122,6 +124,13 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       return;
     }
 
+    // For PFX files, we don't need a separate key file
+    const isPfx = certFile.name.toLowerCase().endsWith('.pfx') || certFile.name.toLowerCase().endsWith('.p12');
+    if (!isPfx && !keyFile) {
+      setError('Please select both certificate and private key files for CRT/PEM format');
+      return;
+    }
+
     setUploadingCert(true);
     setError(null);
 
@@ -132,6 +141,9 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       if (keyFile) {
         formData.append('privateKey', keyFile);
       }
+      if (certPassword) {
+        formData.append('password', certPassword);
+      }
 
       const response = await fetch(`${getApiUrl()}/systemsettings/ssl/upload`, {
         method: 'POST',
@@ -140,9 +152,11 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       });
 
       if (response.ok) {
-        setSuccess('SSL certificate uploaded successfully');
+        const data = await response.json();
+        setSuccess(data.message || 'SSL certificate uploaded successfully. Restart the server to apply.');
         setCertFile(null);
         setKeyFile(null);
+        setCertPassword('');
         await loadSslStatus();
       } else {
         const errorData = await response.json();
@@ -209,6 +223,43 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       setError('Failed to remove SSL certificate');
     } finally {
       setSslLoading(false);
+    }
+  };
+
+  const handleGenerateSelfSignedCertificate = async () => {
+    if (!window.confirm('Generate a self-signed SSL certificate? This will replace any existing certificate. A server restart will be required.')) {
+      return;
+    }
+
+    setGeneratingCert(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${getApiUrl()}/systemsettings/ssl/generate`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          commonName: window.location.hostname || 'localhost',
+          validityDays: 365,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSuccess(`Self-signed certificate generated successfully. Valid until ${new Date(data.expiresOn).toLocaleDateString()}. Restart the server to apply HTTPS.`);
+        await loadSslStatus();
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to generate certificate');
+      }
+    } catch (err) {
+      setError('Failed to generate self-signed certificate');
+    } finally {
+      setGeneratingCert(false);
     }
   };
 
@@ -428,38 +479,21 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
           {sslLoading && <LinearProgress sx={{ mb: 2 }} />}
 
-          {/* HTTPS Toggle - Always Visible */}
-          <Paper sx={{ p: 2, mb: 3, bgcolor: '#fafafa', borderRadius: 2, border: '1px solid #e0e0e0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+          {/* HTTPS Information - Explain how HTTPS works in different deployments */}
+          <Paper sx={{ p: 2, mb: 3, bgcolor: '#e3f2fd', borderRadius: 2, border: '1px solid #90caf9' }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+              <HttpsIcon sx={{ color: '#1976d2', mt: 0.5 }} />
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  HTTPS Mode
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1565c0' }}>
+                  HTTPS Configuration
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Enable HTTPS for secure connections {!sslStatus?.hasCertificate && '(certificate not required for reverse proxy setups)'}
+                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                  <strong>Kubernetes/Docker deployments:</strong> HTTPS is handled by your ingress controller or load balancer (SSL termination). 
+                  The application runs on HTTP internally while the proxy handles secure external connections.
                 </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={sslStatus?.httpsEnabled || false}
-                      onChange={(e) => handleToggleHttps(e.target.checked, sslStatus?.forceRedirect || false)}
-                      disabled={sslLoading}
-                    />
-                  }
-                  label="Enable HTTPS"
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={sslStatus?.forceRedirect || false}
-                      onChange={(e) => handleToggleHttps(sslStatus?.httpsEnabled || false, e.target.checked)}
-                      disabled={sslLoading || !sslStatus?.httpsEnabled}
-                    />
-                  }
-                  label="Force HTTPS Redirect"
-                />
+                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                  <strong>Standalone deployments:</strong> Upload an SSL certificate below to enable direct HTTPS connections from the application server.
+                </Typography>
               </Box>
             </Box>
           </Paper>
@@ -531,8 +565,29 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
             {sslStatus?.hasCertificate ? 'Replace Certificate' : 'Upload SSL Certificate'}
           </Typography>
           
+          {/* Quick Generate Button */}
+          <Box sx={{ mb: 3 }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={generatingCert ? <CircularProgress size={16} color="inherit" /> : <HttpsIcon />}
+              onClick={handleGenerateSelfSignedCertificate}
+              disabled={generatingCert || sslLoading}
+              sx={{ textTransform: 'none', mr: 2 }}
+            >
+              Generate Self-Signed Certificate
+            </Button>
+            <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 1 }}>
+              Quick option for testing/development. For production, upload a certificate from a trusted CA.
+            </Typography>
+          </Box>
+          
+          <Divider sx={{ my: 2 }}>
+            <Typography variant="caption" color="textSecondary">OR UPLOAD YOUR CERTIFICATE</Typography>
+          </Divider>
+          
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
               <Paper
                 sx={{
                   p: 2,
@@ -548,19 +603,19 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                 <input
                   type="file"
                   hidden
-                  accept=".crt,.pem,.cer"
+                  accept=".crt,.pem,.cer,.pfx,.p12"
                   onChange={(e) => setCertFile(e.target.files?.[0] || null)}
                 />
                 <LockIcon sx={{ fontSize: 32, color: certFile ? 'success.main' : 'text.secondary', mb: 1 }} />
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {certFile ? certFile.name : 'SSL Certificate (.crt, .pem)'}
+                  {certFile ? certFile.name : 'Certificate File'}
                 </Typography>
                 <Typography variant="caption" color="textSecondary">
-                  Click to select certificate file
+                  .pfx, .p12, .crt, .pem
                 </Typography>
               </Paper>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
               <Paper
                 sx={{
                   p: 2,
@@ -569,6 +624,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                   borderRadius: 2,
                   textAlign: 'center',
                   cursor: 'pointer',
+                  opacity: certFile?.name.toLowerCase().match(/\.(pfx|p12)$/) ? 0.5 : 1,
                   '&:hover': { borderColor: 'primary.main' },
                 }}
                 component="label"
@@ -578,19 +634,32 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                   hidden
                   accept=".key,.pem"
                   onChange={(e) => setKeyFile(e.target.files?.[0] || null)}
+                  disabled={!!certFile?.name.toLowerCase().match(/\.(pfx|p12)$/)}
                 />
                 <SecurityIcon sx={{ fontSize: 32, color: keyFile ? 'success.main' : 'text.secondary', mb: 1 }} />
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {keyFile ? keyFile.name : 'Private Key (.key, .pem)'}
+                  {keyFile ? keyFile.name : 'Private Key'}
                 </Typography>
                 <Typography variant="caption" color="textSecondary">
-                  Click to select private key file
+                  {certFile?.name.toLowerCase().match(/\.(pfx|p12)$/) ? 'Not needed for PFX' : '.key, .pem'}
                 </Typography>
               </Paper>
             </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Certificate Password"
+                type="password"
+                value={certPassword}
+                onChange={(e) => setCertPassword(e.target.value)}
+                placeholder="Enter password (if any)"
+                size="small"
+                helperText="For password-protected PFX files"
+              />
+            </Grid>
           </Grid>
 
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
             <Button
               variant="contained"
               startIcon={uploadingCert ? <CircularProgress size={16} color="inherit" /> : <UploadIcon />}
@@ -600,12 +669,21 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
             >
               Upload Certificate
             </Button>
+            {(certFile || keyFile) && (
+              <Button
+                variant="outlined"
+                onClick={() => { setCertFile(null); setKeyFile(null); setCertPassword(''); }}
+                sx={{ textTransform: 'none' }}
+              >
+                Clear
+              </Button>
+            )}
           </Box>
 
           <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
             <Typography variant="body2">
-              <strong>Note:</strong> After uploading certificates, you may need to restart the server for HTTPS to take effect.
-              Ensure your certificate is issued by a trusted Certificate Authority for production use.
+              <strong>Supported formats:</strong> PFX/P12 (recommended - includes key) or CRT/PEM + KEY files.<br />
+              <strong>Note:</strong> Server restart is required after uploading certificates for HTTPS to take effect.
             </Typography>
           </Alert>
         </CardContent>
