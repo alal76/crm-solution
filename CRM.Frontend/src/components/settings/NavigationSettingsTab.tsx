@@ -61,7 +61,15 @@ import {
   Edit as EditIcon,
   ExpandMore as ExpandMoreIcon,
   Category as CategoryIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
+
+interface NavCategory {
+  id: string;
+  label: string;
+  order: number;
+}
 
 interface NavItem {
   id: string;
@@ -121,6 +129,7 @@ const iconMap: Record<string, React.ReactNode> = {
 
 function NavigationSettingsTab() {
   const [navItems, setNavItems] = useState<NavItem[]>([]);
+  const [categories, setCategories] = useState<NavCategory[]>(DEFAULT_CATEGORIES);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -130,6 +139,10 @@ function NavigationSettingsTab() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(DEFAULT_CATEGORIES.map(c => c.id));
   const [viewMode, setViewMode] = useState<'list' | 'category'>('category');
+  // Category edit state
+  const [editingCategory, setEditingCategory] = useState<NavCategory | null>(null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   const getApiUrl = () => {
     return window.location.hostname === 'localhost'
@@ -148,7 +161,17 @@ function NavigationSettingsTab() {
         const data = await response.json();
         if (data.navOrderConfig) {
           try {
-            const savedOrder = JSON.parse(data.navOrderConfig);
+            const savedConfig = JSON.parse(data.navOrderConfig);
+            // Support both old format (array) and new format (object with navItems and categories)
+            const savedOrder = Array.isArray(savedConfig) ? savedConfig : savedConfig.navItems || [];
+            const savedCategories = savedConfig.categories || null;
+            
+            // Load categories
+            if (savedCategories && Array.isArray(savedCategories)) {
+              setCategories(savedCategories);
+              setExpandedCategories(savedCategories.map((c: NavCategory) => c.id));
+            }
+            
             // Merge saved order with default items
             const mergedItems = DEFAULT_NAV_ITEMS.map(item => {
               const saved = savedOrder.find((s: NavItem) => s.id === item.id);
@@ -182,6 +205,66 @@ function NavigationSettingsTab() {
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
+
+  // Category management functions
+  const handleAddCategory = () => {
+    if (!newCategoryName.trim()) return;
+    const newId = newCategoryName.toLowerCase().replace(/\s+/g, '-');
+    const newCategory: NavCategory = {
+      id: newId,
+      label: newCategoryName.trim(),
+      order: categories.length
+    };
+    setCategories([...categories, newCategory]);
+    setNewCategoryName('');
+    setHasChanges(true);
+    setExpandedCategories([...expandedCategories, newId]);
+  };
+
+  const handleEditCategory = (category: NavCategory) => {
+    setEditingCategory({ ...category });
+    setCategoryDialogOpen(true);
+  };
+
+  const handleSaveCategoryEdit = () => {
+    if (editingCategory) {
+      const newCategories = categories.map(c => 
+        c.id === editingCategory.id ? editingCategory : c
+      );
+      setCategories(newCategories);
+      setHasChanges(true);
+      setCategoryDialogOpen(false);
+      setEditingCategory(null);
+    }
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    // Move all items in this category to 'main'
+    const newItems = navItems.map(item => 
+      item.category === categoryId ? { ...item, category: 'main' } : item
+    );
+    setNavItems(newItems);
+    setCategories(categories.filter(c => c.id !== categoryId));
+    setHasChanges(true);
+  };
+
+  const moveCategoryUp = (index: number) => {
+    if (index <= 0) return;
+    const newCategories = [...categories];
+    [newCategories[index - 1], newCategories[index]] = [newCategories[index], newCategories[index - 1]];
+    newCategories.forEach((c, i) => c.order = i);
+    setCategories(newCategories);
+    setHasChanges(true);
+  };
+
+  const moveCategoryDown = (index: number) => {
+    if (index >= categories.length - 1) return;
+    const newCategories = [...categories];
+    [newCategories[index], newCategories[index + 1]] = [newCategories[index + 1], newCategories[index]];
+    newCategories.forEach((c, i) => c.order = i);
+    setCategories(newCategories);
+    setHasChanges(true);
+  };
 
   const moveItem = (index: number, direction: 'up' | 'down') => {
     const newItems = [...navItems];
@@ -264,7 +347,13 @@ function NavigationSettingsTab() {
         category: item.category,
         customLabel: item.customLabel,
       }));
-      const navOrderConfig = JSON.stringify(navOrderData);
+      
+      // Save both nav items and categories in the new format
+      const configToSave = {
+        navItems: navOrderData,
+        categories: categories.map(c => ({ id: c.id, label: c.label, order: c.order }))
+      };
+      const navOrderConfig = JSON.stringify(configToSave);
 
       const response = await fetch(`${getApiUrl()}/systemsettings/navigation/order`, {
         method: 'PUT',
@@ -276,8 +365,8 @@ function NavigationSettingsTab() {
       });
 
       if (response.ok) {
-        // Save to localStorage for immediate use by Navigation component
-        localStorage.setItem('crm_nav_order', JSON.stringify(navOrderData));
+        // Save to localStorage for immediate use by Navigation component (include categories)
+        localStorage.setItem('crm_nav_order', JSON.stringify(configToSave));
         setSuccess('Navigation order saved successfully. Page will reload to apply changes.');
         setHasChanges(false);
         // Trigger page reload to apply changes
@@ -297,6 +386,7 @@ function NavigationSettingsTab() {
 
   const handleReset = () => {
     setNavItems([...DEFAULT_NAV_ITEMS]);
+    setCategories([...DEFAULT_CATEGORIES]);
     setHasChanges(true);
   };
 
@@ -466,9 +556,54 @@ function NavigationSettingsTab() {
       {/* Category View */}
       {viewMode === 'category' && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {DEFAULT_CATEGORIES.map((category) => {
+          {/* Category Management Section */}
+          <Card sx={{ borderRadius: 2, mb: 1 }}>
+            <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CategoryIcon color="primary" />
+                  Manage Categories
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                {categories.map((cat, idx) => (
+                  <Chip
+                    key={cat.id}
+                    label={cat.label}
+                    onDelete={cat.id !== 'main' ? () => handleDeleteCategory(cat.id) : undefined}
+                    onClick={() => handleEditCategory(cat)}
+                    icon={<EditIcon fontSize="small" />}
+                    variant="outlined"
+                    color="primary"
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <TextField
+                  size="small"
+                  placeholder="New category name..."
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+                  sx={{ flex: 1, maxWidth: 250 }}
+                />
+                <Button
+                  size="small"
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddCategory}
+                  disabled={!newCategoryName.trim()}
+                >
+                  Add Category
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Category Accordions */}
+          {categories.sort((a, b) => a.order - b.order).map((category, catIdx) => {
             const categoryItems = getItemsByCategory(category.id);
-            if (categoryItems.length === 0) return null;
             
             return (
               <Accordion
@@ -484,7 +619,7 @@ function NavigationSettingsTab() {
                     borderRadius: expandedCategories.includes(category.id) ? '8px 8px 0 0' : 2,
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
                     <CategoryIcon color="primary" />
                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                       {category.label}
@@ -501,14 +636,36 @@ function NavigationSettingsTab() {
                       variant="outlined"
                       sx={{ height: 20, fontSize: '0.7rem' }}
                     />
+                    <Box sx={{ ml: 'auto', display: 'flex', gap: 0.5 }} onClick={(e) => e.stopPropagation()}>
+                      <Tooltip title="Move Up">
+                        <span>
+                          <IconButton size="small" onClick={() => moveCategoryUp(catIdx)} disabled={catIdx === 0}>
+                            <ArrowUpIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      <Tooltip title="Move Down">
+                        <span>
+                          <IconButton size="small" onClick={() => moveCategoryDown(catIdx)} disabled={catIdx === categories.length - 1}>
+                            <ArrowDownIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </Box>
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 0 }}>
-                  <Paper variant="outlined" sx={{ borderRadius: 0, borderTop: 'none' }}>
-                    <List disablePadding>
-                      {categoryItems.map((item, index) => renderNavItem(item, index, categoryItems))}
-                    </List>
-                  </Paper>
+                  {categoryItems.length === 0 ? (
+                    <Box sx={{ p: 3, textAlign: 'center' }}>
+                      <Typography color="textSecondary">No items in this category. Drag items here or edit an item's category.</Typography>
+                    </Box>
+                  ) : (
+                    <Paper variant="outlined" sx={{ borderRadius: 0, borderTop: 'none' }}>
+                      <List disablePadding>
+                        {categoryItems.map((item, index) => renderNavItem(item, index, categoryItems))}
+                      </List>
+                    </Paper>
+                  )}
                 </AccordionDetails>
               </Accordion>
             );
@@ -575,7 +732,7 @@ function NavigationSettingsTab() {
                     category: e.target.value 
                   })}
                 >
-                  {DEFAULT_CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <MenuItem key={cat.id} value={cat.id}>
                       {cat.label}
                     </MenuItem>
@@ -603,6 +760,33 @@ function NavigationSettingsTab() {
         <DialogActions>
           <Button onClick={handleEditCancel}>Cancel</Button>
           <Button onClick={handleEditSave} variant="contained">Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Category Edit Dialog */}
+      <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Edit Category</DialogTitle>
+        <DialogContent>
+          {editingCategory && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              <TextField
+                label="Category Name"
+                value={editingCategory.label}
+                onChange={(e) => setEditingCategory({ ...editingCategory, label: e.target.value })}
+                fullWidth
+                autoFocus
+              />
+              <Alert severity="info" sx={{ borderRadius: 2 }}>
+                <Typography variant="caption">
+                  Category ID: <strong>{editingCategory.id}</strong>
+                </Typography>
+              </Alert>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCategoryDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleSaveCategoryEdit} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
     </Box>

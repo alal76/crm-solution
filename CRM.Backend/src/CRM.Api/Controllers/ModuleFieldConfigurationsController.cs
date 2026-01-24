@@ -170,4 +170,30 @@ public class ModuleFieldConfigurationsController : ControllerBase
             return StatusCode(500, new { message = "An error occurred while initializing default configurations" });
         }
     }
+
+    /// <summary>
+    /// Initialize default field configurations for all modules at once.
+    /// This ensures fields are available without requiring users to visit each entity first.
+    /// </summary>
+    [HttpPost("initialize-all")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> InitializeAllModules()
+    {
+        try
+        {
+            var results = await _service.InitializeAllModulesAsync();
+            var totalInitialized = results.Sum(r => r.Value);
+            _logger.LogInformation("Initialized field configurations for all modules. Total fields: {Count}", totalInitialized);
+            return Ok(new { 
+                message = "Field configurations initialized for all modules",
+                modules = results 
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error initializing field configurations for all modules");
+            return StatusCode(500, new { message = "An error occurred while initializing field configurations" });
+        }
+    }
 }

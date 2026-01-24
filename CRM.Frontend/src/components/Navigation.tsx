@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -115,37 +115,99 @@ function NavigationContent() {
   ], []);
   const defaultAdminOrder = useMemo(() => ['workflows', 'settings'], []);
 
-  // Get nav order from localStorage or use defaults
-  const navOrder = useMemo(() => {
+  // Default categories
+  const defaultCategories = useMemo(() => [
+    { id: 'main', label: 'Main', order: 0 },
+    { id: 'sales', label: 'Sales & Marketing', order: 1 },
+    { id: 'support', label: 'Customer Support', order: 2 },
+    { id: 'productivity', label: 'Productivity', order: 3 },
+    { id: 'admin', label: 'Administration', order: 4 },
+  ], []);
+
+  // Default nav items with their proper categories (matching NavigationSettingsTab)
+  const defaultNavItemsWithCategory = useMemo(() => [
+    { id: 'dashboard', order: 0, visible: true, category: 'main' },
+    { id: 'customers', order: 1, visible: true, category: 'main' },
+    { id: 'customer-overview', order: 2, visible: true, category: 'main' },
+    { id: 'contacts', order: 3, visible: true, category: 'main' },
+    { id: 'leads', order: 4, visible: true, category: 'sales' },
+    { id: 'opportunities', order: 5, visible: true, category: 'sales' },
+    { id: 'products', order: 6, visible: true, category: 'sales' },
+    { id: 'services', order: 7, visible: true, category: 'support' },
+    { id: 'service-requests', order: 8, visible: true, category: 'support' },
+    { id: 'campaigns', order: 9, visible: true, category: 'sales' },
+    { id: 'quotes', order: 10, visible: true, category: 'sales' },
+    { id: 'my-queue', order: 11, visible: true, category: 'productivity' },
+    { id: 'activities', order: 12, visible: true, category: 'productivity' },
+    { id: 'notes', order: 13, visible: true, category: 'productivity' },
+    { id: 'communications', order: 14, visible: true, category: 'productivity' },
+    { id: 'workflows', order: 15, visible: true, category: 'admin' },
+    { id: 'settings', order: 16, visible: true, category: 'admin' },
+  ], []);
+
+  // Get nav config from localStorage or use defaults
+  const navConfig = useMemo(() => {
     try {
       const savedConfig = localStorage.getItem('crm_nav_order');
       if (savedConfig) {
         const parsed = JSON.parse(savedConfig);
-        return parsed;
+        // Support both old format (array) and new format (object with navItems and categories)
+        if (Array.isArray(parsed)) {
+          return { navItems: parsed, categories: defaultCategories };
+        }
+        return {
+          navItems: parsed.navItems || [],
+          categories: parsed.categories || defaultCategories
+        };
       }
     } catch {
       // Use defaults
     }
     return null;
-  }, []);
+  }, [defaultCategories]);
 
-  // Build ordered nav items
+  // Build ordered nav items with category info
+  const navItemsWithCategory = useMemo(() => {
+    const order = navConfig?.navItems || defaultNavItemsWithCategory;
+    return order
+      .filter((item: { id: string; visible: boolean }) => item.visible && (navItemsConfig[item.id] || adminItemsConfig[item.id]))
+      .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
+      .map((item: { id: string; customLabel?: string; category?: string }) => ({
+        ...navItemsConfig[item.id] || adminItemsConfig[item.id],
+        customLabel: item.customLabel,
+        category: item.category || 'main',
+        id: item.id
+      }));
+  }, [navConfig, defaultNavItemsWithCategory, navItemsConfig, adminItemsConfig]);
+
+  // Get categories from config
+  const categories = useMemo(() => {
+    return (navConfig?.categories || defaultCategories).sort((a: { order: number }, b: { order: number }) => a.order - b.order);
+  }, [navConfig, defaultCategories]);
+
+  // Build ordered nav items (legacy - used for simple list)
   const navItems = useMemo(() => {
-    const order = navOrder || defaultNavOrder.map((id, idx) => ({ id, order: idx, visible: true }));
+    const order = navConfig?.navItems || defaultNavItemsWithCategory;
     return order
       .filter((item: { id: string; visible: boolean }) => item.visible && navItemsConfig[item.id])
       .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
-      .map((item: { id: string }) => navItemsConfig[item.id]);
-  }, [navOrder, defaultNavOrder, navItemsConfig]);
+      .map((item: { id: string; customLabel?: string }) => ({
+        ...navItemsConfig[item.id],
+        customLabel: item.customLabel
+      }));
+  }, [navConfig, defaultNavItemsWithCategory, navItemsConfig]);
 
   const adminItems = useMemo(() => {
-    const order = navOrder?.filter((item: { id: string }) => adminItemsConfig[item.id]) || 
-      defaultAdminOrder.map((id, idx) => ({ id, order: idx + 100, visible: true }));
+    const order = navConfig?.navItems?.filter((item: { id: string }) => adminItemsConfig[item.id]) || 
+      defaultNavItemsWithCategory.filter(item => adminItemsConfig[item.id]);
     return order
       .filter((item: { id: string; visible: boolean }) => item.visible && adminItemsConfig[item.id])
       .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
-      .map((item: { id: string }) => adminItemsConfig[item.id]);
-  }, [navOrder, defaultAdminOrder, adminItemsConfig]);
+      .map((item: { id: string; customLabel?: string }) => ({
+        ...adminItemsConfig[item.id],
+        customLabel: item.customLabel
+      }));
+  }, [navConfig, defaultNavItemsWithCategory, adminItemsConfig]);
 
   // Get header color: user's custom color, or red for admin, or primary color
   const getHeaderColor = () => {
@@ -320,60 +382,54 @@ function NavigationContent() {
           </Typography>
         </Box>
         <Divider />
-        <List>
-          {visibleNavItems.map((item) => (
-            <ListItem
-              button
-              key={item.path}
-              component={RouterLink}
-              to={item.path}
-              onClick={() => setDrawerOpen(false)}
-              sx={{
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
-            >
-              <ListItemIcon>
-                <item.icon />
-              </ListItemIcon>
-              <ListItemText primary={item.label} />
-            </ListItem>
-          ))}
-        </List>
-
-        {visibleAdminItems.length > 0 && (user?.role === 'Admin' || user?.role === 0 || user?.role === '0' || hasPermission('canManageUsers')) && (
-          <>
-            <Divider sx={{ my: 1 }} />
-            <Box sx={{ p: 1.5, bgcolor: 'action.hover', m: 1, borderRadius: 1 }}>
-              <Typography variant="overline" sx={{ color: 'textSecondary', fontWeight: 600 }}>
-                Administration
-              </Typography>
-            </Box>
-            <List>
-              {visibleAdminItems.map((item) => (
-                <ListItem
-                  button
-                  key={item.path}
-                  component={RouterLink}
-                  to={item.path}
-                  onClick={() => setDrawerOpen(false)}
-                  sx={{
-                    '&:hover': {
-                      backgroundColor: 'secondary.light',
-                      color: 'secondary.dark',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ color: 'secondary.main' }}>
-                    <item.icon />
-                  </ListItemIcon>
-                  <ListItemText primary={item.label} sx={{ '& .MuiTypography-root': { fontWeight: 500 } }} />
-                </ListItem>
-              ))}
-            </List>
-          </>
-        )}
+        
+        {/* Render items grouped by category */}
+        {categories.map((category: { id: string; label: string; order: number }, catIdx: number) => {
+          // Skip admin category for non-admin users
+          if (category.id === 'admin' && !(user?.role === 'Admin' || user?.role === 0 || user?.role === '0' || hasPermission('canManageUsers'))) {
+            return null;
+          }
+          
+          const categoryItems = navItemsWithCategory.filter(
+            (item: { category?: string; menuName: string }) => 
+              item.category === category.id && canAccessMenu(item.menuName)
+          );
+          
+          if (categoryItems.length === 0) return null;
+          
+          return (
+            <React.Fragment key={category.id}>
+              {catIdx > 0 && <Divider sx={{ my: 0.5 }} />}
+              <Box sx={{ px: 2, py: 1, bgcolor: category.id === 'admin' ? 'warning.light' : 'action.hover' }}>
+                <Typography variant="overline" sx={{ color: category.id === 'admin' ? 'warning.dark' : 'text.secondary', fontWeight: 600, fontSize: '0.65rem' }}>
+                  {category.label}
+                </Typography>
+              </Box>
+              <List dense sx={{ py: 0 }}>
+                {categoryItems.map((item: { id: string; path: string; icon: typeof DashboardIcon; label: string; customLabel?: string }) => (
+                  <ListItem
+                    button
+                    key={item.id || item.path}
+                    component={RouterLink}
+                    to={item.path}
+                    onClick={() => setDrawerOpen(false)}
+                    sx={{
+                      py: 0.75,
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <item.icon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary={item.customLabel || item.label} primaryTypographyProps={{ fontSize: '0.9rem' }} />
+                  </ListItem>
+                ))}
+              </List>
+            </React.Fragment>
+          );
+        })}
       </Drawer>
     </>
   );

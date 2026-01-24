@@ -199,6 +199,54 @@ public class ModuleUIConfigController : ControllerBase
     }
 
     /// <summary>
+    /// Save complete module configuration (tabs, fields, linked entities) in one call
+    /// </summary>
+    [HttpPut("{moduleName}/complete")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(CompleteModuleConfigDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SaveCompleteModuleConfig(string moduleName, [FromBody] SaveCompleteModuleConfigDto dto)
+    {
+        try
+        {
+            var result = await _service.SaveCompleteModuleConfigAsync(moduleName, dto);
+            if (result == null)
+                return NotFound(new { message = $"Module configuration not found for {moduleName}" });
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving complete module configuration for {ModuleName}", moduleName);
+            return StatusCode(500, new { message = "An error occurred while saving module configuration" });
+        }
+    }
+
+    /// <summary>
+    /// Reset module configuration to defaults
+    /// </summary>
+    [HttpPost("{moduleName}/reset-defaults")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(CompleteModuleConfigDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResetModuleToDefaults(string moduleName)
+    {
+        try
+        {
+            var result = await _service.ResetModuleToDefaultsAsync(moduleName);
+            if (result == null)
+                return NotFound(new { message = $"Module configuration not found for {moduleName}" });
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting module {ModuleName} to defaults", moduleName);
+            return StatusCode(500, new { message = "An error occurred while resetting module to defaults" });
+        }
+    }
+
+    /// <summary>
     /// Initialize default module configurations
     /// </summary>
     [HttpPost("initialize")]

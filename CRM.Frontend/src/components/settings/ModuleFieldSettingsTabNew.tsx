@@ -25,33 +25,25 @@ import {
   FormControlLabel,
   Alert,
   Tooltip,
-  Card,
-  CardContent,
-  Tabs,
-  Tab,
   CircularProgress,
   Divider,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
   ListItemSecondaryAction,
   Checkbox,
-  Autocomplete,
   Stack,
-  Breadcrumbs,
+  Collapse,
 } from '@mui/material';
 import {
   Edit as EditIcon,
   DragIndicator as DragIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
-  Settings as SettingsIcon,
   Refresh as RefreshIcon,
   ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
   Link as LinkIcon,
   ViewModule as ViewModuleIcon,
   Dashboard as DashboardIcon,
@@ -73,10 +65,11 @@ import {
   Delete as DeleteIcon,
   ArrowUpward as ArrowUpIcon,
   ArrowDownward as ArrowDownIcon,
-  ArrowBack as ArrowBackIcon,
   ChevronRight as ChevronRightIcon,
   Storage as StorageIcon,
-  TableChart as TableChartIcon,
+  RestartAlt as ResetIcon,
+  Folder as FolderIcon,
+  FolderOpen as FolderOpenIcon,
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import apiClient from '../../services/apiClient';
@@ -105,6 +98,32 @@ interface FieldConfig {
   isHideable: boolean;
 }
 
+// Available field types for configuration
+const FIELD_TYPES = [
+  { value: 'text', label: 'Text', description: 'Single line text input' },
+  { value: 'textarea', label: 'Text Area', description: 'Multi-line text input' },
+  { value: 'number', label: 'Number', description: 'Numeric input' },
+  { value: 'currency', label: 'Currency', description: 'Currency/Money field' },
+  { value: 'date', label: 'Date', description: 'Date picker' },
+  { value: 'datetime', label: 'Date & Time', description: 'Date and time picker' },
+  { value: 'email', label: 'Email', description: 'Email address input' },
+  { value: 'phone', label: 'Phone', description: 'Phone number input' },
+  { value: 'url', label: 'URL', description: 'Website URL input' },
+  { value: 'select', label: 'Dropdown', description: 'Single selection dropdown' },
+  { value: 'multiselect', label: 'Multi-Select', description: 'Multiple selection' },
+  { value: 'checkbox', label: 'Checkbox', description: 'Yes/No checkbox' },
+  { value: 'radio', label: 'Radio Buttons', description: 'Radio button options' },
+  { value: 'lookup', label: 'Lookup', description: 'Reference to another entity' },
+  { value: 'autocomplete', label: 'Auto-Complete', description: 'Search and select' },
+  { value: 'rating', label: 'Rating', description: 'Star rating input' },
+  { value: 'file', label: 'File Upload', description: 'File attachment' },
+  { value: 'image', label: 'Image', description: 'Image upload' },
+  { value: 'color', label: 'Color Picker', description: 'Color selection' },
+  { value: 'richtext', label: 'Rich Text', description: 'Rich text editor' },
+  { value: 'json', label: 'JSON', description: 'JSON data input' },
+  { value: 'readonly', label: 'Read Only', description: 'Display only field' },
+];
+
 interface TabConfig {
   index: number;
   name: string;
@@ -130,35 +149,6 @@ interface ModuleUIConfig {
   description?: string;
   iconName: string;
   displayOrder: number;
-  tabsConfig?: string;
-  linkedEntitiesConfig?: string;
-  listViewConfig?: string;
-  detailViewConfig?: string;
-  quickCreateConfig?: string;
-  searchFilterConfig?: string;
-  moduleSettings?: string;
-}
-
-interface CompleteModuleConfig {
-  moduleConfig: ModuleUIConfig;
-  fieldConfigurations: FieldConfig[];
-  tabs: TabConfig[];
-  linkedEntities: LinkedEntity[];
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
 }
 
 // Icon map for modules
@@ -189,44 +179,49 @@ const ModuleFieldSettingsTab: React.FC = () => {
   const { refreshModuleStatus } = useProfile();
   
   // Main state
-  const [selectedModule, setSelectedModule] = useState('Customers');
-  const [selectedSection, setSelectedSection] = useState(0); // 0: Modules, 1: Fields, 2: Tabs, 3: Linked Entities
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  // Unified view mode
-  const [showUnifiedView, setShowUnifiedView] = useState(false);
-  const [unifiedConfigModule, setUnifiedConfigModule] = useState<ModuleUIConfig | null>(null);
-  const [unifiedSubTab, setUnifiedSubTab] = useState(0); // 0: Overview, 1: Fields, 2: Tabs, 3: Linked Entities
-  
   // Module list state
   const [modules, setModules] = useState<ModuleUIConfig[]>([]);
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [expandedTabs, setExpandedTabs] = useState<Set<string>>(new Set());
   
-  // Field configuration state
-  const [fields, setFields] = useState<FieldConfig[]>([]);
-  const [selectedFieldTab, setSelectedFieldTab] = useState(0);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingField, setEditingField] = useState<FieldConfig | null>(null);
-  
-  // Tab configuration state
-  const [tabs, setTabs] = useState<TabConfig[]>([]);
-  const [tabDialogOpen, setTabDialogOpen] = useState(false);
-  const [editingTab, setEditingTab] = useState<TabConfig | null>(null);
-  
-  // Linked entities state
-  const [linkedEntities, setLinkedEntities] = useState<LinkedEntity[]>([]);
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [newLinkEntity, setNewLinkEntity] = useState('');
+  // Configuration state per module
+  const [moduleConfigs, setModuleConfigs] = useState<Record<string, {
+    fields: FieldConfig[];
+    tabs: TabConfig[];
+    linkedEntities: LinkedEntity[];
+  }>>({});
   
   // Database foreign keys state
   const [databaseForeignKeys, setDatabaseForeignKeys] = useState<Record<string, any[]>>({});
-  const [loadingForeignKeys, setLoadingForeignKeys] = useState(false);
+  
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingField, setEditingField] = useState<FieldConfig | null>(null);
+  
+  // Add linked entity dialog
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkDialogModule, setLinkDialogModule] = useState<string>('');
+  const [newLinkEntity, setNewLinkEntity] = useState('');
 
   // Load all module configurations
   const loadModules = useCallback(async () => {
     try {
       setLoading(true);
+      
+      // First, initialize field configurations for all modules
+      // This ensures fields are available without requiring users to visit each entity first
+      try {
+        await apiClient.post('/modulefieldconfigurations/initialize-all');
+      } catch (initErr: any) {
+        // Non-critical - may fail if already initialized or if user is not admin
+        console.log('Field configuration initialization:', initErr.response?.status === 403 ? 'requires admin' : 'completed or skipped');
+      }
+      
       const response = await apiClient.get('/moduleuiconfig');
       if (response.data && response.data.length > 0) {
         setModules(response.data);
@@ -243,54 +238,69 @@ const ModuleFieldSettingsTab: React.FC = () => {
     }
   }, []);
 
-  // Load complete configuration for selected module
-  const loadModuleConfig = useCallback(async () => {
-    if (!selectedModule) return;
-    
+  // Load complete configuration for a module
+  const loadModuleConfig = useCallback(async (moduleName: string) => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      // Load field configurations
-      const fieldsResponse = await apiClient.get(`/modulefieldconfigurations/${selectedModule}`);
-      setFields(fieldsResponse.data || []);
-      
-      // Try to load complete module config
+      // First try to load existing config
+      let fieldsResponse;
       try {
-        const configResponse = await apiClient.get(`/moduleuiconfig/${selectedModule}/complete`);
+        fieldsResponse = await apiClient.get(`/modulefieldconfigurations/${moduleName}`);
+      } catch {
+        fieldsResponse = { data: [] };
+      }
+
+      // If no fields exist, auto-initialize
+      if (!fieldsResponse.data || fieldsResponse.data.length === 0) {
+        try {
+          await apiClient.post(`/modulefieldconfigurations/initialize/${moduleName}`);
+          fieldsResponse = await apiClient.get(`/modulefieldconfigurations/${moduleName}`);
+        } catch {
+          // Initialization might fail if module has no schema
+        }
+      }
+      
+      const fields: FieldConfig[] = fieldsResponse.data || [];
+      
+      let tabs: TabConfig[] = [];
+      let linkedEntities: LinkedEntity[] = [];
+      
+      try {
+        const configResponse = await apiClient.get(`/moduleuiconfig/${moduleName}/complete`);
         if (configResponse.data) {
-          setTabs(configResponse.data.tabs || []);
-          setLinkedEntities(configResponse.data.linkedEntities || []);
+          tabs = configResponse.data.tabs || [];
+          linkedEntities = configResponse.data.linkedEntities || [];
         }
       } catch {
-        // Module UI config may not exist yet, use defaults from fields
-        const uniqueTabs = Array.from(new Set((fieldsResponse.data || []).map((f: FieldConfig) => f.tabName)));
-        setTabs(uniqueTabs.map((name, index) => ({
+        // Use defaults from fields
+      }
+      
+      // If no tabs configured, derive from fields
+      if (tabs.length === 0 && fields.length > 0) {
+        const uniqueTabs = Array.from(new Set(fields.map(f => f.tabName)));
+        tabs = uniqueTabs.map((name, index) => ({
           index,
           name: name as string,
           enabled: true,
           order: index
-        })));
-        setLinkedEntities([]);
+        }));
       }
+      
+      setModuleConfigs(prev => ({
+        ...prev,
+        [moduleName]: { fields, tabs, linkedEntities }
+      }));
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load module configuration');
-    } finally {
-      setLoading(false);
+      console.error(`Failed to load config for ${moduleName}:`, err);
     }
-  }, [selectedModule]);
+  }, []);
 
   // Load database foreign keys
   const loadDatabaseForeignKeys = useCallback(async () => {
     try {
-      setLoadingForeignKeys(true);
       const response = await apiClient.get('/database/linked-entities-schema');
       setDatabaseForeignKeys(response.data || {});
-    } catch (err: any) {
-      console.error('Failed to load database foreign keys:', err);
-      // Non-critical error, don't show to user
-    } finally {
-      setLoadingForeignKeys(false);
+    } catch {
+      // Non-critical
     }
   }, []);
 
@@ -299,21 +309,37 @@ const ModuleFieldSettingsTab: React.FC = () => {
     loadDatabaseForeignKeys();
   }, [loadModules, loadDatabaseForeignKeys]);
 
-  useEffect(() => {
-    if (selectedModule && selectedSection > 0) {
-      loadModuleConfig();
+  // Toggle module expansion
+  const toggleModuleExpand = async (moduleName: string) => {
+    const newExpanded = new Set(expandedModules);
+    if (newExpanded.has(moduleName)) {
+      newExpanded.delete(moduleName);
+    } else {
+      newExpanded.add(moduleName);
+      // Load config if not already loaded
+      if (!moduleConfigs[moduleName]) {
+        await loadModuleConfig(moduleName);
+      }
     }
-  }, [selectedModule, selectedSection, loadModuleConfig]);
+    setExpandedModules(newExpanded);
+  };
 
-  // Group fields by tab
-  const fieldTabs = Array.from(new Set(fields.map(f => f.tabName))).sort((a, b) => {
-    const aIdx = fields.find(f => f.tabName === a)?.tabIndex || 0;
-    const bIdx = fields.find(f => f.tabName === b)?.tabIndex || 0;
-    return aIdx - bIdx;
-  });
+  // Toggle tab expansion
+  const toggleTabExpand = (moduleTab: string) => {
+    const newExpanded = new Set(expandedTabs);
+    if (newExpanded.has(moduleTab)) {
+      newExpanded.delete(moduleTab);
+    } else {
+      newExpanded.add(moduleTab);
+    }
+    setExpandedTabs(newExpanded);
+  };
 
-  const getFieldsForTab = (tabName: string) => {
-    return fields
+  // Get fields for a specific tab
+  const getFieldsForTab = (moduleName: string, tabName: string) => {
+    const config = moduleConfigs[moduleName];
+    if (!config) return [];
+    return config.fields
       .filter(f => f.tabName === tabName)
       .sort((a, b) => a.displayOrder - b.displayOrder);
   };
@@ -328,6 +354,266 @@ const ModuleFieldSettingsTab: React.FC = () => {
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to toggle module');
+    }
+  };
+
+  // Toggle field visibility
+  const handleToggleFieldEnabled = (moduleName: string, fieldId: number) => {
+    setModuleConfigs(prev => {
+      const config = prev[moduleName];
+      if (!config) return prev;
+      return {
+        ...prev,
+        [moduleName]: {
+          ...config,
+          fields: config.fields.map(f => 
+            f.id === fieldId ? { ...f, isEnabled: !f.isEnabled } : f
+          )
+        }
+      };
+    });
+  };
+
+  // Toggle field required
+  const handleToggleFieldRequired = (moduleName: string, fieldId: number) => {
+    setModuleConfigs(prev => {
+      const config = prev[moduleName];
+      if (!config) return prev;
+      return {
+        ...prev,
+        [moduleName]: {
+          ...config,
+          fields: config.fields.map(f => 
+            f.id === fieldId ? { ...f, isRequired: !f.isRequired } : f
+          )
+        }
+      };
+    });
+  };
+
+  // Change field type
+  const handleChangeFieldType = (moduleName: string, fieldId: number, newType: string) => {
+    setModuleConfigs(prev => {
+      const config = prev[moduleName];
+      if (!config) return prev;
+      return {
+        ...prev,
+        [moduleName]: {
+          ...config,
+          fields: config.fields.map(f => 
+            f.id === fieldId ? { ...f, fieldType: newType } : f
+          )
+        }
+      };
+    });
+  };
+
+  // Toggle tab visibility
+  const handleToggleTab = (moduleName: string, tabName: string) => {
+    setModuleConfigs(prev => {
+      const config = prev[moduleName];
+      if (!config) return prev;
+      return {
+        ...prev,
+        [moduleName]: {
+          ...config,
+          tabs: config.tabs.map(t => 
+            t.name === tabName ? { ...t, enabled: !t.enabled } : t
+          )
+        }
+      };
+    });
+  };
+
+  // Move tab order
+  const handleMoveTab = (moduleName: string, tabIndex: number, direction: 'up' | 'down') => {
+    setModuleConfigs(prev => {
+      const config = prev[moduleName];
+      if (!config) return prev;
+      
+      const newTabs = [...config.tabs].sort((a, b) => a.order - b.order);
+      const newIndex = direction === 'up' ? tabIndex - 1 : tabIndex + 1;
+      if (newIndex < 0 || newIndex >= newTabs.length) return prev;
+      
+      [newTabs[tabIndex], newTabs[newIndex]] = [newTabs[newIndex], newTabs[tabIndex]];
+      newTabs.forEach((t, i) => t.order = i);
+      
+      return {
+        ...prev,
+        [moduleName]: { ...config, tabs: newTabs }
+      };
+    });
+  };
+
+  // Toggle linked entity
+  const handleToggleLinkedEntity = (moduleName: string, entityName: string) => {
+    setModuleConfigs(prev => {
+      const config = prev[moduleName];
+      if (!config) return prev;
+      return {
+        ...prev,
+        [moduleName]: {
+          ...config,
+          linkedEntities: config.linkedEntities.map(le => 
+            le.entityName === entityName ? { ...le, enabled: !le.enabled } : le
+          )
+        }
+      };
+    });
+  };
+
+  // Remove linked entity
+  const handleRemoveLinkedEntity = (moduleName: string, entityName: string) => {
+    setModuleConfigs(prev => {
+      const config = prev[moduleName];
+      if (!config) return prev;
+      return {
+        ...prev,
+        [moduleName]: {
+          ...config,
+          linkedEntities: config.linkedEntities.filter(le => le.entityName !== entityName)
+        }
+      };
+    });
+  };
+
+  // Add linked entity
+  const handleAddLinkedEntity = () => {
+    if (!newLinkEntity || !linkDialogModule) return;
+    
+    setModuleConfigs(prev => {
+      const config = prev[linkDialogModule];
+      if (!config || config.linkedEntities.some(le => le.entityName === newLinkEntity)) return prev;
+      
+      return {
+        ...prev,
+        [linkDialogModule]: {
+          ...config,
+          linkedEntities: [...config.linkedEntities, {
+            entityName: newLinkEntity,
+            relationshipType: 'one-to-many',
+            enabled: true,
+            tabName: newLinkEntity,
+            displayOrder: config.linkedEntities.length
+          }]
+        }
+      };
+    });
+    
+    setNewLinkEntity('');
+    setLinkDialogOpen(false);
+  };
+
+  // Edit field
+  const handleEditField = (field: FieldConfig) => {
+    setEditingField({ ...field });
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveFieldEdit = () => {
+    if (!editingField) return;
+    
+    setModuleConfigs(prev => {
+      const config = prev[editingField.moduleName];
+      if (!config) return prev;
+      return {
+        ...prev,
+        [editingField.moduleName]: {
+          ...config,
+          fields: config.fields.map(f => f.id === editingField.id ? editingField : f)
+        }
+      };
+    });
+    
+    setEditDialogOpen(false);
+  };
+
+  // Field drag and drop
+  const handleFieldDragEnd = (result: DropResult, moduleName: string, tabName: string) => {
+    if (!result.destination) return;
+
+    setModuleConfigs(prev => {
+      const config = prev[moduleName];
+      if (!config) return prev;
+
+      const tabFields = config.fields
+        .filter(f => f.tabName === tabName)
+        .sort((a, b) => a.displayOrder - b.displayOrder);
+      
+      const [reorderedItem] = tabFields.splice(result.source.index, 1);
+      tabFields.splice(result.destination!.index, 0, reorderedItem);
+      
+      const updatedFieldIds = new Set(tabFields.map(f => f.id));
+      const otherFields = config.fields.filter(f => !updatedFieldIds.has(f.id));
+      
+      tabFields.forEach((f, idx) => f.displayOrder = idx);
+
+      return {
+        ...prev,
+        [moduleName]: {
+          ...config,
+          fields: [...otherFields, ...tabFields]
+        }
+      };
+    });
+  };
+
+  // Save all changes for a module
+  const handleSaveModuleConfig = async (moduleName: string) => {
+    const config = moduleConfigs[moduleName];
+    if (!config) return;
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      await apiClient.put(`/moduleuiconfig/${moduleName}/complete`, {
+        tabs: config.tabs,
+        fields: config.fields.map(f => ({
+          id: f.id,
+          isEnabled: f.isEnabled,
+          isRequired: f.isRequired,
+          displayOrder: f.displayOrder,
+          gridSize: f.gridSize,
+          fieldType: f.fieldType,
+          fieldLabel: f.fieldLabel,
+          placeholder: f.placeholder,
+          helpText: f.helpText,
+          options: f.options
+        })),
+        linkedEntities: config.linkedEntities
+      });
+
+      setSuccess(`Configuration saved for ${moduleName}`);
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save configuration');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Reset module to defaults
+  const handleResetToDefaults = async (moduleName: string) => {
+    if (!window.confirm(`Reset all configurations for ${moduleName} to defaults? This will delete custom field settings.`)) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      await apiClient.post(`/moduleuiconfig/${moduleName}/reset-defaults`);
+      
+      // Reload the config
+      await loadModuleConfig(moduleName);
+      
+      setSuccess(`Reset ${moduleName} configuration to defaults`);
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to reset to defaults');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -347,7 +633,6 @@ const ModuleFieldSettingsTab: React.FC = () => {
 
   const handleDisableAllModules = async () => {
     try {
-      // Keep Dashboard enabled
       const updates = modules.map(m => ({ 
         moduleName: m.moduleName, 
         isEnabled: m.moduleName === 'Dashboard' 
@@ -362,214 +647,27 @@ const ModuleFieldSettingsTab: React.FC = () => {
     }
   };
 
-  // Field visibility toggle
-  const handleToggleFieldEnabled = async (field: FieldConfig) => {
-    if (!field.isHideable) {
-      setError('This field cannot be hidden');
-      setTimeout(() => setError(null), 3000);
-      return;
-    }
-
-    try {
-      await apiClient.put(`/modulefieldconfigurations/${field.id}`, {
-        isEnabled: !field.isEnabled,
-      });
-      setFields(fields.map(f => f.id === field.id ? { ...f, isEnabled: !f.isEnabled } : f));
-      setSuccess('Field visibility updated');
-      setTimeout(() => setSuccess(null), 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update field');
-    }
-  };
-
-  // Field required toggle
-  const handleToggleFieldRequired = async (field: FieldConfig) => {
-    if (!field.isRequiredConfigurable) {
-      setError('This field\'s required status cannot be changed');
-      setTimeout(() => setError(null), 3000);
-      return;
-    }
-
-    try {
-      await apiClient.put(`/modulefieldconfigurations/${field.id}`, {
-        isRequired: !field.isRequired,
-      });
-      setFields(fields.map(f => f.id === field.id ? { ...f, isRequired: !f.isRequired } : f));
-      setSuccess('Field requirement updated');
-      setTimeout(() => setSuccess(null), 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update field');
-    }
-  };
-
-  // Edit field
-  const handleEditField = (field: FieldConfig) => {
-    setEditingField({ ...field });
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveFieldEdit = async () => {
-    if (!editingField) return;
-
-    try {
-      await apiClient.put(`/modulefieldconfigurations/${editingField.id}`, {
-        fieldLabel: editingField.fieldLabel,
-        placeholder: editingField.placeholder,
-        helpText: editingField.helpText,
-        gridSize: editingField.gridSize,
-      });
-      setFields(fields.map(f => f.id === editingField.id ? editingField : f));
-      setEditDialogOpen(false);
-      setSuccess('Field updated successfully');
-      setTimeout(() => setSuccess(null), 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update field');
-    }
-  };
-
-  // Field drag and drop
-  const handleFieldDragEnd = async (result: DropResult, tabName: string) => {
-    if (!result.destination) return;
-
-    const tabFields = getFieldsForTab(tabName);
-    const items = Array.from(tabFields);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    const updatedFields = items.map((item, index) => ({
-      ...item,
-      displayOrder: index,
-    }));
-
-    setFields(fields.map(f => {
-      const updated = updatedFields.find(uf => uf.id === f.id);
-      return updated || f;
-    }));
-
-    try {
-      await apiClient.post('/modulefieldconfigurations/bulk-update-order', {
-        moduleName: selectedModule,
-        tabIndex: tabFields[0].tabIndex,
-        fields: updatedFields.map(f => ({ id: f.id, displayOrder: f.displayOrder })),
-      });
-      setSuccess('Field order updated');
-      setTimeout(() => setSuccess(null), 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update field order');
-      loadModuleConfig();
-    }
-  };
-
-  // Initialize defaults for a module
-  const handleInitializeDefaults = async () => {
-    console.log('[ModuleFieldSettings] Initialize Defaults clicked for module:', selectedModule);
-    
-    if (!selectedModule) {
-      setError('Please select a module first');
-      return;
-    }
-
-    // Use confirm but proceed even if blocked (some browsers block confirm in iframes)
-    const confirmed = window.confirm(`Initialize default field configurations for ${selectedModule}?`);
-    console.log('[ModuleFieldSettings] User confirmed:', confirmed);
-    
-    if (!confirmed) {
-      console.log('[ModuleFieldSettings] User cancelled initialization');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      console.log('[ModuleFieldSettings] Calling API to initialize:', selectedModule);
-      const response = await apiClient.post(`/modulefieldconfigurations/initialize/${selectedModule}`);
-      console.log('[ModuleFieldSettings] API response:', response.data);
-      setSuccess(`Default configurations initialized successfully for ${selectedModule}`);
-      setTimeout(() => setSuccess(null), 5000);
-      await loadModuleConfig();
-    } catch (err: any) {
-      console.error('[ModuleFieldSettings] Initialize error:', err);
-      const errorMsg = err.response?.data?.message || err.message || 'Failed to initialize default configurations';
-      setError(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Tab management
-  const handleToggleTab = (tabName: string) => {
-    const updatedTabs = tabs.map(t => 
-      t.name === tabName ? { ...t, enabled: !t.enabled } : t
+  if (loading && modules.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <CircularProgress />
+      </Box>
     );
-    setTabs(updatedTabs);
-  };
+  }
 
-  const handleSaveTabs = async () => {
-    try {
-      await apiClient.put(`/moduleuiconfig/${selectedModule}/tabs`, tabs);
-      setSuccess('Tab configuration saved');
-      setTimeout(() => setSuccess(null), 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save tab configuration');
-    }
-  };
-
-  const moveTab = (index: number, direction: 'up' | 'down') => {
-    const newTabs = [...tabs];
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= newTabs.length) return;
-    [newTabs[index], newTabs[newIndex]] = [newTabs[newIndex], newTabs[index]];
-    newTabs.forEach((t, i) => t.order = i);
-    setTabs(newTabs);
-  };
-
-  // Linked entity management
-  const handleToggleLinkedEntity = (entityName: string) => {
-    const updated = linkedEntities.map(le => 
-      le.entityName === entityName ? { ...le, enabled: !le.enabled } : le
-    );
-    setLinkedEntities(updated);
-  };
-
-  const handleAddLinkedEntity = () => {
-    if (!newLinkEntity || linkedEntities.some(le => le.entityName === newLinkEntity)) {
-      return;
-    }
-    setLinkedEntities([...linkedEntities, {
-      entityName: newLinkEntity,
-      relationshipType: 'one-to-many',
-      enabled: true,
-      tabName: newLinkEntity,
-      displayOrder: linkedEntities.length
-    }]);
-    setNewLinkEntity('');
-    setLinkDialogOpen(false);
-  };
-
-  const handleRemoveLinkedEntity = (entityName: string) => {
-    setLinkedEntities(linkedEntities.filter(le => le.entityName !== entityName));
-  };
-
-  const handleSaveLinkedEntities = async () => {
-    try {
-      await apiClient.put(`/moduleuiconfig/${selectedModule}/linked-entities`, linkedEntities);
-      setSuccess('Linked entities configuration saved');
-      setTimeout(() => setSuccess(null), 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save linked entities');
-    }
-  };
-
-  // Render module list section
-  const renderModulesSection = () => (
+  return (
     <Box>
+      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+
+      {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Module Settings
+            Module Configuration
           </Typography>
           <Typography variant="body2" color="textSecondary">
-            Enable or disable modules across the entire CRM system
+            Expand modules to configure tabs, fields, and linked entities in a single integrated view
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -585,1013 +683,553 @@ const ModuleFieldSettingsTab: React.FC = () => {
         </Box>
       </Box>
 
-      <Grid container spacing={2}>
-        {modules.map((module) => (
-          <Grid item xs={12} sm={6} md={4} key={module.moduleName}>
-            <Card 
-              sx={{ 
-                borderRadius: 2,
-                opacity: module.isEnabled ? 1 : 0.6,
-                transition: 'all 0.2s',
-                cursor: 'pointer',
-                '&:hover': { boxShadow: 3 },
-              }}
-              onClick={() => {
-                setSelectedModule(module.moduleName);
-                setUnifiedConfigModule(module);
-                setShowUnifiedView(true);
-                setUnifiedSubTab(0);
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Box sx={{ 
-                      color: module.isEnabled ? 'primary.main' : 'text.disabled',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}>
-                      {moduleIcons[module.moduleName] || <ViewModuleIcon />}
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        {module.displayName || module.moduleName}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        {module.description || 'Click to configure'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Switch
-                    checked={module.isEnabled}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      handleToggleModule(module.moduleName, !module.isEnabled);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    color="primary"
-                  />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      {/* Module Tree View */}
+      <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
+        {modules.map((module) => {
+          const isExpanded = expandedModules.has(module.moduleName);
+          const config = moduleConfigs[module.moduleName];
+          const fieldCount = config?.fields?.length || 0;
+          const tabCount = config?.tabs?.length || 0;
+          const linkCount = config?.linkedEntities?.length || 0;
 
-      <Paper sx={{ p: 3, bgcolor: 'warning.light', borderRadius: 2, mt: 3 }}>
+          return (
+            <Box key={module.moduleName}>
+              {/* Module Row */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  p: 2,
+                  bgcolor: isExpanded ? 'primary.light' : (module.isEnabled ? 'background.paper' : 'action.disabledBackground'),
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  '&:hover': { bgcolor: isExpanded ? 'primary.light' : 'action.hover' }
+                }}
+                onClick={() => toggleModuleExpand(module.moduleName)}
+              >
+                <IconButton size="small" sx={{ mr: 1 }}>
+                  {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+                
+                <Box sx={{ color: module.isEnabled ? 'primary.main' : 'text.disabled', mr: 1.5, display: 'flex' }}>
+                  {moduleIcons[module.moduleName] || <ViewModuleIcon />}
+                </Box>
+                
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: module.isEnabled ? 'text.primary' : 'text.disabled' }}>
+                    {module.displayName || module.moduleName}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {module.description || 'Click to configure'}
+                  </Typography>
+                </Box>
+
+                {isExpanded && config && (
+                  <Stack direction="row" spacing={1} sx={{ mr: 2 }}>
+                    <Chip label={`${tabCount} Tabs`} size="small" color="secondary" variant="outlined" />
+                    <Chip label={`${fieldCount} Fields`} size="small" color="primary" variant="outlined" />
+                    <Chip label={`${linkCount} Links`} size="small" color="info" variant="outlined" />
+                  </Stack>
+                )}
+
+                <Chip 
+                  label={module.isEnabled ? 'Enabled' : 'Disabled'}
+                  size="small"
+                  color={module.isEnabled ? 'success' : 'default'}
+                  sx={{ mr: 1 }}
+                />
+                
+                <Switch
+                  checked={module.isEnabled}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    handleToggleModule(module.moduleName, !module.isEnabled);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  size="small"
+                />
+              </Box>
+
+              {/* Expanded Module Content */}
+              <Collapse in={isExpanded}>
+                {config ? (
+                  <Box sx={{ bgcolor: 'grey.50', p: 2 }}>
+                    {/* Action Buttons */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<ResetIcon />}
+                        onClick={() => handleResetToDefaults(module.moduleName)}
+                        color="warning"
+                      >
+                        Reset to Defaults
+                      </Button>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+                        onClick={() => handleSaveModuleConfig(module.moduleName)}
+                        disabled={saving}
+                        sx={{ bgcolor: '#6750A4' }}
+                      >
+                        Save All Changes
+                      </Button>
+                    </Box>
+
+                    {/* Tabs Section */}
+                    {config.tabs.sort((a, b) => a.order - b.order).map((tab, tabIdx) => {
+                      const tabKey = `${module.moduleName}-${tab.name}`;
+                      const isTabExpanded = expandedTabs.has(tabKey);
+                      const tabFields = getFieldsForTab(module.moduleName, tab.name);
+
+                      return (
+                        <Box key={tab.name} sx={{ mb: 1 }}>
+                          {/* Tab Header */}
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              p: 1.5,
+                              pl: 4,
+                              bgcolor: tab.enabled ? 'background.paper' : 'action.disabledBackground',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: isTabExpanded ? 'primary.main' : 'divider',
+                              cursor: 'pointer',
+                              '&:hover': { borderColor: 'primary.main' }
+                            }}
+                            onClick={() => toggleTabExpand(tabKey)}
+                          >
+                            <IconButton size="small" sx={{ mr: 1 }}>
+                              {isTabExpanded ? <FolderOpenIcon color="primary" /> : <FolderIcon />}
+                            </IconButton>
+                            
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, flex: 1 }}>
+                              {tab.name}
+                            </Typography>
+                            
+                            <Chip 
+                              label={`${tabFields.length} fields`} 
+                              size="small" 
+                              sx={{ mr: 1 }}
+                            />
+                            
+                            <Chip 
+                              label={tab.enabled ? 'Visible' : 'Hidden'} 
+                              size="small" 
+                              color={tab.enabled ? 'success' : 'default'}
+                              variant="outlined"
+                              sx={{ mr: 1 }}
+                            />
+
+                            <Box onClick={(e) => e.stopPropagation()} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <IconButton size="small" onClick={() => handleMoveTab(module.moduleName, tabIdx, 'up')} disabled={tabIdx === 0}>
+                                <ArrowUpIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton size="small" onClick={() => handleMoveTab(module.moduleName, tabIdx, 'down')} disabled={tabIdx === config.tabs.length - 1}>
+                                <ArrowDownIcon fontSize="small" />
+                              </IconButton>
+                              <Switch
+                                checked={tab.enabled}
+                                onChange={() => handleToggleTab(module.moduleName, tab.name)}
+                                size="small"
+                              />
+                            </Box>
+                          </Box>
+
+                          {/* Fields Table */}
+                          <Collapse in={isTabExpanded}>
+                            <Box sx={{ pl: 6, pr: 2, py: 1 }}>
+                              <DragDropContext onDragEnd={(result) => handleFieldDragEnd(result, module.moduleName, tab.name)}>
+                                <Droppable droppableId={`fields-${module.moduleName}-${tab.name}`}>
+                                  {(provided) => (
+                                    <Table {...provided.droppableProps} ref={provided.innerRef} size="small" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+                                      <TableHead>
+                                        <TableRow sx={{ bgcolor: 'grey.100' }}>
+                                          <TableCell width="40"></TableCell>
+                                          <TableCell><strong>Field</strong></TableCell>
+                                          <TableCell width="150"><strong>Type</strong></TableCell>
+                                          <TableCell width="80"><strong>Width</strong></TableCell>
+                                          <TableCell width="70" align="center"><strong>Show</strong></TableCell>
+                                          <TableCell width="70" align="center"><strong>Req</strong></TableCell>
+                                          <TableCell width="50" align="center"><strong>Edit</strong></TableCell>
+                                        </TableRow>
+                                      </TableHead>
+                                      <TableBody>
+                                        {tabFields.map((field, idx) => (
+                                          <Draggable
+                                            key={field.id}
+                                            draggableId={`field-${field.id}`}
+                                            index={idx}
+                                            isDragDisabled={!field.isReorderable}
+                                          >
+                                            {(provided, snapshot) => (
+                                              <TableRow
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                sx={{
+                                                  bgcolor: snapshot.isDragging ? 'primary.light' : field.isEnabled ? 'transparent' : 'action.disabledBackground',
+                                                  opacity: field.isEnabled ? 1 : 0.6,
+                                                  '&:hover': { bgcolor: 'action.hover' }
+                                                }}
+                                              >
+                                                <TableCell {...provided.dragHandleProps}>
+                                                  {field.isReorderable ? (
+                                                    <DragIcon sx={{ color: '#999', cursor: 'grab' }} />
+                                                  ) : (
+                                                    <Tooltip title="Cannot reorder">
+                                                      <DragIcon sx={{ color: '#ddd' }} />
+                                                    </Tooltip>
+                                                  )}
+                                                </TableCell>
+                                                <TableCell>
+                                                  <Typography variant="body2" fontWeight={500}>{field.fieldLabel}</Typography>
+                                                  <Typography variant="caption" color="textSecondary">{field.fieldName}</Typography>
+                                                </TableCell>
+                                                <TableCell>
+                                                  <FormControl size="small" fullWidth>
+                                                    <Select
+                                                      value={field.fieldType}
+                                                      onChange={(e) => handleChangeFieldType(module.moduleName, field.id, e.target.value)}
+                                                      sx={{ fontSize: '0.75rem', height: 28 }}
+                                                    >
+                                                      {FIELD_TYPES.map(type => (
+                                                        <MenuItem key={type.value} value={type.value} sx={{ fontSize: '0.8rem' }}>
+                                                          {type.label}
+                                                        </MenuItem>
+                                                      ))}
+                                                    </Select>
+                                                  </FormControl>
+                                                </TableCell>
+                                                <TableCell>
+                                                  <Chip 
+                                                    label={field.gridSize === 12 ? 'Full' : field.gridSize === 6 ? 'Half' : `${field.gridSize}/12`} 
+                                                    size="small" 
+                                                    variant="outlined"
+                                                  />
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                  <IconButton
+                                                    size="small"
+                                                    onClick={() => handleToggleFieldEnabled(module.moduleName, field.id)}
+                                                    disabled={!field.isHideable}
+                                                    color={field.isEnabled ? 'primary' : 'default'}
+                                                  >
+                                                    {field.isEnabled ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+                                                  </IconButton>
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                  <Checkbox
+                                                    checked={field.isRequired}
+                                                    onChange={() => handleToggleFieldRequired(module.moduleName, field.id)}
+                                                    disabled={!field.isRequiredConfigurable}
+                                                    size="small"
+                                                  />
+                                                </TableCell>
+                                                <TableCell align="center">
+                                                  <IconButton size="small" onClick={() => handleEditField(field)} sx={{ color: '#6750A4' }}>
+                                                    <EditIcon fontSize="small" />
+                                                  </IconButton>
+                                                </TableCell>
+                                              </TableRow>
+                                            )}
+                                          </Draggable>
+                                        ))}
+                                        {provided.placeholder}
+                                      </TableBody>
+                                    </Table>
+                                  )}
+                                </Droppable>
+                              </DragDropContext>
+                            </Box>
+                          </Collapse>
+                        </Box>
+                      );
+                    })}
+
+                    {/* Linked Entities & Master Data Section */}
+                    <Box sx={{ mt: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <LinkIcon fontSize="small" />
+                          Linked Entities & Field Relationships
+                        </Typography>
+                        <Button
+                          size="small"
+                          startIcon={<AddIcon />}
+                          onClick={() => {
+                            setLinkDialogModule(module.moduleName);
+                            setLinkDialogOpen(true);
+                          }}
+                        >
+                          Add Link
+                        </Button>
+                      </Box>
+
+                      {/* Database Foreign Keys - Full Width with Field Details */}
+                      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                        <Typography variant="subtitle2" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                          <StorageIcon fontSize="small" color="primary" />
+                          Database Foreign Key Relationships
+                        </Typography>
+                        {(() => {
+                          const tableKeys = databaseForeignKeys[module.moduleName] || [];
+                          if (tableKeys.length === 0) {
+                            return (
+                              <Typography variant="body2" color="textSecondary" sx={{ py: 1 }}>
+                                No foreign key relationships found for this module
+                              </Typography>
+                            );
+                          }
+                          
+                          // Group by referenced table for better display
+                          const groupedByTarget: Record<string, any[]> = {};
+                          tableKeys.forEach((fk: any) => {
+                            const target = fk.referencedTable;
+                            if (!groupedByTarget[target]) {
+                              groupedByTarget[target] = [];
+                            }
+                            groupedByTarget[target].push(fk);
+                          });
+
+                          return (
+                            <Box>
+                              {Object.entries(groupedByTarget).map(([targetTable, fks]) => (
+                                <Paper 
+                                  key={targetTable} 
+                                  variant="outlined" 
+                                  sx={{ 
+                                    p: 1.5, 
+                                    mb: 1, 
+                                    bgcolor: 'grey.50',
+                                    borderLeft: '3px solid',
+                                    borderLeftColor: 'primary.main'
+                                  }}
+                                >
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                    {moduleIcons[targetTable] || <StorageIcon fontSize="small" />}
+                                    <Typography variant="subtitle2" fontWeight={600} color="primary">
+                                      → {targetTable}
+                                    </Typography>
+                                    <Chip 
+                                      label={`${fks.length} link${fks.length > 1 ? 's' : ''}`} 
+                                      size="small" 
+                                      variant="outlined"
+                                      sx={{ ml: 'auto' }}
+                                    />
+                                  </Box>
+                                  <Table size="small" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+                                    <TableHead>
+                                      <TableRow sx={{ bgcolor: 'grey.100' }}>
+                                        <TableCell sx={{ py: 0.5, fontWeight: 600, fontSize: '0.75rem' }}>
+                                          Source Field ({module.moduleName})
+                                        </TableCell>
+                                        <TableCell sx={{ py: 0.5, width: 40, textAlign: 'center' }}></TableCell>
+                                        <TableCell sx={{ py: 0.5, fontWeight: 600, fontSize: '0.75rem' }}>
+                                          Target Field ({targetTable})
+                                        </TableCell>
+                                        <TableCell sx={{ py: 0.5, fontWeight: 600, fontSize: '0.75rem', width: 120 }}>
+                                          On Delete
+                                        </TableCell>
+                                      </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                      {fks.map((fk: any, idx: number) => (
+                                        <TableRow key={`${fk.constraintName}-${idx}`} sx={{ '&:last-child td': { borderBottom: 0 } }}>
+                                          <TableCell sx={{ py: 0.75 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                              <Chip 
+                                                label={fk.sourceColumn} 
+                                                size="small" 
+                                                color="default"
+                                                variant="outlined"
+                                                sx={{ fontFamily: 'monospace', fontSize: '0.7rem' }}
+                                              />
+                                            </Box>
+                                          </TableCell>
+                                          <TableCell sx={{ py: 0.75, textAlign: 'center' }}>
+                                            <ChevronRightIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                                          </TableCell>
+                                          <TableCell sx={{ py: 0.75 }}>
+                                            <Chip 
+                                              label={fk.referencedColumn} 
+                                              size="small" 
+                                              color="primary"
+                                              variant="outlined"
+                                              sx={{ fontFamily: 'monospace', fontSize: '0.7rem' }}
+                                            />
+                                          </TableCell>
+                                          <TableCell sx={{ py: 0.75 }}>
+                                            <Typography variant="caption" color="textSecondary">
+                                              {fk.onDelete || 'NO ACTION'}
+                                            </Typography>
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                </Paper>
+                              ))}
+                            </Box>
+                          );
+                        })()}
+                      </Paper>
+
+                      {/* Configured Entity Links */}
+                      <Paper variant="outlined" sx={{ p: 2 }}>
+                        <Typography variant="subtitle2" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                          <LinkIcon fontSize="small" color="info" />
+                          Configured Entity Links
+                        </Typography>
+                        {config.linkedEntities.length === 0 ? (
+                          <Typography variant="body2" color="textSecondary" sx={{ py: 1 }}>
+                            No custom entity links configured. Use "Add Link" to create relationships.
+                          </Typography>
+                        ) : (
+                          <Grid container spacing={1}>
+                            {config.linkedEntities.map((entity) => (
+                              <Grid item xs={12} sm={6} md={4} key={entity.entityName}>
+                                <Paper 
+                                  variant="outlined" 
+                                  sx={{ 
+                                    p: 1.5, 
+                                    display: 'flex', 
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    bgcolor: entity.enabled ? 'background.paper' : 'action.disabledBackground',
+                                    opacity: entity.enabled ? 1 : 0.7
+                                  }}
+                                >
+                                  <Box sx={{ color: entity.enabled ? 'info.main' : 'text.disabled' }}>
+                                    {moduleIcons[entity.entityName] || <LinkIcon fontSize="small" />}
+                                  </Box>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="body2" fontWeight={500}>
+                                      {entity.entityName}
+                                    </Typography>
+                                    <Typography variant="caption" color="textSecondary">
+                                      {entity.relationshipType || 'one-to-many'}
+                                    </Typography>
+                                  </Box>
+                                  <Switch
+                                    checked={entity.enabled}
+                                    onChange={() => handleToggleLinkedEntity(module.moduleName, entity.entityName)}
+                                    size="small"
+                                  />
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={() => handleRemoveLinkedEntity(module.moduleName, entity.entityName)}
+                                    color="error"
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Paper>
+                              </Grid>
+                            ))}
+                          </Grid>
+                        )}
+                      </Paper>
+                    </Box>
+
+                    {config.fields.length === 0 && (
+                      <Alert severity="info" sx={{ mt: 2 }}>
+                        No field configurations found for this module. Click "Reset to Defaults" to initialize fields from the database schema, or field configurations may not be available for this module type yet.
+                      </Alert>
+                    )}
+                  </Box>
+                ) : (
+                  <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'grey.50' }}>
+                    <CircularProgress size={24} />
+                    <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                      Loading configuration...
+                    </Typography>
+                  </Box>
+                )}
+              </Collapse>
+            </Box>
+          );
+        })}
+      </Paper>
+
+      {/* Help */}
+      <Paper sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 2, mt: 3 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
           ⚠️ Important Notes
         </Typography>
         <Typography variant="body2">
-          • Disabling a module will hide it from navigation for all users<br />
-          • Click on a module card to configure its fields, tabs, and linked entities<br />
-          • Data in disabled modules is preserved and will be available when re-enabled
+          • <strong>Expand a module</strong> to see its tabs, fields, and linked entities in one integrated view<br />
+          • <strong>Expand a tab</strong> to view and configure its fields (drag to reorder)<br />
+          • <strong>Save All Changes</strong> saves tabs, fields, and linked entities in a single operation<br />
+          • <strong>Reset to Defaults</strong> will reinitialize field configurations from the database schema
         </Typography>
       </Paper>
-    </Box>
-  );
-
-  // Render field configuration section
-  const renderFieldsSection = () => (
-    <Box>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h6" gutterBottom>
-            Field Configuration - {selectedModule}
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
-            Configure field visibility, order, and requirements
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <FormControl sx={{ minWidth: 180 }}>
-            <InputLabel>Module</InputLabel>
-            <Select
-              value={selectedModule}
-              onChange={(e) => setSelectedModule(e.target.value)}
-              label="Module"
-              size="small"
-            >
-              {modules.map(module => (
-                <MenuItem key={module.moduleName} value={module.moduleName}>
-                  {module.displayName || module.moduleName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={handleInitializeDefaults}
-            disabled={loading}
-          >
-            Initialize Defaults
-          </Button>
-        </Box>
-      </Box>
-
-      {fields.length === 0 ? (
-        <Card>
-          <CardContent sx={{ textAlign: 'center', py: 6 }}>
-            <SettingsIcon sx={{ fontSize: 64, color: '#ccc', mb: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              No field configurations found
-            </Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-              Click "Initialize Defaults" to create default field configurations
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<RefreshIcon />}
-              onClick={handleInitializeDefaults}
-              sx={{ backgroundColor: '#6750A4' }}
-            >
-              Initialize Defaults
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Paper sx={{ borderRadius: 2 }}>
-          <Tabs 
-            value={selectedFieldTab} 
-            onChange={(_, v) => setSelectedFieldTab(v)} 
-            sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            {fieldTabs.map((tabName, index) => (
-              <Tab key={tabName} label={tabName} />
-            ))}
-          </Tabs>
-
-          {fieldTabs.map((tabName, index) => (
-            <TabPanel key={tabName} value={selectedFieldTab} index={index}>
-              <Box sx={{ p: 2 }}>
-                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                  Drag to reorder • Toggle visibility • Configure requirements
-                </Typography>
-
-                <DragDropContext onDragEnd={(result) => handleFieldDragEnd(result, tabName)}>
-                  <Droppable droppableId={`fields-${tabName}`}>
-                    {(provided) => (
-                      <Table {...provided.droppableProps} ref={provided.innerRef} size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell width="40"></TableCell>
-                            <TableCell><strong>Field</strong></TableCell>
-                            <TableCell><strong>Type</strong></TableCell>
-                            <TableCell><strong>Grid</strong></TableCell>
-                            <TableCell><strong>Visible</strong></TableCell>
-                            <TableCell><strong>Required</strong></TableCell>
-                            <TableCell><strong>Actions</strong></TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {getFieldsForTab(tabName).map((field, idx) => (
-                            <Draggable
-                              key={field.id}
-                              draggableId={field.id.toString()}
-                              index={idx}
-                              isDragDisabled={!field.isReorderable}
-                            >
-                              {(provided, snapshot) => (
-                                <TableRow
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  sx={{
-                                    backgroundColor: snapshot.isDragging ? '#f5f5f5' : 'transparent',
-                                    opacity: field.isEnabled ? 1 : 0.5,
-                                  }}
-                                >
-                                  <TableCell {...provided.dragHandleProps}>
-                                    {field.isReorderable ? (
-                                      <DragIcon sx={{ color: '#999', cursor: 'grab' }} />
-                                    ) : (
-                                      <Tooltip title="Cannot reorder">
-                                        <DragIcon sx={{ color: '#ddd' }} />
-                                      </Tooltip>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Typography variant="body2" fontWeight={500}>
-                                      {field.fieldLabel}
-                                    </Typography>
-                                    <Typography variant="caption" color="textSecondary">
-                                      {field.fieldName}
-                                    </Typography>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Chip label={field.fieldType} size="small" variant="outlined" />
-                                  </TableCell>
-                                  <TableCell>
-                                    <Chip label={`${field.gridSize}/12`} size="small" />
-                                  </TableCell>
-                                  <TableCell>
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => handleToggleFieldEnabled(field)}
-                                      disabled={!field.isHideable}
-                                      color={field.isEnabled ? 'primary' : 'default'}
-                                    >
-                                      {field.isEnabled ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                                    </IconButton>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Switch
-                                      checked={field.isRequired}
-                                      onChange={() => handleToggleFieldRequired(field)}
-                                      disabled={!field.isRequiredConfigurable}
-                                      size="small"
-                                    />
-                                  </TableCell>
-                                  <TableCell>
-                                    <IconButton size="small" onClick={() => handleEditField(field)} sx={{ color: '#6750A4' }}>
-                                      <EditIcon fontSize="small" />
-                                    </IconButton>
-                                  </TableCell>
-                                </TableRow>
-                              )}
-                            </Draggable>
-                          ))}
-                          {provided.placeholder}
-                        </TableBody>
-                      </Table>
-                    )}
-                  </Droppable>
-                </DragDropContext>
-              </Box>
-            </TabPanel>
-          ))}
-        </Paper>
-      )}
-    </Box>
-  );
-
-  // Render tabs configuration section
-  const renderTabsSection = () => (
-    <Box>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h6" gutterBottom>
-            Tab Configuration - {selectedModule}
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
-            Configure tab visibility and order for the module form
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <FormControl sx={{ minWidth: 180 }}>
-            <InputLabel>Module</InputLabel>
-            <Select
-              value={selectedModule}
-              onChange={(e) => setSelectedModule(e.target.value)}
-              label="Module"
-              size="small"
-            >
-              {modules.map(module => (
-                <MenuItem key={module.moduleName} value={module.moduleName}>
-                  {module.displayName || module.moduleName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            startIcon={<SaveIcon />}
-            onClick={handleSaveTabs}
-            sx={{ backgroundColor: '#6750A4' }}
-          >
-            Save Changes
-          </Button>
-        </Box>
-      </Box>
-
-      <Paper sx={{ borderRadius: 2 }}>
-        <List>
-          {tabs.sort((a, b) => a.order - b.order).map((tab, index) => (
-            <ListItem key={tab.name} divider>
-              <ListItemIcon>
-                <DragIcon sx={{ color: '#999' }} />
-              </ListItemIcon>
-              <ListItemText
-                primary={tab.name}
-                secondary={`Order: ${tab.order + 1}`}
-              />
-              <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <IconButton size="small" onClick={() => moveTab(index, 'up')} disabled={index === 0}>
-                  <ArrowUpIcon fontSize="small" />
-                </IconButton>
-                <IconButton size="small" onClick={() => moveTab(index, 'down')} disabled={index === tabs.length - 1}>
-                  <ArrowDownIcon fontSize="small" />
-                </IconButton>
-                <Switch
-                  checked={tab.enabled}
-                  onChange={() => handleToggleTab(tab.name)}
-                  size="small"
-                />
-              </ListItemSecondaryAction>
-            </ListItem>
-          ))}
-        </List>
-        {tabs.length === 0 && (
-          <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color="textSecondary">
-              No tabs configured. Initialize field defaults first.
-            </Typography>
-          </Box>
-        )}
-      </Paper>
-    </Box>
-  );
-
-  // Render linked entities section
-  const renderLinkedEntitiesSection = () => (
-    <Box>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h6" gutterBottom>
-            Linked Entities - {selectedModule}
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
-            Configure which entities can be linked to {selectedModule}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <FormControl sx={{ minWidth: 180 }}>
-            <InputLabel>Module</InputLabel>
-            <Select
-              value={selectedModule}
-              onChange={(e) => setSelectedModule(e.target.value)}
-              label="Module"
-              size="small"
-            >
-              {modules.map(module => (
-                <MenuItem key={module.moduleName} value={module.moduleName}>
-                  {module.displayName || module.moduleName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={() => setLinkDialogOpen(true)}
-          >
-            Add Link
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<SaveIcon />}
-            onClick={handleSaveLinkedEntities}
-            sx={{ backgroundColor: '#6750A4' }}
-          >
-            Save Changes
-          </Button>
-        </Box>
-      </Box>
-
-      <Paper sx={{ borderRadius: 2 }}>
-        <List>
-          {linkedEntities.map((entity) => (
-            <ListItem key={entity.entityName} divider>
-              <ListItemIcon>
-                {moduleIcons[entity.entityName] || <LinkIcon />}
-              </ListItemIcon>
-              <ListItemText
-                primary={entity.entityName}
-                secondary={
-                  <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
-                    <Chip label={entity.relationshipType} size="small" variant="outlined" />
-                    {entity.tabName && <Chip label={`Tab: ${entity.tabName}`} size="small" />}
-                  </Box>
-                }
-              />
-              <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Switch
-                  checked={entity.enabled}
-                  onChange={() => handleToggleLinkedEntity(entity.entityName)}
-                  size="small"
-                />
-                <IconButton 
-                  size="small" 
-                  onClick={() => handleRemoveLinkedEntity(entity.entityName)}
-                  color="error"
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </ListItemSecondaryAction>
-            </ListItem>
-          ))}
-        </List>
-        {linkedEntities.length === 0 && (
-          <Box sx={{ p: 4, textAlign: 'center' }}>
-            <LinkIcon sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
-            <Typography color="textSecondary">
-              No linked entities configured. Click "Add Link" to connect entities.
-            </Typography>
-          </Box>
-        )}
-      </Paper>
-
-      <Paper sx={{ p: 2, mt: 2, bgcolor: 'info.light', borderRadius: 2 }}>
-        <Typography variant="body2">
-          <strong>Relationship Types:</strong><br />
-          • <strong>one-to-many:</strong> One {selectedModule} record can have many linked records<br />
-          • <strong>many-to-many:</strong> Many-to-many relationship through junction table<br />
-          • <strong>one-to-one:</strong> One-to-one relationship
-        </Typography>
-      </Paper>
-    </Box>
-  );
-
-  if (loading && modules.length === 0) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  // Unified Module Configuration View
-  const renderUnifiedConfigView = () => {
-    if (!unifiedConfigModule) return null;
-
-    const moduleFields = fields.filter(f => f.moduleName === selectedModule);
-    const moduleTabs = tabs.length > 0 ? tabs : 
-      Array.from(new Set(moduleFields.map(f => f.tabName))).map((name, idx) => ({
-        index: idx,
-        name: name as string,
-        enabled: true,
-        order: idx
-      }));
-
-    return (
-      <Box>
-        {/* Breadcrumb and Back Button */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => {
-              setShowUnifiedView(false);
-              setUnifiedConfigModule(null);
-            }}
-            variant="outlined"
-            size="small"
-          >
-            Back to Modules
-          </Button>
-          <Breadcrumbs separator={<ChevronRightIcon fontSize="small" />}>
-            <Typography color="text.secondary">Module Settings</Typography>
-            <Typography color="primary" sx={{ fontWeight: 600 }}>
-              {unifiedConfigModule.displayName || unifiedConfigModule.moduleName}
-            </Typography>
-          </Breadcrumbs>
-        </Box>
-
-        {/* Module Header Card */}
-        <Card sx={{ mb: 3, borderRadius: 2 }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ 
-                  color: unifiedConfigModule.isEnabled ? 'primary.main' : 'text.disabled',
-                  p: 1.5,
-                  bgcolor: 'action.hover',
-                  borderRadius: 2,
-                  display: 'flex',
-                }}>
-                  {moduleIcons[unifiedConfigModule.moduleName] || <ViewModuleIcon fontSize="large" />}
-                </Box>
-                <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                    {unifiedConfigModule.displayName || unifiedConfigModule.moduleName}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {unifiedConfigModule.description || 'Configure all aspects of this module'}
-                  </Typography>
-                </Box>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Chip 
-                  label={unifiedConfigModule.isEnabled ? 'Enabled' : 'Disabled'}
-                  color={unifiedConfigModule.isEnabled ? 'success' : 'default'}
-                />
-                <Switch
-                  checked={unifiedConfigModule.isEnabled}
-                  onChange={(e) => handleToggleModule(unifiedConfigModule.moduleName, e.target.checked)}
-                  color="primary"
-                />
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Configuration Sub-Tabs */}
-        <Paper sx={{ borderRadius: 2 }}>
-          <Tabs 
-            value={unifiedSubTab} 
-            onChange={(_, v) => setUnifiedSubTab(v)}
-            sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}
-          >
-            <Tab icon={<SettingsIcon />} label="Overview" iconPosition="start" />
-            <Tab icon={<TableChartIcon />} label="Fields" iconPosition="start" />
-            <Tab icon={<DashboardIcon />} label="Tabs" iconPosition="start" />
-            <Tab icon={<LinkIcon />} label="Linked Entities" iconPosition="start" />
-          </Tabs>
-
-          {/* Overview Tab */}
-          {unifiedSubTab === 0 && (
-            <Box sx={{ p: 3 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Card variant="outlined" sx={{ height: '100%' }}>
-                    <CardContent>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-                        <SettingsIcon sx={{ mr: 1, verticalAlign: 'middle', fontSize: 20 }} />
-                        Module Settings
-                      </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                          <TextField
-                            fullWidth
-                            label="Display Name"
-                            value={unifiedConfigModule.displayName || ''}
-                            size="small"
-                            disabled
-                            helperText="Module display name (contact admin to change)"
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <TextField
-                            fullWidth
-                            label="Description"
-                            value={unifiedConfigModule.description || ''}
-                            size="small"
-                            multiline
-                            rows={2}
-                            disabled
-                          />
-                        </Grid>
-                        <Grid item xs={6}>
-                          <TextField
-                            fullWidth
-                            label="Display Order"
-                            value={unifiedConfigModule.displayOrder}
-                            size="small"
-                            type="number"
-                            disabled
-                          />
-                        </Grid>
-                        <Grid item xs={6}>
-                          <TextField
-                            fullWidth
-                            label="Icon"
-                            value={unifiedConfigModule.iconName || 'Default'}
-                            size="small"
-                            disabled
-                          />
-                        </Grid>
-                      </Grid>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Card variant="outlined" sx={{ height: '100%' }}>
-                    <CardContent>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-                        <StorageIcon sx={{ mr: 1, verticalAlign: 'middle', fontSize: 20 }} />
-                        Statistics
-                      </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'action.hover' }}>
-                            <Typography variant="h4" color="primary">{moduleFields.length}</Typography>
-                            <Typography variant="caption">Total Fields</Typography>
-                          </Paper>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'action.hover' }}>
-                            <Typography variant="h4" color="success.main">
-                              {moduleFields.filter(f => f.isEnabled).length}
-                            </Typography>
-                            <Typography variant="caption">Visible Fields</Typography>
-                          </Paper>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'action.hover' }}>
-                            <Typography variant="h4" color="secondary">{moduleTabs.length}</Typography>
-                            <Typography variant="caption">Tabs</Typography>
-                          </Paper>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'action.hover' }}>
-                            <Typography variant="h4" color="info.main">{linkedEntities.length}</Typography>
-                            <Typography variant="caption">Linked Entities</Typography>
-                          </Paper>
-                        </Grid>
-                      </Grid>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid item xs={12}>
-                  <Alert severity="info" sx={{ borderRadius: 2 }}>
-                    <Typography variant="body2">
-                      <strong>Quick Actions:</strong> Use the tabs above to configure fields, form tabs, and entity relationships.
-                      Changes to fields take effect immediately. Tab and linked entity changes require saving.
-                    </Typography>
-                  </Alert>
-                </Grid>
-              </Grid>
-            </Box>
-          )}
-
-          {/* Fields Tab - Inline edit */}
-          {unifiedSubTab === 1 && (
-            <Box sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  Field Configuration
-                </Typography>
-                <Button
-                  variant="outlined"
-                  startIcon={<RefreshIcon />}
-                  onClick={handleInitializeDefaults}
-                  size="small"
-                >
-                  Initialize Defaults
-                </Button>
-              </Box>
-              {moduleFields.length === 0 ? (
-                <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover', borderRadius: 2 }}>
-                  <SettingsIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                  <Typography>No fields configured. Click "Initialize Defaults" to create field configurations.</Typography>
-                </Paper>
-              ) : (
-                <Box>
-                  <Tabs 
-                    value={selectedFieldTab} 
-                    onChange={(_, v) => setSelectedFieldTab(v)} 
-                    sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
-                    variant="scrollable"
-                    scrollButtons="auto"
-                  >
-                    {fieldTabs.map((tabName) => (
-                      <Tab key={tabName} label={tabName} />
-                    ))}
-                  </Tabs>
-                  {fieldTabs.map((tabName, index) => (
-                    <TabPanel key={tabName} value={selectedFieldTab} index={index}>
-                      <DragDropContext onDragEnd={(result) => handleFieldDragEnd(result, tabName)}>
-                        <Droppable droppableId={`unified-fields-${tabName}`}>
-                          {(provided) => (
-                            <Table {...provided.droppableProps} ref={provided.innerRef} size="small">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell width="40"></TableCell>
-                                  <TableCell><strong>Field</strong></TableCell>
-                                  <TableCell><strong>Type</strong></TableCell>
-                                  <TableCell><strong>Grid</strong></TableCell>
-                                  <TableCell><strong>Visible</strong></TableCell>
-                                  <TableCell><strong>Required</strong></TableCell>
-                                  <TableCell><strong>Actions</strong></TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {getFieldsForTab(tabName).map((field, idx) => (
-                                  <Draggable
-                                    key={field.id}
-                                    draggableId={`unified-${field.id.toString()}`}
-                                    index={idx}
-                                    isDragDisabled={!field.isReorderable}
-                                  >
-                                    {(provided, snapshot) => (
-                                      <TableRow
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        sx={{
-                                          backgroundColor: snapshot.isDragging ? '#f5f5f5' : 'transparent',
-                                          opacity: field.isEnabled ? 1 : 0.5,
-                                        }}
-                                      >
-                                        <TableCell {...provided.dragHandleProps}>
-                                          {field.isReorderable ? (
-                                            <DragIcon sx={{ color: '#999', cursor: 'grab' }} />
-                                          ) : (
-                                            <Tooltip title="Cannot reorder">
-                                              <DragIcon sx={{ color: '#ddd' }} />
-                                            </Tooltip>
-                                          )}
-                                        </TableCell>
-                                        <TableCell>
-                                          <Typography variant="body2" fontWeight={500}>
-                                            {field.fieldLabel}
-                                          </Typography>
-                                          <Typography variant="caption" color="textSecondary">
-                                            {field.fieldName}
-                                          </Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                          <Chip label={field.fieldType} size="small" variant="outlined" />
-                                        </TableCell>
-                                        <TableCell>
-                                          <Chip label={`${field.gridSize}/12`} size="small" />
-                                        </TableCell>
-                                        <TableCell>
-                                          <IconButton
-                                            size="small"
-                                            onClick={() => handleToggleFieldEnabled(field)}
-                                            disabled={!field.isHideable}
-                                            color={field.isEnabled ? 'primary' : 'default'}
-                                          >
-                                            {field.isEnabled ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                                          </IconButton>
-                                        </TableCell>
-                                        <TableCell>
-                                          <Switch
-                                            checked={field.isRequired}
-                                            onChange={() => handleToggleFieldRequired(field)}
-                                            disabled={!field.isRequiredConfigurable}
-                                            size="small"
-                                          />
-                                        </TableCell>
-                                        <TableCell>
-                                          <IconButton size="small" onClick={() => handleEditField(field)} sx={{ color: '#6750A4' }}>
-                                            <EditIcon fontSize="small" />
-                                          </IconButton>
-                                        </TableCell>
-                                      </TableRow>
-                                    )}
-                                  </Draggable>
-                                ))}
-                                {provided.placeholder}
-                              </TableBody>
-                            </Table>
-                          )}
-                        </Droppable>
-                      </DragDropContext>
-                    </TabPanel>
-                  ))}
-                </Box>
-              )}
-            </Box>
-          )}
-
-          {/* Tabs Configuration Tab */}
-          {unifiedSubTab === 2 && (
-            <Box sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  Form Tab Configuration
-                </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<SaveIcon />}
-                  onClick={handleSaveTabs}
-                  size="small"
-                >
-                  Save Changes
-                </Button>
-              </Box>
-              <Paper variant="outlined" sx={{ borderRadius: 2 }}>
-                <List>
-                  {moduleTabs.sort((a, b) => a.order - b.order).map((tab, index) => (
-                    <ListItem key={tab.name} divider={index < moduleTabs.length - 1}>
-                      <ListItemIcon>
-                        <DragIcon sx={{ color: '#999' }} />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={tab.name}
-                        secondary={`Order: ${tab.order + 1}`}
-                      />
-                      <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <IconButton size="small" onClick={() => moveTab(index, 'up')} disabled={index === 0}>
-                          <ArrowUpIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => moveTab(index, 'down')} disabled={index === moduleTabs.length - 1}>
-                          <ArrowDownIcon fontSize="small" />
-                        </IconButton>
-                        <Switch
-                          checked={tab.enabled}
-                          onChange={() => handleToggleTab(tab.name)}
-                          size="small"
-                        />
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
-                </List>
-                {moduleTabs.length === 0 && (
-                  <Box sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography color="textSecondary">
-                      No tabs configured. Initialize field defaults first.
-                    </Typography>
-                  </Box>
-                )}
-              </Paper>
-            </Box>
-          )}
-
-          {/* Linked Entities Tab */}
-          {unifiedSubTab === 3 && (
-            <Box sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  Linked Entities Configuration
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    variant="outlined"
-                    startIcon={<AddIcon />}
-                    onClick={() => setLinkDialogOpen(true)}
-                    size="small"
-                  >
-                    Add Link
-                  </Button>
-                  <Button
-                    variant="contained"
-                    startIcon={<SaveIcon />}
-                    onClick={handleSaveLinkedEntities}
-                    size="small"
-                  >
-                    Save Changes
-                  </Button>
-                </Box>
-              </Box>
-
-              {/* Database Foreign Keys Section */}
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, mt: 2 }}>
-                <StorageIcon sx={{ fontSize: 18, mr: 0.5, verticalAlign: 'middle' }} />
-                Database Foreign Keys
-              </Typography>
-              <Paper variant="outlined" sx={{ borderRadius: 2, mb: 3 }}>
-                {loadingForeignKeys ? (
-                  <Box sx={{ p: 3, textAlign: 'center' }}>
-                    <CircularProgress size={24} />
-                    <Typography variant="body2" sx={{ mt: 1 }}>Loading database schema...</Typography>
-                  </Box>
-                ) : (
-                  <List dense>
-                    {(() => {
-                      // Get the table name for the current module (assuming plural form)
-                      const tableName = selectedModule;
-                      const tableKeys = databaseForeignKeys[tableName] || [];
-                      
-                      if (tableKeys.length === 0) {
-                        return (
-                          <ListItem>
-                            <ListItemText 
-                              primary="No foreign keys found"
-                              secondary={`Table "${tableName}" has no foreign key relationships defined in the database.`}
-                            />
-                          </ListItem>
-                        );
-                      }
-                      
-                      return tableKeys.map((fk: any, idx: number) => (
-                        <ListItem key={`${fk.constraintName}-${idx}`} divider={idx < tableKeys.length - 1}>
-                          <ListItemIcon>
-                            <StorageIcon color="primary" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                  {fk.sourceColumn}
-                                </Typography>
-                                <ChevronRightIcon sx={{ color: 'text.secondary', fontSize: 16 }} />
-                                <Typography variant="body2" color="primary">
-                                  {fk.referencedTable}.{fk.referencedColumn}
-                                </Typography>
-                              </Box>
-                            }
-                            secondary={
-                              <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
-                                <Chip label={fk.constraintName} size="small" sx={{ height: 18, fontSize: '0.65rem' }} />
-                                <Chip 
-                                  label={`ON DELETE: ${fk.onDelete}`} 
-                                  size="small" 
-                                  variant="outlined"
-                                  sx={{ height: 18, fontSize: '0.65rem' }} 
-                                />
-                                <Chip 
-                                  label={`ON UPDATE: ${fk.onUpdate}`} 
-                                  size="small" 
-                                  variant="outlined"
-                                  sx={{ height: 18, fontSize: '0.65rem' }} 
-                                />
-                              </Box>
-                            }
-                          />
-                        </ListItem>
-                      ));
-                    })()}
-                  </List>
-                )}
-              </Paper>
-
-              {/* Configured Linked Entities Section */}
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                <LinkIcon sx={{ fontSize: 18, mr: 0.5, verticalAlign: 'middle' }} />
-                Configured Linked Entities
-              </Typography>
-              <Paper variant="outlined" sx={{ borderRadius: 2 }}>
-                <List>
-                  {linkedEntities.map((entity, idx) => (
-                    <ListItem key={entity.entityName} divider={idx < linkedEntities.length - 1}>
-                      <ListItemIcon>
-                        {moduleIcons[entity.entityName] || <LinkIcon />}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={entity.entityName}
-                        secondary={
-                          <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
-                            <Chip label={entity.relationshipType} size="small" variant="outlined" />
-                            {entity.foreignKeyField && (
-                              <Chip label={`FK: ${entity.foreignKeyField}`} size="small" color="info" variant="outlined" />
-                            )}
-                          </Box>
-                        }
-                      />
-                      <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Switch
-                          checked={entity.enabled}
-                          onChange={() => handleToggleLinkedEntity(entity.entityName)}
-                          size="small"
-                        />
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleRemoveLinkedEntity(entity.entityName)}
-                          color="error"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
-                </List>
-                {linkedEntities.length === 0 && (
-                  <Box sx={{ p: 4, textAlign: 'center' }}>
-                    <LinkIcon sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
-                    <Typography color="textSecondary">
-                      No linked entities configured. Click "Add Link" to connect entities.
-                    </Typography>
-                  </Box>
-                )}
-              </Paper>
-              <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
-                <Typography variant="body2">
-                  <strong>Note:</strong> Database foreign keys show actual database relationships. Configured linked entities control UI behavior.
-                </Typography>
-              </Alert>
-            </Box>
-          )}
-        </Paper>
-      </Box>
-    );
-  };
-
-  return (
-    <Box>
-      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-
-      {/* Show unified view when a module is selected */}
-      {showUnifiedView ? renderUnifiedConfigView() : (
-        <>
-          {/* Section tabs */}
-          <Paper sx={{ mb: 3, borderRadius: 2 }}>
-            <Tabs 
-              value={selectedSection} 
-              onChange={(_, v) => setSelectedSection(v)}
-              sx={{ borderBottom: 1, borderColor: 'divider' }}
-            >
-              <Tab icon={<ViewModuleIcon />} label="Modules" iconPosition="start" />
-              <Tab icon={<SettingsIcon />} label="Fields" iconPosition="start" />
-              <Tab icon={<DashboardIcon />} label="Tabs" iconPosition="start" />
-              <Tab icon={<LinkIcon />} label="Linked Entities" iconPosition="start" />
-            </Tabs>
-          </Paper>
-
-          {/* Section content */}
-          {selectedSection === 0 && renderModulesSection()}
-          {selectedSection === 1 && renderFieldsSection()}
-          {selectedSection === 2 && renderTabsSection()}
-          {selectedSection === 3 && renderLinkedEntitiesSection()}
-        </>
-      )}
 
       {/* Edit Field Dialog */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Field Settings</DialogTitle>
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <EditIcon />
+            Edit Field Settings
+          </Box>
+        </DialogTitle>
         <DialogContent>
           {editingField && (
             <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
                   label="Field Label"
                   value={editingField.fieldLabel}
                   onChange={(e) => setEditingField({ ...editingField, fieldLabel: e.target.value })}
+                  helperText="Display name shown to users"
                 />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Field Name"
+                  value={editingField.fieldName}
+                  disabled
+                  helperText="Database field name (read-only)"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Field Type</InputLabel>
+                  <Select
+                    value={editingField.fieldType}
+                    onChange={(e) => setEditingField({ ...editingField, fieldType: e.target.value })}
+                    label="Field Type"
+                  >
+                    {FIELD_TYPES.map(type => (
+                      <MenuItem key={type.value} value={type.value}>
+                        <Box>
+                          <Typography variant="body2">{type.label}</Typography>
+                          <Typography variant="caption" color="textSecondary">{type.description}</Typography>
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Grid Size</InputLabel>
+                  <Select
+                    value={editingField.gridSize}
+                    onChange={(e) => setEditingField({ ...editingField, gridSize: Number(e.target.value) })}
+                    label="Grid Size"
+                  >
+                    {[1, 2, 3, 4, 6, 12].map(size => (
+                      <MenuItem key={size} value={size}>
+                        {size === 12 ? 'Full Width' : size === 6 ? 'Half Width' : `${size}/12 columns`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
               <Grid item xs={12}>
                 <TextField
@@ -1599,6 +1237,7 @@ const ModuleFieldSettingsTab: React.FC = () => {
                   label="Placeholder"
                   value={editingField.placeholder || ''}
                   onChange={(e) => setEditingField({ ...editingField, placeholder: e.target.value })}
+                  helperText="Placeholder text shown when field is empty"
                 />
               </Grid>
               <Grid item xs={12}>
@@ -1609,21 +1248,48 @@ const ModuleFieldSettingsTab: React.FC = () => {
                   onChange={(e) => setEditingField({ ...editingField, helpText: e.target.value })}
                   multiline
                   rows={2}
+                  helperText="Additional instructions shown below the field"
                 />
               </Grid>
+              {(editingField.fieldType === 'select' || editingField.fieldType === 'multiselect' || editingField.fieldType === 'radio') && (
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Options (comma-separated or JSON)"
+                    value={editingField.options || ''}
+                    onChange={(e) => setEditingField({ ...editingField, options: e.target.value })}
+                    multiline
+                    rows={3}
+                    placeholder='Option1, Option2, Option3 or [{"value":"1","label":"Option 1"}]'
+                    helperText="Enter options as comma-separated values or JSON array"
+                  />
+                </Grid>
+              )}
               <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Grid Size (1-12)</InputLabel>
-                  <Select
-                    value={editingField.gridSize}
-                    onChange={(e) => setEditingField({ ...editingField, gridSize: Number(e.target.value) })}
-                    label="Grid Size (1-12)"
-                  >
-                    {[1, 2, 3, 4, 6, 12].map(size => (
-                      <MenuItem key={size} value={size}>{size} columns</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Field Behavior</Typography>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={editingField.isEnabled}
+                        onChange={(e) => setEditingField({ ...editingField, isEnabled: e.target.checked })}
+                        disabled={!editingField.isHideable}
+                      />
+                    }
+                    label="Visible"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={editingField.isRequired}
+                        onChange={(e) => setEditingField({ ...editingField, isRequired: e.target.checked })}
+                        disabled={!editingField.isRequiredConfigurable}
+                      />
+                    }
+                    label="Required"
+                  />
+                </Box>
               </Grid>
             </Grid>
           )}
@@ -1631,7 +1297,7 @@ const ModuleFieldSettingsTab: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleSaveFieldEdit} variant="contained" sx={{ backgroundColor: '#6750A4' }}>
-            Save Changes
+            Apply Changes
           </Button>
         </DialogActions>
       </Dialog>
@@ -1648,7 +1314,10 @@ const ModuleFieldSettingsTab: React.FC = () => {
               label="Entity"
             >
               {AVAILABLE_MODULES
-                .filter(m => m !== selectedModule && !linkedEntities.some(le => le.entityName === m))
+                .filter(m => {
+                  const config = moduleConfigs[linkDialogModule];
+                  return m !== linkDialogModule && (!config || !config.linkedEntities.some(le => le.entityName === m));
+                })
                 .map(module => (
                   <MenuItem key={module} value={module}>{module}</MenuItem>
                 ))

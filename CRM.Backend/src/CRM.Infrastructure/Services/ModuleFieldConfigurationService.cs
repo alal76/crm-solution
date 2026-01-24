@@ -153,6 +153,59 @@ public class ModuleFieldConfigurationService
         }
     }
 
+    /// <summary>
+    /// Initialize field configurations for all modules that don't have any yet.
+    /// This ensures fields are available without requiring users to visit each entity first.
+    /// </summary>
+    public async Task<Dictionary<string, int>> InitializeAllModulesAsync()
+    {
+        var allModuleNames = new[] 
+        { 
+            ModuleNames.Customers, 
+            ModuleNames.Contacts, 
+            ModuleNames.Leads, 
+            ModuleNames.Opportunities,
+            ModuleNames.Products
+        };
+
+        var results = new Dictionary<string, int>();
+
+        foreach (var moduleName in allModuleNames)
+        {
+            var existingCount = await _context.ModuleFieldConfigurations
+                .CountAsync(c => c.ModuleName == moduleName);
+
+            if (existingCount > 0)
+            {
+                results[moduleName] = existingCount;
+                continue;
+            }
+
+            List<ModuleFieldConfiguration> configs = moduleName switch
+            {
+                ModuleNames.Customers => GetDefaultCustomerFields(),
+                ModuleNames.Contacts => GetDefaultContactFields(),
+                ModuleNames.Leads => GetDefaultLeadFields(),
+                ModuleNames.Opportunities => GetDefaultOpportunityFields(),
+                _ => new List<ModuleFieldConfiguration>()
+            };
+
+            if (configs.Any())
+            {
+                _context.ModuleFieldConfigurations.AddRange(configs);
+                await _context.SaveChangesAsync();
+                results[moduleName] = configs.Count;
+                _logger.LogInformation("Initialized {Count} default field configurations for module {ModuleName}", configs.Count, moduleName);
+            }
+            else
+            {
+                results[moduleName] = 0;
+            }
+        }
+
+        return results;
+    }
+
     private ModuleFieldConfigurationDto MapToDto(ModuleFieldConfiguration entity)
     {
         var help = entity.HelpText;

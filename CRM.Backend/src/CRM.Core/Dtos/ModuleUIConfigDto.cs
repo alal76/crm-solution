@@ -111,6 +111,33 @@ public class CompleteModuleConfigDto
 }
 
 /// <summary>
+/// Request to save complete module configuration (tabs, fields, linked entities) in a single call
+/// </summary>
+public class SaveCompleteModuleConfigDto
+{
+    public List<TabConfigItem> Tabs { get; set; } = new();
+    public List<SaveFieldConfigItem> Fields { get; set; } = new();
+    public List<LinkedEntityConfigItem> LinkedEntities { get; set; } = new();
+}
+
+/// <summary>
+/// Field configuration item for saving
+/// </summary>
+public class SaveFieldConfigItem
+{
+    public int Id { get; set; }
+    public bool IsEnabled { get; set; } = true;
+    public bool IsRequired { get; set; }
+    public int DisplayOrder { get; set; }
+    public int GridSize { get; set; } = 6;
+    public string? FieldType { get; set; }
+    public string? FieldLabel { get; set; }
+    public string? Placeholder { get; set; }
+    public string? HelpText { get; set; }
+    public string? Options { get; set; }
+}
+
+/// <summary>
 /// Batch update request for module UI settings
 /// </summary>
 public class BatchModuleUIConfigUpdateDto
