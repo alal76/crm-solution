@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>1.0.0</Version>
+    <RootNamespace>CRM.CoreService</RootNamespace>
+    <AssemblyName>CRM.CoreService</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.22.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CRM.ServiceDefaults\CRM.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\CRM.Infrastructure\CRM.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

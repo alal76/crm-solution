@@ -3,11 +3,12 @@ import { Box } from '@mui/material';
 
 /**
  * Props for the TabPanel component
+ * Supports both number and string indexes for flexibility
  */
 export interface TabPanelProps {
   children?: React.ReactNode;
-  index: number;
-  value: number;
+  index: number | string;
+  value: number | string;
   /** Optional padding override (default: 3) */
   padding?: number;
   /** Optional Box props to customize the container */
@@ -60,6 +61,7 @@ export const TabPanel: React.FC<TabPanelProps> = ({
 /**
  * Helper function to generate accessibility props for tabs.
  * Use this with the Tab component's props.
+ * Supports both number and string indexes for flexibility.
  * 
  * @example
  * ```tsx
@@ -69,7 +71,7 @@ export const TabPanel: React.FC<TabPanelProps> = ({
  * </Tabs>
  * ```
  */
-export function a11yProps(index: number) {
+export function a11yProps(index: number | string) {
   return {
     id: `tab-${index}`,
     'aria-controls': `tabpanel-${index}`,

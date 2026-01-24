@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { TabPanel } from '../components/common';
 import {
   Container,
   Box,
@@ -126,21 +127,6 @@ interface SettingsTab {
   label: string;
   icon: React.ReactNode;
   component: React.ReactNode;
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: string;
-  value: string;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index } = props;
-  return (
-    <div hidden={value !== index} style={{ width: '100%' }}>
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  );
 }
 
 function CompanyBrandingTab() {

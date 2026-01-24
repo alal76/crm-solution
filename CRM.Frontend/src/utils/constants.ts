@@ -213,3 +213,145 @@ export const VALIDATION = {
   MAX_EMAIL_LENGTH: 254,
   MIN_PASSWORD_LENGTH: 8,
 } as const;
+
+// ============================================================================
+// Backend Enum Value Options (matching backend numeric enums)
+// These are used in forms and tables where numeric values are required
+// ============================================================================
+
+export const LIFECYCLE_STAGE_OPTIONS = [
+  { value: 0, label: 'Lead', color: '#9e9e9e' },
+  { value: 1, label: 'Prospect', color: '#2196f3' },
+  { value: 2, label: 'Opportunity', color: '#ff9800' },
+  { value: 3, label: 'Customer', color: '#4caf50' },
+  { value: 4, label: 'Churned', color: '#f44336' },
+  { value: 5, label: 'Reactivated', color: '#9c27b0' },
+] as const;
+
+export const CUSTOMER_TYPE_OPTIONS = [
+  { value: 0, label: 'Individual' },
+  { value: 1, label: 'Small Business' },
+  { value: 2, label: 'Mid-Market' },
+  { value: 3, label: 'Enterprise' },
+  { value: 4, label: 'Government' },
+  { value: 5, label: 'Non-Profit' },
+] as const;
+
+export const PRIORITY_OPTIONS = [
+  { value: 0, label: 'Low', color: '#9e9e9e' },
+  { value: 1, label: 'Medium', color: '#2196f3' },
+  { value: 2, label: 'High', color: '#ff9800' },
+  { value: 3, label: 'Critical', color: '#f44336' },
+] as const;
+
+export const TASK_STATUS_OPTIONS = [
+  { value: 0, label: 'Not Started', color: '#9e9e9e' },
+  { value: 1, label: 'In Progress', color: '#2196f3' },
+  { value: 2, label: 'Completed', color: '#4caf50' },
+  { value: 3, label: 'Deferred', color: '#ff9800' },
+  { value: 4, label: 'Waiting', color: '#607d8b' },
+  { value: 5, label: 'Cancelled', color: '#f44336' },
+] as const;
+
+export const TASK_TYPE_OPTIONS = [
+  { value: 0, label: 'Call', icon: '📞' },
+  { value: 1, label: 'Email', icon: '📧' },
+  { value: 2, label: 'Meeting', icon: '📅' },
+  { value: 3, label: 'Follow-Up', icon: '🔄' },
+  { value: 4, label: 'Demo', icon: '🖥️' },
+  { value: 5, label: 'Proposal', icon: '📄' },
+  { value: 6, label: 'Research', icon: '🔍' },
+  { value: 7, label: 'Documentation', icon: '📝' },
+  { value: 8, label: 'Review', icon: '✅' },
+  { value: 9, label: 'Approval', icon: '👍' },
+  { value: 10, label: 'Other', icon: '📋' },
+] as const;
+
+export const TASK_PRIORITY_OPTIONS = [
+  { value: 0, label: 'Low', color: '#9e9e9e' },
+  { value: 1, label: 'Normal', color: '#2196f3' },
+  { value: 2, label: 'High', color: '#ff9800' },
+  { value: 3, label: 'Urgent', color: '#f44336' },
+] as const;
+
+export const QUOTE_STATUS_OPTIONS = [
+  { value: 0, label: 'Draft', color: '#9e9e9e' },
+  { value: 1, label: 'Pending', color: '#ff9800' },
+  { value: 2, label: 'Sent', color: '#2196f3' },
+  { value: 3, label: 'Accepted', color: '#4caf50' },
+  { value: 4, label: 'Rejected', color: '#f44336' },
+  { value: 5, label: 'Expired', color: '#795548' },
+] as const;
+
+export const CAMPAIGN_STATUS_OPTIONS = [
+  { value: 0, label: 'Draft', color: '#9e9e9e' },
+  { value: 1, label: 'Scheduled', color: '#2196f3' },
+  { value: 2, label: 'Active', color: '#4caf50' },
+  { value: 3, label: 'Paused', color: '#ff9800' },
+  { value: 4, label: 'Completed', color: '#9c27b0' },
+  { value: 5, label: 'Cancelled', color: '#f44336' },
+  { value: 6, label: 'Archived', color: '#607d8b' },
+] as const;
+
+export const CAMPAIGN_TYPE_OPTIONS = [
+  { value: 0, label: 'Email', icon: '📧' },
+  { value: 1, label: 'Social Media', icon: '📱' },
+  { value: 2, label: 'Paid Search', icon: '🔍' },
+  { value: 3, label: 'Display Ads', icon: '🖼️' },
+  { value: 4, label: 'Content Marketing', icon: '📝' },
+  { value: 5, label: 'SEO', icon: '🔎' },
+  { value: 6, label: 'Events', icon: '🎪' },
+  { value: 7, label: 'Webinar', icon: '💻' },
+  { value: 8, label: 'Trade Show', icon: '🏢' },
+  { value: 9, label: 'Direct Mail', icon: '✉️' },
+  { value: 10, label: 'Referral', icon: '👥' },
+  { value: 11, label: 'Partner', icon: '🤝' },
+  { value: 12, label: 'PR', icon: '📰' },
+  { value: 13, label: 'Video', icon: '🎬' },
+  { value: 14, label: 'Podcast', icon: '🎙️' },
+  { value: 15, label: 'Other', icon: '📋' },
+] as const;
+
+export const CONTACT_ROLE_OPTIONS = [
+  { value: 0, label: 'Primary' },
+  { value: 1, label: 'Secondary' },
+  { value: 2, label: 'Billing' },
+  { value: 3, label: 'Technical' },
+  { value: 4, label: 'Decision Maker' },
+  { value: 5, label: 'Influencer' },
+  { value: 6, label: 'End User' },
+  { value: 7, label: 'Executive' },
+  { value: 8, label: 'Procurement' },
+  { value: 9, label: 'Other' },
+] as const;
+
+// ============================================================================
+// Helper Functions for Enum Options
+// ============================================================================
+
+/**
+ * Get option by value from an options array
+ */
+export const getOptionByValue = <T extends { value: number; label: string }>(
+  options: readonly T[],
+  value: number | undefined
+): T | undefined => options.find(opt => opt.value === value);
+
+/**
+ * Get label by value from an options array
+ */
+export const getLabelByValue = <T extends { value: number; label: string }>(
+  options: readonly T[],
+  value: number | undefined
+): string => getOptionByValue(options, value)?.label || '';
+
+/**
+ * Get color by value from an options array (if color exists)
+ */
+export const getColorByValue = <T extends { value: number; color?: string }>(
+  options: readonly T[],
+  value: number | undefined
+): string | undefined => {
+  const opt = options.find(o => o.value === value);
+  return opt && 'color' in opt ? opt.color : undefined;
+};

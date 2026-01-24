@@ -7,6 +7,15 @@ import {
   List, ListItem, ListItemText, ListItemSecondaryAction
 } from '@mui/material';
 import { useState, useEffect } from 'react';
+import { TabPanel } from '../components/common';
+import {
+  LIFECYCLE_STAGE_OPTIONS,
+  CUSTOMER_TYPE_OPTIONS,
+  PRIORITY_OPTIONS,
+  CONTACT_ROLE_OPTIONS,
+  getLabelByValue,
+  getColorByValue
+} from '../utils/constants';
 import { 
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Business as BusinessIcon, Person as PersonIcon, Email as EmailIcon,
@@ -22,28 +31,14 @@ import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../compon
 import { ContactInfoPanel } from '../components/ContactInfo';
 import logo from '../assets/logo.png';
 
-// Search fields for Advanced Search
+// Search fields for Advanced Search - using shared constants
 const SEARCH_FIELDS: SearchField[] = [
-  { name: 'customerType', label: 'Customer Type', type: 'select', options: [
-    { value: 0, label: 'Individual' },
-    { value: 1, label: 'Small Business' },
-    { value: 2, label: 'Mid-Market' },
-    { value: 3, label: 'Enterprise' },
-    { value: 4, label: 'Government' },
-    { value: 5, label: 'Non-Profit' },
-  ]},
+  { name: 'customerType', label: 'Customer Type', type: 'select', options: [...CUSTOMER_TYPE_OPTIONS] },
   { name: 'firstName', label: 'First Name', type: 'text' },
   { name: 'lastName', label: 'Last Name', type: 'text' },
   { name: 'company', label: 'Business Name', type: 'text' },
   { name: 'email', label: 'Email', type: 'text' },
-  { name: 'lifecycleStage', label: 'Status', type: 'select', options: [
-    { value: 0, label: 'Lead' },
-    { value: 1, label: 'Prospect' },
-    { value: 2, label: 'Opportunity' },
-    { value: 3, label: 'Customer' },
-    { value: 4, label: 'Churned' },
-    { value: 5, label: 'Reactivated' },
-  ]},
+  { name: 'lifecycleStage', label: 'Status', type: 'select', options: [...LIFECYCLE_STAGE_OPTIONS] },
   { name: 'industry', label: 'Industry', type: 'text' },
   { name: 'city', label: 'City', type: 'text' },
 ];
@@ -56,44 +51,11 @@ const CUSTOMER_CATEGORIES = [
   { value: 1, label: 'Organization' },
 ];
 
-// Enums matching backend
-const LIFECYCLE_STAGES = [
-  { value: 0, label: 'Lead', color: '#9e9e9e' },
-  { value: 1, label: 'Prospect', color: '#2196f3' },
-  { value: 2, label: 'Opportunity', color: '#ff9800' },
-  { value: 3, label: 'Customer', color: '#4caf50' },
-  { value: 4, label: 'Churned', color: '#f44336' },
-  { value: 5, label: 'Reactivated', color: '#9c27b0' },
-];
-
-const CUSTOMER_TYPES = [
-  { value: 0, label: 'Individual' },
-  { value: 1, label: 'Small Business' },
-  { value: 2, label: 'Mid-Market' },
-  { value: 3, label: 'Enterprise' },
-  { value: 4, label: 'Government' },
-  { value: 5, label: 'Non-Profit' },
-];
-
-const PRIORITIES = [
-  { value: 0, label: 'Low', color: '#9e9e9e' },
-  { value: 1, label: 'Medium', color: '#2196f3' },
-  { value: 2, label: 'High', color: '#ff9800' },
-  { value: 3, label: 'Critical', color: '#f44336' },
-];
-
-const CONTACT_ROLES = [
-  { value: 0, label: 'Primary' },
-  { value: 1, label: 'Secondary' },
-  { value: 2, label: 'Billing' },
-  { value: 3, label: 'Technical' },
-  { value: 4, label: 'Decision Maker' },
-  { value: 5, label: 'Influencer' },
-  { value: 6, label: 'End User' },
-  { value: 7, label: 'Executive' },
-  { value: 8, label: 'Procurement' },
-  { value: 9, label: 'Other' },
-];
+// Use shared constants - aliased for backward compatibility in this file
+const LIFECYCLE_STAGES = LIFECYCLE_STAGE_OPTIONS;
+const CUSTOMER_TYPES = CUSTOMER_TYPE_OPTIONS;
+const PRIORITIES = PRIORITY_OPTIONS;
+const CONTACT_ROLES = CONTACT_ROLE_OPTIONS;
 
 const INDUSTRIES = [
   'Technology', 'Healthcare', 'Finance', 'Retail', 'Manufacturing', 
@@ -276,21 +238,6 @@ interface ModuleFieldConfiguration {
   isReorderable: boolean;
   isRequiredConfigurable: boolean;
   isHideable: boolean;
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
 }
 
 function CustomersPage() {

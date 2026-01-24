@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { TabPanel } from '../common';
 import {
   Box,
   Typography,
@@ -113,26 +114,6 @@ const FIELD_TYPE_LABELS: { [key: number]: string } = {
   [CustomFieldType.Phone]: 'Phone',
   [CustomFieldType.Url]: 'URL',
 };
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`sr-settings-tabpanel-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
-}
 
 function ServiceRequestSettingsTab() {
   const [tabValue, setTabValue] = useState(0);

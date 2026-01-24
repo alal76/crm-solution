@@ -13,6 +13,14 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { TabPanel } from '../components/common';
+import {
+  TASK_STATUS_OPTIONS,
+  TASK_PRIORITY_OPTIONS,
+  TASK_TYPE_OPTIONS,
+  getLabelByValue,
+  getColorByValue
+} from '../utils/constants';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
@@ -58,36 +66,10 @@ const PRIORITY_COLORS: Record<string, string> = {
   'Urgent': '#f44336',
 };
 
-// Enums matching backend
-const TASK_STATUSES = [
-  { value: 0, label: 'Not Started', color: '#9e9e9e' },
-  { value: 1, label: 'In Progress', color: '#2196f3' },
-  { value: 2, label: 'Completed', color: '#4caf50' },
-  { value: 3, label: 'Deferred', color: '#ff9800' },
-  { value: 4, label: 'Waiting', color: '#607d8b' },
-  { value: 5, label: 'Cancelled', color: '#f44336' },
-];
-
-const TASK_PRIORITIES = [
-  { value: 0, label: 'Low', color: '#9e9e9e' },
-  { value: 1, label: 'Normal', color: '#2196f3' },
-  { value: 2, label: 'High', color: '#ff9800' },
-  { value: 3, label: 'Urgent', color: '#f44336' },
-];
-
-const TASK_TYPES = [
-  { value: 0, label: 'Call' },
-  { value: 1, label: 'Email' },
-  { value: 2, label: 'Meeting' },
-  { value: 3, label: 'Follow-Up' },
-  { value: 4, label: 'Demo' },
-  { value: 5, label: 'Proposal' },
-  { value: 6, label: 'Research' },
-  { value: 7, label: 'Documentation' },
-  { value: 8, label: 'Review' },
-  { value: 9, label: 'Approval' },
-  { value: 10, label: 'Other' },
-];
+// Use shared constants - aliased for backward compatibility
+const TASK_STATUSES = TASK_STATUS_OPTIONS;
+const TASK_PRIORITIES = TASK_PRIORITY_OPTIONS;
+const TASK_TYPES = TASK_TYPE_OPTIONS;
 
 // Queue item from my-queue endpoint
 interface QueueItem {
@@ -171,21 +153,6 @@ interface User {
   id: number;
   firstName: string;
   lastName: string;
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
 }
 
 function TasksPage() {

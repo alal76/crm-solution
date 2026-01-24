@@ -219,7 +219,7 @@ const ModuleFieldSettingsTab: React.FC = () => {
         await apiClient.post('/modulefieldconfigurations/initialize-all');
       } catch (initErr: any) {
         // Non-critical - may fail if already initialized or if user is not admin
-        console.log('Field configuration initialization:', initErr.response?.status === 403 ? 'requires admin' : 'completed or skipped');
+        // Silently handled - 403 means user is not admin, otherwise already initialized
       }
       
       const response = await apiClient.get('/moduleuiconfig');

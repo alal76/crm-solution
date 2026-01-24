@@ -3,6 +3,7 @@
  * Multi-channel interaction tracking, entity linking, and service request creation
  */
 import React, { useState, useEffect, useCallback } from 'react';
+import { TabPanel } from '../components/common';
 import {
   Box,
   Container,
@@ -166,12 +167,6 @@ interface InteractionStats {
   completionRate: number;
 }
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
 // Interaction type mappings
 const INTERACTION_TYPES: Record<number, { label: string; icon: React.ReactElement; color: string }> = {
   0: { label: 'Email', icon: <EmailIcon />, color: '#2196f3' },
@@ -215,15 +210,6 @@ const PRIORITY_LABELS: Record<number, { label: string; color: 'default' | 'succe
   3: { label: 'High', color: 'warning' },
   4: { label: 'Urgent', color: 'error' },
 };
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
-}
 
 function InteractionsPage() {
   // State

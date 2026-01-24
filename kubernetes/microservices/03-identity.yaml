@@ -1,0 +1,113 @@
+# Identity Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-identity
+  namespace: crm-microservices
+  labels:
+    app: crm-identity
+    tier: service
+    domain: identity
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: crm-identity
+  template:
+    metadata:
+      labels:
+        app: crm-identity
+        tier: service
+        domain: identity
+    spec:
+      containers:
+      - name: identity
+        image: crm-identity:v1
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5001
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: crm-shared-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=crm-db;Port=3306;Database=crm_db;User=$(DB_USER);Password=$(DB_PASSWORD);CharSet=utf8mb4;"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_PASSWORD
+        - name: JwtSettings__Key
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: JWT_KEY
+        - name: JwtSettings__Issuer
+          valueFrom:
+            configMapKeyRef:
+              name: crm-shared-config
+              key: JWT_ISSUER
+        - name: JwtSettings__Audience
+          valueFrom:
+            configMapKeyRef:
+              name: crm-shared-config
+              key: JWT_AUDIENCE
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "300m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-identity
+  namespace: crm-microservices
+spec:
+  selector:
+    app: crm-identity
+  ports:
+  - port: 5001
+    targetPort: 5001
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: crm-identity-hpa
+  namespace: crm-microservices
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: crm-identity
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

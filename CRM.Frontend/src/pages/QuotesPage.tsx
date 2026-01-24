@@ -11,6 +11,7 @@ import {
   Cancel as RejectIcon, Refresh as ReviseIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { TabPanel } from '../components/common';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
@@ -98,21 +99,6 @@ interface Customer {
   firstName: string;
   lastName: string;
   company?: string;
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
 }
 
 function QuotesPage() {

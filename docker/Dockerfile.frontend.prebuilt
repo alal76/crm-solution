@@ -1,0 +1,20 @@
+# Simple production stage - uses pre-built React app
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install serve to run the built app
+RUN npm install -g serve
+
+# Copy pre-built app directly
+COPY CRM.Frontend/build ./build
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget -q --spider http://localhost:3000 || exit 1
+
+# Expose the port
+EXPOSE 3000
+
+# Start the server
+CMD ["serve", "-s", "build", "-l", "3000"]

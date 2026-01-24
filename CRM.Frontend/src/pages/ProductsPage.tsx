@@ -11,6 +11,7 @@ import {
   Subscriptions as SubscriptionIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { TabPanel } from '../components/common';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
@@ -162,21 +163,6 @@ interface ProductForm {
   taxRate: number;
   isFeatured: boolean;
   tags: string;
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
 }
 
 function ProductsPage() {

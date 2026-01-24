@@ -4,6 +4,7 @@
  * Web Form ingestion settings, WhatsApp Business, and email templates/signatures
  */
 import React, { useState, useEffect } from 'react';
+import { TabPanel } from '../components/common';
 import {
   Box,
   Container,
@@ -151,12 +152,6 @@ interface EmailSignature {
   createdAt: string;
 }
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
 const CHANNEL_TYPES = [
   { value: 'Email', label: 'Email (SMTP/IMAP)', icon: <EmailIcon />, color: '#2196f3' },
   { value: 'EmailOAuth', label: 'Email (OAuth/Microsoft 365)', icon: <EmailIcon />, color: '#0078d4' },
@@ -167,15 +162,6 @@ const CHANNEL_TYPES = [
   { value: 'LinkedIn', label: 'LinkedIn', icon: <LinkedInIcon />, color: '#0077B5' },
   { value: 'WebForm', label: 'Web Form Ingestion', icon: <WebFormIcon />, color: '#607d8b' },
 ];
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
-}
 
 function ChannelSettingsPage() {
   // State

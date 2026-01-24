@@ -1,0 +1,175 @@
+version: '3.8'
+
+# CRM Microservices Docker Compose
+# Use this for local development with microservices architecture
+
+services:
+  # Database (shared)
+  crm-db:
+    image: mariadb:10.11
+    container_name: crm-db
+    environment:
+      MARIADB_ROOT_PASSWORD: RootPass@Dev2024
+      MARIADB_DATABASE: crm_db
+      MARIADB_USER: crm_user
+      MARIADB_PASSWORD: CrmPass@Dev2024
+    ports:
+      - "3306:3306"
+    volumes:
+      - crm_db_data:/var/lib/mysql
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-pRootPass@Dev2024"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Gateway
+  crm-gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gateway
+    container_name: crm-gateway
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
+    depends_on:
+      - crm-identity
+      - crm-customer
+      - crm-sales
+      - crm-marketing
+      - crm-servicedesk
+      - crm-core
+    networks:
+      - crm-network
+
+  # Identity Service
+  crm-identity:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.identity
+    container_name: crm-identity
+    ports:
+      - "5001:5001"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    networks:
+      - crm-network
+
+  # Customer Service
+  crm-customer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.customer
+    container_name: crm-customer
+    ports:
+      - "5002:5002"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    networks:
+      - crm-network
+
+  # Sales Service
+  crm-sales:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.sales
+    container_name: crm-sales
+    ports:
+      - "5003:5003"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    networks:
+      - crm-network
+
+  # Marketing Service
+  crm-marketing:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.marketing
+    container_name: crm-marketing
+    ports:
+      - "5004:5004"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    networks:
+      - crm-network
+
+  # Service Desk Service
+  crm-servicedesk:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.servicedesk
+    container_name: crm-servicedesk
+    ports:
+      - "5005:5005"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    networks:
+      - crm-network
+
+  # Core Service
+  crm-core:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: crm-core
+    ports:
+      - "5006:5006"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    networks:
+      - crm-network
+
+  # Frontend
+  crm-frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend.prebuilt
+    container_name: crm-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - crm-gateway
+    networks:
+      - crm-network
+
+networks:
+  crm-network:
+    driver: bridge
+
+volumes:
+  crm_db_data:

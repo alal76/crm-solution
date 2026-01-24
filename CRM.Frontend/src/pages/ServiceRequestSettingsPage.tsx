@@ -4,6 +4,8 @@
  * Licensed under the GNU Affero General Public License v3.0
  */
 
+import { TabPanel } from '../components/common';
+
 import {
   Box,
   Container,
@@ -93,26 +95,6 @@ const FIELD_TYPE_LABELS: { [key: number]: string } = {
   [CustomFieldType.Phone]: 'Phone',
   [CustomFieldType.Url]: 'URL',
 };
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`settings-tabpanel-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  );
-}
 
 function ServiceRequestSettingsPage() {
   const [tabValue, setTabValue] = useState(0);

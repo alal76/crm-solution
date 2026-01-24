@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
+import { TabPanel } from '../components/common';
 import {
   Box, Container, Typography, Card, CardContent, TextField, Button, Grid,
   CircularProgress, Alert, Tabs, Tab, Chip, Avatar, Divider, IconButton,
   Table, TableBody, TableCell, TableHead, TableRow, Paper, InputAdornment,
   List, ListItem, ListItemAvatar, ListItemText, Tooltip, Link, Autocomplete
 } from '@mui/material';
+import {
+  LIFECYCLE_STAGE_OPTIONS,
+  CUSTOMER_TYPE_OPTIONS,
+  getLabelByValue,
+  getColorByValue
+} from '../utils/constants';
 import {
   Search as SearchIcon, Business as BusinessIcon, Person as PersonIcon,
   Email as EmailIcon, Phone as PhoneIcon, LinkedIn as LinkedInIcon,
@@ -83,21 +90,6 @@ interface User {
   lastName: string;
 }
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
-    </div>
-  );
-}
-
 // Mock data for news and social feeds (in production, these would come from external APIs)
 const generateMockNews = (customerName: string): NewsItem[] => [
   {
@@ -150,23 +142,9 @@ const generateMockSocialFeeds = (customerName: string): SocialFeed[] => [
   },
 ];
 
-const LIFECYCLE_STAGES = [
-  { value: 0, label: 'Lead', color: '#9e9e9e' },
-  { value: 1, label: 'Prospect', color: '#2196f3' },
-  { value: 2, label: 'Opportunity', color: '#ff9800' },
-  { value: 3, label: 'Customer', color: '#4caf50' },
-  { value: 4, label: 'Churned', color: '#f44336' },
-  { value: 5, label: 'Reactivated', color: '#9c27b0' },
-];
-
-const CUSTOMER_TYPES = [
-  { value: 0, label: 'Individual' },
-  { value: 1, label: 'Small Business' },
-  { value: 2, label: 'Mid-Market' },
-  { value: 3, label: 'Enterprise' },
-  { value: 4, label: 'Government' },
-  { value: 5, label: 'Non-Profit' },
-];
+// Use shared constants - aliased for backward compatibility in this file
+const LIFECYCLE_STAGES = LIFECYCLE_STAGE_OPTIONS;
+const CUSTOMER_TYPES = CUSTOMER_TYPE_OPTIONS;
 
 function CustomerOverviewPage() {
   const [searchQuery, setSearchQuery] = useState('');

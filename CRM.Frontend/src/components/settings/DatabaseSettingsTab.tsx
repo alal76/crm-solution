@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { TabPanel } from '../common';
 import {
   Box,
   Card,
@@ -187,21 +188,6 @@ interface StatisticsRefreshResult {
   command: string;
   message: string;
   tablesAnalyzed: string[];
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
 }
 
 interface DemoStatus {

@@ -60,27 +60,7 @@ import {
   BugReport as BugReportIcon,
 } from '@mui/icons-material';
 import { useBranding } from '../contexts/BrandingContext';
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`about-tabpanel-${index}`}
-      aria-labelledby={`about-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+import { TabPanel } from '../components/common';
 
 const AboutPage: React.FC = () => {
   const { branding } = useBranding();

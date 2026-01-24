@@ -1,0 +1,103 @@
+# Customer Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-customer
+  namespace: crm-microservices
+  labels:
+    app: crm-customer
+    tier: service
+    domain: customer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: crm-customer
+  template:
+    metadata:
+      labels:
+        app: crm-customer
+        tier: service
+        domain: customer
+    spec:
+      containers:
+      - name: customer
+        image: crm-customer:v1
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5002
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: crm-shared-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=crm-db;Port=3306;Database=crm_db;User=$(DB_USER);Password=$(DB_PASSWORD);CharSet=utf8mb4;"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_PASSWORD
+        - name: JwtSettings__Key
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: JWT_KEY
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "300m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5002
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5002
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-customer
+  namespace: crm-microservices
+spec:
+  selector:
+    app: crm-customer
+  ports:
+  - port: 5002
+    targetPort: 5002
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: crm-customer-hpa
+  namespace: crm-microservices
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: crm-customer
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
