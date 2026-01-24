@@ -139,6 +139,13 @@ public class CustomerDto
     // Linked contacts (for organizations)
     public List<CustomerContactDto>? Contacts { get; set; }
     public int ContactCount { get; set; } = 0;
+    
+    // === Normalized Contact Info Collections ===
+    // These replace the flat contact fields above and are the source of truth
+    public List<LinkedEmailDto>? EmailAddresses { get; set; }
+    public List<LinkedPhoneDto>? PhoneNumbers { get; set; }
+    public List<LinkedAddressDto>? Addresses { get; set; }
+    public List<LinkedSocialMediaDto>? SocialMediaAccounts { get; set; }
 }
 
 /// <summary>

@@ -1,7 +1,7 @@
 {
   "major": 1,
   "minor": 4,
-  "patch": 2,
+  "patch": 3,
   "lastUpdate": "2026-01-24",
-  "description": "Customer-Contact one-to-many relationship with direct contacts"
+  "description": "Normalized contact info collections in Customer and Contact DTOs"
 }

@@ -7,15 +7,34 @@
 // Customer & Contact Constants
 // ============================================================================
 
+/**
+ * Customer Lifecycle Stages
+ * Flow: Other (default) → Lead → Opportunity → Customer → CustomerAtRisk → Churned → (Win-back) → Lead
+ */
 export const LIFECYCLE_STAGES = [
+  'Other',
   'Lead',
-  'Prospect',
-  'Qualified',
+  'Opportunity',
   'Customer',
+  'CustomerAtRisk',
   'Churned',
+  'WinBack',
 ] as const;
 
 export type LifecycleStage = typeof LIFECYCLE_STAGES[number];
+
+/**
+ * Lifecycle stage options for dropdowns with display labels and colors
+ */
+export const LIFECYCLE_STAGE_OPTIONS = [
+  { value: 0, key: 'Other', label: 'Other', color: '#9e9e9e', description: 'Initial default value' },
+  { value: 1, key: 'Lead', label: 'Lead', color: '#2196f3', description: 'Potential customer showing interest' },
+  { value: 2, key: 'Opportunity', label: 'Opportunity', color: '#ff9800', description: 'Qualified lead with active sales opportunity' },
+  { value: 3, key: 'Customer', label: 'Customer', color: '#4caf50', description: 'Active paying customer' },
+  { value: 4, key: 'CustomerAtRisk', label: 'Customer at Risk', color: '#f44336', description: 'Customer at risk of churning' },
+  { value: 5, key: 'Churned', label: 'Churned', color: '#607d8b', description: 'Former customer who stopped doing business' },
+  { value: 6, key: 'WinBack', label: 'Win-back', color: '#9c27b0', description: 'Churned customer being re-engaged' },
+] as const;
 
 export const CUSTOMER_TYPES = [
   'Individual',
@@ -217,16 +236,8 @@ export const VALIDATION = {
 // ============================================================================
 // Backend Enum Value Options (matching backend numeric enums)
 // These are used in forms and tables where numeric values are required
+// Note: LIFECYCLE_STAGE_OPTIONS is defined earlier in this file
 // ============================================================================
-
-export const LIFECYCLE_STAGE_OPTIONS = [
-  { value: 0, label: 'Lead', color: '#9e9e9e' },
-  { value: 1, label: 'Prospect', color: '#2196f3' },
-  { value: 2, label: 'Opportunity', color: '#ff9800' },
-  { value: 3, label: 'Customer', color: '#4caf50' },
-  { value: 4, label: 'Churned', color: '#f44336' },
-  { value: 5, label: 'Reactivated', color: '#9c27b0' },
-] as const;
 
 export const CUSTOMER_TYPE_OPTIONS = [
   { value: 0, label: 'Individual' },

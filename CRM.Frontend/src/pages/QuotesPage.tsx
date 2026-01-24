@@ -14,6 +14,7 @@ import apiClient from '../services/apiClient';
 import { TabPanel } from '../components/common';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 
@@ -474,15 +475,14 @@ function QuotesPage() {
                 <TextField fullWidth label="Quote Title" name="title" value={formData.title} onChange={handleInputChange} required />
               </Grid>
               <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Customer</InputLabel>
-                  <Select name="customerId" value={formData.customerId} onChange={handleSelectChange} label="Customer">
-                    <MenuItem value="">Select Customer</MenuItem>
-                    {customers.map(c => (
-                      <MenuItem key={c.id} value={c.id}>{c.firstName} {c.lastName}{c.company ? ` (${c.company})` : ''}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <EntitySelect
+                  entityType="customer"
+                  name="customerId"
+                  value={formData.customerId}
+                  onChange={handleSelectChange}
+                  label="Customer"
+                  showAddNew={true}
+                />
               </Grid>
               <Grid item xs={6}>
                 <LookupSelect

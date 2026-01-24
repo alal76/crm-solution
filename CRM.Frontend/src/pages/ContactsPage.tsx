@@ -37,13 +37,15 @@ import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import BusinessIcon from '@mui/icons-material/Business';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { ContactInfoPanel } from '../components/ContactInfo';
-import { contactInfoService, EntityContactInfoDto } from '../services/contactInfoService';
+import { contactInfoService, EntityContactInfoDto, LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from '../services/contactInfoService';
 
 interface SocialMediaLink {
   id: number;
@@ -63,12 +65,21 @@ interface ContactInfoSummary {
   socialCount: number;
 }
 
+interface Customer {
+  id: number;
+  firstName: string;
+  lastName: string;
+  company: string;
+  displayName?: string;
+}
+
 interface Contact {
   id: number;
   contactType: string;
   firstName: string;
   lastName: string;
   middleName?: string;
+  customerId?: number;  // Link to customer (one-to-many)
   // Legacy single fields (kept for backward compatibility)
   emailPrimary?: string;
   emailSecondary?: string;
@@ -91,6 +102,12 @@ interface Contact {
   contactInfoSummary?: ContactInfoSummary;
   modifiedBy?: string;
   socialMediaLinks: SocialMediaLink[];
+  
+  // Normalized Contact Info Collections (source of truth)
+  emailAddresses?: LinkedEmailDto[];
+  phoneNumbers?: LinkedPhoneDto[];
+  addresses?: LinkedAddressDto[];
+  socialMediaAccounts?: LinkedSocialMediaDto[];
 }
 
 interface CreateContactRequest {
@@ -104,6 +121,7 @@ interface CreateContactRequest {
   reportsTo?: string;
   notes?: string;
   dateOfBirth?: string;
+  customerId?: number | '';
 }
 
 const CONTACT_TYPES = ['Employee', 'Customer', 'Partner', 'Lead', 'Vendor', 'Other'];
@@ -128,6 +146,7 @@ const CONTACT_SEARCHABLE_FIELDS = [
 
 function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [contactInfoCache, setContactInfoCache] = useState<Record<number, ContactInfoSummary>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -176,6 +195,7 @@ function ContactsPage() {
   // Fetch contacts
   useEffect(() => {
     fetchContacts();
+    fetchCustomers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType]);
 
@@ -193,6 +213,21 @@ function ContactsPage() {
       }
     })();
   }, []);
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await apiClient.get('/customers');
+      setCustomers(response.data);
+    } catch (err) {
+      console.error('Error fetching customers:', err);
+    }
+  };
+
+  const getCustomerName = (customerId?: number) => {
+    if (!customerId) return null;
+    const customer = customers.find(c => c.id === customerId);
+    return customer ? (customer.displayName || `${customer.firstName} ${customer.lastName}`.trim() || customer.company) : null;
+  };
 
   const fetchContacts = async () => {
     try {
@@ -415,11 +450,12 @@ function ContactsPage() {
           <Card>
             <CardContent>
               <TableContainer sx={{ overflowX: 'auto' }}>
-                <Table sx={{ minWidth: 900 }}>
+                <Table sx={{ minWidth: 1000 }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                     <TableCell><strong>Name</strong></TableCell>
                     <TableCell><strong>Type</strong></TableCell>
+                    <TableCell><strong>Customer</strong></TableCell>
                     <TableCell><strong>Company</strong></TableCell>
                     <TableCell><strong>Job Title</strong></TableCell>
                     <TableCell><strong>Contact Info</strong></TableCell>
@@ -439,6 +475,18 @@ function ContactsPage() {
                           size="small"
                           variant="outlined"
                         />
+                      </TableCell>
+                      <TableCell>
+                        {contact.customerId ? (
+                          <Chip
+                            label={getCustomerName(contact.customerId) || 'Unknown'}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                          />
+                        ) : (
+                          <Typography sx={{ fontSize: '0.875rem', color: 'textSecondary' }}>-</Typography>
+                        )}
                       </TableCell>
                       <TableCell>{contact.company || '-'}</TableCell>
                       <TableCell>{contact.jobTitle || '-'}</TableCell>
@@ -567,6 +615,15 @@ function ContactsPage() {
                 value={formData.jobTitle || ''}
                 onChange={handleFormChange}
                 fullWidth
+              />
+
+              <EntitySelect
+                entityType="customer"
+                name="customerId"
+                value={formData.customerId || ''}
+                onChange={(e) => setFormData({ ...formData, customerId: e.target.value ? Number(e.target.value) : '' })}
+                label="Owner Customer"
+                showAddNew={true}
               />
 
               <TextField

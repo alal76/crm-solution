@@ -173,7 +173,10 @@ const moduleIcons: { [key: string]: React.ReactNode } = {
 // Available modules for linking
 const AVAILABLE_MODULES = [
   'Customers', 'Contacts', 'Leads', 'Opportunities', 'Products',
-  'Services', 'Campaigns', 'Quotes', 'Tasks', 'Activities', 'Notes'
+  'Services', 'Campaigns', 'Quotes', 'Tasks', 'Activities', 'Notes',
+  'Accounts', 'Interactions', 'ServiceRequests', 'Departments', 'Users',
+  'Pipelines', 'Stages', 'Workflows', 'EmailAddresses', 'PhoneNumbers',
+  'Addresses', 'SocialMediaAccounts'
 ];
 
 const ModuleFieldSettingsTab: React.FC = () => {

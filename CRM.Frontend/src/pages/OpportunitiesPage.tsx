@@ -34,6 +34,7 @@ import {
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 
@@ -413,21 +414,17 @@ function OpportunitiesPage() {
             required
           />
           
-          <FormControl fullWidth margin="normal" required>
-            <InputLabel>Customer</InputLabel>
-            <Select
+          <Box sx={{ mt: 2 }}>
+            <EntitySelect
+              entityType="customer"
               name="customerId"
               value={formData.customerId}
               onChange={handleSelectChange}
               label="Customer"
-            >
-              {customers.map(cust => (
-                <MenuItem key={cust.id} value={cust.id}>
-                  {cust.firstName} {cust.lastName} {cust.company ? `(${cust.company})` : ''}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              required
+              showAddNew={true}
+            />
+          </Box>
 
           <TextField
             fullWidth
@@ -478,43 +475,27 @@ function OpportunitiesPage() {
             required
           />
 
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Product (Optional)</InputLabel>
-            <Select
+          <Box sx={{ mt: 2 }}>
+            <EntitySelect
+              entityType="product"
               name="productId"
               value={formData.productId || ''}
               onChange={handleSelectChange}
               label="Product (Optional)"
-            >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              {products.map(prod => (
-                <MenuItem key={prod.id} value={prod.id}>
-                  {prod.name} (${prod.price?.toLocaleString()})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              showAddNew={true}
+            />
+          </Box>
 
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Assigned To (Optional)</InputLabel>
-            <Select
+          <Box sx={{ mt: 2 }}>
+            <EntitySelect
+              entityType="user"
               name="assignedToUserId"
               value={formData.assignedToUserId || ''}
               onChange={handleSelectChange}
               label="Assigned To (Optional)"
-            >
-              <MenuItem value="">
-                <em>Unassigned</em>
-              </MenuItem>
-              {users.map(user => (
-                <MenuItem key={user.id} value={user.id}>
-                  {user.firstName} {user.lastName} ({user.username})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              showAddNew={false}
+            />
+          </Box>
 
           <TextField
             fullWidth

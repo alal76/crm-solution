@@ -20,10 +20,12 @@ namespace CRM.Infrastructure.Services;
 public class ContactsService : IContactsService, IContactInputPort
 {
     private readonly CrmDbContext _context;
+    private readonly IContactInfoService _contactInfoService;
 
-    public ContactsService(CrmDbContext context)
+    public ContactsService(CrmDbContext context, IContactInfoService contactInfoService)
     {
         _context = context;
+        _contactInfoService = contactInfoService;
     }
 
     public async Task<ContactDto> GetByIdAsync(int id)
@@ -35,7 +37,7 @@ public class ContactsService : IContactsService, IContactInputPort
         if (contact == null)
             throw new InvalidOperationException($"Contact with ID {id} not found");
 
-        return MapToDto(contact);
+        return await MapToDtoAsync(contact);
     }
 
     public async Task<List<ContactDto>> GetAllAsync()
@@ -46,7 +48,12 @@ public class ContactsService : IContactsService, IContactInputPort
             .ThenBy(c => c.FirstName)
             .ToListAsync();
 
-        return contacts.Select(MapToDto).ToList();
+        var dtos = new List<ContactDto>();
+        foreach (var contact in contacts)
+        {
+            dtos.Add(await MapToDtoAsync(contact));
+        }
+        return dtos;
     }
 
     public async Task<List<ContactDto>> GetByTypeAsync(string contactType)
@@ -61,7 +68,12 @@ public class ContactsService : IContactsService, IContactInputPort
             .ThenBy(c => c.FirstName)
             .ToListAsync();
 
-        return contacts.Select(MapToDto).ToList();
+        var dtos = new List<ContactDto>();
+        foreach (var contact in contacts)
+        {
+            dtos.Add(await MapToDtoAsync(contact));
+        }
+        return dtos;
     }
 
     public async Task<ContactDto> CreateAsync(CreateContactRequest request, string modifiedBy)
@@ -188,7 +200,7 @@ public class ContactsService : IContactsService, IContactInputPort
             await _context.SaveChangesAsync();
         }
 
-        return MapToDto(contact);
+        return await MapToDtoAsync(contact);
     }
 
     public async Task<ContactDto> UpdateAsync(int id, UpdateContactRequest request, string modifiedBy)
@@ -380,7 +392,7 @@ public class ContactsService : IContactsService, IContactInputPort
             await _context.SaveChangesAsync();
         }
 
-        return MapToDto(contact);
+        return await MapToDtoAsync(contact);
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -443,7 +455,7 @@ public class ContactsService : IContactsService, IContactInputPort
         return true;
     }
 
-    private static ContactDto MapToDto(Contact contact)
+    private async Task<ContactDto> MapToDtoAsync(Contact contact)
     {
         return new ContactDto
         {
@@ -480,7 +492,13 @@ public class ContactsService : IContactsService, IContactInputPort
                     Url = l.Url,
                     Handle = l.Handle
                 })
-                .ToList()
+                .ToList(),
+            
+            // === Normalized Contact Info Collections ===
+            EmailAddresses = await _contactInfoService.GetEmailAddressesAsync(EntityType.Contact, contact.Id),
+            PhoneNumbers = await _contactInfoService.GetPhoneNumbersAsync(EntityType.Contact, contact.Id),
+            Addresses = await _contactInfoService.GetAddressesAsync(EntityType.Contact, contact.Id),
+            SocialMediaAccounts = await _contactInfoService.GetSocialMediaAccountsAsync(EntityType.Contact, contact.Id)
         };
     }
 
@@ -495,7 +513,12 @@ public class ContactsService : IContactsService, IContactInputPort
             .ThenBy(c => c.FirstName)
             .ToListAsync();
 
-        return contacts.Select(MapToDto).ToList();
+        var dtos = new List<ContactDto>();
+        foreach (var contact in contacts)
+        {
+            dtos.Add(await MapToDtoAsync(contact));
+        }
+        return dtos;
     }
 
     public async Task AssignToCustomerAsync(int contactId, int customerId)

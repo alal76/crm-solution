@@ -35,6 +35,7 @@ public class CustomerService : ICustomerService, ICustomerInputPort
     private readonly IRepository<Customer> _customerRepository;
     private readonly IRepository<CustomerContact> _customerContactRepository;
     private readonly IContactsService _contactsService;
+    private readonly IContactInfoService _contactInfoService;
     private readonly IRepository<Address> _addressRepository;
     private readonly IRepository<ContactDetail> _contactDetailRepository;
     private readonly IRepository<SocialAccount> _socialAccountRepository;
@@ -53,6 +54,7 @@ public class CustomerService : ICustomerService, ICustomerInputPort
         IRepository<Customer> customerRepository,
         IRepository<CustomerContact> customerContactRepository,
         IContactsService contactsService,
+        IContactInfoService contactInfoService,
         IRepository<Address> addressRepository,
         IRepository<ContactDetail> contactDetailRepository,
         IRepository<SocialAccount> socialAccountRepository,
@@ -64,6 +66,7 @@ public class CustomerService : ICustomerService, ICustomerInputPort
         _customerRepository = customerRepository;
         _customerContactRepository = customerContactRepository;
         _contactsService = contactsService;
+        _contactInfoService = contactInfoService;
         _addressRepository = addressRepository;
         _contactDetailRepository = contactDetailRepository;
         _socialAccountRepository = socialAccountRepository;
@@ -1020,7 +1023,13 @@ public class CustomerService : ICustomerService, ICustomerInputPort
             UpdatedAt = customer.UpdatedAt,
             DisplayName = customer.DisplayName,
             Contacts = contactDtos,
-            ContactCount = contactCount
+            ContactCount = contactCount,
+            
+            // === Normalized Contact Info Collections ===
+            EmailAddresses = await _contactInfoService.GetEmailAddressesAsync(EntityType.Customer, customer.Id),
+            PhoneNumbers = await _contactInfoService.GetPhoneNumbersAsync(EntityType.Customer, customer.Id),
+            Addresses = await _contactInfoService.GetAddressesAsync(EntityType.Customer, customer.Id),
+            SocialMediaAccounts = await _contactInfoService.GetSocialMediaAccountsAsync(EntityType.Customer, customer.Id)
         };
     }
 

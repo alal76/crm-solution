@@ -23,6 +23,7 @@ import {
 } from '../utils/constants';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 
@@ -710,13 +711,14 @@ function TasksPage() {
           <TabPanel value={dialogTab} index={2}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Assigned To</InputLabel>
-                  <Select name="assignedToUserId" value={formData.assignedToUserId} onChange={handleSelectChange} label="Assigned To">
-                    <MenuItem value="">Unassigned</MenuItem>
-                    {users.map(u => <MenuItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</MenuItem>)}
-                  </Select>
-                </FormControl>
+                <EntitySelect
+                  entityType="user"
+                  name="assignedToUserId"
+                  value={formData.assignedToUserId}
+                  onChange={handleSelectChange}
+                  label="Assigned To"
+                  showAddNew={false}
+                />
               </Grid>
             </Grid>
           </TabPanel>

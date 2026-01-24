@@ -39,6 +39,7 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import LookupSelect from '../components/LookupSelect';
+import EntitySelect from '../components/EntitySelect';
 import { useState, useEffect, useCallback } from 'react';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import AddIcon from '@mui/icons-material/Add';
@@ -1064,64 +1065,37 @@ function ServiceRequestsPage() {
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Customer</InputLabel>
-                <Select
-                  value={formData.customerId || ''}
-                  onChange={(e: SelectChangeEvent<string | number>) =>
-                    handleFormChange('customerId', e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  label="Customer"
-                  disabled={viewMode}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {customers.map((cust) => (
-                    <MenuItem key={cust.id} value={cust.id}>
-                      {cust.firstName} {cust.lastName} - {cust.company}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <EntitySelect
+                entityType="customer"
+                name="customerId"
+                value={formData.customerId || ''}
+                onChange={(e: any) => handleFormChange('customerId', e.target.value ? Number(e.target.value) : undefined)}
+                label="Customer"
+                disabled={viewMode}
+                showAddNew={!viewMode}
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Contact</InputLabel>
-                <Select
-                  value={formData.contactId || ''}
-                  onChange={(e: SelectChangeEvent<string | number>) =>
-                    handleFormChange('contactId', e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  label="Contact"
-                  disabled={viewMode}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {contacts.map((contact) => (
-                    <MenuItem key={contact.id} value={contact.id}>
-                      {contact.firstName} {contact.lastName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <EntitySelect
+                entityType="contact"
+                name="contactId"
+                value={formData.contactId || ''}
+                onChange={(e: any) => handleFormChange('contactId', e.target.value ? Number(e.target.value) : undefined)}
+                label="Contact"
+                disabled={viewMode}
+                showAddNew={!viewMode}
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Assign to User</InputLabel>
-                <Select
-                  value={formData.assignedToUserId || ''}
-                  onChange={(e: SelectChangeEvent<string | number>) =>
-                    handleFormChange('assignedToUserId', e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  label="Assign to User"
-                  disabled={viewMode}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {users.map((user) => (
-                    <MenuItem key={user.id} value={user.id}>
-                      {user.firstName} {user.lastName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <EntitySelect
+                entityType="user"
+                name="assignedToUserId"
+                value={formData.assignedToUserId || ''}
+                onChange={(e: any) => handleFormChange('assignedToUserId', e.target.value ? Number(e.target.value) : undefined)}
+                label="Assign to User"
+                disabled={viewMode}
+                showAddNew={false}
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>

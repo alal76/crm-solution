@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from './contactInfoService';
 
 export interface Customer {
   id?: number;
@@ -8,6 +9,12 @@ export interface Customer {
   phone: string;
   company: string;
   lifecycleStage: number;
+  
+  // Normalized Contact Info Collections
+  emailAddresses?: LinkedEmailDto[];
+  phoneNumbers?: LinkedPhoneDto[];
+  addresses?: LinkedAddressDto[];
+  socialMediaAccounts?: LinkedSocialMediaDto[];
 }
 
 export const customerService = {
