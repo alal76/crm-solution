@@ -234,6 +234,9 @@ builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();
 builder.Services.AddSingleton<IDemoDbContextFactory, DemoDbContextFactory>();
 builder.Services.AddScoped<DemoDataSeederService>();
+// Database Sync BVT Service - runs on startup to ensure db consistency
+builder.Services.AddSingleton<IDatabaseSyncService, DatabaseSyncService>();
+builder.Services.AddHostedService<DatabaseSyncHostedService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields
 builder.Services.AddScoped<NormalizationService>();

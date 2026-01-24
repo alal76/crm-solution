@@ -23,6 +23,9 @@ public class SystemSettingsDto
     public bool WorkflowsEnabled { get; set; }
     public bool ReportsEnabled { get; set; }
     public bool DashboardEnabled { get; set; }
+    public bool EmailEnabled { get; set; }
+    public bool WhatsAppEnabled { get; set; }
+    public bool SocialMediaEnabled { get; set; }
     
     #endregion
     
@@ -162,6 +165,9 @@ public class UpdateSystemSettingsRequest
     public bool? WorkflowsEnabled { get; set; }
     public bool? ReportsEnabled { get; set; }
     public bool? DashboardEnabled { get; set; }
+    public bool? EmailEnabled { get; set; }
+    public bool? WhatsAppEnabled { get; set; }
+    public bool? SocialMediaEnabled { get; set; }
     
     // Company/Branding
     public string? CompanyName { get; set; }

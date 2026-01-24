@@ -77,11 +77,13 @@ import ServiceRequestSettingsTab from '../components/settings/ServiceRequestSett
 import DeploymentSettingsTab from '../components/settings/DeploymentSettingsTab';
 import MonitoringSettingsTab from '../components/settings/MonitoringSettingsTab';
 import MasterDataSettingsTab from '../components/settings/MasterDataSettingsTab';
+import FeatureManagementTab from '../components/settings/FeatureManagementTab';
 import logo from '../assets/logo.png';
 import {
   Cloud as CloudIcon,
   Monitor as MonitorIcon,
   Storage as MasterDataIcon,
+  ToggleOn as FeatureToggleIcon,
 } from '@mui/icons-material';
 
 interface ColorPalette {
@@ -1388,6 +1390,12 @@ function SettingsPage() {
           label: 'Security',
           icon: <SecurityIcon sx={{ fontSize: 20 }} />,
           component: <SecuritySettingsTab />,
+        },
+        {
+          id: 'features',
+          label: 'Features & Modules',
+          icon: <FeatureToggleIcon sx={{ fontSize: 20 }} />,
+          component: <FeatureManagementTab />,
         },
       ],
     },

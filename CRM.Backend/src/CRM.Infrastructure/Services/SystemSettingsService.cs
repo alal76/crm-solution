@@ -118,6 +118,9 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             if (request.WorkflowsEnabled.HasValue) settings.WorkflowsEnabled = request.WorkflowsEnabled.Value;
             if (request.ReportsEnabled.HasValue) settings.ReportsEnabled = request.ReportsEnabled.Value;
             if (request.DashboardEnabled.HasValue) settings.DashboardEnabled = request.DashboardEnabled.Value;
+            if (request.EmailEnabled.HasValue) settings.EmailEnabled = request.EmailEnabled.Value;
+            if (request.WhatsAppEnabled.HasValue) settings.WhatsAppEnabled = request.WhatsAppEnabled.Value;
+            if (request.SocialMediaEnabled.HasValue) settings.SocialMediaEnabled = request.SocialMediaEnabled.Value;
             
             if (!string.IsNullOrEmpty(request.CompanyName)) settings.CompanyName = request.CompanyName;
             if (request.CompanyLogoUrl != null) settings.CompanyLogoUrl = request.CompanyLogoUrl;
@@ -196,6 +199,9 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             WorkflowsEnabled = settings.WorkflowsEnabled,
             ReportsEnabled = settings.ReportsEnabled,
             DashboardEnabled = settings.DashboardEnabled,
+            EmailEnabled = settings.EmailEnabled,
+            WhatsAppEnabled = settings.WhatsAppEnabled,
+            SocialMediaEnabled = settings.SocialMediaEnabled,
             
             CompanyName = settings.CompanyName,
             CompanyLogoUrl = settings.CompanyLogoUrl,

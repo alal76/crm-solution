@@ -27,11 +27,11 @@ public interface IDemoModeState
 
 /// <summary>
 /// Thread-safe singleton implementation for demo mode state.
-/// Defaults to demo mode enabled.
+/// Defaults to production mode (demo disabled).
 /// </summary>
 public class DemoModeState : IDemoModeState
 {
-    private volatile bool _isDemoMode = true; // Default to demo mode
+    private volatile bool _isDemoMode = false; // Default to production mode
     private readonly object _lock = new();
     
     public event EventHandler<bool>? DemoModeChanged;
