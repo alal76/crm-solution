@@ -88,8 +88,8 @@ function NavigationContent() {
   // Nav item ID to path/icon mapping (defined outside useMemo for stability)
   const navItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
     'dashboard': { label: 'Dashboard', icon: DashboardIcon, path: '/', menuName: 'Dashboard' },
-    'customers': { label: 'Customers', icon: PeopleIcon, path: '/customers', menuName: 'Customers' },
-    'customer-overview': { label: 'Customer Overview', icon: PersonSearchIcon, path: '/customer-overview', menuName: 'CustomerOverview' },
+    'customers': { label: 'Accounts', icon: PeopleIcon, path: '/customers', menuName: 'Customers' }, // Industry-standard label
+    'customer-overview': { label: 'Account Overview', icon: PersonSearchIcon, path: '/customer-overview', menuName: 'CustomerOverview' },
     'contacts': { label: 'Contacts', icon: PeopleIcon, path: '/contacts', menuName: 'Contacts' },
     'leads': { label: 'Leads', icon: PeopleIcon, path: '/leads', menuName: 'Leads' },
     'opportunities': { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', menuName: 'Opportunities' },

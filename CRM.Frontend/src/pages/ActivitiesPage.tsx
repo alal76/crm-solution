@@ -209,7 +209,7 @@ function ActivitiesPage() {
                 startAdornment={<FilterIcon sx={{ mr: 1, color: '#666' }} />}
               >
                 <MenuItem value="all">All Activities</MenuItem>
-                <MenuItem value="Customer">Customers</MenuItem>
+                <MenuItem value="Customer">Accounts</MenuItem>
                 <MenuItem value="Contact">Contacts</MenuItem>
                 <MenuItem value="Opportunity">Opportunities</MenuItem>
                 <MenuItem value="Task">Tasks</MenuItem>

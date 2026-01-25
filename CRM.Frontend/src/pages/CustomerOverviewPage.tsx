@@ -296,10 +296,10 @@ function CustomerOverviewPage() {
           </Box>
           <Box>
             <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-              Customer Overview
+              Account Overview
             </Typography>
             <Typography color="textSecondary" variant="body2">
-              360° view of customer information, contacts, news and social feeds
+              360° view of account information, contacts, news and social feeds
             </Typography>
           </Box>
         </Box>
@@ -597,7 +597,7 @@ function CustomerOverviewPage() {
                               </Typography>
                               <Grid container spacing={2}>
                                 <Grid item xs={6} md={3}>
-                                  <Typography variant="caption" color="textSecondary">Customer Since</Typography>
+                                  <Typography variant="caption" color="textSecondary">Account Since</Typography>
                                   <Typography variant="body2">
                                     {selectedCustomer.createdAt 
                                       ? new Date(selectedCustomer.createdAt).toLocaleDateString() 
@@ -611,7 +611,7 @@ function CustomerOverviewPage() {
                                   </Typography>
                                 </Grid>
                                 <Grid item xs={6} md={3}>
-                                  <Typography variant="caption" color="textSecondary">Customer Type</Typography>
+                                  <Typography variant="caption" color="textSecondary">Account Type</Typography>
                                   <Typography variant="body2">
                                     {getCustomerType(selectedCustomer.customerType)?.label || 'N/A'}
                                   </Typography>
@@ -786,10 +786,10 @@ function CustomerOverviewPage() {
                 <CardContent sx={{ textAlign: 'center', py: 10 }}>
                   <BusinessIcon sx={{ fontSize: 80, color: '#E8DEF8', mb: 2 }} />
                   <Typography variant="h6" color="textSecondary">
-                    Select a customer to view details
+                    Select an account to view details
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    Use the search panel on the left to find and select a customer
+                    Use the search panel on the left to find and select an account
                   </Typography>
                 </CardContent>
               </Card>

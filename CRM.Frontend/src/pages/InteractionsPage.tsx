@@ -924,10 +924,10 @@ function InteractionsPage() {
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Autocomplete
             options={customers}
-            getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Customer #${c.id}`}
+            getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}
             value={customers.find(c => c.id === parseInt(linkForm.customerId)) || null}
             onChange={(_, v) => setLinkForm({ ...linkForm, customerId: v ? String(v.id) : '' })}
-            renderInput={(params) => <TextField {...params} label="Customer" fullWidth />}
+            renderInput={(params) => <TextField {...params} label="Account" fullWidth />}
           />
           <Autocomplete
             options={contacts.filter(c => !linkForm.customerId || c.customerId === parseInt(linkForm.customerId))}
@@ -1063,10 +1063,10 @@ function InteractionsPage() {
           />
           <Autocomplete
             options={customers}
-            getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Customer #${c.id}`}
+            getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}
             value={customers.find(c => c.id === parseInt(contactForm.customerId)) || null}
             onChange={(_, v) => setContactForm({ ...contactForm, customerId: v ? String(v.id) : '' })}
-            renderInput={(params) => <TextField {...params} label="Customer" fullWidth />}
+            renderInput={(params) => <TextField {...params} label="Account" fullWidth />}
           />
           <FormControlLabel
             control={
@@ -1075,7 +1075,7 @@ function InteractionsPage() {
                 onChange={(e) => setContactForm({ ...contactForm, createCustomerIfNeeded: e.target.checked })}
               />
             }
-            label="Create new customer if none selected"
+            label="Create new account if none selected"
           />
         </Stack>
       </DialogContent>

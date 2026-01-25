@@ -49,9 +49,13 @@ namespace CRM.Api.Controllers;
 /// - PUT    /api/customers/{id}         - Update customer
 /// - DELETE /api/customers/{id}         - Delete customer
 /// - POST   /api/customers/{id}/contacts - Link contact to organization
+/// 
+/// INDUSTRY STANDARD ALIAS:
+/// All routes are also available under /api/accounts for industry-standard naming.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Route("api/accounts")] // Industry-standard alias (Salesforce, HubSpot, Dynamics naming)
 [Authorize]
 public class CustomersController : ControllerBase
 {

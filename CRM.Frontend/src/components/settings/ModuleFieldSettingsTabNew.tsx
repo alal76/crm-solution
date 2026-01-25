@@ -155,7 +155,8 @@ interface ModuleUIConfig {
 // Icon map for modules
 const moduleIcons: { [key: string]: React.ReactNode } = {
   Dashboard: <DashboardIcon />,
-  Customers: <PeopleIcon />,
+  Accounts: <PeopleIcon />,    // Industry-standard terminology
+  Customers: <PeopleIcon />,   // API compatibility
   Contacts: <ContactsIcon />,
   Leads: <PersonAddIcon />,
   Opportunities: <TrendingUpIcon />,

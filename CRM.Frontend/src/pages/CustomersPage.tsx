@@ -30,7 +30,7 @@ import logo from '../assets/logo.png';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
-  { name: 'customerType', label: 'Customer Type', type: 'select', options: [...CUSTOMER_TYPE_OPTIONS] },
+  { name: 'customerType', label: 'Account Type', type: 'select', options: [...CUSTOMER_TYPE_OPTIONS] },
   { name: 'firstName', label: 'First Name', type: 'text' },
   { name: 'lastName', label: 'Last Name', type: 'text' },
   { name: 'company', label: 'Business Name', type: 'text' },
@@ -543,7 +543,7 @@ function CustomersPage() {
             <Box sx={{ width: 40, height: 40, flexShrink: 0 }}>
               <img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>Customers</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>Accounts</Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Tooltip title="Refresh field configurations">
@@ -557,7 +557,7 @@ function CustomersPage() {
             </Tooltip>
             <ImportExportButtons
               entityType="customers"
-              entityLabel="Customers"
+              entityLabel="Accounts"
               onImportComplete={fetchCustomers}
             />
             <Button
@@ -566,7 +566,7 @@ function CustomersPage() {
               onClick={() => handleOpenDialog()}
               sx={{ backgroundColor: '#6750A4' }}
             >
-              Add Customer
+              Add Account
             </Button>
           </Box>
         </Box>
@@ -702,16 +702,16 @@ function CustomersPage() {
             </TableContainer>
             {customers.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
-                No customers found. Add your first customer to get started.
+                No accounts found. Add your first account to get started.
               </Typography>
             )}
           </CardContent>
         </Card>
       </Container>
 
-      {/* Add/Edit Customer Dialog */}
+      {/* Add/Edit Account Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ pb: 0 }}>{editingId ? 'Edit Customer' : 'Add Customer'}</DialogTitle>
+        <DialogTitle sx={{ pb: 0 }}>{editingId ? 'Edit Account' : 'Add Account'}</DialogTitle>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
           <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} variant="scrollable" scrollButtons="auto">
             {visibleTabs.map((tab, idx) => (

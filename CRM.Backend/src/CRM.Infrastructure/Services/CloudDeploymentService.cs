@@ -258,8 +258,11 @@ public class CloudDeploymentService : ICloudDeploymentService
         _context.CloudDeployments.Add(deployment);
         await _context.SaveChangesAsync();
 
-        // Reload with provider
-        await _context.Entry(deployment).Reference(d => d.CloudProvider).LoadAsync();
+        // Reload with provider (cast to DbContext for Entry method)
+        if (_context is DbContext dbContext)
+        {
+            await dbContext.Entry(deployment).Reference(d => d.CloudProvider).LoadAsync();
+        }
 
         _logger.LogInformation("Created deployment: {Name} on {Provider}", deployment.Name, provider.Name);
 

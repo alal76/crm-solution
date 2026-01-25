@@ -86,11 +86,11 @@ const HelpPage: React.FC = () => {
       topics: ['Login', 'Dashboard', 'Navigation', 'Profile Setup'],
     },
     {
-      title: 'Customer Management',
-      description: 'Master customer lifecycle management from lead to loyal customer.',
+      title: 'Account Management',
+      description: 'Master account lifecycle management from lead to loyal customer.',
       duration: '20 min',
       level: 'Beginner',
-      topics: ['Adding Customers', 'Customer Categories', 'Lifecycle Stages', 'Search & Filters'],
+      topics: ['Adding Accounts', 'Account Categories', 'Lifecycle Stages', 'Search & Filters'],
     },
     {
       title: 'Sales Pipeline Management',
@@ -101,10 +101,10 @@ const HelpPage: React.FC = () => {
     },
     {
       title: 'Contact & Communication Tracking',
-      description: 'Manage contacts and log all customer interactions.',
+      description: 'Manage contacts and log all account interactions.',
       duration: '15 min',
       level: 'Beginner',
-      topics: ['Adding Contacts', 'Linking to Customers', 'Interaction Logging', 'Contact History'],
+      topics: ['Adding Contacts', 'Linking to Accounts', 'Interaction Logging', 'Contact History'],
     },
     {
       title: 'Task & Activity Management',
@@ -160,8 +160,8 @@ const HelpPage: React.FC = () => {
       answer: 'Go to Settings > Security tab. Click "Enable 2FA" and scan the QR code with your authenticator app (Google Authenticator, Authy, etc.). Enter the 6-digit code to confirm setup. Save your backup codes in a secure location.',
     },
     {
-      question: 'How do I add a new customer?',
-      answer: 'Navigate to Customers from the sidebar menu. Click the "Add Customer" button. Fill in the required fields (Name, Email) and optional details. Select the customer category (Individual/Organization) and lifecycle stage. Click Save to create the customer.',
+      question: 'How do I add a new account?',
+      answer: 'Navigate to Accounts from the sidebar menu. Click the "Add Account" button. Fill in the required fields (Name, Email) and optional details. Select the account category (Individual/Organization) and lifecycle stage. Click Save to create the account.',
     },
     {
       question: 'What are the different opportunity stages?',
@@ -169,7 +169,7 @@ const HelpPage: React.FC = () => {
     },
     {
       question: 'How do I generate a quote?',
-      answer: 'Go to Quotes section. Click "Create Quote". Link it to an opportunity and customer. Add products from the catalog with quantities. Set discounts if applicable. Save and optionally export or send to customer.',
+      answer: 'Go to Quotes section. Click "Create Quote". Link it to an opportunity and account. Add products from the catalog with quantities. Set discounts if applicable. Save and optionally export or send to customer.',
     },
     {
       question: 'How do I manage user permissions?',
@@ -195,7 +195,7 @@ const HelpPage: React.FC = () => {
 
   const quickLinks = [
     { icon: <DashboardIcon />, label: 'Dashboard Overview', path: '/dashboard' },
-    { icon: <PeopleIcon />, label: 'Customer Management', path: '/customers' },
+    { icon: <PeopleIcon />, label: 'Account Management', path: '/customers' },
     { icon: <ContactIcon />, label: 'Contact Management', path: '/contacts' },
     { icon: <SalesIcon />, label: 'Opportunities', path: '/opportunities' },
     { icon: <TaskIcon />, label: 'My Queue', path: '/my-queue' },
@@ -335,7 +335,7 @@ const HelpPage: React.FC = () => {
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><Typography color="primary">5.</Typography></ListItemIcon>
-                    <ListItemText primary="Add your first customer" />
+                    <ListItemText primary="Add your first account" />
                   </ListItem>
                 </List>
               </CardContent>
