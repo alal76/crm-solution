@@ -43,3 +43,13 @@ build/
 appsettings.*.json
 !appsettings.json
 .docker-remote-config.json
+
+# Large binary files - use Git LFS or exclude
+artifacts/**/*.tar.gz
+artifacts/**/api/CRM.Api
+artifacts/**/*.so
+database/master_data/002_geonames_zipcodes.sql
+database/master_data/allCountries.txt
+database/master_data/allCountries.zip
+*.tar.gz
+
