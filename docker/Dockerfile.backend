@@ -1,64 +1,78 @@
-# Build stage
+# syntax=docker/dockerfile:1.4
+# =============================================================================
+# CRM Backend - Optimized Multi-Stage Dockerfile
+# =============================================================================
+# Features:
+#   - Layer caching for faster rebuilds
+#   - Separate restore and build stages
+#   - Minimal runtime image
+# =============================================================================
+
+# ============================================
+# Stage 1: Build (restore + compile)
+# ============================================
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS builder
 
 WORKDIR /src
 
-# Copy solution and source files
+# Copy only project files first for layer caching
 COPY CRM.Backend/CRM.sln ./
-COPY CRM.Backend/src/ ./src/
+COPY CRM.Backend/src/CRM.Core/CRM.Core.csproj ./src/CRM.Core/
+COPY CRM.Backend/src/CRM.Infrastructure/CRM.Infrastructure.csproj ./src/CRM.Infrastructure/
+COPY CRM.Backend/src/CRM.Api/CRM.Api.csproj ./src/CRM.Api/
+COPY CRM.Backend/src/CRM.DatabaseSeeder/CRM.DatabaseSeeder.csproj ./src/CRM.DatabaseSeeder/
 
-# Restore dependencies
+# Restore dependencies (this layer is cached unless project files change)
 RUN dotnet restore CRM.sln
 
-# Build the solution
-RUN dotnet build CRM.sln -c Release --no-restore
+# Copy all source files
+COPY CRM.Backend/src/ ./src/
 
-# Publish the API project
-RUN dotnet publish "src/CRM.Api/CRM.Api.csproj" -c Release -o /app/publish --no-build
+# Build and publish (combined for reliability)
+RUN dotnet build CRM.sln -c Release && \
+    dotnet publish "src/CRM.Api/CRM.Api.csproj" -c Release -o /app/publish --no-build
 
-# Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# ============================================
+# Stage 2: Runtime (minimal image)
+# ============================================
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
 
 WORKDIR /app
 
-# Create database directory and wwwroot/uploads with proper permissions
-RUN mkdir -p /app/data && chmod 777 /app/data
-RUN mkdir -p /app/wwwroot/uploads/logos /app/wwwroot/uploads/users /app/wwwroot/uploads/customers /app/wwwroot/uploads/contacts && chmod -R 755 /app/wwwroot
-# Create SSL directory for certificate storage
-RUN mkdir -p /app/ssl && chmod 755 /app/ssl
+# Install minimal dependencies including ICU for globalization
+RUN apk add --no-cache curl mariadb-client icu-libs icu-data-full
 
-# Install curl and mariadb-client for health checks and connection validation
-RUN apt-get update && apt-get install -y curl mariadb-client-core && rm -rf /var/lib/apt/lists/*
+# Create directories with proper permissions
+RUN mkdir -p /app/data /app/ssl /app/wwwroot/uploads/logos /app/wwwroot/uploads/users /app/wwwroot/uploads/customers /app/wwwroot/uploads/contacts && \
+    chmod 777 /app/data && \
+    chmod -R 755 /app/wwwroot && \
+    chmod 755 /app/ssl
 
 # Copy published application
 COPY --from=builder /app/publish .
 
-# Copy SSL certificate if exists (optional - can be mounted via K8s secret)
-COPY ssl/server.pfx /app/ssl/server.pfx
+# Note: SSL certificate should be mounted via Kubernetes secret, not baked into image
+# Example K8s volume mount: /app/ssl/server.pfx
 
-# Create a startup script
-RUN echo '#!/bin/bash\n\
-set -e\n\
-echo "Starting CRM API..."\n\
-if [ -f /app/ssl/server.pfx ]; then\n\
-  echo "SSL certificate found - HTTPS will be available on port 5001"\n\
-else\n\
-  echo "No SSL certificate - running HTTP only on port 5000"\n\
-fi\n\
-exec "$@"' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+# Create startup script
+RUN printf '#!/bin/sh\nset -e\necho "Starting CRM API..."\nif [ -f /app/ssl/server.pfx ]; then\n  echo "SSL certificate found - HTTPS on port 5001"\nelse\n  echo "No SSL - HTTP only on port 5000"\nfi\nexec "$@"\n' > /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:5000/health || exit 1
+    CMD curl -f http://localhost:5000/health || exit 1
 
 EXPOSE 5000 5001
 
-ENV ASPNETCORE_URLS=http://+:5000
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-ENV SSL_CERT_PATH=/app/ssl/server.pfx
-ENV SSL_CERT_PASSWORD=CrmSslCert2024
-ENV HTTPS_PORT=5001
-ENV HTTP_PORT=5000
+# Environment configuration
+ENV ASPNETCORE_URLS=http://+:5000 \
+    DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    DOTNET_RUNNING_IN_CONTAINER=true \
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    SSL_CERT_PATH=/app/ssl/server.pfx \
+    SSL_CERT_PASSWORD=CrmSslCert2024 \
+    HTTPS_PORT=5001 \
+    HTTP_PORT=5000
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["dotnet", "CRM.Api.dll"]

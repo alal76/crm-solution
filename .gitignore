@@ -43,3 +43,8 @@ build/
 appsettings.*.json
 !appsettings.json
 .docker-remote-config.json
+# Build system
+.build-cache/
+scripts/build/build-config.local.env
+/tmp/crm-build-logs/
+*.build.log
