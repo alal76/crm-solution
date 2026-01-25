@@ -66,6 +66,17 @@ import {
   Message as CommunicationsIcon,
   SwapHoriz as InteractionsIcon,
   Tune as ChannelSettingsIcon,
+  Storage as StorageIcon,
+  Cloud as CloudIcon,
+  MonitorHeart as MonitorIcon,
+  Security as SecurityIcon,
+  ToggleOn as FeatureToggleIcon,
+  PersonAdd as PersonAddIcon,
+  Groups as GroupsIcon,
+  Login as LoginIcon,
+  Palette as PaletteIcon,
+  ViewModule as ModuleIcon,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
 
 interface NavCategory {
@@ -113,8 +124,26 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
   { id: 'communications', label: 'Communications', menuName: 'Communications', icon: 'CommunicationsIcon', order: 14, visible: true, isAdmin: false, category: 'productivity' },
   { id: 'interactions', label: 'Interactions', menuName: 'Interactions', icon: 'InteractionsIcon', order: 15, visible: true, isAdmin: false, category: 'productivity' },
   { id: 'workflows', label: 'Workflows', menuName: 'Workflows', icon: 'AutomationIcon', order: 16, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'channel-settings', label: 'Channel Settings', menuName: 'ChannelSettings', icon: 'ChannelSettingsIcon', order: 17, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'settings', label: 'Admin Settings', menuName: 'Settings', icon: 'SettingsIcon', order: 18, visible: true, isAdmin: true, category: 'admin' },
+  // System Administration
+  { id: 'database-settings', label: 'Database', menuName: 'DatabaseSettings', icon: 'StorageIcon', order: 17, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'deployment-settings', label: 'Deployment', menuName: 'DeploymentSettings', icon: 'CloudIcon', order: 18, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'monitoring-settings', label: 'Monitoring', menuName: 'MonitoringSettings', icon: 'MonitorIcon', order: 19, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'security-settings', label: 'Security', menuName: 'SecuritySettings', icon: 'SecurityIcon', order: 20, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'feature-management', label: 'Features', menuName: 'FeatureManagement', icon: 'FeatureToggleIcon', order: 21, visible: true, isAdmin: true, category: 'admin' },
+  // User Administration
+  { id: 'user-management', label: 'Users', menuName: 'UserManagement', icon: 'PeopleIcon', order: 22, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'user-approvals', label: 'Approvals', menuName: 'UserApprovals', icon: 'PersonAddIcon', order: 23, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'group-management', label: 'Groups', menuName: 'GroupManagement', icon: 'GroupsIcon', order: 24, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'social-login', label: 'Social Login', menuName: 'SocialLogin', icon: 'LoginIcon', order: 25, visible: true, isAdmin: true, category: 'admin' },
+  // CRM Administration
+  { id: 'branding-settings', label: 'Branding', menuName: 'BrandingSettings', icon: 'PaletteIcon', order: 26, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'navigation-settings', label: 'Navigation', menuName: 'NavigationSettings', icon: 'MenuIcon', order: 27, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'module-fields', label: 'Modules & Fields', menuName: 'ModuleFields', icon: 'ModuleIcon', order: 28, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'sr-definitions', label: 'Service Requests', menuName: 'ServiceRequestDefinitions', icon: 'SupportAgentIcon', order: 29, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'master-data', label: 'Master Data', menuName: 'MasterData', icon: 'StorageIcon', order: 30, visible: true, isAdmin: true, category: 'admin' },
+  // Legacy items
+  { id: 'channel-settings', label: 'Channel Settings', menuName: 'ChannelSettings', icon: 'ChannelSettingsIcon', order: 31, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'settings', label: 'All Settings', menuName: 'Settings', icon: 'SettingsIcon', order: 32, visible: true, isAdmin: true, category: 'admin' },
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -134,6 +163,17 @@ const iconMap: Record<string, React.ReactNode> = {
   CommunicationsIcon: <CommunicationsIcon />,
   InteractionsIcon: <InteractionsIcon />,
   ChannelSettingsIcon: <ChannelSettingsIcon />,
+  StorageIcon: <StorageIcon />,
+  CloudIcon: <CloudIcon />,
+  MonitorIcon: <MonitorIcon />,
+  SecurityIcon: <SecurityIcon />,
+  FeatureToggleIcon: <FeatureToggleIcon />,
+  PersonAddIcon: <PersonAddIcon />,
+  GroupsIcon: <GroupsIcon />,
+  LoginIcon: <LoginIcon />,
+  PaletteIcon: <PaletteIcon />,
+  ModuleIcon: <ModuleIcon />,
+  MenuIcon: <MenuIcon />,
 };
 
 function NavigationSettingsTab() {

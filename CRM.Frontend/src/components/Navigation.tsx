@@ -40,6 +40,17 @@ import {
   Forum as CommunicationsIcon,
   SwapHoriz as InteractionsIcon,
   SettingsInputAntenna as ChannelSettingsIcon,
+  // Admin section icons
+  Storage as StorageIcon,
+  Cloud as CloudIcon,
+  Monitor as MonitorIcon,
+  Security as SecurityIcon,
+  ToggleOn as FeatureToggleIcon,
+  PersonAdd as PersonAddIcon,
+  Groups as GroupsIcon,
+  Login as LoginIcon,
+  Palette as PaletteIcon,
+  ViewModule as ModuleIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -106,8 +117,26 @@ function NavigationContent() {
   }), []);
 
   const adminItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
+    // System Administration
+    'database-settings': { label: 'Database', icon: StorageIcon, path: '/admin/database', menuName: 'DatabaseSettings' },
+    'deployment-settings': { label: 'Deployment', icon: CloudIcon, path: '/admin/deployment', menuName: 'DeploymentSettings' },
+    'monitoring-settings': { label: 'Monitoring', icon: MonitorIcon, path: '/admin/monitoring', menuName: 'MonitoringSettings' },
+    'security-settings': { label: 'Security', icon: SecurityIcon, path: '/admin/security', menuName: 'SecuritySettings' },
+    'feature-management': { label: 'Features', icon: FeatureToggleIcon, path: '/admin/features', menuName: 'FeatureManagement' },
+    // User Administration
+    'user-management': { label: 'Users', icon: PeopleIcon, path: '/admin/users', menuName: 'UserManagement' },
+    'user-approvals': { label: 'Approvals', icon: PersonAddIcon, path: '/admin/approvals', menuName: 'UserApprovals' },
+    'group-management': { label: 'Groups', icon: GroupsIcon, path: '/admin/groups', menuName: 'GroupManagement' },
+    'social-login': { label: 'Social Login', icon: LoginIcon, path: '/admin/social-login', menuName: 'SocialLogin' },
+    // CRM Administration
+    'branding-settings': { label: 'Branding', icon: PaletteIcon, path: '/admin/branding', menuName: 'BrandingSettings' },
+    'navigation-settings': { label: 'Navigation', icon: MenuIcon, path: '/admin/navigation', menuName: 'NavigationSettings' },
+    'module-fields': { label: 'Modules & Fields', icon: ModuleIcon, path: '/admin/modules', menuName: 'ModuleFields' },
+    'sr-definitions': { label: 'Service Requests', icon: SupportAgentIcon, path: '/admin/service-requests', menuName: 'ServiceRequestDefinitions' },
+    'master-data': { label: 'Master Data', icon: StorageIcon, path: '/admin/master-data', menuName: 'MasterData' },
+    // Legacy items
     'channel-settings': { label: 'Channel Settings', icon: ChannelSettingsIcon, path: '/channel-settings', menuName: 'ChannelSettings' },
-    'settings': { label: 'Admin Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
+    'settings': { label: 'All Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
   }), []);
 
   // Default order for nav items
@@ -116,7 +145,12 @@ function NavigationContent() {
     'products', 'services', 'service-requests', 'campaigns', 'quotes',
     'my-queue', 'activities', 'notes', 'communications', 'interactions'
   ], []);
-  const defaultAdminOrder = useMemo(() => ['channel-settings', 'settings'], []);
+  const defaultAdminOrder = useMemo(() => [
+    'database-settings', 'deployment-settings', 'monitoring-settings', 'security-settings', 'feature-management',
+    'user-management', 'user-approvals', 'group-management', 'social-login',
+    'branding-settings', 'navigation-settings', 'module-fields', 'sr-definitions', 'master-data',
+    'channel-settings', 'settings'
+  ], []);
 
   // Default categories
   const defaultCategories = useMemo(() => [
@@ -145,8 +179,26 @@ function NavigationContent() {
     { id: 'notes', order: 13, visible: true, category: 'productivity' },
     { id: 'communications', order: 14, visible: true, category: 'productivity' },
     { id: 'interactions', order: 15, visible: true, category: 'productivity' },
-    { id: 'channel-settings', order: 16, visible: true, category: 'admin' },
-    { id: 'settings', order: 17, visible: true, category: 'admin' },
+    // System Administration
+    { id: 'database-settings', order: 16, visible: true, category: 'admin' },
+    { id: 'deployment-settings', order: 17, visible: true, category: 'admin' },
+    { id: 'monitoring-settings', order: 18, visible: true, category: 'admin' },
+    { id: 'security-settings', order: 19, visible: true, category: 'admin' },
+    { id: 'feature-management', order: 20, visible: true, category: 'admin' },
+    // User Administration
+    { id: 'user-management', order: 21, visible: true, category: 'admin' },
+    { id: 'user-approvals', order: 22, visible: true, category: 'admin' },
+    { id: 'group-management', order: 23, visible: true, category: 'admin' },
+    { id: 'social-login', order: 24, visible: true, category: 'admin' },
+    // CRM Administration
+    { id: 'branding-settings', order: 25, visible: true, category: 'admin' },
+    { id: 'navigation-settings', order: 26, visible: true, category: 'admin' },
+    { id: 'module-fields', order: 27, visible: true, category: 'admin' },
+    { id: 'sr-definitions', order: 28, visible: true, category: 'admin' },
+    { id: 'master-data', order: 29, visible: true, category: 'admin' },
+    // Legacy
+    { id: 'channel-settings', order: 30, visible: true, category: 'admin' },
+    { id: 'settings', order: 31, visible: true, category: 'admin' },
   ], []);
 
   // Get nav config from localStorage or use defaults

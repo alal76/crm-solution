@@ -66,6 +66,48 @@ public class ProductsController : ControllerBase
         }
     }
 
+    [HttpGet("type/{type}")]
+    public async Task<IActionResult> GetByType(ProductType type)
+    {
+        try
+        {
+            var products = await _productService.GetProductsByTypeAsync(type);
+            return Ok(products);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error retrieving products for type {type}");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Get all service-type products (for the Services page)
+    /// </summary>
+    [HttpGet("services")]
+    public async Task<IActionResult> GetServices()
+    {
+        try
+        {
+            var serviceTypes = new[] { 
+                ProductType.Service, 
+                ProductType.Consulting, 
+                ProductType.ManagedService, 
+                ProductType.ProfessionalServices,
+                ProductType.Training,
+                ProductType.SupportContract
+            };
+            var allProducts = await _productService.GetAllProductsAsync();
+            var services = allProducts.Where(p => serviceTypes.Contains(p.ProductType)).ToList();
+            return Ok(services);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving service products");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create(Product product)
     {

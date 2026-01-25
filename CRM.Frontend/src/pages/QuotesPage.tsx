@@ -230,7 +230,7 @@ function QuotesPage() {
 
   const handleSendQuote = async (id: number) => {
     try {
-      await apiClient.put(`/quotes/${id}/send`);
+      await apiClient.post(`/quotes/${id}/send`);
       setSuccessMessage('Quote sent successfully');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -241,7 +241,7 @@ function QuotesPage() {
 
   const handleAcceptQuote = async (id: number) => {
     try {
-      await apiClient.put(`/quotes/${id}/accept`);
+      await apiClient.post(`/quotes/${id}/accept`);
       setSuccessMessage('Quote accepted');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -252,7 +252,7 @@ function QuotesPage() {
 
   const handleRejectQuote = async (id: number) => {
     try {
-      await apiClient.put(`/quotes/${id}/reject`);
+      await apiClient.post(`/quotes/${id}/reject`);
       setSuccessMessage('Quote rejected');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);

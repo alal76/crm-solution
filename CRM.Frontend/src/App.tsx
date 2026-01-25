@@ -59,6 +59,22 @@ import CustomerOverviewPage from './pages/CustomerOverviewPage';
 import CommunicationsPage from './pages/CommunicationsPage';
 import InteractionsPage from './pages/InteractionsPage';
 import ChannelSettingsPage from './pages/ChannelSettingsPage';
+import {
+  DatabaseSettingsPage,
+  DeploymentSettingsPage,
+  MonitoringSettingsPage,
+  SecuritySettingsPage,
+  FeatureManagementPage,
+  UserManagementSettingsPage,
+  UserApprovalPage,
+  GroupManagementPage,
+  SocialLoginSettingsPage,
+  BrandingSettingsPage,
+  NavigationSettingsPage,
+  ModuleFieldSettingsPage,
+  ServiceRequestDefinitionsPage,
+  MasterDataSettingsPage,
+} from './pages/admin';
 import './App.css';
 
 function App() {
@@ -320,6 +336,148 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <ChannelSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Admin Settings Routes */}
+              <Route
+                path="/admin/database"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <DatabaseSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/deployment"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <DeploymentSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/monitoring"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <MonitoringSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/security"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <SecuritySettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/features"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <FeatureManagementPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <UserManagementSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/approvals"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <UserApprovalPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/groups"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <GroupManagementPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/social-login"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <SocialLoginSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/branding"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <BrandingSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/navigation"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <NavigationSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/modules"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ModuleFieldSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/service-requests"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ServiceRequestDefinitionsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/master-data"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <MasterDataSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

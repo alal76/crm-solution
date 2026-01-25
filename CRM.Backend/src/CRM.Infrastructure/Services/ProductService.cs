@@ -63,6 +63,20 @@ public class ProductService : IProductService, IProductInputPort
         return await _repository.FindAsync(p => !p.IsDeleted && p.IsActive && p.Category == category);
     }
 
+    public async Task<IEnumerable<Product>> GetProductsByTypeAsync(ProductType type)
+    {
+        var products = await _repository.FindAsync(p => !p.IsDeleted && p.IsActive && p.ProductType == type);
+        foreach (var product in products)
+        {
+            var tags = await _normalizationService.GetTagsAsync("Product", product.Id);
+            if (!string.IsNullOrWhiteSpace(tags)) product.Tags = tags;
+
+            var cfs = await _normalizationService.GetCustomFieldsAsync("Product", product.Id);
+            if (!string.IsNullOrWhiteSpace(cfs)) product.CustomFields = cfs;
+        }
+        return products;
+    }
+
     public async Task<int> CreateProductAsync(Product product)
     {
         await _repository.AddAsync(product);
