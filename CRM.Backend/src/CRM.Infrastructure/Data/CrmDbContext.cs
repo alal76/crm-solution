@@ -131,6 +131,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<CloudDeployment> CloudDeployments { get; set; }
     public DbSet<DeploymentAttempt> DeploymentAttempts { get; set; }
     public DbSet<HealthCheckLog> HealthCheckLogs { get; set; }
+    
+    // Dashboard and Analytics entities
+    public DbSet<Dashboard> Dashboards { get; set; }
+    public DbSet<DashboardWidget> DashboardWidgets { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -1263,6 +1267,47 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasOne(e => e.CloudDeployment)
                 .WithMany(d => d.HealthChecks)
                 .HasForeignKey(e => e.CloudDeploymentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // Dashboard configuration
+        modelBuilder.Entity<Dashboard>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.IconName).HasMaxLength(50);
+            entity.Property(e => e.LayoutConfig).HasColumnType("TEXT");
+            entity.Property(e => e.AllowedRoles).HasMaxLength(500);
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.IsDefault);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.OwnerId);
+            
+            entity.HasOne(e => e.Owner)
+                .WithMany()
+                .HasForeignKey(e => e.OwnerId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        modelBuilder.Entity<DashboardWidget>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Subtitle).HasMaxLength(300);
+            entity.Property(e => e.DataSource).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.IconName).HasMaxLength(50);
+            entity.Property(e => e.Color).HasMaxLength(20);
+            entity.Property(e => e.BackgroundColor).HasMaxLength(100);
+            entity.Property(e => e.NavigationLink).HasMaxLength(300);
+            entity.Property(e => e.ConfigJson).HasColumnType("TEXT");
+            entity.HasIndex(e => e.DashboardId);
+            entity.HasIndex(e => e.DisplayOrder);
+            entity.HasIndex(e => e.WidgetType);
+            
+            entity.HasOne(e => e.Dashboard)
+                .WithMany(d => d.Widgets)
+                .HasForeignKey(e => e.DashboardId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

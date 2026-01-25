@@ -134,6 +134,7 @@ function NavigationContent() {
     'module-fields': { label: 'Modules & Fields', icon: ModuleIcon, path: '/admin/modules', menuName: 'ModuleFields' },
     'sr-definitions': { label: 'Service Requests', icon: SupportAgentIcon, path: '/admin/service-requests', menuName: 'ServiceRequestDefinitions' },
     'master-data': { label: 'Master Data', icon: StorageIcon, path: '/admin/master-data', menuName: 'MasterData' },
+    'dashboard-settings': { label: 'Dashboards', icon: DashboardIcon, path: '/admin/dashboards', menuName: 'DashboardSettings' },
     // Legacy items
     'channel-settings': { label: 'Channel Settings', icon: ChannelSettingsIcon, path: '/channel-settings', menuName: 'ChannelSettings' },
     'settings': { label: 'All Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
@@ -148,7 +149,7 @@ function NavigationContent() {
   const defaultAdminOrder = useMemo(() => [
     'database-settings', 'deployment-settings', 'monitoring-settings', 'security-settings', 'feature-management',
     'user-management', 'user-approvals', 'group-management', 'social-login',
-    'branding-settings', 'navigation-settings', 'module-fields', 'sr-definitions', 'master-data',
+    'branding-settings', 'navigation-settings', 'module-fields', 'sr-definitions', 'master-data', 'dashboard-settings',
     'channel-settings', 'settings'
   ], []);
 
@@ -196,9 +197,10 @@ function NavigationContent() {
     { id: 'module-fields', order: 27, visible: true, category: 'admin' },
     { id: 'sr-definitions', order: 28, visible: true, category: 'admin' },
     { id: 'master-data', order: 29, visible: true, category: 'admin' },
+    { id: 'dashboard-settings', order: 30, visible: true, category: 'admin' },
     // Legacy
-    { id: 'channel-settings', order: 30, visible: true, category: 'admin' },
-    { id: 'settings', order: 31, visible: true, category: 'admin' },
+    { id: 'channel-settings', order: 31, visible: true, category: 'admin' },
+    { id: 'settings', order: 32, visible: true, category: 'admin' },
   ], []);
 
   // Get nav config from localStorage or use defaults

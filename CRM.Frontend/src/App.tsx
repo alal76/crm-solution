@@ -74,6 +74,7 @@ import {
   ModuleFieldSettingsPage,
   ServiceRequestDefinitionsPage,
   MasterDataSettingsPage,
+  DashboardSettingsPage,
 } from './pages/admin';
 import './App.css';
 
@@ -478,6 +479,16 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <MasterDataSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/dashboards"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <DashboardSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

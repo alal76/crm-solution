@@ -20,3 +20,4 @@ export { default as NavigationSettingsPage } from './NavigationSettingsPage';
 export { default as ModuleFieldSettingsPage } from './ModuleFieldSettingsPage';
 export { default as ServiceRequestDefinitionsPage } from './ServiceRequestDefinitionsPage';
 export { default as MasterDataSettingsPage } from './MasterDataSettingsPage';
+export { default as DashboardSettingsPage } from './DashboardSettingsPage';

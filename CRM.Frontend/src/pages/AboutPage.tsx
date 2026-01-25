@@ -58,9 +58,11 @@ import {
   Science as ScienceIcon,
   Speed as SpeedIcon,
   BugReport as BugReportIcon,
+  AccountTree as AccountTreeIcon,
 } from '@mui/icons-material';
 import { useBranding } from '../contexts/BrandingContext';
 import { TabPanel } from '../components/common';
+import { ArchitectureDiagram } from '../components/architecture';
 
 const AboutPage: React.FC = () => {
   const { branding } = useBranding();
@@ -203,11 +205,12 @@ const AboutPage: React.FC = () => {
 
         {/* Tabs Navigation */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="About page tabs">
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="About page tabs" variant="scrollable" scrollButtons="auto">
             <Tab icon={<InfoIcon />} label="Overview" iconPosition="start" />
             <Tab icon={<WebIcon />} label="Features" iconPosition="start" />
             <Tab icon={<StorageIcon />} label="Tech Stack" iconPosition="start" />
             <Tab icon={<ScienceIcon />} label="Test Results" iconPosition="start" />
+            <Tab icon={<AccountTreeIcon />} label="Architecture" iconPosition="start" />
           </Tabs>
         </Box>
 
@@ -500,6 +503,23 @@ const AboutPage: React.FC = () => {
               </Card>
             </Grid>
           </Grid>
+        </TabPanel>
+
+        {/* Tab 4: Architecture */}
+        <TabPanel value={tabValue} index={4}>
+          <Card variant="outlined">
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <AccountTreeIcon color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6">Solution Architecture</Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                Visual representation of the CRM solution architecture including all modules, entities, 
+                database tables, primary keys, foreign keys, and entity relationships.
+              </Typography>
+              <ArchitectureDiagram />
+            </CardContent>
+          </Card>
         </TabPanel>
       </Paper>
     </Container>

@@ -16,7 +16,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Grid,
@@ -29,12 +29,14 @@ import {
   Alert,
   Skeleton,
   Chip,
-  LinearProgress,
-  Avatar,
-  Divider,
+  Tabs,
+  Tab,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
   People as PeopleIcon,
   ShoppingCart as ShoppingCartIcon,
   Campaign as CampaignIcon,
@@ -42,6 +44,12 @@ import {
   Schedule as ScheduleIcon,
   Business as BusinessIcon,
   CalendarMonth as CalendarIcon,
+  Assessment as AssessmentIcon,
+  Help as HelpIcon,
+  Assignment as AssignmentIcon,
+  Refresh as RefreshIcon,
+  Settings as SettingsIcon,
+  Inventory as ProductIcon,
 } from '@mui/icons-material';
 import {
   LineChart,
@@ -49,7 +57,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -57,12 +65,39 @@ import {
   BarChart,
   Bar,
   Legend,
+  AreaChart,
+  Area,
 } from 'recharts';
 import logo from '../assets/logo.png';
+import { 
+  dashboardConfigService, 
+  dashboardDataService, 
+  DashboardDetail, 
+  DashboardWidget, 
+  DashboardStats,
+  PipelineSummary,
+  WidgetType,
+} from '../services/dashboardService';
 import { opportunityService, campaignService, customerService, Opportunity, Customer } from '../services/apiService';
 import { useProfile } from '../contexts/ProfileContext';
 
-// Stage names for display (matching new 3NF normalized OpportunityStage enum)
+// Icon mapping for dynamic icons
+const iconMap: Record<string, React.ElementType> = {
+  TrendingUp: TrendingUpIcon,
+  People: PeopleIcon,
+  ShoppingCart: ShoppingCartIcon,
+  Campaign: CampaignIcon,
+  AttachMoney: MoneyIcon,
+  Schedule: ScheduleIcon,
+  Business: BusinessIcon,
+  CalendarMonth: CalendarIcon,
+  Assessment: AssessmentIcon,
+  Help: HelpIcon,
+  Assignment: AssignmentIcon,
+  Inventory: ProductIcon,
+};
+
+// Stage names for display
 const stageNames: Record<number, string> = {
   0: 'Discovery',
   1: 'Qualification',
@@ -72,34 +107,38 @@ const stageNames: Record<number, string> = {
   5: 'Closed Lost',
 };
 
-// Stage colors for visual distinction (matching new OpportunityStage enum)
+// Stage colors
 const stageColors: Record<number, string> = {
-  0: '#9E9E9E', // Discovery
-  1: '#2196F3', // Qualification
-  2: '#FF9800', // Proposal
-  3: '#9C27B0', // Negotiation
-  4: '#4CAF50', // Closed Won
-  5: '#F44336', // Closed Lost
+  0: '#9E9E9E',
+  1: '#2196F3',
+  2: '#FF9800',
+  3: '#9C27B0',
+  4: '#4CAF50',
+  5: '#F44336',
 };
 
-// Sample data for charts
-const pipelineData = [
-  { month: 'Jan', value: 40000 },
-  { month: 'Feb', value: 50000 },
-  { month: 'Mar', value: 45000 },
-  { month: 'Apr', value: 65000 },
-  { month: 'May', value: 75000 },
-  { month: 'Jun', value: 85000 },
-];
+const pieChartColors = ['#06A77D', '#B3261E', '#F57C00', '#0092BC', '#6750A4', '#9C27B0'];
 
-const statusData = [
-  { name: 'Won', value: 400, color: '#06A77D' },
-  { name: 'Lost', value: 200, color: '#B3261E' },
-  { name: 'Pending', value: 300, color: '#F57C00' },
-  { name: 'Negotiating', value: 250, color: '#0092BC' },
-];
+interface WidgetData {
+  value?: number | string;
+  items?: Opportunity[];
+  chartData?: { name?: string; month?: string; value: number; count?: number; color?: string }[];
+  trend?: number;
+}
 
-const StatCard = ({ title, value, icon: Icon, color, loading, onClick, clickable }) => (
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon?: React.ElementType;
+  color: string;
+  loading?: boolean;
+  onClick?: () => void;
+  clickable?: boolean;
+  trend?: number;
+  subtitle?: string;
+}
+
+const StatCard = ({ title, value, icon: Icon, color, loading, onClick, clickable, trend, subtitle }: StatCardProps) => (
   <Card
     onClick={clickable ? onClick : undefined}
     sx={{
@@ -130,16 +169,38 @@ const StatCard = ({ title, value, icon: Icon, color, loading, onClick, clickable
           <Typography variant="h4" sx={{ fontWeight: 700, color: color }}>
             {loading ? <Skeleton width={80} /> : value}
           </Typography>
+          {subtitle && (
+            <Typography variant="caption" color="textSecondary">
+              {subtitle}
+            </Typography>
+          )}
+          {trend !== undefined && trend !== 0 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+              {trend > 0 ? (
+                <TrendingUpIcon sx={{ fontSize: 16, color: '#06A77D' }} />
+              ) : (
+                <TrendingDownIcon sx={{ fontSize: 16, color: '#F44336' }} />
+              )}
+              <Typography 
+                variant="caption" 
+                sx={{ color: trend > 0 ? '#06A77D' : '#F44336', fontWeight: 600 }}
+              >
+                {trend > 0 ? '+' : ''}{trend.toFixed(1)}%
+              </Typography>
+            </Box>
+          )}
         </Box>
-        <Box
-          sx={{
-            p: 1.5,
-            borderRadius: 2,
-            backgroundColor: `${color}15`,
-          }}
-        >
-          <Icon sx={{ fontSize: 32, color }} />
-        </Box>
+        {Icon && (
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 2,
+              backgroundColor: `${color}15`,
+            }}
+          >
+            <Icon sx={{ fontSize: 32, color }} />
+          </Box>
+        )}
       </Box>
     </CardContent>
   </Card>
@@ -148,362 +209,229 @@ const StatCard = ({ title, value, icon: Icon, color, loading, onClick, clickable
 function DashboardPage() {
   const navigate = useNavigate();
   const { canAccessMenu } = useProfile();
-  const [totalPipeline, setTotalPipeline] = useState(0);
-  const [activeCampaigns, setActiveCampaigns] = useState(0);
-  const [totalCustomers, setTotalCustomers] = useState(0);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [pipelineByMonth, setPipelineByMonth] = useState<{month: string; value: number; count: number}[]>([]);
+  
+  // Dashboard configuration state
+  const [dashboards, setDashboards] = useState<DashboardDetail[]>([]);
+  const [activeDashboardIndex, setActiveDashboardIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Data state
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [pipeline, setPipeline] = useState<PipelineSummary | null>(null);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [campaignCount, setCampaignCount] = useState(0);
+  
+  // Derived state
+  const activeDashboard = dashboards[activeDashboardIndex];
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  // Helper function to format currency
   const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    } else if (amount >= 1000) {
-      return `$${(amount / 1000).toFixed(1)}K`;
-    }
+    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
+    if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
     return `$${amount.toLocaleString()}`;
   };
 
-  // Helper function to get time ago string
-  const getTimeAgo = (dateString?: string) => {
-    if (!dateString) return 'Unknown';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    
-    if (diffDays > 30) return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? 's' : ''} ago`;
-    if (diffDays > 0) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    if (diffHours > 0) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    if (diffMinutes > 0) return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
-    return 'Just now';
-  };
-
-  // Helper function to format date
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Not set';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
 
-  // Build pipeline by expected closing month
-  const buildPipelineByMonth = (opps: Opportunity[]) => {
-    const monthMap: Record<string, { value: number; count: number }> = {};
-    const now = new Date();
-    
-    // Initialize next 6 months
-    for (let i = 0; i < 6; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      const key = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-      monthMap[key] = { value: 0, count: 0 };
-    }
-    
-    // Group opportunities by expected close month
-    opps.forEach((opp) => {
-      if (opp.expectedCloseDate && opp.stage < 10) { // Only open opportunities
-        const closeDate = new Date(opp.expectedCloseDate);
-        const key = closeDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-        if (monthMap[key]) {
-          monthMap[key].value += opp.amount || 0;
-          monthMap[key].count += 1;
+  // Load dashboard configurations
+  const loadDashboards = useCallback(async () => {
+    try {
+      const response = await dashboardConfigService.getDashboards();
+      const dashboardList = response.data;
+      
+      if (dashboardList.length === 0) {
+        // Try to initialize default dashboards
+        try {
+          await dashboardConfigService.initializeDefaults();
+          const retryResponse = await dashboardConfigService.getDashboards();
+          if (retryResponse.data.length > 0) {
+            const details = await Promise.all(
+              retryResponse.data.map(d => dashboardConfigService.getDashboard(d.id))
+            );
+            setDashboards(details.map(r => r.data));
+          }
+        } catch (initErr) {
+          console.warn('Could not initialize default dashboards');
+        }
+      } else {
+        const details = await Promise.all(
+          dashboardList.map(d => dashboardConfigService.getDashboard(d.id))
+        );
+        setDashboards(details.map(r => r.data));
+        
+        const defaultIndex = dashboardList.findIndex(d => d.isDefault);
+        if (defaultIndex >= 0) {
+          setActiveDashboardIndex(defaultIndex);
         }
       }
-    });
-    
-    return Object.entries(monthMap).map(([month, data]) => ({
-      month,
-      value: data.value,
-      count: data.count,
-    }));
-  };
+    } catch (err) {
+      console.warn('Could not load dashboard configurations, using fallback');
+    }
+  }, []);
 
-  const loadDashboardData = async () => {
+  // Load dashboard data
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       
-      // Load opportunities data
       try {
-        const pipelineResponse = await opportunityService.getTotalPipeline();
-        setTotalPipeline(pipelineResponse.data.totalPipeline);
-        setTotalRevenue(pipelineResponse.data.wonValue || 0);
+        const statsResponse = await dashboardDataService.getStats();
+        setStats(statsResponse.data);
+      } catch (err) {
+        console.warn('Could not load dashboard stats');
+      }
+
+      try {
+        const pipelineResponse = await dashboardDataService.getPipeline();
+        setPipeline(pipelineResponse.data);
       } catch (err) {
         console.warn('Could not load pipeline data');
       }
 
-      // Load all opportunities for detailed views
       try {
-        const opportunitiesResponse = await opportunityService.getAll();
-        const opps = opportunitiesResponse.data || [];
-        setOpportunities(opps);
-        setPipelineByMonth(buildPipelineByMonth(opps));
+        const oppsResponse = await opportunityService.getAll();
+        setOpportunities(oppsResponse.data || []);
       } catch (err) {
-        console.warn('Could not load opportunities data');
+        console.warn('Could not load opportunities');
       }
 
-      // Load campaigns data
-      try {
-        const campaignsResponse = await campaignService.getActive();
-        setActiveCampaigns(campaignsResponse.data.length);
-      } catch (err) {
-        console.warn('Could not load campaigns data');
-      }
-      
-      // Load customers data
       try {
         const customersResponse = await customerService.getAll();
-        const custs = customersResponse.data || [];
-        setCustomers(custs);
-        setTotalCustomers(custs.length);
+        setCustomers(customersResponse.data || []);
       } catch (err) {
-        console.warn('Could not load customers data');
+        console.warn('Could not load customers');
       }
+
+      try {
+        const campaignsResponse = await campaignService.getActive();
+        setCampaignCount(campaignsResponse.data.length);
+      } catch (err) {
+        console.warn('Could not load campaigns');
+      }
+
     } catch (err) {
       console.error('Error loading dashboard data:', err);
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Get customer name by ID
-  const getCustomerName = (customerId: number) => {
-    const customer = customers.find(c => c.id === customerId);
-    if (customer) {
-      return `${customer.firstName} ${customer.lastName}`.trim() || customer.company || 'Unknown';
+  useEffect(() => {
+    loadDashboards();
+    loadData();
+  }, [loadDashboards, loadData]);
+
+  // Compute widget data based on data source
+  const getWidgetValue = useCallback((dataSource: string): WidgetData => {
+    switch (dataSource) {
+      case 'customers.count':
+        return { value: stats?.customers?.total ?? customers.length };
+      case 'contacts.count':
+        return { value: stats?.contacts?.total ?? 0 };
+      case 'opportunities.count':
+        return { value: stats?.opportunities?.total ?? opportunities.length };
+      case 'opportunities.pipeline_value':
+        return { value: stats?.opportunities?.openValue ?? 0 };
+      case 'opportunities.won_value':
+        return { value: stats?.opportunities?.wonValue ?? 0 };
+      case 'opportunities.by_stage':
+        return { 
+          chartData: pipeline?.stages?.map((s, i) => ({
+            name: s.stage,
+            value: s.totalValue,
+            count: s.count,
+            color: pieChartColors[i % pieChartColors.length]
+          })) || []
+        };
+      case 'opportunities.pipeline_trend': {
+        const monthData: Record<string, number> = {};
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+          const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const key = date.toLocaleDateString('en-US', { month: 'short' });
+          monthData[key] = 0;
+        }
+        opportunities.forEach(opp => {
+          if (opp.createdAt) {
+            const date = new Date(opp.createdAt);
+            const key = date.toLocaleDateString('en-US', { month: 'short' });
+            if (monthData[key] !== undefined) {
+              monthData[key] += opp.amount || 0;
+            }
+          }
+        });
+        return {
+          chartData: Object.entries(monthData).map(([month, value]) => ({ month, value }))
+        };
+      }
+      case 'opportunities.recent':
+        return {
+          items: opportunities
+            .filter(opp => opp.stage < 4)
+            .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+            .slice(0, 5)
+        };
+      case 'campaigns.active':
+        return { value: campaignCount };
+      case 'products.count':
+        return { value: stats?.products?.total ?? 0 };
+      case 'tasks.count':
+        return { value: stats?.tasks?.total ?? 0 };
+      case 'tasks.pending':
+        return { value: stats?.tasks?.pending ?? 0 };
+      case 'users.active':
+        return { value: stats?.users?.active ?? 0 };
+      default:
+        return { value: '--' };
     }
-    return 'Unknown';
-  };
+  }, [stats, pipeline, opportunities, customers, campaignCount]);
 
-  // Get recent opportunities sorted by creation
-  const getRecentOpportunities = () => {
-    return [...opportunities]
-      .filter(opp => opp.stage < 4) // Only open opportunities (not closed)
-      .sort((a, b) => {
-        const dateA = new Date(a.createdAt || 0).getTime();
-        const dateB = new Date(b.createdAt || 0).getTime();
-        return dateB - dateA;
-      })
-      .slice(0, 5);
-  };
+  // Render widget based on type
+  const renderWidget = (widget: DashboardWidget) => {
+    const data = getWidgetValue(widget.dataSource);
+    const IconComponent = widget.iconName ? iconMap[widget.iconName] : AssessmentIcon;
+    const color = widget.color || '#6750A4';
+    const navPath = widget.navigationLink?.split('/')[1] || '';
+    const canNavigate = widget.navigationLink && canAccessMenu(navPath);
 
-  // Check access permissions for each stat card
-  const canViewOpportunities = canAccessMenu('Opportunities');
-  const canViewCampaigns = canAccessMenu('Campaigns');
-  const canViewCustomers = canAccessMenu('Customers');
-  const canViewReports = canAccessMenu('Reports');
+    switch (widget.widgetTypeValue) {
+      case WidgetType.StatCard:
+      case WidgetType.KPICard: {
+        const displayValue = typeof data.value === 'number' 
+          ? (widget.dataSource.includes('value') || widget.dataSource.includes('budget')
+            ? formatCurrency(data.value)
+            : data.value.toLocaleString())
+          : data.value;
+        
+        return (
+          <StatCard
+            title={widget.title}
+            value={displayValue ?? '--'}
+            icon={IconComponent}
+            color={color}
+            loading={loading}
+            clickable={!!canNavigate}
+            onClick={() => canNavigate && widget.navigationLink && navigate(widget.navigationLink)}
+            trend={widget.showTrend ? data.trend : undefined}
+            subtitle={widget.subtitle}
+          />
+        );
+      }
 
-  const stats = [
-    {
-      title: 'Total Pipeline',
-      value: `$${totalPipeline.toLocaleString()}`,
-      icon: TrendingUpIcon,
-      color: '#6750A4',
-      link: '/opportunities',
-      canAccess: canViewOpportunities,
-    },
-    {
-      title: 'Active Campaigns',
-      value: activeCampaigns,
-      icon: CampaignIcon,
-      color: '#06A77D',
-      link: '/campaigns',
-      canAccess: canViewCampaigns,
-    },
-    {
-      title: 'Customers',
-      value: totalCustomers.toLocaleString(),
-      icon: PeopleIcon,
-      color: '#0092BC',
-      link: '/customers',
-      canAccess: canViewCustomers,
-    },
-    {
-      title: 'Total Revenue',
-      value: `$${totalRevenue.toLocaleString()}`,
-      icon: ShoppingCartIcon,
-      color: '#F57C00',
-      link: '/reports',
-      canAccess: canViewReports,
-    },
-  ];
-
-  const handleStatClick = (link: string, canAccess: boolean) => {
-    if (canAccess) {
-      navigate(link);
-    }
-  };
-
-  return (
-    <Box sx={{ py: 2 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
-        <Box>
-          <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Dashboard
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            Welcome back! Here's your performance overview.
-          </Typography>
-        </Box>
-      </Box>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      {/* Stats Grid */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {stats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <StatCard 
-              {...stat} 
-              loading={loading} 
-              clickable={stat.canAccess}
-              onClick={() => handleStatClick(stat.link, stat.canAccess)}
-            />
-          </Grid>
-        ))}
-      </Grid>
-
-      {/* Charts Grid */}
-      <Grid container spacing={3}>
-        {/* Pipeline Trend */}
-        <Grid item xs={12} md={8}>
-          <Card 
-            sx={{ 
-              borderRadius: 3, 
-              boxShadow: 1,
-              cursor: canViewOpportunities ? 'pointer' : 'default',
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': canViewOpportunities ? {
-                boxShadow: 3,
-                transform: 'translateY(-2px)',
-              } : {},
-            }}
-            onClick={() => canViewOpportunities && navigate('/opportunities')}
-          >
+      case WidgetType.LineChart:
+      case WidgetType.AreaChart:
+        return (
+          <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 1 }}>
             <CardHeader
-              title="Pipeline Trend"
-              subheader={canViewOpportunities ? "Last 6 months - Click to view opportunities" : "Last 6 months"}
+              title={widget.title}
+              subheader={widget.subtitle}
               titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
-              subheaderTypographyProps={{ variant: 'caption' }}
-              sx={{ borderBottom: '1px solid #E0E0E0' }}
-            />
-            <CardContent>
-              {loading ? (
-                <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 2 }} />
-              ) : (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={pipelineData}>
-                    <defs>
-                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6750A4" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#6750A4" stopOpacity={0.1} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
-                    <XAxis dataKey="month" stroke="#79747E" />
-                    <YAxis stroke="#79747E" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#FFFBFE',
-                        border: '1px solid #E0E0E0',
-                        borderRadius: '8px',
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#6750A4"
-                      strokeWidth={2}
-                      dot={{ fill: '#6750A4', r: 5 }}
-                      activeDot={{ r: 7 }}
-                      fill="url(#colorValue)"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Status Distribution */}
-        <Grid item xs={12} md={4}>
-          <Card 
-            sx={{ 
-              borderRadius: 3, 
-              boxShadow: 1,
-              cursor: canViewOpportunities ? 'pointer' : 'default',
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': canViewOpportunities ? {
-                boxShadow: 3,
-                transform: 'translateY(-2px)',
-              } : {},
-            }}
-            onClick={() => canViewOpportunities && navigate('/opportunities')}
-          >
-            <CardHeader
-              title="Opportunity Status"
-              subheader={canViewOpportunities ? "Click to view opportunities" : undefined}
-              titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
-              subheaderTypographyProps={{ variant: 'caption' }}
-              sx={{ borderBottom: '1px solid #E0E0E0' }}
-            />
-            <CardContent sx={{ display: 'flex', justifyContent: 'center' }}>
-              {loading ? (
-                <CircularProgress />
-              ) : (
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={statusData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Pipeline by Expected Closing Month */}
-        <Grid item xs={12}>
-          <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
-            <CardHeader
-              title={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CalendarIcon sx={{ color: '#6750A4' }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Pipeline by Expected Closing Month
-                  </Typography>
-                </Box>
-              }
-              subheader="Opportunities grouped by expected close date - Next 6 months"
               subheaderTypographyProps={{ variant: 'caption' }}
               sx={{ borderBottom: '1px solid #E0E0E0' }}
             />
@@ -512,223 +440,181 @@ function DashboardPage() {
                 <Skeleton variant="rectangular" height={250} sx={{ borderRadius: 2 }} />
               ) : (
                 <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={pipelineByMonth}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
-                    <XAxis dataKey="month" stroke="#79747E" />
-                    <YAxis 
-                      stroke="#79747E"
-                      tickFormatter={(value) => formatCurrency(value)}
-                    />
-                    <Tooltip
-                      formatter={(value: number, name: string) => [
-                        name === 'value' ? formatCurrency(value) : value,
-                        name === 'value' ? 'Pipeline Value' : 'Deal Count'
-                      ]}
-                      contentStyle={{
-                        backgroundColor: '#FFFBFE',
-                        border: '1px solid #E0E0E0',
-                        borderRadius: '8px',
-                      }}
-                    />
-                    <Legend />
-                    <Bar 
-                      dataKey="value" 
-                      name="Pipeline Value" 
-                      fill="#6750A4" 
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar 
-                      dataKey="count" 
-                      name="Deal Count" 
-                      fill="#06A77D" 
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
+                  {widget.widgetTypeValue === WidgetType.AreaChart ? (
+                    <AreaChart data={data.chartData || []}>
+                      <defs>
+                        <linearGradient id={`colorArea-${widget.id}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={color} stopOpacity={0.8} />
+                          <stop offset="95%" stopColor={color} stopOpacity={0.1} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                      <XAxis dataKey="month" stroke="#79747E" />
+                      <YAxis stroke="#79747E" tickFormatter={(v) => formatCurrency(v)} />
+                      <RechartsTooltip
+                        formatter={(value: number) => [formatCurrency(value), 'Value']}
+                        contentStyle={{ backgroundColor: '#FFFBFE', border: '1px solid #E0E0E0', borderRadius: '8px' }}
+                      />
+                      <Area type="monotone" dataKey="value" stroke={color} fill={`url(#colorArea-${widget.id})`} />
+                    </AreaChart>
+                  ) : (
+                    <LineChart data={data.chartData || []}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                      <XAxis dataKey="month" stroke="#79747E" />
+                      <YAxis stroke="#79747E" tickFormatter={(v) => formatCurrency(v)} />
+                      <RechartsTooltip
+                        formatter={(value: number) => [formatCurrency(value), 'Value']}
+                        contentStyle={{ backgroundColor: '#FFFBFE', border: '1px solid #E0E0E0', borderRadius: '8px' }}
+                      />
+                      <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={{ fill: color, r: 5 }} />
+                    </LineChart>
+                  )}
                 </ResponsiveContainer>
-              )}
-              {/* Summary row */}
-              {!loading && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2, pt: 2, borderTop: '1px solid #E0E0E0' }}>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#6750A4' }}>
-                      {formatCurrency(pipelineByMonth.reduce((sum, m) => sum + m.value, 0))}
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      Total Expected Pipeline
-                    </Typography>
-                  </Box>
-                  <Divider orientation="vertical" flexItem />
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#06A77D' }}>
-                      {pipelineByMonth.reduce((sum, m) => sum + m.count, 0)}
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      Total Opportunities
-                    </Typography>
-                  </Box>
-                </Box>
               )}
             </CardContent>
           </Card>
-        </Grid>
+        );
 
-        {/* Recent Activity - Enhanced */}
-        <Grid item xs={12}>
-          <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
+      case WidgetType.BarChart:
+      case WidgetType.StackedBarChart:
+        return (
+          <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 1 }}>
             <CardHeader
-              title={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <TrendingUpIcon sx={{ color: '#6750A4' }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Recent Opportunities
-                  </Typography>
-                </Box>
-              }
-              subheader="Latest pipeline activity with detailed information"
+              title={widget.title}
+              subheader={widget.subtitle}
+              titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
+              subheaderTypographyProps={{ variant: 'caption' }}
+              sx={{ borderBottom: '1px solid #E0E0E0' }}
+            />
+            <CardContent>
+              {loading ? (
+                <Skeleton variant="rectangular" height={250} sx={{ borderRadius: 2 }} />
+              ) : (
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={data.chartData || []}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                    <XAxis dataKey="name" stroke="#79747E" />
+                    <YAxis stroke="#79747E" />
+                    <RechartsTooltip contentStyle={{ backgroundColor: '#FFFBFE', border: '1px solid #E0E0E0', borderRadius: '8px' }} />
+                    <Legend />
+                    <Bar dataKey="value" name="Value" fill={color} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" name="Count" fill="#06A77D" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        );
+
+      case WidgetType.PieChart:
+        return (
+          <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 1 }}>
+            <CardHeader
+              title={widget.title}
+              subheader={widget.subtitle}
+              titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
+              subheaderTypographyProps={{ variant: 'caption' }}
+              sx={{ borderBottom: '1px solid #E0E0E0' }}
+            />
+            <CardContent sx={{ display: 'flex', justifyContent: 'center' }}>
+              {loading ? (
+                <CircularProgress />
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={data.chartData || []}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {(data.chartData || []).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color || pieChartColors[index % pieChartColors.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        );
+
+      case WidgetType.DataTable:
+      case WidgetType.ActivityList: {
+        const items = data.items || [];
+        return (
+          <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 1 }}>
+            <CardHeader
+              title={widget.title}
+              subheader={widget.subtitle}
+              titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
               subheaderTypographyProps={{ variant: 'caption' }}
               sx={{ borderBottom: '1px solid #E0E0E0' }}
             />
             <CardContent>
               {loading ? (
                 <Box>
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} height={100} sx={{ mb: 1, borderRadius: 2 }} />
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} height={60} sx={{ mb: 1, borderRadius: 2 }} />
                   ))}
                 </Box>
-              ) : getRecentOpportunities().length === 0 ? (
+              ) : items.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography color="textSecondary">No recent opportunities found</Typography>
+                  <Typography color="textSecondary">No data available</Typography>
                 </Box>
               ) : (
                 <Box>
-                  {getRecentOpportunities().map((opp, index) => (
+                  {items.map((item, index) => (
                     <Card
-                      key={opp.id || index}
-                      onClick={() => canViewOpportunities && navigate(`/opportunities`)}
+                      key={item.id || index}
+                      onClick={() => canAccessMenu('Opportunities') && navigate('/opportunities')}
                       sx={{
-                        mb: 2,
+                        mb: 1.5,
                         p: 2,
                         borderRadius: 2,
-                        cursor: canViewOpportunities ? 'pointer' : 'default',
+                        cursor: canAccessMenu('Opportunities') ? 'pointer' : 'default',
                         border: '1px solid #E0E0E0',
-                        background: 'linear-gradient(135deg, #FAFAFA 0%, #FFFFFF 100%)',
                         transition: 'all 0.2s ease-in-out',
-                        '&:hover': canViewOpportunities ? {
+                        '&:hover': canAccessMenu('Opportunities') ? {
                           boxShadow: 2,
-                          transform: 'translateX(4px)',
-                          borderColor: '#6750A4',
+                          borderColor: color,
                         } : {},
                       }}
                     >
-                      {/* Header Row: Name and Amount */}
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Box sx={{ flex: 1 }}>
-                          <Typography 
-                            variant="subtitle1" 
-                            sx={{ 
-                              fontWeight: 600,
-                              color: canViewOpportunities ? 'primary.main' : 'text.primary',
-                              mb: 0.5,
-                            }}
-                          >
-                            {opp.name}
+                          <Typography variant="subtitle2" fontWeight={600}>
+                            {item.name}
                           </Typography>
-                          {opp.solutionNotes && (
-                            <Typography 
-                              variant="body2" 
-                              color="textSecondary"
-                              sx={{ 
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                maxWidth: '400px',
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                            <Chip
+                              label={stageNames[item.stage] || `Stage ${item.stage}`}
+                              size="small"
+                              sx={{
+                                backgroundColor: `${stageColors[item.stage] || '#9E9E9E'}20`,
+                                color: stageColors[item.stage] || '#9E9E9E',
+                                fontWeight: 600,
+                                fontSize: '0.7rem',
                               }}
-                            >
-                              {opp.solutionNotes}
+                            />
+                            <Typography variant="caption" color="textSecondary">
+                              {item.accountName || 'Unknown'}
                             </Typography>
-                          )}
+                          </Box>
                         </Box>
                         <Box sx={{ textAlign: 'right' }}>
-                          <Typography variant="h6" sx={{ fontWeight: 700, color: '#06A77D' }}>
-                            {formatCurrency(opp.amount)}
+                          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#06A77D' }}>
+                            {formatCurrency(item.amount)}
                           </Typography>
-                        </Box>
-                      </Box>
-
-                      {/* Info Row: Stage, Probability, Customer, Expected Close */}
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
-                        <Chip
-                          label={stageNames[opp.stage] || `Stage ${opp.stage}`}
-                          size="small"
-                          sx={{
-                            backgroundColor: `${stageColors[opp.stage] || '#9E9E9E'}20`,
-                            color: stageColors[opp.stage] || '#9E9E9E',
-                            fontWeight: 600,
-                            border: `1px solid ${stageColors[opp.stage] || '#9E9E9E'}40`,
-                          }}
-                        />
-                        <Chip
-                          icon={<MoneyIcon sx={{ fontSize: 16 }} />}
-                          label={`${opp.probability}% Probability`}
-                          size="small"
-                          variant="outlined"
-                          sx={{ borderColor: '#6750A4', color: '#6750A4' }}
-                        />
-                        <Chip
-                          icon={<BusinessIcon sx={{ fontSize: 16 }} />}
-                          label={opp.accountName || 'Unknown'}
-                          size="small"
-                          variant="outlined"
-                        />
-                        {opp.expectedCloseDate && (
-                          <Chip
-                            icon={<ScheduleIcon sx={{ fontSize: 16 }} />}
-                            label={`Close: ${formatDate(opp.expectedCloseDate)}`}
-                            size="small"
-                            variant="outlined"
-                            sx={{ borderColor: '#F57C00', color: '#F57C00' }}
-                          />
-                        )}
-                      </Box>
-
-                      {/* Progress Bar for Probability */}
-                      <Box sx={{ mb: 1 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                           <Typography variant="caption" color="textSecondary">
-                            Win Probability
-                          </Typography>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: '#6750A4' }}>
-                            {opp.probability}%
+                            {item.probability}% · {formatDate(item.expectedCloseDate)}
                           </Typography>
                         </Box>
-                        <LinearProgress
-                          variant="determinate"
-                          value={opp.probability}
-                          sx={{
-                            height: 6,
-                            borderRadius: 3,
-                            backgroundColor: '#E0E0E0',
-                            '& .MuiLinearProgress-bar': {
-                              borderRadius: 3,
-                              backgroundColor: opp.probability >= 70 ? '#06A77D' : opp.probability >= 40 ? '#F57C00' : '#6750A4',
-                            },
-                          }}
-                        />
-                      </Box>
-
-                      {/* Footer Row: Sales Owner */}
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1, borderTop: '1px dashed #E0E0E0' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar sx={{ width: 24, height: 24, fontSize: 12, bgcolor: '#6750A4' }}>
-                            {(opp.salesOwnerName || 'U')[0]}
-                          </Avatar>
-                          <Typography variant="caption" color="textSecondary">
-                            {opp.salesOwnerName || 'Unassigned'}
-                          </Typography>
-                        </Box>
-                        <Typography variant="caption" color="textSecondary">
-                          Created: {getTimeAgo(opp.createdAt)}
-                        </Typography>
                       </Box>
                     </Card>
                   ))}
@@ -736,8 +622,232 @@ function DashboardPage() {
               )}
             </CardContent>
           </Card>
+        );
+      }
+
+      default:
+        return (
+          <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 1 }}>
+            <CardContent>
+              <Typography color="textSecondary">
+                Widget type not supported: {widget.widgetType}
+              </Typography>
+            </CardContent>
+          </Card>
+        );
+    }
+  };
+
+  // Calculate grid column span based on widget columnSpan
+  const getGridSize = (span: number) => {
+    const columnCount = activeDashboard?.columnCount || 3;
+    return Math.min(12, Math.floor(12 / columnCount) * span);
+  };
+
+  // Fallback dashboard if no configurations exist
+  const renderFallbackDashboard = () => {
+    const totalPipeline = stats?.opportunities?.openValue ?? 0;
+    const totalRevenue = stats?.opportunities?.wonValue ?? 0;
+    const totalCustomers = stats?.customers?.total ?? customers.length;
+
+    const fallbackStats = [
+      { title: 'Total Pipeline', value: formatCurrency(totalPipeline), icon: TrendingUpIcon, color: '#6750A4', link: '/opportunities', menuKey: 'Opportunities' },
+      { title: 'Active Campaigns', value: campaignCount, icon: CampaignIcon, color: '#06A77D', link: '/campaigns', menuKey: 'Campaigns' },
+      { title: 'Customers', value: totalCustomers.toLocaleString(), icon: PeopleIcon, color: '#0092BC', link: '/customers', menuKey: 'Customers' },
+      { title: 'Total Revenue', value: formatCurrency(totalRevenue), icon: ShoppingCartIcon, color: '#F57C00', link: '/opportunities', menuKey: 'Opportunities' },
+    ];
+
+    // Build pipeline trend from opportunities
+    const monthData: Record<string, number> = {};
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = date.toLocaleDateString('en-US', { month: 'short' });
+      monthData[key] = 0;
+    }
+    opportunities.forEach(opp => {
+      if (opp.createdAt) {
+        const date = new Date(opp.createdAt);
+        const key = date.toLocaleDateString('en-US', { month: 'short' });
+        if (monthData[key] !== undefined) {
+          monthData[key] += opp.amount || 0;
+        }
+      }
+    });
+    const trendData = Object.entries(monthData).map(([month, value]) => ({ month, value }));
+
+    // Build stage distribution
+    const stageData = pipeline?.stages?.map((s, i) => ({
+      name: s.stage,
+      value: s.totalValue,
+      count: s.count,
+      color: pieChartColors[i % pieChartColors.length]
+    })) || [];
+
+    return (
+      <>
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          {fallbackStats.map((stat, index) => (
+            <Grid item xs={12} sm={6} md={3} key={index}>
+              <StatCard
+                {...stat}
+                loading={loading}
+                clickable={canAccessMenu(stat.menuKey)}
+                onClick={() => canAccessMenu(stat.menuKey) && navigate(stat.link)}
+              />
+            </Grid>
+          ))}
         </Grid>
-      </Grid>
+
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
+              <CardHeader
+                title="Pipeline Trend"
+                subheader="Last 6 months"
+                titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
+                subheaderTypographyProps={{ variant: 'caption' }}
+                sx={{ borderBottom: '1px solid #E0E0E0' }}
+              />
+              <CardContent>
+                {loading ? (
+                  <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 2 }} />
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                      <XAxis dataKey="month" stroke="#79747E" />
+                      <YAxis stroke="#79747E" tickFormatter={(v) => formatCurrency(v)} />
+                      <RechartsTooltip
+                        formatter={(value: number) => [formatCurrency(value), 'Pipeline']}
+                        contentStyle={{ backgroundColor: '#FFFBFE', border: '1px solid #E0E0E0', borderRadius: '8px' }}
+                      />
+                      <Line type="monotone" dataKey="value" stroke="#6750A4" strokeWidth={2} dot={{ fill: '#6750A4', r: 5 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
+              <CardHeader
+                title="Opportunities by Stage"
+                titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
+                sx={{ borderBottom: '1px solid #E0E0E0' }}
+              />
+              <CardContent sx={{ display: 'flex', justifyContent: 'center' }}>
+                {loading ? (
+                  <CircularProgress />
+                ) : (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={stageData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {stageData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color || pieChartColors[index % pieChartColors.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </>
+    );
+  };
+
+  return (
+    <Box sx={{ py: 2 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ width: 40, height: 40, flexShrink: 0 }}>
+            <img src={logo} alt="CRM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </Box>
+          <Box>
+            <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5 }}>
+              {activeDashboard?.name || 'Dashboard'}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {activeDashboard?.description || "Welcome back! Here's your performance overview."}
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title="Refresh">
+            <IconButton onClick={loadData} disabled={loading}>
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
+          {canAccessMenu('DashboardSettings') && (
+            <Tooltip title="Dashboard Settings">
+              <IconButton onClick={() => navigate('/admin/dashboards')}>
+                <SettingsIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+      </Box>
+
+      {/* Dashboard Tabs */}
+      {dashboards.length > 1 && (
+        <Tabs
+          value={activeDashboardIndex}
+          onChange={(_, v) => setActiveDashboardIndex(v)}
+          sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+        >
+          {dashboards.map((dashboard) => (
+            <Tab
+              key={dashboard.id}
+              label={dashboard.name}
+              icon={dashboard.isDefault ? <Chip label="Default" size="small" sx={{ ml: 1 }} /> : undefined}
+              iconPosition="end"
+            />
+          ))}
+        </Tabs>
+      )}
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Dashboard Content */}
+      {activeDashboard && activeDashboard.widgets.length > 0 ? (
+        <Grid container spacing={3}>
+          {activeDashboard.widgets
+            .filter(w => w.isVisible)
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map((widget) => (
+              <Grid
+                item
+                xs={12}
+                sm={getGridSize(widget.columnSpan) >= 6 ? 12 : 6}
+                md={getGridSize(widget.columnSpan)}
+                key={widget.id}
+                sx={{ minHeight: widget.rowSpan > 1 ? 300 * widget.rowSpan : undefined }}
+              >
+                {renderWidget(widget)}
+              </Grid>
+            ))}
+        </Grid>
+      ) : (
+        renderFallbackDashboard()
+      )}
     </Box>
   );
 }
