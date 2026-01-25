@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
+  Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
   IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Divider
@@ -11,8 +11,31 @@ import {
   Cancel as RejectIcon, Refresh as ReviseIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { TabPanel } from '../components/common';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import EntitySelect from '../components/EntitySelect';
+import ImportExportButtons from '../components/ImportExportButtons';
+import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+
+// Search fields for Advanced Search
+const SEARCH_FIELDS: SearchField[] = [
+  { name: 'quoteNumber', label: 'Quote Number', type: 'text' },
+  { name: 'title', label: 'Title', type: 'text' },
+  { name: 'status', label: 'Status', type: 'select', options: [
+    { value: 0, label: 'Draft' },
+    { value: 1, label: 'Pending' },
+    { value: 2, label: 'Sent' },
+    { value: 3, label: 'Viewed' },
+    { value: 4, label: 'Accepted' },
+    { value: 5, label: 'Rejected' },
+    { value: 6, label: 'Expired' },
+    { value: 7, label: 'Revised' },
+  ]},
+  { name: 'totalAmount', label: 'Total Amount', type: 'numberRange' },
+];
+
+const SEARCHABLE_FIELDS = ['quoteNumber', 'title', 'description', 'notes'];
 
 // Enums matching backend
 const QUOTE_STATUSES = [
@@ -79,21 +102,6 @@ interface Customer {
   company?: string;
 }
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
-}
-
 function QuotesPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -103,6 +111,15 @@ function QuotesPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
+  const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+  const [searchText, setSearchText] = useState('');
+
+  const handleSearch = (filters: SearchFilter[], text: string) => {
+    setSearchFilters(filters);
+    setSearchText(text);
+  };
+
+  const filteredQuotes = filterData(quotes, searchFilters, searchText, SEARCHABLE_FIELDS);
 
   const emptyForm: QuoteForm = {
     title: '', description: '', customerId: '', opportunityId: '', status: 0,
@@ -295,17 +312,27 @@ function QuotesPage() {
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Quotes</Typography>
           </Box>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
-            Create Quote
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <ImportExportButtons entityType="quotes" entityLabel="Quotes" onImportComplete={fetchQuotes} />
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
+              Create Quote
+            </Button>
+          </Box>
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
 
+        <AdvancedSearch
+          fields={SEARCH_FIELDS}
+          onSearch={handleSearch}
+          placeholder="Search quotes by number, title..."
+        />
+
         <Card>
           <CardContent sx={{ p: 0 }}>
-            <Table>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 850 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                   <TableCell><strong>Quote #</strong></TableCell>
@@ -319,7 +346,7 @@ function QuotesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {quotes.map((quote) => {
+                {filteredQuotes.map((quote) => {
                   const status = getStatus(quote.status);
                   const expired = isExpired(quote);
 
@@ -419,7 +446,8 @@ function QuotesPage() {
                   );
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </TableContainer>
             {quotes.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
                 No quotes found. Create your first quote to get started.
@@ -447,15 +475,14 @@ function QuotesPage() {
                 <TextField fullWidth label="Quote Title" name="title" value={formData.title} onChange={handleInputChange} required />
               </Grid>
               <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Customer</InputLabel>
-                  <Select name="customerId" value={formData.customerId} onChange={handleSelectChange} label="Customer">
-                    <MenuItem value="">Select Customer</MenuItem>
-                    {customers.map(c => (
-                      <MenuItem key={c.id} value={c.id}>{c.firstName} {c.lastName}{c.company ? ` (${c.company})` : ''}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <EntitySelect
+                  entityType="customer"
+                  name="customerId"
+                  value={formData.customerId}
+                  onChange={handleSelectChange}
+                  label="Customer"
+                  showAddNew={true}
+                />
               </Grid>
               <Grid item xs={6}>
                 <LookupSelect

@@ -36,7 +36,7 @@ public class HealthController : ControllerBase
     [HttpGet("ready")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
-    public async Task<IActionResult> ReadinessAsync()
+    public Task<IActionResult> ReadinessAsync()
     {
         try
         {
@@ -48,16 +48,18 @@ public class HealthController : ControllerBase
 
             var allHealthy = checks.Values.All(v => v);
 
-            return allHealthy
+            IActionResult result = allHealthy
                 ? Ok(new { status = "ready", checks, timestamp = DateTime.UtcNow })
                 : StatusCode(StatusCodes.Status503ServiceUnavailable,
                     new { status = "not_ready", checks, timestamp = DateTime.UtcNow });
+            
+            return Task.FromResult(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Readiness check failed");
-            return StatusCode(StatusCodes.Status503ServiceUnavailable,
-                new { status = "error", message = ex.Message });
+            return Task.FromResult<IActionResult>(StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new { status = "error", message = ex.Message }));
         }
     }
 

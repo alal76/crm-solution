@@ -24,7 +24,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// API controller for managing service request settings (categories, subcategories, custom fields)
+/// API controller for managing service request settings (categories, subcategories, types, custom fields)
 /// </summary>
 [ApiController]
 [Route("api/service-request-settings")]
@@ -34,17 +34,20 @@ public class ServiceRequestSettingsController : ControllerBase
     private readonly IServiceRequestCategoryService _categoryService;
     private readonly IServiceRequestSubcategoryService _subcategoryService;
     private readonly IServiceRequestCustomFieldService _customFieldService;
+    private readonly IServiceRequestTypeService _typeService;
     private readonly ILogger<ServiceRequestSettingsController> _logger;
 
     public ServiceRequestSettingsController(
         IServiceRequestCategoryService categoryService,
         IServiceRequestSubcategoryService subcategoryService,
         IServiceRequestCustomFieldService customFieldService,
+        IServiceRequestTypeService typeService,
         ILogger<ServiceRequestSettingsController> logger)
     {
         _categoryService = categoryService;
         _subcategoryService = subcategoryService;
         _customFieldService = customFieldService;
+        _typeService = typeService;
         _logger = logger;
     }
 
@@ -464,6 +467,180 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting custom field count");
+            return StatusCode(500, "An error occurred");
+        }
+    }
+
+    #endregion
+
+    #region Service Request Types
+
+    /// <summary>
+    /// Get all service request types
+    /// </summary>
+    [HttpGet("types")]
+    public async Task<ActionResult<List<ServiceRequestTypeDto>>> GetAllTypes([FromQuery] bool includeInactive = false)
+    {
+        try
+        {
+            var types = await _typeService.GetAllTypesAsync(includeInactive);
+            return Ok(types);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting service request types");
+            return StatusCode(500, "An error occurred");
+        }
+    }
+
+    /// <summary>
+    /// Get all service request types grouped by category and subcategory
+    /// </summary>
+    [HttpGet("types/grouped")]
+    public async Task<ActionResult<List<ServiceRequestTypeGroupedDto>>> GetTypesGrouped([FromQuery] bool includeInactive = false)
+    {
+        try
+        {
+            var grouped = await _typeService.GetTypesGroupedAsync(includeInactive);
+            return Ok(grouped);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting grouped service request types");
+            return StatusCode(500, "An error occurred");
+        }
+    }
+
+    /// <summary>
+    /// Get service request types by category
+    /// </summary>
+    [HttpGet("types/by-category/{categoryId}")]
+    public async Task<ActionResult<List<ServiceRequestTypeDto>>> GetTypesByCategory(int categoryId, [FromQuery] bool includeInactive = false)
+    {
+        try
+        {
+            var types = await _typeService.GetTypesByCategoryAsync(categoryId, includeInactive);
+            return Ok(types);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting types for category {CategoryId}", categoryId);
+            return StatusCode(500, "An error occurred");
+        }
+    }
+
+    /// <summary>
+    /// Get service request types by subcategory
+    /// </summary>
+    [HttpGet("types/by-subcategory/{subcategoryId}")]
+    public async Task<ActionResult<List<ServiceRequestTypeDto>>> GetTypesBySubcategory(int subcategoryId, [FromQuery] bool includeInactive = false)
+    {
+        try
+        {
+            var types = await _typeService.GetTypesBySubcategoryAsync(subcategoryId, includeInactive);
+            return Ok(types);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting types for subcategory {SubcategoryId}", subcategoryId);
+            return StatusCode(500, "An error occurred");
+        }
+    }
+
+    /// <summary>
+    /// Get a single service request type by ID
+    /// </summary>
+    [HttpGet("types/{id}")]
+    public async Task<ActionResult<ServiceRequestTypeDto>> GetTypeById(int id)
+    {
+        try
+        {
+            var type = await _typeService.GetTypeByIdAsync(id);
+            if (type == null)
+                return NotFound($"Service request type {id} not found");
+            return Ok(type);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting service request type {Id}", id);
+            return StatusCode(500, "An error occurred");
+        }
+    }
+
+    /// <summary>
+    /// Create a new service request type
+    /// </summary>
+    [HttpPost("types")]
+    public async Task<ActionResult<ServiceRequestTypeDto>> CreateType([FromBody] CreateServiceRequestTypeDto dto)
+    {
+        try
+        {
+            var type = await _typeService.CreateTypeAsync(dto);
+            return CreatedAtAction(nameof(GetTypeById), new { id = type.Id }, type);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating service request type");
+            return StatusCode(500, "An error occurred");
+        }
+    }
+
+    /// <summary>
+    /// Update an existing service request type
+    /// </summary>
+    [HttpPut("types/{id}")]
+    public async Task<ActionResult<ServiceRequestTypeDto>> UpdateType(int id, [FromBody] UpdateServiceRequestTypeDto dto)
+    {
+        try
+        {
+            var type = await _typeService.UpdateTypeAsync(id, dto);
+            return Ok(type);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating service request type {Id}", id);
+            return StatusCode(500, "An error occurred");
+        }
+    }
+
+    /// <summary>
+    /// Delete a service request type
+    /// </summary>
+    [HttpDelete("types/{id}")]
+    public async Task<IActionResult> DeleteType(int id)
+    {
+        try
+        {
+            var result = await _typeService.DeleteTypeAsync(id);
+            if (!result)
+                return NotFound($"Service request type {id} not found");
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting service request type {Id}", id);
+            return StatusCode(500, "An error occurred");
+        }
+    }
+
+    /// <summary>
+    /// Reorder service request types within a subcategory
+    /// </summary>
+    [HttpPost("types/reorder/{subcategoryId}")]
+    public async Task<IActionResult> ReorderTypes(int subcategoryId, [FromBody] List<int> typeIds)
+    {
+        try
+        {
+            await _typeService.ReorderTypesAsync(subcategoryId, typeIds);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reordering types for subcategory {SubcategoryId}", subcategoryId);
             return StatusCode(500, "An error occurred");
         }
     }

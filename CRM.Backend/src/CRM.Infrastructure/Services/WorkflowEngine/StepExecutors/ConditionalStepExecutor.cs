@@ -215,23 +215,23 @@ public class ConditionalStepExecutor : IStepExecutor
         }
     }
 
-    private async Task<string?> GetDefaultTransitionAsync(
+    private Task<string?> GetDefaultTransitionAsync(
         StepExecutionContext context,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(context.Step.Transitions))
         {
-            return null;
+            return Task.FromResult<string?>(null);
         }
 
         try
         {
             var transitions = JsonSerializer.Deserialize<List<StepTransition>>(context.Step.Transitions);
-            return transitions?.FirstOrDefault(t => string.IsNullOrEmpty(t.Condition))?.NextStepKey;
+            return Task.FromResult(transitions?.FirstOrDefault(t => string.IsNullOrEmpty(t.Condition))?.NextStepKey);
         }
         catch
         {
-            return null;
+            return Task.FromResult<string?>(null);
         }
     }
 }

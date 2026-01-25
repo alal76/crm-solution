@@ -1,12 +1,18 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Opportunity service implementation
+/// Opportunity service implementation.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IOpportunityInputPort (primary/driving port)
+/// - Implements IOpportunityService (backward compatibility)
+/// - Uses IRepository for data access (secondary/driven port)
 /// </summary>
-public class OpportunityService : IOpportunityService
+public class OpportunityService : IOpportunityService, IOpportunityInputPort
 {
     private readonly IRepository<Opportunity> _repository;
     private readonly IRepository<CRM.Core.Entities.EntityTag> _entityTagRepository;

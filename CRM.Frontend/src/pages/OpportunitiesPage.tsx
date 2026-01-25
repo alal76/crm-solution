@@ -8,6 +8,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   Dialog,
@@ -33,6 +34,26 @@ import {
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import EntitySelect from '../components/EntitySelect';
+import ImportExportButtons from '../components/ImportExportButtons';
+import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+
+// Search fields for Advanced Search
+const SEARCH_FIELDS: SearchField[] = [
+  { name: 'name', label: 'Title', type: 'text' },
+  { name: 'stage', label: 'Stage', type: 'select', options: [
+    { value: 0, label: 'Prospecting' },
+    { value: 1, label: 'Qualification' },
+    { value: 2, label: 'Proposal' },
+    { value: 3, label: 'Negotiation' },
+    { value: 4, label: 'Closed Won' },
+    { value: 5, label: 'Closed Lost' },
+  ]},
+  { name: 'description', label: 'Description', type: 'text' },
+  { name: 'amount', label: 'Amount', type: 'numberRange' },
+];
+
+const SEARCHABLE_FIELDS = ['name', 'description'];
 
 interface Opportunity {
   id: number;
@@ -112,6 +133,15 @@ function OpportunitiesPage() {
     assignedToUserId: null,
     productId: null,
   });
+  const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+  const [searchText, setSearchText] = useState('');
+
+  const handleSearch = (filters: SearchFilter[], text: string) => {
+    setSearchFilters(filters);
+    setSearchText(text);
+  };
+
+  const filteredOpportunities = filterData(opportunities, searchFilters, searchText, SEARCHABLE_FIELDS);
 
   useEffect(() => {
     fetchAllData();
@@ -276,23 +306,33 @@ function OpportunitiesPage() {
             <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Opportunities</Typography>
           </Box>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{ backgroundColor: '#6750A4' }}
-          >
-            Add Opportunity
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <ImportExportButtons entityType="opportunities" entityLabel="Opportunities" onImportComplete={fetchAllData} />
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
+              sx={{ backgroundColor: '#6750A4' }}
+            >
+              Add Opportunity
+            </Button>
+          </Box>
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>{successMessage}</Alert>}
 
+        <AdvancedSearch
+          fields={SEARCH_FIELDS}
+          onSearch={handleSearch}
+          placeholder="Search opportunities by title, description..."
+        />
+
         <Card>
-          <CardContent sx={{ overflowX: 'auto' }}>
-            <Table>
+          <CardContent sx={{ p: 0 }}>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 950 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                   <TableCell><strong>Name</strong></TableCell>
@@ -307,7 +347,7 @@ function OpportunitiesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {opportunities.map((opp) => {
+                {filteredOpportunities.map((opp) => {
                   const stageInfo = getStageInfo(opp.stage);
                   return (
                     <TableRow key={opp.id}>
@@ -348,8 +388,9 @@ function OpportunitiesPage() {
                   );
                 })}
               </TableBody>
-            </Table>
-            {opportunities.length === 0 && (
+              </Table>
+            </TableContainer>
+            {filteredOpportunities.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
                 No opportunities found
               </Typography>
@@ -373,21 +414,17 @@ function OpportunitiesPage() {
             required
           />
           
-          <FormControl fullWidth margin="normal" required>
-            <InputLabel>Customer</InputLabel>
-            <Select
+          <Box sx={{ mt: 2 }}>
+            <EntitySelect
+              entityType="customer"
               name="customerId"
               value={formData.customerId}
               onChange={handleSelectChange}
               label="Customer"
-            >
-              {customers.map(cust => (
-                <MenuItem key={cust.id} value={cust.id}>
-                  {cust.firstName} {cust.lastName} {cust.company ? `(${cust.company})` : ''}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              required
+              showAddNew={true}
+            />
+          </Box>
 
           <TextField
             fullWidth
@@ -438,43 +475,27 @@ function OpportunitiesPage() {
             required
           />
 
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Product (Optional)</InputLabel>
-            <Select
+          <Box sx={{ mt: 2 }}>
+            <EntitySelect
+              entityType="product"
               name="productId"
               value={formData.productId || ''}
               onChange={handleSelectChange}
               label="Product (Optional)"
-            >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              {products.map(prod => (
-                <MenuItem key={prod.id} value={prod.id}>
-                  {prod.name} (${prod.price?.toLocaleString()})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              showAddNew={true}
+            />
+          </Box>
 
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Assigned To (Optional)</InputLabel>
-            <Select
+          <Box sx={{ mt: 2 }}>
+            <EntitySelect
+              entityType="user"
               name="assignedToUserId"
               value={formData.assignedToUserId || ''}
               onChange={handleSelectChange}
               label="Assigned To (Optional)"
-            >
-              <MenuItem value="">
-                <em>Unassigned</em>
-              </MenuItem>
-              {users.map(user => (
-                <MenuItem key={user.id} value={user.id}>
-                  {user.firstName} {user.lastName} ({user.username})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              showAddNew={false}
+            />
+          </Box>
 
           <TextField
             fullWidth

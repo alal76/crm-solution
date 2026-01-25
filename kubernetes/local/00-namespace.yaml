@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crm-app
+  labels:
+    app: crm
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crm-config
+  namespace: crm-app
+data:
+  ASPNETCORE_ENVIRONMENT: "Development"
+  DatabaseProvider: "MariaDb"
+  NODE_ENV: "production"
+  REACT_APP_API_URL: "/api"
+  # Demo database configuration - on same server as production
+  DemoDatabase__AutoSeed: "true"
+  DemoDatabase__DatabaseName: "crm_demodb"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: crm-secrets
+  namespace: crm-app
+type: Opaque
+stringData:
+  JWT_SECRET: "CRM_Super_Secret_Key_For_JWT_Token_Generation_2024_Secure_Random_String_256_Bits"
+  JWT_ISSUER: "CRM.Api"
+  JWT_AUDIENCE: "CRM.Frontend"
+  DB_CONNECTION_STRING: "Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;SslMode=none;"
+  MARIADB_ROOT_PASSWORD: "RootPass@Dev2024"
+  MARIADB_PASSWORD: "CrmPass@Dev2024"

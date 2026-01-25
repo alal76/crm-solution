@@ -1,6 +1,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using BCrypt.Net;
@@ -8,9 +9,14 @@ using BCrypt.Net;
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Service for user management operations
+/// Service for user management operations.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IUserInputPort (primary/driving port)
+/// - Implements IUserService (backward compatibility)
+/// - Uses ICrmDbContext (secondary/driven port)
 /// </summary>
-public class UserService : IUserService
+public class UserService : IUserService, IUserInputPort
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<UserService> _logger;

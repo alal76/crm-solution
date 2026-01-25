@@ -1,0 +1,31 @@
+# CRM Sales Service Dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 5003
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+COPY ["CRM.Backend/src/CRM.Core/CRM.Core.csproj", "CRM.Core/"]
+COPY ["CRM.Backend/src/CRM.Infrastructure/CRM.Infrastructure.csproj", "CRM.Infrastructure/"]
+COPY ["CRM.Backend/src/Services/CRM.ServiceDefaults/CRM.ServiceDefaults.csproj", "Services/CRM.ServiceDefaults/"]
+COPY ["CRM.Backend/src/Services/CRM.SalesService/CRM.SalesService.csproj", "Services/CRM.SalesService/"]
+
+RUN dotnet restore "Services/CRM.SalesService/CRM.SalesService.csproj"
+
+COPY CRM.Backend/src/CRM.Core/. CRM.Core/
+COPY CRM.Backend/src/CRM.Infrastructure/. CRM.Infrastructure/
+COPY CRM.Backend/src/Services/CRM.ServiceDefaults/. Services/CRM.ServiceDefaults/
+COPY CRM.Backend/src/Services/CRM.SalesService/. Services/CRM.SalesService/
+
+WORKDIR "/src/Services/CRM.SalesService"
+RUN dotnet build "CRM.SalesService.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "CRM.SalesService.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENV ASPNETCORE_URLS=http://+:5003
+ENTRYPOINT ["dotnet", "CRM.SalesService.dll"]

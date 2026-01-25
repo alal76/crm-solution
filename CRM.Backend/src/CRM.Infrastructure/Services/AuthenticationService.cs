@@ -20,20 +20,30 @@ using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Authentication Service for handling user registration, login, and token management
+/// Authentication Service for handling user registration, login, and token management.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IAuthInputPort (primary/driving port)
+/// - Implements IAuthenticationService (backward compatibility)
+/// - Uses IRepository and IJwtTokenService (secondary/driven ports)
+/// 
+/// NOTE: Authentication ALWAYS uses the production database context, regardless of demo mode.
+/// This ensures admin users exist and can authenticate even when demo mode is active.
 /// </summary>
-public class AuthenticationService : IAuthenticationService
+public class AuthenticationService : IAuthenticationService, IAuthInputPort
 {
     private readonly IRepository<User> _userRepository;
     private readonly IRepository<OAuthToken> _oauthTokenRepository;
-    private readonly ICrmDbContext _dbContext;
+    private readonly CrmDbContext _dbContext; // Always use production context for auth
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ITotpService _totpService;
     private readonly IMemoryCache _cache;
@@ -42,7 +52,7 @@ public class AuthenticationService : IAuthenticationService
     public AuthenticationService(
         IRepository<User> userRepository,
         IRepository<OAuthToken> oauthTokenRepository,
-        ICrmDbContext dbContext,
+        CrmDbContext dbContext, // Use concrete production context for auth
         IJwtTokenService jwtTokenService,
         ITotpService totpService,
         IMemoryCache cache,
@@ -170,7 +180,7 @@ public class AuthenticationService : IAuthenticationService
         {
             // Check if user with this email exists
             var allUsers = await _userRepository.GetAllAsync();
-            user = allUsers.FirstOrDefault(u => u.Email == email);
+            user = allUsers.FirstOrDefault(u => u.Email == email)!;
 
             if (user == null)
             {
@@ -252,9 +262,9 @@ public class AuthenticationService : IAuthenticationService
         return response;
     }
 
-    public async Task<bool> VerifyTokenAsync(string token)
+    public Task<bool> VerifyTokenAsync(string token)
     {
-        return _jwtTokenService.ValidateToken(token);
+        return Task.FromResult(_jwtTokenService.ValidateToken(token));
     }
 
     public async Task<User?> GetUserByIdAsync(int userId)

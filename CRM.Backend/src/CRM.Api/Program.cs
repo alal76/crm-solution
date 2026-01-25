@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
@@ -29,8 +30,45 @@ using Serilog;
 using System.Text;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Kestrel for HTTPS
+var sslCertPath = builder.Configuration["SSL_CERT_PATH"] ?? Path.Combine(Directory.GetCurrentDirectory(), "ssl", "server.pfx");
+var sslCertPassword = builder.Configuration["SSL_CERT_PASSWORD"] ?? "CrmSslCert2024";
+var httpsPort = int.TryParse(builder.Configuration["HTTPS_PORT"], out var hp) ? hp : 5001;
+var httpPort = int.TryParse(builder.Configuration["HTTP_PORT"], out var p) ? p : 5000;
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    // Always listen on HTTP
+    serverOptions.ListenAnyIP(httpPort);
+    
+    // Try to enable HTTPS if certificate exists
+    if (File.Exists(sslCertPath))
+    {
+        try
+        {
+            var cert = new X509Certificate2(sslCertPath, sslCertPassword);
+            serverOptions.ListenAnyIP(httpsPort, listenOptions =>
+            {
+                listenOptions.UseHttps(cert);
+            });
+            Console.WriteLine($"HTTPS enabled on port {httpsPort} with certificate: {cert.Subject}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Warning: Could not load SSL certificate from {sslCertPath}: {ex.Message}");
+            Console.WriteLine("HTTPS will not be available. Server running on HTTP only.");
+        }
+    }
+    else
+    {
+        Console.WriteLine($"SSL certificate not found at {sslCertPath}. Server running on HTTP only (port {httpPort}).");
+        Console.WriteLine("To enable HTTPS, upload a certificate via Admin Settings or place server.pfx in the ssl folder.");
+    }
+});
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -160,7 +198,7 @@ builder.Services.AddCors(options =>
 // Configure Database
 var databaseProvider = builder.Configuration["DatabaseProvider"] ?? "mariadb";
 // Build connection string from configuration or environment variables
-string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString) && (databaseProvider.ToLower() == "mysql" || databaseProvider.ToLower() == "mariadb"))
 {
     var dbHost = builder.Configuration["DB_HOST"] ?? builder.Configuration["DbHost"] ?? "mariadb";
@@ -196,10 +234,15 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
     }
 });
 
-// Register ICrmDbContext interface
-builder.Services.AddScoped<ICrmDbContext>(provider => provider.GetRequiredService<CrmDbContext>());
+// Register Demo Mode State as Singleton (API-layer state management, defaults to demo mode)
+builder.Services.AddSingleton<IDemoModeState, DemoModeState>();
 
-// Register Services
+// Register ICrmDbContext interface with dynamic resolution (production or demo based on settings)
+builder.Services.AddScoped<IDbContextResolver, DynamicDbContextResolver>();
+builder.Services.AddScoped<ICrmDbContext>(provider => 
+    provider.GetRequiredService<IDbContextResolver>().ResolveContext());
+
+// Register Services (backward compatibility)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOpportunityService, OpportunityService>();
@@ -216,19 +259,46 @@ builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
 builder.Services.AddHostedService<BackupSchedulerHostedService>();
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
+builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 builder.Services.AddScoped<IServiceRequestCategoryService, ServiceRequestCategoryService>();
 builder.Services.AddScoped<IServiceRequestSubcategoryService, ServiceRequestSubcategoryService>();
 builder.Services.AddScoped<IServiceRequestCustomFieldService, ServiceRequestCustomFieldService>();
+builder.Services.AddScoped<IServiceRequestTypeService, ServiceRequestTypeService>();
 builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();
 builder.Services.AddSingleton<IDemoDbContextFactory, DemoDbContextFactory>();
 builder.Services.AddScoped<DemoDataSeederService>();
+// Database Sync BVT Service - runs on startup to ensure db consistency
+builder.Services.AddSingleton<IDatabaseSyncService, DatabaseSyncService>();
+builder.Services.AddHostedService<DatabaseSyncHostedService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields
 builder.Services.AddScoped<NormalizationService>();
+// Master data - ZIP code lookups
+builder.Services.AddScoped<IZipCodeService, ZipCodeService>();
+// Master data - Field-to-master-data linking service
+builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
+// Cloud Deployment management service
+builder.Services.AddScoped<ICloudDeploymentService, CloudDeploymentService>();
+builder.Services.AddHttpClient();
+
+// HEXAGONAL ARCHITECTURE - Register Input Ports (Primary/Driving Ports)
+// These allow controllers to depend on ports instead of concrete services
+builder.Services.AddScoped<ICustomerInputPort, CustomerService>();
+builder.Services.AddScoped<IContactInputPort, ContactsService>();
+builder.Services.AddScoped<IOpportunityInputPort, OpportunityService>();
+builder.Services.AddScoped<IProductInputPort, ProductService>();
+builder.Services.AddScoped<ICampaignInputPort, MarketingCampaignService>();
+builder.Services.AddScoped<IAuthInputPort, AuthenticationService>();
+builder.Services.AddScoped<IUserInputPort, UserService>();
+builder.Services.AddScoped<IUserGroupInputPort, UserGroupService>();
+builder.Services.AddScoped<ISystemSettingsInputPort, SystemSettingsService>();
+builder.Services.AddScoped<IServiceRequestInputPort, ServiceRequestService>();
+builder.Services.AddScoped<IAccountInputPort, AccountService>();
+builder.Services.AddScoped<IDatabaseBackupInputPort, DatabaseBackupService>();
 
 // Register Workflow Engine services
 builder.Services.AddWorkflowEngine();
@@ -369,6 +439,41 @@ using (var scope = app.Services.CreateScope())
         // Seed data
         await DbSeed.SeedAsync(db);
         Log.Information("Database setup completed successfully");
+        
+        // Auto-seed demo database if configured
+        var autoSeedDemo = builder.Configuration.GetValue<bool>("DemoDatabase:AutoSeed", false);
+        if (autoSeedDemo)
+        {
+            Log.Information("Auto-seeding demo database...");
+            try
+            {
+                var demoSeeder = scope.ServiceProvider.GetRequiredService<DemoDataSeederService>();
+                var demoDbFactory = scope.ServiceProvider.GetRequiredService<IDemoDbContextFactory>();
+                
+                // Always ensure demo database schema exists
+                Log.Information("Ensuring demo database schema exists...");
+                await demoSeeder.InitializeDemoDbAsync();
+                
+                // Check if already seeded
+                using var demoContext = demoDbFactory.CreateDemoContext();
+                var settings = await demoContext.SystemSettings.FirstOrDefaultAsync();
+                
+                if (settings == null || !settings.DemoDataSeeded)
+                {
+                    Log.Information("Seeding demo database with sample data...");
+                    await demoSeeder.SeedAllDemoDataAsync();
+                    Log.Information("Demo database seeded successfully");
+                }
+                else
+                {
+                    Log.Information("Demo database already seeded (last seeded: {LastSeeded})", settings.DemoDataLastSeeded);
+                }
+            }
+            catch (Exception demoEx)
+            {
+                Log.Warning(demoEx, "Failed to auto-seed demo database - continuing with production database");
+            }
+        }
     }
     catch (Exception ex)
     {
@@ -384,7 +489,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CRM API V1"));
 }
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirect if we have SSL enabled and not in development
+// Skip redirect for health endpoints to allow Kubernetes health checks on HTTP
+var forceHttpsRedirect = builder.Configuration.GetValue<bool>("ForceHttpsRedirect", false);
+if (forceHttpsRedirect && File.Exists(sslCertPath))
+{
+    app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health"), appBuilder =>
+    {
+        appBuilder.UseHttpsRedirection();
+    });
+}
 
 // Serve static files from wwwroot (for uploaded files)
 var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");

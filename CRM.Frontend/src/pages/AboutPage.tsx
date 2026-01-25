@@ -60,32 +60,35 @@ import {
   BugReport as BugReportIcon,
 } from '@mui/icons-material';
 import { useBranding } from '../contexts/BrandingContext';
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`about-tabpanel-${index}`}
-      aria-labelledby={`about-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+import { TabPanel } from '../components/common';
 
 const AboutPage: React.FC = () => {
   const { branding } = useBranding();
   const companyName = branding.companyName;
-  const logoUrl = branding.companyLogoUrl;
+  
+  // Get API base URL for uploads
+  const getApiBaseUrl = () => {
+    return window.location.hostname === 'localhost'
+      ? 'http://localhost:5000'
+      : `http://${window.location.hostname}:5000`;
+  };
+  
+  // Get logo URL with proper API base
+  const getLogoUrl = () => {
+    if (branding.companyLogoUrl) {
+      // If it's a data URL (base64), use it directly
+      if (branding.companyLogoUrl.startsWith('data:')) {
+        return branding.companyLogoUrl;
+      }
+      if (branding.companyLogoUrl.startsWith('/uploads')) {
+        return `${getApiBaseUrl()}${branding.companyLogoUrl}`;
+      }
+      return branding.companyLogoUrl;
+    }
+    return null;
+  };
+  
+  const logoUrl = getLogoUrl();
   const [tabValue, setTabValue] = useState(0);
 
   const version = '1.3.1';

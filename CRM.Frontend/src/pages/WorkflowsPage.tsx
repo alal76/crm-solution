@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { TabPanel } from '../components/common';
 import {
   Box,
   Card,
@@ -47,28 +48,6 @@ interface QueueItem {
   errorMessage?: string;
   entitySnapshotJson?: string;
   createdAt: string;
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tabpanel-${index}`}
-      aria-labelledby={`tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
-    </div>
-  );
 }
 
 function WorkflowsPage() {

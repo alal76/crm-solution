@@ -167,3 +167,19 @@ public interface IServiceRequestCustomFieldService
     Task<bool> ReorderFieldDefinitionsAsync(List<int> fieldIds);
     Task<int> GetActiveFieldCountAsync();
 }
+
+/// <summary>
+/// Service interface for managing service request types
+/// </summary>
+public interface IServiceRequestTypeService
+{
+    Task<List<ServiceRequestTypeDto>> GetAllTypesAsync(bool includeInactive = false);
+    Task<List<ServiceRequestTypeDto>> GetTypesBySubcategoryAsync(int subcategoryId, bool includeInactive = false);
+    Task<List<ServiceRequestTypeDto>> GetTypesByCategoryAsync(int categoryId, bool includeInactive = false);
+    Task<List<ServiceRequestTypeGroupedDto>> GetTypesGroupedAsync(bool includeInactive = false);
+    Task<ServiceRequestTypeDto?> GetTypeByIdAsync(int id);
+    Task<ServiceRequestTypeDto> CreateTypeAsync(CreateServiceRequestTypeDto dto);
+    Task<ServiceRequestTypeDto> UpdateTypeAsync(int id, UpdateServiceRequestTypeDto dto);
+    Task<bool> DeleteTypeAsync(int id);
+    Task<bool> ReorderTypesAsync(int subcategoryId, List<int> typeIds);
+}

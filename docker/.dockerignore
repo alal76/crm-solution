@@ -1,0 +1,70 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+build
+dist
+out
+*.exe
+*.dll
+*.pdb
+bin
+obj
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Dependencies
+.npm
+package-lock.json
+yarn.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Documentation
+docs
+README.md
+*.md
+
+# Tests
+*.test.js
+*.spec.js
+coverage
+test-results
+
+# Temporary
+tmp
+temp
+*.tmp
+.temp
+
+# Kubernetes
+kubernetes/
+k8s/
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Other
+.dockerignore
+docker-compose.yml
+Dockerfile*
+LICENSE

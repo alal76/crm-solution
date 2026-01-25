@@ -94,6 +94,8 @@ interface ModuleStatus {
   workflowsEnabled: boolean;
   reportsEnabled: boolean;
   dashboardEnabled: boolean;
+  communicationsEnabled?: boolean;
+  interactionsEnabled?: boolean;
 }
 
 // Legacy permissions interface for backward compatibility
@@ -313,6 +315,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       'Workflows': { enabled: modules.workflowsEnabled, permitted: groupPerms.canAccessWorkflows },
       'ServiceRequests': { enabled: true, permitted: groupPerms.canAccessServiceRequests },
       'Reports': { enabled: modules.reportsEnabled, permitted: groupPerms.canAccessReports },
+      'Communications': { enabled: modules.communicationsEnabled ?? true, permitted: true },
+      'Interactions': { enabled: modules.interactionsEnabled ?? true, permitted: true },
       'Settings': { enabled: true, permitted: groupPerms.canAccessSettings },
       'User Management': { enabled: true, permitted: groupPerms.canAccessUserManagement }
     };
@@ -340,7 +344,9 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       'notes': modules.notesEnabled,
       'workflows': modules.workflowsEnabled,
       'reports': modules.reportsEnabled,
-      'dashboard': modules.dashboardEnabled
+      'dashboard': modules.dashboardEnabled,
+      'communications': modules.communicationsEnabled ?? true,
+      'interactions': modules.interactionsEnabled ?? true
     };
     
     return moduleMap[moduleName.toLowerCase()] ?? true;

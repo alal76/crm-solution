@@ -1,15 +1,21 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Service for managing system settings
+/// Service for managing system settings.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements ISystemSettingsInputPort (primary/driving port)
+/// - Implements ISystemSettingsService (backward compatibility)
+/// - Uses ICrmDbContext (secondary/driven port)
 /// </summary>
-public class SystemSettingsService : ISystemSettingsService
+public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInputPort
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<SystemSettingsService> _logger;
@@ -70,7 +76,9 @@ public class SystemSettingsService : ISystemSettingsService
                 NotesEnabled = settings?.NotesEnabled ?? true,
                 WorkflowsEnabled = settings?.WorkflowsEnabled ?? true,
                 ReportsEnabled = settings?.ReportsEnabled ?? true,
-                DashboardEnabled = settings?.DashboardEnabled ?? true
+                DashboardEnabled = settings?.DashboardEnabled ?? true,
+                CommunicationsEnabled = settings?.CommunicationsEnabled ?? true,
+                InteractionsEnabled = settings?.InteractionsEnabled ?? true
             };
         }
         catch (Exception ex)
@@ -110,6 +118,9 @@ public class SystemSettingsService : ISystemSettingsService
             if (request.WorkflowsEnabled.HasValue) settings.WorkflowsEnabled = request.WorkflowsEnabled.Value;
             if (request.ReportsEnabled.HasValue) settings.ReportsEnabled = request.ReportsEnabled.Value;
             if (request.DashboardEnabled.HasValue) settings.DashboardEnabled = request.DashboardEnabled.Value;
+            if (request.EmailEnabled.HasValue) settings.EmailEnabled = request.EmailEnabled.Value;
+            if (request.WhatsAppEnabled.HasValue) settings.WhatsAppEnabled = request.WhatsAppEnabled.Value;
+            if (request.SocialMediaEnabled.HasValue) settings.SocialMediaEnabled = request.SocialMediaEnabled.Value;
             
             if (!string.IsNullOrEmpty(request.CompanyName)) settings.CompanyName = request.CompanyName;
             if (request.CompanyLogoUrl != null) settings.CompanyLogoUrl = request.CompanyLogoUrl;
@@ -188,6 +199,9 @@ public class SystemSettingsService : ISystemSettingsService
             WorkflowsEnabled = settings.WorkflowsEnabled,
             ReportsEnabled = settings.ReportsEnabled,
             DashboardEnabled = settings.DashboardEnabled,
+            EmailEnabled = settings.EmailEnabled,
+            WhatsAppEnabled = settings.WhatsAppEnabled,
+            SocialMediaEnabled = settings.SocialMediaEnabled,
             
             CompanyName = settings.CompanyName,
             CompanyLogoUrl = settings.CompanyLogoUrl,

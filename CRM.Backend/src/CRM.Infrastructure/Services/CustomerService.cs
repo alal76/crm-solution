@@ -1,11 +1,17 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Customer service implementation providing CRUD operations for Customer entities.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements ICustomerInputPort (primary/driving port)
+/// - Implements ICustomerService (backward compatibility)
+/// - Uses IRepository pattern for data access (secondary/driven ports)
 /// 
 /// FUNCTIONAL VIEW:
 /// This service handles all customer-related business operations including:
@@ -16,20 +22,20 @@ namespace CRM.Infrastructure.Services;
 /// - Soft-deleting customers (preserves data for audit/recovery)
 /// 
 /// TECHNICAL VIEW:
-/// - Implements ICustomerService interface for dependency injection
 /// - Uses IRepository pattern for data access abstraction
 /// - Maps between Customer entities and CustomerDto for API responses
 /// - Supports async/await pattern for non-blocking database operations
 /// - Integrates with IContactsService for contact management
 /// 
-/// ARCHITECTURE:
-/// [Controller] → [ICustomerService] → [CustomerService] → [IRepository] → [Database]
+/// PATTERN:
+/// [Controller] → [ICustomerInputPort] → [CustomerService] → [IRepository] → [Database]
 /// </summary>
-public class CustomerService : ICustomerService
+public class CustomerService : ICustomerService, ICustomerInputPort
 {
     private readonly IRepository<Customer> _customerRepository;
     private readonly IRepository<CustomerContact> _customerContactRepository;
     private readonly IContactsService _contactsService;
+    private readonly IContactInfoService _contactInfoService;
     private readonly IRepository<Address> _addressRepository;
     private readonly IRepository<ContactDetail> _contactDetailRepository;
     private readonly IRepository<SocialAccount> _socialAccountRepository;
@@ -48,6 +54,7 @@ public class CustomerService : ICustomerService
         IRepository<Customer> customerRepository,
         IRepository<CustomerContact> customerContactRepository,
         IContactsService contactsService,
+        IContactInfoService contactInfoService,
         IRepository<Address> addressRepository,
         IRepository<ContactDetail> contactDetailRepository,
         IRepository<SocialAccount> socialAccountRepository,
@@ -59,6 +66,7 @@ public class CustomerService : ICustomerService
         _customerRepository = customerRepository;
         _customerContactRepository = customerContactRepository;
         _contactsService = contactsService;
+        _contactInfoService = contactInfoService;
         _addressRepository = addressRepository;
         _contactDetailRepository = contactDetailRepository;
         _socialAccountRepository = socialAccountRepository;
@@ -771,6 +779,57 @@ public class CustomerService : ICustomerService
         return true;
     }
 
+    // === Direct Contact Management (One-to-Many via Contact.CustomerId) ===
+
+    public async Task<IEnumerable<object>> GetDirectContactsAsync(int customerId)
+    {
+        var contacts = await _contactsService.GetByCustomerIdAsync(customerId);
+        return contacts.Select(c => new
+        {
+            c.Id,
+            c.FirstName,
+            c.LastName,
+            FullName = $"{c.FirstName} {c.LastName}".Trim(),
+            c.EmailPrimary,
+            c.PhonePrimary,
+            c.JobTitle,
+            c.Company,
+            c.ContactType,
+            c.Status,
+            c.DateAdded
+        }).ToList();
+    }
+
+    public async Task<bool> AssignContactToCustomerAsync(int customerId, int contactId)
+    {
+        var customer = await _customerRepository.GetByIdAsync(customerId);
+        if (customer == null || customer.IsDeleted)
+            return false;
+
+        var contact = await _contactsService.GetByIdAsync(contactId);
+        if (contact == null)
+            return false;
+
+        // Update the contact's CustomerId
+        await _contactsService.AssignToCustomerAsync(contactId, customerId);
+        return true;
+    }
+
+    public async Task<bool> UnassignContactFromCustomerAsync(int customerId, int contactId)
+    {
+        var customer = await _customerRepository.GetByIdAsync(customerId);
+        if (customer == null || customer.IsDeleted)
+            return false;
+
+        var contact = await _contactsService.GetByIdAsync(contactId);
+        if (contact == null || contact.CustomerId != customerId)
+            return false;
+
+        // Clear the contact's CustomerId
+        await _contactsService.UnassignFromCustomerAsync(contactId);
+        return true;
+    }
+
     public async Task<IEnumerable<CustomerDto>> GetCustomersByAssignedUserAsync(int userId)
     {
         var customers = await _customerRepository.FindAsync(c => 
@@ -964,7 +1023,13 @@ public class CustomerService : ICustomerService
             UpdatedAt = customer.UpdatedAt,
             DisplayName = customer.DisplayName,
             Contacts = contactDtos,
-            ContactCount = contactCount
+            ContactCount = contactCount,
+            
+            // === Normalized Contact Info Collections ===
+            EmailAddresses = await _contactInfoService.GetEmailAddressesAsync(EntityType.Customer, customer.Id),
+            PhoneNumbers = await _contactInfoService.GetPhoneNumbersAsync(EntityType.Customer, customer.Id),
+            Addresses = await _contactInfoService.GetAddressesAsync(EntityType.Customer, customer.Id),
+            SocialMediaAccounts = await _contactInfoService.GetSocialMediaAccountsAsync(EntityType.Customer, customer.Id)
         };
     }
 

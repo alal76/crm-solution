@@ -39,7 +39,9 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import LookupSelect from '../components/LookupSelect';
+import EntitySelect from '../components/EntitySelect';
 import { useState, useEffect, useCallback } from 'react';
+import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -51,6 +53,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import EscalateIcon from '@mui/icons-material/TrendingUp';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import logo from '../assets/logo.png';
+import ImportExportButtons from '../components/ImportExportButtons';
 import {
   ServiceRequest,
   CreateServiceRequest,
@@ -153,6 +156,43 @@ const PRIORITY_COLORS: { [key: number]: 'default' | 'primary' | 'secondary' | 'e
   [ServiceRequestPriority.Urgent]: 'error',
 };
 
+// Search fields for Advanced Search
+const SEARCH_FIELDS: SearchField[] = [
+  { name: 'subject', label: 'Title', type: 'text' },
+  { name: 'status', label: 'Status', type: 'select', options: [
+    { value: 0, label: 'New' },
+    { value: 1, label: 'Open' },
+    { value: 2, label: 'In Progress' },
+    { value: 3, label: 'Pending Customer' },
+    { value: 4, label: 'Pending Internal' },
+    { value: 5, label: 'Escalated' },
+    { value: 6, label: 'Resolved' },
+    { value: 7, label: 'Closed' },
+    { value: 8, label: 'Cancelled' },
+    { value: 9, label: 'On Hold' },
+    { value: 10, label: 'Reopened' },
+  ]},
+  { name: 'priority', label: 'Priority', type: 'select', options: [
+    { value: 0, label: 'Low' },
+    { value: 1, label: 'Medium' },
+    { value: 2, label: 'High' },
+    { value: 3, label: 'Critical' },
+    { value: 4, label: 'Urgent' },
+  ]},
+  { name: 'channel', label: 'Channel', type: 'select', options: [
+    { value: 0, label: 'WhatsApp' },
+    { value: 1, label: 'Email' },
+    { value: 2, label: 'Phone' },
+    { value: 3, label: 'In Person' },
+    { value: 4, label: 'Self Service Portal' },
+    { value: 5, label: 'Social Media' },
+    { value: 6, label: 'Live Chat' },
+    { value: 7, label: 'API' },
+  ]},
+];
+
+const SEARCHABLE_FIELDS = ['subject', 'description', 'ticketNumber'];
+
 function ServiceRequestsPage() {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,6 +243,8 @@ function ServiceRequestsPage() {
   const [actionNotes, setActionNotes] = useState('');
   const [assignToUserId, setAssignToUserId] = useState<number | null>(null);
   const [assignToGroupId, setAssignToGroupId] = useState<number | null>(null);
+  const [advancedSearchFilters, setAdvancedSearchFilters] = useState<SearchFilter[]>([]);
+  const [advancedSearchText, setAdvancedSearchText] = useState('');
 
   // Fetch reference data
   useEffect(() => {
@@ -611,6 +653,13 @@ function ServiceRequestsPage() {
     setSearchTerm('');
   };
 
+  const handleAdvancedSearch = (filters: SearchFilter[], text: string) => {
+    setAdvancedSearchFilters(filters);
+    setAdvancedSearchText(text);
+  };
+
+  const filteredRequests = filterData(requests, advancedSearchFilters, advancedSearchText, SEARCHABLE_FIELDS);
+
   return (
     <Container maxWidth="xl">
       <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -631,6 +680,12 @@ function ServiceRequestsPage() {
           {successMessage}
         </Alert>
       )}
+
+      <AdvancedSearch
+        fields={SEARCH_FIELDS}
+        onSearch={handleAdvancedSearch}
+        placeholder="Search service requests by title, description..."
+      />
 
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -654,18 +709,20 @@ function ServiceRequestsPage() {
                 <RefreshIcon />
               </IconButton>
             </Stack>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleAddRequest}
-            >
-              New Request
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <ImportExportButtons entityType="service-requests" entityLabel="Service Requests" onImportComplete={fetchRequests} />
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={handleAddRequest}
+              >
+                New Request
+              </Button>
+            </Box>
           </Box>
-
           <Collapse in={showFilters}>
-            <Paper sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6} md={3}>
                   <LookupSelect
@@ -745,14 +802,14 @@ function ServiceRequestsPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {requests.length === 0 ? (
+                  {filteredRequests.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={10} align="center">
                         No service requests found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    requests.map((request) => (
+                    filteredRequests.map((request) => (
                       <TableRow key={request.id} hover>
                         <TableCell>
                           <Typography variant="body2" fontWeight="medium">
@@ -1008,64 +1065,37 @@ function ServiceRequestsPage() {
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Customer</InputLabel>
-                <Select
-                  value={formData.customerId || ''}
-                  onChange={(e: SelectChangeEvent<string | number>) =>
-                    handleFormChange('customerId', e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  label="Customer"
-                  disabled={viewMode}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {customers.map((cust) => (
-                    <MenuItem key={cust.id} value={cust.id}>
-                      {cust.firstName} {cust.lastName} - {cust.company}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <EntitySelect
+                entityType="customer"
+                name="customerId"
+                value={formData.customerId || ''}
+                onChange={(e: any) => handleFormChange('customerId', e.target.value ? Number(e.target.value) : undefined)}
+                label="Customer"
+                disabled={viewMode}
+                showAddNew={!viewMode}
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Contact</InputLabel>
-                <Select
-                  value={formData.contactId || ''}
-                  onChange={(e: SelectChangeEvent<string | number>) =>
-                    handleFormChange('contactId', e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  label="Contact"
-                  disabled={viewMode}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {contacts.map((contact) => (
-                    <MenuItem key={contact.id} value={contact.id}>
-                      {contact.firstName} {contact.lastName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <EntitySelect
+                entityType="contact"
+                name="contactId"
+                value={formData.contactId || ''}
+                onChange={(e: any) => handleFormChange('contactId', e.target.value ? Number(e.target.value) : undefined)}
+                label="Contact"
+                disabled={viewMode}
+                showAddNew={!viewMode}
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Assign to User</InputLabel>
-                <Select
-                  value={formData.assignedToUserId || ''}
-                  onChange={(e: SelectChangeEvent<string | number>) =>
-                    handleFormChange('assignedToUserId', e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  label="Assign to User"
-                  disabled={viewMode}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {users.map((user) => (
-                    <MenuItem key={user.id} value={user.id}>
-                      {user.firstName} {user.lastName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <EntitySelect
+                entityType="user"
+                name="assignedToUserId"
+                value={formData.assignedToUserId || ''}
+                onChange={(e: any) => handleFormChange('assignedToUserId', e.target.value ? Number(e.target.value) : undefined)}
+                label="Assign to User"
+                disabled={viewMode}
+                showAddNew={false}
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>

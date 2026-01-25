@@ -1,7 +1,7 @@
 {
   "major": 1,
-  "minor": 3,
-  "patch": 1,
-  "lastUpdate": "2026-01-22",
-  "description": "Enhanced test suite with 129 tests and About page test results tab"
+  "minor": 4,
+  "patch": 3,
+  "lastUpdate": "2026-01-24",
+  "description": "Normalized contact info collections in Customer and Contact DTOs"
 }

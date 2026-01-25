@@ -1,19 +1,31 @@
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
+using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using SocialPlatform = CRM.Core.Models.SocialMediaPlatform;
 
 namespace CRM.Infrastructure.Services;
 
-public class ContactsService : IContactsService
+/// <summary>
+/// Contact service implementation.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IContactInputPort (primary/driving port)
+/// - Implements IContactsService (backward compatibility)
+/// - Uses CrmDbContext for data access (secondary/driven port)
+/// </summary>
+public class ContactsService : IContactsService, IContactInputPort
 {
     private readonly CrmDbContext _context;
+    private readonly IContactInfoService _contactInfoService;
 
-    public ContactsService(CrmDbContext context)
+    public ContactsService(CrmDbContext context, IContactInfoService contactInfoService)
     {
         _context = context;
+        _contactInfoService = contactInfoService;
     }
 
     public async Task<ContactDto> GetByIdAsync(int id)
@@ -25,7 +37,7 @@ public class ContactsService : IContactsService
         if (contact == null)
             throw new InvalidOperationException($"Contact with ID {id} not found");
 
-        return MapToDto(contact);
+        return await MapToDtoAsync(contact);
     }
 
     public async Task<List<ContactDto>> GetAllAsync()
@@ -36,7 +48,12 @@ public class ContactsService : IContactsService
             .ThenBy(c => c.FirstName)
             .ToListAsync();
 
-        return contacts.Select(MapToDto).ToList();
+        var dtos = new List<ContactDto>();
+        foreach (var contact in contacts)
+        {
+            dtos.Add(await MapToDtoAsync(contact));
+        }
+        return dtos;
     }
 
     public async Task<List<ContactDto>> GetByTypeAsync(string contactType)
@@ -51,7 +68,12 @@ public class ContactsService : IContactsService
             .ThenBy(c => c.FirstName)
             .ToListAsync();
 
-        return contacts.Select(MapToDto).ToList();
+        var dtos = new List<ContactDto>();
+        foreach (var contact in contacts)
+        {
+            dtos.Add(await MapToDtoAsync(contact));
+        }
+        return dtos;
     }
 
     public async Task<ContactDto> CreateAsync(CreateContactRequest request, string modifiedBy)
@@ -178,7 +200,7 @@ public class ContactsService : IContactsService
             await _context.SaveChangesAsync();
         }
 
-        return MapToDto(contact);
+        return await MapToDtoAsync(contact);
     }
 
     public async Task<ContactDto> UpdateAsync(int id, UpdateContactRequest request, string modifiedBy)
@@ -370,7 +392,7 @@ public class ContactsService : IContactsService
             await _context.SaveChangesAsync();
         }
 
-        return MapToDto(contact);
+        return await MapToDtoAsync(contact);
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -396,9 +418,9 @@ public class ContactsService : IContactsService
         if (contact == null)
             throw new InvalidOperationException($"Contact with ID {contactId} not found");
 
-        var platform = Enum.TryParse<SocialMediaPlatform>(request.Platform, true, out var p)
+        var platform = Enum.TryParse<SocialPlatform>(request.Platform, true, out var p)
             ? p
-            : SocialMediaPlatform.Other;
+            : SocialPlatform.Other;
 
         var link = new SocialMediaLink
         {
@@ -433,7 +455,7 @@ public class ContactsService : IContactsService
         return true;
     }
 
-    private static ContactDto MapToDto(Contact contact)
+    private async Task<ContactDto> MapToDtoAsync(Contact contact)
     {
         return new ContactDto
         {
@@ -460,6 +482,8 @@ public class ContactsService : IContactsService
             DateAdded = contact.DateAdded,
             LastModified = contact.LastModified,
             ModifiedBy = contact.ModifiedBy,
+            Status = contact.Status.ToString(),
+            CustomerId = contact.CustomerId,
             SocialMediaLinks = contact.SocialMediaLinks
                 .Select(l => new SocialMediaLinkDto
                 {
@@ -468,7 +492,54 @@ public class ContactsService : IContactsService
                     Url = l.Url,
                     Handle = l.Handle
                 })
-                .ToList()
+                .ToList(),
+            
+            // === Normalized Contact Info Collections ===
+            EmailAddresses = await _contactInfoService.GetEmailAddressesAsync(EntityType.Contact, contact.Id),
+            PhoneNumbers = await _contactInfoService.GetPhoneNumbersAsync(EntityType.Contact, contact.Id),
+            Addresses = await _contactInfoService.GetAddressesAsync(EntityType.Contact, contact.Id),
+            SocialMediaAccounts = await _contactInfoService.GetSocialMediaAccountsAsync(EntityType.Contact, contact.Id)
         };
+    }
+
+    // === Customer Assignment Methods ===
+
+    public async Task<List<ContactDto>> GetByCustomerIdAsync(int customerId)
+    {
+        var contacts = await _context.Contacts
+            .Include(c => c.SocialMediaLinks)
+            .Where(c => c.CustomerId == customerId)
+            .OrderBy(c => c.LastName)
+            .ThenBy(c => c.FirstName)
+            .ToListAsync();
+
+        var dtos = new List<ContactDto>();
+        foreach (var contact in contacts)
+        {
+            dtos.Add(await MapToDtoAsync(contact));
+        }
+        return dtos;
+    }
+
+    public async Task AssignToCustomerAsync(int contactId, int customerId)
+    {
+        var contact = await _context.Contacts.FindAsync(contactId);
+        if (contact == null)
+            throw new InvalidOperationException($"Contact with ID {contactId} not found");
+
+        contact.CustomerId = customerId;
+        contact.LastModified = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UnassignFromCustomerAsync(int contactId)
+    {
+        var contact = await _context.Contacts.FindAsync(contactId);
+        if (contact == null)
+            throw new InvalidOperationException($"Contact with ID {contactId} not found");
+
+        contact.CustomerId = null;
+        contact.LastModified = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
     }
 }

@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: crm-db-pvc
+  namespace: crm-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crm-db-init
+  namespace: crm-app
+data:
+  init-demo-db.sql: |
+    -- Create demo database on same server as production
+    CREATE DATABASE IF NOT EXISTS crm_demodb;
+    -- Grant privileges to crm_user on demo database
+    GRANT ALL PRIVILEGES ON crm_demodb.* TO 'crm_user'@'%';
+    FLUSH PRIVILEGES;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-db
+  namespace: crm-app
+  labels:
+    tier: database
+    app: crm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tier: database
+      app: crm
+  template:
+    metadata:
+      labels:
+        tier: database
+        app: crm
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:10.11
+        ports:
+        - containerPort: 3306
+          name: db
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: MARIADB_ROOT_PASSWORD
+        - name: MARIADB_DATABASE
+          value: "crm_db"
+        - name: MARIADB_USER
+          value: "crm_user"
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: MARIADB_PASSWORD
+        volumeMounts:
+        - name: db-storage
+          mountPath: /var/lib/mysql
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
+          readOnly: true
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - "mariadb -u root -p$MARIADB_ROOT_PASSWORD -e 'SELECT 1'"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - "mariadb -u root -p$MARIADB_ROOT_PASSWORD -e 'SELECT 1'"
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+      volumes:
+      - name: db-storage
+        persistentVolumeClaim:
+          claimName: crm-db-pvc
+      - name: init-scripts
+        configMap:
+          name: crm-db-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-db
+  namespace: crm-app
+  labels:
+    tier: database
+    app: crm
+spec:
+  type: ClusterIP
+  selector:
+    tier: database
+    app: crm
+  ports:
+  - port: 3306
+    targetPort: 3306
+    name: db

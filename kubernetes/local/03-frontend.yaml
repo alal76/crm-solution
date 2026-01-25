@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-frontend
+  namespace: crm-app
+  labels:
+    tier: presentation
+    app: crm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tier: presentation
+      app: crm
+  template:
+    metadata:
+      labels:
+        tier: presentation
+        app: crm
+    spec:
+      containers:
+      - name: crm-frontend
+        image: crm-frontend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: REACT_APP_API_URL
+          value: "http://crm-api:5000/api"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-frontend
+  namespace: crm-app
+  labels:
+    tier: presentation
+    app: crm
+spec:
+  type: NodePort
+  selector:
+    tier: presentation
+    app: crm
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30080
+    name: http

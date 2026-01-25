@@ -1,12 +1,18 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Product service implementation
+/// Product service implementation.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IProductInputPort (primary/driving port)
+/// - Implements IProductService (backward compatibility)
+/// - Uses IRepository for data access (secondary/driven port)
 /// </summary>
-public class ProductService : IProductService
+public class ProductService : IProductService, IProductInputPort
 {
     private readonly IRepository<Product> _repository;
     private readonly IRepository<CRM.Core.Entities.EntityTag> _entityTagRepository;

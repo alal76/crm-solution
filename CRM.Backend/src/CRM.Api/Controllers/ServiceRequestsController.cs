@@ -153,6 +153,36 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
+    /// Update custom field values for a service request
+    /// </summary>
+    [HttpPut("{id}/custom-fields")]
+    public async Task<ActionResult<ServiceRequestDto>> UpdateCustomFields(int id, [FromBody] List<SetCustomFieldValueDto> values)
+    {
+        try
+        {
+            var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
+            if (request == null)
+                return NotFound($"Service request {id} not found");
+            
+            var updateDto = new UpdateServiceRequestDto
+            {
+                CustomFieldValues = values
+            };
+            
+            var userId = GetCurrentUserId();
+            var result = await _serviceRequestService.UpdateServiceRequestAsync(id, updateDto, userId);
+            if (result == null)
+                return NotFound($"Service request {id} not found");
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating custom fields for service request {Id}", id);
+            return StatusCode(500, "An error occurred while updating custom fields");
+        }
+    }
+
+    /// <summary>
     /// Delete a service request (soft delete)
     /// </summary>
     [HttpDelete("{id}")]

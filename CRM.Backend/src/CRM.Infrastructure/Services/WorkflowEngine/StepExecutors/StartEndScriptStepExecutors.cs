@@ -262,14 +262,14 @@ public class ScriptStepExecutor : IStepExecutor
         return Task.FromResult(result);
     }
 
-    private async Task<object?> ApplyTransformationAsync(
+    private Task<object?> ApplyTransformationAsync(
         ScriptTransformation transform,
         Dictionary<string, object?> variables,
         CancellationToken cancellationToken)
     {
         var inputValue = variables.TryGetValue(transform.InputVariable ?? "", out var val) ? val : null;
 
-        return transform.Type?.ToLower() switch
+        object? result = transform.Type?.ToLower() switch
         {
             "uppercase" => inputValue?.ToString()?.ToUpperInvariant(),
             "lowercase" => inputValue?.ToString()?.ToLowerInvariant(),
@@ -286,6 +286,8 @@ public class ScriptStepExecutor : IStepExecutor
             "parsejson" => inputValue != null ? JsonSerializer.Deserialize<object>(inputValue.ToString()!) : null,
             _ => inputValue
         };
+        
+        return Task.FromResult(result);
     }
 
     private string? GetNextStep(WorkflowStep step)

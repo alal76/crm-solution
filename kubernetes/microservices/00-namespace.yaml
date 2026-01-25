@@ -1,0 +1,35 @@
+# CRM Microservices Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crm-microservices
+  labels:
+    app: crm
+    architecture: microservices
+---
+# ConfigMap for shared configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crm-shared-config
+  namespace: crm-microservices
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  JWT_ISSUER: "CRM.Api"
+  JWT_AUDIENCE: "CRM.Client"
+  DB_HOST: "crm-db"
+  DB_PORT: "3306"
+  DB_NAME: "crm_db"
+---
+# Secret for sensitive data
+apiVersion: v1
+kind: Secret
+metadata:
+  name: crm-secrets
+  namespace: crm-microservices
+type: Opaque
+stringData:
+  JWT_KEY: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+  DB_USER: "crm_user"
+  DB_PASSWORD: "CrmPass@Dev2024"
+  DB_ROOT_PASSWORD: "RootPass@Dev2024"

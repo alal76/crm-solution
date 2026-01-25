@@ -6,8 +6,27 @@
 *.dll
 *.exe
 *.pdb
-bin/
-obj/
+
+# Build output directories (in project subdirectories)
+**/bin/
+**/obj/
+
+# Keep root bin/ and builds/ directories structure
+!/bin/
+!/bin/README.md
+!/bin/*/.gitkeep
+bin/**/*.tar.gz
+bin/**/*.zip
+bin/**/api/
+bin/**/frontend/
+
+!/builds/
+!/builds/README.md
+!/builds/*/.gitkeep
+builds/**/backend/
+builds/**/frontend/
+builds/**/release/
+
 .vs/
 .vscode/
 node_modules/

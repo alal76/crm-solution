@@ -40,9 +40,11 @@ public interface ICrmDbContext
     DbSet<ServiceRequest> ServiceRequests { get; }
     DbSet<ServiceRequestCategory> ServiceRequestCategories { get; }
     DbSet<ServiceRequestSubcategory> ServiceRequestSubcategories { get; }
+    DbSet<ServiceRequestType> ServiceRequestTypes { get; }
     DbSet<ServiceRequestCustomFieldDefinition> ServiceRequestCustomFieldDefinitions { get; }
     DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; }
     DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; }
+    DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; }
     DbSet<Account> Accounts { get; }
     DbSet<Address> Addresses { get; }
     DbSet<ContactDetail> ContactDetails { get; }
@@ -50,12 +52,24 @@ public interface ICrmDbContext
     DbSet<ContactInfoLink> ContactInfoLinks { get; }
     DbSet<LookupCategory> LookupCategories { get; }
     DbSet<LookupItem> LookupItems { get; }
+    DbSet<ZipCode> ZipCodes { get; }
     DbSet<CRM.Core.Entities.Tag> Tags { get; }
     DbSet<CRM.Core.Entities.EntityTag> EntityTags { get; }
     DbSet<CRM.Core.Entities.CustomField> CustomFields { get; }
     DbSet<ModuleUIConfig> ModuleUIConfigs { get; }
     
+    // Cloud Deployment entities
+    DbSet<CloudProvider> CloudProviders { get; }
+    DbSet<CloudDeployment> CloudDeployments { get; }
+    DbSet<DeploymentAttempt> DeploymentAttempts { get; }
+    DbSet<HealthCheckLog> HealthCheckLogs { get; }
+    
     DatabaseFacade Database { get; }
+    
+    /// <summary>
+    /// Gets a DbSet for the specified entity type, enabling generic repository pattern
+    /// </summary>
+    DbSet<TEntity> Set<TEntity>() where TEntity : class;
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

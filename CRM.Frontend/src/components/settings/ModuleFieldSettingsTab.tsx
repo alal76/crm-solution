@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -30,6 +30,12 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Divider,
+  Autocomplete,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -38,9 +44,22 @@ import {
   VisibilityOff as VisibilityOffIcon,
   Settings as SettingsIcon,
   Refresh as RefreshIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Link as LinkIcon,
+  Storage as StorageIcon,
+  CheckCircle as CheckCircleIcon,
+  Block as BlockIcon,
+  AccountTree as AccountTreeIcon,
+  Save as SaveIcon,
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import apiClient from '../../services/apiClient';
+import fieldMasterDataService, {
+  FieldMasterDataLink,
+  MasterDataSource,
+  CreateFieldMasterDataLink,
+} from '../../services/fieldMasterDataService';
 
 interface FieldConfig {
   id: number;
@@ -95,6 +114,19 @@ const ModuleFieldSettingsTab: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<FieldConfig | null>(null);
+  
+  // Master data linking state
+  const [editDialogTab, setEditDialogTab] = useState(0);
+  const [masterDataLinks, setMasterDataLinks] = useState<FieldMasterDataLink[]>([]);
+  const [availableSources, setAvailableSources] = useState<MasterDataSource[]>([]);
+  const [loadingLinks, setLoadingLinks] = useState(false);
+  const [newLink, setNewLink] = useState<Partial<CreateFieldMasterDataLink>>({});
+  const [showAddLink, setShowAddLink] = useState(false);
+  const [allFieldsMap, setAllFieldsMap] = useState<Record<number, FieldConfig>>({});
+  
+  // Module-level links map for showing icons in the field list
+  const [moduleMasterDataLinks, setModuleMasterDataLinks] = useState<Record<number, FieldMasterDataLink[]>>({});
+  const [editingLink, setEditingLink] = useState<FieldMasterDataLink | null>(null);
 
   // Group fields by tab
   const tabs = Array.from(new Set(fields.map(f => f.tabName))).sort((a, b) => {
@@ -109,9 +141,44 @@ const ModuleFieldSettingsTab: React.FC = () => {
       .sort((a, b) => a.displayOrder - b.displayOrder);
   };
 
+  // Helper to check if a field has master data links
+  const getFieldLinks = (fieldId: number): FieldMasterDataLink[] => {
+    return moduleMasterDataLinks[fieldId] || [];
+  };
+
+  const hasEntityLink = (fieldId: number): boolean => {
+    return getFieldLinks(fieldId).some(link => link.sourceType === 'Table');
+  };
+
+  const hasMasterDataValidation = (fieldId: number): boolean => {
+    return getFieldLinks(fieldId).some(link => 
+      link.sourceType === 'LookupCategory' || 
+      (link.validationType && link.validationType !== '')
+    );
+  };
+
+  const isDataRestricted = (fieldId: number): boolean => {
+    return getFieldLinks(fieldId).some(link => !link.allowFreeText);
+  };
+
   useEffect(() => {
     loadFieldConfigurations();
   }, [selectedModule]);
+
+  // Load module-level master data links when module changes
+  useEffect(() => {
+    const loadModuleLinks = async () => {
+      try {
+        const links = await fieldMasterDataService.getLinksForModule(selectedModule);
+        setModuleMasterDataLinks(links);
+      } catch (err) {
+        console.error('Failed to load module master data links:', err);
+      }
+    };
+    if (selectedModule) {
+      loadModuleLinks();
+    }
+  }, [selectedModule, fields]);
 
   const loadFieldConfigurations = async () => {
     try {
@@ -127,18 +194,33 @@ const ModuleFieldSettingsTab: React.FC = () => {
   };
 
   const handleInitializeDefaults = async () => {
-    if (!window.confirm(`Initialize default field configurations for ${selectedModule}? This will only work if no configurations exist.`)) {
+    console.log('[ModuleFieldSettingsTab] Initialize Defaults clicked for module:', selectedModule);
+    
+    if (!selectedModule) {
+      setError('Please select a module first');
+      return;
+    }
+
+    const confirmed = window.confirm(`Initialize default field configurations for ${selectedModule}? This will only work if no configurations exist.`);
+    console.log('[ModuleFieldSettingsTab] User confirmed:', confirmed);
+    
+    if (!confirmed) {
       return;
     }
 
     try {
       setLoading(true);
-      await apiClient.post(`/modulefieldconfigurations/initialize/${selectedModule}`);
-      setSuccess('Default configurations initialized successfully');
-      setTimeout(() => setSuccess(null), 3000);
-      loadFieldConfigurations();
+      setError(null);
+      console.log('[ModuleFieldSettingsTab] Calling API to initialize:', selectedModule);
+      const response = await apiClient.post(`/modulefieldconfigurations/initialize/${selectedModule}`);
+      console.log('[ModuleFieldSettingsTab] API response:', response.data);
+      setSuccess(`Default configurations initialized successfully for ${selectedModule}`);
+      setTimeout(() => setSuccess(null), 5000);
+      await loadFieldConfigurations();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to initialize default configurations');
+      console.error('[ModuleFieldSettingsTab] Initialize error:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to initialize default configurations';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -182,9 +264,135 @@ const ModuleFieldSettingsTab: React.FC = () => {
     }
   };
 
-  const handleEditField = (field: FieldConfig) => {
+  const handleEditField = async (field: FieldConfig) => {
     setEditingField({ ...field });
+    setEditDialogTab(0);
+    setShowAddLink(false);
+    setNewLink({});
+    setEditingLink(null);
     setEditDialogOpen(true);
+    
+    // Load master data links for this field
+    setLoadingLinks(true);
+    try {
+      const [links, sources] = await Promise.all([
+        fieldMasterDataService.getLinksForField(field.id),
+        fieldMasterDataService.getAvailableSources(),
+      ]);
+      setMasterDataLinks(links);
+      setAvailableSources(sources);
+    } catch (err) {
+      console.error('Failed to load master data links:', err);
+    } finally {
+      setLoadingLinks(false);
+    }
+  };
+
+  // Build a map of all fields for dependent field selection
+  useEffect(() => {
+    const map: Record<number, FieldConfig> = {};
+    fields.forEach(f => { map[f.id] = f; });
+    setAllFieldsMap(map);
+  }, [fields]);
+
+  const handleAddMasterDataLink = async () => {
+    if (!editingField || !newLink.sourceType || !newLink.sourceName) return;
+
+    try {
+      const created = await fieldMasterDataService.createLink({
+        fieldConfigurationId: editingField.id,
+        sourceType: newLink.sourceType,
+        sourceName: newLink.sourceName,
+        displayField: newLink.displayField,
+        valueField: newLink.valueField,
+        filterExpression: newLink.filterExpression,
+        dependsOnField: newLink.dependsOnField,
+        dependsOnSourceColumn: newLink.dependsOnSourceColumn,
+        allowFreeText: newLink.allowFreeText ?? false,
+        validationType: newLink.validationType,
+        validationPattern: newLink.validationPattern,
+        validationMessage: newLink.validationMessage,
+        sortOrder: masterDataLinks.length,
+        isActive: true,
+      });
+      setMasterDataLinks([...masterDataLinks, created]);
+      
+      // Also update the module-level links for the icons
+      setModuleMasterDataLinks(prev => ({
+        ...prev,
+        [editingField.id]: [...(prev[editingField.id] || []), created]
+      }));
+      
+      setShowAddLink(false);
+      setNewLink({});
+      setSuccess('Master data link added');
+      setTimeout(() => setSuccess(null), 2000);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to add master data link');
+    }
+  };
+
+  const handleDeleteMasterDataLink = async (linkId: number) => {
+    try {
+      await fieldMasterDataService.deleteLink(linkId);
+      setMasterDataLinks(masterDataLinks.filter(l => l.id !== linkId));
+      // Also update the module-level links
+      if (editingField) {
+        setModuleMasterDataLinks(prev => ({
+          ...prev,
+          [editingField.id]: (prev[editingField.id] || []).filter(l => l.id !== linkId)
+        }));
+      }
+      setSuccess('Master data link removed');
+      setTimeout(() => setSuccess(null), 2000);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to delete master data link');
+    }
+  };
+
+  const handleSaveEditedLink = async () => {
+    if (!editingLink || !editingField) return;
+
+    try {
+      const updated = await fieldMasterDataService.updateLink(editingLink.id, {
+        fieldConfigurationId: editingField.id,
+        sourceType: editingLink.sourceType,
+        sourceName: editingLink.sourceName,
+        displayField: editingLink.displayField,
+        valueField: editingLink.valueField,
+        filterExpression: editingLink.filterExpression,
+        dependsOnField: editingLink.dependsOnField,
+        dependsOnSourceColumn: editingLink.dependsOnSourceColumn,
+        allowFreeText: editingLink.allowFreeText,
+        validationType: editingLink.validationType,
+        validationPattern: editingLink.validationPattern,
+        validationMessage: editingLink.validationMessage,
+        sortOrder: editingLink.sortOrder,
+        isActive: editingLink.isActive,
+      });
+      
+      // Update local state
+      setMasterDataLinks(masterDataLinks.map(l => l.id === updated.id ? updated : l));
+      
+      // Update module-level links
+      setModuleMasterDataLinks(prev => ({
+        ...prev,
+        [editingField.id]: (prev[editingField.id] || []).map(l => l.id === updated.id ? updated : l)
+      }));
+      
+      setEditingLink(null);
+      setSuccess('Master data link updated');
+      setTimeout(() => setSuccess(null), 2000);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update master data link');
+    }
+  };
+
+  const getSelectedSource = (): MasterDataSource | undefined => {
+    if (!newLink.sourceType || !newLink.sourceName) return undefined;
+    return availableSources.find(
+      s => s.sourceType === newLink.sourceType && s.sourceName === newLink.sourceName
+    );
   };
 
   const handleSaveFieldEdit = async () => {
@@ -320,7 +528,16 @@ const ModuleFieldSettingsTab: React.FC = () => {
             <TabPanel key={tabName} value={selectedTab} index={index}>
               <Box sx={{ p: 2 }}>
                 <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                  Drag to reorder • Toggle visibility • Configure requirements
+                  Drag to reorder • Toggle visibility • Configure requirements • 
+                  <Tooltip title="Linked to entity">
+                    <AccountTreeIcon sx={{ fontSize: 14, mx: 0.5, color: '#1976d2' }} />
+                  </Tooltip>Entity Link
+                  <Tooltip title="Master data validation">
+                    <StorageIcon sx={{ fontSize: 14, mx: 0.5, color: '#9c27b0' }} />
+                  </Tooltip>Master Data
+                  <Tooltip title="Restricted (no free text)">
+                    <BlockIcon sx={{ fontSize: 14, mx: 0.5, color: '#f44336' }} />
+                  </Tooltip>Restricted
                 </Typography>
 
                 <DragDropContext onDragEnd={(result) => handleDragEnd(result, tabName)}>
@@ -332,6 +549,7 @@ const ModuleFieldSettingsTab: React.FC = () => {
                             <TableCell width="40"></TableCell>
                             <TableCell><strong>Field</strong></TableCell>
                             <TableCell><strong>Type</strong></TableCell>
+                            <TableCell><strong>Links</strong></TableCell>
                             <TableCell><strong>Grid Size</strong></TableCell>
                             <TableCell><strong>Visible</strong></TableCell>
                             <TableCell><strong>Required</strong></TableCell>
@@ -383,6 +601,28 @@ const ModuleFieldSettingsTab: React.FC = () => {
                                   </TableCell>
                                   <TableCell>
                                     <Chip label={field.fieldType} size="small" variant="outlined" />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                      {hasEntityLink(field.id) && (
+                                        <Tooltip title={`Linked to entity: ${getFieldLinks(field.id).filter(l => l.sourceType === 'Table').map(l => l.sourceName).join(', ')}`}>
+                                          <AccountTreeIcon sx={{ fontSize: 18, color: '#1976d2' }} />
+                                        </Tooltip>
+                                      )}
+                                      {hasMasterDataValidation(field.id) && (
+                                        <Tooltip title={`Master data: ${getFieldLinks(field.id).filter(l => l.sourceType === 'LookupCategory').map(l => l.sourceName).join(', ')}`}>
+                                          <StorageIcon sx={{ fontSize: 18, color: '#9c27b0' }} />
+                                        </Tooltip>
+                                      )}
+                                      {isDataRestricted(field.id) && (
+                                        <Tooltip title="Data entry restricted to master data values">
+                                          <BlockIcon sx={{ fontSize: 18, color: '#f44336' }} />
+                                        </Tooltip>
+                                      )}
+                                      {getFieldLinks(field.id).length === 0 && (
+                                        <Typography variant="caption" color="textSecondary">-</Typography>
+                                      )}
+                                    </Box>
                                   </TableCell>
                                   <TableCell>
                                     <Chip label={`${field.gridSize}/12`} size="small" />
@@ -437,10 +677,22 @@ const ModuleFieldSettingsTab: React.FC = () => {
       )}
 
       {/* Edit Field Dialog */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Field Settings</DialogTitle>
-        <DialogContent>
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Edit Field Settings
           {editingField && (
+            <Typography variant="caption" display="block" color="textSecondary">
+              {editingField.fieldLabel} ({editingField.fieldName})
+            </Typography>
+          )}
+        </DialogTitle>
+        <DialogContent>
+          <Tabs value={editDialogTab} onChange={(_, v) => setEditDialogTab(v)} sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+            <Tab label="General" />
+            <Tab label="Data Source & Validation" icon={<LinkIcon fontSize="small" />} iconPosition="start" />
+          </Tabs>
+
+          {editingField && editDialogTab === 0 && (
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={12}>
                 <TextField
@@ -483,6 +735,459 @@ const ModuleFieldSettingsTab: React.FC = () => {
                 </FormControl>
               </Grid>
             </Grid>
+          )}
+
+          {editingField && editDialogTab === 1 && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Link this field to master data for dropdown options and validation
+              </Typography>
+
+              {loadingLinks ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : (
+                <>
+                  {/* Existing Links */}
+                  {masterDataLinks.length > 0 && (
+                    <List sx={{ mb: 2 }}>
+                      {masterDataLinks.map((link) => (
+                        <React.Fragment key={link.id}>
+                          <ListItem>
+                            <ListItemText
+                              primary={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Chip 
+                                    label={fieldMasterDataService.getSourceTypeDisplayName(link.sourceType)} 
+                                    size="small" 
+                                    color="primary" 
+                                    variant="outlined" 
+                                  />
+                                  <Typography variant="body2" fontWeight={500}>
+                                    {link.sourceName}
+                                  </Typography>
+                                </Box>
+                              }
+                              secondary={
+                                <Box sx={{ mt: 0.5 }}>
+                                  <Typography variant="caption" display="block" color="textSecondary">
+                                    Display: {link.displayField || 'default'} | Value: {link.valueField || 'default'}
+                                  </Typography>
+                                  {link.dependsOnField && (
+                                    <Chip 
+                                      label={`Depends on: ${link.dependsOnField}`} 
+                                      size="small" 
+                                      sx={{ mt: 0.5 }} 
+                                    />
+                                  )}
+                                  {link.validationType && (
+                                    <Chip 
+                                      label={`Validation: ${fieldMasterDataService.getValidationTypeDisplayName(link.validationType)}`} 
+                                      size="small" 
+                                      sx={{ mt: 0.5, ml: 0.5 }} 
+                                    />
+                                  )}
+                                  {link.allowFreeText && (
+                                    <Chip 
+                                      label="Allows free text" 
+                                      size="small" 
+                                      color="success"
+                                      sx={{ mt: 0.5, ml: 0.5 }} 
+                                    />
+                                  )}
+                                  {!link.allowFreeText && (
+                                    <Chip 
+                                      label="Restricted" 
+                                      size="small" 
+                                      color="error"
+                                      sx={{ mt: 0.5, ml: 0.5 }} 
+                                    />
+                                  )}
+                                </Box>
+                              }
+                            />
+                            <ListItemSecondaryAction>
+                              <Tooltip title="Edit link settings">
+                                <IconButton 
+                                  edge="end" 
+                                  onClick={() => setEditingLink(link)} 
+                                  sx={{ color: '#6750A4', mr: 0.5 }}
+                                  size="small"
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Remove link">
+                                <IconButton edge="end" onClick={() => handleDeleteMasterDataLink(link.id)} color="error" size="small">
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </ListItemSecondaryAction>
+                          </ListItem>
+                          <Divider />
+                        </React.Fragment>
+                      ))}
+                    </List>
+                  )}
+
+                  {/* Edit Existing Link Form */}
+                  {editingLink && (
+                    <Paper sx={{ p: 2, mb: 2, backgroundColor: '#e3f2fd' }}>
+                      <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <EditIcon fontSize="small" />
+                        Edit Link: {editingLink.sourceName}
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                          <Alert severity="info" sx={{ py: 0.5 }}>
+                            Source: <strong>{fieldMasterDataService.getSourceTypeDisplayName(editingLink.sourceType)}</strong> - {editingLink.sourceName}
+                          </Alert>
+                        </Grid>
+                        <Grid item xs={6} sm={3}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Display Field"
+                            value={editingLink.displayField || ''}
+                            onChange={(e) => setEditingLink({ ...editingLink, displayField: e.target.value })}
+                          />
+                        </Grid>
+                        <Grid item xs={6} sm={3}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Value Field"
+                            value={editingLink.valueField || ''}
+                            onChange={(e) => setEditingLink({ ...editingLink, valueField: e.target.value })}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Divider sx={{ my: 1 }} />
+                          <Typography variant="caption" color="textSecondary">
+                            Cascading / Dependent Field (Optional)
+                          </Typography>
+                        </Grid>
+
+                        <Grid item xs={6}>
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Depends On Field</InputLabel>
+                            <Select
+                              value={editingLink.dependsOnField || ''}
+                              onChange={(e) => setEditingLink({ ...editingLink, dependsOnField: e.target.value })}
+                              label="Depends On Field"
+                            >
+                              <MenuItem value="">None</MenuItem>
+                              {fields.filter(f => f.id !== editingField?.id).map(f => (
+                                <MenuItem key={f.id} value={f.fieldName}>{f.fieldLabel} ({f.fieldName})</MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Filter Column in Source"
+                            value={editingLink.dependsOnSourceColumn || ''}
+                            onChange={(e) => setEditingLink({ ...editingLink, dependsOnSourceColumn: e.target.value })}
+                            placeholder="e.g., CountryCode, StateCode"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Divider sx={{ my: 1 }} />
+                          <Typography variant="caption" color="textSecondary">
+                            Validation Options
+                          </Typography>
+                        </Grid>
+
+                        <Grid item xs={6} sm={4}>
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Validation Type</InputLabel>
+                            <Select
+                              value={editingLink.validationType || ''}
+                              onChange={(e) => setEditingLink({ ...editingLink, validationType: e.target.value })}
+                              label="Validation Type"
+                            >
+                              <MenuItem value="">None</MenuItem>
+                              <MenuItem value="regex">Regex Pattern</MenuItem>
+                              <MenuItem value="required">Required</MenuItem>
+                              <MenuItem value="range">Range</MenuItem>
+                              <MenuItem value="length">Length</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        {editingLink.validationType === 'regex' && (
+                          <Grid item xs={6} sm={4}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              label="Regex Pattern"
+                              value={editingLink.validationPattern || ''}
+                              onChange={(e) => setEditingLink({ ...editingLink, validationPattern: e.target.value })}
+                              placeholder="^[A-Z]{2}$"
+                            />
+                          </Grid>
+                        )}
+                        <Grid item xs={12} sm={4}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Validation Message"
+                            value={editingLink.validationMessage || ''}
+                            onChange={(e) => setEditingLink({ ...editingLink, validationMessage: e.target.value })}
+                            placeholder="Invalid value"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={editingLink.allowFreeText || false}
+                                onChange={(e) => setEditingLink({ ...editingLink, allowFreeText: e.target.checked })}
+                              />
+                            }
+                            label="Allow free text (values not in the list)"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Static Filter (JSON)"
+                            value={editingLink.filterExpression || ''}
+                            onChange={(e) => setEditingLink({ ...editingLink, filterExpression: e.target.value })}
+                            placeholder='{"CountryCode": "US"}'
+                            helperText="Optional: Filter data permanently"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                            <Button size="small" onClick={() => setEditingLink(null)}>
+                              Cancel
+                            </Button>
+                            <Button 
+                              size="small" 
+                              variant="contained" 
+                              onClick={handleSaveEditedLink}
+                              startIcon={<SaveIcon />}
+                              sx={{ backgroundColor: '#6750A4' }}
+                            >
+                              Save Link
+                            </Button>
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  )}
+
+                  {masterDataLinks.length === 0 && !showAddLink && !editingLink && (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                      No data source linked to this field. Click "Add Data Source" to link master data for dropdown options.
+                    </Alert>
+                  )}
+
+                  {/* Add New Link Form */}
+                  {showAddLink ? (
+                    <Paper sx={{ p: 2, mb: 2, backgroundColor: '#f9f9f9' }}>
+                      <Typography variant="subtitle2" gutterBottom>Add Data Source</Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <Autocomplete
+                            options={availableSources}
+                            getOptionLabel={(opt) => opt.displayName}
+                            groupBy={(opt) => fieldMasterDataService.getSourceTypeDisplayName(opt.sourceType)}
+                            value={getSelectedSource() || null}
+                            onChange={(_, value) => {
+                              if (value) {
+                                setNewLink({
+                                  ...newLink,
+                                  sourceType: value.sourceType,
+                                  sourceName: value.sourceName,
+                                  displayField: value.availableFields[0],
+                                  valueField: value.availableFields[0],
+                                });
+                              } else {
+                                setNewLink({ ...newLink, sourceType: undefined, sourceName: undefined });
+                              }
+                            }}
+                            renderInput={(params) => (
+                              <TextField {...params} label="Data Source" size="small" fullWidth />
+                            )}
+                          />
+                        </Grid>
+                        {getSelectedSource() && (
+                          <>
+                            <Grid item xs={6} sm={3}>
+                              <FormControl fullWidth size="small">
+                                <InputLabel>Display Field</InputLabel>
+                                <Select
+                                  value={newLink.displayField || ''}
+                                  onChange={(e) => setNewLink({ ...newLink, displayField: e.target.value })}
+                                  label="Display Field"
+                                >
+                                  {getSelectedSource()?.availableFields.map(f => (
+                                    <MenuItem key={f} value={f}>{f}</MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid item xs={6} sm={3}>
+                              <FormControl fullWidth size="small">
+                                <InputLabel>Value Field</InputLabel>
+                                <Select
+                                  value={newLink.valueField || ''}
+                                  onChange={(e) => setNewLink({ ...newLink, valueField: e.target.value })}
+                                  label="Value Field"
+                                >
+                                  {getSelectedSource()?.availableFields.map(f => (
+                                    <MenuItem key={f} value={f}>{f}</MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                          </>
+                        )}
+
+                        <Grid item xs={12}>
+                          <Divider sx={{ my: 1 }} />
+                          <Typography variant="caption" color="textSecondary">
+                            Cascading / Dependent Field (Optional)
+                          </Typography>
+                        </Grid>
+
+                        <Grid item xs={6}>
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Depends On Field</InputLabel>
+                            <Select
+                              value={newLink.dependsOnField || ''}
+                              onChange={(e) => setNewLink({ ...newLink, dependsOnField: e.target.value })}
+                              label="Depends On Field"
+                            >
+                              <MenuItem value="">None</MenuItem>
+                              {fields.filter(f => f.id !== editingField.id).map(f => (
+                                <MenuItem key={f.id} value={f.fieldName}>{f.fieldLabel} ({f.fieldName})</MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Filter Column in Source"
+                            value={newLink.dependsOnSourceColumn || ''}
+                            onChange={(e) => setNewLink({ ...newLink, dependsOnSourceColumn: e.target.value })}
+                            placeholder="e.g., CountryCode, StateCode"
+                            helperText="Column to filter by parent value"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Divider sx={{ my: 1 }} />
+                          <Typography variant="caption" color="textSecondary">
+                            Validation Options
+                          </Typography>
+                        </Grid>
+
+                        <Grid item xs={6} sm={4}>
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Validation Type</InputLabel>
+                            <Select
+                              value={newLink.validationType || ''}
+                              onChange={(e) => setNewLink({ ...newLink, validationType: e.target.value })}
+                              label="Validation Type"
+                            >
+                              <MenuItem value="">None</MenuItem>
+                              <MenuItem value="regex">Regex Pattern</MenuItem>
+                              <MenuItem value="required">Required</MenuItem>
+                              <MenuItem value="range">Range</MenuItem>
+                              <MenuItem value="length">Length</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        {newLink.validationType === 'regex' && (
+                          <Grid item xs={6} sm={4}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              label="Regex Pattern"
+                              value={newLink.validationPattern || ''}
+                              onChange={(e) => setNewLink({ ...newLink, validationPattern: e.target.value })}
+                              placeholder="^[A-Z]{2}$"
+                            />
+                          </Grid>
+                        )}
+                        <Grid item xs={12} sm={4}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Validation Message"
+                            value={newLink.validationMessage || ''}
+                            onChange={(e) => setNewLink({ ...newLink, validationMessage: e.target.value })}
+                            placeholder="Invalid value"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={newLink.allowFreeText || false}
+                                onChange={(e) => setNewLink({ ...newLink, allowFreeText: e.target.checked })}
+                              />
+                            }
+                            label="Allow free text (values not in the list)"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Static Filter (JSON)"
+                            value={newLink.filterExpression || ''}
+                            onChange={(e) => setNewLink({ ...newLink, filterExpression: e.target.value })}
+                            placeholder='{"CountryCode": "US"}'
+                            helperText="Optional: Filter data permanently (e.g., only show US data)"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                            <Button size="small" onClick={() => { setShowAddLink(false); setNewLink({}); }}>
+                              Cancel
+                            </Button>
+                            <Button 
+                              size="small" 
+                              variant="contained" 
+                              onClick={handleAddMasterDataLink}
+                              disabled={!newLink.sourceType || !newLink.sourceName}
+                              sx={{ backgroundColor: '#6750A4' }}
+                            >
+                              Add Link
+                            </Button>
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  ) : !editingLink && (
+                    <Button
+                      startIcon={<AddIcon />}
+                      onClick={() => setShowAddLink(true)}
+                      sx={{ mb: 2 }}
+                    >
+                      Add Data Source
+                    </Button>
+                  )}
+                </>
+              )}
+            </Box>
           )}
         </DialogContent>
         <DialogActions>

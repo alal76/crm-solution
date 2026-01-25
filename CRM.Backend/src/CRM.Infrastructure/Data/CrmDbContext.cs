@@ -88,6 +88,17 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Address> Addresses { get; set; }
     public DbSet<ContactDetail> ContactDetails { get; set; }
     public DbSet<SocialAccount> SocialAccounts { get; set; }
+    
+    // Consolidated contact info entities (new)
+    public DbSet<PhoneNumber> PhoneNumbers { get; set; }
+    public DbSet<EmailAddress> EmailAddresses { get; set; }
+    public DbSet<SocialMediaAccount> SocialMediaAccounts { get; set; }
+    
+    // Contact info junction tables
+    public DbSet<EntityAddressLink> EntityAddressLinks { get; set; }
+    public DbSet<EntityPhoneLink> EntityPhoneLinks { get; set; }
+    public DbSet<EntityEmailLink> EntityEmailLinks { get; set; }
+    public DbSet<EntitySocialMediaLink> EntitySocialMediaLinks { get; set; }
     public DbSet<ContactInfoLink> ContactInfoLinks { get; set; }
     public DbSet<LookupCategory> LookupCategories { get; set; }
     public DbSet<LookupItem> LookupItems { get; set; }
@@ -101,6 +112,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
     public DbSet<ServiceRequestCategory> ServiceRequestCategories { get; set; }
     public DbSet<ServiceRequestSubcategory> ServiceRequestSubcategories { get; set; }
+    public DbSet<ServiceRequestType> ServiceRequestTypes { get; set; }
     public DbSet<ServiceRequestCustomFieldDefinition> ServiceRequestCustomFieldDefinitions { get; set; }
     public DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; set; }
     
@@ -114,12 +126,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
         public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
         public DbSet<Account> Accounts { get; set; }
+        public DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; set; }
     
     // Communication entities
     public DbSet<CommunicationChannel> CommunicationChannels { get; set; }
     public DbSet<CommunicationMessage> CommunicationMessages { get; set; }
     public DbSet<EmailTemplate> EmailTemplates { get; set; }
     public DbSet<Conversation> Conversations { get; set; }
+    
+    // Master data entities
+    public DbSet<ZipCode> ZipCodes { get; set; }
+    
+    // Cloud Deployment entities
+    public DbSet<CloudProvider> CloudProviders { get; set; }
+    public DbSet<CloudDeployment> CloudDeployments { get; set; }
+    public DbSet<DeploymentAttempt> DeploymentAttempts { get; set; }
+    public DbSet<HealthCheckLog> HealthCheckLogs { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -209,6 +231,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(c => c.CustomerContacts)
                 .HasForeignKey(e => e.CustomerId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Contact)
+                .WithMany(c => c.CustomerContacts)
+                .HasForeignKey(e => e.ContactId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configure Opportunity
@@ -286,6 +313,99 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
+        // Configure consolidated contact info entities
+        modelBuilder.Entity<PhoneNumber>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Number).IsRequired().HasMaxLength(30);
+            entity.Property(e => e.CountryCode).HasMaxLength(5).HasDefaultValue("+1");
+            entity.Property(e => e.AreaCode).HasMaxLength(10);
+            entity.Property(e => e.Extension).HasMaxLength(10);
+            entity.Property(e => e.FormattedNumber).HasMaxLength(50);
+            entity.Property(e => e.Label).HasMaxLength(100);
+            entity.Property(e => e.BestTimeToCall).HasMaxLength(100);
+            entity.HasIndex(e => e.Number);
+            entity.HasIndex(e => e.IsDeleted);
+        });
+
+        modelBuilder.Entity<EmailAddress>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Label).HasMaxLength(100);
+            entity.Property(e => e.DisplayName).HasMaxLength(200);
+            entity.Property(e => e.EmailEngagementScore).HasPrecision(3, 2);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.IsDeleted);
+        });
+
+        modelBuilder.Entity<SocialMediaAccount>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.HandleOrUsername).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Platform).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.PlatformOther).HasMaxLength(100);
+            entity.Property(e => e.AccountType).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.ProfileUrl).HasMaxLength(500);
+            entity.Property(e => e.DisplayName).HasMaxLength(200);
+            entity.Property(e => e.EngagementLevel).HasConversion<string>().HasMaxLength(20);
+            entity.HasIndex(e => e.Platform);
+            entity.HasIndex(e => e.HandleOrUsername);
+            entity.HasIndex(e => e.IsDeleted);
+        });
+
+        // Configure junction tables for consolidated contact info
+        modelBuilder.Entity<EntityAddressLink>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.AddressType).HasConversion<string>().HasMaxLength(50).HasDefaultValue(AddressType.Primary);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.AddressId, e.AddressType }).IsUnique();
+            entity.HasOne(e => e.Address)
+                .WithMany(a => a.EntityAddressLinks)
+                .HasForeignKey(e => e.AddressId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EntityPhoneLink>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.PhoneType).HasConversion<string>().HasMaxLength(50).HasDefaultValue(PhoneType.Office);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.PhoneId, e.PhoneType }).IsUnique();
+            entity.HasOne(e => e.PhoneNumber)
+                .WithMany(p => p.EntityPhoneLinks)
+                .HasForeignKey(e => e.PhoneId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EntityEmailLink>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.EmailType).HasConversion<string>().HasMaxLength(50).HasDefaultValue(EmailType.General);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.EmailId, e.EmailType }).IsUnique();
+            entity.HasOne(e => e.EmailAddress)
+                .WithMany(e => e.EntityEmailLinks)
+                .HasForeignKey(e => e.EmailId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EntitySocialMediaLink>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).HasConversion<string>().HasMaxLength(50);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.SocialMediaAccountId }).IsUnique();
+            entity.HasOne(e => e.SocialMediaAccount)
+                .WithMany(s => s.EntitySocialMediaLinks)
+                .HasForeignKey(e => e.SocialMediaAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         // Configure Lookup tables
         modelBuilder.Entity<LookupCategory>(entity =>
         {
@@ -320,6 +440,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasOne(c => c.PreferredContactMethodLookup)
                 .WithMany()
                 .HasForeignKey(c => c.PreferredContactMethodLookupId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Contact belongs to Customer (one-to-many)
+            entity.HasOne(c => c.Customer)
+                .WithMany(cust => cust.Contacts)
+                .HasForeignKey(c => c.CustomerId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -1159,6 +1285,29 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Value).HasColumnType("TEXT");
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
         });
+        
+        // Configure ZipCodes (Master Data)
+        modelBuilder.Entity<ZipCode>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Country).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.CountryCode).IsRequired().HasMaxLength(10);
+            entity.Property(e => e.PostalCode).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.City).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.State).HasMaxLength(100);
+            entity.Property(e => e.StateCode).HasMaxLength(10);
+            entity.Property(e => e.County).HasMaxLength(100);
+            entity.Property(e => e.CountyCode).HasMaxLength(20);
+            entity.Property(e => e.Community).HasMaxLength(100);
+            entity.Property(e => e.CommunityCode).HasMaxLength(20);
+            entity.Property(e => e.Latitude).HasPrecision(10, 6);
+            entity.Property(e => e.Longitude).HasPrecision(10, 6);
+            entity.HasIndex(e => e.PostalCode);
+            entity.HasIndex(e => e.CountryCode);
+            entity.HasIndex(e => new { e.CountryCode, e.PostalCode });
+            entity.HasIndex(e => e.City);
+            entity.HasIndex(e => e.State);
+        });
 
             entity.HasOne(e => e.CreatedByUser)
                 .WithMany()
@@ -1189,6 +1338,97 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(sr => sr.ChildServiceRequests)
                 .HasForeignKey(e => e.ParentServiceRequestId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // Configure Cloud Deployment entities
+        modelBuilder.Entity<CloudProvider>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.AccessKeyId).HasMaxLength(500);
+            entity.Property(e => e.SecretAccessKey).HasMaxLength(2000);
+            entity.Property(e => e.TenantId).HasMaxLength(200);
+            entity.Property(e => e.SubscriptionId).HasMaxLength(200);
+            entity.Property(e => e.ProjectId).HasMaxLength(200);
+            entity.Property(e => e.Region).HasMaxLength(100);
+            entity.Property(e => e.Endpoint).HasMaxLength(500);
+            entity.Property(e => e.Configuration).HasColumnType("TEXT");
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.ProviderType);
+        });
+        
+        modelBuilder.Entity<CloudDeployment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.ClusterName).HasMaxLength(200);
+            entity.Property(e => e.Namespace).HasMaxLength(100);
+            entity.Property(e => e.ResourceGroup).HasMaxLength(200);
+            entity.Property(e => e.VpcId).HasMaxLength(100);
+            entity.Property(e => e.SubnetIds).HasMaxLength(500);
+            entity.Property(e => e.BackendImage).HasMaxLength(500);
+            entity.Property(e => e.FrontendImage).HasMaxLength(500);
+            entity.Property(e => e.DatabaseImage).HasMaxLength(500);
+            entity.Property(e => e.BackendVersion).HasMaxLength(50);
+            entity.Property(e => e.FrontendVersion).HasMaxLength(50);
+            entity.Property(e => e.FrontendUrl).HasMaxLength(500);
+            entity.Property(e => e.ApiUrl).HasMaxLength(500);
+            entity.Property(e => e.DatabaseHost).HasMaxLength(200);
+            entity.Property(e => e.SslCertificateArn).HasMaxLength(500);
+            entity.Property(e => e.DomainName).HasMaxLength(300);
+            entity.Property(e => e.LastError).HasMaxLength(2000);
+            entity.Property(e => e.EnvironmentVariables).HasColumnType("TEXT");
+            entity.Property(e => e.ResourceConfiguration).HasColumnType("TEXT");
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.Status);
+            
+            entity.HasOne(e => e.CloudProvider)
+                .WithMany(p => p.Deployments)
+                .HasForeignKey(e => e.CloudProviderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        modelBuilder.Entity<DeploymentAttempt>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.AttemptNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.GitCommitHash).HasMaxLength(100);
+            entity.Property(e => e.GitBranch).HasMaxLength(200);
+            entity.Property(e => e.BuildNumber).HasMaxLength(50);
+            entity.Property(e => e.BackendImageTag).HasMaxLength(100);
+            entity.Property(e => e.FrontendImageTag).HasMaxLength(100);
+            entity.Property(e => e.BuildLog).HasColumnType("LONGTEXT");
+            entity.Property(e => e.DeployLog).HasColumnType("LONGTEXT");
+            entity.Property(e => e.ErrorMessage).HasMaxLength(2000);
+            entity.Property(e => e.ErrorStackTrace).HasColumnType("TEXT");
+            entity.Property(e => e.TriggerType).HasMaxLength(50);
+            entity.HasIndex(e => e.CloudDeploymentId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.StartedAt);
+            
+            entity.HasOne(e => e.CloudDeployment)
+                .WithMany(d => d.Attempts)
+                .HasForeignKey(e => e.CloudDeploymentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        modelBuilder.Entity<HealthCheckLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ApiResponse).HasMaxLength(1000);
+            entity.Property(e => e.FrontendResponse).HasMaxLength(1000);
+            entity.Property(e => e.DatabaseResponse).HasMaxLength(1000);
+            entity.Property(e => e.ErrorDetails).HasMaxLength(2000);
+            entity.HasIndex(e => e.CloudDeploymentId);
+            entity.HasIndex(e => e.CheckedAt);
+            entity.HasIndex(e => e.Status);
+            
+            entity.HasOne(e => e.CloudDeployment)
+                .WithMany(d => d.HealthChecks)
+                .HasForeignKey(e => e.CloudDeploymentId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

@@ -1,0 +1,31 @@
+# CRM Customer Service Dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 5002
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+COPY ["CRM.Backend/src/CRM.Core/CRM.Core.csproj", "CRM.Core/"]
+COPY ["CRM.Backend/src/CRM.Infrastructure/CRM.Infrastructure.csproj", "CRM.Infrastructure/"]
+COPY ["CRM.Backend/src/Services/CRM.ServiceDefaults/CRM.ServiceDefaults.csproj", "Services/CRM.ServiceDefaults/"]
+COPY ["CRM.Backend/src/Services/CRM.CustomerService/CRM.CustomerService.csproj", "Services/CRM.CustomerService/"]
+
+RUN dotnet restore "Services/CRM.CustomerService/CRM.CustomerService.csproj"
+
+COPY CRM.Backend/src/CRM.Core/. CRM.Core/
+COPY CRM.Backend/src/CRM.Infrastructure/. CRM.Infrastructure/
+COPY CRM.Backend/src/Services/CRM.ServiceDefaults/. Services/CRM.ServiceDefaults/
+COPY CRM.Backend/src/Services/CRM.CustomerService/. Services/CRM.CustomerService/
+
+WORKDIR "/src/Services/CRM.CustomerService"
+RUN dotnet build "CRM.CustomerService.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "CRM.CustomerService.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENV ASPNETCORE_URLS=http://+:5002
+ENTRYPOINT ["dotnet", "CRM.CustomerService.dll"]

@@ -1,15 +1,21 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Service for user group management
+/// Service for user group management.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IUserGroupInputPort (primary/driving port)
+/// - Implements IUserGroupService (backward compatibility)
+/// - Uses ICrmDbContext (secondary/driven port)
 /// </summary>
-public class UserGroupService : IUserGroupService
+public class UserGroupService : IUserGroupService, IUserGroupInputPort
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<UserGroupService> _logger;

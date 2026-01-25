@@ -240,6 +240,101 @@ public class ModuleUIConfigService
     }
 
     /// <summary>
+    /// Save complete module configuration (tabs, fields, linked entities) in a single transaction
+    /// </summary>
+    public async Task<CompleteModuleConfigDto?> SaveCompleteModuleConfigAsync(string moduleName, SaveCompleteModuleConfigDto dto)
+    {
+        var moduleConfig = await _context.ModuleUIConfigs
+            .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
+
+        if (moduleConfig == null)
+            return null;
+
+        // Update tabs config
+        moduleConfig.TabsConfig = JsonSerializer.Serialize(dto.Tabs, _jsonOptions);
+        
+        // Update linked entities config
+        moduleConfig.LinkedEntitiesConfig = JsonSerializer.Serialize(dto.LinkedEntities, _jsonOptions);
+        moduleConfig.UpdatedAt = DateTime.UtcNow;
+
+        // Update field configurations
+        var fieldIds = dto.Fields.Select(f => f.Id).ToList();
+        var existingFields = await _context.ModuleFieldConfigurations
+            .Where(f => f.ModuleName == moduleName && fieldIds.Contains(f.Id))
+            .ToListAsync();
+
+        foreach (var fieldUpdate in dto.Fields)
+        {
+            var field = existingFields.FirstOrDefault(f => f.Id == fieldUpdate.Id);
+            if (field != null)
+            {
+                field.IsEnabled = fieldUpdate.IsEnabled;
+                field.IsRequired = fieldUpdate.IsRequired;
+                field.DisplayOrder = fieldUpdate.DisplayOrder;
+                field.GridSize = fieldUpdate.GridSize;
+                
+                if (!string.IsNullOrEmpty(fieldUpdate.FieldType))
+                    field.FieldType = fieldUpdate.FieldType;
+                if (!string.IsNullOrEmpty(fieldUpdate.FieldLabel))
+                    field.FieldLabel = fieldUpdate.FieldLabel;
+                if (fieldUpdate.Placeholder != null)
+                    field.Placeholder = fieldUpdate.Placeholder;
+                if (fieldUpdate.HelpText != null)
+                    field.HelpText = fieldUpdate.HelpText;
+                if (fieldUpdate.Options != null)
+                    field.Options = fieldUpdate.Options;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Saved complete configuration for module {ModuleName}: {TabCount} tabs, {FieldCount} fields, {LinkCount} linked entities", 
+            moduleName, dto.Tabs.Count, dto.Fields.Count, dto.LinkedEntities.Count);
+
+        return await GetCompleteModuleConfigAsync(moduleName);
+    }
+
+    /// <summary>
+    /// Reset module configuration to defaults (deletes field configs and reinitializes them)
+    /// </summary>
+    public async Task<CompleteModuleConfigDto?> ResetModuleToDefaultsAsync(string moduleName)
+    {
+        var moduleConfig = await _context.ModuleUIConfigs
+            .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
+
+        if (moduleConfig == null)
+            return null;
+
+        // Delete existing field configurations for this module
+        var existingFields = await _context.ModuleFieldConfigurations
+            .Where(f => f.ModuleName == moduleName)
+            .ToListAsync();
+
+        _context.ModuleFieldConfigurations.RemoveRange(existingFields);
+
+        // Reset linked entities to defaults
+        var defaultLinkedEntities = DefaultModuleConfigs.DefaultLinkedEntities
+            .GetValueOrDefault(moduleName, Array.Empty<string>())
+            .Select((e, i) => new LinkedEntityConfigItem
+            {
+                EntityName = e,
+                RelationshipType = "one-to-many",
+                Enabled = true,
+                TabName = e,
+                DisplayOrder = i
+            })
+            .ToList();
+
+        moduleConfig.LinkedEntitiesConfig = JsonSerializer.Serialize(defaultLinkedEntities, _jsonOptions);
+        moduleConfig.TabsConfig = null; // Will be rebuilt from field defaults
+        moduleConfig.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Reset module {ModuleName} configuration to defaults", moduleName);
+
+        return await GetCompleteModuleConfigAsync(moduleName);
+    }
+
+    /// <summary>
     /// Initialize default configurations for all modules
     /// </summary>
     public async Task InitializeDefaultConfigsAsync()

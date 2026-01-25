@@ -4,6 +4,7 @@
   "description": "CRM Frontend - Responsive React Application",
   "private": true,
   "dependencies": {
+    "@craco/craco": "^7.1.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.14.15",
@@ -31,17 +32,21 @@
     "@types/react": "^18.2.37",
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-dom": "^18.2.15",
+    "babel-plugin-transform-remove-console": "^6.9.4",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "build:analyze": "GENERATE_SOURCEMAP=true craco build && npx source-map-explorer 'build/static/js/*.js'",
+    "build:fast": "GENERATE_SOURCEMAP=false CI=true craco build",
+    "test": "craco test",
     "eject": "react-scripts eject",
     "version:major": "node ../update-version.js major",
     "version:minor": "node ../update-version.js minor",
-    "version:patch": "node ../update-version.js patch"
+    "version:patch": "node ../update-version.js patch",
+    "clean": "rm -rf build node_modules/.cache"
   },
   "eslintConfig": {
     "extends": [

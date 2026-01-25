@@ -27,6 +27,11 @@ public interface ICustomerService
     Task<IEnumerable<CustomerContactDto>> GetCustomerContactsAsync(int customerId);
     Task<bool> SetPrimaryContactAsync(int customerId, int contactId);
     
+    // Direct contact management (one-to-many via Contact.CustomerId)
+    Task<IEnumerable<object>> GetDirectContactsAsync(int customerId);
+    Task<bool> AssignContactToCustomerAsync(int customerId, int contactId);
+    Task<bool> UnassignContactFromCustomerAsync(int customerId, int contactId);
+    
     // Additional queries
     Task<IEnumerable<CustomerDto>> GetCustomersByAssignedUserAsync(int userId);
     Task<IEnumerable<CustomerDto>> GetCustomersByLifecycleStageAsync(CustomerLifecycleStage stage);

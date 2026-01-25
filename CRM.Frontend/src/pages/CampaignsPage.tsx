@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { TabPanel } from '../components/common';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
@@ -14,43 +15,19 @@ import {
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import ImportExportButtons from '../components/ImportExportButtons';
+import {
+  CAMPAIGN_STATUS_OPTIONS,
+  CAMPAIGN_TYPE_OPTIONS,
+  PRIORITY_OPTIONS,
+  getLabelByValue,
+  getColorByValue
+} from '../utils/constants';
 
-// Enums matching backend
-const CAMPAIGN_TYPES = [
-  { value: 0, label: 'Email', icon: '📧' },
-  { value: 1, label: 'Social Media', icon: '📱' },
-  { value: 2, label: 'Paid Search', icon: '🔍' },
-  { value: 3, label: 'Display Ads', icon: '🖼️' },
-  { value: 4, label: 'Content Marketing', icon: '📝' },
-  { value: 5, label: 'SEO', icon: '🔎' },
-  { value: 6, label: 'Events', icon: '🎪' },
-  { value: 7, label: 'Webinar', icon: '💻' },
-  { value: 8, label: 'Trade Show', icon: '🏢' },
-  { value: 9, label: 'Direct Mail', icon: '✉️' },
-  { value: 10, label: 'Referral', icon: '👥' },
-  { value: 11, label: 'Partner', icon: '🤝' },
-  { value: 12, label: 'PR', icon: '📰' },
-  { value: 13, label: 'Video', icon: '🎬' },
-  { value: 14, label: 'Podcast', icon: '🎙️' },
-  { value: 15, label: 'Other', icon: '📋' },
-];
-
-const CAMPAIGN_STATUSES = [
-  { value: 0, label: 'Draft', color: '#9e9e9e' },
-  { value: 1, label: 'Scheduled', color: '#2196f3' },
-  { value: 2, label: 'Active', color: '#4caf50' },
-  { value: 3, label: 'Paused', color: '#ff9800' },
-  { value: 4, label: 'Completed', color: '#9c27b0' },
-  { value: 5, label: 'Cancelled', color: '#f44336' },
-  { value: 6, label: 'Archived', color: '#607d8b' },
-];
-
-const CAMPAIGN_PRIORITIES = [
-  { value: 0, label: 'Low', color: '#9e9e9e' },
-  { value: 1, label: 'Medium', color: '#2196f3' },
-  { value: 2, label: 'High', color: '#ff9800' },
-  { value: 3, label: 'Critical', color: '#f44336' },
-];
+// Use shared constants - aliased for backward compatibility
+const CAMPAIGN_TYPES = CAMPAIGN_TYPE_OPTIONS;
+const CAMPAIGN_STATUSES = CAMPAIGN_STATUS_OPTIONS;
+const CAMPAIGN_PRIORITIES = PRIORITY_OPTIONS;
 
 interface Campaign {
   id: number;
@@ -125,21 +102,6 @@ interface CampaignForm {
   utmMedium: string;
   utmCampaign: string;
   tags: string;
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
 }
 
 function CampaignsPage() {
@@ -289,9 +251,12 @@ function CampaignsPage() {
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Campaigns</Typography>
           </Box>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
-            Add Campaign
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <ImportExportButtons entityType="campaigns" entityLabel="Campaigns" onImportComplete={fetchCampaigns} />
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
+              Add Campaign
+            </Button>
+          </Box>
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}

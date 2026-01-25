@@ -119,7 +119,7 @@ public class Interaction : BaseEntity
     public int? FollowUpInteractionId { get; set; }
     
     // Relationships
-    public int CustomerId { get; set; }
+    public int? CustomerId { get; set; }
     public int? ContactId { get; set; }
     public int? OpportunityId { get; set; }
     public int? CampaignId { get; set; }

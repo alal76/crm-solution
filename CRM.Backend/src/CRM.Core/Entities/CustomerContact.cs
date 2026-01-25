@@ -1,3 +1,5 @@
+using CRM.Core.Models;
+
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -88,6 +90,7 @@ public class CustomerContact : BaseEntity
     /// </summary>
     public string? Notes { get; set; }
     
-    // Navigation property
+    // Navigation properties
     public Customer? Customer { get; set; }
+    public Contact? Contact { get; set; }
 }

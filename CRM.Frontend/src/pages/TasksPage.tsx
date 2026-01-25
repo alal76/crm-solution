@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
+  Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
   IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Badge
@@ -13,8 +13,42 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { TabPanel } from '../components/common';
+import {
+  TASK_STATUS_OPTIONS,
+  TASK_PRIORITY_OPTIONS,
+  TASK_TYPE_OPTIONS,
+  getLabelByValue,
+  getColorByValue
+} from '../utils/constants';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import EntitySelect from '../components/EntitySelect';
+import ImportExportButtons from '../components/ImportExportButtons';
+import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+
+// Search fields for Advanced Search
+const SEARCH_FIELDS: SearchField[] = [
+  { name: 'subject', label: 'Title', type: 'text' },
+  { name: 'status', label: 'Status', type: 'select', options: [
+    { value: 'NotStarted', label: 'Not Started' },
+    { value: 'InProgress', label: 'In Progress' },
+    { value: 'Completed', label: 'Completed' },
+    { value: 'Deferred', label: 'Deferred' },
+    { value: 'Waiting', label: 'Waiting' },
+    { value: 'Cancelled', label: 'Cancelled' },
+  ]},
+  { name: 'priority', label: 'Priority', type: 'select', options: [
+    { value: 'Low', label: 'Low' },
+    { value: 'Normal', label: 'Normal' },
+    { value: 'High', label: 'High' },
+    { value: 'Urgent', label: 'Urgent' },
+  ]},
+  { name: 'assignedToUserName', label: 'Assigned To', type: 'text' },
+  { name: 'dueDate', label: 'Due Date', type: 'dateRange' },
+];
+
+const SEARCHABLE_FIELDS = ['subject', 'description', 'assignedToUserName', 'customerName', 'opportunityName', 'tags'];
 
 // Status mapping for display
 const STATUS_COLORS: Record<string, string> = {
@@ -33,36 +67,10 @@ const PRIORITY_COLORS: Record<string, string> = {
   'Urgent': '#f44336',
 };
 
-// Enums matching backend
-const TASK_STATUSES = [
-  { value: 0, label: 'Not Started', color: '#9e9e9e' },
-  { value: 1, label: 'In Progress', color: '#2196f3' },
-  { value: 2, label: 'Completed', color: '#4caf50' },
-  { value: 3, label: 'Deferred', color: '#ff9800' },
-  { value: 4, label: 'Waiting', color: '#607d8b' },
-  { value: 5, label: 'Cancelled', color: '#f44336' },
-];
-
-const TASK_PRIORITIES = [
-  { value: 0, label: 'Low', color: '#9e9e9e' },
-  { value: 1, label: 'Normal', color: '#2196f3' },
-  { value: 2, label: 'High', color: '#ff9800' },
-  { value: 3, label: 'Urgent', color: '#f44336' },
-];
-
-const TASK_TYPES = [
-  { value: 0, label: 'Call' },
-  { value: 1, label: 'Email' },
-  { value: 2, label: 'Meeting' },
-  { value: 3, label: 'Follow-Up' },
-  { value: 4, label: 'Demo' },
-  { value: 5, label: 'Proposal' },
-  { value: 6, label: 'Research' },
-  { value: 7, label: 'Documentation' },
-  { value: 8, label: 'Review' },
-  { value: 9, label: 'Approval' },
-  { value: 10, label: 'Other' },
-];
+// Use shared constants - aliased for backward compatibility
+const TASK_STATUSES = TASK_STATUS_OPTIONS;
+const TASK_PRIORITIES = TASK_PRIORITY_OPTIONS;
+const TASK_TYPES = TASK_TYPE_OPTIONS;
 
 // Queue item from my-queue endpoint
 interface QueueItem {
@@ -148,21 +156,6 @@ interface User {
   lastName: string;
 }
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
-}
-
 function TasksPage() {
   const [queueData, setQueueData] = useState<QueueResponse | null>(null);
   const [tasks, setTasks] = useState<CrmTask[]>([]);
@@ -176,6 +169,8 @@ function TasksPage() {
   const [dialogTab, setDialogTab] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [viewMode, setViewMode] = useState<'queue' | 'all'>('queue');
+  const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+  const [searchText, setSearchText] = useState('');
 
   const emptyForm: TaskForm = {
     title: '', description: '', taskType: 10, status: 0, priority: 1,
@@ -327,8 +322,13 @@ function TasksPage() {
   const getPriority = (value: number) => TASK_PRIORITIES.find(p => p.value === value);
   const getType = (value: number) => TASK_TYPES.find(t => t.value === value);
 
+  const handleSearch = (filters: SearchFilter[], text: string) => {
+    setSearchFilters(filters);
+    setSearchText(text);
+  };
+
   // Filter queue items based on status
-  const filteredQueueItems = queueData?.tasks?.filter(item => {
+  const statusFilteredItems = queueData?.tasks?.filter(item => {
     if (statusFilter === 'pending') {
       return item.status !== 'Completed' && item.status !== 'Cancelled';
     } else if (statusFilter === 'completed') {
@@ -338,6 +338,9 @@ function TasksPage() {
     }
     return true;
   }) || [];
+
+  // Apply advanced search filters
+  const filteredQueueItems = filterData(statusFilteredItems, searchFilters, searchText, SEARCHABLE_FIELDS);
 
   if (loading) {
     return (
@@ -379,6 +382,7 @@ function TasksPage() {
             <IconButton onClick={fetchMyQueue} color="primary" title="Refresh">
               <RefreshIcon />
             </IconButton>
+            <ImportExportButtons entityType="tasks" entityLabel="Tasks" onImportComplete={fetchMyQueue} />
             <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ backgroundColor: '#6750A4' }}>
               Add Task
             </Button>
@@ -439,6 +443,12 @@ function TasksPage() {
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
 
+        <AdvancedSearch
+          fields={SEARCH_FIELDS}
+          onSearch={handleSearch}
+          placeholder="Search tasks by title, description, assignee..."
+        />
+
         {/* Filter Controls */}
         <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
           <FormControl size="small" sx={{ minWidth: 180 }}>
@@ -459,7 +469,8 @@ function TasksPage() {
         {/* Queue Table */}
         <Card>
           <CardContent sx={{ p: 0 }}>
-            <Table>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 1000 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                   <TableCell><strong>Task</strong></TableCell>
@@ -603,7 +614,8 @@ function TasksPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
+            </TableContainer>
             {filteredQueueItems.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
                 {statusFilter === 'pending' 
@@ -699,13 +711,14 @@ function TasksPage() {
           <TabPanel value={dialogTab} index={2}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Assigned To</InputLabel>
-                  <Select name="assignedToUserId" value={formData.assignedToUserId} onChange={handleSelectChange} label="Assigned To">
-                    <MenuItem value="">Unassigned</MenuItem>
-                    {users.map(u => <MenuItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</MenuItem>)}
-                  </Select>
-                </FormControl>
+                <EntitySelect
+                  entityType="user"
+                  name="assignedToUserId"
+                  value={formData.assignedToUserId}
+                  onChange={handleSelectChange}
+                  label="Assigned To"
+                  showAddNew={false}
+                />
               </Grid>
             </Grid>
           </TabPanel>

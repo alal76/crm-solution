@@ -67,17 +67,92 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Default inactivity timeout: 15 minutes (in milliseconds)
 const DEFAULT_INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 
+// Helper to check if session has expired due to inactivity
+const isSessionExpiredDueToInactivity = (): boolean => {
+  const lastActivity = localStorage.getItem('crm_last_activity');
+  if (!lastActivity) return false;
+  
+  const lastActivityTime = parseInt(lastActivity, 10);
+  const now = Date.now();
+  const inactivityMs = now - lastActivityTime;
+  
+  // Use 15 minutes as the inactivity timeout
+  return inactivityMs > DEFAULT_INACTIVITY_TIMEOUT_MS;
+};
+
+// Helper to check if user has valid session (token exists and not expired due to inactivity)
+const hasValidSession = (): boolean => {
+  const token = localStorage.getItem('accessToken');
+  if (!token) return false;
+  
+  // Check if session expired due to inactivity
+  if (isSessionExpiredDueToInactivity()) {
+    debugLog('Session expired due to inactivity on page load');
+    // Clear tokens
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userProfile');
+    localStorage.removeItem('crm_last_activity');
+    deleteCookie('crm_auth_token');
+    deleteCookie('crm_refresh_token');
+    deleteCookie('crm_user_data');
+    deleteCookie('crm_user_profile');
+    return false;
+  }
+  
+  return true;
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  // Initialize isAuthenticated based on whether valid token exists (persists across refresh)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => hasValidSession());
+  const [user, setUser] = useState(() => {
+    // Try to restore user from cookie on initial load
+    const savedUser = getCookie('crm_user_data');
+    if (savedUser && hasValidSession()) {
+      try {
+        return JSON.parse(savedUser);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
   const [sessionTimeoutMinutes, setSessionTimeoutMinutes] = useState(15);
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const lastActivityRef = useRef<number>(Date.now());
+  // Initialize last activity from localStorage or current time
+  const lastActivityRef = useRef<number>(
+    (() => {
+      const saved = localStorage.getItem('crm_last_activity');
+      return saved ? parseInt(saved, 10) : Date.now();
+    })()
+  );
+
+  // Persist last activity timestamp to localStorage
+  const updateLastActivity = useCallback(() => {
+    const now = Date.now();
+    lastActivityRef.current = now;
+    localStorage.setItem('crm_last_activity', now.toString());
+  }, []);
 
   useEffect(() => {
-    // Prevent repeated restoration attempts in a single session
+    // Always update last activity on initial load if authenticated
+    if (isAuthenticated) {
+      updateLastActivity();
+    }
+    
+    // Prevent repeated cookie-to-localStorage restoration attempts in a single session
+    // This only prevents migration, not the basic auth check which happens via state initialization
     if (window.sessionStorage.getItem('crm_cookie_restore_attempted')) {
-      debugLog('Cookie restoration already attempted this session. Skipping.');
+      debugLog('Cookie restoration already attempted this session. Checking for existing session.');
+      // Still need to fetch current user if authenticated
+      const token = localStorage.getItem('accessToken');
+      if (token && isAuthenticated && !user) {
+        fetchCurrentUser(token).catch(() => {
+          setIsAuthenticated(false);
+          setUser(null);
+        });
+      }
       checkMicrosoftCallback();
       return;
     }
@@ -190,6 +265,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userProfile');
+    localStorage.removeItem('crm_last_activity');
     sessionStorage.removeItem('microsoft_code');
     sessionStorage.removeItem('microsoft_state');
     
@@ -205,7 +281,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Reset inactivity timer on user activity
   const resetInactivityTimer = useCallback(() => {
-    lastActivityRef.current = Date.now();
+    updateLastActivity();
     
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
@@ -217,7 +293,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         handleLogoutDueToInactivity();
       }, timeoutMs);
     }
-  }, [isAuthenticated, sessionTimeoutMinutes, handleLogoutDueToInactivity]);
+  }, [isAuthenticated, sessionTimeoutMinutes, handleLogoutDueToInactivity, updateLastActivity]);
 
   // Set up activity listeners for inactivity timeout
   useEffect(() => {
@@ -292,15 +368,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<{ requiresTwoFactor?: boolean; twoFactorToken?: string }> => {
     try {
       const endpoint = '/auth/login';
-      console.log('[AuthContext] Login attempt', { email, endpoint });
-      debugLog('Login attempt', { email, endpoint });
+      debugLog('[AuthContext] Login attempt', { email, endpoint });
       
       const response = await axiosInstance.post(endpoint, { email, password });
-      console.log('[AuthContext] Login response received:', { userId: response.data.userId, status: response.status });
+      debugLog('[AuthContext] Login response received', { userId: response.data.userId, status: response.status });
       
       // Check if 2FA is required
       if (response.data.requiresTwoFactor) {
-        console.log('[AuthContext] 2FA required for user');
+        debugLog('[AuthContext] 2FA required for user');
         return { 
           requiresTwoFactor: true, 
           twoFactorToken: response.data.twoFactorToken 
@@ -337,7 +412,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(response.data);
       setIsAuthenticated(true);
-      console.log('[AuthContext] Login complete, user authenticated, groupPermissions:', response.data.groupPermissions);
+      debugLog('[AuthContext] Login complete, user authenticated', { groupPermissions: response.data.groupPermissions });
       
       // Clear any branding update flags on successful login
       localStorage.removeItem('brandingUpdated');
@@ -345,18 +420,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return {};
     } catch (error: any) {
-      console.error('[AuthContext] Login failed:', {
+      debugError('[AuthContext] Login failed', {
         email,
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
         code: error.code,
-      });
-      debugError('Login failed', {
-        email,
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
       });
       throw error;
     }
@@ -364,9 +433,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const verifyTwoFactor = async (twoFactorToken: string, code: string): Promise<void> => {
     try {
-      console.log('[AuthContext] 2FA verification attempt');
+      debugLog('[AuthContext] 2FA verification attempt');
       const response = await axiosInstance.post('/auth/login/2fa', { twoFactorToken, code });
-      console.log('[AuthContext] 2FA verification successful');
+      debugLog('[AuthContext] 2FA verification successful');
       
       const accessToken = response.data.accessToken;
       const refreshToken = response.data.refreshToken;
@@ -397,7 +466,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data);
       setIsAuthenticated(true);
     } catch (error: any) {
-      console.error('[AuthContext] 2FA verification failed:', error.message);
+      debugError('[AuthContext] 2FA verification failed', error.message);
       throw error;
     }
   };
@@ -434,7 +503,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Registration failed', error);
+      debugError('[AuthContext] Registration failed', error);
       throw error;
     }
   };
@@ -475,7 +544,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Google login failed', error);
+      debugError('[AuthContext] Google login failed', error);
       throw error;
     }
   };

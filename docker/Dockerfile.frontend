@@ -1,0 +1,71 @@
+# syntax=docker/dockerfile:1.4
+# Multi-stage build for React frontend with optimized caching
+# Rebuild only triggers when source files actually change
+
+# ============================================
+# Stage 1: Dependencies (cached separately)
+# ============================================
+FROM node:18-alpine AS deps
+
+WORKDIR /app
+
+# Copy only package files first - this layer is cached unless dependencies change
+COPY CRM.Frontend/package.json CRM.Frontend/package-lock.json ./
+
+# Install dependencies with cache mount for npm
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --legacy-peer-deps
+
+# ============================================
+# Stage 2: Builder (uses cached deps + source)
+# ============================================
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Accept build arguments
+ARG REACT_APP_API_URL
+ARG SOURCE_HASH
+
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ENV CI=true
+ENV GENERATE_SOURCEMAP=false
+
+LABEL source_hash=$SOURCE_HASH
+
+# Copy dependencies from deps stage (cached)
+COPY --from=deps /app/node_modules ./node_modules
+COPY CRM.Frontend/package.json ./
+
+# Copy source code - invalidates cache only when source changes
+COPY CRM.Frontend/src ./src
+COPY CRM.Frontend/public ./public
+COPY CRM.Frontend/tsconfig.json ./
+COPY CRM.Frontend/craco.config.js ./
+
+# Use webpack filesystem cache for incremental builds
+RUN --mount=type=cache,target=/app/node_modules/.cache \
+    export REACT_APP_VERSION=$(node -p "require('./package.json').version") && \
+    export REACT_APP_BUILD_DATE=$(date -u +"%Y-%m-%d") && \
+    echo "REACT_APP_VERSION=$REACT_APP_VERSION" >> .env && \
+    echo "REACT_APP_BUILD_DATE=$REACT_APP_BUILD_DATE" >> .env && \
+    NODE_OPTIONS="--max_old_space_size=4096" npm run build
+
+# ============================================
+# Stage 3: Production runtime (nginx - smaller & faster)
+# ============================================
+FROM nginx:alpine-slim AS production
+
+# Copy custom nginx config for SPA routing and caching
+COPY docker/nginx-frontend.conf /etc/nginx/conf.d/default.conf
+
+# Copy built assets from builder
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget -q --spider http://localhost:80/index.html || exit 1
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

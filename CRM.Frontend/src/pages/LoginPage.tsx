@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { debugLog, debugWarn, debugError, debugInfo } from '../utils/debug';
 
 // Lazy load logo for faster initial render
 const Logo = React.memo(() => {
@@ -252,10 +253,10 @@ const LoginPage: React.FC = () => {
       e.preventDefault();
       if (loginInProgress.current || loading) return;
       loginInProgress.current = true;
-      console.log('[LoginPage] Submit clicked', formData);
+      debugLog('[LoginPage] Submit clicked', formData);
       if (!formData.email.trim() || !formData.password) {
         setError('Please enter both email and password');
-        console.warn('[LoginPage] Missing email or password');
+        debugWarn('[LoginPage] Missing email or password');
         loginInProgress.current = false;
         return;
       }
@@ -263,14 +264,14 @@ const LoginPage: React.FC = () => {
       setLoading(true);
       try {
         const result = await login(formData.email.trim(), formData.password);
-        console.log('[LoginPage] Login result', result);
+        debugLog('[LoginPage] Login result', result);
         // Check if 2FA is required
         if (result.requiresTwoFactor && result.twoFactorToken) {
           setTwoFactorToken(result.twoFactorToken);
           setShowTwoFactor(true);
           setLoading(false);
           loginInProgress.current = false;
-          console.info('[LoginPage] 2FA required');
+          debugInfo('[LoginPage] 2FA required');
           return;
         }
         if (rememberMe) {
@@ -297,11 +298,11 @@ const LoginPage: React.FC = () => {
           errorMessage = error.message;
         }
         setError(errorMessage);
-        console.error('[LoginPage] Login error', errorMessage, error);
+        debugError('[LoginPage] Login error', { errorMessage, error });
       } finally {
         setLoading(false);
         loginInProgress.current = false;
-        console.log('[LoginPage] Login finished');
+        debugLog('[LoginPage] Login finished');
       }
     },
     [formData, login, navigate, rememberMe, loading]

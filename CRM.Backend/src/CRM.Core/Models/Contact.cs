@@ -159,6 +159,16 @@ public class Contact
     public int? AccountId { get; set; } // Related Customer/Account
     public int? CampaignId { get; set; } // Source campaign
     
+    /// <summary>
+    /// Foreign key to the Customer this contact belongs to (one-to-many)
+    /// </summary>
+    public int? CustomerId { get; set; }
+    
+    /// <summary>
+    /// Navigation property to the parent Customer
+    /// </summary>
+    public Customer? Customer { get; set; }
+    
     // Engagement Tracking
     public DateTime? LastActivityDate { get; set; }
     public DateTime? LastContactedDate { get; set; }
@@ -187,4 +197,9 @@ public class Contact
     // Navigation Properties
     public ICollection<SocialMediaLink> SocialMediaLinks { get; set; } = new List<SocialMediaLink>();
     public ICollection<ContactInfoLink>? ContactInfoLinks { get; set; }
+    
+    /// <summary>
+    /// Many-to-many relationships with customers (via CustomerContact junction)
+    /// </summary>
+    public ICollection<CustomerContact>? CustomerContacts { get; set; }
 }

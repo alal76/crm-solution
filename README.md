@@ -89,38 +89,56 @@ A full-stack, enterprise-grade CRM solution built with **.NET Core** backend and
 ## 📁 Project Structure
 
 ```
-CRM/
-├── CRM.Backend/
+crm-solution/
+├── CRM.Backend/                        # .NET 8 Backend Application
 │   ├── src/
 │   │   ├── CRM.Api/                    # ASP.NET Core Web API
-│   │   │   ├── Controllers/            # API endpoints
-│   │   │   ├── Middleware/             # Custom middleware
-│   │   │   ├── Program.cs              # Application startup
-│   │   │   └── appsettings.json        # Configuration
 │   │   ├── CRM.Core/                   # Business logic & entities
-│   │   │   ├── Entities/               # Domain models
-│   │   │   ├── Interfaces/             # Service contracts
-│   │   │   └── Services/               # Business logic
 │   │   └── CRM.Infrastructure/         # Data access layer
-│   │       ├── Data/                   # DbContext
-│   │       ├── Repositories/           # Repository implementations
-│   │       └── Services/               # Infrastructure services
-│   ├── tests/                          # Unit tests
-│   └── CRM.sln                         # Solution file
+│   └── tests/                          # Unit & integration tests
 │
-├── CRM.Frontend/
+├── CRM.Frontend/                       # React Frontend Application
 │   ├── src/
 │   │   ├── components/                 # Reusable React components
 │   │   ├── pages/                      # Page components
 │   │   ├── services/                   # API service layer
-│   │   ├── styles/                     # Global styles
-│   │   ├── App.tsx                     # Root component
-│   │   └── main.tsx                    # Entry point
-│   ├── public/                         # Static assets
-│   ├── package.json                    # Dependencies
-│   └── tsconfig.json                   # TypeScript config
+│   │   └── styles/                     # Global styles
+│   └── public/                         # Static assets
 │
-└── docs/                               # Documentation
+├── database/                           # Database management
+│   ├── schema/                         # SQL schema files
+│   ├── seed/                           # Seed data scripts
+│   └── master_data/                    # Master data imports
+│
+├── docker/                             # Docker configuration
+│   ├── Dockerfile.backend              # Backend Docker image
+│   ├── Dockerfile.frontend             # Frontend Docker image
+│   └── docker-compose.yml              # Local development
+│
+├── kubernetes/                         # Kubernetes manifests
+│   ├── local/                          # Local/Minikube config
+│   └── *.yaml                          # Production manifests
+│
+├── scripts/                            # Automation scripts
+│   ├── build/                          # Build scripts
+│   ├── deploy/                         # Deployment scripts
+│   ├── database/                       # Database scripts
+│   └── utils/                          # Utility scripts
+│
+├── artifacts/                          # Build outputs
+│   ├── amd64/                          # AMD64 architecture
+│   ├── arm64/                          # ARM64 architecture
+│   └── x86_64/                         # x86_64 architecture
+│
+├── docs/                               # Documentation
+│   ├── architecture/                   # Architecture docs
+│   ├── deployment/                     # Deployment guides
+│   ├── features/                       # Feature docs
+│   ├── testing/                        # Testing docs
+│   └── guides/                         # User guides
+│
+└── .github/                            # GitHub configuration
+    └── workflows/                      # CI/CD pipelines
 ```
 
 ## 📦 Prerequisites

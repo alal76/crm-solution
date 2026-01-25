@@ -1,6 +1,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -10,9 +11,14 @@ using System.Text.RegularExpressions;
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Service for database backup, restore, and migration operations
+/// Service for database backup, restore, and migration operations.
+/// 
+/// HEXAGONAL ARCHITECTURE:
+/// - Implements IDatabaseBackupInputPort (primary/driving port)
+/// - Implements IDatabaseBackupService (backward compatibility)
+/// - Uses ICrmDbContext (secondary/driven port)
 /// </summary>
-public class DatabaseBackupService : IDatabaseBackupService
+public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInputPort
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<DatabaseBackupService> _logger;

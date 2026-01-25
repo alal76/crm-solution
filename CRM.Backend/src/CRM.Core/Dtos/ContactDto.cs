@@ -38,7 +38,18 @@ public class ContactDto
     public DateTime? LastModified { get; set; }
     public string? ModifiedBy { get; set; }
     
+    // Customer relationship
+    public int? CustomerId { get; set; }
+    public string Status { get; set; } = "Active";
+    
     public List<SocialMediaLinkDto> SocialMediaLinks { get; set; } = new();
+    
+    // === Normalized Contact Info Collections ===
+    // These replace the flat contact fields above and are the source of truth
+    public List<LinkedEmailDto>? EmailAddresses { get; set; }
+    public List<LinkedPhoneDto>? PhoneNumbers { get; set; }
+    public List<LinkedAddressDto>? Addresses { get; set; }
+    public List<LinkedSocialMediaDto>? SocialMediaAccounts { get; set; }
 }
 
 public class CreateContactRequest

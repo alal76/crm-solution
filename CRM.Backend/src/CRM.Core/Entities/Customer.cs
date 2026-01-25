@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using CRM.Core.Models;
+
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -27,15 +29,24 @@ public enum CustomerCategory
 
 /// <summary>
 /// Customer lifecycle stage enumeration
+/// Lifecycle Flow: Other (default) → Lead → Opportunity → Customer → CustomerAtRisk → Churned → (Win-back) → Lead
 /// </summary>
 public enum CustomerLifecycleStage
 {
-    Lead = 0,
-    Prospect = 1,
+    /// <summary>Initial default value for new customers</summary>
+    Other = 0,
+    /// <summary>A potential customer showing interest</summary>
+    Lead = 1,
+    /// <summary>A qualified lead with an active sales opportunity</summary>
     Opportunity = 2,
+    /// <summary>An active paying customer</summary>
     Customer = 3,
-    Churned = 4,
-    Reactivated = 5
+    /// <summary>A customer at risk of churning</summary>
+    CustomerAtRisk = 4,
+    /// <summary>A former customer who has stopped doing business</summary>
+    Churned = 5,
+    /// <summary>A churned customer being re-engaged (transitions back to Lead)</summary>
+    WinBack = 6
 }
 
 /// <summary>
@@ -164,7 +175,7 @@ public class Customer : BaseEntity
     public string? Ownership { get; set; } // Public, Private, Subsidiary, etc.
     
     // === Lifecycle & Status ===
-    public CustomerLifecycleStage LifecycleStage { get; set; } = CustomerLifecycleStage.Lead;
+    public CustomerLifecycleStage LifecycleStage { get; set; } = CustomerLifecycleStage.Other;
     public string? LeadSource { get; set; }
     public DateTime? FirstContactDate { get; set; }
     public DateTime? ConversionDate { get; set; }
@@ -243,6 +254,12 @@ public class Customer : BaseEntity
     public ICollection<Interaction>? Interactions { get; set; }
     public ICollection<CustomerContact>? CustomerContacts { get; set; } // Linked contacts for organizations
     public ICollection<Account>? Accounts { get; set; }
+    
+    /// <summary>
+    /// Contacts directly owned by this customer (one-to-many relationship)
+    /// </summary>
+    public ICollection<Contact>? Contacts { get; set; }
+    
     // Contact information links (addresses, phones/emails, social accounts)
     public ICollection<ContactInfoLink>? ContactInfoLinks { get; set; }
     // Lookup navigation

@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-api
+  namespace: crm-app
+  labels:
+    tier: application
+    app: crm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tier: application
+      app: crm
+  template:
+    metadata:
+      labels:
+        tier: application
+        app: crm
+    spec:
+      containers:
+      - name: crm-api
+        image: crm-api:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+          name: http
+        - containerPort: 5001
+          name: https
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: crm-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: DatabaseProvider
+          valueFrom:
+            configMapKeyRef:
+              name: crm-config
+              key: DatabaseProvider
+        - name: Jwt__Secret
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: JWT_SECRET
+        - name: Jwt__Issuer
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: JWT_ISSUER
+        - name: Jwt__Audience
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: JWT_AUDIENCE
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_CONNECTION_STRING
+        # Demo database configuration - same server, auto-seeded
+        - name: DemoDatabase__AutoSeed
+          valueFrom:
+            configMapKeyRef:
+              name: crm-config
+              key: DemoDatabase__AutoSeed
+        - name: DemoDatabase__DatabaseName
+          valueFrom:
+            configMapKeyRef:
+              name: crm-config
+              key: DemoDatabase__DatabaseName
+        # SSL Configuration
+        - name: SSL_CERT_PATH
+          value: "/app/ssl/server.pfx"
+        - name: SSL_CERT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crm-ssl-secret
+              key: SSL_CERT_PASSWORD
+              optional: true
+        - name: HTTPS_PORT
+          value: "5001"
+        - name: HTTP_PORT
+          value: "5000"
+        volumeMounts:
+        - name: ssl-certs
+          mountPath: /app/ssl
+          readOnly: true
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+      volumes:
+      - name: ssl-certs
+        secret:
+          secretName: crm-ssl-secret
+          optional: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-api
+  namespace: crm-app
+  labels:
+    tier: application
+    app: crm
+spec:
+  type: ClusterIP
+  selector:
+    tier: application
+    app: crm
+  ports:
+  - port: 5000
+    targetPort: 5000
+    name: http
+  - port: 5001
+    targetPort: 5001
+    name: https

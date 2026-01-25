@@ -1,0 +1,69 @@
+# Database Deployment (shared across all services)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-db
+  namespace: crm-microservices
+  labels:
+    app: crm-db
+    tier: data
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crm-db
+  template:
+    metadata:
+      labels:
+        app: crm-db
+        tier: data
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:10.11
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_ROOT_PASSWORD
+        - name: MARIADB_DATABASE
+          value: "crm_db"
+        - name: MARIADB_USER
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_USER
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: db-data
+          mountPath: /var/lib/mysql
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: db-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-db
+  namespace: crm-microservices
+spec:
+  selector:
+    app: crm-db
+  ports:
+  - port: 3306
+    targetPort: 3306
+  type: ClusterIP
