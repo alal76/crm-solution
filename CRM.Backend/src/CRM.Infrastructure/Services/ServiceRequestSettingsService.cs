@@ -194,7 +194,6 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
     {
         var query = _context.ServiceRequestSubcategories
             .Include(s => s.Category)
-            .Include(s => s.DefaultWorkflow)
             .Include(s => s.ServiceRequests)
             .Where(s => !s.IsDeleted);
 
@@ -216,7 +215,6 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
     {
         var query = _context.ServiceRequestSubcategories
             .Include(s => s.Category)
-            .Include(s => s.DefaultWorkflow)
             .Include(s => s.ServiceRequests)
             .Where(s => s.CategoryId == categoryId && !s.IsDeleted);
 
@@ -237,7 +235,6 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
     {
         var subcategory = await _context.ServiceRequestSubcategories
             .Include(s => s.Category)
-            .Include(s => s.DefaultWorkflow)
             .Include(s => s.ServiceRequests)
             .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
 
@@ -256,7 +253,6 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
             ResponseTimeHours = dto.ResponseTimeHours,
             ResolutionTimeHours = dto.ResolutionTimeHours,
             DefaultPriority = dto.DefaultPriority,
-            DefaultWorkflowId = dto.DefaultWorkflowId,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -281,7 +277,6 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
         subcategory.ResponseTimeHours = dto.ResponseTimeHours;
         subcategory.ResolutionTimeHours = dto.ResolutionTimeHours;
         subcategory.DefaultPriority = dto.DefaultPriority;
-        subcategory.DefaultWorkflowId = dto.DefaultWorkflowId;
         subcategory.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
@@ -332,8 +327,6 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
         ResponseTimeHours = s.ResponseTimeHours,
         ResolutionTimeHours = s.ResolutionTimeHours,
         DefaultPriority = s.DefaultPriority,
-        DefaultWorkflowId = s.DefaultWorkflowId,
-        DefaultWorkflowName = s.DefaultWorkflow?.Name,
         ServiceRequestCount = s.ServiceRequests?.Count(sr => !sr.IsDeleted) ?? 0,
         CreatedAt = s.CreatedAt,
         UpdatedAt = s.UpdatedAt

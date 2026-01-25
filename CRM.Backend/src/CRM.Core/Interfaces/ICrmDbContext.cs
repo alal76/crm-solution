@@ -27,10 +27,6 @@ public interface ICrmDbContext
     DbSet<UserApprovalRequest> UserApprovalRequests { get; }
     DbSet<DatabaseBackup> DatabaseBackups { get; }
     DbSet<BackupSchedule> BackupSchedules { get; }
-    DbSet<Workflow> Workflows { get; }
-    DbSet<WorkflowRule> WorkflowRules { get; }
-    DbSet<WorkflowRuleCondition> WorkflowRuleConditions { get; }
-    DbSet<WorkflowExecution> WorkflowExecutions { get; }
     DbSet<SystemSettings> SystemSettings { get; }
     DbSet<CrmTask> CrmTasks { get; }
     DbSet<Note> Notes { get; }

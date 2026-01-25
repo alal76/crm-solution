@@ -232,15 +232,9 @@ public class ServiceRequestSubcategory : BaseEntity
     /// <summary>Default priority for requests in this subcategory</summary>
     public ServiceRequestPriority? DefaultPriority { get; set; }
     
-    /// <summary>Default workflow to apply</summary>
-    public int? DefaultWorkflowId { get; set; }
-    
     // Navigation properties
     [ForeignKey("CategoryId")]
     public virtual ServiceRequestCategory? Category { get; set; }
-    
-    [ForeignKey("DefaultWorkflowId")]
-    public virtual Workflow? DefaultWorkflow { get; set; }
     
     public virtual ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
     public virtual ICollection<ServiceRequestType> ServiceRequestTypes { get; set; } = new List<ServiceRequestType>();
@@ -521,20 +515,6 @@ public class ServiceRequest : BaseEntity
     
     #endregion
     
-    #region Workflow
-    
-    /// <summary>Applied workflow ID</summary>
-    public int? WorkflowId { get; set; }
-    
-    /// <summary>Current workflow step/stage</summary>
-    [MaxLength(100)]
-    public string? CurrentWorkflowStep { get; set; }
-    
-    /// <summary>Workflow execution ID for tracking</summary>
-    public int? WorkflowExecutionId { get; set; }
-    
-    #endregion
-    
     #region SLA & Timing
     
     /// <summary>Due date for first response</summary>
@@ -685,12 +665,6 @@ public class ServiceRequest : BaseEntity
     
     [ForeignKey("CreatedByUserId")]
     public virtual User? CreatedByUser { get; set; }
-    
-    [ForeignKey("WorkflowId")]
-    public virtual Workflow? Workflow { get; set; }
-    
-    [ForeignKey("WorkflowExecutionId")]
-    public virtual WorkflowExecution? WorkflowExecution { get; set; }
     
     [ForeignKey("RelatedOpportunityId")]
     public virtual Opportunity? RelatedOpportunity { get; set; }

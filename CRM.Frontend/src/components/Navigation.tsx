@@ -106,7 +106,6 @@ function NavigationContent() {
   }), []);
 
   const adminItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
-    'workflows': { label: 'Workflows', icon: AutomationIcon, path: '/workflows', menuName: 'Workflows' },
     'channel-settings': { label: 'Channel Settings', icon: ChannelSettingsIcon, path: '/channel-settings', menuName: 'ChannelSettings' },
     'settings': { label: 'Admin Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
   }), []);
@@ -117,7 +116,7 @@ function NavigationContent() {
     'products', 'services', 'service-requests', 'campaigns', 'quotes',
     'my-queue', 'activities', 'notes', 'communications', 'interactions'
   ], []);
-  const defaultAdminOrder = useMemo(() => ['workflows', 'channel-settings', 'settings'], []);
+  const defaultAdminOrder = useMemo(() => ['channel-settings', 'settings'], []);
 
   // Default categories
   const defaultCategories = useMemo(() => [
@@ -146,9 +145,8 @@ function NavigationContent() {
     { id: 'notes', order: 13, visible: true, category: 'productivity' },
     { id: 'communications', order: 14, visible: true, category: 'productivity' },
     { id: 'interactions', order: 15, visible: true, category: 'productivity' },
-    { id: 'workflows', order: 16, visible: true, category: 'admin' },
-    { id: 'channel-settings', order: 17, visible: true, category: 'admin' },
-    { id: 'settings', order: 18, visible: true, category: 'admin' },
+    { id: 'channel-settings', order: 16, visible: true, category: 'admin' },
+    { id: 'settings', order: 17, visible: true, category: 'admin' },
   ], []);
 
   // Get nav config from localStorage or use defaults

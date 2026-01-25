@@ -1,7 +1,6 @@
 using CRM.ServiceDefaults;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
-using CRM.Infrastructure.Services.WorkflowEngine;
 using CRM.Infrastructure.Repositories;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
@@ -28,10 +27,6 @@ builder.Services.AddScoped<IServiceRequestCategoryService, ServiceRequestCategor
 builder.Services.AddScoped<IServiceRequestSubcategoryService, ServiceRequestSubcategoryService>();
 builder.Services.AddScoped<IServiceRequestCustomFieldService, ServiceRequestCustomFieldService>();
 builder.Services.AddScoped<IServiceRequestTypeService, ServiceRequestTypeService>();
-builder.Services.AddScoped<IWorkflowService, WorkflowService>();
-
-// Register workflow engine
-builder.Services.AddWorkflowEngine();
 
 // Register input ports (Hexagonal Architecture)
 builder.Services.AddScoped<IServiceRequestInputPort, ServiceRequestService>();

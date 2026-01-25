@@ -130,9 +130,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             AssignedToGroupName = entity.AssignedToGroup?.Name,
             CreatedByUserId = entity.CreatedByUserId,
             CreatedByUserName = entity.CreatedByUser != null ? $"{entity.CreatedByUser.FirstName} {entity.CreatedByUser.LastName}".Trim() : null,
-            WorkflowId = entity.WorkflowId,
-            WorkflowName = entity.Workflow?.Name,
-            CurrentWorkflowStep = entity.CurrentWorkflowStep,
             ResponseDueDate = entity.ResponseDueDate,
             ResolutionDueDate = entity.ResolutionDueDate,
             FirstResponseDate = entity.FirstResponseDate,
@@ -299,9 +296,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         if (filter.AssignedToGroupId.HasValue)
             query = query.Where(sr => sr.AssignedToGroupId == filter.AssignedToGroupId);
 
-        if (filter.WorkflowId.HasValue)
-            query = query.Where(sr => sr.WorkflowId == filter.WorkflowId);
-
         if (filter.IsOpen.HasValue)
         {
             if (filter.IsOpen.Value)
@@ -383,7 +377,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             .Include(sr => sr.AssignedToUser)
             .Include(sr => sr.AssignedToGroup)
             .Include(sr => sr.CreatedByUser)
-            .Include(sr => sr.Workflow)
             .Include(sr => sr.RelatedOpportunity)
             .Include(sr => sr.RelatedProduct)
             .Include(sr => sr.ParentServiceRequest)
@@ -403,7 +396,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             .Include(sr => sr.AssignedToUser)
             .Include(sr => sr.AssignedToGroup)
             .Include(sr => sr.CreatedByUser)
-            .Include(sr => sr.Workflow)
             .FirstOrDefaultAsync(sr => sr.TicketNumber == ticketNumber && !sr.IsDeleted);
 
         return entity != null ? await MapToDto(entity) : null;
@@ -429,7 +421,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             AssignedToUserId = dto.AssignedToUserId,
             AssignedToGroupId = dto.AssignedToGroupId,
             CreatedByUserId = createdByUserId,
-            WorkflowId = dto.WorkflowId,
             ExternalReferenceId = dto.ExternalReferenceId,
             SourcePhoneNumber = dto.SourcePhoneNumber,
             SourceEmailAddress = dto.SourceEmailAddress,
@@ -452,12 +443,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         if (dto.SubcategoryId.HasValue)
         {
             entity.Subcategory = await _context.ServiceRequestSubcategories.FindAsync(dto.SubcategoryId.Value);
-            
-            // Apply default workflow from subcategory if not specified
-            if (!dto.WorkflowId.HasValue && entity.Subcategory?.DefaultWorkflowId.HasValue == true)
-            {
-                entity.WorkflowId = entity.Subcategory.DefaultWorkflowId;
-            }
             
             // Apply default priority from subcategory if not set
             if (dto.Priority == ServiceRequestPriority.Medium && entity.Subcategory?.DefaultPriority.HasValue == true)
@@ -505,8 +490,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.RequesterPhone = dto.RequesterPhone;
         entity.AssignedToUserId = dto.AssignedToUserId;
         entity.AssignedToGroupId = dto.AssignedToGroupId;
-        entity.WorkflowId = dto.WorkflowId;
-        entity.CurrentWorkflowStep = dto.CurrentWorkflowStep;
         entity.ResponseDueDate = dto.ResponseDueDate;
         entity.ResolutionDueDate = dto.ResolutionDueDate;
         entity.ResolutionSummary = dto.ResolutionSummary;

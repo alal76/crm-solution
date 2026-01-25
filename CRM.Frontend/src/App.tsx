@@ -40,7 +40,6 @@ import ProductsPage from './pages/ProductsPage';
 import CampaignsPage from './pages/CampaignsPage';
 import LeadsPage from './pages/LeadsPage';
 import ServicesPage from './pages/ServicesPage';
-import WorkflowsPage from './pages/WorkflowsPage';
 import TwoFactorPage from './pages/TwoFactorPage';
 import UserManagementPage from './pages/UserManagementPage';
 import DepartmentManagementPage from './pages/DepartmentManagementPage';
@@ -179,16 +178,6 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <ServicesPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/workflows"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute>
-                      <WorkflowsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

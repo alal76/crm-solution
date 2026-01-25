@@ -19,7 +19,6 @@ using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
-using CRM.Infrastructure.Services.WorkflowEngine;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -257,7 +256,6 @@ builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
 builder.Services.AddScoped<IUserApprovalService, UserApprovalService>();
 builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
 builder.Services.AddHostedService<BackupSchedulerHostedService>();
-builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
 builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
@@ -301,10 +299,6 @@ builder.Services.AddScoped<ISystemSettingsInputPort, SystemSettingsService>();
 builder.Services.AddScoped<IServiceRequestInputPort, ServiceRequestService>();
 builder.Services.AddScoped<IAccountInputPort, AccountService>();
 builder.Services.AddScoped<IDatabaseBackupInputPort, DatabaseBackupService>();
-
-// Register Workflow Engine services
-builder.Services.AddWorkflowEngine();
-builder.Services.AddWorkflowBackgroundWorkers();
 
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"];
