@@ -1,31 +1,43 @@
+# CRM API Deployment for Production
+# Database runs on VM, not in K8s
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: crm-api
-  namespace: crm-app
+  namespace: crm-production
   labels:
-    tier: application
     app: crm
+    tier: api
+    environment: production
 spec:
   replicas: 1
   selector:
     matchLabels:
-      tier: application
       app: crm
+      tier: api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
-        tier: application
         app: crm
+        tier: api
+        environment: production
     spec:
       containers:
       - name: crm-api
-        image: crm-api:latest
-        imagePullPolicy: Never
+        image: 192.168.0.9:5000/crm-backend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
+          hostPort: 5000
           name: http
         - containerPort: 5001
+          hostPort: 5001
           name: https
         env:
         - name: ASPNETCORE_ENVIRONMENT
@@ -38,6 +50,11 @@ spec:
             configMapKeyRef:
               name: crm-config
               key: DatabaseProvider
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_CONNECTION_STRING
         - name: Jwt__Secret
           valueFrom:
             secretKeyRef:
@@ -53,12 +70,6 @@ spec:
             secretKeyRef:
               name: crm-secrets
               key: JWT_AUDIENCE
-        - name: ConnectionStrings__DefaultConnection
-          valueFrom:
-            secretKeyRef:
-              name: crm-secrets
-              key: DB_CONNECTION_STRING
-        # Demo database configuration - same server, auto-seeded
         - name: DemoDatabase__AutoSeed
           valueFrom:
             configMapKeyRef:
@@ -69,90 +80,61 @@ spec:
             configMapKeyRef:
               name: crm-config
               key: DemoDatabase__DatabaseName
-        # SSL Configuration
-        - name: SSL_CERT_PATH
-          value: "/app/ssl/server.pfx"
-        - name: SSL_CERT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: crm-ssl-secret
-              key: SSL_CERT_PASSWORD
-              optional: true
-        - name: HTTPS_PORT
-          value: "5001"
         - name: HTTP_PORT
           value: "5000"
-        volumeMounts:
-        - name: ssl-certs
-          mountPath: /app/ssl
-          readOnly: true
+        - name: HTTPS_PORT
+          value: "5001"
         resources:
           requests:
             memory: "256Mi"
             cpu: "250m"
           limits:
-            memory: "512Mi"
-            cpu: "500m"
-        # Startup probe: Allow container to start before liveness checks begin
+            memory: "1Gi"
+            cpu: "1000m"
         startupProbe:
           httpGet:
             path: /health
             port: 5000
-            scheme: HTTP
-          initialDelaySeconds: 10
+          initialDelaySeconds: 15
           periodSeconds: 5
           timeoutSeconds: 5
-          failureThreshold: 30  # Allow up to 150 seconds for startup
-        # Readiness probe: Check if container is ready to serve traffic
+          failureThreshold: 30
         readinessProbe:
           httpGet:
             path: /health/ready
             port: 5000
-            scheme: HTTP
           initialDelaySeconds: 5
           periodSeconds: 10
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 3
-        # Liveness probe: Check if container is alive and healthy
         livenessProbe:
           httpGet:
             path: /health/live
             port: 5000
-            scheme: HTTP
-          initialDelaySeconds: 15
-          periodSeconds: 20
+          initialDelaySeconds: 30
+          periodSeconds: 30
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 3
-      volumes:
-      - name: ssl-certs
-        secret:
-          secretName: crm-ssl-secret
-          optional: true
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: crm-api
-  namespace: crm-app
+  namespace: crm-production
   labels:
-    tier: application
     app: crm
+    tier: api
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
-    tier: application
     app: crm
+    tier: api
   ports:
   - port: 5000
     targetPort: 5000
-    nodePort: 30500
     name: http
-  - port: 5001
-    targetPort: 5001
-    nodePort: 30501
-    name: https
   - port: 5001
     targetPort: 5001
     name: https
