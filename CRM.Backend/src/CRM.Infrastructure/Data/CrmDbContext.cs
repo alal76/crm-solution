@@ -136,6 +136,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
     
     // Master data entities
     public DbSet<ZipCode> ZipCodes { get; set; }
+    
+    // Cloud Deployment entities
+    public DbSet<CloudProvider> CloudProviders { get; set; }
+    public DbSet<CloudDeployment> CloudDeployments { get; set; }
+    public DbSet<DeploymentAttempt> DeploymentAttempts { get; set; }
+    public DbSet<HealthCheckLog> HealthCheckLogs { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -1332,6 +1338,97 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(sr => sr.ChildServiceRequests)
                 .HasForeignKey(e => e.ParentServiceRequestId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // Configure Cloud Deployment entities
+        modelBuilder.Entity<CloudProvider>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.AccessKeyId).HasMaxLength(500);
+            entity.Property(e => e.SecretAccessKey).HasMaxLength(2000);
+            entity.Property(e => e.TenantId).HasMaxLength(200);
+            entity.Property(e => e.SubscriptionId).HasMaxLength(200);
+            entity.Property(e => e.ProjectId).HasMaxLength(200);
+            entity.Property(e => e.Region).HasMaxLength(100);
+            entity.Property(e => e.Endpoint).HasMaxLength(500);
+            entity.Property(e => e.Configuration).HasColumnType("TEXT");
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.ProviderType);
+        });
+        
+        modelBuilder.Entity<CloudDeployment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.ClusterName).HasMaxLength(200);
+            entity.Property(e => e.Namespace).HasMaxLength(100);
+            entity.Property(e => e.ResourceGroup).HasMaxLength(200);
+            entity.Property(e => e.VpcId).HasMaxLength(100);
+            entity.Property(e => e.SubnetIds).HasMaxLength(500);
+            entity.Property(e => e.BackendImage).HasMaxLength(500);
+            entity.Property(e => e.FrontendImage).HasMaxLength(500);
+            entity.Property(e => e.DatabaseImage).HasMaxLength(500);
+            entity.Property(e => e.BackendVersion).HasMaxLength(50);
+            entity.Property(e => e.FrontendVersion).HasMaxLength(50);
+            entity.Property(e => e.FrontendUrl).HasMaxLength(500);
+            entity.Property(e => e.ApiUrl).HasMaxLength(500);
+            entity.Property(e => e.DatabaseHost).HasMaxLength(200);
+            entity.Property(e => e.SslCertificateArn).HasMaxLength(500);
+            entity.Property(e => e.DomainName).HasMaxLength(300);
+            entity.Property(e => e.LastError).HasMaxLength(2000);
+            entity.Property(e => e.EnvironmentVariables).HasColumnType("TEXT");
+            entity.Property(e => e.ResourceConfiguration).HasColumnType("TEXT");
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.Status);
+            
+            entity.HasOne(e => e.CloudProvider)
+                .WithMany(p => p.Deployments)
+                .HasForeignKey(e => e.CloudProviderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        modelBuilder.Entity<DeploymentAttempt>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.AttemptNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.GitCommitHash).HasMaxLength(100);
+            entity.Property(e => e.GitBranch).HasMaxLength(200);
+            entity.Property(e => e.BuildNumber).HasMaxLength(50);
+            entity.Property(e => e.BackendImageTag).HasMaxLength(100);
+            entity.Property(e => e.FrontendImageTag).HasMaxLength(100);
+            entity.Property(e => e.BuildLog).HasColumnType("LONGTEXT");
+            entity.Property(e => e.DeployLog).HasColumnType("LONGTEXT");
+            entity.Property(e => e.ErrorMessage).HasMaxLength(2000);
+            entity.Property(e => e.ErrorStackTrace).HasColumnType("TEXT");
+            entity.Property(e => e.TriggerType).HasMaxLength(50);
+            entity.HasIndex(e => e.CloudDeploymentId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.StartedAt);
+            
+            entity.HasOne(e => e.CloudDeployment)
+                .WithMany(d => d.Attempts)
+                .HasForeignKey(e => e.CloudDeploymentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        modelBuilder.Entity<HealthCheckLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ApiResponse).HasMaxLength(1000);
+            entity.Property(e => e.FrontendResponse).HasMaxLength(1000);
+            entity.Property(e => e.DatabaseResponse).HasMaxLength(1000);
+            entity.Property(e => e.ErrorDetails).HasMaxLength(2000);
+            entity.HasIndex(e => e.CloudDeploymentId);
+            entity.HasIndex(e => e.CheckedAt);
+            entity.HasIndex(e => e.Status);
+            
+            entity.HasOne(e => e.CloudDeployment)
+                .WithMany(d => d.HealthChecks)
+                .HasForeignKey(e => e.CloudDeploymentId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

@@ -281,6 +281,9 @@ builder.Services.AddScoped<NormalizationService>();
 builder.Services.AddScoped<IZipCodeService, ZipCodeService>();
 // Master data - Field-to-master-data linking service
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
+// Cloud Deployment management service
+builder.Services.AddScoped<ICloudDeploymentService, CloudDeploymentService>();
+builder.Services.AddHttpClient();
 
 // HEXAGONAL ARCHITECTURE - Register Input Ports (Primary/Driving Ports)
 // These allow controllers to depend on ports instead of concrete services

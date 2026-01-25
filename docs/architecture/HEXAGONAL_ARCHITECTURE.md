@@ -42,6 +42,7 @@ The CRM Solution has been refactored to follow the Hexagonal Architecture (Ports
 │   IServiceRequestInputPort - Service request handling                            │
 │   IAccountInputPort     - Account management                                     │
 │   IDatabaseBackupInputPort - Database operations                                 │
+│   ICloudDeploymentInputPort - Cloud deployment management                        │
 │                                                                                  │
 │   These extend existing I*Service interfaces for backward compatibility          │
 └─────────────────────────────────────────────────────────────────────────────────┘
@@ -64,6 +65,8 @@ The CRM Solution has been refactored to follow the Hexagonal Architecture (Ports
 │   ServiceRequestService  implements IServiceRequestInputPort, IServiceRequestService │
 │   AccountService         implements IAccountInputPort, IAccountService           │
 │   DatabaseBackupService  implements IDatabaseBackupInputPort, IDatabaseBackupService │
+│   CloudDeploymentService implements ICloudDeploymentService (manages providers,  │
+│                          deployments, build attempts, and health checks)          │
 │                                                                                  │
 │   Services contain business logic and use OUTPUT PORTS for data access           │
 └─────────────────────────────────────────────────────────────────────────────────┘
@@ -92,6 +95,9 @@ The CRM Solution has been refactored to follow the Hexagonal Architecture (Ports
 │   ICachePort             - Caching operations                                    │
 │   ITotpPort              - Two-factor authentication                             │
 │   IUnitOfWorkPort        - Transaction coordination                              │
+│   ICloudProviderPort     - Cloud provider integrations (AWS, Azure, GCP, K8s)   │
+│   IDeploymentPort        - Deployment orchestration                              │
+│   IHealthCheckPort       - Health monitoring                                     │
 └─────────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼

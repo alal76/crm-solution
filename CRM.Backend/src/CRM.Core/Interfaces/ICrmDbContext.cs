@@ -58,6 +58,12 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.CustomField> CustomFields { get; }
     DbSet<ModuleUIConfig> ModuleUIConfigs { get; }
     
+    // Cloud Deployment entities
+    DbSet<CloudProvider> CloudProviders { get; }
+    DbSet<CloudDeployment> CloudDeployments { get; }
+    DbSet<DeploymentAttempt> DeploymentAttempts { get; }
+    DbSet<HealthCheckLog> HealthCheckLogs { get; }
+    
     DatabaseFacade Database { get; }
     
     /// <summary>

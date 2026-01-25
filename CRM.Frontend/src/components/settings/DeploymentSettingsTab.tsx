@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, Button, TextField,
   FormControl, InputLabel, Select, MenuItem, Chip, Stepper, Step,
@@ -6,7 +6,8 @@ import {
   List, ListItem, ListItemIcon, ListItemText, IconButton, Tooltip,
   Dialog, DialogTitle, DialogContent, DialogActions, Switch, FormControlLabel,
   Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  LinearProgress, Accordion, AccordionSummary, AccordionDetails, InputAdornment
+  LinearProgress, Accordion, AccordionSummary, AccordionDetails, InputAdornment,
+  Badge
 } from '@mui/material';
 import {
   Cloud as CloudIcon, Storage as StorageIcon, Api as ApiIcon,
@@ -19,8 +20,18 @@ import {
   Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon,
   Terminal as TerminalIcon, Description as ScriptIcon, DataObject as DataIcon,
   CheckCircleOutline as ValidatedIcon, WarningAmber as WarningIcon,
-  Info as InfoIcon, Delete as DeleteIcon, Add as AddIcon
+  Info as InfoIcon, Delete as DeleteIcon, Add as AddIcon,
+  History as HistoryIcon, HealthAndSafety as HealthIcon, Dashboard as DashboardIcon,
+  Stop as StopIcon, Replay as RestartIcon, Tune as ScaleIcon
 } from '@mui/icons-material';
+import cloudDeploymentService, {
+  CloudProvider as ApiCloudProvider,
+  CloudDeployment as ApiCloudDeployment,
+  DeploymentAttempt,
+  HealthCheck,
+  DeploymentDashboard,
+  HealthCheckResult
+} from '../../services/cloudDeploymentService';
 
 // Types for hosting status
 interface CurrentHosting {
@@ -273,6 +284,134 @@ function DeploymentSettingsTab() {
   const [generatedScript, setGeneratedScript] = useState('');
   const [scriptType, setScriptType] = useState<'docker' | 'kubernetes' | 'terraform' | 'shell'>('docker');
   const [generatingScript, setGeneratingScript] = useState(false);
+
+  // API-integrated state for deployment management
+  const [apiProviders, setApiProviders] = useState<ApiCloudProvider[]>([]);
+  const [apiDeployments, setApiDeployments] = useState<ApiCloudDeployment[]>([]);
+  const [deploymentAttempts, setDeploymentAttempts] = useState<DeploymentAttempt[]>([]);
+  const [healthChecks, setHealthChecks] = useState<HealthCheck[]>([]);
+  const [dashboard, setDashboard] = useState<DeploymentDashboard | null>(null);
+  const [loadingApi, setLoadingApi] = useState(false);
+  const [selectedDeployment, setSelectedDeployment] = useState<ApiCloudDeployment | null>(null);
+  const [healthCheckResult, setHealthCheckResult] = useState<HealthCheckResult | null>(null);
+  const [runningHealthCheck, setRunningHealthCheck] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [showAttemptLogsDialog, setShowAttemptLogsDialog] = useState(false);
+  const [attemptLogs, setAttemptLogs] = useState<string>('');
+  const [triggeringDeployment, setTriggeringDeployment] = useState(false);
+
+  // Load API data
+  const loadApiData = useCallback(async () => {
+    setLoadingApi(true);
+    setApiError(null);
+    try {
+      const [providersData, deploymentsData, dashboardData] = await Promise.all([
+        cloudDeploymentService.getProviders(),
+        cloudDeploymentService.getDeployments(),
+        cloudDeploymentService.getDashboard()
+      ]);
+      setApiProviders(providersData);
+      setApiDeployments(deploymentsData);
+      setDashboard(dashboardData);
+    } catch (error: unknown) {
+      console.error('Error loading deployment data:', error);
+      setApiError('Failed to load deployment data. The deployment API may not be configured yet.');
+    } finally {
+      setLoadingApi(false);
+    }
+  }, []);
+
+  // Load deployment attempts for selected deployment
+  const loadDeploymentAttempts = useCallback(async (deploymentId: number) => {
+    try {
+      const attempts = await cloudDeploymentService.getDeploymentAttempts(deploymentId);
+      setDeploymentAttempts(attempts);
+    } catch (error) {
+      console.error('Error loading deployment attempts:', error);
+    }
+  }, []);
+
+  // Load health check history
+  const loadHealthCheckHistory = useCallback(async (deploymentId: number) => {
+    try {
+      const checks = await cloudDeploymentService.getHealthCheckHistory(deploymentId, 20);
+      setHealthChecks(checks);
+    } catch (error) {
+      console.error('Error loading health checks:', error);
+    }
+  }, []);
+
+  // Run health check
+  const runHealthCheck = async (deploymentId: number) => {
+    setRunningHealthCheck(true);
+    try {
+      const result = await cloudDeploymentService.runHealthCheck(deploymentId);
+      setHealthCheckResult(result);
+      await loadHealthCheckHistory(deploymentId);
+      await loadApiData();
+    } catch (error) {
+      console.error('Error running health check:', error);
+    } finally {
+      setRunningHealthCheck(false);
+    }
+  };
+
+  // Trigger deployment
+  const handleTriggerDeployment = async (deploymentId: number) => {
+    setTriggeringDeployment(true);
+    try {
+      const result = await cloudDeploymentService.triggerDeployment(deploymentId, {
+        deploymentId,
+        forceBuild: false
+      });
+      if (result.success) {
+        setDeploymentLogs([result.message, result.deployLog || '']);
+        setShowLogsDialog(true);
+      }
+      await loadApiData();
+      await loadDeploymentAttempts(deploymentId);
+    } catch (error) {
+      console.error('Error triggering deployment:', error);
+    } finally {
+      setTriggeringDeployment(false);
+    }
+  };
+
+  // View attempt logs
+  const viewAttemptLogs = async (attemptId: number) => {
+    try {
+      const logs = await cloudDeploymentService.getDeploymentAttemptLogs(attemptId);
+      setAttemptLogs(logs);
+      setShowAttemptLogsDialog(true);
+    } catch (error) {
+      console.error('Error loading attempt logs:', error);
+    }
+  };
+
+  // Stop deployment
+  const handleStopDeployment = async (deploymentId: number) => {
+    try {
+      await cloudDeploymentService.stopDeployment(deploymentId);
+      await loadApiData();
+    } catch (error) {
+      console.error('Error stopping deployment:', error);
+    }
+  };
+
+  // Restart deployment
+  const handleRestartDeployment = async (deploymentId: number) => {
+    try {
+      await cloudDeploymentService.restartDeployment(deploymentId);
+      await loadApiData();
+    } catch (error) {
+      console.error('Error restarting deployment:', error);
+    }
+  };
+
+  // Load API data on mount
+  useEffect(() => {
+    loadApiData();
+  }, [loadApiData]);
 
   // Refresh hosting status
   const refreshHostingStatus = async () => {
@@ -2167,6 +2306,503 @@ echo "Frontend URL: http://localhost:3000"
     </Grid>
   );
 
+  // Helper function to get status color
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'running': case 'healthy': case 'success': return 'success';
+      case 'building': case 'deploying': case 'provisioning': case 'degraded': return 'warning';
+      case 'failed': case 'error': case 'unhealthy': case 'offline': return 'error';
+      case 'stopped': case 'terminated': return 'default';
+      default: return 'info';
+    }
+  };
+
+  // Render Dashboard
+  const renderDashboard = () => (
+    <Box>
+      {loadingApi ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : apiError ? (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {apiError}
+        </Alert>
+      ) : dashboard ? (
+        <Grid container spacing={3}>
+          {/* Summary Cards */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ borderRadius: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <CloudIcon color="primary" />
+                  <Typography variant="subtitle2" color="textSecondary">Providers</Typography>
+                </Box>
+                <Typography variant="h4">{dashboard.totalProviders}</Typography>
+                <Typography variant="body2" color="success.main">
+                  {dashboard.activeProviders} active
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ borderRadius: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <StorageIcon color="secondary" />
+                  <Typography variant="subtitle2" color="textSecondary">Deployments</Typography>
+                </Box>
+                <Typography variant="h4">{dashboard.totalDeployments}</Typography>
+                <Typography variant="body2" color="success.main">
+                  {dashboard.runningDeployments} running
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ borderRadius: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <CheckIcon color="success" />
+                  <Typography variant="subtitle2" color="textSecondary">Healthy</Typography>
+                </Box>
+                <Typography variant="h4">{dashboard.healthyDeployments}</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  of {dashboard.totalDeployments} total
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ borderRadius: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <ErrorIcon color="error" />
+                  <Typography variant="subtitle2" color="textSecondary">Failed</Typography>
+                </Box>
+                <Typography variant="h4">{dashboard.failedDeployments}</Typography>
+                <Typography variant="body2" color="error.main">
+                  need attention
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Deployments Table */}
+          <Grid item xs={12}>
+            <Card sx={{ borderRadius: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6">Active Deployments</Typography>
+                  <Button startIcon={<RefreshIcon />} onClick={loadApiData} size="small">
+                    Refresh
+                  </Button>
+                </Box>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Name</TableCell>
+                        <TableCell>Provider</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Health</TableCell>
+                        <TableCell>Frontend URL</TableCell>
+                        <TableCell>Last Deployed</TableCell>
+                        <TableCell align="right">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {apiDeployments.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} align="center">
+                            <Typography color="textSecondary">No deployments configured</Typography>
+                          </TableCell>
+                        </TableRow>
+                      ) : apiDeployments.map((deployment) => (
+                        <TableRow key={deployment.id}>
+                          <TableCell>
+                            <Typography fontWeight={500}>{deployment.name}</Typography>
+                            <Typography variant="caption" color="textSecondary">
+                              v{deployment.backendVersion || 'N/A'} / v{deployment.frontendVersion || 'N/A'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={deployment.providerType} size="small" variant="outlined" />
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={deployment.status} 
+                              size="small" 
+                              color={getStatusColor(deployment.status) as any}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={deployment.healthStatus} 
+                              size="small" 
+                              color={getStatusColor(deployment.healthStatus) as any}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {deployment.frontendUrl ? (
+                              <a href={deployment.frontendUrl} target="_blank" rel="noopener noreferrer">
+                                {deployment.frontendUrl}
+                              </a>
+                            ) : '-'}
+                          </TableCell>
+                          <TableCell>
+                            {deployment.deployedAt ? new Date(deployment.deployedAt).toLocaleString() : 'Never'}
+                          </TableCell>
+                          <TableCell align="right">
+                            <Tooltip title="Run Health Check">
+                              <IconButton 
+                                size="small" 
+                                onClick={() => runHealthCheck(deployment.id)}
+                                disabled={runningHealthCheck}
+                              >
+                                <HealthIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Deploy">
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleTriggerDeployment(deployment.id)}
+                                disabled={triggeringDeployment}
+                              >
+                                <PlayIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Stop">
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleStopDeployment(deployment.id)}
+                              >
+                                <StopIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Restart">
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleRestartDeployment(deployment.id)}
+                              >
+                                <RestartIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="View Attempts">
+                              <IconButton 
+                                size="small" 
+                                onClick={() => {
+                                  setSelectedDeployment(deployment);
+                                  loadDeploymentAttempts(deployment.id);
+                                  setMainTab(3);
+                                }}
+                              >
+                                <HistoryIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      ) : (
+        <Alert severity="info">
+          No deployment data available. Configure your first cloud provider to get started.
+        </Alert>
+      )}
+    </Box>
+  );
+
+  // Render Build Attempts
+  const renderBuildAttempts = () => (
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h6">Build & Deployment Attempts</Typography>
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel>Filter by Deployment</InputLabel>
+          <Select
+            value={selectedDeployment?.id || ''}
+            onChange={(e) => {
+              const deployment = apiDeployments.find(d => d.id === e.target.value);
+              if (deployment) {
+                setSelectedDeployment(deployment);
+                loadDeploymentAttempts(deployment.id);
+              } else {
+                setSelectedDeployment(null);
+                setDeploymentAttempts([]);
+              }
+            }}
+            label="Filter by Deployment"
+          >
+            <MenuItem value="">All Deployments</MenuItem>
+            {apiDeployments.map((d) => (
+              <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Attempt #</TableCell>
+              <TableCell>Deployment</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Branch</TableCell>
+              <TableCell>Backend Tag</TableCell>
+              <TableCell>Frontend Tag</TableCell>
+              <TableCell>Started</TableCell>
+              <TableCell>Duration</TableCell>
+              <TableCell>Trigger</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {(selectedDeployment ? deploymentAttempts : dashboard?.recentAttempts || []).length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={10} align="center">
+                  <Typography color="textSecondary">
+                    {selectedDeployment ? 'No attempts for this deployment' : 'No recent build attempts'}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (selectedDeployment ? deploymentAttempts : dashboard?.recentAttempts || []).map((attempt: DeploymentAttempt | any) => (
+              <TableRow key={attempt.id}>
+                <TableCell>
+                  <Chip label={`#${attempt.attemptNumber}`} size="small" variant="outlined" />
+                </TableCell>
+                <TableCell>{attempt.deploymentName || selectedDeployment?.name || '-'}</TableCell>
+                <TableCell>
+                  <Chip 
+                    label={attempt.status} 
+                    size="small" 
+                    color={getStatusColor(attempt.status) as any}
+                  />
+                </TableCell>
+                <TableCell>{attempt.gitBranch || '-'}</TableCell>
+                <TableCell>
+                  <Chip label={attempt.backendImageTag || 'N/A'} size="small" variant="outlined" />
+                </TableCell>
+                <TableCell>
+                  <Chip label={attempt.frontendImageTag || 'N/A'} size="small" variant="outlined" />
+                </TableCell>
+                <TableCell>{new Date(attempt.startedAt).toLocaleString()}</TableCell>
+                <TableCell>
+                  {attempt.durationSeconds ? `${attempt.durationSeconds}s` : 'In progress...'}
+                </TableCell>
+                <TableCell>
+                  <Chip label={attempt.triggerType || 'Manual'} size="small" />
+                </TableCell>
+                <TableCell align="right">
+                  <Tooltip title="View Logs">
+                    <IconButton size="small" onClick={() => viewAttemptLogs(attempt.id)}>
+                      <TerminalIcon />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Error messages */}
+      {(selectedDeployment ? deploymentAttempts : dashboard?.recentAttempts || [])
+        .filter((a: any) => a.errorMessage)
+        .map((attempt: any) => (
+          <Alert key={attempt.id} severity="error" sx={{ mt: 2 }}>
+            <Typography variant="subtitle2">Attempt #{attempt.attemptNumber} Error:</Typography>
+            <Typography variant="body2">{attempt.errorMessage}</Typography>
+          </Alert>
+        ))}
+    </Box>
+  );
+
+  // Render Health Checks
+  const renderHealthChecks = () => (
+    <Box>
+      <Grid container spacing={3}>
+        {/* Health Check Controls */}
+        <Grid item xs={12}>
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">Run Health Check</Typography>
+              </Box>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Select Deployment</InputLabel>
+                <Select
+                  value={selectedDeployment?.id || ''}
+                  onChange={(e) => {
+                    const deployment = apiDeployments.find(d => d.id === e.target.value);
+                    if (deployment) {
+                      setSelectedDeployment(deployment);
+                      loadHealthCheckHistory(deployment.id);
+                    }
+                  }}
+                  label="Select Deployment"
+                >
+                  {apiDeployments.map((d) => (
+                    <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button
+                variant="contained"
+                startIcon={runningHealthCheck ? <CircularProgress size={20} /> : <HealthIcon />}
+                disabled={!selectedDeployment || runningHealthCheck}
+                onClick={() => selectedDeployment && runHealthCheck(selectedDeployment.id)}
+                sx={{ backgroundColor: '#6750A4' }}
+              >
+                {runningHealthCheck ? 'Checking...' : 'Run Health Check Now'}
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Latest Health Check Result */}
+        {healthCheckResult && (
+          <Grid item xs={12}>
+            <Card sx={{ borderRadius: 2, border: `2px solid`, borderColor: getStatusColor(healthCheckResult.overallStatus) + '.main' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <Typography variant="h6">Latest Health Check Result</Typography>
+                  <Chip 
+                    label={healthCheckResult.overallStatus} 
+                    color={getStatusColor(healthCheckResult.overallStatus) as any}
+                  />
+                </Box>
+                <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
+                  Checked at: {new Date(healthCheckResult.checkedAt).toLocaleString()}
+                </Typography>
+                
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 2, textAlign: 'center' }}>
+                      <ApiIcon sx={{ fontSize: 40, color: healthCheckResult.api.healthy ? 'success.main' : 'error.main' }} />
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>API</Typography>
+                      <Chip 
+                        label={healthCheckResult.api.healthy ? 'Healthy' : 'Unhealthy'} 
+                        size="small"
+                        color={healthCheckResult.api.healthy ? 'success' : 'error'}
+                      />
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        Response: {healthCheckResult.api.responseTimeMs}ms
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 2, textAlign: 'center' }}>
+                      <WebIcon sx={{ fontSize: 40, color: healthCheckResult.frontend.healthy ? 'success.main' : 'error.main' }} />
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Frontend</Typography>
+                      <Chip 
+                        label={healthCheckResult.frontend.healthy ? 'Healthy' : 'Unhealthy'} 
+                        size="small"
+                        color={healthCheckResult.frontend.healthy ? 'success' : 'error'}
+                      />
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        Response: {healthCheckResult.frontend.responseTimeMs}ms
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 2, textAlign: 'center' }}>
+                      <DatabaseIcon sx={{ fontSize: 40, color: healthCheckResult.database.healthy ? 'success.main' : 'error.main' }} />
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Database</Typography>
+                      <Chip 
+                        label={healthCheckResult.database.healthy ? 'Healthy' : 'Unhealthy'} 
+                        size="small"
+                        color={healthCheckResult.database.healthy ? 'success' : 'error'}
+                      />
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        Response: {healthCheckResult.database.responseTimeMs}ms
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* Health Check History */}
+        <Grid item xs={12}>
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 2 }}>Health Check History</Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Checked At</TableCell>
+                      <TableCell>Deployment</TableCell>
+                      <TableCell>Overall Status</TableCell>
+                      <TableCell>API</TableCell>
+                      <TableCell>Frontend</TableCell>
+                      <TableCell>Database</TableCell>
+                      <TableCell>Response Times</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {healthChecks.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center">
+                          <Typography color="textSecondary">
+                            {selectedDeployment ? 'No health checks recorded' : 'Select a deployment to view history'}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : healthChecks.map((check) => (
+                      <TableRow key={check.id}>
+                        <TableCell>{new Date(check.checkedAt).toLocaleString()}</TableCell>
+                        <TableCell>{check.deploymentName}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={check.status} 
+                            size="small" 
+                            color={getStatusColor(check.status) as any}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {check.apiHealthy !== undefined && (
+                            check.apiHealthy ? <CheckIcon color="success" /> : <ErrorIcon color="error" />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {check.frontendHealthy !== undefined && (
+                            check.frontendHealthy ? <CheckIcon color="success" /> : <ErrorIcon color="error" />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {check.databaseHealthy !== undefined && (
+                            check.databaseHealthy ? <CheckIcon color="success" /> : <ErrorIcon color="error" />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption">
+                            API: {check.apiResponseTimeMs || '-'}ms | 
+                            FE: {check.frontendResponseTimeMs || '-'}ms | 
+                            DB: {check.databaseResponseTimeMs || '-'}ms
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+
   return (
     <Box>
       <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
@@ -2185,8 +2821,15 @@ echo "Frontend URL: http://localhost:3000"
           scrollButtons="auto"
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
+          <Tab icon={<DashboardIcon />} iconPosition="start" label="Dashboard" />
           <Tab icon={<InfoIcon />} iconPosition="start" label="Current Hosting" />
           <Tab icon={<CloudIcon />} iconPosition="start" label="Deploy New" />
+          <Tab icon={<HistoryIcon />} iconPosition="start" label={
+            <Badge badgeContent={dashboard?.recentAttempts?.length || 0} color="primary" max={99}>
+              <span>Build Attempts</span>
+            </Badge>
+          } />
+          <Tab icon={<HealthIcon />} iconPosition="start" label="Health Checks" />
           <Tab icon={<SecurityIcon />} iconPosition="start" label="Credentials" />
           <Tab icon={<ScriptIcon />} iconPosition="start" label="Scripts" />
           <Tab icon={<SyncIcon />} iconPosition="start" label="Replicate" />
@@ -2195,11 +2838,14 @@ echo "Frontend URL: http://localhost:3000"
 
       {/* Tab Content */}
       <Box sx={{ mt: 3 }}>
-        {mainTab === 0 && renderCurrentHosting()}
-        {mainTab === 1 && renderDeployNew()}
-        {mainTab === 2 && renderCredentials()}
-        {mainTab === 3 && renderScriptGeneration()}
-        {mainTab === 4 && renderDataReplication()}
+        {mainTab === 0 && renderDashboard()}
+        {mainTab === 1 && renderCurrentHosting()}
+        {mainTab === 2 && renderDeployNew()}
+        {mainTab === 3 && renderBuildAttempts()}
+        {mainTab === 4 && renderHealthChecks()}
+        {mainTab === 5 && renderCredentials()}
+        {mainTab === 6 && renderScriptGeneration()}
+        {mainTab === 7 && renderDataReplication()}
       </Box>
 
       {/* Script Dialog */}
@@ -2284,6 +2930,55 @@ echo "Frontend URL: http://localhost:3000"
             onClick={() => navigator.clipboard.writeText(deploymentLogs.join('\n'))}
           >
             Copy Logs
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Attempt Logs Dialog */}
+      <Dialog open={showAttemptLogsDialog} onClose={() => setShowAttemptLogsDialog(false)} maxWidth="lg" fullWidth>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <TerminalIcon />
+            Build & Deploy Logs
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Paper 
+            sx={{ 
+              p: 2, 
+              bgcolor: '#1e1e1e', 
+              borderRadius: 2, 
+              maxHeight: 500, 
+              overflow: 'auto',
+              fontFamily: 'monospace'
+            }}
+          >
+            <pre style={{ margin: 0, color: '#00ff00', whiteSpace: 'pre-wrap', fontSize: '13px' }}>
+              {attemptLogs || 'No logs available'}
+            </pre>
+          </Paper>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowAttemptLogsDialog(false)}>Close</Button>
+          <Button
+            startIcon={<CopyIcon />}
+            onClick={() => navigator.clipboard.writeText(attemptLogs)}
+          >
+            Copy Logs
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<DownloadIcon />}
+            onClick={() => {
+              const blob = new Blob([attemptLogs], { type: 'text/plain' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `deployment-logs-${new Date().toISOString()}.txt`;
+              a.click();
+            }}
+          >
+            Download
           </Button>
         </DialogActions>
       </Dialog>
