@@ -17,6 +17,7 @@ import {
   Refresh as RefreshIcon, TrendingDown as TrendingDownIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import ImportExportButtons from '../components/ImportExportButtons';
 
@@ -71,8 +72,7 @@ const ACTIVITY_COLORS: Record<string, string> = {
   'default': '#9e9e9e',
 };
 
-interface Activity {
-  id: number;
+interface Activity extends BaseEntity {
   activityType: number;
   activityTypeName?: string;
   title: string;
@@ -87,7 +87,6 @@ interface Activity {
   oldValue?: string;
   newValue?: string;
   isSystemGenerated: boolean;
-  createdAt: string;
 }
 
 interface ActivityStats {

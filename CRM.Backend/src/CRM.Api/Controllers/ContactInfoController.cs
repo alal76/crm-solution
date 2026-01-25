@@ -924,8 +924,8 @@ public class ContactInfoController : ControllerBase
                 return StatusCode(500, "Validation service not available");
             }
 
-            var result = await validationService.ValidatePhoneNumberAsync(request.PhoneNumber, request.CountryCode);
-            var formattedPhone = result.IsValid ? validationService.FormatPhoneNumber(request.PhoneNumber, request.CountryCode) : null;
+            var result = await validationService.ValidatePhoneNumberAsync(request.PhoneNumber, request.CountryCode ?? "US");
+            var formattedPhone = result.IsValid ? validationService.FormatPhoneNumber(request.PhoneNumber, request.CountryCode ?? "US") : null;
 
             return Ok(new ValidateContactInfoResponse
             {

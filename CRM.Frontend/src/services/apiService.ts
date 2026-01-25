@@ -1,8 +1,8 @@
 import apiClient from './apiClient';
 import { LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from './contactInfoService';
+import { BaseEntity } from '../types';
 
-export interface Customer {
-  id?: number;
+export interface Customer extends BaseEntity {
   firstName: string;
   lastName: string;
   email: string;
@@ -53,8 +53,7 @@ export enum QualificationReason {
   Fit = 4,
 }
 
-export interface Opportunity {
-  id?: number;
+export interface Opportunity extends BaseEntity {
   name: string;
   stage: OpportunityStage;
   probability: number;
@@ -71,7 +70,6 @@ export interface Opportunity {
   primaryContactId?: number;
   salesOwnerId?: number;
   leadId?: number;
-  createdAt?: string;
   // Navigation properties from API
   accountName?: string;
   primaryContactName?: string;
@@ -89,8 +87,7 @@ export const opportunityService = {
   delete: (id: number) => apiClient.delete(`/opportunities/${id}`),
 };
 
-export interface Product {
-  id?: number;
+export interface Product extends BaseEntity {
   name: string;
   sku: string;
   price: number;
@@ -109,8 +106,7 @@ export const productService = {
   delete: (id: number) => apiClient.delete(`/products/${id}`),
 };
 
-export interface MarketingCampaign {
-  id?: number;
+export interface MarketingCampaign extends BaseEntity {
   name: string;
   type: string;
   budget: number;
@@ -180,8 +176,7 @@ export enum CustomFieldType {
   Url = 11
 }
 
-export interface ServiceRequestCategory {
-  id?: number;
+export interface ServiceRequestCategory extends BaseEntity {
   name: string;
   description?: string;
   icon?: string;
@@ -206,8 +201,7 @@ export interface CreateServiceRequestCategory {
   slaResolutionHours?: number;
 }
 
-export interface ServiceRequestSubcategory {
-  id?: number;
+export interface ServiceRequestSubcategory extends BaseEntity {
   categoryId: number;
   categoryName?: string;
   name: string;
@@ -339,8 +333,7 @@ export interface ServiceRequestCustomFieldValue {
   value?: string;
 }
 
-export interface ServiceRequest {
-  id?: number;
+export interface ServiceRequest extends BaseEntity {
   ticketNumber?: string;
   subject: string;
   description?: string;
@@ -375,8 +368,6 @@ export interface ServiceRequest {
   isSlaBreached: boolean;
   customerSatisfactionRating?: number;
   customerFeedback?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface CreateServiceRequest {

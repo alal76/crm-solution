@@ -37,6 +37,7 @@ import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import { BaseEntity } from '../types';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
@@ -56,8 +57,7 @@ const SEARCH_FIELDS: SearchField[] = [
 
 const SEARCHABLE_FIELDS = ['name', 'solutionNotes', 'region'];
 
-interface Opportunity {
-  id: number;
+interface Opportunity extends BaseEntity {
   name: string;
   stage: number;
   probability: number;
@@ -74,23 +74,20 @@ interface Opportunity {
   primaryContactId?: number;
   salesOwnerId?: number;
   leadId?: number;
-  createdAt?: string;
   // Navigation properties from API
   accountName?: string;
   primaryContactName?: string;
   salesOwnerName?: string;
 }
 
-interface Account {
-  id: number;
+interface Account extends BaseEntity {
   firstName?: string;
   lastName?: string;
   company?: string;
   legalName?: string;
 }
 
-interface User {
-  id: number;
+interface User extends BaseEntity {
   username: string;
   firstName: string;
   lastName: string;

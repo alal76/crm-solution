@@ -382,9 +382,9 @@ public class FieldMasterDataService : IFieldMasterDataService
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             query = query.Where(z => 
-                z.PostalCode.Contains(searchTerm) ||
-                z.City.Contains(searchTerm) ||
-                z.State.Contains(searchTerm));
+                (z.PostalCode != null && z.PostalCode.Contains(searchTerm)) ||
+                (z.City != null && z.City.Contains(searchTerm)) ||
+                (z.State != null && z.State.Contains(searchTerm)));
         }
 
         var data = await query.Take(limit).ToListAsync();
@@ -395,11 +395,11 @@ public class FieldMasterDataService : IFieldMasterDataService
             Display = GetPropertyValue(z, link.DisplayField) ?? $"{z.City}, {z.State} {z.PostalCode}",
             Metadata = new Dictionary<string, object>
             {
-                { "city", z.City },
-                { "state", z.State },
-                { "stateCode", z.StateCode ?? "" },
-                { "country", z.Country },
-                { "countryCode", z.CountryCode }
+                { "city", z.City ?? string.Empty },
+                { "state", z.State ?? string.Empty },
+                { "stateCode", z.StateCode ?? string.Empty },
+                { "country", z.Country ?? string.Empty },
+                { "countryCode", z.CountryCode ?? string.Empty }
             }
         }).ToList();
     }

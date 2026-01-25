@@ -4,6 +4,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { TabPanel } from '../components/common';
+import { BaseEntity } from '../types';
 import {
   Box,
   Container,
@@ -99,8 +100,7 @@ import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 
 // Types
-interface Interaction {
-  id: number;
+interface Interaction extends BaseEntity {
   interactionType: number;
   interactionTypeName?: string;
   direction: number;
@@ -132,28 +132,23 @@ interface Interaction {
   opportunity?: { id: number; title?: string };
   assignedToUserId?: number;
   assignedToUser?: { id: number; firstName: string; lastName: string };
-  createdAt: string;
-  updatedAt?: string;
 }
 
-interface Customer {
-  id: number;
+interface Customer extends BaseEntity {
   firstName?: string;
   lastName?: string;
   companyName?: string;
   email?: string;
 }
 
-interface Contact {
-  id: number;
+interface Contact extends BaseEntity {
   firstName: string;
   lastName: string;
   email?: string;
   customerId: number;
 }
 
-interface Opportunity {
-  id: number;
+interface Opportunity extends BaseEntity {
   title: string;
   customerId: number;
 }

@@ -281,6 +281,8 @@ builder.Services.AddScoped<IZipCodeService, ZipCodeService>();
 builder.Services.AddScoped<IContactInfoValidationService, ContactInfoValidationService>();
 // Master data - Field-to-master-data linking service
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
+// Master data seeder - seeds ZipCodes and ColorPalettes on startup if empty
+builder.Services.AddScoped<IMasterDataSeederService, MasterDataSeederService>();
 // Cloud Deployment management service
 builder.Services.AddScoped<ICloudDeploymentService, CloudDeploymentService>();
 builder.Services.AddHttpClient();
@@ -435,6 +437,21 @@ using (var scope = app.Services.CreateScope())
         // Seed data
         await DbSeed.SeedAsync(db);
         Log.Information("Database setup completed successfully");
+        
+        // Seed master data (ZipCodes, ColorPalettes) if not already populated
+        // This data persists across deployments in the database
+        try
+        {
+            var masterDataSeeder = scope.ServiceProvider.GetRequiredService<IMasterDataSeederService>();
+            await masterDataSeeder.SeedIfEmptyAsync();
+            var stats = await masterDataSeeder.GetStatsAsync();
+            Log.Information("Master data status: {ZipCodeCount} ZIP codes, {ColorPaletteCount} color palettes", 
+                stats.ZipCodeCount, stats.ColorPaletteCount);
+        }
+        catch (Exception masterDataEx)
+        {
+            Log.Warning(masterDataEx, "Failed to seed master data - continuing without");
+        }
         
         // Auto-seed demo database if configured
         var autoSeedDemo = builder.Configuration.GetValue<bool>("DemoDatabase:AutoSeed", false);

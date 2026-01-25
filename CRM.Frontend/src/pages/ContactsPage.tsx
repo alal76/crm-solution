@@ -46,6 +46,7 @@ import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { contactInfoService, EntityContactInfoDto, LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from '../services/contactInfoService';
+import { BaseEntity } from '../types';
 
 interface SocialMediaLink {
   id: number;
@@ -65,16 +66,14 @@ interface ContactInfoSummary {
   socialCount: number;
 }
 
-interface Customer {
-  id: number;
+interface Customer extends BaseEntity {
   firstName: string;
   lastName: string;
   company: string;
   displayName?: string;
 }
 
-interface Contact {
-  id: number;
+interface Contact extends BaseEntity {
   contactType: string;
   firstName: string;
   lastName: string;

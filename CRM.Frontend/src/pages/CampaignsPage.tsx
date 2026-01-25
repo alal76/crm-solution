@@ -13,6 +13,7 @@ import {
   Email as EmailIcon, Share as ShareIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
@@ -29,8 +30,7 @@ const CAMPAIGN_TYPES = CAMPAIGN_TYPE_OPTIONS;
 const CAMPAIGN_STATUSES = CAMPAIGN_STATUS_OPTIONS;
 const CAMPAIGN_PRIORITIES = PRIORITY_OPTIONS;
 
-interface Campaign {
-  id: number;
+interface Campaign extends BaseEntity {
   name: string;
   description: string;
   campaignType: number;
@@ -69,7 +69,6 @@ interface Campaign {
   utmMedium?: string;
   utmCampaign?: string;
   tags?: string;
-  createdAt: string;
 }
 
 interface CampaignForm {

@@ -39,6 +39,7 @@ import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import { ContactInfoPanel } from '../components/ContactInfo';
+import { BaseEntity } from '../types';
 
 // Lead sources for the dropdown
 const LEAD_SOURCES = [
@@ -59,8 +60,7 @@ const LEAD_STATUSES = [
   { value: 'lost', label: 'Lost', bg: '#FFEBEE', text: '#B3261E' },
 ];
 
-interface Lead {
-  id: number;
+interface Lead extends BaseEntity {
   firstName: string;
   lastName: string;
   emailPrimary: string;

@@ -11,6 +11,7 @@ import {
   Visibility as PublicIcon, Lock as PrivateIcon, People as TeamIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
@@ -37,8 +38,7 @@ const NOTE_VISIBILITY = [
 
 const ENTITY_TYPES = ['Customer', 'Contact', 'Opportunity', 'Task', 'Quote', 'Campaign', 'Product'];
 
-interface Note {
-  id: number;
+interface Note extends BaseEntity {
   title: string;
   content: string;
   noteType: number;
@@ -51,8 +51,6 @@ interface Note {
   createdByUser?: { firstName: string; lastName: string };
   mentions?: string;
   tags?: string;
-  createdAt: string;
-  updatedAt?: string;
 }
 
 interface NoteForm {

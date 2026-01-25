@@ -27,6 +27,7 @@ import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../compon
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { useFieldConfig, ModuleFieldConfiguration, dispatchFieldConfigUpdate } from '../hooks/useFieldConfig';
 import logo from '../assets/logo.png';
+import { BaseEntity } from '../types';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
@@ -48,8 +49,7 @@ const CUSTOMER_TYPES = CUSTOMER_TYPE_OPTIONS;
 const PRIORITIES = PRIORITY_OPTIONS;
 const CONTACT_ROLES = CONTACT_ROLE_OPTIONS;
 
-interface CustomerContact {
-  id: number;
+interface CustomerContact extends BaseEntity {
   customerId: number;
   contactId: number;
   contactName: string;
@@ -61,8 +61,7 @@ interface CustomerContact {
   positionAtCustomer?: string;
 }
 
-interface Contact {
-  id: number;
+interface Contact extends BaseEntity {
   firstName: string;
   lastName: string;
   emailPrimary?: string;
@@ -71,8 +70,7 @@ interface Contact {
   customerId?: number;
 }
 
-interface Customer {
-  id: number;
+interface Customer extends BaseEntity {
   category: number;
   firstName: string;
   lastName: string;

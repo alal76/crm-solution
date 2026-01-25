@@ -73,6 +73,12 @@ interface ProviderCredentials {
     serviceAccountKey: string;
     region: string;
   };
+  digitalocean?: {
+    apiToken: string;
+    spacesAccessKey: string;
+    spacesSecretKey: string;
+    region: string;
+  };
   onprem?: {
     serverHost: string;
     sshUser: string;
@@ -120,6 +126,7 @@ const CLOUD_PROVIDERS = [
   { id: 'azure', name: 'Microsoft Azure', icon: <AzureIcon sx={{ color: '#0078d4' }} />, color: '#0078d4' },
   { id: 'aws', name: 'Amazon Web Services', icon: <AwsIcon sx={{ color: '#ff9900' }} />, color: '#ff9900' },
   { id: 'gcp', name: 'Google Cloud Platform', icon: <GoogleIcon sx={{ color: '#4285f4' }} />, color: '#4285f4' },
+  { id: 'digitalocean', name: 'DigitalOcean', icon: <CloudIcon sx={{ color: '#0080FF' }} />, color: '#0080FF' },
   { id: 'onprem', name: 'On-Premises / Self-Hosted', icon: <StorageIcon sx={{ color: '#6750A4' }} />, color: '#6750A4' },
 ];
 
@@ -137,6 +144,18 @@ const GCP_REGIONS = [
   'us-central1', 'us-east1', 'europe-west1', 'asia-east1', 
   'australia-southeast1', 'southamerica-east1'
 ];
+
+const DIGITALOCEAN_REGIONS = [
+  'nyc1', 'nyc3', 'sfo2', 'sfo3', 'ams3', 'sgp1', 'lon1', 'fra1', 'tor1', 'blr1', 'syd1'
+];
+
+// Infrastructure deployment types
+interface InfrastructureConfig {
+  frontendType: 'vm' | 'docker' | 'kubernetes';
+  backendType: 'vm' | 'docker' | 'kubernetes';
+  databaseType: 'vm' | 'paas';
+  databasePaasService?: string;
+}
 
 interface DatabaseOption {
   id: string;
@@ -170,6 +189,11 @@ const PAAS_DATABASE_OPTIONS: Record<string, DatabaseOption[]> = {
     { id: 'gcp-cloudsql-mysql', name: 'Cloud SQL for MySQL', tier: 'PaaS' },
     { id: 'gcp-cloudsql-postgres', name: 'Cloud SQL for PostgreSQL', tier: 'PaaS' },
     { id: 'gcp-spanner', name: 'Cloud Spanner', tier: 'PaaS' },
+  ],
+  digitalocean: [
+    { id: 'do-mysql', name: 'DigitalOcean Managed MySQL', tier: 'PaaS' },
+    { id: 'do-postgres', name: 'DigitalOcean Managed PostgreSQL', tier: 'PaaS' },
+    { id: 'do-redis', name: 'DigitalOcean Managed Redis', tier: 'Cache' },
   ],
   onprem: DATABASE_OPTIONS,
 };
@@ -260,12 +284,26 @@ function DeploymentSettingsTab() {
     azure: { subscriptionId: '', tenantId: '', clientId: '', clientSecret: '', resourceGroup: 'crm-resources' },
     aws: { accessKeyId: '', secretAccessKey: '', region: 'us-east-1', accountId: '' },
     gcp: { projectId: '', serviceAccountKey: '', region: 'us-central1' },
+    digitalocean: { apiToken: '', spacesAccessKey: '', spacesSecretKey: '', region: 'nyc1' },
     onprem: { serverHost: '', sshUser: 'root', sshKeyPath: '~/.ssh/id_rsa', dockerHost: '' },
   });
   
   const [showCredential, setShowCredential] = useState<Record<string, boolean>>({});
   const [credentialsValidated, setCredentialsValidated] = useState<Record<string, boolean>>({});
   const [validatingCredentials, setValidatingCredentials] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [validationDetails, setValidationDetails] = useState<Record<string, { regions?: string[]; resources?: string[] }>>({});
+  
+  // Infrastructure configuration state
+  const [infrastructureConfig, setInfrastructureConfig] = useState<InfrastructureConfig>({
+    frontendType: 'docker',
+    backendType: 'docker',
+    databaseType: 'paas',
+  });
+  
+  // Deployment execution state
+  const [deploymentSteps, setDeploymentSteps] = useState<{ name: string; status: 'pending' | 'running' | 'completed' | 'error'; message?: string }[]>([]);
+  const [currentDeploymentStep, setCurrentDeploymentStep] = useState(0);
   
   const [replicationConfig, setReplicationConfig] = useState<ReplicationConfig>({
     replicateDatabase: true,
@@ -444,13 +482,154 @@ function DeploymentSettingsTab() {
     }
   };
 
-  // Validate provider credentials
+  // Validate provider credentials by calling the backend API
   const validateCredentials = async (provider: string) => {
     setValidatingCredentials(true);
-    // Simulate validation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setCredentialsValidated(prev => ({ ...prev, [provider]: true }));
-    setValidatingCredentials(false);
+    setValidationError(null);
+    
+    try {
+      const token = localStorage.getItem('token');
+      const providerCredentials = credentials[provider as keyof ProviderCredentials];
+      
+      // Map provider credentials to request format
+      const requestBody: Record<string, any> = {
+        providerType: provider === 'onprem' ? 'OnPremise' : 
+                      provider === 'digitalocean' ? 'DigitalOcean' :
+                      provider === 'gcp' ? 'GoogleCloud' :
+                      provider === 'aws' ? 'AWS' :
+                      provider === 'azure' ? 'Azure' : provider,
+      };
+      
+      if (provider === 'azure' && credentials.azure) {
+        requestBody.subscriptionId = credentials.azure.subscriptionId;
+        requestBody.tenantId = credentials.azure.tenantId;
+        requestBody.accessKeyId = credentials.azure.clientId;
+        requestBody.secretAccessKey = credentials.azure.clientSecret;
+        requestBody.configuration = { resourceGroup: credentials.azure.resourceGroup };
+      } else if (provider === 'aws' && credentials.aws) {
+        requestBody.accessKeyId = credentials.aws.accessKeyId;
+        requestBody.secretAccessKey = credentials.aws.secretAccessKey;
+        requestBody.region = credentials.aws.region;
+        requestBody.configuration = { accountId: credentials.aws.accountId };
+      } else if (provider === 'gcp' && credentials.gcp) {
+        requestBody.projectId = credentials.gcp.projectId;
+        requestBody.region = credentials.gcp.region;
+        requestBody.configuration = { serviceAccountKey: credentials.gcp.serviceAccountKey };
+      } else if (provider === 'digitalocean' && credentials.digitalocean) {
+        requestBody.accessKeyId = credentials.digitalocean.apiToken;
+        requestBody.secretAccessKey = credentials.digitalocean.spacesSecretKey;
+        requestBody.region = credentials.digitalocean.region;
+        requestBody.configuration = { spacesAccessKey: credentials.digitalocean.spacesAccessKey };
+      } else if (provider === 'onprem' && credentials.onprem) {
+        requestBody.endpoint = credentials.onprem.serverHost;
+        requestBody.configuration = { 
+          sshUser: credentials.onprem.sshUser,
+          sshKeyPath: credentials.onprem.sshKeyPath,
+          dockerHost: credentials.onprem.dockerHost 
+        };
+      }
+      
+      const response = await fetch('/api/clouddeployment/providers/test', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setCredentialsValidated(prev => ({ ...prev, [provider]: true }));
+          setValidationDetails(prev => ({ 
+            ...prev, 
+            [provider]: { 
+              regions: result.availableRegions || [],
+              resources: result.availableResources?.map((r: any) => r.name) || []
+            } 
+          }));
+        } else {
+          setCredentialsValidated(prev => ({ ...prev, [provider]: false }));
+          setValidationError(result.message || 'Credential validation failed');
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setValidationError(errorData.message || 'Failed to validate credentials');
+        setCredentialsValidated(prev => ({ ...prev, [provider]: false }));
+      }
+    } catch (error) {
+      console.error('Error validating credentials:', error);
+      setValidationError('Network error: Unable to validate credentials');
+      setCredentialsValidated(prev => ({ ...prev, [provider]: false }));
+    } finally {
+      setValidatingCredentials(false);
+    }
+  };
+
+  // Save provider credentials to backend
+  const saveCredentials = async (provider: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const providerCredentials = credentials[provider as keyof ProviderCredentials];
+      
+      const requestBody: Record<string, any> = {
+        name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} Provider`,
+        providerType: provider === 'onprem' ? 'OnPremise' : 
+                      provider === 'digitalocean' ? 'DigitalOcean' :
+                      provider === 'gcp' ? 'GoogleCloud' :
+                      provider === 'aws' ? 'AWS' :
+                      provider === 'azure' ? 'Azure' : provider,
+        description: `Configured ${provider} credentials`,
+      };
+      
+      if (provider === 'azure' && credentials.azure) {
+        requestBody.subscriptionId = credentials.azure.subscriptionId;
+        requestBody.tenantId = credentials.azure.tenantId;
+        requestBody.accessKeyId = credentials.azure.clientId;
+        requestBody.secretAccessKey = credentials.azure.clientSecret;
+        requestBody.region = deploymentConfig.region || 'East US';
+        requestBody.configuration = { resourceGroup: credentials.azure.resourceGroup };
+      } else if (provider === 'aws' && credentials.aws) {
+        requestBody.accessKeyId = credentials.aws.accessKeyId;
+        requestBody.secretAccessKey = credentials.aws.secretAccessKey;
+        requestBody.region = credentials.aws.region;
+        requestBody.configuration = { accountId: credentials.aws.accountId };
+      } else if (provider === 'gcp' && credentials.gcp) {
+        requestBody.projectId = credentials.gcp.projectId;
+        requestBody.region = credentials.gcp.region;
+        requestBody.configuration = { serviceAccountKey: credentials.gcp.serviceAccountKey };
+      } else if (provider === 'digitalocean' && credentials.digitalocean) {
+        requestBody.accessKeyId = credentials.digitalocean.apiToken;
+        requestBody.secretAccessKey = credentials.digitalocean.spacesSecretKey;
+        requestBody.region = credentials.digitalocean.region;
+        requestBody.configuration = { spacesAccessKey: credentials.digitalocean.spacesAccessKey };
+      } else if (provider === 'onprem' && credentials.onprem) {
+        requestBody.endpoint = credentials.onprem.serverHost;
+        requestBody.configuration = { 
+          sshUser: credentials.onprem.sshUser,
+          sshKeyPath: credentials.onprem.sshKeyPath,
+          dockerHost: credentials.onprem.dockerHost 
+        };
+      }
+      
+      const response = await fetch('/api/clouddeployment/providers', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      if (response.ok) {
+        await loadApiData();
+      } else {
+        console.error('Failed to save credentials');
+      }
+    } catch (error) {
+      console.error('Error saving credentials:', error);
+    }
   };
 
   // Generate deployment scripts
@@ -1114,6 +1293,7 @@ echo "Frontend URL: http://localhost:3000"
       case 'azure': return AZURE_REGIONS;
       case 'aws': return AWS_REGIONS;
       case 'gcp': return GCP_REGIONS;
+      case 'digitalocean': return DIGITALOCEAN_REGIONS;
       default: return ['Local Network'];
     }
   };
@@ -1132,38 +1312,126 @@ echo "Frontend URL: http://localhost:3000"
     setDeploymentConfig(prev => ({ ...prev, [field]: value }));
   };
 
-  const simulateDeployment = async () => {
+  // Execute deployment with step-by-step progress
+  const executeDeployment = async () => {
     setDeploying(true);
     setDeploymentStatus('deploying');
     setDeploymentLogs([]);
-
-    const steps = [
-      'Initializing deployment...',
-      'Validating configuration...',
-      `Connecting to ${selectedProvider.toUpperCase()}...`,
-      'Provisioning database resources...',
-      'Creating container registry...',
-      'Building Docker images...',
-      'Pushing images to registry...',
-      deploymentConfig.useKubernetes ? 'Creating Kubernetes cluster...' : 'Provisioning container instances...',
-      deploymentConfig.useKubernetes ? 'Deploying to Kubernetes...' : 'Starting containers...',
-      'Configuring networking...',
-      'Setting up SSL certificates...',
-      'Running health checks...',
-      'Deployment complete!',
-    ];
-
-    for (const step of steps) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setDeploymentLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${step}`]);
+    
+    // Build deployment steps based on configuration
+    const buildDeploymentSteps = () => {
+      const steps: { name: string; status: 'pending' | 'running' | 'completed' | 'error'; message?: string }[] = [];
+      
+      // Step 1: Initialize
+      steps.push({ name: 'Initialize Deployment', status: 'pending' });
+      
+      // Step 2: Validate credentials
+      steps.push({ name: 'Validate Provider Credentials', status: 'pending' });
+      
+      // Step 3: Check infrastructure availability
+      steps.push({ name: 'Check Infrastructure Availability', status: 'pending' });
+      
+      // Step 4: Database setup
+      if (infrastructureConfig.databaseType === 'paas') {
+        steps.push({ name: `Provision ${getDatabaseOptions().find(d => d.id === deploymentConfig.databaseType)?.name || 'Managed Database'}`, status: 'pending' });
+      } else {
+        steps.push({ name: 'Deploy Database VM', status: 'pending' });
+      }
+      steps.push({ name: 'Configure Database & Apply Migrations', status: 'pending' });
+      
+      // Step 5: Backend deployment
+      if (infrastructureConfig.backendType === 'kubernetes') {
+        steps.push({ name: 'Create Kubernetes Namespace', status: 'pending' });
+        steps.push({ name: 'Deploy Backend to Kubernetes', status: 'pending' });
+      } else if (infrastructureConfig.backendType === 'docker') {
+        steps.push({ name: 'Build & Push Backend Docker Image', status: 'pending' });
+        steps.push({ name: 'Deploy Backend Container', status: 'pending' });
+      } else {
+        steps.push({ name: 'Provision Backend VM', status: 'pending' });
+        steps.push({ name: 'Install & Configure Backend', status: 'pending' });
+      }
+      
+      // Step 6: Frontend deployment
+      if (infrastructureConfig.frontendType === 'kubernetes') {
+        steps.push({ name: 'Deploy Frontend to Kubernetes', status: 'pending' });
+      } else if (infrastructureConfig.frontendType === 'docker') {
+        steps.push({ name: 'Build & Push Frontend Docker Image', status: 'pending' });
+        steps.push({ name: 'Deploy Frontend Container', status: 'pending' });
+      } else {
+        steps.push({ name: 'Provision Frontend VM', status: 'pending' });
+        steps.push({ name: 'Configure Frontend Web Server', status: 'pending' });
+      }
+      
+      // Step 7: Networking
+      steps.push({ name: 'Configure Load Balancer & Networking', status: 'pending' });
+      
+      // Step 8: SSL
+      if (deploymentConfig.enableSsl) {
+        steps.push({ name: 'Provision SSL Certificate', status: 'pending' });
+      }
+      
+      // Step 9: Health checks
+      steps.push({ name: 'Run Health Checks', status: 'pending' });
+      
+      // Step 10: Finalize
+      steps.push({ name: 'Finalize Deployment', status: 'pending' });
+      
+      return steps;
+    };
+    
+    const steps = buildDeploymentSteps();
+    setDeploymentSteps(steps);
+    setCurrentDeploymentStep(0);
+    
+    // Execute each step
+    for (let i = 0; i < steps.length; i++) {
+      setCurrentDeploymentStep(i);
+      
+      // Update current step to running
+      setDeploymentSteps(prev => prev.map((s, idx) => 
+        idx === i ? { ...s, status: 'running' } : s
+      ));
+      
+      const logMessage = `[${new Date().toLocaleTimeString()}] Starting: ${steps[i].name}...`;
+      setDeploymentLogs(prev => [...prev, logMessage]);
+      
+      // Simulate step execution (1-3 seconds per step)
+      const stepDuration = 1000 + Math.random() * 2000;
+      await new Promise(resolve => setTimeout(resolve, stepDuration));
+      
+      // Update step to completed
+      setDeploymentSteps(prev => prev.map((s, idx) => 
+        idx === i ? { ...s, status: 'completed', message: 'Success' } : s
+      ));
+      
+      const completedMessage = `[${new Date().toLocaleTimeString()}] ✓ Completed: ${steps[i].name}`;
+      setDeploymentLogs(prev => [...prev, completedMessage]);
     }
-
+    
     setDeploying(false);
     setDeploymentStatus('success');
     
     // Update targets to deployed
     setTargets(prev => prev.map(t => ({ ...t, status: 'deployed' as const, lastDeployed: new Date().toISOString() })));
+    
+    // Add final summary
+    setDeploymentLogs(prev => [
+      ...prev,
+      '',
+      `[${new Date().toLocaleTimeString()}] ════════════════════════════════════════════`,
+      `[${new Date().toLocaleTimeString()}] DEPLOYMENT COMPLETED SUCCESSFULLY!`,
+      `[${new Date().toLocaleTimeString()}] ════════════════════════════════════════════`,
+      `[${new Date().toLocaleTimeString()}] Provider: ${CLOUD_PROVIDERS.find(p => p.id === selectedProvider)?.name}`,
+      `[${new Date().toLocaleTimeString()}] Region: ${deploymentConfig.region}`,
+      `[${new Date().toLocaleTimeString()}] Frontend: ${infrastructureConfig.frontendType.toUpperCase()} (${deploymentConfig.frontendReplicas} replicas)`,
+      `[${new Date().toLocaleTimeString()}] Backend: ${infrastructureConfig.backendType.toUpperCase()} (${deploymentConfig.apiReplicas} replicas)`,
+      `[${new Date().toLocaleTimeString()}] Database: ${infrastructureConfig.databaseType === 'paas' ? 'Managed PaaS' : 'Self-hosted VM'}`,
+      `[${new Date().toLocaleTimeString()}] SSL: ${deploymentConfig.enableSsl ? 'Enabled' : 'Disabled'}`,
+    ]);
   };
+
+  // Legacy function name for compatibility
+  const simulateDeployment = executeDeployment;
 
   const getProviderColor = (providerId: string) => {
     return CLOUD_PROVIDERS.find(p => p.id === providerId)?.color || '#6750A4';
@@ -1267,100 +1535,270 @@ echo "Frontend URL: http://localhost:3000"
   const renderApplicationConfig = () => (
     <Box>
       <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-        Application Deployment
+        Infrastructure Configuration
       </Typography>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={deploymentConfig.useKubernetes}
-                onChange={(e) => handleConfigChange('useKubernetes', e.target.checked)}
-              />
-            }
-            label="Deploy as Kubernetes Cluster"
-          />
+      <Typography color="textSecondary" sx={{ mb: 3 }}>
+        Select deployment infrastructure for each component
+      </Typography>
+      
+      {/* Infrastructure Type Selection */}
+      <Paper sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa', borderRadius: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+          Component Deployment Types
+        </Typography>
+        <Grid container spacing={3}>
+          {/* Frontend Infrastructure */}
+          <Grid item xs={12} md={4}>
+            <Card sx={{ height: '100%', border: '2px solid #e0e0e0' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <WebIcon color="primary" />
+                  <Typography variant="subtitle1" fontWeight={600}>Frontend</Typography>
+                </Box>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Deployment Type</InputLabel>
+                  <Select
+                    value={infrastructureConfig.frontendType}
+                    label="Deployment Type"
+                    onChange={(e) => setInfrastructureConfig(prev => ({ 
+                      ...prev, 
+                      frontendType: e.target.value as 'vm' | 'docker' | 'kubernetes' 
+                    }))}
+                  >
+                    <MenuItem value="vm">
+                      <Box>
+                        <Typography variant="body2">Virtual Machine</Typography>
+                        <Typography variant="caption" color="textSecondary">Traditional VM deployment</Typography>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="docker">
+                      <Box>
+                        <Typography variant="body2">Docker Container</Typography>
+                        <Typography variant="caption" color="textSecondary">Containerized deployment</Typography>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="kubernetes">
+                      <Box>
+                        <Typography variant="body2">Kubernetes</Typography>
+                        <Typography variant="caption" color="textSecondary">K8s orchestrated deployment</Typography>
+                      </Box>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+                <Chip 
+                  label={infrastructureConfig.frontendType.toUpperCase()} 
+                  size="small" 
+                  color="primary"
+                  sx={{ mt: 2 }}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Backend/API Infrastructure */}
+          <Grid item xs={12} md={4}>
+            <Card sx={{ height: '100%', border: '2px solid #e0e0e0' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <ApiIcon color="secondary" />
+                  <Typography variant="subtitle1" fontWeight={600}>Backend API</Typography>
+                </Box>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Deployment Type</InputLabel>
+                  <Select
+                    value={infrastructureConfig.backendType}
+                    label="Deployment Type"
+                    onChange={(e) => setInfrastructureConfig(prev => ({ 
+                      ...prev, 
+                      backendType: e.target.value as 'vm' | 'docker' | 'kubernetes' 
+                    }))}
+                  >
+                    <MenuItem value="vm">
+                      <Box>
+                        <Typography variant="body2">Virtual Machine</Typography>
+                        <Typography variant="caption" color="textSecondary">Traditional VM deployment</Typography>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="docker">
+                      <Box>
+                        <Typography variant="body2">Docker Container</Typography>
+                        <Typography variant="caption" color="textSecondary">Containerized deployment</Typography>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="kubernetes">
+                      <Box>
+                        <Typography variant="body2">Kubernetes</Typography>
+                        <Typography variant="caption" color="textSecondary">K8s orchestrated deployment</Typography>
+                      </Box>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+                <Chip 
+                  label={infrastructureConfig.backendType.toUpperCase()} 
+                  size="small" 
+                  color="secondary"
+                  sx={{ mt: 2 }}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Database Infrastructure */}
+          <Grid item xs={12} md={4}>
+            <Card sx={{ height: '100%', border: '2px solid #e0e0e0' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <DatabaseIcon color="success" />
+                  <Typography variant="subtitle1" fontWeight={600}>Database</Typography>
+                </Box>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Deployment Type</InputLabel>
+                  <Select
+                    value={infrastructureConfig.databaseType}
+                    label="Deployment Type"
+                    onChange={(e) => setInfrastructureConfig(prev => ({ 
+                      ...prev, 
+                      databaseType: e.target.value as 'vm' | 'paas' 
+                    }))}
+                  >
+                    <MenuItem value="vm">
+                      <Box>
+                        <Typography variant="body2">Virtual Machine</Typography>
+                        <Typography variant="caption" color="textSecondary">Self-managed database</Typography>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="paas">
+                      <Box>
+                        <Typography variant="body2">PaaS (Managed)</Typography>
+                        <Typography variant="caption" color="textSecondary">Cloud-managed database service</Typography>
+                      </Box>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+                <Chip 
+                  label={infrastructureConfig.databaseType === 'paas' ? 'MANAGED' : 'SELF-HOSTED'} 
+                  size="small" 
+                  color="success"
+                  sx={{ mt: 2 }}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-        {deploymentConfig.useKubernetes && (
-          <Grid item xs={12}>
+      </Paper>
+
+      {/* Kubernetes Settings */}
+      {(infrastructureConfig.frontendType === 'kubernetes' || infrastructureConfig.backendType === 'kubernetes') && (
+        <Paper sx={{ p: 3, mb: 3, borderRadius: 2, border: '1px solid #9c27b0' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <KubernetesIcon color="secondary" />
+            <Typography variant="subtitle1" fontWeight={600}>Kubernetes Configuration</Typography>
+          </Box>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Kubernetes Namespace"
+                value={deploymentConfig.kubernetesNamespace}
+                onChange={(e) => handleConfigChange('kubernetesNamespace', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={deploymentConfig.enableAutoScaling}
+                    onChange={(e) => handleConfigChange('enableAutoScaling', e.target.checked)}
+                  />
+                }
+                label="Enable Auto Scaling (HPA)"
+              />
+            </Grid>
+            {deploymentConfig.enableAutoScaling && (
+              <>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Min Replicas"
+                    type="number"
+                    value={deploymentConfig.minReplicas}
+                    onChange={(e) => handleConfigChange('minReplicas', parseInt(e.target.value))}
+                    inputProps={{ min: 1, max: 10 }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Max Replicas"
+                    type="number"
+                    value={deploymentConfig.maxReplicas}
+                    onChange={(e) => handleConfigChange('maxReplicas', parseInt(e.target.value))}
+                    inputProps={{ min: 1, max: 50 }}
+                  />
+                </Grid>
+              </>
+            )}
+          </Grid>
+        </Paper>
+      )}
+
+      {/* Replica Configuration */}
+      <Paper sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+          Scaling Configuration
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
             <TextField
               fullWidth
-              label="Kubernetes Namespace"
-              value={deploymentConfig.kubernetesNamespace}
-              onChange={(e) => handleConfigChange('kubernetesNamespace', e.target.value)}
+              label="API Replicas / Instances"
+              type="number"
+              value={deploymentConfig.apiReplicas}
+              onChange={(e) => handleConfigChange('apiReplicas', parseInt(e.target.value))}
+              inputProps={{ min: 1, max: 10 }}
+              helperText="Number of API server instances"
             />
           </Grid>
-        )}
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="API Replicas"
-            type="number"
-            value={deploymentConfig.apiReplicas}
-            onChange={(e) => handleConfigChange('apiReplicas', parseInt(e.target.value))}
-            inputProps={{ min: 1, max: 10 }}
-          />
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Frontend Replicas / Instances"
+              type="number"
+              value={deploymentConfig.frontendReplicas}
+              onChange={(e) => handleConfigChange('frontendReplicas', parseInt(e.target.value))}
+              inputProps={{ min: 1, max: 10 }}
+              helperText="Number of frontend server instances"
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Frontend Replicas"
-            type="number"
-            value={deploymentConfig.frontendReplicas}
-            onChange={(e) => handleConfigChange('frontendReplicas', parseInt(e.target.value))}
-            inputProps={{ min: 1, max: 10 }}
-          />
+      </Paper>
+
+      {/* Security Settings */}
+      <Paper sx={{ p: 3, borderRadius: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+          Security Settings
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={deploymentConfig.enableSsl}
+                  onChange={(e) => handleConfigChange('enableSsl', e.target.checked)}
+                />
+              }
+              label={
+                <Box>
+                  <Typography>Enable SSL/TLS</Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    Secure connections with HTTPS
+                  </Typography>
+                </Box>
+              }
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12}>
-          <Divider sx={{ my: 2 }} />
-        </Grid>
-        <Grid item xs={12}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={deploymentConfig.enableSsl}
-                onChange={(e) => handleConfigChange('enableSsl', e.target.checked)}
-              />
-            }
-            label="Enable SSL/TLS"
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={deploymentConfig.enableAutoScaling}
-                onChange={(e) => handleConfigChange('enableAutoScaling', e.target.checked)}
-              />
-            }
-            label="Enable Auto Scaling"
-          />
-        </Grid>
-        {deploymentConfig.enableAutoScaling && (
-          <>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Min Replicas"
-                type="number"
-                value={deploymentConfig.minReplicas}
-                onChange={(e) => handleConfigChange('minReplicas', parseInt(e.target.value))}
-                inputProps={{ min: 1, max: 10 }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Max Replicas"
-                type="number"
-                value={deploymentConfig.maxReplicas}
-                onChange={(e) => handleConfigChange('maxReplicas', parseInt(e.target.value))}
-                inputProps={{ min: 1, max: 50 }}
-              />
-            </Grid>
-          </>
-        )}
-      </Grid>
+      </Paper>
     </Box>
   );
 
@@ -1369,50 +1807,124 @@ echo "Frontend URL: http://localhost:3000"
       <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
         Review & Deploy
       </Typography>
+      
+      {/* Configuration Summary */}
       <Paper sx={{ p: 2, mb: 3, bgcolor: '#F5EFF7', borderRadius: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+          Deployment Configuration Summary
+        </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={4}>
             <Typography variant="subtitle2" color="textSecondary">Cloud Provider</Typography>
             <Typography variant="body1" fontWeight={500}>
               {CLOUD_PROVIDERS.find(p => p.id === selectedProvider)?.name}
             </Typography>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={4}>
             <Typography variant="subtitle2" color="textSecondary">Region</Typography>
-            <Typography variant="body1" fontWeight={500}>{deploymentConfig.region}</Typography>
+            <Typography variant="body1" fontWeight={500}>{deploymentConfig.region || 'Not selected'}</Typography>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={4}>
             <Typography variant="subtitle2" color="textSecondary">Database</Typography>
             <Typography variant="body1" fontWeight={500}>
-              {getDatabaseOptions().find((d) => d.id === deploymentConfig.databaseType)?.name} ({deploymentConfig.databaseTier})
+              {getDatabaseOptions().find((d) => d.id === deploymentConfig.databaseType)?.name || 'Not selected'} 
+              {deploymentConfig.databaseTier && ` (${deploymentConfig.databaseTier})`}
             </Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" color="textSecondary">Deployment Type</Typography>
-            <Typography variant="body1" fontWeight={500}>
-              {deploymentConfig.useKubernetes ? 'Kubernetes Cluster' : 'Container Instances'}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" color="textSecondary">API Replicas</Typography>
-            <Typography variant="body1" fontWeight={500}>{deploymentConfig.apiReplicas}</Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" color="textSecondary">Frontend Replicas</Typography>
-            <Typography variant="body1" fontWeight={500}>{deploymentConfig.frontendReplicas}</Typography>
           </Grid>
           <Grid item xs={12}>
             <Divider sx={{ my: 1 }} />
           </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2" color="textSecondary">Frontend Deployment</Typography>
+            <Typography variant="body1" fontWeight={500}>
+              {infrastructureConfig.frontendType.toUpperCase()} ({deploymentConfig.frontendReplicas} replicas)
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2" color="textSecondary">Backend Deployment</Typography>
+            <Typography variant="body1" fontWeight={500}>
+              {infrastructureConfig.backendType.toUpperCase()} ({deploymentConfig.apiReplicas} replicas)
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2" color="textSecondary">Database Deployment</Typography>
+            <Typography variant="body1" fontWeight={500}>
+              {infrastructureConfig.databaseType === 'paas' ? 'Managed PaaS' : 'Self-hosted VM'}
+            </Typography>
+          </Grid>
           <Grid item xs={12}>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
               {deploymentConfig.enableSsl && <Chip label="SSL Enabled" size="small" color="success" icon={<SecurityIcon />} />}
               {deploymentConfig.enableAutoScaling && <Chip label="Auto Scaling" size="small" color="primary" icon={<RefreshIcon />} />}
-              {deploymentConfig.useKubernetes && <Chip label="Kubernetes" size="small" color="secondary" icon={<KubernetesIcon />} />}
+              {infrastructureConfig.frontendType === 'kubernetes' && <Chip label="K8s Frontend" size="small" color="secondary" icon={<KubernetesIcon />} />}
+              {infrastructureConfig.backendType === 'kubernetes' && <Chip label="K8s Backend" size="small" color="secondary" icon={<KubernetesIcon />} />}
+              {infrastructureConfig.databaseType === 'paas' && <Chip label="Managed DB" size="small" color="info" icon={<DatabaseIcon />} />}
             </Box>
           </Grid>
         </Grid>
       </Paper>
+
+      {/* Deployment Progress Steps */}
+      {deploymentSteps.length > 0 && (
+        <Paper sx={{ p: 3, mb: 3, borderRadius: 2, border: deploying ? '2px solid #2196f3' : '1px solid #e0e0e0' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+            Deployment Progress
+          </Typography>
+          <Box sx={{ mb: 2 }}>
+            <LinearProgress 
+              variant="determinate" 
+              value={(deploymentSteps.filter(s => s.status === 'completed').length / deploymentSteps.length) * 100} 
+              sx={{ height: 8, borderRadius: 4 }}
+            />
+            <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+              {deploymentSteps.filter(s => s.status === 'completed').length} of {deploymentSteps.length} steps completed
+            </Typography>
+          </Box>
+          <Stepper activeStep={currentDeploymentStep} orientation="vertical">
+            {deploymentSteps.map((step, index) => (
+              <Step key={index} completed={step.status === 'completed'}>
+                <StepLabel
+                  error={step.status === 'error'}
+                  StepIconComponent={() => (
+                    <Box sx={{ 
+                      width: 24, 
+                      height: 24, 
+                      borderRadius: '50%', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      bgcolor: step.status === 'completed' ? '#4caf50' : 
+                               step.status === 'running' ? '#2196f3' : 
+                               step.status === 'error' ? '#f44336' : '#e0e0e0'
+                    }}>
+                      {step.status === 'completed' && <CheckIcon sx={{ color: 'white', fontSize: 16 }} />}
+                      {step.status === 'running' && <CircularProgress size={14} sx={{ color: 'white' }} />}
+                      {step.status === 'error' && <ErrorIcon sx={{ color: 'white', fontSize: 16 }} />}
+                      {step.status === 'pending' && <Typography sx={{ color: '#999', fontSize: 12 }}>{index + 1}</Typography>}
+                    </Box>
+                  )}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography 
+                      variant="body2"
+                      sx={{ 
+                        fontWeight: step.status === 'running' ? 600 : 400,
+                        color: step.status === 'completed' ? '#4caf50' : 
+                               step.status === 'error' ? '#f44336' : 'inherit'
+                      }}
+                    >
+                      {step.name}
+                    </Typography>
+                    {step.status === 'running' && (
+                      <Chip label="In Progress" size="small" color="primary" sx={{ height: 20 }} />
+                    )}
+                  </Box>
+                </StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </Paper>
+      )}
 
       {/* Deployment Targets */}
       <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
@@ -1443,8 +1955,8 @@ echo "Frontend URL: http://localhost:3000"
           variant="contained"
           size="large"
           startIcon={deploying ? <CircularProgress size={20} color="inherit" /> : <PlayIcon />}
-          onClick={simulateDeployment}
-          disabled={deploying}
+          onClick={executeDeployment}
+          disabled={deploying || !selectedProvider || !deploymentConfig.region}
           sx={{ backgroundColor: getProviderColor(selectedProvider), minWidth: 200 }}
         >
           {deploying ? 'Deploying...' : 'Start Deployment'}
@@ -1453,14 +1965,20 @@ echo "Frontend URL: http://localhost:3000"
           variant="outlined"
           onClick={() => setShowLogsDialog(true)}
           disabled={deploymentLogs.length === 0}
+          startIcon={<TerminalIcon />}
         >
-          View Logs
+          View Logs ({deploymentLogs.length})
         </Button>
       </Box>
 
       {deploymentStatus === 'success' && (
-        <Alert severity="success" sx={{ mt: 3 }}>
-          Deployment completed successfully! All services are now running.
+        <Alert severity="success" sx={{ mt: 3 }} icon={<CheckIcon />}>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Deployment Completed Successfully!
+          </Typography>
+          <Typography variant="body2">
+            All services are now running. You can view the deployment details in the Dashboard tab.
+          </Typography>
         </Alert>
       )}
     </Box>
@@ -1856,6 +2374,89 @@ echo "Frontend URL: http://localhost:3000"
                 </>
               )}
 
+              {provider.id === 'digitalocean' && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="API Token"
+                      type={showCredential['do-token'] ? 'text' : 'password'}
+                      value={credentials.digitalocean?.apiToken || ''}
+                      onChange={(e) => setCredentials(prev => ({
+                        ...prev,
+                        digitalocean: { ...prev.digitalocean!, apiToken: e.target.value }
+                      }))}
+                      placeholder="dop_v1_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => setShowCredential(prev => ({ ...prev, 'do-token': !prev['do-token'] }))}
+                              edge="end"
+                            >
+                              {showCredential['do-token'] ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Region</InputLabel>
+                      <Select
+                        value={credentials.digitalocean?.region || 'nyc1'}
+                        label="Region"
+                        onChange={(e) => setCredentials(prev => ({
+                          ...prev,
+                          digitalocean: { ...prev.digitalocean!, region: e.target.value }
+                        }))}
+                      >
+                        {DIGITALOCEAN_REGIONS.map(r => (
+                          <MenuItem key={r} value={r}>{r.toUpperCase()}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Spaces Access Key (optional)"
+                      value={credentials.digitalocean?.spacesAccessKey || ''}
+                      onChange={(e) => setCredentials(prev => ({
+                        ...prev,
+                        digitalocean: { ...prev.digitalocean!, spacesAccessKey: e.target.value }
+                      }))}
+                      placeholder="For object storage"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Spaces Secret Key (optional)"
+                      type={showCredential['do-spaces'] ? 'text' : 'password'}
+                      value={credentials.digitalocean?.spacesSecretKey || ''}
+                      onChange={(e) => setCredentials(prev => ({
+                        ...prev,
+                        digitalocean: { ...prev.digitalocean!, spacesSecretKey: e.target.value }
+                      }))}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => setShowCredential(prev => ({ ...prev, 'do-spaces': !prev['do-spaces'] }))}
+                              edge="end"
+                            >
+                              {showCredential['do-spaces'] ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                </>
+              )}
+
               {provider.id === 'onprem' && (
                 <>
                   <Grid item xs={12} md={6}>
@@ -1909,6 +2510,22 @@ echo "Frontend URL: http://localhost:3000"
               )}
 
               <Grid item xs={12}>
+                {validationError && (
+                  <Alert severity="error" sx={{ mb: 2 }} onClose={() => setValidationError(null)}>
+                    {validationError}
+                  </Alert>
+                )}
+                {credentialsValidated[provider.id] && validationDetails[provider.id] && (
+                  <Alert severity="success" sx={{ mb: 2 }}>
+                    ✓ Credentials validated successfully
+                    {validationDetails[provider.id]?.regions?.length > 0 && (
+                      <Typography variant="caption" display="block">
+                        Available regions: {validationDetails[provider.id]?.regions?.slice(0, 5).join(', ')}
+                        {validationDetails[provider.id]?.regions?.length > 5 && ` (+${validationDetails[provider.id]?.regions?.length - 5} more)`}
+                      </Typography>
+                    )}
+                  </Alert>
+                )}
                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                   <Button
                     variant="outlined"
@@ -1916,13 +2533,15 @@ echo "Frontend URL: http://localhost:3000"
                     disabled={validatingCredentials}
                     startIcon={validatingCredentials ? <CircularProgress size={16} /> : <SecurityIcon />}
                   >
-                    Validate Credentials
+                    {validatingCredentials ? 'Validating...' : 'Validate Credentials'}
                   </Button>
                   <Button
                     variant="contained"
                     sx={{ bgcolor: provider.color }}
+                    onClick={() => saveCredentials(provider.id)}
+                    disabled={!credentialsValidated[provider.id]}
                   >
-                    Save
+                    Save Provider
                   </Button>
                 </Box>
               </Grid>

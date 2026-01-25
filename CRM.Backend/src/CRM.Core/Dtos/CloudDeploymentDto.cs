@@ -52,7 +52,55 @@ public class UpdateCloudProviderRequest
 
 public class TestProviderConnectionRequest
 {
+    /// <summary>
+    /// Existing provider ID to test, or 0 to test new credentials
+    /// </summary>
     public int ProviderId { get; set; }
+    
+    /// <summary>
+    /// Provider type for testing new credentials without saved provider
+    /// </summary>
+    public string? ProviderType { get; set; }
+    
+    /// <summary>
+    /// Access key or Client ID
+    /// </summary>
+    public string? AccessKeyId { get; set; }
+    
+    /// <summary>
+    /// Secret key or Client Secret
+    /// </summary>
+    public string? SecretAccessKey { get; set; }
+    
+    /// <summary>
+    /// Azure Tenant ID
+    /// </summary>
+    public string? TenantId { get; set; }
+    
+    /// <summary>
+    /// Azure Subscription ID
+    /// </summary>
+    public string? SubscriptionId { get; set; }
+    
+    /// <summary>
+    /// GCP Project ID
+    /// </summary>
+    public string? ProjectId { get; set; }
+    
+    /// <summary>
+    /// Region to test
+    /// </summary>
+    public string? Region { get; set; }
+    
+    /// <summary>
+    /// Endpoint for on-premises
+    /// </summary>
+    public string? Endpoint { get; set; }
+    
+    /// <summary>
+    /// Additional configuration parameters
+    /// </summary>
+    public Dictionary<string, string>? Configuration { get; set; }
 }
 
 public class ProviderConnectionResult

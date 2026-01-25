@@ -198,7 +198,7 @@ public class ZipCodesController : ControllerBase
             return BadRequest("City name is required");
         }
 
-        var localities = await _zipCodeService.GetLocalitiesByCityAsync(city, countryCode);
+        var localities = await _zipCodeService.GetLocalitiesByCityAsync(city, countryCode ?? "US");
         return Ok(localities);
     }
 

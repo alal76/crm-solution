@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Infrastructure.Services;
 
-public class NormalizationService
+public class NormalizationService : INormalizationService
 {
     private readonly ICrmDbContext _context;
 

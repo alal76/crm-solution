@@ -12,6 +12,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { TabPanel } from '../components/common';
+import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
@@ -49,8 +50,7 @@ const QUOTE_STATUSES = [
   { value: 7, label: 'Revised', color: '#00bcd4' },
 ];
 
-interface Quote {
-  id: number;
+interface Quote extends BaseEntity {
   quoteNumber: string;
   title: string;
   description?: string;
@@ -75,7 +75,6 @@ interface Quote {
   notes?: string;
   billingAddress?: string;
   shippingAddress?: string;
-  createdAt: string;
 }
 
 interface QuoteForm {

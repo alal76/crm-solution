@@ -14,6 +14,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { TabPanel } from '../components/common';
+import { BaseEntity } from '../types';
 import {
   TASK_STATUS_OPTIONS,
   TASK_PRIORITY_OPTIONS,
@@ -73,8 +74,7 @@ const TASK_PRIORITIES = TASK_PRIORITY_OPTIONS;
 const TASK_TYPES = TASK_TYPE_OPTIONS;
 
 // Queue item from my-queue endpoint
-interface QueueItem {
-  id: number;
+interface QueueItem extends BaseEntity {
   subject: string;
   description?: string;
   taskType: string;
@@ -96,7 +96,6 @@ interface QueueItem {
   assignedToGroupName?: string;
   tags?: string;
   category?: string;
-  createdAt: string;
   isOverdue: boolean;
 }
 
@@ -108,8 +107,7 @@ interface QueueResponse {
   overdueCount: number;
 }
 
-interface CrmTask {
-  id: number;
+interface CrmTask extends BaseEntity {
   title: string;
   description?: string;
   taskType: number;
@@ -128,7 +126,6 @@ interface CrmTask {
   location?: string;
   reminderDate?: string;
   tags?: string;
-  createdAt: string;
 }
 
 interface TaskForm {
@@ -150,8 +147,7 @@ interface TaskForm {
   tags: string;
 }
 
-interface User {
-  id: number;
+interface User extends BaseEntity {
   firstName: string;
   lastName: string;
 }

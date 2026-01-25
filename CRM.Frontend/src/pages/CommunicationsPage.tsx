@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TabPanel } from '../components/common';
+import { BaseEntity } from '../types';
 import {
   Box,
   Container,
@@ -68,8 +69,7 @@ import {
 import apiClient from '../services/apiClient';
 
 // Types
-interface Message {
-  id: number;
+interface Message extends BaseEntity {
   channelType: string;
   subject?: string;
   bodyPreview?: string;
@@ -84,15 +84,13 @@ interface Message {
   isStarred: boolean;
   sentAt?: string;
   receivedAt?: string;
-  createdAt: string;
   customerId?: number;
   customerName?: string;
   contactId?: number;
   contactName?: string;
 }
 
-interface Conversation {
-  id: number;
+interface Conversation extends BaseEntity {
   conversationId: string;
   channelType: string;
   subject?: string;
@@ -109,8 +107,7 @@ interface Conversation {
   customerName?: string;
 }
 
-interface Channel {
-  id: number;
+interface Channel extends BaseEntity {
   channelType: string;
   name: string;
   status: string;

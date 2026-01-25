@@ -16,6 +16,7 @@ import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import logo from '../assets/logo.png';
+import { BaseEntity } from '../types';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
@@ -79,8 +80,7 @@ const CATEGORIES = [
   'Support', 'Maintenance', 'Licensing', 'Subscription', 'Other'
 ];
 
-interface Product {
-  id: number;
+interface Product extends BaseEntity {
   name: string;
   sku: string;
   barcode?: string;
@@ -123,7 +123,6 @@ interface Product {
   taxRate: number;
   isFeatured: boolean;
   tags?: string;
-  createdAt: string;
 }
 
 interface ProductForm {

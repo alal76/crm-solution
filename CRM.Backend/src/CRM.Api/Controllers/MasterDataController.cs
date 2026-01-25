@@ -1,6 +1,7 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,12 +21,109 @@ public class MasterDataController : ControllerBase
     private readonly ICrmDbContext _context;
     private readonly CrmDbContext _dbContext;
     private readonly ILogger<MasterDataController> _logger;
+    private readonly IMasterDataSeederService _masterDataSeeder;
 
-    public MasterDataController(ICrmDbContext context, CrmDbContext dbContext, ILogger<MasterDataController> logger)
+    public MasterDataController(
+        ICrmDbContext context, 
+        CrmDbContext dbContext, 
+        ILogger<MasterDataController> logger,
+        IMasterDataSeederService masterDataSeeder)
     {
         _context = context;
         _dbContext = dbContext;
         _logger = logger;
+        _masterDataSeeder = masterDataSeeder;
+    }
+
+    /// <summary>
+    /// Get master data seeding status (ZipCodes, ColorPalettes)
+    /// </summary>
+    [HttpGet("seed-status")]
+    public async Task<IActionResult> GetSeedStatus()
+    {
+        try
+        {
+            var stats = await _masterDataSeeder.GetStatsAsync();
+            return Ok(new
+            {
+                zipCodes = new
+                {
+                    count = stats.ZipCodeCount,
+                    populated = stats.ZipCodesPopulated
+                },
+                colorPalettes = new
+                {
+                    count = stats.ColorPaletteCount,
+                    populated = stats.ColorPalettesPopulated
+                },
+                allPopulated = stats.ZipCodesPopulated && stats.ColorPalettesPopulated,
+                message = stats.ZipCodesPopulated && stats.ColorPalettesPopulated 
+                    ? "All master data is populated and will persist across deployments." 
+                    : "Some master data needs to be seeded. Data persists in the database across deployments."
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting seed status");
+            return StatusCode(500, new { message = "Error getting seed status" });
+        }
+    }
+
+    /// <summary>
+    /// Seed master data (ZipCodes, ColorPalettes) if not already populated
+    /// </summary>
+    [HttpPost("seed")]
+    [Authorize(Roles = "Admin,SysAdmin")]
+    public async Task<IActionResult> SeedMasterData()
+    {
+        try
+        {
+            var beforeStats = await _masterDataSeeder.GetStatsAsync();
+            await _masterDataSeeder.SeedIfEmptyAsync();
+            var afterStats = await _masterDataSeeder.GetStatsAsync();
+
+            return Ok(new
+            {
+                message = "Master data seeding completed",
+                before = new { zipCodes = beforeStats.ZipCodeCount, colorPalettes = beforeStats.ColorPaletteCount },
+                after = new { zipCodes = afterStats.ZipCodeCount, colorPalettes = afterStats.ColorPaletteCount },
+                note = "Data is cached in the database and persists across deployments."
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error seeding master data");
+            return StatusCode(500, new { message = "Error seeding master data", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Force reseed all master data (clears existing and re-populates)
+    /// WARNING: This will delete all existing master data
+    /// </summary>
+    [HttpPost("reseed")]
+    [Authorize(Roles = "Admin,SysAdmin")]
+    public async Task<IActionResult> ReseedMasterData()
+    {
+        try
+        {
+            var beforeStats = await _masterDataSeeder.GetStatsAsync();
+            await _masterDataSeeder.ReseedAllAsync();
+            var afterStats = await _masterDataSeeder.GetStatsAsync();
+
+            return Ok(new
+            {
+                message = "Master data reseeded successfully",
+                cleared = new { zipCodes = beforeStats.ZipCodeCount, colorPalettes = beforeStats.ColorPaletteCount },
+                seeded = new { zipCodes = afterStats.ZipCodeCount, colorPalettes = afterStats.ColorPaletteCount },
+                note = "Data is cached in the database and persists across deployments."
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reseeding master data");
+            return StatusCode(500, new { message = "Error reseeding master data", error = ex.Message });
+        }
     }
 
     /// <summary>
