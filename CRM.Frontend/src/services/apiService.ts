@@ -26,32 +26,63 @@ export const customerService = {
   delete: (id: number) => apiClient.delete(`/customers/${id}`),
 };
 
+// Opportunity Stage enum values
+export enum OpportunityStage {
+  Discovery = 0,
+  Qualification = 1,
+  Proposal = 2,
+  Negotiation = 3,
+  ClosedWon = 4,
+  ClosedLost = 5,
+}
+
+// Opportunity Pricing Model enum values
+export enum OpportunityPricingModel {
+  Subscription = 0,
+  OneTime = 1,
+  UsageBased = 2,
+  Hybrid = 3,
+}
+
+// Qualification Reason enum values
+export enum QualificationReason {
+  Budget = 0,
+  Need = 1,
+  Timing = 2,
+  Authority = 3,
+  Fit = 4,
+}
+
 export interface Opportunity {
   id?: number;
   name: string;
-  description?: string;
-  amount: number;
-  stage: number;
-  customerId: number;
+  stage: OpportunityStage;
   probability: number;
+  amount: number;
+  currency?: string;
   expectedCloseDate?: string;
-  closeDate?: string;
-  type?: number;
-  priority?: number;
-  forecastCategory?: number;
+  pricingModel?: OpportunityPricingModel;
+  termLengthMonths?: number;
+  solutionNotes?: string;
+  qualificationReason?: QualificationReason;
+  qualificationNotes?: string;
+  region?: string;
+  accountId: number;
+  primaryContactId?: number;
+  salesOwnerId?: number;
+  leadId?: number;
   createdAt?: string;
-  lastActivityDate?: string;
-  customerName?: string;
-  ownerName?: string;
-  source?: string;
-  weightedAmount?: number;
+  // Navigation properties from API
+  accountName?: string;
+  primaryContactName?: string;
+  salesOwnerName?: string;
 }
 
 export const opportunityService = {
   getAll: () => apiClient.get<Opportunity[]>('/opportunities'),
   getById: (id: number) => apiClient.get<Opportunity>(`/opportunities/${id}`),
-  getByCustomer: (customerId: number) => 
-    apiClient.get<Opportunity[]>(`/opportunities/customer/${customerId}`),
+  getByAccount: (accountId: number) => 
+    apiClient.get<Opportunity[]>(`/opportunities/account/${accountId}`),
   getTotalPipeline: () => apiClient.get(`/opportunities/pipeline/total`),
   create: (data: Opportunity) => apiClient.post<Opportunity>('/opportunities', data),
   update: (id: number, data: Opportunity) => apiClient.put(`/opportunities/${id}`, data),

@@ -27,7 +27,7 @@ import { Add as AddIcon } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 
 // Entity types supported by this component
-export type EntityType = 'customer' | 'contact' | 'product' | 'opportunity' | 'user';
+export type EntityType = 'customer' | 'contact' | 'product' | 'opportunity' | 'user' | 'account';
 
 interface EntitySelectProps {
   entityType: EntityType;
@@ -166,6 +166,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
         case 'product': endpoint = '/products'; break;
         case 'opportunity': endpoint = '/opportunities'; break;
         case 'user': endpoint = '/users'; break;
+        case 'account': endpoint = '/accounts'; break;
       }
       const response = await apiClient.get(endpoint);
       setItems(response.data);
@@ -188,6 +189,12 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
         const c = item as CustomerItem;
         const name = c.displayName || `${c.firstName || ''} ${c.lastName || ''}`.trim();
         return c.company ? `${name} (${c.company})` : name || 'Unnamed';
+      }
+      case 'account': {
+        const a = item as CustomerItem;
+        if (a.company) return a.company;
+        const name = `${a.firstName || ''} ${a.lastName || ''}`.trim();
+        return name || 'Unnamed Account';
       }
       case 'contact': {
         const ct = item as ContactItem;
@@ -242,6 +249,17 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
           payload = {
             ...customerForm,
             customerCategory: 0, // Individual
+            lifecycleStage: 0,
+          };
+          if (!payload.firstName && !payload.lastName && !payload.company) {
+            throw new Error('Please provide at least a name or company');
+          }
+          break;
+        case 'account':
+          endpoint = '/accounts';
+          payload = {
+            ...customerForm,
+            category: 0, // Individual
             lifecycleStage: 0,
           };
           if (!payload.firstName && !payload.lastName && !payload.company) {
@@ -308,6 +326,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
   const renderQuickCreateForm = () => {
     switch (entityType) {
       case 'customer':
+      case 'account':
         return (
           <Grid container spacing={2}>
             <Grid item xs={6}>
@@ -519,6 +538,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
   const getDialogTitle = () => {
     switch (entityType) {
       case 'customer': return 'Quick Create Customer';
+      case 'account': return 'Quick Create Account';
       case 'contact': return 'Quick Create Contact';
       case 'product': return 'Quick Create Product';
       case 'opportunity': return 'Quick Create Opportunity';

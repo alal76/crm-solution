@@ -8,7 +8,7 @@ namespace CRM.Core.Interfaces;
 public interface IOpportunityService
 {
     Task<Opportunity?> GetOpportunityByIdAsync(int id);
-    Task<IEnumerable<Opportunity>> GetOpportunitiesByCustomerAsync(int customerId);
+    Task<IEnumerable<Opportunity>> GetOpportunitiesByAccountAsync(int accountId);
     Task<IEnumerable<Opportunity>> GetOpenOpportunitiesAsync();
     Task<int> CreateOpportunityAsync(Opportunity opportunity);
     Task UpdateOpportunityAsync(Opportunity opportunity);

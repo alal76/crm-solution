@@ -33,42 +33,18 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
     public async Task<Opportunity?> GetOpportunityByIdAsync(int id)
     {
         var opp = await _repository.GetByIdAsync(id);
-        if (opp == null) return null;
-
-        var tags = await _normalizationService.GetTagsAsync("Opportunity", opp.Id);
-        if (!string.IsNullOrWhiteSpace(tags)) opp.Tags = tags;
-
-        var cfs = await _normalizationService.GetCustomFieldsAsync("Opportunity", opp.Id);
-        if (!string.IsNullOrWhiteSpace(cfs)) opp.CustomFields = cfs;
-
         return opp;
     }
 
-    public async Task<IEnumerable<Opportunity>> GetOpportunitiesByCustomerAsync(int customerId)
+    public async Task<IEnumerable<Opportunity>> GetOpportunitiesByAccountAsync(int accountId)
     {
-        var items = await _repository.FindAsync(o => !o.IsDeleted && o.CustomerId == customerId);
-        foreach (var opp in items)
-        {
-            var tags = await _normalizationService.GetTagsAsync("Opportunity", opp.Id);
-            if (!string.IsNullOrWhiteSpace(tags)) opp.Tags = tags;
-
-            var cfs = await _normalizationService.GetCustomFieldsAsync("Opportunity", opp.Id);
-            if (!string.IsNullOrWhiteSpace(cfs)) opp.CustomFields = cfs;
-        }
+        var items = await _repository.FindAsync(o => !o.IsDeleted && o.AccountId == accountId);
         return items;
     }
 
     public async Task<IEnumerable<Opportunity>> GetOpenOpportunitiesAsync()
     {
         var items = await _repository.FindAsync(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost);
-        foreach (var opp in items)
-        {
-            var tags = await _normalizationService.GetTagsAsync("Opportunity", opp.Id);
-            if (!string.IsNullOrWhiteSpace(tags)) opp.Tags = tags;
-
-            var cfs = await _normalizationService.GetCustomFieldsAsync("Opportunity", opp.Id);
-            if (!string.IsNullOrWhiteSpace(cfs)) opp.CustomFields = cfs;
-        }
         return items;
     }
 

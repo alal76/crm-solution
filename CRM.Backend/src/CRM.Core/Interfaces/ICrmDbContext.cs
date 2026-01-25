@@ -13,7 +13,9 @@ public interface ICrmDbContext
     DbSet<Customer> Customers { get; }
     DbSet<Contact> Contacts { get; }
     DbSet<Lead> Leads { get; }
+    DbSet<LeadProductInterest> LeadProductInterests { get; }
     DbSet<Opportunity> Opportunities { get; }
+    DbSet<OpportunityProduct> OpportunityProducts { get; }
     DbSet<Product> Products { get; }
     DbSet<Interaction> Interactions { get; }
     DbSet<MarketingCampaign> MarketingCampaigns { get; }

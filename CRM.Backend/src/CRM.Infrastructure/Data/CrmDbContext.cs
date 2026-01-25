@@ -58,6 +58,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
     
     // Lead entity
     public DbSet<Lead> Leads { get; set; }
+    public DbSet<LeadProductInterest> LeadProductInterests { get; set; }
+    
+    // Opportunity junction table
+    public DbSet<OpportunityProduct> OpportunityProducts { get; set; }
     
     // New comprehensive entities
     public DbSet<CrmTask> CrmTasks { get; set; }
@@ -223,25 +227,61 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Configure Opportunity
+        // Configure Opportunity (3NF structure)
         modelBuilder.Entity<Opportunity>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
-            entity.HasOne(e => e.Customer)
-                .WithMany(c => c.Opportunities)
-                .HasForeignKey(e => e.CustomerId)
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            
+            // Link Opportunity -> Account (required)
+            entity.HasOne(e => e.Account)
+                .WithMany(a => a.Opportunities)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(e => e.Product)
-                .WithMany(p => p.Opportunities)
-                .HasForeignKey(e => e.ProductId)
+            
+            // Link Opportunity -> Lead (optional, source lead)
+            entity.HasOne(e => e.Lead)
+                .WithMany(l => l.Opportunities)
+                .HasForeignKey(e => e.LeadId)
                 .OnDelete(DeleteBehavior.SetNull);
             
-            // Link Opportunity -> MarketingCampaign
-            entity.HasOne(e => e.Campaign)
+            // Link Opportunity -> User (sales owner)
+            entity.HasOne(e => e.SalesOwner)
                 .WithMany()
-                .HasForeignKey(e => e.CampaignId)
+                .HasForeignKey(e => e.SalesOwnerId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // Configure OpportunityProduct junction table
+        modelBuilder.Entity<OpportunityProduct>(entity =>
+        {
+            entity.HasKey(op => new { op.OpportunityId, op.ProductId });
+            entity.HasOne(op => op.Opportunity)
+                .WithMany(o => o.Products)
+                .HasForeignKey(op => op.OpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(op => op.Product)
+                .WithMany()
+                .HasForeignKey(op => op.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.DiscountPercent).HasPrecision(5, 2);
+            entity.Property(e => e.LineTotal).HasPrecision(18, 2);
+        });
+        
+        // Configure LeadProductInterest junction table
+        modelBuilder.Entity<LeadProductInterest>(entity =>
+        {
+            entity.HasKey(lpi => new { lpi.LeadId, lpi.ProductId });
+            entity.HasOne(lpi => lpi.Lead)
+                .WithMany(l => l.ProductInterests)
+                .HasForeignKey(lpi => lpi.LeadId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(lpi => lpi.Product)
+                .WithMany()
+                .HasForeignKey(lpi => lpi.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Configure Product
@@ -743,40 +783,20 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // Configure Lead
+        // Configure Lead (3NF)
         modelBuilder.Entity<Lead>(entity =>
         {
             entity.HasKey(e => e.Id);
-            
-            // Lead -> Customer (ConvertedCustomer) - Lead has ConvertedCustomerId
-            entity.HasOne(e => e.ConvertedCustomer)
-                .WithMany()
-                .HasForeignKey(e => e.ConvertedCustomerId)
-                .OnDelete(DeleteBehavior.SetNull);
-            
-            // Lead -> Opportunity (ConvertedOpportunity)
-            entity.HasOne(e => e.ConvertedOpportunity)
-                .WithMany()
-                .HasForeignKey(e => e.ConvertedOpportunityId)
-                .OnDelete(DeleteBehavior.SetNull);
-            
-            // Lead -> Customer (ReferredByCustomer)
-            entity.HasOne(e => e.ReferredByCustomer)
-                .WithMany()
-                .HasForeignKey(e => e.ReferredByCustomerId)
-                .OnDelete(DeleteBehavior.SetNull);
-            
-            // Lead -> Product (PrimaryProductInterest)
-            entity.HasOne(e => e.PrimaryProductInterest)
-                .WithMany()
-                .HasForeignKey(e => e.PrimaryProductInterestId)
-                .OnDelete(DeleteBehavior.SetNull);
-            
-            // Lead -> Lead (MasterLead for duplicates)
-            entity.HasOne(e => e.MasterLead)
-                .WithMany(l => l.DuplicateLeads)
-                .HasForeignKey(e => e.MasterLeadId)
-                .OnDelete(DeleteBehavior.SetNull);
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.LastName).HasMaxLength(100);
+            entity.Property(e => e.Email).HasMaxLength(255);
+            entity.Property(e => e.Phone).HasMaxLength(50);
+            entity.Property(e => e.Title).HasMaxLength(100);
+            entity.Property(e => e.CompanyName).HasMaxLength(255);
+            entity.Property(e => e.Website).HasMaxLength(500);
+            entity.Property(e => e.Region).HasMaxLength(100);
+            entity.Property(e => e.Tags).HasMaxLength(2000);
+            entity.Property(e => e.QualificationNotes).HasMaxLength(4000);
             
             // Lead -> User (Owner)
             entity.HasOne(e => e.Owner)
@@ -784,39 +804,104 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.OwnerId)
                 .OnDelete(DeleteBehavior.SetNull);
             
-            // Lead -> User (ConvertedByUser)
-            entity.HasOne(e => e.ConvertedByUser)
+            // Lead -> Campaign
+            entity.HasOne(e => e.Campaign)
                 .WithMany()
-                .HasForeignKey(e => e.ConvertedByUserId)
+                .HasForeignKey(e => e.CampaignId)
                 .OnDelete(DeleteBehavior.SetNull);
             
-            // Lead -> User (DisqualifiedByUser)
-            entity.HasOne(e => e.DisqualifiedByUser)
+            // Lead -> Account
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.DisqualifiedByUserId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
             
-            // Lead -> Campaign (PrimaryCampaign)
-            entity.HasOne(e => e.PrimaryCampaign)
-                .WithMany(c => c.GeneratedLeads)
-                .HasForeignKey(e => e.PrimaryCampaignId)
-                .OnDelete(DeleteBehavior.SetNull);
-            
-            // Lead -> Campaign (ConvertingCampaign)
-            entity.HasOne(e => e.ConvertingCampaign)
-                .WithMany(c => c.ConvertedLeads)
-                .HasForeignKey(e => e.ConvertingCampaignId)
-                .OnDelete(DeleteBehavior.SetNull);
-            
-            // Lead -> Campaign (LastCampaign)
-            entity.HasOne(e => e.LastCampaign)
-                .WithMany(c => c.TouchedLeads)
-                .HasForeignKey(e => e.LastCampaignId)
+            // Lead -> Contact
+            entity.HasOne(e => e.Contact)
+                .WithMany()
+                .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.SetNull);
             
             entity.HasIndex(e => e.Email);
             entity.HasIndex(e => e.Status);
-            entity.HasIndex(e => e.LeadScore);
+            entity.HasIndex(e => e.Score);
+        });
+        
+        // Configure LeadProductInterest (junction table)
+        modelBuilder.Entity<LeadProductInterest>(entity =>
+        {
+            entity.HasKey(e => new { e.LeadId, e.ProductId });
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+            
+            entity.HasOne(e => e.Lead)
+                .WithMany(l => l.ProductInterests)
+                .HasForeignKey(e => e.LeadId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Product)
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // Configure Opportunity (3NF)
+        modelBuilder.Entity<Opportunity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.Currency).HasMaxLength(3);
+            entity.Property(e => e.Region).HasMaxLength(100);
+            entity.Property(e => e.SolutionNotes).HasMaxLength(4000);
+            entity.Property(e => e.QualificationNotes).HasMaxLength(4000);
+            
+            // Opportunity -> Account (required)
+            entity.HasOne(e => e.Account)
+                .WithMany()
+                .HasForeignKey(e => e.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            // Opportunity -> Contact (Primary)
+            entity.HasOne(e => e.PrimaryContact)
+                .WithMany()
+                .HasForeignKey(e => e.PrimaryContactId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Opportunity -> User (Sales Owner)
+            entity.HasOne(e => e.SalesOwner)
+                .WithMany()
+                .HasForeignKey(e => e.SalesOwnerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Opportunity -> Lead
+            entity.HasOne(e => e.Lead)
+                .WithMany(l => l.Opportunities)
+                .HasForeignKey(e => e.LeadId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasIndex(e => e.Stage);
+            entity.HasIndex(e => e.ExpectedCloseDate);
+            entity.HasIndex(e => e.AccountId);
+        });
+        
+        // Configure OpportunityProduct (junction table)
+        modelBuilder.Entity<OpportunityProduct>(entity =>
+        {
+            entity.HasKey(e => new { e.OpportunityId, e.ProductId });
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.DiscountPercent).HasPrecision(5, 2);
+            entity.Property(e => e.LineTotal).HasPrecision(18, 2);
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+            
+            entity.HasOne(e => e.Opportunity)
+                .WithMany(o => o.Products)
+                .HasForeignKey(e => e.OpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Product)
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configure Customer -> Lead relationship (ConvertedFromLead)

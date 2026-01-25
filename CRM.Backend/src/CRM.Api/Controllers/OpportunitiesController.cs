@@ -51,17 +51,17 @@ public class OpportunitiesController : ControllerBase
         }
     }
 
-    [HttpGet("customer/{customerId}")]
-    public async Task<IActionResult> GetByCustomerId(int customerId)
+    [HttpGet("account/{accountId}")]
+    public async Task<IActionResult> GetByAccountId(int accountId)
     {
         try
         {
-            var opportunities = await _opportunityService.GetOpportunitiesByCustomerAsync(customerId);
+            var opportunities = await _opportunityService.GetOpportunitiesByAccountAsync(accountId);
             return Ok(opportunities);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving opportunities for customer {customerId}");
+            _logger.LogError(ex, $"Error retrieving opportunities for account {accountId}");
             return StatusCode(500, "Internal server error");
         }
     }

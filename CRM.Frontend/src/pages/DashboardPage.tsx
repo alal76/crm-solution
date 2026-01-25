@@ -62,40 +62,24 @@ import logo from '../assets/logo.png';
 import { opportunityService, campaignService, customerService, Opportunity, Customer } from '../services/apiService';
 import { useProfile } from '../contexts/ProfileContext';
 
-// Stage names for display
+// Stage names for display (matching new 3NF normalized OpportunityStage enum)
 const stageNames: Record<number, string> = {
-  0: 'Prospecting',
+  0: 'Discovery',
   1: 'Qualification',
-  2: 'Needs Analysis',
-  3: 'Value Proposition',
-  4: 'Decision Makers',
-  5: 'Perception Analysis',
-  6: 'Proposal/Quote',
-  7: 'Negotiation',
-  8: 'Verbal Commitment',
-  9: 'Contract Sent',
-  10: 'Closed Won',
-  11: 'Closed Lost',
-  12: 'On Hold',
-  13: 'Disqualified',
+  2: 'Proposal',
+  3: 'Negotiation',
+  4: 'Closed Won',
+  5: 'Closed Lost',
 };
 
-// Stage colors for visual distinction
+// Stage colors for visual distinction (matching new OpportunityStage enum)
 const stageColors: Record<number, string> = {
-  0: '#9E9E9E',
-  1: '#2196F3',
-  2: '#03A9F4',
-  3: '#00BCD4',
-  4: '#009688',
-  5: '#4CAF50',
-  6: '#8BC34A',
-  7: '#CDDC39',
-  8: '#FFC107',
-  9: '#FF9800',
-  10: '#06A77D',
-  11: '#B3261E',
-  12: '#795548',
-  13: '#607D8B',
+  0: '#9E9E9E', // Discovery
+  1: '#2196F3', // Qualification
+  2: '#FF9800', // Proposal
+  3: '#9C27B0', // Negotiation
+  4: '#4CAF50', // Closed Won
+  5: '#F44336', // Closed Lost
 };
 
 // Sample data for charts
@@ -300,13 +284,13 @@ function DashboardPage() {
     return 'Unknown';
   };
 
-  // Get recent opportunities sorted by creation or last activity
+  // Get recent opportunities sorted by creation
   const getRecentOpportunities = () => {
     return [...opportunities]
-      .filter(opp => opp.stage < 10) // Only open opportunities
+      .filter(opp => opp.stage < 4) // Only open opportunities (not closed)
       .sort((a, b) => {
-        const dateA = new Date(a.lastActivityDate || a.createdAt || 0).getTime();
-        const dateB = new Date(b.lastActivityDate || b.createdAt || 0).getTime();
+        const dateA = new Date(a.createdAt || 0).getTime();
+        const dateB = new Date(b.createdAt || 0).getTime();
         return dateB - dateA;
       })
       .slice(0, 5);
@@ -649,7 +633,7 @@ function DashboardPage() {
                           >
                             {opp.name}
                           </Typography>
-                          {opp.description && (
+                          {opp.solutionNotes && (
                             <Typography 
                               variant="body2" 
                               color="textSecondary"
@@ -660,7 +644,7 @@ function DashboardPage() {
                                 maxWidth: '400px',
                               }}
                             >
-                              {opp.description}
+                              {opp.solutionNotes}
                             </Typography>
                           )}
                         </Box>
@@ -668,11 +652,6 @@ function DashboardPage() {
                           <Typography variant="h6" sx={{ fontWeight: 700, color: '#06A77D' }}>
                             {formatCurrency(opp.amount)}
                           </Typography>
-                          {opp.weightedAmount && (
-                            <Typography variant="caption" color="textSecondary">
-                              Weighted: {formatCurrency(opp.weightedAmount)}
-                            </Typography>
-                          )}
                         </Box>
                       </Box>
 
@@ -697,7 +676,7 @@ function DashboardPage() {
                         />
                         <Chip
                           icon={<BusinessIcon sx={{ fontSize: 16 }} />}
-                          label={getCustomerName(opp.customerId)}
+                          label={opp.accountName || 'Unknown'}
                           size="small"
                           variant="outlined"
                         />
@@ -737,18 +716,18 @@ function DashboardPage() {
                         />
                       </Box>
 
-                      {/* Footer Row: Last Activity and Owner */}
+                      {/* Footer Row: Sales Owner */}
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1, borderTop: '1px dashed #E0E0E0' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Avatar sx={{ width: 24, height: 24, fontSize: 12, bgcolor: '#6750A4' }}>
-                            {(opp.ownerName || 'U')[0]}
+                            {(opp.salesOwnerName || 'U')[0]}
                           </Avatar>
                           <Typography variant="caption" color="textSecondary">
-                            {opp.ownerName || 'Unassigned'}
+                            {opp.salesOwnerName || 'Unassigned'}
                           </Typography>
                         </Box>
                         <Typography variant="caption" color="textSecondary">
-                          Last activity: {getTimeAgo(opp.lastActivityDate || opp.createdAt)}
+                          Created: {getTimeAgo(opp.createdAt)}
                         </Typography>
                       </Box>
                     </Card>

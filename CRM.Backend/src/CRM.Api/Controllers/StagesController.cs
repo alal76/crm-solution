@@ -10,6 +10,7 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// Stages Controller for pipeline stage management
+/// Uses simplified 3NF OpportunityStage enum: Discovery, Qualification, Proposal, Negotiation, ClosedWon, ClosedLost
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -42,8 +43,7 @@ public class StagesController : ControllerBase
                     Color = GetStageColor(stage),
                     Order = (int)stage,
                     IsClosedStage = stage == OpportunityStage.ClosedWon || 
-                                    stage == OpportunityStage.ClosedLost ||
-                                    stage == OpportunityStage.Disqualified
+                                    stage == OpportunityStage.ClosedLost
                 })
                 .OrderBy(s => s.Order)
                 .ToList();
@@ -81,8 +81,7 @@ public class StagesController : ControllerBase
                 Color = GetStageColor(stage),
                 Order = id,
                 IsClosedStage = stage == OpportunityStage.ClosedWon || 
-                                stage == OpportunityStage.ClosedLost ||
-                                stage == OpportunityStage.Disqualified
+                                stage == OpportunityStage.ClosedLost
             });
         }
         catch (Exception ex)
@@ -103,9 +102,7 @@ public class StagesController : ControllerBase
             var closedStages = new[] 
             { 
                 OpportunityStage.ClosedWon, 
-                OpportunityStage.ClosedLost, 
-                OpportunityStage.Disqualified,
-                OpportunityStage.OnHold
+                OpportunityStage.ClosedLost
             };
 
             var stages = Enum.GetValues<OpportunityStage>()
@@ -133,74 +130,45 @@ public class StagesController : ControllerBase
 
     private static string GetStageName(OpportunityStage stage) => stage switch
     {
-        OpportunityStage.Prospecting => "Prospecting",
+        OpportunityStage.Discovery => "Discovery",
         OpportunityStage.Qualification => "Qualification",
-        OpportunityStage.NeedsAnalysis => "Needs Analysis",
-        OpportunityStage.ValueProposition => "Value Proposition",
-        OpportunityStage.IdentifyDecisionMakers => "Identify Decision Makers",
-        OpportunityStage.PerceptionAnalysis => "Perception Analysis",
-        OpportunityStage.ProposalQuote => "Proposal/Quote",
-        OpportunityStage.NegotiationReview => "Negotiation/Review",
-        OpportunityStage.VerbalCommitment => "Verbal Commitment",
-        OpportunityStage.ContractSent => "Contract Sent",
+        OpportunityStage.Proposal => "Proposal",
+        OpportunityStage.Negotiation => "Negotiation",
         OpportunityStage.ClosedWon => "Closed Won",
         OpportunityStage.ClosedLost => "Closed Lost",
-        OpportunityStage.OnHold => "On Hold",
-        OpportunityStage.Disqualified => "Disqualified",
         _ => stage.ToString()
     };
 
     private static string GetStageDescription(OpportunityStage stage) => stage switch
     {
-        OpportunityStage.Prospecting => "Initial contact - identifying potential opportunities",
+        OpportunityStage.Discovery => "Initial discovery phase - understanding customer needs",
         OpportunityStage.Qualification => "Qualifying the opportunity using BANT criteria",
-        OpportunityStage.NeedsAnalysis => "Deep dive into customer requirements and pain points",
-        OpportunityStage.ValueProposition => "Presenting value proposition aligned to needs",
-        OpportunityStage.IdentifyDecisionMakers => "Mapping the decision-making unit and influences",
-        OpportunityStage.PerceptionAnalysis => "Understanding stakeholder perceptions and objections",
-        OpportunityStage.ProposalQuote => "Formal proposal or quote submitted",
-        OpportunityStage.NegotiationReview => "Active negotiation on terms, pricing, contracts",
-        OpportunityStage.VerbalCommitment => "Verbal agreement obtained, pending contract",
-        OpportunityStage.ContractSent => "Contract sent for signature",
+        OpportunityStage.Proposal => "Formal proposal or quote submitted to customer",
+        OpportunityStage.Negotiation => "Active negotiation on terms, pricing, and contracts",
         OpportunityStage.ClosedWon => "Deal successfully closed",
         OpportunityStage.ClosedLost => "Deal lost to competition or no decision",
-        OpportunityStage.OnHold => "Opportunity put on hold by customer",
-        OpportunityStage.Disqualified => "Opportunity disqualified - not a fit",
         _ => ""
     };
 
     private static int GetStageProbability(OpportunityStage stage) => stage switch
     {
-        OpportunityStage.Prospecting => 5,
-        OpportunityStage.Qualification => 10,
-        OpportunityStage.NeedsAnalysis => 20,
-        OpportunityStage.ValueProposition => 35,
-        OpportunityStage.IdentifyDecisionMakers => 50,
-        OpportunityStage.PerceptionAnalysis => 60,
-        OpportunityStage.ProposalQuote => 70,
-        OpportunityStage.NegotiationReview => 80,
-        OpportunityStage.VerbalCommitment => 90,
-        OpportunityStage.ContractSent => 95,
+        OpportunityStage.Discovery => 10,
+        OpportunityStage.Qualification => 25,
+        OpportunityStage.Proposal => 50,
+        OpportunityStage.Negotiation => 75,
         OpportunityStage.ClosedWon => 100,
+        OpportunityStage.ClosedLost => 0,
         _ => 0
     };
 
     private static string GetStageColor(OpportunityStage stage) => stage switch
     {
-        OpportunityStage.Prospecting => "#E3F2FD",
+        OpportunityStage.Discovery => "#E3F2FD",
         OpportunityStage.Qualification => "#BBDEFB",
-        OpportunityStage.NeedsAnalysis => "#90CAF9",
-        OpportunityStage.ValueProposition => "#64B5F6",
-        OpportunityStage.IdentifyDecisionMakers => "#42A5F5",
-        OpportunityStage.PerceptionAnalysis => "#2196F3",
-        OpportunityStage.ProposalQuote => "#1E88E5",
-        OpportunityStage.NegotiationReview => "#1976D2",
-        OpportunityStage.VerbalCommitment => "#1565C0",
-        OpportunityStage.ContractSent => "#0D47A1",
+        OpportunityStage.Proposal => "#64B5F6",
+        OpportunityStage.Negotiation => "#1976D2",
         OpportunityStage.ClosedWon => "#4CAF50",
         OpportunityStage.ClosedLost => "#F44336",
-        OpportunityStage.OnHold => "#FF9800",
-        OpportunityStage.Disqualified => "#9E9E9E",
         _ => "#757575"
     };
 }

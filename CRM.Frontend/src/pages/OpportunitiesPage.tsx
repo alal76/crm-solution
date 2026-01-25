@@ -42,46 +42,51 @@ import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../compon
 const SEARCH_FIELDS: SearchField[] = [
   { name: 'name', label: 'Title', type: 'text' },
   { name: 'stage', label: 'Stage', type: 'select', options: [
-    { value: 0, label: 'Prospecting' },
+    { value: 0, label: 'Discovery' },
     { value: 1, label: 'Qualification' },
     { value: 2, label: 'Proposal' },
     { value: 3, label: 'Negotiation' },
     { value: 4, label: 'Closed Won' },
     { value: 5, label: 'Closed Lost' },
   ]},
-  { name: 'description', label: 'Description', type: 'text' },
+  { name: 'solutionNotes', label: 'Solution Notes', type: 'text' },
   { name: 'amount', label: 'Amount', type: 'numberRange' },
+  { name: 'region', label: 'Region', type: 'text' },
 ];
 
-const SEARCHABLE_FIELDS = ['name', 'description'];
+const SEARCHABLE_FIELDS = ['name', 'solutionNotes', 'region'];
 
 interface Opportunity {
   id: number;
   name: string;
-  description: string;
-  amount: number;
   stage: number;
-  closeDate: string;
   probability: number;
-  customerId: number;
-  assignedToUserId?: number;
-  productId?: number;
-  customer?: { id: number; firstName: string; lastName: string };
-  product?: { id: number; name: string };
-  createdAt: string;
+  amount: number;
+  currency?: string;
+  expectedCloseDate?: string;
+  pricingModel?: number;
+  termLengthMonths?: number;
+  solutionNotes?: string;
+  qualificationReason?: number;
+  qualificationNotes?: string;
+  region?: string;
+  accountId: number;
+  primaryContactId?: number;
+  salesOwnerId?: number;
+  leadId?: number;
+  createdAt?: string;
+  // Navigation properties from API
+  accountName?: string;
+  primaryContactName?: string;
+  salesOwnerName?: string;
 }
 
-interface Customer {
+interface Account {
   id: number;
-  firstName: string;
-  lastName: string;
-  company: string;
-}
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
+  firstName?: string;
+  lastName?: string;
+  company?: string;
+  legalName?: string;
 }
 
 interface User {
@@ -93,18 +98,24 @@ interface User {
 
 interface OpportunityForm {
   name: string;
-  description: string;
-  amount: number;
   stage: number;
-  closeDate: string;
   probability: number;
-  customerId: number;
-  assignedToUserId: number | null;
-  productId: number | null;
+  amount: number;
+  currency: string;
+  expectedCloseDate: string;
+  pricingModel: number;
+  termLengthMonths: number;
+  solutionNotes: string;
+  qualificationReason: number | null;
+  qualificationNotes: string;
+  region: string;
+  accountId: number;
+  primaryContactId: number | null;
+  salesOwnerId: number | null;
 }
 
 const STAGES = [
-  { value: 0, label: 'Prospecting', color: '#9e9e9e' },
+  { value: 0, label: 'Discovery', color: '#9e9e9e' },
   { value: 1, label: 'Qualification', color: '#2196f3' },
   { value: 2, label: 'Proposal', color: '#ff9800' },
   { value: 3, label: 'Negotiation', color: '#9c27b0' },
@@ -112,10 +123,24 @@ const STAGES = [
   { value: 5, label: 'Closed Lost', color: '#f44336' },
 ];
 
+const PRICING_MODELS = [
+  { value: 0, label: 'Subscription' },
+  { value: 1, label: 'One-Time' },
+  { value: 2, label: 'Usage-Based' },
+  { value: 3, label: 'Hybrid' },
+];
+
+const QUALIFICATION_REASONS = [
+  { value: 0, label: 'Budget' },
+  { value: 1, label: 'Need' },
+  { value: 2, label: 'Timing' },
+  { value: 3, label: 'Authority' },
+  { value: 4, label: 'Fit' },
+];
+
 function OpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,14 +149,20 @@ function OpportunitiesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<OpportunityForm>({
     name: '',
-    description: '',
-    amount: 0,
     stage: 0,
-    closeDate: '',
     probability: 10,
-    customerId: 0,
-    assignedToUserId: null,
-    productId: null,
+    amount: 0,
+    currency: 'USD',
+    expectedCloseDate: '',
+    pricingModel: 0,
+    termLengthMonths: 12,
+    solutionNotes: '',
+    qualificationReason: null,
+    qualificationNotes: '',
+    region: '',
+    accountId: 0,
+    primaryContactId: null,
+    salesOwnerId: null,
   });
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
@@ -150,15 +181,13 @@ function OpportunitiesPage() {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      const [oppRes, custRes, prodRes, userRes] = await Promise.all([
+      const [oppRes, acctRes, userRes] = await Promise.all([
         apiClient.get('/opportunities'),
-        apiClient.get('/customers'),
-        apiClient.get('/products'),
+        apiClient.get('/accounts'),
         apiClient.get('/users').catch(() => ({ data: [] })),
       ]);
       setOpportunities(oppRes.data);
-      setCustomers(custRes.data);
-      setProducts(prodRes.data);
+      setAccounts(acctRes.data);
       setUsers(userRes.data);
       setError(null);
     } catch (err: any) {
@@ -169,15 +198,12 @@ function OpportunitiesPage() {
     }
   };
 
-  const getCustomerName = (customerId: number) => {
-    const customer = customers.find(c => c.id === customerId);
-    return customer ? `${customer.firstName} ${customer.lastName}` : 'Unknown';
-  };
-
-  const getProductName = (productId?: number) => {
-    if (!productId) return '-';
-    const product = products.find(p => p.id === productId);
-    return product ? product.name : '-';
+  const getAccountName = (accountId: number) => {
+    const account = accounts.find(a => a.id === accountId);
+    if (!account) return 'Unknown';
+    if (account.company) return account.company;
+    if (account.firstName || account.lastName) return `${account.firstName || ''} ${account.lastName || ''}`.trim();
+    return 'Unnamed Account';
   };
 
   const getUserName = (userId?: number) => {
@@ -195,27 +221,39 @@ function OpportunitiesPage() {
       setEditingId(opp.id);
       setFormData({
         name: opp.name,
-        description: opp.description || '',
-        amount: opp.amount,
         stage: opp.stage,
-        closeDate: opp.closeDate?.split('T')[0] || '',
         probability: opp.probability,
-        customerId: opp.customerId,
-        assignedToUserId: opp.assignedToUserId || null,
-        productId: opp.productId || null,
+        amount: opp.amount,
+        currency: opp.currency || 'USD',
+        expectedCloseDate: opp.expectedCloseDate?.split('T')[0] || '',
+        pricingModel: opp.pricingModel ?? 0,
+        termLengthMonths: opp.termLengthMonths ?? 12,
+        solutionNotes: opp.solutionNotes || '',
+        qualificationReason: opp.qualificationReason ?? null,
+        qualificationNotes: opp.qualificationNotes || '',
+        region: opp.region || '',
+        accountId: opp.accountId,
+        primaryContactId: opp.primaryContactId || null,
+        salesOwnerId: opp.salesOwnerId || null,
       });
     } else {
       setEditingId(null);
       setFormData({
         name: '',
-        description: '',
-        amount: 0,
         stage: 0,
-        closeDate: '',
         probability: 10,
-        customerId: customers[0]?.id || 0,
-        assignedToUserId: null,
-        productId: null,
+        amount: 0,
+        currency: 'USD',
+        expectedCloseDate: '',
+        pricingModel: 0,
+        termLengthMonths: 12,
+        solutionNotes: '',
+        qualificationReason: null,
+        qualificationNotes: '',
+        region: '',
+        accountId: accounts[0]?.id || 0,
+        primaryContactId: null,
+        salesOwnerId: null,
       });
     }
     setOpenDialog(true);
@@ -250,16 +288,18 @@ function OpportunitiesPage() {
   };
 
   const handleSaveOpportunity = async () => {
-    if (!formData.name.trim() || !formData.customerId || !formData.closeDate) {
-      setError('Please fill in required fields (Name, Customer, Close Date)');
+    if (!formData.name.trim() || !formData.accountId) {
+      setError('Please fill in required fields (Name, Account)');
       return;
     }
 
     try {
       const payload = {
         ...formData,
-        assignedToUserId: formData.assignedToUserId || undefined,
-        productId: formData.productId || undefined,
+        primaryContactId: formData.primaryContactId || undefined,
+        salesOwnerId: formData.salesOwnerId || undefined,
+        qualificationReason: formData.qualificationReason ?? undefined,
+        expectedCloseDate: formData.expectedCloseDate || undefined,
       };
 
       if (editingId) {
@@ -336,24 +376,25 @@ function OpportunitiesPage() {
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                   <TableCell><strong>Name</strong></TableCell>
-                  <TableCell><strong>Customer</strong></TableCell>
+                  <TableCell><strong>Account</strong></TableCell>
                   <TableCell><strong>Amount</strong></TableCell>
                   <TableCell><strong>Stage</strong></TableCell>
                   <TableCell><strong>Probability</strong></TableCell>
-                  <TableCell><strong>Close Date</strong></TableCell>
-                  <TableCell><strong>Product</strong></TableCell>
-                  <TableCell><strong>Assigned To</strong></TableCell>
+                  <TableCell><strong>Expected Close</strong></TableCell>
+                  <TableCell><strong>Pricing Model</strong></TableCell>
+                  <TableCell><strong>Sales Owner</strong></TableCell>
                   <TableCell align="center"><strong>Actions</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredOpportunities.map((opp) => {
                   const stageInfo = getStageInfo(opp.stage);
+                  const pricingInfo = PRICING_MODELS.find(p => p.value === opp.pricingModel) || PRICING_MODELS[0];
                   return (
                     <TableRow key={opp.id}>
                       <TableCell>{opp.name}</TableCell>
-                      <TableCell>{getCustomerName(opp.customerId)}</TableCell>
-                      <TableCell>${opp.amount?.toLocaleString() || 0}</TableCell>
+                      <TableCell>{opp.accountName || getAccountName(opp.accountId)}</TableCell>
+                      <TableCell>{opp.currency || 'USD'} {opp.amount?.toLocaleString() || 0}</TableCell>
                       <TableCell>
                         <Chip 
                           label={stageInfo.label} 
@@ -362,9 +403,9 @@ function OpportunitiesPage() {
                         />
                       </TableCell>
                       <TableCell>{opp.probability}%</TableCell>
-                      <TableCell>{opp.closeDate ? new Date(opp.closeDate).toLocaleDateString() : '-'}</TableCell>
-                      <TableCell>{getProductName(opp.productId)}</TableCell>
-                      <TableCell>{getUserName(opp.assignedToUserId)}</TableCell>
+                      <TableCell>{opp.expectedCloseDate ? new Date(opp.expectedCloseDate).toLocaleDateString() : '-'}</TableCell>
+                      <TableCell>{pricingInfo.label}</TableCell>
+                      <TableCell>{opp.salesOwnerName || getUserName(opp.salesOwnerId)}</TableCell>
                       <TableCell align="center">
                         <Button
                           size="small"
@@ -400,113 +441,182 @@ function OpportunitiesPage() {
       </Container>
 
       {/* Add/Edit Opportunity Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>{editingId ? 'Edit Opportunity' : 'Create New Opportunity'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          <TextField
-            autoFocus
-            fullWidth
-            label="Name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            margin="normal"
-            required
-          />
-          
-          <Box sx={{ mt: 2 }}>
-            <EntitySelect
-              entityType="customer"
-              name="customerId"
-              value={formData.customerId}
-              onChange={handleSelectChange}
-              label="Customer"
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+            <TextField
+              autoFocus
+              fullWidth
+              label="Name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              margin="normal"
               required
-              showAddNew={true}
             />
-          </Box>
+            
+            <Box sx={{ mt: 2 }}>
+              <EntitySelect
+                entityType="account"
+                name="accountId"
+                value={formData.accountId}
+                onChange={handleSelectChange}
+                label="Account"
+                required
+                showAddNew={true}
+              />
+            </Box>
 
-          <TextField
-            fullWidth
-            label="Amount"
-            name="amount"
-            type="number"
-            value={formData.amount}
-            onChange={handleInputChange}
-            margin="normal"
-            inputProps={{ step: "0.01", min: 0 }}
-          />
-
-          <LookupSelect
-            category="OpportunityStage"
-            name="stage"
-            value={formData.stage}
-            onChange={handleSelectChange}
-            label="Stage"
-            fallback={STAGES.map(s => ({ value: s.value, label: s.label }))}
-          />
-
-          <Box sx={{ mt: 2, mb: 1 }}>
-            <Typography gutterBottom>Probability: {formData.probability}%</Typography>
-            <Slider
-              value={formData.probability}
-              onChange={handleProbabilityChange}
-              min={0}
-              max={100}
-              step={5}
-              marks={[
-                { value: 0, label: '0%' },
-                { value: 50, label: '50%' },
-                { value: 100, label: '100%' },
-              ]}
-              valueLabelDisplay="auto"
+            <TextField
+              fullWidth
+              label="Amount"
+              name="amount"
+              type="number"
+              value={formData.amount}
+              onChange={handleInputChange}
+              margin="normal"
+              inputProps={{ step: "0.01", min: 0 }}
             />
-          </Box>
 
-          <TextField
-            fullWidth
-            label="Close Date"
-            name="closeDate"
-            type="date"
-            value={formData.closeDate}
-            onChange={handleInputChange}
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-            required
-          />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Currency</InputLabel>
+              <Select
+                name="currency"
+                value={formData.currency}
+                onChange={handleSelectChange}
+                label="Currency"
+              >
+                <MenuItem value="USD">USD</MenuItem>
+                <MenuItem value="EUR">EUR</MenuItem>
+                <MenuItem value="GBP">GBP</MenuItem>
+                <MenuItem value="INR">INR</MenuItem>
+                <MenuItem value="CAD">CAD</MenuItem>
+                <MenuItem value="AUD">AUD</MenuItem>
+              </Select>
+            </FormControl>
 
-          <Box sx={{ mt: 2 }}>
-            <EntitySelect
-              entityType="product"
-              name="productId"
-              value={formData.productId || ''}
+            <LookupSelect
+              category="OpportunityStage"
+              name="stage"
+              value={formData.stage}
               onChange={handleSelectChange}
-              label="Product (Optional)"
-              showAddNew={true}
+              label="Stage"
+              fallback={STAGES.map(s => ({ value: s.value, label: s.label }))}
+            />
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Pricing Model</InputLabel>
+              <Select
+                name="pricingModel"
+                value={formData.pricingModel}
+                onChange={handleSelectChange}
+                label="Pricing Model"
+              >
+                {PRICING_MODELS.map(pm => (
+                  <MenuItem key={pm.value} value={pm.value}>{pm.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Box sx={{ mt: 2, mb: 1, gridColumn: { xs: '1', md: '1 / -1' } }}>
+              <Typography gutterBottom>Probability: {formData.probability}%</Typography>
+              <Slider
+                value={formData.probability}
+                onChange={handleProbabilityChange}
+                min={0}
+                max={100}
+                step={5}
+                marks={[
+                  { value: 0, label: '0%' },
+                  { value: 50, label: '50%' },
+                  { value: 100, label: '100%' },
+                ]}
+                valueLabelDisplay="auto"
+              />
+            </Box>
+
+            <TextField
+              fullWidth
+              label="Expected Close Date"
+              name="expectedCloseDate"
+              type="date"
+              value={formData.expectedCloseDate}
+              onChange={handleInputChange}
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+            />
+
+            <TextField
+              fullWidth
+              label="Term Length (Months)"
+              name="termLengthMonths"
+              type="number"
+              value={formData.termLengthMonths}
+              onChange={handleInputChange}
+              margin="normal"
+              inputProps={{ min: 1 }}
+            />
+
+            <TextField
+              fullWidth
+              label="Region"
+              name="region"
+              value={formData.region}
+              onChange={handleInputChange}
+              margin="normal"
+            />
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Qualification Reason</InputLabel>
+              <Select
+                name="qualificationReason"
+                value={formData.qualificationReason ?? ''}
+                onChange={handleSelectChange}
+                label="Qualification Reason"
+              >
+                <MenuItem value="">None</MenuItem>
+                {QUALIFICATION_REASONS.map(qr => (
+                  <MenuItem key={qr.value} value={qr.value}>{qr.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Box sx={{ mt: 2 }}>
+              <EntitySelect
+                entityType="user"
+                name="salesOwnerId"
+                value={formData.salesOwnerId || ''}
+                onChange={handleSelectChange}
+                label="Sales Owner (Optional)"
+                showAddNew={false}
+              />
+            </Box>
+
+            <TextField
+              fullWidth
+              label="Solution Notes"
+              name="solutionNotes"
+              value={formData.solutionNotes}
+              onChange={handleInputChange}
+              margin="normal"
+              multiline
+              rows={2}
+              sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
+            />
+
+            <TextField
+              fullWidth
+              label="Qualification Notes"
+              name="qualificationNotes"
+              value={formData.qualificationNotes}
+              onChange={handleInputChange}
+              margin="normal"
+              multiline
+              rows={2}
+              sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
             />
           </Box>
-
-          <Box sx={{ mt: 2 }}>
-            <EntitySelect
-              entityType="user"
-              name="assignedToUserId"
-              value={formData.assignedToUserId || ''}
-              onChange={handleSelectChange}
-              label="Assigned To (Optional)"
-              showAddNew={false}
-            />
-          </Box>
-
-          <TextField
-            fullWidth
-            label="Description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            margin="normal"
-            multiline
-            rows={2}
-          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

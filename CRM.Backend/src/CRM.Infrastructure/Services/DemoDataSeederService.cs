@@ -1515,6 +1515,7 @@ public class DemoDataSeederService
 
     /// <summary>
     /// Seed 100 leads (60 organizations, 40 individuals)
+    /// Uses new 3NF Lead entity with LeadLifecycleStatus and simplified LeadSource
     /// </summary>
     private async Task SeedLeadsToContextAsync(CrmDbContext context)
     {
@@ -1528,10 +1529,10 @@ public class DemoDataSeederService
         }
 
         var leads = new List<Lead>();
-        var leadStatuses = new[] { LeadStatus.New, LeadStatus.Contacted, LeadStatus.Responded, LeadStatus.Engaged, LeadStatus.Working, LeadStatus.Qualified, LeadStatus.Nurturing };
-        var leadSources = new[] { LeadSource.WebsiteForm, LeadSource.Referral, LeadSource.TradeShow, LeadSource.EmailCampaign, LeadSource.PhoneInbound, LeadSource.Partner, LeadSource.LiveChat, LeadSource.DemoRequest };
-        var leadRatings = new[] { LeadRating.Cold, LeadRating.Warm, LeadRating.Hot };
-        var leadIndustries = new[] { LeadIndustry.Technology, LeadIndustry.Healthcare, LeadIndustry.Finance, LeadIndustry.Manufacturing, LeadIndustry.Retail, LeadIndustry.Education };
+        var leadStatuses = new[] { LeadLifecycleStatus.New, LeadLifecycleStatus.Working, LeadLifecycleStatus.Nurturing, LeadLifecycleStatus.Qualified, LeadLifecycleStatus.Disqualified, LeadLifecycleStatus.Converted };
+        var leadSources = new[] { LeadSource.Web, LeadSource.Campaign, LeadSource.Referral, LeadSource.Event, LeadSource.Partner, LeadSource.Manual };
+        var regions = new[] { "North America", "West Coast", "East Coast", "Midwest", "South", "International" };
+        var jobTitles = new[] { "IT Director", "CTO", "IT Manager", "Procurement Manager", "Owner", "VP Engineering", "Director of Operations" };
 
         // 60 Organization Leads
         for (int i = 1; i <= 60; i++)
@@ -1540,7 +1541,8 @@ public class DemoDataSeederService
             var suffix = CompanySuffixes[_random.Next(CompanySuffixes.Length)];
             var firstName = FirstNames[_random.Next(FirstNames.Length)];
             var lastName = LastNames[_random.Next(LastNames.Length)];
-            var cityIndex = _random.Next(Cities.Length);
+            var status = leadStatuses[_random.Next(leadStatuses.Length)];
+            var score = _random.Next(10, 100);
             
             leads.Add(new Lead
             {
@@ -1548,18 +1550,18 @@ public class DemoDataSeederService
                 LastName = lastName,
                 Email = $"{firstName.ToLower()}.{lastName.ToLower()}@{prefix.ToLower()}{suffix.ToLower()}.com",
                 Phone = $"555-{_random.Next(100, 999)}-{_random.Next(1000, 9999)}",
-                Company = $"{prefix} {suffix}",
-                JobTitle = new[] { "IT Director", "CTO", "IT Manager", "Procurement Manager", "Owner" }[_random.Next(5)],
-                Industry = leadIndustries[_random.Next(leadIndustries.Length)],
-                Address = $"{_random.Next(100, 9999)} {Streets[_random.Next(Streets.Length)]}",
-                City = Cities[cityIndex],
-                State = States[cityIndex],
-                ZipCode = $"{_random.Next(10000, 99999)}",
-                Country = "USA",
-                Status = leadStatuses[_random.Next(leadStatuses.Length)],
+                CompanyName = $"{prefix} {suffix}",
+                Title = jobTitles[_random.Next(jobTitles.Length)],
+                Website = $"https://www.{prefix.ToLower()}{suffix.ToLower()}.com",
+                Status = status,
                 Source = leadSources[_random.Next(leadSources.Length)],
-                Rating = leadRatings[_random.Next(leadRatings.Length)],
-                LeadScore = _random.Next(10, 100),
+                Score = score,
+                FitScore = _random.Next(20, 80),
+                EngagementScore = _random.Next(10, 50),
+                Region = regions[_random.Next(regions.Length)],
+                QualificationNotes = status == LeadLifecycleStatus.Qualified ? "Meets BANT criteria" : null,
+                MqlDate = status == LeadLifecycleStatus.Qualified || status == LeadLifecycleStatus.Converted ? DateTime.UtcNow.AddDays(-_random.Next(10, 60)) : null,
+                SqlDate = status == LeadLifecycleStatus.Converted ? DateTime.UtcNow.AddDays(-_random.Next(1, 30)) : null,
                 CreatedAt = DateTime.UtcNow.AddDays(-_random.Next(1, 180))
             });
         }
@@ -1569,7 +1571,8 @@ public class DemoDataSeederService
         {
             var firstName = FirstNames[_random.Next(FirstNames.Length)];
             var lastName = LastNames[_random.Next(LastNames.Length)];
-            var cityIndex = _random.Next(Cities.Length);
+            var status = leadStatuses[_random.Next(leadStatuses.Length)];
+            var score = _random.Next(10, 80);
             
             leads.Add(new Lead
             {
@@ -1577,16 +1580,12 @@ public class DemoDataSeederService
                 LastName = lastName,
                 Email = $"{firstName.ToLower()}.{lastName.ToLower()}@personalmail.com",
                 Phone = $"555-{_random.Next(100, 999)}-{_random.Next(1000, 9999)}",
-                Company = "Individual",
-                Address = $"{_random.Next(100, 9999)} {Streets[_random.Next(Streets.Length)]}",
-                City = Cities[cityIndex],
-                State = States[cityIndex],
-                ZipCode = $"{_random.Next(10000, 99999)}",
-                Country = "USA",
-                Status = leadStatuses[_random.Next(leadStatuses.Length)],
+                Status = status,
                 Source = leadSources[_random.Next(leadSources.Length)],
-                Rating = leadRatings[_random.Next(leadRatings.Length)],
-                LeadScore = _random.Next(10, 80),
+                Score = score,
+                FitScore = _random.Next(10, 60),
+                EngagementScore = _random.Next(5, 40),
+                Region = regions[_random.Next(regions.Length)],
                 CreatedAt = DateTime.UtcNow.AddDays(-_random.Next(1, 180))
             });
         }
@@ -1606,7 +1605,8 @@ public class DemoDataSeederService
     }
 
     /// <summary>
-    /// Seed 100 opportunities linked to customers
+    /// Seed 100 opportunities linked to accounts
+    /// Uses new 3NF Opportunity entity with OpportunityStage and Account relationships
     /// </summary>
     private async Task SeedOpportunitiesToContextAsync(CrmDbContext context)
     {
@@ -1619,46 +1619,50 @@ public class DemoDataSeederService
             return;
         }
 
-        var customers = await context.Customers.Take(100).ToListAsync();
-        if (!customers.Any())
+        var accounts = await context.Accounts.Take(100).ToListAsync();
+        if (!accounts.Any())
         {
-            _logger.LogWarning("No customers found. Skipping opportunities seeding.");
+            _logger.LogWarning("No accounts found. Skipping opportunities seeding.");
             return;
         }
 
         var opportunities = new List<Opportunity>();
-        var stages = new[] { OpportunityStage.Prospecting, OpportunityStage.Qualification, OpportunityStage.NeedsAnalysis, OpportunityStage.ValueProposition, OpportunityStage.ProposalQuote, OpportunityStage.NegotiationReview };
-        var oppTypes = new[] { OpportunityType.NewBusiness, OpportunityType.ExistingBusiness, OpportunityType.Renewal };
-        var priorities = new[] { OpportunityPriority.Low, OpportunityPriority.Medium, OpportunityPriority.High };
+        var stages = new[] { OpportunityStage.Discovery, OpportunityStage.Qualification, OpportunityStage.Proposal, OpportunityStage.Negotiation };
+        var pricingModels = new[] { OpportunityPricingModel.Subscription, OpportunityPricingModel.OneTime, OpportunityPricingModel.UsageBased, OpportunityPricingModel.Hybrid };
+        var regions = new[] { "North America", "West Coast", "East Coast", "Midwest", "South", "International" };
+        var currencies = new[] { "USD", "EUR", "GBP" };
+        var termLengths = new[] { 12, 24, 36 };
+        var opportunityNames = new[] { "Server Upgrade", "Software License", "Managed Services", "Cloud Migration", "Support Contract", "Hardware Purchase", "IT Assessment", "Security Audit" };
 
         for (int i = 1; i <= 100; i++)
         {
-            var customer = customers[_random.Next(customers.Count)];
+            var account = accounts[_random.Next(accounts.Count)];
             var stage = stages[_random.Next(stages.Length)];
             var amount = _random.Next(1, 50) * 1000m;
             var probability = stage switch
             {
-                OpportunityStage.Prospecting => 10,
-                OpportunityStage.Qualification => 20,
-                OpportunityStage.NeedsAnalysis => 40,
-                OpportunityStage.ValueProposition => 60,
-                OpportunityStage.ProposalQuote => 75,
-                OpportunityStage.NegotiationReview => 90,
+                OpportunityStage.Discovery => 10,
+                OpportunityStage.Qualification => 25,
+                OpportunityStage.Proposal => 50,
+                OpportunityStage.Negotiation => 75,
                 _ => 50
             };
 
             opportunities.Add(new Opportunity
             {
-                Name = $"{customer.DisplayName} - {new[] { "Server Upgrade", "Software License", "Managed Services", "Cloud Migration", "Support Contract", "Hardware Purchase", "IT Assessment", "Security Audit" }[_random.Next(8)]}",
-                CustomerId = customer.Id,
-                Description = "Demo opportunity for testing",
+                Name = $"{account.AccountNumber} - {opportunityNames[_random.Next(opportunityNames.Length)]}",
+                AccountId = account.Id,
+                SolutionNotes = "Demo opportunity for testing the CRM system",
                 Amount = amount,
-                ExpectedRevenue = amount * (decimal)(probability / 100.0),
                 Stage = stage,
                 Probability = probability,
-                OpportunityType = oppTypes[_random.Next(oppTypes.Length)],
-                Priority = priorities[_random.Next(priorities.Length)],
-                CloseDate = DateTime.UtcNow.AddDays(_random.Next(7, 90)),
+                Currency = currencies[_random.Next(currencies.Length)],
+                PricingModel = pricingModels[_random.Next(pricingModels.Length)],
+                TermLengthMonths = termLengths[_random.Next(termLengths.Length)],
+                Region = regions[_random.Next(regions.Length)],
+                ExpectedCloseDate = DateTime.UtcNow.AddDays(_random.Next(7, 90)),
+                QualificationReason = stage >= OpportunityStage.Qualification ? (QualificationReason?)_random.Next(0, 5) : null,
+                QualificationNotes = stage >= OpportunityStage.Qualification ? "Qualified through BANT methodology" : null,
                 CreatedAt = DateTime.UtcNow.AddDays(-_random.Next(1, 60))
             });
         }
