@@ -224,4 +224,33 @@ public interface IContactInfoService
     Task<List<(EntityType EntityType, int EntityId, string EntityName)>> GetEntitiesSharingEmailAsync(int emailId);
     
     #endregion
+
+    #region Social Media Follow Operations
+
+    /// <summary>
+    /// Follow a social media account to track activity
+    /// </summary>
+    Task<SocialMediaFollowDto> FollowSocialMediaAccountAsync(int socialMediaAccountId, int userId, bool notifyOnActivity = false, string notificationFrequency = "Never", string? notes = null);
+
+    /// <summary>
+    /// Unfollow a social media account
+    /// </summary>
+    Task UnfollowSocialMediaAccountAsync(int followId, int userId);
+
+    /// <summary>
+    /// Get all social media accounts a user is following
+    /// </summary>
+    Task<List<SocialMediaFollowDto>> GetUserFollowsAsync(int userId);
+
+    /// <summary>
+    /// Update follow settings for a social media account
+    /// </summary>
+    Task<SocialMediaFollowDto> UpdateFollowSettingsAsync(int followId, int userId, bool notifyOnActivity, string notificationFrequency, string? notes);
+
+    /// <summary>
+    /// Get all users following a social media account
+    /// </summary>
+    Task<List<SocialMediaFollowDto>> GetAccountFollowersAsync(int socialMediaAccountId);
+
+    #endregion
 }

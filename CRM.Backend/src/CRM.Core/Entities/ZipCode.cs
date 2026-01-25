@@ -2,7 +2,8 @@ namespace CRM.Core.Entities;
 
 /// <summary>
 /// Master data entity for postal codes / ZIP codes
-/// Used for address auto-population when user enters a ZIP code
+/// Used for address auto-population when user enters a postal/zip code
+/// Supports cascading dropdown selection: Country > State > City > Postal Code
 /// </summary>
 public class ZipCode
 {
@@ -77,4 +78,9 @@ public class ZipCode
     /// Is this record active/valid
     /// </summary>
     public bool IsActive { get; set; } = true;
+    
+    // Navigation Properties
+    public ICollection<Locality>? Localities { get; set; }
+    public ICollection<Address>? Addresses { get; set; }
 }
+

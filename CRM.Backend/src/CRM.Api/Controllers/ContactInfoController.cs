@@ -863,6 +863,320 @@ public class ContactInfoController : ControllerBase
     }
 
     #endregion
+
+    #region Validation Endpoints
+
+    /// <summary>
+    /// Validate an email address
+    /// </summary>
+    /// <param name="request">Email validation request</param>
+    /// <returns>Validation result with suggestions if needed</returns>
+    [HttpPost("validate/email")]
+    public async Task<ActionResult<ValidateContactInfoResponse>> ValidateEmail([FromBody] ValidateEmailRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                return BadRequest("Email is required");
+            }
+
+            var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
+            if (validationService == null)
+            {
+                return StatusCode(500, "Validation service not available");
+            }
+
+            var result = await validationService.ValidateEmailAsync(request.Email);
+            return Ok(new ValidateContactInfoResponse
+            {
+                IsValid = result.IsValid,
+                Message = result.Message,
+                SuggestedCorrection = result.SuggestedCorrection,
+                FormattedValue = result.IsValid ? request.Email : null
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating email");
+            return StatusCode(500, "An error occurred during email validation");
+        }
+    }
+
+    /// <summary>
+    /// Validate a phone number
+    /// </summary>
+    /// <param name="request">Phone validation request</param>
+    /// <returns>Validation result with formatted phone number</returns>
+    [HttpPost("validate/phone")]
+    public async Task<ActionResult<ValidateContactInfoResponse>> ValidatePhone([FromBody] ValidatePhoneRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+            {
+                return BadRequest("Phone number is required");
+            }
+
+            var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
+            if (validationService == null)
+            {
+                return StatusCode(500, "Validation service not available");
+            }
+
+            var result = await validationService.ValidatePhoneNumberAsync(request.PhoneNumber, request.CountryCode);
+            var formattedPhone = result.IsValid ? validationService.FormatPhoneNumber(request.PhoneNumber, request.CountryCode) : null;
+
+            return Ok(new ValidateContactInfoResponse
+            {
+                IsValid = result.IsValid,
+                Message = result.Message,
+                FormattedValue = formattedPhone
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating phone number");
+            return StatusCode(500, "An error occurred during phone number validation");
+        }
+    }
+
+    /// <summary>
+    /// Validate a social media account
+    /// </summary>
+    /// <param name="request">Social media validation request</param>
+    /// <returns>Validation result with extracted handle and profile URL</returns>
+    [HttpPost("validate/social-media")]
+    public async Task<ActionResult<ValidateSocialMediaResponse>> ValidateSocialMedia([FromBody] ValidateSocialMediaRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.HandleOrUrl))
+            {
+                return BadRequest("Handle or URL is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Platform))
+            {
+                return BadRequest("Platform is required");
+            }
+
+            if (!Enum.TryParse<SocialMediaPlatform>(request.Platform, true, out var platform))
+            {
+                return BadRequest($"Invalid platform: {request.Platform}. Valid values: {string.Join(", ", Enum.GetNames<SocialMediaPlatform>())}");
+            }
+
+            var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
+            if (validationService == null)
+            {
+                return StatusCode(500, "Validation service not available");
+            }
+
+            var result = await validationService.ValidateSocialMediaAccountAsync(request.HandleOrUrl, platform);
+            var handle = validationService.ExtractSocialMediaHandle(request.HandleOrUrl, platform);
+            var profileUrl = handle != null ? validationService.GenerateProfileUrl(handle, platform) : null;
+
+            return Ok(new ValidateSocialMediaResponse
+            {
+                IsValid = result.IsValid,
+                Message = result.Message,
+                ExtractedHandle = handle,
+                ProfileUrl = profileUrl
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating social media account");
+            return StatusCode(500, "An error occurred during social media validation");
+        }
+    }
+
+    #endregion
+
+    #region Social Media Follow Endpoints
+
+    /// <summary>
+    /// Follow a social media account to track activity
+    /// </summary>
+    /// <param name="request">Follow request with account ID and notification preferences</param>
+    /// <returns>The created follow record</returns>
+    [HttpPost("social-media/follow")]
+    public async Task<ActionResult<SocialMediaFollowDto>> FollowSocialMedia([FromBody] FollowSocialMediaDto request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            var follow = await _contactInfoService.FollowSocialMediaAccountAsync(
+                request.SocialMediaAccountId,
+                userId.Value,
+                request.NotifyOnActivity,
+                request.NotificationFrequency,
+                request.Notes);
+
+            return Ok(follow);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error following social media account");
+            return StatusCode(500, "An error occurred while following the social media account");
+        }
+    }
+
+    /// <summary>
+    /// Unfollow a social media account
+    /// </summary>
+    /// <param name="followId">ID of the follow record</param>
+    [HttpDelete("social-media/follow/{followId}")]
+    public async Task<ActionResult> UnfollowSocialMedia(int followId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            await _contactInfoService.UnfollowSocialMediaAccountAsync(followId, userId.Value);
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unfollowing social media account");
+            return StatusCode(500, "An error occurred while unfollowing");
+        }
+    }
+
+    /// <summary>
+    /// Get all social media accounts the current user is following
+    /// </summary>
+    [HttpGet("social-media/following")]
+    public async Task<ActionResult<List<SocialMediaFollowDto>>> GetFollowedAccounts()
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            var follows = await _contactInfoService.GetUserFollowsAsync(userId.Value);
+            return Ok(follows);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting followed accounts");
+            return StatusCode(500, "An error occurred while retrieving followed accounts");
+        }
+    }
+
+    /// <summary>
+    /// Update follow settings for a social media account
+    /// </summary>
+    /// <param name="followId">ID of the follow record</param>
+    /// <param name="request">Updated settings</param>
+    [HttpPut("social-media/follow/{followId}")]
+    public async Task<ActionResult<SocialMediaFollowDto>> UpdateFollowSettings(int followId, [FromBody] UpdateFollowSettingsDto request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            var follow = await _contactInfoService.UpdateFollowSettingsAsync(
+                followId,
+                userId.Value,
+                request.NotifyOnActivity ?? true,
+                request.NotificationFrequency ?? "Daily",
+                request.Notes);
+
+            return Ok(follow);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating follow settings");
+            return StatusCode(500, "An error occurred while updating follow settings");
+        }
+    }
+
+    /// <summary>
+    /// Get followers of a social media account (within the CRM)
+    /// </summary>
+    /// <param name="socialMediaId">ID of the social media account</param>
+    [HttpGet("social-media/{socialMediaId}/followers")]
+    public async Task<ActionResult<List<SocialMediaFollowDto>>> GetAccountFollowers(int socialMediaId)
+    {
+        try
+        {
+            var followers = await _contactInfoService.GetAccountFollowersAsync(socialMediaId);
+            return Ok(followers);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting account followers");
+            return StatusCode(500, "An error occurred while retrieving followers");
+        }
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// Request for validating an email address
+/// </summary>
+public class ValidateEmailRequest
+{
+    public string Email { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request for validating a phone number
+/// </summary>
+public class ValidatePhoneRequest
+{
+    public string PhoneNumber { get; set; } = string.Empty;
+    public string? CountryCode { get; set; }
+}
+
+/// <summary>
+/// Request for validating a social media account
+/// </summary>
+public class ValidateSocialMediaRequest
+{
+    public string HandleOrUrl { get; set; } = string.Empty;
+    public string Platform { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Response for social media validation
+/// </summary>
+public class ValidateSocialMediaResponse
+{
+    public bool IsValid { get; set; }
+    public string? Message { get; set; }
+    public string? ExtractedHandle { get; set; }
+    public string? ProfileUrl { get; set; }
 }
 
 /// <summary>

@@ -20,6 +20,13 @@ public class AddressDto
     public string? County { get; set; }
     public string? CountryCode { get; set; }
     public string Country { get; set; } = "United States";
+    
+    // New fields for ZipCode/Locality linking
+    public int? ZipCodeId { get; set; }
+    public int? LocalityId { get; set; }
+    public string? Locality { get; set; }
+    public string? AddressXml { get; set; }
+    
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
     public string? GeocodeAccuracy { get; set; }
@@ -66,6 +73,12 @@ public class CreateAddressDto
     public string? County { get; set; }
     public string? CountryCode { get; set; }
     public string Country { get; set; } = "United States";
+    
+    // New fields for ZipCode/Locality linking
+    public int? ZipCodeId { get; set; }
+    public int? LocalityId { get; set; }
+    public string? Locality { get; set; }
+    
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
     public bool? IsResidential { get; set; }
@@ -363,3 +376,126 @@ public class ShareContactInfoDto
 }
 
 #endregion
+
+#region Locality DTOs
+
+/// <summary>
+/// DTO for locality (neighborhood/subdivision) responses
+/// </summary>
+public class LocalityDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? AlternateName { get; set; }
+    public string LocalityType { get; set; } = "Neighborhood";
+    public int? ZipCodeId { get; set; }
+    public string City { get; set; } = string.Empty;
+    public string? StateCode { get; set; }
+    public string CountryCode { get; set; } = "US";
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
+    public bool IsUserCreated { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>
+/// DTO for creating a new locality
+/// </summary>
+public class CreateLocalityDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? AlternateName { get; set; }
+    public string LocalityType { get; set; } = "Neighborhood";
+    public int? ZipCodeId { get; set; }
+    public string City { get; set; } = string.Empty;
+    public string? StateCode { get; set; }
+    public string CountryCode { get; set; } = "US";
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
+}
+
+#endregion
+
+#region Social Media Follow DTOs
+
+/// <summary>
+/// DTO for social media follow responses
+/// </summary>
+public class SocialMediaFollowDto
+{
+    public int Id { get; set; }
+    public int SocialMediaAccountId { get; set; }
+    public int FollowedByUserId { get; set; }
+    public string? FollowedByUserName { get; set; }
+    public string EntityType { get; set; } = string.Empty;
+    public int EntityId { get; set; }
+    public string? EntityName { get; set; }
+    public DateTime FollowedAt { get; set; }
+    public bool IsActive { get; set; }
+    public bool NotifyOnActivity { get; set; }
+    public string NotificationFrequency { get; set; } = "Daily";
+    public DateTime? LastNotifiedAt { get; set; }
+    public string? Notes { get; set; }
+    
+    // Social media account details
+    public string? Platform { get; set; }
+    public string? HandleOrUsername { get; set; }
+    public string? ProfileUrl { get; set; }
+    public string? DisplayName { get; set; }
+}
+
+/// <summary>
+/// DTO for following a social media account
+/// </summary>
+public class FollowSocialMediaDto
+{
+    public int SocialMediaAccountId { get; set; }
+    public bool NotifyOnActivity { get; set; } = true;
+    public string NotificationFrequency { get; set; } = "Daily"; // Immediate, Daily, Weekly, Never
+    public string? Notes { get; set; }
+}
+
+/// <summary>
+/// DTO for updating follow settings
+/// </summary>
+public class UpdateFollowSettingsDto
+{
+    public bool? NotifyOnActivity { get; set; }
+    public string? NotificationFrequency { get; set; }
+    public string? Notes { get; set; }
+}
+
+#endregion
+
+#region Validation DTOs
+
+/// <summary>
+/// Request to validate contact info
+/// </summary>
+public class ValidateContactInfoRequest
+{
+    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? SocialMediaHandle { get; set; }
+    public string? SocialMediaPlatform { get; set; }
+    public string? CountryCode { get; set; } = "US";
+    public bool CheckMxRecords { get; set; } = false;
+}
+
+/// <summary>
+/// Response from contact info validation
+/// </summary>
+public class ValidateContactInfoResponse
+{
+    public bool IsValid { get; set; }
+    public string? Message { get; set; }
+    public string? ErrorMessage { get; set; }
+    public string? SuggestedCorrection { get; set; }
+    public string? FormattedValue { get; set; }
+    public string? NormalizedValue { get; set; }
+    public Dictionary<string, string> Details { get; set; } = new();
+}
+
+#endregion
+

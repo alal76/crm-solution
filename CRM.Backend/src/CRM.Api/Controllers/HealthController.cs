@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,10 +6,12 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// Health check endpoints for container orchestration and monitoring
+/// These endpoints are used by Kubernetes probes and must be accessible without authentication
 /// </summary>
 [ApiController]
 [Route("[controller]")]
 [EnableCors("AllowAll")]
+[AllowAnonymous]  // Allow Kubernetes health probes without authentication
 public class HealthController : ControllerBase
 {
     private readonly ILogger<HealthController> _logger;

@@ -1,7 +1,7 @@
 {
   "major": 1,
   "minor": 4,
-  "patch": 3,
-  "lastUpdate": "2026-01-24",
-  "description": "Normalized contact info collections in Customer and Contact DTOs"
+  "patch": 4,
+  "lastUpdate": "2026-01-25",
+  "description": "Address-ZipCode link with Locality, validation for emails/phones/social media, social media follow feature"
 }

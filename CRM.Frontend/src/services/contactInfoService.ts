@@ -66,6 +66,9 @@ export interface CreateAddressDto {
   county?: string;
   countryCode?: string;
   country?: string;
+  locality?: string;
+  localityId?: number;
+  zipCodeId?: number;
   latitude?: number;
   longitude?: number;
   isResidential?: boolean;
@@ -562,6 +565,117 @@ export const contactInfoService = {
    */
   setPrimarySocialMedia: (entityType: EntityType, entityId: number, socialMediaId: number) =>
     apiClient.post(`${BASE_URL}/${entityType}/${entityId}/social-media/${socialMediaId}/set-primary`),
+
+  // ============================================================
+  // VALIDATION OPERATIONS
+  // ============================================================
+
+  /**
+   * Validate an email address
+   */
+  validateEmail: (email: string) =>
+    apiClient.post<ValidationResponse>(`${BASE_URL}/validate/email`, { email }),
+
+  /**
+   * Validate a phone number
+   */
+  validatePhone: (phoneNumber: string, countryCode?: string) =>
+    apiClient.post<ValidationResponse>(`${BASE_URL}/validate/phone`, { phoneNumber, countryCode }),
+
+  /**
+   * Validate a social media account
+   */
+  validateSocialMedia: (handleOrUrl: string, platform: SocialMediaPlatform) =>
+    apiClient.post<SocialMediaValidationResponse>(`${BASE_URL}/validate/social-media`, { handleOrUrl, platform }),
+
+  // ============================================================
+  // SOCIAL MEDIA FOLLOW OPERATIONS
+  // ============================================================
+
+  /**
+   * Follow a social media account
+   */
+  followSocialMedia: (dto: FollowSocialMediaDto) =>
+    apiClient.post<SocialMediaFollowDto>(`${BASE_URL}/social-media/follow`, dto),
+
+  /**
+   * Unfollow a social media account
+   */
+  unfollowSocialMedia: (followId: number) =>
+    apiClient.delete(`${BASE_URL}/social-media/follow/${followId}`),
+
+  /**
+   * Get all social media accounts the current user is following
+   */
+  getFollowedAccounts: () =>
+    apiClient.get<SocialMediaFollowDto[]>(`${BASE_URL}/social-media/following`),
+
+  /**
+   * Update follow settings
+   */
+  updateFollowSettings: (followId: number, dto: UpdateFollowSettingsDto) =>
+    apiClient.put<SocialMediaFollowDto>(`${BASE_URL}/social-media/follow/${followId}`, dto),
+
+  /**
+   * Get followers of a social media account
+   */
+  getAccountFollowers: (socialMediaId: number) =>
+    apiClient.get<SocialMediaFollowDto[]>(`${BASE_URL}/social-media/${socialMediaId}/followers`),
 };
+
+// ============================================================
+// VALIDATION TYPES
+// ============================================================
+
+export interface ValidationResponse {
+  isValid: boolean;
+  message?: string;
+  errorMessage?: string;
+  suggestedCorrection?: string;
+  formattedValue?: string;
+  normalizedValue?: string;
+}
+
+export interface SocialMediaValidationResponse extends ValidationResponse {
+  extractedHandle?: string;
+  profileUrl?: string;
+}
+
+// ============================================================
+// FOLLOW TYPES
+// ============================================================
+
+export interface SocialMediaFollowDto {
+  id: number;
+  socialMediaAccountId: number;
+  followedByUserId: number;
+  followedByUserName?: string;
+  entityType: string;
+  entityId: number;
+  entityName?: string;
+  followedAt: string;
+  isActive: boolean;
+  notifyOnActivity: boolean;
+  notificationFrequency: string;
+  lastNotifiedAt?: string;
+  notes?: string;
+  platform?: string;
+  handleOrUsername?: string;
+  profileUrl?: string;
+  displayName?: string;
+}
+
+export interface FollowSocialMediaDto {
+  socialMediaAccountId: number;
+  notifyOnActivity?: boolean;
+  notificationFrequency?: string;
+  notes?: string;
+}
+
+export interface UpdateFollowSettingsDto {
+  notifyOnActivity?: boolean;
+  notificationFrequency?: string;
+  notes?: string;
+}
 
 export default contactInfoService;

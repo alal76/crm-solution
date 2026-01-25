@@ -136,6 +136,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
     
     // Master data entities
     public DbSet<ZipCode> ZipCodes { get; set; }
+    public DbSet<Locality> Localities { get; set; }
+    
+    // Social media follow tracking
+    public DbSet<SocialMediaFollow> SocialMediaFollows { get; set; }
     
     // Cloud Deployment entities
     public DbSet<CloudProvider> CloudProviders { get; set; }
@@ -275,8 +279,35 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Line1).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.Line2).HasMaxLength(500);
+            entity.Property(e => e.Line3).HasMaxLength(500);
             entity.Property(e => e.City).HasMaxLength(200);
+            entity.Property(e => e.State).HasMaxLength(100);
+            entity.Property(e => e.PostalCode).HasMaxLength(20);
+            entity.Property(e => e.County).HasMaxLength(100);
+            entity.Property(e => e.CountryCode).HasMaxLength(10);
             entity.Property(e => e.Country).HasMaxLength(200);
+            entity.Property(e => e.Locality).HasMaxLength(200);
+            entity.Property(e => e.AddressXml).HasColumnType("TEXT");
+            entity.Property(e => e.Latitude).HasPrecision(10, 6);
+            entity.Property(e => e.Longitude).HasPrecision(10, 6);
+            
+            // FK to ZipCode
+            entity.HasOne(e => e.ZipCodeData)
+                .WithMany(z => z.Addresses)
+                .HasForeignKey(e => e.ZipCodeId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            // FK to Locality
+            entity.HasOne(e => e.LocalityData)
+                .WithMany()
+                .HasForeignKey(e => e.LocalityId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasIndex(e => e.ZipCodeId);
+            entity.HasIndex(e => e.LocalityId);
+            entity.HasIndex(e => e.PostalCode);
+            entity.HasIndex(e => e.City);
         });
 
         modelBuilder.Entity<ContactDetail>(entity =>
@@ -1307,6 +1338,56 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => new { e.CountryCode, e.PostalCode });
             entity.HasIndex(e => e.City);
             entity.HasIndex(e => e.State);
+            
+            // Navigation to Localities
+            entity.HasMany(e => e.Localities)
+                .WithOne(l => l.ZipCode)
+                .HasForeignKey(l => l.ZipCodeId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Navigation to Addresses
+            entity.HasMany(e => e.Addresses)
+                .WithOne(a => a.ZipCodeData)
+                .HasForeignKey(a => a.ZipCodeId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // Configure Localities
+        modelBuilder.Entity<Locality>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.AlternateName).HasMaxLength(200);
+            entity.Property(e => e.City).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.StateCode).HasMaxLength(10);
+            entity.Property(e => e.CountryCode).IsRequired().HasMaxLength(10);
+            entity.Property(e => e.Latitude).HasPrecision(10, 6);
+            entity.Property(e => e.Longitude).HasPrecision(10, 6);
+            entity.HasIndex(e => new { e.City, e.CountryCode });
+            entity.HasIndex(e => new { e.ZipCodeId });
+            entity.HasIndex(e => e.Name);
+        });
+        
+        // Configure SocialMediaFollow
+        modelBuilder.Entity<SocialMediaFollow>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            
+            entity.HasOne(e => e.SocialMediaAccount)
+                .WithMany(s => s.Followers)
+                .HasForeignKey(e => e.SocialMediaAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.FollowedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.FollowedByUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => new { e.SocialMediaAccountId, e.FollowedByUserId }).IsUnique();
+            entity.HasIndex(e => e.FollowedByUserId);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
         });
 
             entity.HasOne(e => e.CreatedByUser)

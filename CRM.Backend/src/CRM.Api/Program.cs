@@ -277,8 +277,10 @@ builder.Services.AddHostedService<DatabaseSyncHostedService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields
 builder.Services.AddScoped<NormalizationService>();
-// Master data - ZIP code lookups
+// Master data - ZIP code / Postal code lookups
 builder.Services.AddScoped<IZipCodeService, ZipCodeService>();
+// Contact info validation service (email, phone, social media)
+builder.Services.AddScoped<IContactInfoValidationService, ContactInfoValidationService>();
 // Master data - Field-to-master-data linking service
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
 // Cloud Deployment management service

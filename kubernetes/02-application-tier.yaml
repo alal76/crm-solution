@@ -71,22 +71,38 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
-        livenessProbe:
+        # Startup probe: Allow container to start before liveness checks begin
+        startupProbe:
           httpGet:
             path: /health
             port: 5000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 3
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 5000
+            scheme: HTTP
           initialDelaySeconds: 10
           periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 2
+          timeoutSeconds: 5
+          failureThreshold: 30  # Allow up to 150 seconds for startup
+        # Liveness probe: Check if container is alive and healthy
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        # Readiness probe: Check if container is ready to serve traffic
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
       volumes:
       - name: db-volume
         persistentVolumeClaim:

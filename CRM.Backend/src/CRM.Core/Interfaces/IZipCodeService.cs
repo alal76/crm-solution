@@ -67,6 +67,33 @@ public interface IZipCodeService
     /// </summary>
     /// <returns>Total count</returns>
     Task<int> GetZipCodeCountAsync();
+    
+    /// <summary>
+    /// Get localities (neighborhoods) for a postal code
+    /// </summary>
+    /// <param name="zipCodeId">ZipCode ID</param>
+    /// <returns>List of localities</returns>
+    Task<IEnumerable<LocalityInfo>> GetLocalitiesAsync(int zipCodeId);
+    
+    /// <summary>
+    /// Get localities by city
+    /// </summary>
+    /// <param name="city">City name</param>
+    /// <param name="countryCode">Country code</param>
+    /// <returns>List of localities</returns>
+    Task<IEnumerable<LocalityInfo>> GetLocalitiesByCityAsync(string city, string countryCode);
+    
+    /// <summary>
+    /// Create a new user-defined locality
+    /// </summary>
+    /// <param name="name">Locality name</param>
+    /// <param name="city">City name</param>
+    /// <param name="stateCode">State code</param>
+    /// <param name="countryCode">Country code</param>
+    /// <param name="zipCodeId">Optional ZipCode ID</param>
+    /// <param name="userId">User creating the locality</param>
+    /// <returns>Created locality info</returns>
+    Task<LocalityInfo> CreateLocalityAsync(string name, string city, string? stateCode, string countryCode, int? zipCodeId, int userId);
 }
 
 /// <summary>
@@ -74,6 +101,7 @@ public interface IZipCodeService
 /// </summary>
 public class ZipCodeLookupResult
 {
+    public int Id { get; set; }
     public string PostalCode { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
     public string? State { get; set; }
@@ -104,6 +132,22 @@ public class StateInfo
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string CountryCode { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Locality (neighborhood/subdivision) information
+/// </summary>
+public class LocalityInfo
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? AlternateName { get; set; }
+    public string LocalityType { get; set; } = "Neighborhood";
+    public int? ZipCodeId { get; set; }
+    public string City { get; set; } = string.Empty;
+    public string? StateCode { get; set; }
+    public string CountryCode { get; set; } = string.Empty;
+    public bool IsUserCreated { get; set; }
 }
 
 /// <summary>

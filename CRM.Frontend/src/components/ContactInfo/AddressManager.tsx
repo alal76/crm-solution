@@ -47,7 +47,7 @@ import {
   Info as InfoIcon,
 } from '@mui/icons-material';
 import { contactInfoService, EntityType, LinkedAddressDto, CreateAddressDto, AddressType } from '../../services/contactInfoService';
-import zipCodeService, { CountryInfo, StateInfo, ZipCodeLookupResult, ZipCodeValidationResult } from '../../services/zipCodeService';
+import zipCodeService, { CountryInfo, StateInfo, ZipCodeLookupResult, ZipCodeValidationResult, LocalityInfo } from '../../services/zipCodeService';
 import { debounce } from 'lodash';
 
 interface AddressManagerProps {
@@ -76,13 +76,17 @@ const AddressManager: React.FC<AddressManagerProps> = ({
   const [states, setStates] = useState<StateInfo[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [postalCodes, setPostalCodes] = useState<ZipCodeLookupResult[]>([]);
+  const [localities, setLocalities] = useState<LocalityInfo[]>([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingPostalCodes, setLoadingPostalCodes] = useState(false);
+  const [loadingLocalities, setLoadingLocalities] = useState(false);
   const [postalCodeValidation, setPostalCodeValidation] = useState<ZipCodeValidationResult | null>(null);
   const [zipLookupResults, setZipLookupResults] = useState<ZipCodeLookupResult[]>([]);
   const [showZipLookupResults, setShowZipLookupResults] = useState(false);
+  const [showAddLocality, setShowAddLocality] = useState(false);
+  const [newLocalityName, setNewLocalityName] = useState('');
 
   const [formData, setFormData] = useState<CreateAddressDto & { addressType: AddressType; isPrimary: boolean }>({
     line1: '',
@@ -94,6 +98,9 @@ const AddressManager: React.FC<AddressManagerProps> = ({
     county: '',
     countryCode: 'US',
     country: 'United States',
+    locality: '',
+    localityId: undefined,
+    zipCodeId: undefined,
     isResidential: false,
     deliveryInstructions: '',
     accessHours: '',
@@ -181,6 +188,47 @@ const AddressManager: React.FC<AddressManagerProps> = ({
     }
   }, [formData.countryCode, formData.state, formData.city, states]);
 
+  // Load localities when city changes
+  useEffect(() => {
+    if (formData.city && formData.countryCode) {
+      const loadLocalities = async () => {
+        try {
+          setLoadingLocalities(true);
+          setLocalities([]);
+          const data = await zipCodeService.getLocalitiesByCity(formData.city, formData.countryCode);
+          setLocalities(data);
+        } catch (err) {
+          console.error('Error loading localities:', err);
+        } finally {
+          setLoadingLocalities(false);
+        }
+      };
+      loadLocalities();
+    }
+  }, [formData.city, formData.countryCode]);
+
+  // Handler for creating new locality
+  const handleCreateLocality = async () => {
+    if (!newLocalityName.trim()) return;
+    
+    try {
+      const selectedState = states.find(s => s.stateName === formData.state || s.stateCode === formData.state);
+      const locality = await zipCodeService.createLocality({
+        name: newLocalityName.trim(),
+        city: formData.city,
+        stateCode: selectedState?.stateCode || formData.state,
+        countryCode: formData.countryCode,
+        zipCodeId: formData.zipCodeId,
+      });
+      setLocalities([...localities, locality]);
+      setFormData({ ...formData, locality: locality.name, localityId: locality.id });
+      setNewLocalityName('');
+      setShowAddLocality(false);
+    } catch (err) {
+      console.error('Error creating locality:', err);
+    }
+  };
+
   // Debounced postal code validation
   const validatePostalCode = useMemo(
     () =>
@@ -237,6 +285,9 @@ const AddressManager: React.FC<AddressManagerProps> = ({
       country: result.country,
       countryCode: result.countryCode,
       postalCode: result.postalCode,
+      zipCodeId: result.id,
+      locality: '',
+      localityId: undefined,
     });
     setShowZipLookupResults(false);
     setPostalCodeValidation({
@@ -770,6 +821,115 @@ const AddressManager: React.FC<AddressManagerProps> = ({
                   />
                 )}
               />
+            </Grid>
+
+            {/* Locality/Neighborhood Dropdown */}
+            <Grid item xs={12} sm={6}>
+              <Box display="flex" gap={1} alignItems="flex-start">
+                <Autocomplete
+                  options={localities}
+                  getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
+                  value={localities.find(l => l.name === formData.locality || l.id === formData.localityId) || null}
+                  onChange={(_, value) => {
+                    if (typeof value === 'string') {
+                      setFormData({ ...formData, locality: value, localityId: undefined });
+                    } else if (value) {
+                      setFormData({ ...formData, locality: value.name, localityId: value.id });
+                    } else {
+                      setFormData({ ...formData, locality: '', localityId: undefined });
+                    }
+                  }}
+                  loading={loadingLocalities}
+                  disabled={!formData.city}
+                  size="small"
+                  freeSolo
+                  fullWidth
+                  onInputChange={(_, value, reason) => {
+                    if (reason === 'input') {
+                      setFormData({ ...formData, locality: value, localityId: undefined });
+                    }
+                  }}
+                  inputValue={formData.locality || ''}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Locality / Neighborhood"
+                      helperText={!formData.city ? 'Select city first' : localities.length === 0 ? 'Type or add new' : ''}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {loadingLocalities ? <CircularProgress size={16} /> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      <Box>
+                        <Typography variant="body2">{option.name}</Typography>
+                        {option.alternateName && (
+                          <Typography variant="caption" color="textSecondary">
+                            Also known as: {option.alternateName}
+                          </Typography>
+                        )}
+                        {option.isUserCreated && (
+                          <Chip label="Custom" size="small" sx={{ ml: 1 }} />
+                        )}
+                      </Box>
+                    </li>
+                  )}
+                />
+                <Tooltip title="Add new locality">
+                  <IconButton
+                    size="small"
+                    onClick={() => setShowAddLocality(true)}
+                    disabled={!formData.city}
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Grid>
+
+            {/* Add Locality Dialog */}
+            <Grid item xs={12}>
+              <Collapse in={showAddLocality}>
+                <Card variant="outlined" sx={{ p: 2, bgcolor: 'grey.50' }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Add New Locality / Neighborhood
+                  </Typography>
+                  <Box display="flex" gap={1} alignItems="center">
+                    <TextField
+                      size="small"
+                      label="Locality Name"
+                      value={newLocalityName}
+                      onChange={(e) => setNewLocalityName(e.target.value)}
+                      placeholder="e.g., Downtown, Westside, etc."
+                      fullWidth
+                    />
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleCreateLocality}
+                      disabled={!newLocalityName.trim()}
+                    >
+                      Add
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        setShowAddLocality(false);
+                        setNewLocalityName('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </Box>
+                </Card>
+              </Collapse>
             </Grid>
 
             {/* Address Lines */}

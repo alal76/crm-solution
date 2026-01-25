@@ -29,7 +29,7 @@ spec:
         image: your-registry/crm-frontend:latest
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 3000
+        - containerPort: 80
           name: http
           protocol: TCP
         envFrom:
@@ -45,22 +45,38 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
+        # Startup probe: Allow container to start before liveness checks begin
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          timeoutSeconds: 3
+          failureThreshold: 20  # Allow up to 60 seconds for startup
+        # Liveness probe: Check if container is alive and healthy
         livenessProbe:
           httpGet:
-            path: /
-            port: 3000
-          initialDelaySeconds: 30
+            path: /health
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 5
           periodSeconds: 10
           timeoutSeconds: 3
+          successThreshold: 1
           failureThreshold: 3
+        # Readiness probe: Check if container is ready to serve traffic
         readinessProbe:
           httpGet:
-            path: /
-            port: 3000
-          initialDelaySeconds: 10
+            path: /health
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 3
           periodSeconds: 5
           timeoutSeconds: 3
-          failureThreshold: 2
+          successThreshold: 1
+          failureThreshold: 3
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -87,8 +103,8 @@ spec:
     tier: presentation
     app: crm
   ports:
-  - port: 3000
-    targetPort: 3000
+  - port: 80
+    targetPort: 80
     protocol: TCP
     name: http
 ---

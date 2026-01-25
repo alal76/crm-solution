@@ -1302,6 +1302,138 @@ public class ContactInfoService : IContactInfoService
         return dto;
     }
 
+    #endregion
+
+    #region Social Media Follow Operations
+
+    public async Task<SocialMediaFollowDto> FollowSocialMediaAccountAsync(int socialMediaAccountId, int userId, bool notifyOnActivity = false, string notificationFrequency = "Never", string? notes = null)
+    {
+        // Check if already following
+        var existingFollow = await _context.SocialMediaFollows
+            .FirstOrDefaultAsync(f => f.SocialMediaAccountId == socialMediaAccountId && f.FollowedByUserId == userId && f.IsActive);
+
+        if (existingFollow != null)
+        {
+            throw new ArgumentException("Already following this social media account");
+        }
+
+        // Get the social media account to get entity info
+        var socialMediaAccount = await _context.SocialMediaAccounts
+            .FirstOrDefaultAsync(s => s.Id == socialMediaAccountId && !s.IsDeleted);
+
+        if (socialMediaAccount == null)
+        {
+            throw new ArgumentException("Social media account not found");
+        }
+
+        // Parse notification frequency
+        if (!Enum.TryParse<NotificationFrequency>(notificationFrequency, true, out var frequency))
+        {
+            frequency = NotificationFrequency.Never;
+        }
+
+        var follow = new SocialMediaFollow
+        {
+            SocialMediaAccountId = socialMediaAccountId,
+            FollowedByUserId = userId,
+            FollowedAt = DateTime.UtcNow,
+            IsActive = true,
+            NotifyOnActivity = notifyOnActivity,
+            NotificationFrequency = frequency,
+            Notes = notes
+        };
+
+        _context.SocialMediaFollows.Add(follow);
+        await _context.SaveChangesAsync();
+
+        return MapToSocialMediaFollowDto(follow, socialMediaAccount);
+    }
+
+    public async Task UnfollowSocialMediaAccountAsync(int followId, int userId)
+    {
+        var follow = await _context.SocialMediaFollows
+            .FirstOrDefaultAsync(f => f.Id == followId && f.FollowedByUserId == userId);
+
+        if (follow == null)
+        {
+            throw new ArgumentException("Follow record not found");
+        }
+
+        follow.IsActive = false;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<SocialMediaFollowDto>> GetUserFollowsAsync(int userId)
+    {
+        var follows = await _context.SocialMediaFollows
+            .Include(f => f.SocialMediaAccount)
+            .Where(f => f.FollowedByUserId == userId && f.IsActive)
+            .OrderByDescending(f => f.FollowedAt)
+            .ToListAsync();
+
+        return follows.Select(f => MapToSocialMediaFollowDto(f, f.SocialMediaAccount)).ToList();
+    }
+
+    public async Task<SocialMediaFollowDto> UpdateFollowSettingsAsync(int followId, int userId, bool notifyOnActivity, string notificationFrequency, string? notes)
+    {
+        var follow = await _context.SocialMediaFollows
+            .Include(f => f.SocialMediaAccount)
+            .FirstOrDefaultAsync(f => f.Id == followId && f.FollowedByUserId == userId);
+
+        if (follow == null)
+        {
+            throw new ArgumentException("Follow record not found");
+        }
+
+        if (!Enum.TryParse<NotificationFrequency>(notificationFrequency, true, out var frequency))
+        {
+            frequency = NotificationFrequency.Never;
+        }
+
+        follow.NotifyOnActivity = notifyOnActivity;
+        follow.NotificationFrequency = frequency;
+        follow.Notes = notes;
+
+        await _context.SaveChangesAsync();
+
+        return MapToSocialMediaFollowDto(follow, follow.SocialMediaAccount);
+    }
+
+    public async Task<List<SocialMediaFollowDto>> GetAccountFollowersAsync(int socialMediaAccountId)
+    {
+        var follows = await _context.SocialMediaFollows
+            .Include(f => f.SocialMediaAccount)
+            .Where(f => f.SocialMediaAccountId == socialMediaAccountId && f.IsActive)
+            .OrderByDescending(f => f.FollowedAt)
+            .ToListAsync();
+
+        return follows.Select(f => MapToSocialMediaFollowDto(f, f.SocialMediaAccount)).ToList();
+    }
+
+    private static SocialMediaFollowDto MapToSocialMediaFollowDto(SocialMediaFollow follow, SocialMediaAccount? account)
+    {
+        return new SocialMediaFollowDto
+        {
+            Id = follow.Id,
+            SocialMediaAccountId = follow.SocialMediaAccountId,
+            FollowedByUserId = follow.FollowedByUserId,
+            FollowedAt = follow.FollowedAt,
+            IsActive = follow.IsActive,
+            NotifyOnActivity = follow.NotifyOnActivity,
+            NotificationFrequency = follow.NotificationFrequency.ToString(),
+            LastNotifiedAt = follow.LastNotifiedAt,
+            Notes = follow.Notes,
+            Platform = account?.Platform.ToString(),
+            HandleOrUsername = account?.HandleOrUsername,
+            ProfileUrl = account?.ProfileUrl,
+            DisplayName = account?.DisplayName
+        };
+    }
+
+    #endregion
+
+    #region Private Mapping Methods
+
     private static SocialMediaAccountDto MapToSocialMediaDto(SocialMediaAccount account)
     {
         return new SocialMediaAccountDto

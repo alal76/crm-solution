@@ -70,11 +70,32 @@ public class SocialMediaAccount : BaseEntity
     public int? CreatedBy { get; set; }
     public int? UpdatedBy { get; set; }
     
+    /// <summary>
+    /// Is this social media handle/URL validated as real
+    /// </summary>
+    public bool IsValidated { get; set; } = false;
+    
+    /// <summary>
+    /// Date of last validation check
+    /// </summary>
+    public DateTime? LastValidatedAt { get; set; }
+    
+    /// <summary>
+    /// Validation error message if validation failed
+    /// </summary>
+    public string? ValidationError { get; set; }
+    
     // Navigation Properties
     public ICollection<EntitySocialMediaLink>? EntitySocialMediaLinks { get; set; }
+    public ICollection<SocialMediaFollow>? Followers { get; set; }
     
     // Computed Properties
     public string PlatformName => Platform == SocialMediaPlatform.Other 
         ? PlatformOther ?? "Other" 
         : Platform.ToString();
+    
+    /// <summary>
+    /// Number of CRM users following this social media account
+    /// </summary>
+    public int FollowerCountInternal => Followers?.Count(f => f.IsActive) ?? 0;
 }

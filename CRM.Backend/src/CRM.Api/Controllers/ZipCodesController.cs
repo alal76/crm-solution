@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace CRM.API.Controllers;
 
 /// <summary>
-/// API controller for postal code lookups - supports address auto-population
+/// API controller for postal/zip code lookups - supports address auto-population
+/// with cascading dropdowns for Country, State, City, and Locality selection
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Route("api/postalcodes")] // Alias route for Postal/Zip Code naming
 public class ZipCodesController : ControllerBase
 {
     private readonly IZipCodeService _zipCodeService;
@@ -21,7 +23,7 @@ public class ZipCodesController : ControllerBase
     }
 
     /// <summary>
-    /// Get all available countries with postal code formats
+    /// Get all available countries with postal/zip code formats
     /// </summary>
     /// <returns>List of countries</returns>
     [HttpGet("countries")]
@@ -165,4 +167,121 @@ public class ZipCodesController : ControllerBase
         var count = await _zipCodeService.GetZipCodeCountAsync();
         return Ok(new { count });
     }
+
+    /// <summary>
+    /// Get localities for a specific postal/zip code
+    /// </summary>
+    /// <param name="zipCodeId">The ID of the zip code</param>
+    /// <returns>List of localities within the postal/zip code area</returns>
+    [HttpGet("localities/{zipCodeId}")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<LocalityInfo>>> GetLocalities(int zipCodeId)
+    {
+        var localities = await _zipCodeService.GetLocalitiesAsync(zipCodeId);
+        return Ok(localities);
+    }
+
+    /// <summary>
+    /// Get localities by city name
+    /// </summary>
+    /// <param name="city">City name</param>
+    /// <param name="countryCode">Optional country code filter</param>
+    /// <returns>List of localities in the city</returns>
+    [HttpGet("localities/city")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<LocalityInfo>>> GetLocalitiesByCity(
+        [FromQuery] string city,
+        [FromQuery] string? countryCode = null)
+    {
+        if (string.IsNullOrWhiteSpace(city))
+        {
+            return BadRequest("City name is required");
+        }
+
+        var localities = await _zipCodeService.GetLocalitiesByCityAsync(city, countryCode);
+        return Ok(localities);
+    }
+
+    /// <summary>
+    /// Create a new locality (for user-defined neighborhoods/areas not in master data)
+    /// </summary>
+    /// <param name="request">Locality creation request</param>
+    /// <returns>The created locality</returns>
+    [HttpPost("localities")]
+    [Authorize]
+    public async Task<ActionResult<LocalityInfo>> CreateLocality([FromBody] CreateLocalityRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdStr, out var userId))
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            var locality = await _zipCodeService.CreateLocalityAsync(
+                request.Name,
+                request.City,
+                request.StateCode,
+                request.CountryCode,
+                request.ZipCodeId,
+                userId);
+
+            return CreatedAtAction(nameof(GetLocalities), new { zipCodeId = request.ZipCodeId }, locality);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+}
+
+/// <summary>
+/// Request model for creating a new locality
+/// </summary>
+public class CreateLocalityRequest
+{
+    /// <summary>
+    /// Name of the locality (neighborhood, subdivision, etc.)
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.Required]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional alternate name for the locality
+    /// </summary>
+    public string? AlternateName { get; set; }
+
+    /// <summary>
+    /// Type of locality (Neighborhood, Subdivision, District, etc.)
+    /// </summary>
+    public string LocalityType { get; set; } = "Neighborhood";
+
+    /// <summary>
+    /// ID of the associated zip/postal code
+    /// </summary>
+    public int? ZipCodeId { get; set; }
+
+    /// <summary>
+    /// City name
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.Required]
+    public string City { get; set; } = string.Empty;
+
+    /// <summary>
+    /// State/Province code
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.Required]
+    public string StateCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Country code (ISO 2-letter)
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.Required]
+    public string CountryCode { get; set; } = string.Empty;
 }

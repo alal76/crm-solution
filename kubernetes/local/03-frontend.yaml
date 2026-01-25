@@ -35,20 +35,38 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "200m"
+        # Startup probe: Allow container to start before liveness checks begin
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          timeoutSeconds: 3
+          failureThreshold: 20  # Allow up to 60 seconds for startup
+        # Readiness probe: Check if container is ready to serve traffic
         readinessProbe:
           httpGet:
             path: /health
             port: 80
-          initialDelaySeconds: 5
+            scheme: HTTP
+          initialDelaySeconds: 3
           periodSeconds: 5
           timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        # Liveness probe: Check if container is alive and healthy
         livenessProbe:
           httpGet:
             path: /health
             port: 80
-          initialDelaySeconds: 10
+            scheme: HTTP
+          initialDelaySeconds: 5
           periodSeconds: 10
           timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service

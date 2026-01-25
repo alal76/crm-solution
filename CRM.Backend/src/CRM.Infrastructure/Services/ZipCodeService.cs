@@ -92,6 +92,7 @@ public class ZipCodeService : IZipCodeService
                 .Where(z => z.PostalCode.Replace(" ", "").ToUpper() == normalizedPostalCode)
                 .Select(z => new ZipCodeLookupResult
                 {
+                    Id = z.Id,
                     PostalCode = z.PostalCode,
                     City = z.City,
                     State = z.State,
@@ -112,6 +113,7 @@ public class ZipCodeService : IZipCodeService
                     .Where(z => z.PostalCode.Replace(" ", "").ToUpper().StartsWith(normalizedPostalCode))
                     .Select(z => new ZipCodeLookupResult
                     {
+                        Id = z.Id,
                         PostalCode = z.PostalCode,
                         City = z.City,
                         State = z.State,
@@ -384,5 +386,106 @@ public class ZipCodeService : IZipCodeService
         }
 
         return result;
+    }
+    
+    /// <inheritdoc />
+    public async Task<IEnumerable<LocalityInfo>> GetLocalitiesAsync(int zipCodeId)
+    {
+        try
+        {
+            return await _context.Localities
+                .Where(l => l.ZipCodeId == zipCodeId && l.IsActive)
+                .OrderBy(l => l.Name)
+                .Select(l => new LocalityInfo
+                {
+                    Id = l.Id,
+                    Name = l.Name,
+                    AlternateName = l.AlternateName,
+                    LocalityType = l.LocalityType.ToString(),
+                    ZipCodeId = l.ZipCodeId,
+                    City = l.City,
+                    StateCode = l.StateCode,
+                    CountryCode = l.CountryCode,
+                    IsUserCreated = l.IsUserCreated
+                })
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting localities for ZipCode: {ZipCodeId}", zipCodeId);
+            return Enumerable.Empty<LocalityInfo>();
+        }
+    }
+    
+    /// <inheritdoc />
+    public async Task<IEnumerable<LocalityInfo>> GetLocalitiesByCityAsync(string city, string countryCode)
+    {
+        if (string.IsNullOrWhiteSpace(city))
+        {
+            return Enumerable.Empty<LocalityInfo>();
+        }
+        
+        try
+        {
+            return await _context.Localities
+                .Where(l => l.City.ToLower() == city.ToLower() && 
+                           l.CountryCode == countryCode.ToUpperInvariant() && 
+                           l.IsActive)
+                .OrderBy(l => l.Name)
+                .Select(l => new LocalityInfo
+                {
+                    Id = l.Id,
+                    Name = l.Name,
+                    AlternateName = l.AlternateName,
+                    LocalityType = l.LocalityType.ToString(),
+                    ZipCodeId = l.ZipCodeId,
+                    City = l.City,
+                    StateCode = l.StateCode,
+                    CountryCode = l.CountryCode,
+                    IsUserCreated = l.IsUserCreated
+                })
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting localities for city: {City}", city);
+            return Enumerable.Empty<LocalityInfo>();
+        }
+    }
+    
+    /// <inheritdoc />
+    public async Task<LocalityInfo> CreateLocalityAsync(string name, string city, string? stateCode, string countryCode, int? zipCodeId, int userId)
+    {
+        var locality = new Locality
+        {
+            Name = name.Trim(),
+            City = city.Trim(),
+            StateCode = stateCode?.ToUpperInvariant(),
+            CountryCode = countryCode.ToUpperInvariant(),
+            ZipCodeId = zipCodeId,
+            IsUserCreated = true,
+            IsActive = true,
+            CreatedByUserId = userId,
+            CreatedAt = DateTime.UtcNow
+        };
+        
+        _context.Localities.Add(locality);
+        await _context.SaveChangesAsync();
+        
+        _logger.LogInformation("Created new locality: {Name} in {City}, {CountryCode} by user {UserId}", 
+            name, city, countryCode, userId);
+        
+        return new LocalityInfo
+        {
+            Id = locality.Id,
+            Name = locality.Name,
+            AlternateName = locality.AlternateName,
+            LocalityType = locality.LocalityType.ToString(),
+            ZipCodeId = locality.ZipCodeId,
+            City = locality.City,
+            StateCode = locality.StateCode,
+            CountryCode = locality.CountryCode,
+            IsUserCreated = locality.IsUserCreated
+        };
     }
 }
