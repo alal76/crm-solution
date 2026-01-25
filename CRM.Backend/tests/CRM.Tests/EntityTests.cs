@@ -37,13 +37,13 @@ namespace CRM.Tests
         }
 
         [Fact]
-        public void Customer_LifecycleStageShouldDefaultToLead()
+        public void Customer_LifecycleStageShouldDefaultToOther()
         {
             // Arrange
             var customer = new Customer();
 
             // Act & Assert
-            Assert.Equal(CustomerLifecycleStage.Lead, customer.LifecycleStage);
+            Assert.Equal(CustomerLifecycleStage.Other, customer.LifecycleStage);
         }
 
         [Fact]

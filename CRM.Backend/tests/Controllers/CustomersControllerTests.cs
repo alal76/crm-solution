@@ -506,5 +506,41 @@ public class CustomersControllerTests
         // attributes.Should().NotBeEmpty("Controller should require authorization");
     }
 
+    /// <summary>
+    /// Verifies controller has both /api/customers and /api/accounts route attributes
+    /// for industry-standard naming compatibility
+    /// </summary>
+    [Fact]
+    public void CustomersController_ShouldHaveAccountsRouteAlias()
+    {
+        // Arrange
+        var controllerType = typeof(CustomersController);
+        var routeAttributes = controllerType.GetCustomAttributes(typeof(Microsoft.AspNetCore.Mvc.RouteAttribute), true)
+            .Cast<Microsoft.AspNetCore.Mvc.RouteAttribute>()
+            .ToList();
+
+        // Assert - Should have at least 2 routes: api/[controller] and api/accounts
+        routeAttributes.Should().HaveCountGreaterOrEqualTo(2, 
+            "Controller should have both default route and /api/accounts alias");
+        
+        var routeTemplates = routeAttributes.Select(r => r.Template).ToList();
+        routeTemplates.Should().Contain("api/accounts", 
+            "Controller should have industry-standard /api/accounts route alias");
+    }
+
+    /// <summary>
+    /// Verifies controller has ApiController attribute
+    /// </summary>
+    [Fact]
+    public void CustomersController_ShouldHaveApiControllerAttribute()
+    {
+        // Arrange
+        var controllerType = typeof(CustomersController);
+        var attributes = controllerType.GetCustomAttributes(typeof(Microsoft.AspNetCore.Mvc.ApiControllerAttribute), true);
+
+        // Assert
+        attributes.Should().NotBeEmpty("Controller should have [ApiController] attribute");
+    }
+
     #endregion
 }

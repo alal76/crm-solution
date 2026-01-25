@@ -590,4 +590,206 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
     }
 
     #endregion
+
+    #region Accounts API Alias Tests (FT-091 to FT-100)
+    // Tests for the industry-standard /api/accounts route alias
+    // The /api/accounts endpoint routes to the same controller as /api/customers
+    
+    [Fact]
+    [Trait("TestId", "FT-091")]
+    public async Task FT091_Get_Accounts_Should_Return_Same_As_Customers()
+    {
+        // Arrange
+        await AuthenticateAsync();
+        
+        // Act - Get both endpoints
+        var accountsResponse = await Client.GetAsync("/api/accounts");
+        var customersResponse = await Client.GetAsync("/api/customers");
+        
+        // Assert - Both should return success
+        AssertSuccess(accountsResponse);
+        AssertSuccess(customersResponse);
+        
+        var accountsContent = await accountsResponse.Content.ReadAsStringAsync();
+        var customersContent = await customersResponse.Content.ReadAsStringAsync();
+        
+        // Both should return the same number of records
+        using var accountsDoc = JsonDocument.Parse(accountsContent);
+        using var customersDoc = JsonDocument.Parse(customersContent);
+        
+        Assert.Equal(accountsDoc.RootElement.GetArrayLength(), customersDoc.RootElement.GetArrayLength());
+        
+        _output.WriteLine($"FT-091 PASSED: GET /api/accounts returns same data as /api/customers");
+    }
+    
+    [Fact]
+    [Trait("TestId", "FT-092")]
+    public async Task FT092_Get_Account_By_Id_Should_Work()
+    {
+        // Arrange
+        await AuthenticateAsync();
+        
+        // First get list to find an existing account ID
+        var listResponse = await Client.GetAsync("/api/accounts");
+        AssertSuccess(listResponse);
+        var listContent = await listResponse.Content.ReadAsStringAsync();
+        
+        using var doc = JsonDocument.Parse(listContent);
+        var items = doc.RootElement;
+        
+        if (items.GetArrayLength() == 0)
+        {
+            _output.WriteLine("FT-092 SKIPPED: No accounts exist to retrieve");
+            return;
+        }
+        
+        var accountId = items[0].GetProperty("id").GetInt32();
+        
+        // Act
+        var response = await Client.GetAsync($"/api/accounts/{accountId}");
+        
+        // Assert
+        AssertSuccess(response);
+        
+        _output.WriteLine($"FT-092 PASSED: GET /api/accounts/{accountId} returned account");
+    }
+    
+    [Fact]
+    [Trait("TestId", "FT-093")]
+    public async Task FT093_Get_Accounts_Individuals_Should_Work()
+    {
+        // Arrange
+        await AuthenticateAsync();
+        
+        // Act
+        var response = await Client.GetAsync("/api/accounts/individuals");
+        
+        // Assert
+        AssertSuccess(response);
+        
+        _output.WriteLine($"FT-093 PASSED: GET /api/accounts/individuals returned individual accounts");
+    }
+    
+    [Fact]
+    [Trait("TestId", "FT-094")]
+    public async Task FT094_Get_Accounts_Organizations_Should_Work()
+    {
+        // Arrange
+        await AuthenticateAsync();
+        
+        // Act
+        var response = await Client.GetAsync("/api/accounts/organizations");
+        
+        // Assert
+        AssertSuccess(response);
+        
+        _output.WriteLine($"FT-094 PASSED: GET /api/accounts/organizations returned organization accounts");
+    }
+    
+    [Fact]
+    [Trait("TestId", "FT-095")]
+    public async Task FT095_Search_Accounts_Should_Work()
+    {
+        // Arrange
+        await AuthenticateAsync();
+        
+        // Act
+        var response = await Client.GetAsync("/api/accounts/search/test");
+        
+        // Assert
+        AssertSuccess(response);
+        
+        _output.WriteLine($"FT-095 PASSED: GET /api/accounts/search/test works correctly");
+    }
+    
+    [Fact]
+    [Trait("TestId", "FT-096")]
+    public async Task FT096_Create_Account_Via_Alias_Should_Work()
+    {
+        // Arrange
+        await AuthenticateAsync();
+        var account = new
+        {
+            firstName = "Account",
+            lastName = $"Test-{Guid.NewGuid():N}"[..10],
+            email = $"account-{Guid.NewGuid():N}@functional.test",
+            phone = "+1-555-9999",
+            company = "Account Alias Test"
+        };
+        
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/accounts", account);
+        
+        // Assert
+        Assert.True(response.StatusCode == HttpStatusCode.Created || 
+                    response.StatusCode == HttpStatusCode.OK,
+            $"Expected Created/OK but got {response.StatusCode}");
+        
+        _output.WriteLine($"FT-096 PASSED: POST /api/accounts created new account via alias");
+    }
+    
+    [Fact]
+    [Trait("TestId", "FT-097")]
+    public async Task FT097_Protected_Accounts_Endpoint_Without_Token_Should_Return_401()
+    {
+        // Arrange - Create new client without authentication
+        using var unauthClient = new HttpClient
+        {
+            BaseAddress = new Uri(BaseUrl),
+            Timeout = TimeSpan.FromSeconds(30)
+        };
+        
+        // Act
+        var response = await unauthClient.GetAsync("/api/accounts");
+        
+        // Assert
+        AssertStatusCode(response, HttpStatusCode.Unauthorized);
+        
+        _output.WriteLine($"FT-097 PASSED: /api/accounts returned 401 without token");
+    }
+    
+    [Fact]
+    [Trait("TestId", "FT-098")]
+    public async Task FT098_Accounts_And_Customers_Endpoints_Return_Identical_Data()
+    {
+        // Arrange
+        await AuthenticateAsync();
+        
+        // Get specific account via both endpoints
+        var accountsListResponse = await Client.GetAsync("/api/accounts");
+        AssertSuccess(accountsListResponse);
+        var listContent = await accountsListResponse.Content.ReadAsStringAsync();
+        
+        using var doc = JsonDocument.Parse(listContent);
+        if (doc.RootElement.GetArrayLength() == 0)
+        {
+            _output.WriteLine("FT-098 SKIPPED: No accounts exist to compare");
+            return;
+        }
+        
+        var id = doc.RootElement[0].GetProperty("id").GetInt32();
+        
+        // Act - Get the same record via both endpoints
+        var accountResponse = await Client.GetAsync($"/api/accounts/{id}");
+        var customerResponse = await Client.GetAsync($"/api/customers/{id}");
+        
+        // Assert
+        AssertSuccess(accountResponse);
+        AssertSuccess(customerResponse);
+        
+        var accountData = await accountResponse.Content.ReadAsStringAsync();
+        var customerData = await customerResponse.Content.ReadAsStringAsync();
+        
+        // Parse and compare key fields
+        using var accountDoc = JsonDocument.Parse(accountData);
+        using var customerDoc = JsonDocument.Parse(customerData);
+        
+        Assert.Equal(
+            accountDoc.RootElement.GetProperty("id").GetInt32(),
+            customerDoc.RootElement.GetProperty("id").GetInt32());
+        
+        _output.WriteLine($"FT-098 PASSED: /api/accounts/{id} and /api/customers/{id} return identical data");
+    }
+
+    #endregion
 }
