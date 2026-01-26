@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
+using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
 using Microsoft.EntityFrameworkCore;
@@ -135,6 +136,16 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // Dashboard and Analytics entities
     public DbSet<Dashboard> Dashboards { get; set; }
     public DbSet<DashboardWidget> DashboardWidgets { get; set; }
+    
+    // Workflow entities
+    public DbSet<WorkflowDefinition> WorkflowDefinitions { get; set; }
+    public DbSet<WorkflowVersion> WorkflowVersions { get; set; }
+    public DbSet<WorkflowNode> WorkflowNodes { get; set; }
+    public DbSet<WorkflowTransition> WorkflowTransitions { get; set; }
+    public DbSet<WorkflowInstance> WorkflowInstances { get; set; }
+    public DbSet<WorkflowNodeInstance> WorkflowNodeInstances { get; set; }
+    public DbSet<WorkflowTask> WorkflowTasks { get; set; }
+    public DbSet<WorkflowLog> WorkflowLogs { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -1309,6 +1320,273 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(d => d.Widgets)
                 .HasForeignKey(e => e.DashboardId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // Workflow Definition configuration
+        modelBuilder.Entity<WorkflowDefinition>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.WorkflowKey).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.IconName).HasMaxLength(50);
+            entity.Property(e => e.Color).HasMaxLength(20);
+            entity.Property(e => e.Tags).HasMaxLength(500);
+            entity.Property(e => e.Metadata).HasColumnType("TEXT");
+            entity.HasIndex(e => e.WorkflowKey).IsUnique();
+            entity.HasIndex(e => e.EntityType);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.OwnerId);
+            
+            entity.HasOne(e => e.Owner)
+                .WithMany()
+                .HasForeignKey(e => e.OwnerId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // Workflow Version configuration
+        modelBuilder.Entity<WorkflowVersion>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Label).HasMaxLength(50);
+            entity.Property(e => e.ChangeLog).HasMaxLength(1000);
+            entity.Property(e => e.CanvasLayout).HasColumnType("TEXT");
+            entity.HasIndex(e => new { e.WorkflowDefinitionId, e.VersionNumber }).IsUnique();
+            entity.HasIndex(e => e.Status);
+            
+            entity.HasOne(e => e.WorkflowDefinition)
+                .WithMany(d => d.Versions)
+                .HasForeignKey(e => e.WorkflowDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.PublishedBy)
+                .WithMany()
+                .HasForeignKey(e => e.PublishedById)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // Workflow Node configuration
+        modelBuilder.Entity<WorkflowNode>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.NodeKey).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.NodeSubType).HasMaxLength(100);
+            entity.Property(e => e.IconName).HasMaxLength(50);
+            entity.Property(e => e.Color).HasMaxLength(20);
+            entity.Property(e => e.Configuration).HasColumnType("TEXT");
+            entity.Property(e => e.PositionX).HasPrecision(10, 2);
+            entity.Property(e => e.PositionY).HasPrecision(10, 2);
+            entity.Property(e => e.Width).HasPrecision(10, 2);
+            entity.Property(e => e.Height).HasPrecision(10, 2);
+            entity.HasIndex(e => new { e.WorkflowVersionId, e.NodeKey }).IsUnique();
+            entity.HasIndex(e => e.NodeType);
+            entity.HasIndex(e => e.IsStartNode);
+            entity.HasIndex(e => e.IsEndNode);
+            
+            entity.HasOne(e => e.WorkflowVersion)
+                .WithMany(v => v.Nodes)
+                .HasForeignKey(e => e.WorkflowVersionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // Workflow Transition configuration
+        modelBuilder.Entity<WorkflowTransition>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TransitionKey).HasMaxLength(100);
+            entity.Property(e => e.Label).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.ConditionExpression).HasColumnType("TEXT");
+            entity.Property(e => e.SourceHandle).HasMaxLength(20);
+            entity.Property(e => e.TargetHandle).HasMaxLength(20);
+            entity.Property(e => e.LineStyle).HasMaxLength(20);
+            entity.Property(e => e.Color).HasMaxLength(20);
+            entity.Property(e => e.AnimationStyle).HasMaxLength(20);
+            entity.HasIndex(e => e.WorkflowVersionId);
+            entity.HasIndex(e => e.SourceNodeId);
+            entity.HasIndex(e => e.TargetNodeId);
+            
+            entity.HasOne(e => e.WorkflowVersion)
+                .WithMany(v => v.Transitions)
+                .HasForeignKey(e => e.WorkflowVersionId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.SourceNode)
+                .WithMany(n => n.OutgoingTransitions)
+                .HasForeignKey(e => e.SourceNodeId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.TargetNode)
+                .WithMany(n => n.IncomingTransitions)
+                .HasForeignKey(e => e.TargetNodeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        // Workflow Instance configuration
+        modelBuilder.Entity<WorkflowInstance>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CorrelationId).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.TriggerEvent).HasMaxLength(100);
+            entity.Property(e => e.InputData).HasColumnType("TEXT");
+            entity.Property(e => e.StateData).HasColumnType("TEXT");
+            entity.Property(e => e.OutputData).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorMessage).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorStackTrace).HasColumnType("TEXT");
+            entity.Property(e => e.CancellationReason).HasMaxLength(500);
+            entity.HasIndex(e => e.CorrelationId).IsUnique();
+            entity.HasIndex(e => e.WorkflowDefinitionId);
+            entity.HasIndex(e => e.WorkflowVersionId);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.ScheduledAt);
+            entity.HasIndex(e => e.NextRetryAt);
+            
+            entity.HasOne(e => e.WorkflowDefinition)
+                .WithMany(d => d.Instances)
+                .HasForeignKey(e => e.WorkflowDefinitionId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.WorkflowVersion)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowVersionId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.CurrentNode)
+                .WithMany()
+                .HasForeignKey(e => e.CurrentNodeId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.TriggeredBy)
+                .WithMany()
+                .HasForeignKey(e => e.TriggeredById)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.ParentInstance)
+                .WithMany(i => i.ChildInstances)
+                .HasForeignKey(e => e.ParentInstanceId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // Workflow Node Instance configuration
+        modelBuilder.Entity<WorkflowNodeInstance>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.InputData).HasColumnType("TEXT");
+            entity.Property(e => e.OutputData).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorMessage).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorStackTrace).HasColumnType("TEXT");
+            entity.Property(e => e.SkipReason).HasMaxLength(500);
+            entity.Property(e => e.WorkerId).HasMaxLength(100);
+            entity.HasIndex(e => e.WorkflowInstanceId);
+            entity.HasIndex(e => e.WorkflowNodeId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.NextRetryAt);
+            
+            entity.HasOne(e => e.WorkflowInstance)
+                .WithMany(i => i.NodeInstances)
+                .HasForeignKey(e => e.WorkflowInstanceId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.WorkflowNode)
+                .WithMany(n => n.NodeInstances)
+                .HasForeignKey(e => e.WorkflowNodeId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.TransitionTaken)
+                .WithMany()
+                .HasForeignKey(e => e.TransitionTakenId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // Workflow Task configuration
+        modelBuilder.Entity<WorkflowTask>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.QueueName).HasMaxLength(100);
+            entity.Property(e => e.LockedByWorkerId).HasMaxLength(100);
+            entity.Property(e => e.AssignedToRole).HasMaxLength(100);
+            entity.Property(e => e.InputData).HasColumnType("TEXT");
+            entity.Property(e => e.OutputData).HasColumnType("TEXT");
+            entity.Property(e => e.FormSchema).HasColumnType("TEXT");
+            entity.Property(e => e.FormData).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorMessage).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorStackTrace).HasColumnType("TEXT");
+            entity.Property(e => e.DeadLetterReason).HasMaxLength(500);
+            entity.HasIndex(e => e.WorkflowInstanceId);
+            entity.HasIndex(e => e.WorkflowNodeId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.QueueName);
+            entity.HasIndex(e => e.ScheduledAt);
+            entity.HasIndex(e => e.Priority);
+            entity.HasIndex(e => e.IsDeadLetter);
+            entity.HasIndex(e => e.AssignedToId);
+            entity.HasIndex(e => e.LockExpiresAt);
+            
+            entity.HasOne(e => e.WorkflowInstance)
+                .WithMany(i => i.Tasks)
+                .HasForeignKey(e => e.WorkflowInstanceId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.WorkflowNode)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowNodeId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.NodeInstance)
+                .WithMany()
+                .HasForeignKey(e => e.NodeInstanceId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.AssignedTo)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // Workflow Log configuration
+        modelBuilder.Entity<WorkflowLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.Message).IsRequired().HasMaxLength(2000);
+            entity.Property(e => e.Details).HasColumnType("TEXT");
+            entity.Property(e => e.WorkerId).HasMaxLength(100);
+            entity.Property(e => e.ExceptionType).HasMaxLength(200);
+            entity.Property(e => e.StackTrace).HasColumnType("TEXT");
+            entity.HasIndex(e => e.WorkflowInstanceId);
+            entity.HasIndex(e => e.WorkflowNodeId);
+            entity.HasIndex(e => e.Level);
+            entity.HasIndex(e => e.Timestamp);
+            entity.HasIndex(e => e.Category);
+            
+            entity.HasOne(e => e.WorkflowInstance)
+                .WithMany(i => i.Logs)
+                .HasForeignKey(e => e.WorkflowInstanceId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.WorkflowNode)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowNodeId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.NodeInstance)
+                .WithMany()
+                .HasForeignKey(e => e.NodeInstanceId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

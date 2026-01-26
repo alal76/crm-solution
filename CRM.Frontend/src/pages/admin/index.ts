@@ -21,3 +21,6 @@ export { default as ModuleFieldSettingsPage } from './ModuleFieldSettingsPage';
 export { default as ServiceRequestDefinitionsPage } from './ServiceRequestDefinitionsPage';
 export { default as MasterDataSettingsPage } from './MasterDataSettingsPage';
 export { default as DashboardSettingsPage } from './DashboardSettingsPage';
+export { default as WorkflowListPage } from './WorkflowListPage';
+export { default as WorkflowDesignerPage } from './WorkflowDesignerPage';
+export { default as WorkflowMonitorPage } from './WorkflowMonitorPage';

@@ -75,6 +75,9 @@ import {
   ServiceRequestDefinitionsPage,
   MasterDataSettingsPage,
   DashboardSettingsPage,
+  WorkflowListPage,
+  WorkflowDesignerPage,
+  WorkflowMonitorPage,
 } from './pages/admin';
 import './App.css';
 
@@ -489,6 +492,46 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <DashboardSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/workflows"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <WorkflowListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/workflows/:id/design"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <WorkflowDesignerPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/workflows/monitor"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <WorkflowMonitorPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/workflows/:workflowId/monitor"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <WorkflowMonitorPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

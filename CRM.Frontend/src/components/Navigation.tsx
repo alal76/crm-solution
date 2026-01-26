@@ -40,6 +40,7 @@ import {
   Forum as CommunicationsIcon,
   SwapHoriz as InteractionsIcon,
   SettingsInputAntenna as ChannelSettingsIcon,
+  AccountTree as WorkflowIcon,
   // Admin section icons
   Storage as StorageIcon,
   Cloud as CloudIcon,
@@ -135,6 +136,7 @@ function NavigationContent() {
     'sr-definitions': { label: 'Service Requests', icon: SupportAgentIcon, path: '/admin/service-requests', menuName: 'ServiceRequestDefinitions' },
     'master-data': { label: 'Master Data', icon: StorageIcon, path: '/admin/master-data', menuName: 'MasterData' },
     'dashboard-settings': { label: 'Dashboards', icon: DashboardIcon, path: '/admin/dashboards', menuName: 'DashboardSettings' },
+    'workflow-settings': { label: 'Workflows', icon: WorkflowIcon, path: '/admin/workflows', menuName: 'WorkflowSettings' },
     // Legacy items
     'channel-settings': { label: 'Channel Settings', icon: ChannelSettingsIcon, path: '/channel-settings', menuName: 'ChannelSettings' },
     'settings': { label: 'All Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
@@ -149,7 +151,7 @@ function NavigationContent() {
   const defaultAdminOrder = useMemo(() => [
     'database-settings', 'deployment-settings', 'monitoring-settings', 'security-settings', 'feature-management',
     'user-management', 'user-approvals', 'group-management', 'social-login',
-    'branding-settings', 'navigation-settings', 'module-fields', 'sr-definitions', 'master-data', 'dashboard-settings',
+    'branding-settings', 'navigation-settings', 'module-fields', 'sr-definitions', 'master-data', 'dashboard-settings', 'workflow-settings',
     'channel-settings', 'settings'
   ], []);
 

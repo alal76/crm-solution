@@ -287,6 +287,21 @@ builder.Services.AddScoped<IMasterDataSeederService, MasterDataSeederService>();
 builder.Services.AddScoped<ICloudDeploymentService, CloudDeploymentService>();
 builder.Services.AddHttpClient();
 
+// Workflow management services
+builder.Services.AddScoped<WorkflowService>();
+builder.Services.AddScoped<WorkflowInstanceService>();
+
+// Workflow background worker
+var workflowWorkerOptions = new WorkflowWorkerOptions
+{
+    MaxConcurrentTasks = builder.Configuration.GetValue<int>("Workflow:MaxConcurrentTasks", 5),
+    PollIntervalSeconds = builder.Configuration.GetValue<int>("Workflow:PollIntervalSeconds", 5),
+    LockDurationMinutes = builder.Configuration.GetValue<int>("Workflow:LockDurationMinutes", 15),
+    EnableLLMActions = builder.Configuration.GetValue<bool>("Workflow:EnableLLMActions", true)
+};
+builder.Services.AddSingleton(workflowWorkerOptions);
+builder.Services.AddHostedService<WorkflowWorkerService>();
+
 // HEXAGONAL ARCHITECTURE - Register Input Ports (Primary/Driving Ports)
 // These allow controllers to depend on ports instead of concrete services
 builder.Services.AddScoped<ICustomerInputPort, CustomerService>();
