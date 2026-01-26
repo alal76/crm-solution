@@ -766,10 +766,27 @@ public class WorkflowWorkerService : BackgroundService
 
         try
         {
+            // Get resilience service for circuit breaker and retry
+            using var scope = _serviceProvider.CreateScope();
+            var resilienceService = scope.ServiceProvider.GetService<IResilienceService>();
+            
             using var client = new HttpClient();
             client.Timeout = TimeSpan.FromSeconds(30);
-            var response = await client.PostAsync(url,
-                new StringContent(JsonSerializer.Serialize(config), System.Text.Encoding.UTF8, "application/json"), ct);
+            
+            HttpResponseMessage response;
+            if (resilienceService != null)
+            {
+                response = await resilienceService.ExecuteAsync(
+                    "Webhook-Outbound",
+                    async innerCt => await client.PostAsync(url,
+                        new StringContent(JsonSerializer.Serialize(config), System.Text.Encoding.UTF8, "application/json"), innerCt),
+                    ct);
+            }
+            else
+            {
+                response = await client.PostAsync(url,
+                    new StringContent(JsonSerializer.Serialize(config), System.Text.Encoding.UTF8, "application/json"), ct);
+            }
 
             return new TaskResult
             {

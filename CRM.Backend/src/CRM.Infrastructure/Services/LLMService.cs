@@ -202,16 +202,19 @@ public class LLMService : ILLMService
     private readonly ILogger<LLMService> _logger;
     private readonly LLMProviderOptions _options;
     private readonly HttpClient _httpClient;
+    private readonly IResilienceService? _resilienceService;
 
     public LLMService(
         ILogger<LLMService> logger,
         IOptions<LLMProviderOptions> options,
-        HttpClient? httpClient = null)
+        HttpClient? httpClient = null,
+        IResilienceService? resilienceService = null)
     {
         _logger = logger;
         _options = options.Value;
         _httpClient = httpClient ?? new HttpClient();
         _httpClient.Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds);
+        _resilienceService = resilienceService;
     }
 
     public bool IsConfigured(string provider)
@@ -337,6 +340,26 @@ public class LLMService : ILLMService
     }
 
     public async Task<LLMResponse> ChatAsync(LLMRequest request, CancellationToken cancellationToken = default)
+    {
+        // Use resilience service if available for better error handling and circuit breaking
+        if (_resilienceService != null)
+        {
+            return await _resilienceService.ExecuteWithFallbackAsync(
+                $"LLM-{request.Provider}",
+                async ct => await ExecuteChatInternalAsync(request, ct),
+                ex => new LLMResponse
+                {
+                    Success = false,
+                    Error = $"LLM service temporarily unavailable: {ex.Message}",
+                    Provider = request.Provider
+                },
+                cancellationToken);
+        }
+
+        return await ExecuteChatInternalAsync(request, cancellationToken);
+    }
+
+    private async Task<LLMResponse> ExecuteChatInternalAsync(LLMRequest request, CancellationToken cancellationToken)
     {
         var startTime = DateTime.UtcNow;
         var providers = GetProviderOrder(request.Provider);

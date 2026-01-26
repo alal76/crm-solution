@@ -44,6 +44,7 @@ import {
   SettingsInputAntenna as ChannelSettingsIcon,
   AccountTree as WorkflowIcon,
   BugReport as TestResultsIcon,
+  Psychology as LLMIcon,
   // Admin section icons
   Storage as StorageIcon,
   Cloud as CloudIcon,
@@ -264,9 +265,9 @@ function NavigationContent() {
     'dashboard-settings': { label: 'Dashboards', icon: DashboardIcon, path: '/admin/dashboards', menuName: 'DashboardSettings' },
     'workflow-settings': { label: 'Workflows', icon: WorkflowIcon, path: '/admin/workflows', menuName: 'WorkflowSettings' },
     'test-results': { label: 'Test Results', icon: TestResultsIcon, path: '/admin/test-results', menuName: 'TestResults' },
+    'llm-settings': { label: 'AI / LLM Settings', icon: LLMIcon, path: '/admin/llm', menuName: 'LLMSettings' },
     // Legacy items
     'channel-settings': { label: 'Channel Settings', icon: ChannelSettingsIcon, path: '/channel-settings', menuName: 'ChannelSettings' },
-    'settings': { label: 'All Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
   }), []);
 
   // Default order for nav items
@@ -343,27 +344,30 @@ function NavigationContent() {
     { id: 'help', order: 51, visible: true, category: 'info' },
     { id: 'licenses', order: 52, visible: true, category: 'info' },
     // System Administration
-    { id: 'database-settings', order: 60, visible: true, category: 'admin' },
-    { id: 'deployment-settings', order: 61, visible: true, category: 'admin' },
-    { id: 'monitoring-settings', order: 62, visible: true, category: 'admin' },
-    { id: 'security-settings', order: 63, visible: true, category: 'admin' },
-    { id: 'feature-management', order: 64, visible: true, category: 'admin' },
+    { id: 'database-settings', order: 60, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
+    { id: 'deployment-settings', order: 61, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
+    { id: 'monitoring-settings', order: 62, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
+    { id: 'security-settings', order: 63, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
+    { id: 'feature-management', order: 64, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     // User Administration
-    { id: 'user-management', order: 65, visible: true, category: 'admin' },
-    { id: 'user-approvals', order: 66, visible: true, category: 'admin' },
-    { id: 'group-management', order: 67, visible: true, category: 'admin' },
-    { id: 'social-login', order: 68, visible: true, category: 'admin' },
+    { id: 'user-management', order: 65, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
+    { id: 'user-approvals', order: 66, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
+    { id: 'group-management', order: 67, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
+    { id: 'social-login', order: 68, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
     // CRM Administration
-    { id: 'branding-settings', order: 69, visible: true, category: 'admin' },
-    { id: 'navigation-settings', order: 70, visible: true, category: 'admin' },
-    { id: 'module-fields', order: 71, visible: true, category: 'admin' },
-    { id: 'sr-definitions', order: 72, visible: true, category: 'admin' },
-    { id: 'master-data', order: 73, visible: true, category: 'admin' },
-    { id: 'dashboard-settings', order: 74, visible: true, category: 'admin' },
-    { id: 'workflow-settings', order: 75, visible: true, category: 'admin' },
-    // Legacy
-    { id: 'channel-settings', order: 76, visible: true, category: 'admin' },
-    { id: 'settings', order: 77, visible: true, category: 'admin' },
+    { id: 'branding-settings', order: 69, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
+    { id: 'navigation-settings', order: 70, visible: true, category: 'admin', adminSubcategory: 'admin-navigation' },
+    { id: 'module-fields', order: 71, visible: true, category: 'admin', adminSubcategory: 'admin-modules' },
+    { id: 'sr-definitions', order: 72, visible: true, category: 'admin', adminSubcategory: 'admin-service' },
+    { id: 'master-data', order: 73, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
+    { id: 'dashboard-settings', order: 74, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
+    { id: 'workflow-settings', order: 75, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
+    // Channels
+    { id: 'channel-settings', order: 76, visible: true, category: 'admin', adminSubcategory: 'admin-channels' },
+    // Test Results
+    { id: 'test-results', order: 77, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
+    // AI / LLM
+    { id: 'llm-settings', order: 78, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
   ], []);
 
   // Get nav config from localStorage or use defaults
@@ -750,33 +754,6 @@ function NavigationContent() {
                       </React.Fragment>
                     );
                   })}
-                  
-                  {/* All Settings link at the bottom */}
-                  <Divider sx={{ my: 0.25 }} />
-                  <ListItemButton
-                    component={RouterLink}
-                    to="/settings"
-                    onClick={() => setDrawerOpen(false)}
-                    sx={{ 
-                      py: 0.25, 
-                      pl: 2,
-                      minHeight: 32,
-                      bgcolor: location.pathname === '/settings' ? 'primary.light' : 'transparent',
-                      '&:hover': { bgcolor: 'grey.100' },
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 24 }}>
-                      <SettingsIcon sx={{ fontSize: '1rem', color: location.pathname === '/settings' ? 'primary.main' : 'text.secondary' }} />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="All Settings" 
-                      primaryTypographyProps={{ 
-                        fontSize: '0.8rem', 
-                        fontWeight: location.pathname === '/settings' ? 600 : 500,
-                        color: location.pathname === '/settings' ? 'primary.main' : 'text.primary',
-                      }} 
-                    />
-                  </ListItemButton>
                 </List>
                 </Collapse>
               </React.Fragment>

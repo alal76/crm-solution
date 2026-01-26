@@ -108,6 +108,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // Color palettes
     public DbSet<ColorPalette> ColorPalettes { get; set; }
     
+    // LLM Provider Settings
+    public DbSet<LLMProviderSetting> LLMProviderSettings { get; set; }
+    
     // Module field configurations
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
         public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
@@ -614,6 +617,25 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.DefaultCurrency).HasMaxLength(10);
             entity.Property(e => e.DefaultTimezone).HasMaxLength(100);
             entity.Property(e => e.DefaultLanguage).HasMaxLength(10);
+        });
+
+        // Configure LLMProviderSetting
+        modelBuilder.Entity<LLMProviderSetting>(entity =>
+        {
+            entity.ToTable("llm_provider_settings");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.SettingKey).HasColumnName("setting_key").IsRequired().HasMaxLength(100);
+            entity.Property(e => e.SettingValue).HasColumnName("setting_value").IsRequired();
+            entity.Property(e => e.ValueType).HasColumnName("value_type").HasMaxLength(50).HasDefaultValue("string");
+            entity.Property(e => e.Category).HasColumnName("category").HasMaxLength(100).HasDefaultValue("general");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.IsEncrypted).HasColumnName("is_encrypted").HasDefaultValue(false);
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted").HasDefaultValue(false);
+            entity.HasIndex(e => e.SettingKey).IsUnique();
+            entity.HasIndex(e => e.Category);
         });
 
         // Configure Department

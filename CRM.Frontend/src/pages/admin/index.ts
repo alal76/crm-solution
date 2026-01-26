@@ -25,3 +25,4 @@ export { default as WorkflowListPage } from './WorkflowListPage';
 export { default as WorkflowDesignerPage } from './WorkflowDesignerPage';
 export { default as WorkflowMonitorPage } from './WorkflowMonitorPage';
 export { default as TestResultsPage } from './TestResultsPage';
+export { default as LLMSettingsPage } from './LLMSettingsPage';

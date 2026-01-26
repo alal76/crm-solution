@@ -25,6 +25,7 @@ public class ColorPaletteService : IColorPaletteService
     private readonly CrmDbContext _context;
     private readonly HttpClient _httpClient;
     private readonly ILogger<ColorPaletteService> _logger;
+    private readonly IResilienceService? _resilienceService;
     
     private const string GITHUB_PALETTES_URL = 
         "https://raw.githubusercontent.com/NSTechBytes/yourpalettes-website/main/api/colorpalettes.json";
@@ -32,11 +33,13 @@ public class ColorPaletteService : IColorPaletteService
     public ColorPaletteService(
         CrmDbContext context, 
         HttpClient httpClient,
-        ILogger<ColorPaletteService> logger)
+        ILogger<ColorPaletteService> logger,
+        IResilienceService? resilienceService = null)
     {
         _context = context;
         _httpClient = httpClient;
         _logger = logger;
+        _resilienceService = resilienceService;
     }
 
     public async Task<IEnumerable<ColorPaletteDto>> GetAllAsync()
@@ -94,10 +97,25 @@ public class ColorPaletteService : IColorPaletteService
         {
             _logger.LogInformation("Starting palette refresh from GitHub...");
             
-            var response = await _httpClient.GetAsync(GITHUB_PALETTES_URL);
-            response.EnsureSuccessStatusCode();
+            string json;
+            if (_resilienceService != null)
+            {
+                json = await _resilienceService.ExecuteAsync(
+                    "ColorPalette-GitHub",
+                    async ct =>
+                    {
+                        var response = await _httpClient.GetAsync(GITHUB_PALETTES_URL, ct);
+                        response.EnsureSuccessStatusCode();
+                        return await response.Content.ReadAsStringAsync(ct);
+                    });
+            }
+            else
+            {
+                var response = await _httpClient.GetAsync(GITHUB_PALETTES_URL);
+                response.EnsureSuccessStatusCode();
+                json = await response.Content.ReadAsStringAsync();
+            }
             
-            var json = await response.Content.ReadAsStringAsync();
             var palettes = JsonSerializer.Deserialize<List<GitHubPalette>>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true

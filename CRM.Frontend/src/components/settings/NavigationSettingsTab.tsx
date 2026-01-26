@@ -173,7 +173,6 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
   { id: 'master-data', label: 'Master Data', menuName: 'MasterData', icon: 'StorageIcon', order: 30, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-crm' },
   // Legacy items
   { id: 'channel-settings', label: 'Channel Settings', menuName: 'ChannelSettings', icon: 'ChannelSettingsIcon', order: 31, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-channels' },
-  { id: 'settings', label: 'All Settings', menuName: 'Settings', icon: 'SettingsIcon', order: 32, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -444,6 +443,59 @@ function NavigationSettingsTab() {
     return navItems.filter(item => item.category === 'admin' && item.adminSubcategory === subcategoryId);
   };
 
+  // Move item within its category/subcategory or across categories
+  const moveItemWithinCategory = (itemId: string, direction: 'up' | 'down') => {
+    const item = navItems.find(i => i.id === itemId);
+    if (!item) return;
+
+    // Get items in same category (and subcategory for admin)
+    let itemsInGroup: NavItem[];
+    if (item.category === 'admin' && item.adminSubcategory) {
+      itemsInGroup = navItems.filter(i => i.category === 'admin' && i.adminSubcategory === item.adminSubcategory);
+    } else {
+      itemsInGroup = navItems.filter(i => i.category === item.category && !i.isAdmin);
+    }
+
+    const indexInGroup = itemsInGroup.findIndex(i => i.id === itemId);
+    const targetIndexInGroup = direction === 'up' ? indexInGroup - 1 : indexInGroup + 1;
+
+    if (targetIndexInGroup < 0 || targetIndexInGroup >= itemsInGroup.length) return;
+
+    // Swap the order values
+    const targetItem = itemsInGroup[targetIndexInGroup];
+    const tempOrder = item.order;
+    
+    const newItems = navItems.map(i => {
+      if (i.id === item.id) return { ...i, order: targetItem.order };
+      if (i.id === targetItem.id) return { ...i, order: tempOrder };
+      return i;
+    });
+
+    // Re-sort by order
+    newItems.sort((a, b) => a.order - b.order);
+    // Reassign order values to be sequential
+    newItems.forEach((i, idx) => i.order = idx);
+
+    setNavItems(newItems);
+    setHasChanges(true);
+  };
+
+  // Move item to a different category
+  const moveItemToCategory = (itemId: string, newCategory: string, newSubcategory?: string) => {
+    const newItems = navItems.map(item => {
+      if (item.id === itemId) {
+        return { 
+          ...item, 
+          category: newCategory,
+          adminSubcategory: newCategory === 'admin' ? (newSubcategory || item.adminSubcategory || 'admin-system') : undefined
+        };
+      }
+      return item;
+    });
+    setNavItems(newItems);
+    setHasChanges(true);
+  };
+
   const moveItem = (index: number, direction: 'up' | 'down') => {
     const newItems = [...navItems];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -631,22 +683,22 @@ function NavigationSettingsTab() {
                   <EditIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Move Up">
+              <Tooltip title="Move Up within Category">
                 <span>
                   <IconButton
                     size="small"
-                    onClick={() => moveItem(actualIndex, 'up')}
+                    onClick={() => moveItemWithinCategory(item.id, 'up')}
                     disabled={index === 0}
                   >
                     <ArrowUpIcon fontSize="small" />
                   </IconButton>
                 </span>
               </Tooltip>
-              <Tooltip title="Move Down">
+              <Tooltip title="Move Down within Category">
                 <span>
                   <IconButton
                     size="small"
-                    onClick={() => moveItem(actualIndex, 'down')}
+                    onClick={() => moveItemWithinCategory(item.id, 'down')}
                     disabled={index === itemsInGroup.length - 1}
                   >
                     <ArrowDownIcon fontSize="small" />

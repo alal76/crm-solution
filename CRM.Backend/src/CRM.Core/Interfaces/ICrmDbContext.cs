@@ -62,6 +62,9 @@ public interface ICrmDbContext
     DbSet<DeploymentAttempt> DeploymentAttempts { get; }
     DbSet<HealthCheckLog> HealthCheckLogs { get; }
     
+    // LLM Settings
+    DbSet<LLMProviderSetting> LLMProviderSettings { get; }
+    
     DatabaseFacade Database { get; }
     
     /// <summary>

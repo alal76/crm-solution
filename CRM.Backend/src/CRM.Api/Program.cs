@@ -299,6 +299,7 @@ builder.Services.Configure<LLMProviderOptions>(builder.Configuration.GetSection(
 builder.Services.Configure<ResilienceOptions>(builder.Configuration.GetSection("Resilience"));
 builder.Services.AddHttpClient<ILLMService, LLMService>();
 builder.Services.AddSingleton<IResilienceService, ResilienceService>();
+builder.Services.AddScoped<ILLMSettingsService, LLMSettingsService>();
 
 // Workflow background worker
 var workflowWorkerOptions = new WorkflowWorkerOptions

@@ -78,6 +78,7 @@ public class ZipCodeImportService : IZipCodeImportService
     private readonly CrmDbContext _context;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<ZipCodeImportService> _logger;
+    private readonly IResilienceService? _resilienceService;
     
     // GeoNames URLs
     private const string GEONAMES_ALL_COUNTRIES_URL = "https://download.geonames.org/export/zip/allCountries.zip";
@@ -116,11 +117,13 @@ public class ZipCodeImportService : IZipCodeImportService
     public ZipCodeImportService(
         CrmDbContext context,
         IHttpClientFactory httpClientFactory,
-        ILogger<ZipCodeImportService> logger)
+        ILogger<ZipCodeImportService> logger,
+        IResilienceService? resilienceService = null)
     {
         _context = context;
         _httpClientFactory = httpClientFactory;
         _logger = logger;
+        _resilienceService = resilienceService;
     }
 
     public bool IsImportRunning => _isRunning;
@@ -163,13 +166,30 @@ public class ZipCodeImportService : IZipCodeImportService
             using var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromMinutes(30);
             
-            // Download the ZIP file
+            // Download the ZIP file with resilience if available
             _logger.LogInformation("Downloading {Url}...", GEONAMES_ALL_COUNTRIES_URL);
-            using var response = await client.GetAsync(GEONAMES_ALL_COUNTRIES_URL, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var records = await ParseGeoNamesZipAsync(stream, cancellationToken);
+            
+            List<ZipCode> records;
+            if (_resilienceService != null)
+            {
+                records = await _resilienceService.ExecuteAsync(
+                    "GeoNames-Download",
+                    async ct =>
+                    {
+                        using var response = await client.GetAsync(GEONAMES_ALL_COUNTRIES_URL, ct);
+                        response.EnsureSuccessStatusCode();
+                        using var stream = await response.Content.ReadAsStreamAsync(ct);
+                        return await ParseGeoNamesZipAsync(stream, ct);
+                    },
+                    cancellationToken);
+            }
+            else
+            {
+                using var response = await client.GetAsync(GEONAMES_ALL_COUNTRIES_URL, cancellationToken);
+                response.EnsureSuccessStatusCode();
+                using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                records = await ParseGeoNamesZipAsync(stream, cancellationToken);
+            }
 
             _totalRecords = records.Count;
             _logger.LogInformation("Downloaded {Count:N0} ZIP code records", _totalRecords);

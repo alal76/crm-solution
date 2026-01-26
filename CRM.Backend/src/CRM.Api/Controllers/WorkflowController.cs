@@ -3,6 +3,8 @@
 // Licensed under the GNU Affero General Public License v3.0
 
 using CRM.Core.Entities.Workflow;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -24,17 +26,20 @@ public class WorkflowController : ControllerBase
     private readonly CrmDbContext _context;
     private readonly WorkflowService _workflowService;
     private readonly ILLMService _llmService;
+    private readonly ILLMSettingsService _llmSettingsService;
     private readonly ILogger<WorkflowController> _logger;
 
     public WorkflowController(
         CrmDbContext context,
         WorkflowService workflowService,
         ILLMService llmService,
+        ILLMSettingsService llmSettingsService,
         ILogger<WorkflowController> logger)
     {
         _context = context;
         _workflowService = workflowService;
         _llmService = llmService;
+        _llmSettingsService = llmSettingsService;
         _logger = logger;
     }
 
@@ -731,6 +736,87 @@ public class WorkflowController : ControllerBase
 
         return Ok(config);
     }
+
+    #region LLM Settings Management
+
+    /// <summary>
+    /// Get LLM provider settings (database settings merged with config defaults)
+    /// </summary>
+    [HttpGet("llm-settings")]
+    public async Task<IActionResult> GetLLMSettings()
+    {
+        try
+        {
+            var settings = await _llmSettingsService.GetSettingsAsync();
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving LLM settings");
+            return StatusCode(500, new { message = "An error occurred while retrieving LLM settings" });
+        }
+    }
+
+    /// <summary>
+    /// Update LLM provider settings (stores in database)
+    /// </summary>
+    [HttpPut("llm-settings")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateLLMSettings([FromBody] UpdateLLMSettingsRequest request)
+    {
+        try
+        {
+            var settings = await _llmSettingsService.UpdateSettingsAsync(request);
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating LLM settings");
+            return StatusCode(500, new { message = "An error occurred while updating LLM settings" });
+        }
+    }
+
+    /// <summary>
+    /// Reset LLM settings to defaults from appsettings.json
+    /// </summary>
+    [HttpPost("llm-settings/reset")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ResetLLMSettings()
+    {
+        try
+        {
+            await _llmSettingsService.ResetToDefaultsAsync();
+            var settings = await _llmSettingsService.GetSettingsAsync();
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting LLM settings");
+            return StatusCode(500, new { message = "An error occurred while resetting LLM settings" });
+        }
+    }
+
+    /// <summary>
+    /// Initialize default LLM settings in database (admin only)
+    /// </summary>
+    [HttpPost("llm-settings/initialize")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> InitializeLLMSettings()
+    {
+        try
+        {
+            await _llmSettingsService.InitializeDefaultSettingsAsync();
+            var settings = await _llmSettingsService.GetSettingsAsync();
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error initializing LLM settings");
+            return StatusCode(500, new { message = "An error occurred while initializing LLM settings" });
+        }
+    }
+
+    #endregion
 
     private static string GetRoleLabel(CRM.Core.Entities.UserRole role) => role switch
     {
