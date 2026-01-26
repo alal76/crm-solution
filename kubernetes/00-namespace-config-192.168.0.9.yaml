@@ -1,0 +1,98 @@
+# Kubernetes Configuration for CRM Solution
+# Deployment Target: 192.168.0.9
+# Configuration: Frontend/API on Kubernetes, Databases on Docker
+#
+# This configuration connects to databases running in Docker containers
+# on the same host (192.168.0.9)
+#
+# Usage:
+#   kubectl apply -f 00-namespace-config-192.168.0.9.yaml
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crm-app
+  labels:
+    environment: production
+    deployment: "192.168.0.9"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crm-config
+  namespace: crm-app
+data:
+  # Application Environment
+  ASPNETCORE_ENVIRONMENT: "Production"
+  NODE_ENV: "production"
+  
+  # Database Configuration (MariaDB in Docker)
+  DatabaseProvider: "mariadb"
+  DB_HOST: "192.168.0.9"
+  DB_PORT: "3306"
+  DB_NAME: "crm_db"
+  
+  # API Configuration
+  API_INTERNAL_PORT: "5000"
+  API_EXTERNAL_PORT: "5000"
+  
+  # Frontend Configuration
+  REACT_APP_API_URL: "http://192.168.0.9:5000/api"
+  FRONTEND_EXTERNAL_PORT: "80"
+  
+  # Demo Database (auto-seeded)
+  DemoDatabase__AutoSeed: "true"
+  DemoDatabase__DatabaseName: "crm_demodb"
+  
+  # Contract Storage
+  CONTRACT_STORAGE_PATH: "/app/data/contracts"
+  MAX_CONTRACT_FILE_SIZE_BYTES: "10485760"
+  ALLOWED_CONTRACT_MIME_TYPES: "application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: crm-secrets
+  namespace: crm-app
+type: Opaque
+stringData:
+  # JWT Configuration
+  JWT_SECRET: "CrmJwtSecretKey2024!@#$%^&*()ForSecureAuthentication"
+  JWT_ISSUER: "CRMApp"
+  JWT_AUDIENCE: "CRMUsers"
+  JWT_EXPIRATION_MINUTES: "15"
+  
+  # MariaDB Connection (Docker container on same host)
+  DB_USER: "crm_user"
+  DB_PASSWORD: "CrmPass@Dev2024!"
+  DB_CONNECTION_STRING: "Server=192.168.0.9;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024!;"
+  
+  # PostgreSQL Connection (Alternative)
+  POSTGRES_CONNECTION_STRING: "Host=192.168.0.9;Port=5432;Database=crm_db;Username=crm_user;Password=CrmPass@Dev2024!"
+  
+  # SQL Server Connection (Alternative)
+  SQLSERVER_CONNECTION_STRING: "Server=192.168.0.9,1433;Database=crm_db;User Id=sa;Password=CrmPass@Dev2024!;TrustServerCertificate=True"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: crm-api
+  namespace: crm-app
+
+---
+# Storage for API data (contracts, uploads, etc.)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: crm-api-data
+  namespace: crm-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

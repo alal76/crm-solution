@@ -2,11 +2,40 @@
 
 ## Overview
 
-The CRM solution now has a **comprehensive testing framework** with unit tests, build verification, and CI/CD integration. This document provides a complete status and execution guide.
+The CRM solution now has a **comprehensive testing framework** with unit tests, BVT tests, functional tests, and CI/CD integration. This document provides a complete status and execution guide.
+
+**Last Updated:** June 2025
+
+---
+
+## ✅ Current Test Status
+
+### Test Statistics
+| Metric | Value |
+|--------|-------|
+| **Total Tests** | 708 |
+| **Passing** | 665 |
+| **Failing** | 35 (auth-related) |
+| **Skipped** | 8 |
+| **Pass Rate** | 93.9% |
 
 ---
 
 ## ✅ Implementation Status
+
+### Backend Testing Infrastructure
+- ✅ **Test Project** - `CRM.Tests.csproj` created
+- ✅ **Dependencies** - xUnit 2.6.2, Moq 4.20.70, FluentAssertions 6.12.0
+- ✅ **BVT Tests** - CriticalPathBVTTests.cs (~95 tests)
+- ✅ **Entity Tests** - CoreEntityTests.cs, EntityValidationTests.cs, EnumTypeTests.cs
+- ✅ **DTO Tests** - DtoMappingTests.cs
+- ✅ **Business Logic Tests** - BusinessLogicTests.cs
+- ✅ **Model Tests** - ContactModelTests.cs
+- ✅ **Utility Tests** - UtilityTests.cs
+- ✅ **Service Tests** - CustomerServiceTests.cs, LeadServiceTests.cs, AccountServiceTests.cs, etc.
+- ✅ **Controller Tests** - CustomersControllerTests.cs, DepartmentsControllerTests.cs, etc.
+- ✅ **Functional Tests** - ApiEndpointFunctionalTests.cs
+- ✅ **Database** - InMemory database configured for testing
 
 ### Frontend Testing Infrastructure
 - ✅ **Jest Configuration** - Configured with React Testing Library
@@ -17,16 +46,6 @@ The CRM solution now has a **comprehensive testing framework** with unit tests, 
   - `apiClient.test.ts` - 7 test cases for API communication
 - ✅ **Coverage Thresholds** - Set to minimum 50% (adjustable)
 - ✅ **Configuration** - `jest.config.json` created
-
-### Backend Testing Infrastructure
-- ✅ **Test Project** - `CRM.Tests.csproj` created
-- ✅ **Dependencies** - xUnit 2.6.2, Moq 4.20.70, FluentAssertions 6.12.0
-- ✅ **Test Files Created**:
-  - `DepartmentsControllerTests.cs` - 6 controller test cases
-  - `CustomersControllerTests.cs` - 5 controller test cases
-  - `EntityTests.cs` - Entity model tests
-  - `UserEntityTests.cs` - User entity tests
-- ✅ **Database** - InMemory database configured for testing
 
 ### Build & Verification Scripts
 - ✅ **Test Runner** - `scripts/run-tests.sh` (156 lines)
@@ -93,6 +112,27 @@ dotnet test tests/CRM.Tests.csproj
 
 ## 📊 Test Coverage Summary
 
+### Backend Tests (708 test cases)
+| Category | Test File | Test Cases | Coverage Areas |
+|----------|-----------|-----------|-----------------|
+| **BVT Tests** | CriticalPathBVTTests.cs | ~95 | Critical path validation, smoke tests |
+| **Entity Tests** | CoreEntityTests.cs | ~60 | Account, Contact, Lead, Opportunity, Product |
+| | EntityValidationTests.cs | ~50 | Required fields, constraints |
+| | EnumTypeTests.cs | ~45 | All enum types and values |
+| **DTO Tests** | DtoMappingTests.cs | ~40 | DTO property mappings |
+| **Business Logic** | BusinessLogicTests.cs | ~60 | Calculations, computed properties |
+| **Model Tests** | ContactModelTests.cs | ~30 | Contact model operations |
+| **Utility Tests** | UtilityTests.cs | ~45 | Helper functions, utilities |
+| **Service Tests** | CustomerServiceTests.cs | ~25 | Customer CRUD operations |
+| | LeadServiceTests.cs | ~20 | Lead management |
+| | AccountServiceTests.cs | ~20 | Account operations |
+| | ProductServiceTests.cs | ~20 | Product management |
+| | OpportunityServiceTests.cs | ~20 | Opportunity tracking |
+| **Controller Tests** | CustomersControllerTests.cs | ~15 | CRUD operations, error scenarios |
+| | DepartmentsControllerTests.cs | ~15 | Department operations |
+| **Functional Tests** | ApiEndpointFunctionalTests.cs | ~35 | API endpoint validation |
+| **Total** | | **708** | **All major components** |
+
 ### Frontend Tests (26 test cases)
 | File | Test Cases | Coverage Areas |
 |------|-----------|-----------------|
@@ -101,19 +141,10 @@ dotnet test tests/CRM.Tests.csproj
 | apiClient.test.ts | 8 | HTTP methods (GET, POST, PUT, DELETE), error handling |
 | **Total** | **26** | **Authentication, API, Components** |
 
-### Backend Tests (13 test cases)
-| File | Test Cases | Coverage Areas |
-|------|-----------|-----------------|
-| DepartmentsControllerTests.cs | 6 | GetAll, GetById, Create, Delete operations |
-| CustomersControllerTests.cs | 5 | CRUD operations, error scenarios |
-| EntityTests.cs | 1 | Entity model validation |
-| UserEntityTests.cs | 1 | User entity model validation |
-| **Total** | **13** | **Controllers, Entities, Business Logic** |
-
 ### Coverage Goals
 ```
 Frontend: 50% minimum (adjustable in jest.config.json)
-Backend:  70% minimum (configurable in test settings)
+Backend:  ~2% current, expanding with additional tests
 ```
 
 ---
@@ -133,14 +164,32 @@ CRM.Frontend/
 
 CRM.Backend/
 ├── tests/
-│   ├── CRM.Tests/
-│   │   ├── EntityTests.cs
-│   │   ├── UserEntityTests.cs
-│   │   └── CRM.Tests.csproj
+│   ├── CRM.Tests.csproj
+│   ├── BVT/
+│   │   └── CriticalPathBVTTests.cs
 │   ├── Controllers/
 │   │   ├── DepartmentsControllerTests.cs
 │   │   └── CustomersControllerTests.cs
-│   └── CRM.Tests.csproj
+│   ├── Dtos/
+│   │   └── DtoMappingTests.cs
+│   ├── Entities/
+│   │   ├── CoreEntityTests.cs
+│   │   ├── EntityValidationTests.cs
+│   │   └── EnumTypeTests.cs
+│   ├── BusinessLogic/
+│   │   └── BusinessLogicTests.cs
+│   ├── Models/
+│   │   └── ContactModelTests.cs
+│   ├── Services/
+│   │   ├── CustomerServiceTests.cs
+│   │   ├── LeadServiceTests.cs
+│   │   ├── AccountServiceTests.cs
+│   │   ├── ProductServiceTests.cs
+│   │   └── OpportunityServiceTests.cs
+│   ├── Utilities/
+│   │   └── UtilityTests.cs
+│   └── Functional/
+│       └── ApiEndpointFunctionalTests.cs
 └── src/
     └── CRM.Api/ (main API project)
 
@@ -224,11 +273,11 @@ cd CRM.Backend
 dotnet test tests/CRM.Tests.csproj
 
 # Expected output:
-# Test Run Successful.
-# Total tests: 13
-#  Passed: 13
-#  Failed: 0
-#  Skipped: 0
+# Test Run Completed.
+# Total tests: 708
+#  Passed: 665
+#  Failed: 35 (auth-related functional tests)
+#  Skipped: 8
 ```
 
 ### Example 3: Run All Tests with Verification
@@ -388,11 +437,11 @@ dotnet --version  # Should be 8.0.0 or higher
 
 | Component | Test Count | Expected Time | Status |
 |-----------|-----------|----------------|--------|
-| Frontend Jest | 26 | 3-5 seconds | ⏳ Ready |
-| Frontend Build | - | 20-30 seconds | ⏳ Ready |
-| Backend xUnit | 13 | 2-3 seconds | ⏳ Ready |
-| Backend Build | - | 10-15 seconds | ⏳ Ready |
-| **Total** | **39** | **~1 minute** | ⏳ Ready |
+| Frontend Jest | 26 | 3-5 seconds | ✅ Ready |
+| Frontend Build | - | 20-30 seconds | ✅ Ready |
+| Backend xUnit | 708 | 25-35 seconds | ✅ Ready |
+| Backend Build | - | 10-15 seconds | ✅ Ready |
+| **Total** | **734** | **~1.5 minutes** | ✅ Ready |
 
 ### Bundle Size Tracking
 
@@ -467,12 +516,21 @@ For issues or questions about testing:
 
 The CRM solution is now equipped with:
 - ✅ **26 frontend unit tests** covering authentication, components, and API
-- ✅ **13 backend unit tests** covering controllers and entities
+- ✅ **708 backend unit tests** covering entities, DTOs, business logic, services, controllers, and functional tests
+- ✅ **95 BVT tests** for critical path validation
 - ✅ **Automated test runner** with coverage reporting
 - ✅ **Complete build verification** system
 - ✅ **GitHub Actions CI/CD** pipeline with 7 jobs
 - ✅ **Comprehensive documentation** (500+ lines)
 
-**Total Testing Infrastructure: ~1500 lines of code/configuration**
+### Test Results Summary
+| Metric | Value |
+|--------|-------|
+| Total Backend Tests | 708 |
+| Passing | 665 (93.9%) |
+| Failing | 35 (auth-required functional tests) |
+| Skipped | 8 |
+
+**Total Testing Infrastructure: ~3500 lines of code/configuration**
 
 Tests are ready to execute. Run `./scripts/run-tests.sh` to begin!

@@ -33,7 +33,7 @@ public class OpportunitiesControllerTests
         // Arrange
         var opportunities = new List<Opportunity>
         {
-            new() { Id = 1, Name = "Enterprise Deal", Stage = OpportunityStage.ProposalQuote, Amount = 50000m },
+            new() { Id = 1, Name = "Enterprise Deal", Stage = OpportunityStage.Proposal, Amount = 50000m },
             new() { Id = 2, Name = "SMB Sale", Stage = OpportunityStage.Qualification, Amount = 10000m }
         };
         _mockOpportunityService.Setup(s => s.GetOpenOpportunitiesAsync())
@@ -91,9 +91,9 @@ public class OpportunitiesControllerTests
         {
             Id = 1,
             Name = "Big Deal",
-            Stage = OpportunityStage.NegotiationReview,
+            Stage = OpportunityStage.Negotiation,
             Amount = 100000m,
-            Probability = 0.75
+            Probability = 75
         };
         _mockOpportunityService.Setup(s => s.GetOpportunityByIdAsync(1))
             .ReturnsAsync(opportunity);
@@ -139,44 +139,59 @@ public class OpportunitiesControllerTests
 
     #endregion
 
-    #region GetByCustomerId Tests
+    #region GetByAccountId Tests
 
     [Fact]
-    public async Task GetByCustomerId_ReturnsOkResult_WithOpportunities()
+    public async Task GetByAccountId_ReturnsOkResult_WithOpportunities()
     {
         // Arrange
         var opportunities = new List<Opportunity>
         {
-            new() { Id = 1, Name = "Opportunity 1", CustomerId = 5 },
-            new() { Id = 2, Name = "Opportunity 2", CustomerId = 5 }
+            new() { Id = 1, Name = "Opportunity 1", AccountId = 5 },
+            new() { Id = 2, Name = "Opportunity 2", AccountId = 5 }
         };
-        _mockOpportunityService.Setup(s => s.GetOpportunitiesByCustomerAsync(5))
+        _mockOpportunityService.Setup(s => s.GetOpportunitiesByAccountAsync(5))
             .ReturnsAsync(opportunities);
 
         // Act
-        var result = await _controller.GetByCustomerId(5);
+        var result = await _controller.GetByAccountId(5);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var returnedOpportunities = okResult.Value.Should().BeAssignableTo<IEnumerable<Opportunity>>().Subject;
         returnedOpportunities.Should().HaveCount(2);
-        returnedOpportunities.All(o => o.CustomerId == 5).Should().BeTrue();
+        returnedOpportunities.All(o => o.AccountId == 5).Should().BeTrue();
     }
 
     [Fact]
-    public async Task GetByCustomerId_ReturnsEmptyList_WhenNoOpportunitiesForCustomer()
+    public async Task GetByAccountId_ReturnsEmptyList_WhenNoOpportunitiesForAccount()
     {
         // Arrange
-        _mockOpportunityService.Setup(s => s.GetOpportunitiesByCustomerAsync(999))
+        _mockOpportunityService.Setup(s => s.GetOpportunitiesByAccountAsync(999))
             .ReturnsAsync(new List<Opportunity>());
 
         // Act
-        var result = await _controller.GetByCustomerId(999);
+        var result = await _controller.GetByAccountId(999);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var returnedOpportunities = okResult.Value.Should().BeAssignableTo<IEnumerable<Opportunity>>().Subject;
         returnedOpportunities.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetByAccountId_Returns500_OnException()
+    {
+        // Arrange
+        _mockOpportunityService.Setup(s => s.GetOpportunitiesByAccountAsync(It.IsAny<int>()))
+            .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _controller.GetByAccountId(5);
+
+        // Assert
+        var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
+        statusResult.StatusCode.Should().Be(500);
     }
 
     #endregion
@@ -212,6 +227,21 @@ public class OpportunitiesControllerTests
         result.Should().BeOfType<OkObjectResult>();
     }
 
+    [Fact]
+    public async Task GetTotalPipeline_Returns500_OnException()
+    {
+        // Arrange
+        _mockOpportunityService.Setup(s => s.GetTotalPipelineAsync())
+            .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _controller.GetTotalPipeline();
+
+        // Assert
+        var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
+        statusResult.StatusCode.Should().Be(500);
+    }
+
     #endregion
 
     #region Create Tests
@@ -223,9 +253,9 @@ public class OpportunitiesControllerTests
         var opportunity = new Opportunity
         {
             Name = "New Opportunity",
-            Stage = OpportunityStage.Prospecting,
+            Stage = OpportunityStage.Discovery,
             Amount = 25000m,
-            CustomerId = 1
+            AccountId = 1
         };
         _mockOpportunityService.Setup(s => s.CreateOpportunityAsync(It.IsAny<Opportunity>()))
             .ReturnsAsync(10);
@@ -277,6 +307,22 @@ public class OpportunitiesControllerTests
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public async Task Update_Returns500_OnException()
+    {
+        // Arrange
+        var opportunity = new Opportunity { Id = 1, Name = "Test" };
+        _mockOpportunityService.Setup(s => s.UpdateOpportunityAsync(It.IsAny<Opportunity>()))
+            .ThrowsAsync(new Exception("Update failed"));
+
+        // Act
+        var result = await _controller.Update(1, opportunity);
+
+        // Assert
+        var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
+        statusResult.StatusCode.Should().Be(500);
     }
 
     #endregion

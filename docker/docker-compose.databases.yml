@@ -1,0 +1,173 @@
+# Docker Compose for All Supported Database Engines
+# Deploy all databases on a single server for CRM Solution
+# Target: 192.168.0.9
+#
+# Usage:
+#   docker-compose -f docker-compose.databases.yml up -d
+#   docker-compose -f docker-compose.databases.yml down
+#
+# Each database runs on a different port:
+#   - MariaDB:    3306
+#   - PostgreSQL: 5432
+#   - SQL Server: 1433
+#   - SQLite:     N/A (file-based, included in API container)
+
+version: '3.8'
+
+volumes:
+  mariadb-data:
+    driver: local
+  postgresql-data:
+    driver: local
+  mssql-data:
+    driver: local
+  sqlite-data:
+    driver: local
+
+networks:
+  crm-database-network:
+    driver: bridge
+    name: crm-database-network
+
+services:
+  # ============================================
+  # MariaDB (Primary Database - Default)
+  # ============================================
+  mariadb:
+    image: mariadb:11.2
+    container_name: crm-mariadb
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024!}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-crm_db}
+      MARIADB_USER: ${MARIADB_USER:-crm_user}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-CrmPass@Dev2024!}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./init-scripts/mariadb:/docker-entrypoint-initdb.d:ro
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+      --max-connections=500
+      --innodb-buffer-pool-size=256M
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024!}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - crm-database-network
+    labels:
+      - "com.crm.database.type=mariadb"
+      - "com.crm.database.port=3306"
+
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgresql:
+    image: postgres:16
+    container_name: crm-postgresql
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crm_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CrmPass@Dev2024!}
+      POSTGRES_DB: ${POSTGRES_DB:-crm_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./init-scripts/postgresql:/docker-entrypoint-initdb.d:ro
+    command: >
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c work_mem=16MB
+      -c maintenance_work_mem=64MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crm_user} -d ${POSTGRES_DB:-crm_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - crm-database-network
+    labels:
+      - "com.crm.database.type=postgresql"
+      - "com.crm.database.port=5432"
+
+  # ============================================
+  # Microsoft SQL Server 2022 (Developer Edition)
+  # ============================================
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: crm-mssql
+    restart: unless-stopped
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-CrmPass@Dev2024!}
+      MSSQL_PID: "Developer"
+      MSSQL_COLLATION: "SQL_Latin1_General_CP1_CI_AS"
+    volumes:
+      - mssql-data:/var/opt/mssql
+      - ./init-scripts/mssql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${MSSQL_SA_PASSWORD:-CrmPass@Dev2024!} -Q 'SELECT 1' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - crm-database-network
+    labels:
+      - "com.crm.database.type=sqlserver"
+      - "com.crm.database.port=1433"
+
+  # ============================================
+  # SQLite (File-based - for development/testing)
+  # ============================================
+  # Note: SQLite doesn't run as a container, but we provide
+  # a volume for storing SQLite database files
+  sqlite-volume:
+    image: alpine:latest
+    container_name: crm-sqlite-volume
+    command: >
+      /bin/sh -c "
+        mkdir -p /data/sqlite &&
+        chmod 777 /data/sqlite &&
+        echo 'SQLite data directory initialized' &&
+        tail -f /dev/null
+      "
+    volumes:
+      - sqlite-data:/data/sqlite
+    networks:
+      - crm-database-network
+    labels:
+      - "com.crm.database.type=sqlite"
+      - "com.crm.database.storage=/data/sqlite"
+
+  # ============================================
+  # Adminer - Database Management UI (Optional)
+  # ============================================
+  adminer:
+    image: adminer:latest
+    container_name: crm-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: mariadb
+      ADMINER_DESIGN: nette
+    depends_on:
+      - mariadb
+      - postgresql
+    networks:
+      - crm-database-network
+    labels:
+      - "com.crm.service.type=database-admin"
+      - "com.crm.service.port=8080"
