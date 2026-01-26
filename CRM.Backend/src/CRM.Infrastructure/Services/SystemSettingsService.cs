@@ -138,6 +138,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             if (request.SessionTimeoutMinutes.HasValue) settings.SessionTimeoutMinutes = request.SessionTimeoutMinutes.Value;
             if (request.AllowUserRegistration.HasValue) settings.AllowUserRegistration = request.AllowUserRegistration.Value;
             if (request.RequireApprovalForNewUsers.HasValue) settings.RequireApprovalForNewUsers = request.RequireApprovalForNewUsers.Value;
+            if (request.QuickAdminLoginEnabled.HasValue) settings.QuickAdminLoginEnabled = request.QuickAdminLoginEnabled.Value;
             
             if (request.ApiAccessEnabled.HasValue) settings.ApiAccessEnabled = request.ApiAccessEnabled.Value;
             if (request.EmailNotificationsEnabled.HasValue) settings.EmailNotificationsEnabled = request.EmailNotificationsEnabled.Value;
@@ -220,6 +221,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             SessionTimeoutMinutes = settings.SessionTimeoutMinutes,
             AllowUserRegistration = settings.AllowUserRegistration,
             RequireApprovalForNewUsers = settings.RequireApprovalForNewUsers,
+            QuickAdminLoginEnabled = settings.QuickAdminLoginEnabled,
             
             ApiAccessEnabled = settings.ApiAccessEnabled,
             EmailNotificationsEnabled = settings.EmailNotificationsEnabled,

@@ -52,6 +52,7 @@ public class SystemSettingsDto
     public int SessionTimeoutMinutes { get; set; }
     public bool AllowUserRegistration { get; set; }
     public bool RequireApprovalForNewUsers { get; set; }
+    public bool QuickAdminLoginEnabled { get; set; }
     
     #endregion
     
@@ -187,6 +188,7 @@ public class UpdateSystemSettingsRequest
     public int? SessionTimeoutMinutes { get; set; }
     public bool? AllowUserRegistration { get; set; }
     public bool? RequireApprovalForNewUsers { get; set; }
+    public bool? QuickAdminLoginEnabled { get; set; }
     
     // Social Login - Google
     public bool? GoogleAuthEnabled { get; set; }

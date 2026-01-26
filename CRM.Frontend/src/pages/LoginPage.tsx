@@ -148,9 +148,35 @@ const LoginPage: React.FC = () => {
   // OAuth state
   const [oauthEnabled, setOauthEnabled] = useState(false);
   
+  // Quick Admin Login state
+  const [quickAdminLoginEnabled, setQuickAdminLoginEnabled] = useState(false);
+  
   const { login, verifyTwoFactor, googleLogin } = useAuth();
   const navigate = useNavigate();
   const styles = useStyles();
+
+  // Helper function to get API URL
+  const getApiUrl = useCallback(() => {
+    return window.location.hostname === 'localhost'
+      ? 'http://localhost:5000/api'
+      : `http://${window.location.hostname}:5000/api`;
+  }, []);
+
+  // Load login settings (Quick Admin Login enabled status)
+  useEffect(() => {
+    const loadLoginSettings = async () => {
+      try {
+        const response = await fetch(`${getApiUrl()}/systemsettings/login-settings`);
+        if (response.ok) {
+          const data = await response.json();
+          setQuickAdminLoginEnabled(data.quickAdminLoginEnabled ?? false);
+        }
+      } catch (err) {
+        console.error('Error loading login settings:', err);
+      }
+    };
+    loadLoginSettings();
+  }, [getApiUrl]);
 
   // Load saved email on mount
   useEffect(() => {
@@ -558,6 +584,7 @@ const LoginPage: React.FC = () => {
                   </MuiLink>
                 </Box>
 
+                {quickAdminLoginEnabled && (
                 <Button
                   fullWidth
                   variant="outlined"
@@ -577,6 +604,7 @@ const LoginPage: React.FC = () => {
                 >
                   Quick Admin Login
                 </Button>
+                )}
 
                 <Button
                   fullWidth

@@ -235,6 +235,12 @@ public class SystemSettings : BaseEntity
     /// </summary>
     public bool RequireApprovalForNewUsers { get; set; } = true;
     
+    /// <summary>
+    /// Whether the Quick Admin Login button is shown on the login page.
+    /// This is a development convenience feature and should be disabled in production.
+    /// </summary>
+    public bool QuickAdminLoginEnabled { get; set; } = true;
+    
     #endregion
     
     #region Social Login - Google OAuth

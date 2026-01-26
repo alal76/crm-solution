@@ -39,6 +39,7 @@ import {
   Verified as VerifiedIcon,
   Error as ErrorIcon,
   Lock as LockIcon,
+  FlashOn as FlashOnIcon,
 } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -70,6 +71,10 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
   const [disableCode, setDisableCode] = useState('');
 
+  // Quick Admin Login state
+  const [quickAdminLoginEnabled, setQuickAdminLoginEnabled] = useState(true);
+  const [savingQuickLogin, setSavingQuickLogin] = useState(false);
+
   // SSL/TLS state
   const [sslStatus, setSslStatus] = useState<{
     httpsEnabled: boolean;
@@ -97,6 +102,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   useEffect(() => {
     loadTwoFactorStatus();
     loadSslStatus();
+    loadQuickAdminLoginStatus();
   }, []);
 
   const loadSslStatus = async () => {
@@ -115,6 +121,51 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       console.error('Error loading SSL status:', err);
     } finally {
       setSslLoading(false);
+    }
+  };
+
+  const loadQuickAdminLoginStatus = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${getApiUrl()}/systemsettings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setQuickAdminLoginEnabled(data.quickAdminLoginEnabled ?? true);
+      }
+    } catch (err) {
+      console.error('Error loading quick admin login status:', err);
+    }
+  };
+
+  const handleToggleQuickAdminLogin = async (enabled: boolean) => {
+    setSavingQuickLogin(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${getApiUrl()}/systemsettings`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quickAdminLoginEnabled: enabled }),
+      });
+
+      if (response.ok) {
+        setQuickAdminLoginEnabled(enabled);
+        setSuccess(enabled ? 'Quick Admin Login enabled' : 'Quick Admin Login disabled');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to toggle Quick Admin Login');
+      }
+    } catch (err) {
+      setError('Failed to toggle Quick Admin Login');
+    } finally {
+      setSavingQuickLogin(false);
     }
   };
 
@@ -735,6 +786,47 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                   Enable Two-Factor Authentication
                 </Button>
               )}
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Quick Admin Login Card */}
+      <Card sx={{ borderRadius: 3, mb: 3 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+            <FlashOnIcon sx={{ fontSize: 40, color: quickAdminLoginEnabled ? '#FF9800' : '#9E9E9E' }} />
+            <Box sx={{ flexGrow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Quick Admin Login
+                </Typography>
+                <Chip
+                  size="small"
+                  label={quickAdminLoginEnabled ? 'Enabled' : 'Disabled'}
+                  color={quickAdminLoginEnabled ? 'warning' : 'default'}
+                />
+              </Box>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                Show a "Quick Admin Login" button on the login page for faster development access.
+                <strong> This should be disabled in production environments.</strong>
+              </Typography>
+              
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={quickAdminLoginEnabled}
+                    onChange={(e) => handleToggleQuickAdminLogin(e.target.checked)}
+                    disabled={savingQuickLogin}
+                    color="warning"
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {savingQuickLogin ? 'Saving...' : (quickAdminLoginEnabled ? 'Enabled' : 'Disabled')}
+                  </Typography>
+                }
+              />
             </Box>
           </Box>
         </CardContent>

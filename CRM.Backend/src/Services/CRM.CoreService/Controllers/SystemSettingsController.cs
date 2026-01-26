@@ -471,6 +471,34 @@ public class SystemSettingsController : ControllerBase
     }
 
     /// <summary>
+    /// Get public login settings (accessible without authentication)
+    /// Returns settings needed for the login page
+    /// </summary>
+    [HttpGet("login-settings")]
+    [AllowAnonymous]
+    public async Task<ActionResult<LoginSettingsResponse>> GetLoginSettings()
+    {
+        try
+        {
+            var settings = await _settingsService.GetSettingsAsync();
+            return Ok(new LoginSettingsResponse
+            {
+                QuickAdminLoginEnabled = settings.QuickAdminLoginEnabled,
+                GoogleAuthEnabled = settings.GoogleAuthEnabled,
+                MicrosoftAuthEnabled = settings.MicrosoftAuthEnabled,
+                LinkedInAuthEnabled = settings.LinkedInAuthEnabled,
+                FacebookAuthEnabled = settings.FacebookAuthEnabled,
+                AllowUserRegistration = settings.AllowUserRegistration
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting login settings");
+            return StatusCode(500, "Error getting login settings");
+        }
+    }
+
+    /// <summary>
     /// Run database sync check (admin only)
     /// </summary>
     [HttpPost("database/sync")]
@@ -726,4 +754,17 @@ public class UpdateFeaturesRequest
     
     // System Settings
     public bool? UseDemoDatabase { get; set; }
+}
+
+/// <summary>
+/// Response for public login settings
+/// </summary>
+public class LoginSettingsResponse
+{
+    public bool QuickAdminLoginEnabled { get; set; }
+    public bool GoogleAuthEnabled { get; set; }
+    public bool MicrosoftAuthEnabled { get; set; }
+    public bool LinkedInAuthEnabled { get; set; }
+    public bool FacebookAuthEnabled { get; set; }
+    public bool AllowUserRegistration { get; set; }
 }
