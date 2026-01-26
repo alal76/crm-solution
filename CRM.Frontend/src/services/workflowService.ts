@@ -457,13 +457,81 @@ export interface NodeTypeOption {
   label: string;
   icon: string;
   color: string;
+  description?: string;
+}
+
+export interface ActionTypeOption {
+  value: string;
+  label: string;
+  category: string;
+  icon: string;
+}
+
+export interface TriggerTypeOption {
+  value: string;
+  label: string;
+  description: string;
+  icon: string;
+}
+
+export interface OperatorOption {
+  value: string;
+  label: string;
+  appliesTo: string[];
+}
+
+export interface StatusOption {
+  value: string;
+  label: string;
+  color: string;
+  bgColor: string;
+  icon: string;
+}
+
+export interface LLMProviderOption {
+  value: string;
+  label: string;
+  isConfigured: boolean;
+  models: LLMModelOption[];
+}
+
+export interface LLMModelOption {
+  value: string;
+  label: string;
+  provider: string;
+  isDefault: boolean;
+}
+
+export interface EventTypeOption {
+  value: string;
+  label: string;
+  color: string;
+  category: string;
+}
+
+export interface WorkflowConfig {
+  entityTypes: EntityTypeOption[];
+  nodeTypes: NodeTypeOption[];
+  actionTypes: ActionTypeOption[];
+  triggerTypes: TriggerTypeOption[];
+  conditionOperators: OperatorOption[];
+  statusOptions: StatusOption[];
+  llmProviders: LLMProviderOption[];
+  llmModels: LLMModelOption[];
+  roles: EntityTypeOption[];
+  categories: string[];
+  iconOptions: string[];
+  colorOptions: string[];
+  fallbackActions: EntityTypeOption[];
+  eventTypes: EventTypeOption[];
 }
 
 // ============================================================================
-// Node type metadata
+// Node type metadata - Default fallback values (overridden by config API)
 // ============================================================================
 
-export const nodeTypeInfo: Record<string, { icon: string; color: string; label: string }> = {
+// Default values used before config is loaded
+const defaultNodeTypeInfo: Record<string, { icon: string; color: string; label: string }> = {
   Trigger: { icon: 'PlayCircle', color: '#4CAF50', label: 'Trigger' },
   Condition: { icon: 'CallSplit', color: '#FF9800', label: 'Condition' },
   Action: { icon: 'FlashOn', color: '#2196F3', label: 'Action' },
@@ -476,7 +544,7 @@ export const nodeTypeInfo: Record<string, { icon: string; color: string; label: 
   End: { icon: 'StopCircle', color: '#F44336', label: 'End' }
 };
 
-export const statusColors: Record<string, string> = {
+const defaultStatusColors: Record<string, string> = {
   Draft: '#9E9E9E',
   Active: '#4CAF50',
   Paused: '#FF9800',
@@ -491,6 +559,35 @@ export const statusColors: Record<string, string> = {
   TimedOut: '#FF5722',
   Suspended: '#9C27B0'
 };
+
+// Cached configuration from the server
+let cachedConfig: WorkflowConfig | null = null;
+let configLoadPromise: Promise<WorkflowConfig> | null = null;
+
+// Dynamic getters that use cached config or fall back to defaults
+export const nodeTypeInfo: Record<string, { icon: string; color: string; label: string }> = new Proxy(defaultNodeTypeInfo, {
+  get(target, prop) {
+    if (cachedConfig) {
+      const nodeType = cachedConfig.nodeTypes.find(n => n.value === String(prop));
+      if (nodeType) {
+        return { icon: nodeType.icon, color: nodeType.color, label: nodeType.label };
+      }
+    }
+    return target[String(prop)] || { icon: 'Circle', color: '#6750A4', label: String(prop) };
+  }
+});
+
+export const statusColors: Record<string, string> = new Proxy(defaultStatusColors, {
+  get(target, prop) {
+    if (cachedConfig) {
+      const status = cachedConfig.statusOptions.find(s => s.value === String(prop));
+      if (status) {
+        return status.color;
+      }
+    }
+    return target[String(prop)] || '#9E9E9E';
+  }
+});
 
 // ============================================================================
 // API Functions - Workflow Definitions
@@ -548,22 +645,118 @@ export const workflowService = {
     return response.data;
   },
 
-  // Get available entity types
+  // Get comprehensive workflow configuration (cached)
+  async getConfig(forceRefresh = false): Promise<WorkflowConfig> {
+    if (cachedConfig && !forceRefresh) {
+      return cachedConfig;
+    }
+    
+    if (configLoadPromise && !forceRefresh) {
+      return configLoadPromise;
+    }
+
+    configLoadPromise = apiClient.get('/api/workflows/config')
+      .then(response => {
+        cachedConfig = response.data;
+        configLoadPromise = null;
+        return cachedConfig as WorkflowConfig;
+      })
+      .catch(error => {
+        configLoadPromise = null;
+        throw error;
+      });
+
+    return configLoadPromise;
+  },
+
+  // Clear the cached configuration
+  clearConfigCache(): void {
+    cachedConfig = null;
+    configLoadPromise = null;
+  },
+
+  // Get available entity types (uses cached config)
   async getEntityTypes(): Promise<EntityTypeOption[]> {
-    const response = await apiClient.get('/api/workflows/entity-types');
-    return response.data;
+    const config = await this.getConfig();
+    return config.entityTypes;
   },
 
-  // Get available node types
+  // Get available node types (uses cached config)
   async getNodeTypes(): Promise<NodeTypeOption[]> {
-    const response = await apiClient.get('/api/workflows/node-types');
-    return response.data;
+    const config = await this.getConfig();
+    return config.nodeTypes;
   },
 
-  // Get workflow categories
+  // Get workflow categories (uses cached config)
   async getCategories(): Promise<string[]> {
-    const response = await apiClient.get('/api/workflows/categories');
-    return response.data;
+    const config = await this.getConfig();
+    return config.categories;
+  },
+
+  // Get action types
+  async getActionTypes(): Promise<ActionTypeOption[]> {
+    const config = await this.getConfig();
+    return config.actionTypes;
+  },
+
+  // Get trigger types
+  async getTriggerTypes(): Promise<TriggerTypeOption[]> {
+    const config = await this.getConfig();
+    return config.triggerTypes;
+  },
+
+  // Get LLM providers (only configured ones)
+  async getLLMProviders(): Promise<LLMProviderOption[]> {
+    const config = await this.getConfig();
+    return config.llmProviders.filter(p => p.isConfigured);
+  },
+
+  // Get all LLM models (from configured providers)
+  async getLLMModels(): Promise<LLMModelOption[]> {
+    const config = await this.getConfig();
+    return config.llmModels;
+  },
+
+  // Get roles
+  async getRoles(): Promise<EntityTypeOption[]> {
+    const config = await this.getConfig();
+    return config.roles;
+  },
+
+  // Get status options
+  async getStatusOptions(): Promise<StatusOption[]> {
+    const config = await this.getConfig();
+    return config.statusOptions;
+  },
+
+  // Get condition operators
+  async getConditionOperators(): Promise<OperatorOption[]> {
+    const config = await this.getConfig();
+    return config.conditionOperators;
+  },
+
+  // Get fallback actions
+  async getFallbackActions(): Promise<EntityTypeOption[]> {
+    const config = await this.getConfig();
+    return config.fallbackActions;
+  },
+
+  // Get icon options
+  async getIconOptions(): Promise<string[]> {
+    const config = await this.getConfig();
+    return config.iconOptions;
+  },
+
+  // Get color options
+  async getColorOptions(): Promise<string[]> {
+    const config = await this.getConfig();
+    return config.colorOptions;
+  },
+
+  // Get event types (for audit logs)
+  async getEventTypes(): Promise<EventTypeOption[]> {
+    const config = await this.getConfig();
+    return config.eventTypes;
   },
 
   // ============================================================================
@@ -758,7 +951,106 @@ export const workflowInstanceService = {
   }): Promise<InstanceStatistics> {
     const response = await apiClient.get('/api/workflow-instances/statistics', { params });
     return response.data;
+  },
+
+  // ============================================================================
+  // Audit Log & Timeline
+  // ============================================================================
+
+  // Get audit log for a workflow definition
+  async getAuditLog(definitionId: number, params?: {
+    eventType?: string;
+    eventCategory?: string;
+    fromDate?: string;
+    toDate?: string;
+    skip?: number;
+    take?: number;
+  }): Promise<{ items: AuditLogEntry[]; hasMore: boolean }> {
+    const response = await apiClient.get(`/api/workflow-instances/definitions/${definitionId}/audit-log`, { params });
+    return response.data;
+  },
+
+  // Export audit log as CSV
+  async exportAuditLog(definitionId: number, params?: {
+    fromDate?: string;
+    toDate?: string;
+  }): Promise<Blob> {
+    const response = await apiClient.get(
+      `/api/workflow-instances/definitions/${definitionId}/audit-log/export`, 
+      { params, responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  // Get execution timeline for an instance
+  async getExecutionTimeline(instanceId: number): Promise<ExecutionTimeline> {
+    const response = await apiClient.get(`/api/workflow-instances/${instanceId}/timeline`);
+    return response.data;
+  },
+
+  // Simulate workflow execution (dry run)
+  async simulateWorkflow(workflowId: number, sampleData: object): Promise<SimulationResult> {
+    const response = await apiClient.post(`/api/workflows/${workflowId}/simulate`, { sampleData });
+    return response.data;
   }
 };
+
+// ============================================================================
+// New Type Definitions
+// ============================================================================
+
+export interface AuditLogEntry {
+  id: number;
+  eventType: string;
+  eventCategory: string;
+  message: string;
+  details?: string;
+  actorName?: string;
+  nodeName?: string;
+  workerId?: string;
+  durationMs?: number;
+  timestamp: string;
+}
+
+export interface ExecutionTimeline {
+  instanceId: number;
+  status: string;
+  startedAt?: string;
+  completedAt?: string;
+  totalDurationMs?: number;
+  entries: TimelineEntry[];
+}
+
+export interface TimelineEntry {
+  id: number;
+  type: 'node' | 'task';
+  name: string;
+  nodeType: string;
+  status: string;
+  startedAt?: string;
+  completedAt?: string;
+  durationMs?: number;
+  isSkipped: boolean;
+  errorMessage?: string;
+  sequence?: number;
+  assignedTo?: string;
+}
+
+export interface SimulationResult {
+  success: boolean;
+  steps: SimulationStep[];
+  finalState?: object;
+  errors?: string[];
+}
+
+export interface SimulationStep {
+  nodeId: number;
+  nodeName: string;
+  nodeType: string;
+  action: string;
+  result: 'executed' | 'skipped' | 'error';
+  message?: string;
+  duration?: number;
+}
 
 export default workflowService;

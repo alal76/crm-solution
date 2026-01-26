@@ -566,6 +566,206 @@ public class WorkflowInstanceController : ControllerBase
 
     #endregion
 
+    #region Audit Log
+
+    /// <summary>
+    /// Get audit log for a workflow definition
+    /// </summary>
+    [HttpGet("definitions/{definitionId}/audit-log")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAuditLog(
+        int definitionId,
+        [FromQuery] string? eventType = null,
+        [FromQuery] string? eventCategory = null,
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 100)
+    {
+        try
+        {
+            var query = _context.WorkflowLogs
+                .Include(l => l.WorkflowNode)
+                .Include(l => l.User)
+                .Where(l => l.WorkflowInstance != null && 
+                           l.WorkflowInstance.WorkflowDefinitionId == definitionId)
+                .OrderByDescending(l => l.Timestamp)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(eventCategory))
+                query = query.Where(l => l.Category == eventCategory);
+
+            if (fromDate.HasValue)
+                query = query.Where(l => l.Timestamp >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(l => l.Timestamp <= toDate.Value);
+
+            var logs = await query.Skip(skip).Take(take).ToListAsync();
+            
+            var result = logs.Select(l => new WorkflowAuditLogDto
+            {
+                Id = l.Id,
+                EventType = l.Category,
+                EventCategory = l.Level.ToString(),
+                Message = l.Message,
+                Details = l.Details,
+                ActorName = l.User != null ? $"{l.User.FirstName} {l.User.LastName}" : null,
+                NodeName = l.WorkflowNode?.Name,
+                WorkerId = l.WorkerId,
+                DurationMs = l.DurationMs,
+                Timestamp = l.Timestamp
+            }).ToList();
+
+            return Ok(new { 
+                items = result,
+                hasMore = result.Count == take
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving audit log for definition {Id}", definitionId);
+            return StatusCode(500, new { message = "An error occurred while retrieving audit log" });
+        }
+    }
+
+    /// <summary>
+    /// Export audit log as CSV
+    /// </summary>
+    [HttpGet("definitions/{definitionId}/audit-log/export")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ExportAuditLog(
+        int definitionId,
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null)
+    {
+        try
+        {
+            var query = _context.WorkflowLogs
+                .Include(l => l.WorkflowNode)
+                .Include(l => l.User)
+                .Where(l => l.WorkflowInstance != null && 
+                           l.WorkflowInstance.WorkflowDefinitionId == definitionId)
+                .OrderByDescending(l => l.Timestamp)
+                .AsQueryable();
+
+            if (fromDate.HasValue)
+                query = query.Where(l => l.Timestamp >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(l => l.Timestamp <= toDate.Value);
+
+            var logs = await query.Take(10000).ToListAsync();
+            
+            var csv = new System.Text.StringBuilder();
+            csv.AppendLine("Timestamp,Event Type,Level,Message,Actor,Node,Worker ID,Duration (ms)");
+            
+            foreach (var log in logs)
+            {
+                var actor = log.User != null ? $"{log.User.FirstName} {log.User.LastName}" : "";
+                var node = log.WorkflowNode?.Name ?? "";
+                var message = (log.Message ?? "").Replace("\"", "\"\"");
+                
+                csv.AppendLine($"\"{log.Timestamp:yyyy-MM-dd HH:mm:ss}\",\"{log.Category}\",\"{log.Level}\",\"{message}\",\"{actor}\",\"{node}\",\"{log.WorkerId ?? ""}\",{log.DurationMs ?? 0}");
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+            return File(bytes, "text/csv", $"workflow-audit-log-{definitionId}-{DateTime.UtcNow:yyyyMMdd}.csv");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting audit log for definition {Id}", definitionId);
+            return StatusCode(500, new { message = "An error occurred while exporting audit log" });
+        }
+    }
+
+    #endregion
+
+    #region Execution Timeline
+
+    /// <summary>
+    /// Get execution timeline for visualization
+    /// </summary>
+    [HttpGet("{id}/timeline")]
+    public async Task<IActionResult> GetExecutionTimeline(int id)
+    {
+        try
+        {
+            var instance = await _context.WorkflowInstances
+                .Include(i => i.NodeInstances)
+                .ThenInclude(ni => ni.WorkflowNode)
+                .Include(i => i.Tasks)
+                .ThenInclude(t => t.WorkflowNode)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (instance == null)
+                return NotFound(new { message = "Instance not found" });
+
+            var timeline = new List<TimelineEntryDto>();
+
+            // Add node instances to timeline
+            foreach (var ni in instance.NodeInstances.OrderBy(n => n.ExecutionSequence))
+            {
+                timeline.Add(new TimelineEntryDto
+                {
+                    Id = ni.Id,
+                    Type = "node",
+                    Name = ni.WorkflowNode.Name,
+                    NodeType = ni.WorkflowNode.NodeType.ToString(),
+                    Status = ni.Status.ToString(),
+                    StartedAt = ni.StartedAt,
+                    CompletedAt = ni.CompletedAt,
+                    DurationMs = ni.DurationMs,
+                    IsSkipped = ni.IsSkipped,
+                    ErrorMessage = ni.ErrorMessage,
+                    Sequence = ni.ExecutionSequence
+                });
+            }
+
+            // Add tasks to timeline
+            foreach (var task in instance.Tasks.OrderBy(t => t.CreatedAt))
+            {
+                timeline.Add(new TimelineEntryDto
+                {
+                    Id = task.Id,
+                    Type = "task",
+                    Name = task.Name,
+                    NodeType = task.TaskType.ToString(),
+                    Status = task.Status.ToString(),
+                    StartedAt = task.PickedAt,
+                    CompletedAt = task.CompletedAt,
+                    DurationMs = task.CompletedAt.HasValue && task.PickedAt.HasValue 
+                        ? (long)(task.CompletedAt.Value - task.PickedAt.Value).TotalMilliseconds 
+                        : null,
+                    IsSkipped = false,
+                    ErrorMessage = task.ErrorMessage,
+                    AssignedTo = task.AssignedToRole ?? task.AssignedToId?.ToString()
+                });
+            }
+
+            var result = new ExecutionTimelineDto
+            {
+                InstanceId = instance.Id,
+                Status = instance.Status.ToString(),
+                StartedAt = instance.StartedAt,
+                CompletedAt = instance.CompletedAt,
+                TotalDurationMs = instance.StartedAt.HasValue && instance.CompletedAt.HasValue
+                    ? (long)(instance.CompletedAt.Value - instance.StartedAt.Value).TotalMilliseconds
+                    : null,
+                Entries = timeline.OrderBy(e => e.StartedAt ?? DateTime.MaxValue).ToList()
+            };
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving execution timeline for instance {Id}", id);
+            return StatusCode(500, new { message = "An error occurred while retrieving timeline" });
+        }
+    }
+
+    #endregion
+
     #region Statistics
 
     /// <summary>
@@ -771,6 +971,46 @@ public class CompleteTaskDto
 {
     public string? FormData { get; set; }
     public string? OutputData { get; set; }
+}
+
+public class WorkflowAuditLogDto
+{
+    public int Id { get; set; }
+    public string EventType { get; set; } = string.Empty;
+    public string EventCategory { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public string? Details { get; set; }
+    public string? ActorName { get; set; }
+    public string? NodeName { get; set; }
+    public string? WorkerId { get; set; }
+    public long? DurationMs { get; set; }
+    public DateTime Timestamp { get; set; }
+}
+
+public class ExecutionTimelineDto
+{
+    public int InstanceId { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime? StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public long? TotalDurationMs { get; set; }
+    public List<TimelineEntryDto> Entries { get; set; } = new();
+}
+
+public class TimelineEntryDto
+{
+    public int Id { get; set; }
+    public string Type { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string NodeType { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public DateTime? StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public long? DurationMs { get; set; }
+    public bool IsSkipped { get; set; }
+    public string? ErrorMessage { get; set; }
+    public int? Sequence { get; set; }
+    public string? AssignedTo { get; set; }
 }
 
 #endregion

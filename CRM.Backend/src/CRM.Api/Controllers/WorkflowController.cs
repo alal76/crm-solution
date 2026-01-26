@@ -23,15 +23,18 @@ public class WorkflowController : ControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly WorkflowService _workflowService;
+    private readonly ILLMService _llmService;
     private readonly ILogger<WorkflowController> _logger;
 
     public WorkflowController(
         CrmDbContext context,
         WorkflowService workflowService,
+        ILLMService llmService,
         ILogger<WorkflowController> logger)
     {
         _context = context;
         _workflowService = workflowService;
+        _llmService = llmService;
         _logger = logger;
     }
 
@@ -691,6 +694,219 @@ public class WorkflowController : ControllerBase
     }
 
     /// <summary>
+    /// Get comprehensive workflow configuration for frontend
+    /// </summary>
+    [HttpGet("config")]
+    public async Task<IActionResult> GetWorkflowConfig()
+    {
+        var categories = await _context.WorkflowDefinitions
+            .Where(w => !w.IsDeleted && w.Category != null)
+            .Select(w => w.Category)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync();
+
+        // Get roles from the UserRole enum
+        var roles = Enum.GetValues<CRM.Core.Entities.UserRole>()
+            .Select(r => new ConfigOption { Value = r.ToString(), Label = GetRoleLabel(r) })
+            .ToList();
+
+        var config = new WorkflowConfigResponse
+        {
+            EntityTypes = GetEntityTypesInternal(),
+            NodeTypes = GetNodeTypesInternal(),
+            ActionTypes = GetActionTypesInternal(),
+            TriggerTypes = GetTriggerTypesInternal(),
+            ConditionOperators = GetConditionOperatorsInternal(),
+            StatusOptions = GetStatusOptionsInternal(),
+            LLMProviders = _llmService.GetAvailableProviders(),
+            LLMModels = _llmService.GetAvailableModels(),
+            Roles = roles,
+            Categories = categories.Where(c => c != null).Select(c => c!).ToList(),
+            IconOptions = GetIconOptionsInternal(),
+            ColorOptions = GetColorOptionsInternal(),
+            FallbackActions = GetFallbackActionsInternal(),
+            EventTypes = GetEventTypesInternal()
+        };
+
+        return Ok(config);
+    }
+
+    private static string GetRoleLabel(CRM.Core.Entities.UserRole role) => role switch
+    {
+        CRM.Core.Entities.UserRole.Admin => "Administrator",
+        CRM.Core.Entities.UserRole.Manager => "Manager",
+        CRM.Core.Entities.UserRole.Sales => "Sales Representative",
+        CRM.Core.Entities.UserRole.Support => "Support Agent",
+        CRM.Core.Entities.UserRole.Guest => "Guest",
+        _ => role.ToString()
+    };
+
+    private List<ConfigOption> GetEntityTypesInternal() => new()
+    {
+        new() { Value = "Customer", Label = "Customer" },
+        new() { Value = "Lead", Label = "Lead" },
+        new() { Value = "Contact", Label = "Contact" },
+        new() { Value = "Opportunity", Label = "Opportunity" },
+        new() { Value = "Account", Label = "Account" },
+        new() { Value = "ServiceRequest", Label = "Service Request" },
+        new() { Value = "Quote", Label = "Quote" },
+        new() { Value = "Campaign", Label = "Campaign" }
+    };
+
+    private List<NodeTypeConfig> GetNodeTypesInternal() => Enum.GetValues<WorkflowNodeType>()
+        .Select(t => new NodeTypeConfig
+        {
+            Value = t.ToString(),
+            Label = GetNodeTypeLabel(t),
+            Icon = GetDefaultIconForNodeType(t),
+            Color = GetDefaultColorForNodeType(t),
+            Description = GetNodeTypeDescription(t)
+        }).ToList();
+
+    private List<ActionTypeConfig> GetActionTypesInternal() => new()
+    {
+        new() { Value = "log", Label = "Log Message", Category = "Debug", Icon = "Message" },
+        new() { Value = "updateEntity", Label = "Update Entity", Category = "Data", Icon = "Edit" },
+        new() { Value = "createEntity", Label = "Create Entity", Category = "Data", Icon = "Add" },
+        new() { Value = "deleteEntity", Label = "Delete Entity", Category = "Data", Icon = "Delete" },
+        new() { Value = "sendEmail", Label = "Send Email", Category = "Communication", Icon = "Email" },
+        new() { Value = "sendNotification", Label = "Send Notification", Category = "Communication", Icon = "Notifications" },
+        new() { Value = "sendSMS", Label = "Send SMS", Category = "Communication", Icon = "Sms" },
+        new() { Value = "webhook", Label = "Call Webhook", Category = "Integration", Icon = "Http" },
+        new() { Value = "calculateField", Label = "Calculate Field", Category = "Data", Icon = "Calculate" },
+        new() { Value = "assignUser", Label = "Assign User", Category = "Assignment", Icon = "PersonAdd" },
+        new() { Value = "assignTeam", Label = "Assign to Team", Category = "Assignment", Icon = "Group" },
+        new() { Value = "addToCampaign", Label = "Add to Campaign", Category = "Marketing", Icon = "Campaign" },
+        new() { Value = "removeFromCampaign", Label = "Remove from Campaign", Category = "Marketing", Icon = "RemoveCircle" },
+        new() { Value = "validateEntity", Label = "Validate Entity", Category = "Validation", Icon = "CheckCircle" },
+        new() { Value = "createTask", Label = "Create Task", Category = "Tasks", Icon = "Task" },
+        new() { Value = "createServiceRequest", Label = "Create Service Request", Category = "Service", Icon = "Support" },
+        new() { Value = "escalate", Label = "Escalate", Category = "Service", Icon = "PriorityHigh" },
+        new() { Value = "convertLead", Label = "Convert Lead", Category = "Sales", Icon = "Transform" },
+        new() { Value = "createQuote", Label = "Create Quote", Category = "Sales", Icon = "RequestQuote" },
+        new() { Value = "approvalRequest", Label = "Request Approval", Category = "Approval", Icon = "Approval" },
+        new() { Value = "scheduleFollowUp", Label = "Schedule Follow-Up", Category = "Tasks", Icon = "EventRepeat" },
+        new() { Value = "runScript", Label = "Run Custom Script", Category = "Advanced", Icon = "Code" },
+        new() { Value = "callLLM", Label = "AI/LLM Action", Category = "AI", Icon = "Psychology" }
+    };
+
+    private List<TriggerTypeConfig> GetTriggerTypesInternal() => new()
+    {
+        new() { Value = "onCreate", Label = "On Create", Description = "Triggered when an entity is created", Icon = "Add" },
+        new() { Value = "onUpdate", Label = "On Update", Description = "Triggered when an entity is updated", Icon = "Edit" },
+        new() { Value = "onDelete", Label = "On Delete", Description = "Triggered when an entity is deleted", Icon = "Delete" },
+        new() { Value = "onFieldChange", Label = "On Field Change", Description = "Triggered when specific field changes", Icon = "SwapHoriz" },
+        new() { Value = "onStatusChange", Label = "On Status Change", Description = "Triggered when status changes", Icon = "ChangeCircle" },
+        new() { Value = "onSchedule", Label = "Scheduled", Description = "Triggered on a schedule (cron)", Icon = "Schedule" },
+        new() { Value = "onManual", Label = "Manual", Description = "Triggered manually by user", Icon = "TouchApp" },
+        new() { Value = "onWebhook", Label = "On Webhook", Description = "Triggered by external webhook", Icon = "Http" },
+        new() { Value = "onApproval", Label = "On Approval", Description = "Triggered when approval is granted", Icon = "Approval" },
+        new() { Value = "onRejection", Label = "On Rejection", Description = "Triggered when request is rejected", Icon = "Cancel" },
+        new() { Value = "onEscalation", Label = "On Escalation", Description = "Triggered when escalation occurs", Icon = "PriorityHigh" },
+        new() { Value = "onAssignment", Label = "On Assignment", Description = "Triggered when entity is assigned", Icon = "PersonAdd" }
+    };
+
+    private List<OperatorConfig> GetConditionOperatorsInternal() => new()
+    {
+        new() { Value = "equals", Label = "equals", AppliesTo = new[] { "string", "number", "boolean", "date" } },
+        new() { Value = "notEquals", Label = "does not equal", AppliesTo = new[] { "string", "number", "boolean", "date" } },
+        new() { Value = "contains", Label = "contains", AppliesTo = new[] { "string" } },
+        new() { Value = "notContains", Label = "does not contain", AppliesTo = new[] { "string" } },
+        new() { Value = "startsWith", Label = "starts with", AppliesTo = new[] { "string" } },
+        new() { Value = "endsWith", Label = "ends with", AppliesTo = new[] { "string" } },
+        new() { Value = "greaterThan", Label = "is greater than", AppliesTo = new[] { "number", "date" } },
+        new() { Value = "lessThan", Label = "is less than", AppliesTo = new[] { "number", "date" } },
+        new() { Value = "greaterThanOrEqual", Label = "is greater than or equal", AppliesTo = new[] { "number", "date" } },
+        new() { Value = "lessThanOrEqual", Label = "is less than or equal", AppliesTo = new[] { "number", "date" } },
+        new() { Value = "isNull", Label = "is empty", AppliesTo = new[] { "string", "number", "date" } },
+        new() { Value = "isNotNull", Label = "is not empty", AppliesTo = new[] { "string", "number", "date" } },
+        new() { Value = "in", Label = "is in list", AppliesTo = new[] { "string", "number" } },
+        new() { Value = "notIn", Label = "is not in list", AppliesTo = new[] { "string", "number" } },
+        new() { Value = "between", Label = "is between", AppliesTo = new[] { "number", "date" } },
+        new() { Value = "regex", Label = "matches pattern", AppliesTo = new[] { "string" } }
+    };
+
+    private List<StatusConfig> GetStatusOptionsInternal() => new()
+    {
+        new() { Value = "Draft", Label = "Draft", Color = "#9E9E9E", BgColor = "#F5F5F5", Icon = "Edit" },
+        new() { Value = "Active", Label = "Active", Color = "#4CAF50", BgColor = "#E8F5E9", Icon = "PlayCircle" },
+        new() { Value = "Paused", Label = "Paused", Color = "#FF9800", BgColor = "#FFF3E0", Icon = "Pause" },
+        new() { Value = "Archived", Label = "Archived", Color = "#607D8B", BgColor = "#ECEFF1", Icon = "Archive" },
+        new() { Value = "Pending", Label = "Pending", Color = "#2196F3", BgColor = "#E3F2FD", Icon = "Schedule" },
+        new() { Value = "Running", Label = "Running", Color = "#4CAF50", BgColor = "#E8F5E9", Icon = "DirectionsRun" },
+        new() { Value = "Completed", Label = "Completed", Color = "#4CAF50", BgColor = "#E8F5E9", Icon = "CheckCircle" },
+        new() { Value = "Failed", Label = "Failed", Color = "#F44336", BgColor = "#FFEBEE", Icon = "Error" },
+        new() { Value = "Cancelled", Label = "Cancelled", Color = "#9E9E9E", BgColor = "#F5F5F5", Icon = "Cancel" },
+        new() { Value = "Suspended", Label = "Suspended", Color = "#FF9800", BgColor = "#FFF3E0", Icon = "PauseCircle" }
+    };
+
+    private List<string> GetIconOptionsInternal() => new()
+    {
+        "AccountTree", "Timeline", "CallSplit", "CompareArrows", "DeviceHub",
+        "Schema", "Hub", "Shuffle", "Route", "AltRoute", "LinearScale", 
+        "Workspaces", "Category", "Settings", "AutoAwesome", "PlayCircle",
+        "StopCircle", "FlashOn", "Person", "Schedule", "Psychology",
+        "Email", "Notifications", "Http", "Calculate", "Add", "Edit", "Delete"
+    };
+
+    private List<string> GetColorOptionsInternal() => new()
+    {
+        "#6750A4", "#4CAF50", "#2196F3", "#FF9800", "#9C27B0", "#F44336",
+        "#00BCD4", "#795548", "#607D8B", "#E91E63", "#3F51B5", "#009688",
+        "#673AB7", "#8BC34A", "#03A9F4", "#FFC107", "#FF5722", "#CDDC39"
+    };
+
+    private List<ConfigOption> GetFallbackActionsInternal() => new()
+    {
+        new() { Value = "none", Label = "None - Stop Workflow" },
+        new() { Value = "continue", Label = "Continue - Skip Failed Step" },
+        new() { Value = "retry", Label = "Retry - Retry Failed Step" },
+        new() { Value = "goto", Label = "Goto - Jump to Specific Node" },
+        new() { Value = "default", Label = "Default - Use Default Value" },
+        new() { Value = "manual", Label = "Manual - Require Human Review" }
+    };
+
+    private List<EventTypeConfig> GetEventTypesInternal() => new()
+    {
+        new() { Value = "WorkflowCreated", Label = "Created", Color = "success", Category = "Lifecycle" },
+        new() { Value = "WorkflowUpdated", Label = "Updated", Color = "info", Category = "Lifecycle" },
+        new() { Value = "WorkflowPublished", Label = "Published", Color = "success", Category = "Lifecycle" },
+        new() { Value = "WorkflowActivated", Label = "Activated", Color = "success", Category = "Lifecycle" },
+        new() { Value = "WorkflowPaused", Label = "Paused", Color = "warning", Category = "Lifecycle" },
+        new() { Value = "WorkflowArchived", Label = "Archived", Color = "default", Category = "Lifecycle" },
+        new() { Value = "NodeAdded", Label = "Node Added", Color = "info", Category = "Design" },
+        new() { Value = "NodeUpdated", Label = "Node Updated", Color = "info", Category = "Design" },
+        new() { Value = "NodeRemoved", Label = "Node Removed", Color = "warning", Category = "Design" },
+        new() { Value = "TransitionAdded", Label = "Transition Added", Color = "info", Category = "Design" },
+        new() { Value = "TransitionRemoved", Label = "Transition Removed", Color = "warning", Category = "Design" },
+        new() { Value = "InstanceStarted", Label = "Instance Started", Color = "info", Category = "Execution" },
+        new() { Value = "InstanceCompleted", Label = "Instance Completed", Color = "success", Category = "Execution" },
+        new() { Value = "InstanceFailed", Label = "Instance Failed", Color = "error", Category = "Execution" },
+        new() { Value = "StepExecuted", Label = "Step Executed", Color = "info", Category = "Execution" },
+        new() { Value = "StepFailed", Label = "Step Failed", Color = "error", Category = "Execution" },
+        new() { Value = "VersionCreated", Label = "Version Created", Color = "info", Category = "Versioning" },
+        new() { Value = "VersionRolledBack", Label = "Version Rolled Back", Color = "warning", Category = "Versioning" },
+        new() { Value = "PermissionChanged", Label = "Permission Changed", Color = "warning", Category = "Security" },
+        new() { Value = "ConfigurationChanged", Label = "Configuration Changed", Color = "info", Category = "Configuration" }
+    };
+
+    private string GetNodeTypeDescription(WorkflowNodeType nodeType) => nodeType switch
+    {
+        WorkflowNodeType.Trigger => "Start the workflow based on an event or condition",
+        WorkflowNodeType.Condition => "Branch the workflow based on conditions",
+        WorkflowNodeType.Action => "Perform an automated action",
+        WorkflowNodeType.HumanTask => "Require human intervention or approval",
+        WorkflowNodeType.Wait => "Wait for a specified time or event",
+        WorkflowNodeType.ParallelGateway => "Split into parallel execution paths",
+        WorkflowNodeType.JoinGateway => "Wait for parallel paths to complete",
+        WorkflowNodeType.Subprocess => "Execute another workflow as a step",
+        WorkflowNodeType.LLMAction => "Execute an AI/LLM powered action",
+        WorkflowNodeType.End => "End the workflow",
+        _ => ""
+    };
+
+    /// <summary>
     /// Get available entity types
     /// </summary>
     [HttpGet("entity-types")]
@@ -1022,6 +1238,70 @@ public class UpdateTransitionDto
     public string? LineStyle { get; set; }
     public string? Color { get; set; }
     public string? AnimationStyle { get; set; }
+}
+
+/// <summary>
+/// Comprehensive workflow configuration response
+/// </summary>
+public class WorkflowConfigResponse
+{
+    public List<ConfigOption> EntityTypes { get; set; } = new();
+    public List<NodeTypeConfig> NodeTypes { get; set; } = new();
+    public List<ActionTypeConfig> ActionTypes { get; set; } = new();
+    public List<TriggerTypeConfig> TriggerTypes { get; set; } = new();
+    public List<OperatorConfig> ConditionOperators { get; set; } = new();
+    public List<StatusConfig> StatusOptions { get; set; } = new();
+    public List<LLMProviderInfo> LLMProviders { get; set; } = new();
+    public List<LLMModelInfo> LLMModels { get; set; } = new();
+    public List<ConfigOption> Roles { get; set; } = new();
+    public List<string> Categories { get; set; } = new();
+    public List<string> IconOptions { get; set; } = new();
+    public List<string> ColorOptions { get; set; } = new();
+    public List<ConfigOption> FallbackActions { get; set; } = new();
+    public List<EventTypeConfig> EventTypes { get; set; } = new();
+}
+
+public class ConfigOption
+{
+    public string Value { get; set; } = "";
+    public string Label { get; set; } = "";
+}
+
+public class NodeTypeConfig : ConfigOption
+{
+    public string Icon { get; set; } = "";
+    public string Color { get; set; } = "";
+    public string Description { get; set; } = "";
+}
+
+public class ActionTypeConfig : ConfigOption
+{
+    public string Category { get; set; } = "";
+    public string Icon { get; set; } = "";
+}
+
+public class TriggerTypeConfig : ConfigOption
+{
+    public string Description { get; set; } = "";
+    public string Icon { get; set; } = "";
+}
+
+public class OperatorConfig : ConfigOption
+{
+    public string[] AppliesTo { get; set; } = Array.Empty<string>();
+}
+
+public class StatusConfig : ConfigOption
+{
+    public string Color { get; set; } = "";
+    public string BgColor { get; set; } = "";
+    public string Icon { get; set; } = "";
+}
+
+public class EventTypeConfig : ConfigOption
+{
+    public string Color { get; set; } = "";
+    public string Category { get; set; } = "";
 }
 
 #endregion

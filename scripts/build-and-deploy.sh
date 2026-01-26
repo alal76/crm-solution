@@ -186,19 +186,73 @@ build_images() {
         docker build -f docker/Dockerfile.backend -t crm-backend:${API_BUILD_TAG} .
         
         echo "=== Building Frontend (${FRONTEND_BUILD_TAG}) ==="
-        docker build -f Dockerfile.frontend -t crm-frontend:${FRONTEND_BUILD_TAG} \
+        docker build -f docker/Dockerfile.frontend -t crm-frontend:${FRONTEND_BUILD_TAG} \
             --build-arg REACT_APP_VERSION=${APP_VERSION} \
             --build-arg REACT_APP_BUILD_DATE=$(date +%Y-%m-%d) .
         
-        echo "=== Loading images to Minikube ==="
-        minikube image load crm-backend:${API_BUILD_TAG}
-        minikube image load crm-frontend:${FRONTEND_BUILD_TAG}
+        echo "=== Images built successfully ==="
+        docker images | grep -E "crm-(backend|frontend):${API_BUILD_TAG}|crm-(backend|frontend):${FRONTEND_BUILD_TAG}" || true
 BUILD_SCRIPT
     
-    log_success "Docker images built and loaded"
+    log_success "Docker images built"
 }
 
-# Deploy to Kubernetes
+# Deploy using Docker Compose
+deploy_docker_compose() {
+    log_step "Deploying with Docker Compose on ${BUILD_HOST}..."
+    
+    ssh ${BUILD_USER}@${BUILD_HOST} << 'DEPLOY_SCRIPT'
+        set -e
+        cd /opt/crm/source
+        
+        echo "=== Stopping existing containers ==="
+        docker stop crm-api crm-frontend 2>/dev/null || true
+        docker rm crm-api crm-frontend 2>/dev/null || true
+        
+        echo "=== Starting API container ==="
+        docker run -d --name crm-api \
+            --restart unless-stopped \
+            --network crm-database-network \
+            -p 5000:5000 \
+            -v /opt/crm/data:/app/data \
+            -v /opt/crm/ssl:/app/ssl:ro \
+            -e ASPNETCORE_ENVIRONMENT=Production \
+            -e "ASPNETCORE_URLS=http://+:5000" \
+            -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024!;" \
+            -e "Jwt__Secret=CrmSuperSecretKey2024ForJwtTokenGenerationMinimum32Chars" \
+            -e "Jwt__Issuer=CrmApi" \
+            -e "Jwt__Audience=CrmClient" \
+            -e "Jwt__ExpirationMinutes=1440" \
+            -e "Cors__AllowedOrigins=http://192.168.0.9,http://localhost:3000,http://localhost" \
+            -e "AllowedHosts=*" \
+            --health-cmd="curl -f http://localhost:5000/api/health || exit 1" \
+            --health-interval=30s \
+            --health-timeout=10s \
+            --health-retries=3 \
+            crm-backend:v2
+        
+        echo "=== Starting Frontend container ==="
+        docker run -d --name crm-frontend \
+            --restart unless-stopped \
+            --network crm-database-network \
+            -p 80:80 \
+            --health-cmd="curl -f http://localhost/ || exit 1" \
+            --health-interval=30s \
+            --health-timeout=10s \
+            --health-retries=3 \
+            crm-frontend:v2
+        
+        echo "=== Waiting for containers to be healthy ==="
+        sleep 5
+        
+        echo "=== Container Status ==="
+        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "crm-api|crm-frontend|NAMES"
+DEPLOY_SCRIPT
+    
+    log_success "Docker Compose deployment complete"
+}
+
+# Deploy to Kubernetes (if available)
 deploy_kubernetes() {
     log_step "Deploying to Kubernetes on ${BUILD_HOST}..."
     
@@ -271,16 +325,20 @@ verify_deployment() {
     log_step "Verifying deployment..."
     
     ssh ${BUILD_USER}@${BUILD_HOST} << VERIFY
-        echo "=== Pod Status ==="
-        kubectl get pods -n ${KUBE_NAMESPACE}
-        
-        echo ""
-        echo "=== Service Status ==="
-        kubectl get svc -n ${KUBE_NAMESPACE}
+        echo "=== Container Status ==="
+        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "crm-|NAMES"
         
         echo ""
         echo "=== Health Check ==="
-        kubectl exec deployment/crm-api -n ${KUBE_NAMESPACE} -- curl -s http://localhost:5000/health || echo "Health check pending..."
+        sleep 3
+        curl -s http://localhost:5000/api/health 2>/dev/null && echo "" || echo "API health check pending..."
+        curl -s -o /dev/null -w "Frontend: HTTP %{http_code}\n" http://localhost/ 2>/dev/null || echo "Frontend check pending..."
+        
+        echo ""
+        echo "=== Access URLs ==="
+        echo "  API:      http://192.168.0.9:5000"
+        echo "  Frontend: http://192.168.0.9"
+        echo "  Adminer:  http://192.168.0.9:8080"
 VERIFY
     
     log_success "Deployment verification complete"
@@ -305,9 +363,9 @@ main() {
     
     sync_source
     build_images
-    deploy_kubernetes
-    run_migrations
-    reset_ui_settings
+    deploy_docker_compose
+    # run_migrations  # Disabled - migrations handled separately
+    # reset_ui_settings  # Disabled - not needed for Docker Compose
     verify_deployment
     
     echo ""

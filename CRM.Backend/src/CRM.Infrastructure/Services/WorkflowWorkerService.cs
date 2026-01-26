@@ -812,36 +812,172 @@ public class WorkflowWorkerService : BackgroundService
             return new TaskResult { Success = false, ErrorMessage = "LLM actions are disabled" };
         }
 
-        var config = new Dictionary<string, object>();
+        var config = new LLMActionConfig();
         if (!string.IsNullOrEmpty(task.InputData))
         {
             try
             {
-                config = JsonSerializer.Deserialize<Dictionary<string, object>>(task.InputData) ?? new Dictionary<string, object>();
+                config = JsonSerializer.Deserialize<LLMActionConfig>(task.InputData, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? new LLMActionConfig();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse LLM action config, using defaults");
+            }
         }
 
-        var prompt = config.GetValueOrDefault("prompt")?.ToString();
-        var model = config.GetValueOrDefault("model")?.ToString() ?? "gpt-4";
-
-        // In production, this would call OpenAI/Claude/etc.
-        _logger.LogInformation("Would execute LLM action with model {Model} and prompt: {Prompt}", 
-            model, prompt?[..Math.Min(50, prompt?.Length ?? 0)]);
-
-        // Simulated response
-        await Task.Delay(500, ct);
-
-        return new TaskResult
+        // Validate required fields
+        if (string.IsNullOrWhiteSpace(config.Prompt))
         {
-            Success = true,
-            ResultData = JsonSerializer.Serialize(new
+            return new TaskResult { Success = false, ErrorMessage = "LLM prompt is required" };
+        }
+
+        _logger.LogInformation("Executing LLM action with provider {Provider}, model {Model}", 
+            config.Provider, config.Model);
+
+        try
+        {
+            // Get LLM service from DI
+            using var scope = _serviceProvider.CreateScope();
+            var llmService = scope.ServiceProvider.GetService<ILLMService>();
+            var resilienceService = scope.ServiceProvider.GetService<IResilienceService>();
+
+            if (llmService == null)
             {
-                llmResponse = "Simulated LLM response",
-                model,
-                tokensUsed = 100
-            })
-        };
+                // Fall back to simulated response if LLM service not registered
+                _logger.LogWarning("LLM service not registered, using simulated response");
+                return new TaskResult
+                {
+                    Success = true,
+                    ResultData = JsonSerializer.Serialize(new
+                    {
+                        llmResponse = "Simulated LLM response (service not configured)",
+                        model = config.Model,
+                        tokensUsed = 0,
+                        simulated = true
+                    })
+                };
+            }
+
+            // Build the request
+            var llmRequest = new LLMRequest
+            {
+                Provider = config.Provider,
+                Model = config.Model,
+                Prompt = config.Prompt,
+                SystemPrompt = config.SystemPrompt,
+                Temperature = config.Temperature,
+                MaxTokens = config.MaxTokens,
+                JsonMode = config.JsonMode,
+                Variables = config.Variables
+            };
+
+            // Execute with resilience (circuit breaker + retry)
+            LLMResponse response;
+            if (resilienceService != null)
+            {
+                response = await resilienceService.ExecuteWithFallbackAsync(
+                    $"llm-{config.Provider}",
+                    async (innerCt) => await llmService.ChatAsync(llmRequest, innerCt),
+                    (ex) => new LLMResponse 
+                    { 
+                        Success = false, 
+                        Error = ex.Message 
+                    },
+                    ct);
+            }
+            else
+            {
+                response = await llmService.ChatAsync(llmRequest, ct);
+            }
+
+            if (!response.Success)
+            {
+                // Check if we should use fallback action
+                if (!string.IsNullOrEmpty(config.FallbackAction))
+                {
+                    _logger.LogWarning("LLM call failed, executing fallback action: {FallbackAction}", config.FallbackAction);
+                    return new TaskResult
+                    {
+                        Success = true,
+                        ResultData = JsonSerializer.Serialize(new
+                        {
+                            fallback = true,
+                            fallbackAction = config.FallbackAction,
+                            originalError = response.Error
+                        })
+                    };
+                }
+
+                return new TaskResult 
+                { 
+                    Success = false, 
+                    ErrorMessage = response.Error ?? "LLM call failed" 
+                };
+            }
+
+            return new TaskResult
+            {
+                Success = true,
+                ResultData = JsonSerializer.Serialize(new
+                {
+                    llmResponse = response.Content,
+                    parsedJson = response.ParsedJson,
+                    model = response.Model,
+                    provider = response.Provider,
+                    promptTokens = response.PromptTokens,
+                    completionTokens = response.CompletionTokens,
+                    totalTokens = response.TotalTokens,
+                    durationMs = response.DurationMs
+                })
+            };
+        }
+        catch (ServiceUnavailableException ex)
+        {
+            _logger.LogError(ex, "LLM service unavailable (circuit open)");
+            
+            if (!string.IsNullOrEmpty(config.FallbackAction))
+            {
+                return new TaskResult
+                {
+                    Success = true,
+                    ResultData = JsonSerializer.Serialize(new
+                    {
+                        fallback = true,
+                        fallbackAction = config.FallbackAction,
+                        reason = "service_unavailable"
+                    })
+                };
+            }
+
+            return new TaskResult { Success = false, ErrorMessage = ex.Message };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing LLM action");
+            return new TaskResult { Success = false, ErrorMessage = ex.Message };
+        }
+    }
+
+    /// <summary>
+    /// Configuration for LLM action nodes
+    /// </summary>
+    public class LLMActionConfig
+    {
+        public string Provider { get; set; } = "openai";
+        public string Model { get; set; } = "gpt-4";
+        public string Prompt { get; set; } = "";
+        public string? SystemPrompt { get; set; }
+        public double Temperature { get; set; } = 0.7;
+        public int MaxTokens { get; set; } = 1000;
+        public bool JsonMode { get; set; }
+        public string? JsonSchema { get; set; }
+        public Dictionary<string, object>? Variables { get; set; }
+        public int TimeoutSeconds { get; set; } = 60;
+        public string? FallbackAction { get; set; }
+        public string? OutputVariableName { get; set; } = "llmResult";
     }
 
     private Task<TaskResult> ExecuteNotificationAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)

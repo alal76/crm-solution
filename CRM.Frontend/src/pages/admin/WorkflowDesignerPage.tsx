@@ -67,7 +67,15 @@ import {
   AccountTree as SubprocessIcon,
   GridOn as GridIcon,
   CheckCircle as CheckIcon,
+  Science as SimulatorIcon,
+  History as VersionIcon,
 } from '@mui/icons-material';
+import {
+  RuleBuilder,
+  WorkflowSimulator,
+  VersionDiffViewer,
+  EnhancedPropertiesPanel,
+} from '../../components/workflow';
 import {
   workflowService,
   WorkflowDefinitionDetail,
@@ -86,6 +94,39 @@ const PROPERTIES_WIDTH = 320;
 const GRID_SIZE = 20;
 const DEFAULT_NODE_WIDTH = 180;
 const DEFAULT_NODE_HEIGHT = 72;
+
+// Icon mapping for node types (icons must be local React components)
+const nodeTypeIcons: Record<string, React.ComponentType> = {
+  Trigger: TriggerIcon,
+  Condition: ConditionIcon,
+  Action: ActionIcon,
+  HumanTask: HumanTaskIcon,
+  Wait: WaitIcon,
+  LLMAction: LLMIcon,
+  ParallelGateway: ParallelIcon,
+  JoinGateway: JoinIcon,
+  Subprocess: SubprocessIcon,
+  End: EndIcon,
+};
+
+// Default node type list (will be enhanced from backend config when available)
+const defaultNodeTypeList = [
+  { type: 'Trigger', label: 'Trigger', description: 'Start the workflow' },
+  { type: 'Condition', label: 'Condition', description: 'Branch based on rules' },
+  { type: 'Action', label: 'Action', description: 'Perform automated action' },
+  { type: 'HumanTask', label: 'Human Task', description: 'Require user input' },
+  { type: 'Wait', label: 'Wait/Timer', description: 'Delay execution' },
+  { type: 'LLMAction', label: 'AI/LLM Action', description: 'AI-powered processing' },
+  { type: 'ParallelGateway', label: 'Parallel Split', description: 'Split into parallel paths' },
+  { type: 'JoinGateway', label: 'Parallel Join', description: 'Merge parallel paths' },
+  { type: 'Subprocess', label: 'Subprocess', description: 'Call another workflow' },
+  { type: 'End', label: 'End', description: 'End the workflow' },
+];
+
+// Helper to get icon component for a node type
+const getNodeTypeIcon = (type: string): React.ComponentType<{ fontSize?: 'small' | 'medium' | 'large' | 'inherit' }> => {
+  return nodeTypeIcons[type] || ActionIcon;
+};
 
 interface CanvasNode extends WorkflowNode {
   selected?: boolean;
@@ -112,23 +153,31 @@ interface ConnectState {
   tempY?: number;
 }
 
-const nodeTypeList = [
-  { type: 'Trigger', icon: TriggerIcon, label: 'Trigger', description: 'Start the workflow' },
-  { type: 'Condition', icon: ConditionIcon, label: 'Condition', description: 'Branch based on rules' },
-  { type: 'Action', icon: ActionIcon, label: 'Action', description: 'Perform automated action' },
-  { type: 'HumanTask', icon: HumanTaskIcon, label: 'Human Task', description: 'Require user input' },
-  { type: 'Wait', icon: WaitIcon, label: 'Wait/Timer', description: 'Delay execution' },
-  { type: 'LLMAction', icon: LLMIcon, label: 'AI/LLM Action', description: 'AI-powered processing' },
-  { type: 'ParallelGateway', icon: ParallelIcon, label: 'Parallel Split', description: 'Split into parallel paths' },
-  { type: 'JoinGateway', icon: JoinIcon, label: 'Parallel Join', description: 'Merge parallel paths' },
-  { type: 'Subprocess', icon: SubprocessIcon, label: 'Subprocess', description: 'Call another workflow' },
-  { type: 'End', icon: EndIcon, label: 'End', description: 'End the workflow' },
-];
-
 function WorkflowDesignerPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Node type list - can be overridden by backend config
+  const [nodeTypeList, setNodeTypeList] = useState(
+    defaultNodeTypeList.map(n => ({ ...n, icon: getNodeTypeIcon(n.type) }))
+  );
+
+  // Load config from backend
+  useEffect(() => {
+    workflowService.getConfig().then(config => {
+      if (config.nodeTypes?.length) {
+        setNodeTypeList(config.nodeTypes.map(nt => ({
+          type: nt.value,
+          label: nt.label,
+          description: nt.description || '',
+          icon: getNodeTypeIcon(nt.value),
+        })));
+      }
+    }).catch(() => {
+      // Use defaults on error
+    });
+  }, []);
 
   // State
   const [workflow, setWorkflow] = useState<WorkflowDefinitionDetail | null>(null);
@@ -163,6 +212,8 @@ function WorkflowDesignerPage() {
   // UI state
   const [propertiesOpen, setPropertiesOpen] = useState(false);
   const [paletteExpanded, setPaletteExpanded] = useState<string | false>('nodes');
+  const [simulatorOpen, setSimulatorOpen] = useState(false);
+  const [versionDiffOpen, setVersionDiffOpen] = useState(false);
 
   // Load workflow data
   const loadWorkflow = useCallback(async () => {
@@ -713,6 +764,24 @@ function WorkflowDesignerPage() {
               <GridIcon />
             </IconButton>
           </Tooltip>
+          <Tooltip title="Test Workflow">
+            <IconButton
+              size="small"
+              onClick={() => setSimulatorOpen(true)}
+              color="default"
+            >
+              <SimulatorIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Version History">
+            <IconButton
+              size="small"
+              onClick={() => setVersionDiffOpen(true)}
+              color="default"
+            >
+              <VersionIcon />
+            </IconButton>
+          </Tooltip>
           <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
           {saving && <CircularProgress size={24} />}
         </Paper>
@@ -1071,6 +1140,38 @@ function WorkflowDesignerPage() {
           )}
         </Box>
       </Drawer>
+
+      {/* Workflow Simulator Dialog */}
+      {workflow && (
+        <WorkflowSimulator
+          open={simulatorOpen}
+          onClose={() => setSimulatorOpen(false)}
+          workflowId={workflow.id}
+          workflowName={workflow.name}
+          entityType={workflow.entityType}
+          nodes={nodes}
+          transitions={transitions}
+        />
+      )}
+
+      {/* Version Diff Viewer Dialog */}
+      {workflow && workflow.versions.length > 0 && (
+        <VersionDiffViewer
+          open={versionDiffOpen}
+          onClose={() => setVersionDiffOpen(false)}
+          versions={workflow.versions.map(v => ({
+            id: v.id,
+            versionNumber: v.versionNumber,
+            label: `v${v.versionNumber}`,
+            status: v.status,
+            createdAt: v.createdAt,
+          }))}
+          loadVersion={async (versionId: number) => {
+            const versionData = await workflowService.getVersion(versionId);
+            return versionData;
+          }}
+        />
+      )}
     </Box>
   );
 }

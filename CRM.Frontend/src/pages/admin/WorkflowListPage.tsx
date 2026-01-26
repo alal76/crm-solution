@@ -104,6 +104,8 @@ function WorkflowListPage() {
   const [statistics, setStatistics] = useState<WorkflowStatistics | null>(null);
   const [entityTypes, setEntityTypes] = useState<EntityTypeOption[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [iconList, setIconList] = useState<string[]>(iconOptions);
+  const [colorList, setColorList] = useState<string[]>(colorOptions);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -139,7 +141,7 @@ function WorkflowListPage() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [workflowsData, statsData, entityTypesData, categoriesData] = await Promise.all([
+      const [workflowsData, statsData, configData] = await Promise.all([
         workflowService.getWorkflows({
           search: searchTerm || undefined,
           status: statusFilter || undefined,
@@ -147,13 +149,14 @@ function WorkflowListPage() {
           category: categoryFilter || undefined,
         }),
         workflowService.getStatistics(),
-        workflowService.getEntityTypes(),
-        workflowService.getCategories(),
+        workflowService.getConfig(),
       ]);
       setWorkflows(workflowsData);
       setStatistics(statsData);
-      setEntityTypes(entityTypesData);
-      setCategories(categoriesData);
+      setEntityTypes(configData.entityTypes);
+      setCategories(configData.categories);
+      if (configData.iconOptions?.length) setIconList(configData.iconOptions);
+      if (configData.colorOptions?.length) setColorList(configData.colorOptions);
       setError('');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load workflows');
@@ -766,7 +769,7 @@ function WorkflowListPage() {
                   onChange={(e) => setFormData({ ...formData, iconName: e.target.value })}
                   label="Icon"
                 >
-                  {iconOptions.map((icon) => (
+                  {iconList.map((icon) => (
                     <MenuItem key={icon} value={icon}>
                       {icon}
                     </MenuItem>
@@ -779,7 +782,7 @@ function WorkflowListPage() {
                 Color
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {colorOptions.map((color) => (
+                {colorList.map((color) => (
                   <Box
                     key={color}
                     onClick={() => setFormData({ ...formData, color })}

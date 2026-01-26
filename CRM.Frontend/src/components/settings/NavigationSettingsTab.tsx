@@ -77,7 +77,24 @@ import {
   Palette as PaletteIcon,
   ViewModule as ModuleIcon,
   Menu as MenuIcon,
+  // Admin subcategory icons
+  AdminPanelSettings as SystemAdminIcon,
+  ManageAccounts as UserAdminIcon,
+  Store as CRMAdminIcon,
+  Build as ServiceReqIcon,
+  Navigation as NavAdminIcon,
+  ViewQuilt as ModulesIcon,
+  DashboardCustomize as DashboardAdminIcon,
+  Podcasts as ChannelAdminIcon,
+  FolderSpecial as SubcategoryIcon,
 } from '@mui/icons-material';
+
+interface AdminSubcategory {
+  id: string;
+  label: string;
+  icon: string;
+  order: number;
+}
 
 interface NavCategory {
   id: string;
@@ -94,6 +111,7 @@ interface NavItem {
   visible: boolean;
   isAdmin: boolean;
   category: string;
+  adminSubcategory?: string; // For admin items, which subcategory they belong to
   customLabel?: string; // User-defined custom label
 }
 
@@ -104,6 +122,18 @@ const DEFAULT_CATEGORIES = [
   { id: 'support', label: 'Customer Support', order: 2 },
   { id: 'productivity', label: 'Productivity', order: 3 },
   { id: 'admin', label: 'Administration', order: 4 },
+];
+
+// Default admin subcategories
+const DEFAULT_ADMIN_SUBCATEGORIES: AdminSubcategory[] = [
+  { id: 'admin-system', label: 'System Settings', icon: 'SystemAdminIcon', order: 0 },
+  { id: 'admin-users', label: 'User & Group Settings', icon: 'UserAdminIcon', order: 1 },
+  { id: 'admin-crm', label: 'CRM Settings', icon: 'CRMAdminIcon', order: 2 },
+  { id: 'admin-service', label: 'Service Request Setup', icon: 'ServiceReqIcon', order: 3 },
+  { id: 'admin-navigation', label: 'Navigation', icon: 'NavAdminIcon', order: 4 },
+  { id: 'admin-modules', label: 'Modules & Fields', icon: 'ModulesIcon', order: 5 },
+  { id: 'admin-workflows', label: 'Workflows & Dashboards', icon: 'DashboardAdminIcon', order: 6 },
+  { id: 'admin-channels', label: 'Channels', icon: 'ChannelAdminIcon', order: 7 },
 ];
 
 const DEFAULT_NAV_ITEMS: NavItem[] = [
@@ -123,27 +153,27 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
   { id: 'notes', label: 'Notes', menuName: 'Notes', icon: 'NoteIcon', order: 13, visible: true, isAdmin: false, category: 'productivity' },
   { id: 'communications', label: 'Communications', menuName: 'Communications', icon: 'CommunicationsIcon', order: 14, visible: true, isAdmin: false, category: 'productivity' },
   { id: 'interactions', label: 'Interactions', menuName: 'Interactions', icon: 'InteractionsIcon', order: 15, visible: true, isAdmin: false, category: 'productivity' },
-  { id: 'workflows', label: 'Workflows', menuName: 'Workflows', icon: 'AutomationIcon', order: 16, visible: true, isAdmin: true, category: 'admin' },
-  // System Administration
-  { id: 'database-settings', label: 'Database', menuName: 'DatabaseSettings', icon: 'StorageIcon', order: 17, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'deployment-settings', label: 'Deployment', menuName: 'DeploymentSettings', icon: 'CloudIcon', order: 18, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'monitoring-settings', label: 'Monitoring', menuName: 'MonitoringSettings', icon: 'MonitorIcon', order: 19, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'security-settings', label: 'Security', menuName: 'SecuritySettings', icon: 'SecurityIcon', order: 20, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'feature-management', label: 'Features', menuName: 'FeatureManagement', icon: 'FeatureToggleIcon', order: 21, visible: true, isAdmin: true, category: 'admin' },
+  // System Administration - with adminSubcategory
+  { id: 'workflows', label: 'Workflows', menuName: 'Workflows', icon: 'AutomationIcon', order: 16, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-workflows' },
+  { id: 'database-settings', label: 'Database', menuName: 'DatabaseSettings', icon: 'StorageIcon', order: 17, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
+  { id: 'deployment-settings', label: 'Deployment', menuName: 'DeploymentSettings', icon: 'CloudIcon', order: 18, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
+  { id: 'monitoring-settings', label: 'Monitoring', menuName: 'MonitoringSettings', icon: 'MonitorIcon', order: 19, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
+  { id: 'security-settings', label: 'Security', menuName: 'SecuritySettings', icon: 'SecurityIcon', order: 20, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
+  { id: 'feature-management', label: 'Features', menuName: 'FeatureManagement', icon: 'FeatureToggleIcon', order: 21, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
   // User Administration
-  { id: 'user-management', label: 'Users', menuName: 'UserManagement', icon: 'PeopleIcon', order: 22, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'user-approvals', label: 'Approvals', menuName: 'UserApprovals', icon: 'PersonAddIcon', order: 23, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'group-management', label: 'Groups', menuName: 'GroupManagement', icon: 'GroupsIcon', order: 24, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'social-login', label: 'Social Login', menuName: 'SocialLogin', icon: 'LoginIcon', order: 25, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'user-management', label: 'Users', menuName: 'UserManagement', icon: 'PeopleIcon', order: 22, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-users' },
+  { id: 'user-approvals', label: 'Approvals', menuName: 'UserApprovals', icon: 'PersonAddIcon', order: 23, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-users' },
+  { id: 'group-management', label: 'Groups', menuName: 'GroupManagement', icon: 'GroupsIcon', order: 24, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-users' },
+  { id: 'social-login', label: 'Social Login', menuName: 'SocialLogin', icon: 'LoginIcon', order: 25, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-users' },
   // CRM Administration
-  { id: 'branding-settings', label: 'Branding', menuName: 'BrandingSettings', icon: 'PaletteIcon', order: 26, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'navigation-settings', label: 'Navigation', menuName: 'NavigationSettings', icon: 'MenuIcon', order: 27, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'module-fields', label: 'Modules & Fields', menuName: 'ModuleFields', icon: 'ModuleIcon', order: 28, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'sr-definitions', label: 'Service Requests', menuName: 'ServiceRequestDefinitions', icon: 'SupportAgentIcon', order: 29, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'master-data', label: 'Master Data', menuName: 'MasterData', icon: 'StorageIcon', order: 30, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'branding-settings', label: 'Branding', menuName: 'BrandingSettings', icon: 'PaletteIcon', order: 26, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-crm' },
+  { id: 'navigation-settings', label: 'Navigation', menuName: 'NavigationSettings', icon: 'MenuIcon', order: 27, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-navigation' },
+  { id: 'module-fields', label: 'Modules & Fields', menuName: 'ModuleFields', icon: 'ModuleIcon', order: 28, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-modules' },
+  { id: 'sr-definitions', label: 'Service Requests', menuName: 'ServiceRequestDefinitions', icon: 'SupportAgentIcon', order: 29, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-service' },
+  { id: 'master-data', label: 'Master Data', menuName: 'MasterData', icon: 'StorageIcon', order: 30, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-crm' },
   // Legacy items
-  { id: 'channel-settings', label: 'Channel Settings', menuName: 'ChannelSettings', icon: 'ChannelSettingsIcon', order: 31, visible: true, isAdmin: true, category: 'admin' },
-  { id: 'settings', label: 'All Settings', menuName: 'Settings', icon: 'SettingsIcon', order: 32, visible: true, isAdmin: true, category: 'admin' },
+  { id: 'channel-settings', label: 'Channel Settings', menuName: 'ChannelSettings', icon: 'ChannelSettingsIcon', order: 31, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-channels' },
+  { id: 'settings', label: 'All Settings', menuName: 'Settings', icon: 'SettingsIcon', order: 32, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -174,11 +204,22 @@ const iconMap: Record<string, React.ReactNode> = {
   PaletteIcon: <PaletteIcon />,
   ModuleIcon: <ModuleIcon />,
   MenuIcon: <MenuIcon />,
+  // Admin subcategory icons
+  SystemAdminIcon: <SystemAdminIcon />,
+  UserAdminIcon: <UserAdminIcon />,
+  CRMAdminIcon: <CRMAdminIcon />,
+  ServiceReqIcon: <ServiceReqIcon />,
+  NavAdminIcon: <NavAdminIcon />,
+  ModulesIcon: <ModulesIcon />,
+  DashboardAdminIcon: <DashboardAdminIcon />,
+  ChannelAdminIcon: <ChannelAdminIcon />,
+  SubcategoryIcon: <SubcategoryIcon />,
 };
 
 function NavigationSettingsTab() {
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [categories, setCategories] = useState<NavCategory[]>(DEFAULT_CATEGORIES);
+  const [adminSubcategories, setAdminSubcategories] = useState<AdminSubcategory[]>(DEFAULT_ADMIN_SUBCATEGORIES);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -187,11 +228,16 @@ function NavigationSettingsTab() {
   const [editingItem, setEditingItem] = useState<NavItem | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(DEFAULT_CATEGORIES.map(c => c.id));
+  const [expandedAdminSubcategories, setExpandedAdminSubcategories] = useState<string[]>(DEFAULT_ADMIN_SUBCATEGORIES.map(s => s.id));
   const [viewMode, setViewMode] = useState<'list' | 'category'>('category');
   // Category edit state
   const [editingCategory, setEditingCategory] = useState<NavCategory | null>(null);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  // Admin subcategory edit state
+  const [editingSubcategory, setEditingSubcategory] = useState<AdminSubcategory | null>(null);
+  const [subcategoryDialogOpen, setSubcategoryDialogOpen] = useState(false);
+  const [newSubcategoryName, setNewSubcategoryName] = useState('');
 
   const getApiUrl = () => {
     return window.location.hostname === 'localhost'
@@ -211,14 +257,21 @@ function NavigationSettingsTab() {
         if (data.navOrderConfig) {
           try {
             const savedConfig = JSON.parse(data.navOrderConfig);
-            // Support both old format (array) and new format (object with navItems and categories)
+            // Support both old format (array) and new format (object with navItems, categories, and adminSubcategories)
             const savedOrder = Array.isArray(savedConfig) ? savedConfig : savedConfig.navItems || [];
             const savedCategories = savedConfig.categories || null;
+            const savedAdminSubcategories = savedConfig.adminSubcategories || null;
             
             // Load categories
             if (savedCategories && Array.isArray(savedCategories)) {
               setCategories(savedCategories);
               setExpandedCategories(savedCategories.map((c: NavCategory) => c.id));
+            }
+            
+            // Load admin subcategories
+            if (savedAdminSubcategories && Array.isArray(savedAdminSubcategories)) {
+              setAdminSubcategories(savedAdminSubcategories);
+              setExpandedAdminSubcategories(savedAdminSubcategories.map((s: AdminSubcategory) => s.id));
             }
             
             // Merge saved order with default items
@@ -229,6 +282,7 @@ function NavigationSettingsTab() {
                 order: saved.order, 
                 visible: saved.visible,
                 category: saved.category || item.category,
+                adminSubcategory: saved.adminSubcategory || item.adminSubcategory,
                 customLabel: saved.customLabel,
               } : item;
             });
@@ -315,6 +369,81 @@ function NavigationSettingsTab() {
     setHasChanges(true);
   };
 
+  // Admin subcategory management functions
+  const handleAddAdminSubcategory = () => {
+    if (!newSubcategoryName.trim()) return;
+    const newId = 'admin-' + newSubcategoryName.toLowerCase().replace(/\s+/g, '-');
+    const newSubcategory: AdminSubcategory = {
+      id: newId,
+      label: newSubcategoryName.trim(),
+      icon: 'SubcategoryIcon',
+      order: adminSubcategories.length
+    };
+    setAdminSubcategories([...adminSubcategories, newSubcategory]);
+    setNewSubcategoryName('');
+    setHasChanges(true);
+    setExpandedAdminSubcategories([...expandedAdminSubcategories, newId]);
+  };
+
+  const handleEditAdminSubcategory = (subcategory: AdminSubcategory) => {
+    setEditingSubcategory({ ...subcategory });
+    setSubcategoryDialogOpen(true);
+  };
+
+  const handleSaveAdminSubcategoryEdit = () => {
+    if (editingSubcategory) {
+      const newSubcategories = adminSubcategories.map(s => 
+        s.id === editingSubcategory.id ? editingSubcategory : s
+      );
+      setAdminSubcategories(newSubcategories);
+      setHasChanges(true);
+      setSubcategoryDialogOpen(false);
+      setEditingSubcategory(null);
+    }
+  };
+
+  const handleDeleteAdminSubcategory = (subcategoryId: string) => {
+    // Move all items in this subcategory to the first available subcategory
+    const remainingSubcategories = adminSubcategories.filter(s => s.id !== subcategoryId);
+    const fallbackSubcategory = remainingSubcategories[0]?.id || 'admin-system';
+    const newItems = navItems.map(item => 
+      item.adminSubcategory === subcategoryId ? { ...item, adminSubcategory: fallbackSubcategory } : item
+    );
+    setNavItems(newItems);
+    setAdminSubcategories(remainingSubcategories);
+    setHasChanges(true);
+  };
+
+  const moveAdminSubcategoryUp = (index: number) => {
+    if (index <= 0) return;
+    const newSubcategories = [...adminSubcategories];
+    [newSubcategories[index - 1], newSubcategories[index]] = [newSubcategories[index], newSubcategories[index - 1]];
+    newSubcategories.forEach((s, i) => s.order = i);
+    setAdminSubcategories(newSubcategories);
+    setHasChanges(true);
+  };
+
+  const moveAdminSubcategoryDown = (index: number) => {
+    if (index >= adminSubcategories.length - 1) return;
+    const newSubcategories = [...adminSubcategories];
+    [newSubcategories[index], newSubcategories[index + 1]] = [newSubcategories[index + 1], newSubcategories[index]];
+    newSubcategories.forEach((s, i) => s.order = i);
+    setAdminSubcategories(newSubcategories);
+    setHasChanges(true);
+  };
+
+  const toggleAdminSubcategoryExpanded = (subcategoryId: string) => {
+    setExpandedAdminSubcategories(prev => 
+      prev.includes(subcategoryId) 
+        ? prev.filter(id => id !== subcategoryId)
+        : [...prev, subcategoryId]
+    );
+  };
+
+  const getItemsByAdminSubcategory = (subcategoryId: string) => {
+    return navItems.filter(item => item.category === 'admin' && item.adminSubcategory === subcategoryId);
+  };
+
   const moveItem = (index: number, direction: 'up' | 'down') => {
     const newItems = [...navItems];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -394,13 +523,15 @@ function NavigationSettingsTab() {
         order: item.order,
         visible: item.visible,
         category: item.category,
+        adminSubcategory: item.adminSubcategory,
         customLabel: item.customLabel,
       }));
       
-      // Save both nav items and categories in the new format
+      // Save nav items, categories, and admin subcategories in the new format
       const configToSave = {
         navItems: navOrderData,
-        categories: categories.map(c => ({ id: c.id, label: c.label, order: c.order }))
+        categories: categories.map(c => ({ id: c.id, label: c.label, order: c.order })),
+        adminSubcategories: adminSubcategories.map(s => ({ id: s.id, label: s.label, icon: s.icon, order: s.order }))
       };
       const navOrderConfig = JSON.stringify(configToSave);
 
@@ -414,7 +545,7 @@ function NavigationSettingsTab() {
       });
 
       if (response.ok) {
-        // Save to localStorage for immediate use by Navigation component (include categories)
+        // Save to localStorage for immediate use by Navigation component (include categories and adminSubcategories)
         localStorage.setItem('crm_nav_order', JSON.stringify(configToSave));
         // Dispatch custom event to trigger Navigation refresh without page reload
         window.dispatchEvent(new CustomEvent('navigationUpdated', { detail: configToSave }));
@@ -434,6 +565,7 @@ function NavigationSettingsTab() {
   const handleReset = () => {
     setNavItems([...DEFAULT_NAV_ITEMS]);
     setCategories([...DEFAULT_CATEGORIES]);
+    setAdminSubcategories([...DEFAULT_ADMIN_SUBCATEGORIES]);
     setHasChanges(true);
   };
 
@@ -651,6 +783,7 @@ function NavigationSettingsTab() {
           {/* Category Accordions */}
           {categories.sort((a, b) => a.order - b.order).map((category, catIdx) => {
             const categoryItems = getItemsByCategory(category.id);
+            const isAdminCategory = category.id === 'admin';
             
             return (
               <Accordion
@@ -662,13 +795,13 @@ function NavigationSettingsTab() {
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
                   sx={{ 
-                    bgcolor: 'action.hover',
+                    bgcolor: isAdminCategory ? 'warning.light' : 'action.hover',
                     borderRadius: expandedCategories.includes(category.id) ? '8px 8px 0 0' : 2,
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
-                    <CategoryIcon color="primary" />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    <CategoryIcon color={isAdminCategory ? 'warning' : 'primary'} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: isAdminCategory ? 'warning.dark' : 'inherit' }}>
                       {category.label}
                     </Typography>
                     <Chip 
@@ -683,6 +816,15 @@ function NavigationSettingsTab() {
                       variant="outlined"
                       sx={{ height: 20, fontSize: '0.7rem' }}
                     />
+                    {isAdminCategory && (
+                      <Chip 
+                        label={`${adminSubcategories.length} subcategories`} 
+                        size="small" 
+                        color="warning"
+                        variant="outlined"
+                        sx={{ height: 20, fontSize: '0.7rem' }}
+                      />
+                    )}
                     <Box sx={{ ml: 'auto', display: 'flex', gap: 0.5 }} onClick={(e) => e.stopPropagation()}>
                       <Tooltip title="Move Up">
                         <span>
@@ -702,7 +844,132 @@ function NavigationSettingsTab() {
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 0 }}>
-                  {categoryItems.length === 0 ? (
+                  {isAdminCategory ? (
+                    /* Render Admin Subcategories with their items */
+                    <Box sx={{ p: 1 }}>
+                      {/* Subcategory Management Section */}
+                      <Card sx={{ mb: 2, bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.light' }}>
+                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <SubcategoryIcon fontSize="small" color="warning" />
+                              Manage Admin Subcategories
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1.5 }}>
+                            {adminSubcategories.sort((a, b) => a.order - b.order).map((subcat, idx) => (
+                              <Chip
+                                key={subcat.id}
+                                label={subcat.label}
+                                onDelete={adminSubcategories.length > 1 ? () => handleDeleteAdminSubcategory(subcat.id) : undefined}
+                                onClick={() => handleEditAdminSubcategory(subcat)}
+                                icon={iconMap[subcat.icon] ? <Box sx={{ display: 'flex', pl: 0.5 }}>{iconMap[subcat.icon]}</Box> : <EditIcon fontSize="small" />}
+                                variant="outlined"
+                                color="warning"
+                                size="small"
+                                sx={{ cursor: 'pointer' }}
+                              />
+                            ))}
+                          </Box>
+                          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <TextField
+                              size="small"
+                              placeholder="New subcategory name..."
+                              value={newSubcategoryName}
+                              onChange={(e) => setNewSubcategoryName(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleAddAdminSubcategory()}
+                              sx={{ flex: 1, maxWidth: 220 }}
+                            />
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="warning"
+                              startIcon={<AddIcon />}
+                              onClick={handleAddAdminSubcategory}
+                              disabled={!newSubcategoryName.trim()}
+                            >
+                              Add
+                            </Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+
+                      {/* Render each subcategory with its items */}
+                      {adminSubcategories.sort((a, b) => a.order - b.order).map((subcat, subcatIdx) => {
+                        const subcatItems = getItemsByAdminSubcategory(subcat.id);
+                        const isSubcatExpanded = expandedAdminSubcategories.includes(subcat.id);
+                        
+                        return (
+                          <Accordion
+                            key={subcat.id}
+                            expanded={isSubcatExpanded}
+                            onChange={() => toggleAdminSubcategoryExpanded(subcat.id)}
+                            sx={{ 
+                              mb: 1, 
+                              borderRadius: 1, 
+                              '&:before': { display: 'none' },
+                              boxShadow: 1 
+                            }}
+                          >
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon fontSize="small" />}
+                              sx={{ 
+                                bgcolor: 'grey.100',
+                                minHeight: 40,
+                                '& .MuiAccordionSummary-content': { my: 0.5 }
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+                                {iconMap[subcat.icon] || <SubcategoryIcon fontSize="small" />}
+                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                  {subcat.label}
+                                </Typography>
+                                <Chip 
+                                  label={`${subcatItems.length} items`} 
+                                  size="small" 
+                                  sx={{ height: 18, fontSize: '0.65rem' }}
+                                />
+                                <Box sx={{ ml: 'auto', display: 'flex', gap: 0.5 }} onClick={(e) => e.stopPropagation()}>
+                                  <Tooltip title="Move Up">
+                                    <span>
+                                      <IconButton size="small" onClick={() => moveAdminSubcategoryUp(subcatIdx)} disabled={subcatIdx === 0}>
+                                        <ArrowUpIcon sx={{ fontSize: 16 }} />
+                                      </IconButton>
+                                    </span>
+                                  </Tooltip>
+                                  <Tooltip title="Move Down">
+                                    <span>
+                                      <IconButton size="small" onClick={() => moveAdminSubcategoryDown(subcatIdx)} disabled={subcatIdx === adminSubcategories.length - 1}>
+                                        <ArrowDownIcon sx={{ fontSize: 16 }} />
+                                      </IconButton>
+                                    </span>
+                                  </Tooltip>
+                                  <Tooltip title="Edit Subcategory">
+                                    <IconButton size="small" onClick={() => handleEditAdminSubcategory(subcat)}>
+                                      <EditIcon sx={{ fontSize: 16 }} />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Box>
+                              </Box>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ p: 0 }}>
+                              {subcatItems.length === 0 ? (
+                                <Box sx={{ p: 2, textAlign: 'center' }}>
+                                  <Typography variant="caption" color="textSecondary">
+                                    No items. Edit an item to move it to this subcategory.
+                                  </Typography>
+                                </Box>
+                              ) : (
+                                <List disablePadding dense>
+                                  {subcatItems.map((item, index) => renderNavItem(item, index, subcatItems))}
+                                </List>
+                              )}
+                            </AccordionDetails>
+                          </Accordion>
+                        );
+                      })}
+                    </Box>
+                  ) : categoryItems.length === 0 ? (
                     <Box sx={{ p: 3, textAlign: 'center' }}>
                       <Typography color="textSecondary">No items in this category. Drag items here or edit an item's category.</Typography>
                     </Box>
@@ -786,6 +1053,26 @@ function NavigationSettingsTab() {
                   ))}
                 </Select>
               </FormControl>
+              {/* Admin Subcategory selector - only for admin items */}
+              {editingItem.category === 'admin' && editingItem.isAdmin && (
+                <FormControl fullWidth>
+                  <InputLabel>Admin Subcategory</InputLabel>
+                  <Select
+                    value={editingItem.adminSubcategory || ''}
+                    label="Admin Subcategory"
+                    onChange={(e) => setEditingItem({ 
+                      ...editingItem, 
+                      adminSubcategory: e.target.value 
+                    })}
+                  >
+                    {adminSubcategories.map((subcat) => (
+                      <MenuItem key={subcat.id} value={subcat.id}>
+                        {subcat.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Typography>Visible:</Typography>
                 <Switch
@@ -834,6 +1121,54 @@ function NavigationSettingsTab() {
         <DialogActions>
           <Button onClick={() => setCategoryDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleSaveCategoryEdit} variant="contained">Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Admin Subcategory Edit Dialog */}
+      <Dialog open={subcategoryDialogOpen} onClose={() => setSubcategoryDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Edit Admin Subcategory</DialogTitle>
+        <DialogContent>
+          {editingSubcategory && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              <TextField
+                label="Subcategory Name"
+                value={editingSubcategory.label}
+                onChange={(e) => setEditingSubcategory({ ...editingSubcategory, label: e.target.value })}
+                fullWidth
+                autoFocus
+              />
+              <FormControl fullWidth>
+                <InputLabel>Icon</InputLabel>
+                <Select
+                  value={editingSubcategory.icon}
+                  label="Icon"
+                  onChange={(e) => setEditingSubcategory({ ...editingSubcategory, icon: e.target.value })}
+                >
+                  <MenuItem value="SystemAdminIcon">System Admin</MenuItem>
+                  <MenuItem value="UserAdminIcon">User Admin</MenuItem>
+                  <MenuItem value="CRMAdminIcon">CRM Admin</MenuItem>
+                  <MenuItem value="ServiceReqIcon">Service Request</MenuItem>
+                  <MenuItem value="NavAdminIcon">Navigation</MenuItem>
+                  <MenuItem value="ModulesIcon">Modules</MenuItem>
+                  <MenuItem value="DashboardAdminIcon">Dashboard</MenuItem>
+                  <MenuItem value="ChannelAdminIcon">Channels</MenuItem>
+                  <MenuItem value="SubcategoryIcon">Default</MenuItem>
+                  <MenuItem value="SettingsIcon">Settings</MenuItem>
+                  <MenuItem value="StorageIcon">Storage</MenuItem>
+                  <MenuItem value="SecurityIcon">Security</MenuItem>
+                </Select>
+              </FormControl>
+              <Alert severity="info" sx={{ borderRadius: 2 }}>
+                <Typography variant="caption">
+                  Subcategory ID: <strong>{editingSubcategory.id}</strong>
+                </Typography>
+              </Alert>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSubcategoryDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleSaveAdminSubcategoryEdit} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
     </Box>

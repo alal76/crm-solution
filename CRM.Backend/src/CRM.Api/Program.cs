@@ -294,6 +294,12 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<WorkflowService>();
 builder.Services.AddScoped<WorkflowInstanceService>();
 
+// LLM and Resilience services
+builder.Services.Configure<LLMProviderOptions>(builder.Configuration.GetSection("LLMProviders"));
+builder.Services.Configure<ResilienceOptions>(builder.Configuration.GetSection("Resilience"));
+builder.Services.AddHttpClient<ILLMService, LLMService>();
+builder.Services.AddSingleton<IResilienceService, ResilienceService>();
+
 // Workflow background worker
 var workflowWorkerOptions = new WorkflowWorkerOptions
 {
