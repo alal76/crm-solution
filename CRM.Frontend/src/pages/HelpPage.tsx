@@ -201,6 +201,7 @@ const HelpPage: React.FC = () => {
     { icon: <TaskIcon />, label: 'My Queue', path: '/my-queue' },
     { icon: <CampaignIcon />, label: 'Campaigns', path: '/campaigns' },
     { icon: <SettingsIcon />, label: 'Settings', path: '/settings' },
+    { icon: <MenuBookIcon />, label: 'API Documentation', path: '/help/api' },
   ];
 
   const keyboardShortcuts = [

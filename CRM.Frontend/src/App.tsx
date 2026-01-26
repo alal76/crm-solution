@@ -16,6 +16,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { Container, CssBaseline, Box } from '@mui/material';
@@ -28,6 +29,8 @@ import BreadcrumbsComponent from './components/Breadcrumbs';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleBasedRoute from './components/RoleBasedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
+import { initializeErrorHandler } from './utils/errorHandler';
 import { muiTheme } from './theme/muiTheme';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -80,24 +83,42 @@ import {
   WorkflowMonitorPage,
   TestResultsPage,
   LLMSettingsPage,
+  ApiDocumentationPage,
 } from './pages/admin';
 import './App.css';
 
 function App() {
+  // Initialize global error handler on mount
+  useEffect(() => {
+    initializeErrorHandler({
+      enabled: true,
+      logToConsole: true,
+      logToLocalStorage: true,
+      maxStoredLogs: 200,
+      captureNetworkErrors: true,
+      captureConsoleErrors: true,
+    });
+    
+    // Log initialization
+    console.log('%c🚀 CRM Solution initialized with debug mode enabled', 'color: green; font-weight: bold;');
+    console.log('%c💡 Access debug tools via window.CRMDebug', 'color: blue;');
+  }, []);
+
   return (
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />
-      <Router>
-        <AuthProvider>
-          <ProfileProvider>
-            <BrandingProvider>
-              <LayoutProvider>
-                <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                  <Navigation />
-                  <BreadcrumbsComponent />
-                  <Box sx={{ flex: 1, py: 4, px: 2 }}>
-                    <Container maxWidth="lg">
-                  <Routes>
+      <ErrorBoundary>
+        <Router>
+          <AuthProvider>
+            <ProfileProvider>
+              <BrandingProvider>
+                <LayoutProvider>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                    <Navigation />
+                    <BreadcrumbsComponent />
+                    <Box sx={{ flex: 1, py: 4, px: 2 }}>
+                      <Container maxWidth="lg">
+                    <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
@@ -572,17 +593,19 @@ function App() {
               {/* Public Info Routes */}
               <Route path="/about" element={<AboutPage />} />
               <Route path="/help" element={<HelpPage />} />
+              <Route path="/help/api" element={<ApiDocumentationPage />} />
               <Route path="/licenses" element={<LicensesPage />} />
-                </Routes>
-                    </Container>
+                    </Routes>
+                      </Container>
+                    </Box>
+                    <Footer />
                   </Box>
-                  <Footer />
-                </Box>
-              </LayoutProvider>
-            </BrandingProvider>
-          </ProfileProvider>
-        </AuthProvider>
-      </Router>
+                </LayoutProvider>
+              </BrandingProvider>
+            </ProfileProvider>
+          </AuthProvider>
+        </Router>
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }
