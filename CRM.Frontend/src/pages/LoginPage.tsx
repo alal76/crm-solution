@@ -17,6 +17,8 @@ import {
   Checkbox,
   Fade,
   Collapse,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   Visibility,
@@ -31,7 +33,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { debugLog, debugWarn, debugError, debugInfo } from '../utils/debug';
 
 // Lazy load logo for faster initial render
-const Logo = React.memo(() => {
+const Logo = React.memo(({ logoUrl }: { logoUrl: string | null }) => {
   const [logoLoaded, setLogoLoaded] = useState(false);
   
   return (
@@ -51,7 +53,7 @@ const Logo = React.memo(() => {
       }}
     >
       <img
-        src="/logo.png"
+        src={logoUrl || "/logo.png"}
         alt="CRM"
         loading="lazy"
         onLoad={() => setLogoLoaded(true)}
@@ -128,6 +130,9 @@ const useStyles = () =>
   );
 
 const LoginPage: React.FC = () => {
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  
   // Form state
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -151,6 +156,19 @@ const LoginPage: React.FC = () => {
   // Quick Admin Login state
   const [quickAdminLoginEnabled, setQuickAdminLoginEnabled] = useState(false);
   
+  // Branding state
+  const [branding, setBranding] = useState<{
+    companyName: string | null;
+    companyLogoUrl: string | null;
+    companyLoginLogoUrl: string | null;
+    primaryColor: string | null;
+  }>({
+    companyName: null,
+    companyLogoUrl: null,
+    companyLoginLogoUrl: null,
+    primaryColor: null,
+  });
+  
   const { login, verifyTwoFactor, googleLogin } = useAuth();
   const navigate = useNavigate();
   const styles = useStyles();
@@ -162,7 +180,7 @@ const LoginPage: React.FC = () => {
       : `http://${window.location.hostname}:5000/api`;
   }, []);
 
-  // Load login settings (Quick Admin Login enabled status)
+  // Load login settings (Quick Admin Login enabled status + branding)
   useEffect(() => {
     const loadLoginSettings = async () => {
       try {
@@ -170,6 +188,13 @@ const LoginPage: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           setQuickAdminLoginEnabled(data.quickAdminLoginEnabled ?? false);
+          // Load branding
+          setBranding({
+            companyName: data.companyName || null,
+            companyLogoUrl: data.companyLogoUrl || null,
+            companyLoginLogoUrl: data.companyLoginLogoUrl || null,
+            primaryColor: data.primaryColor || null,
+          });
         }
       } catch (err) {
         console.error('Error loading login settings:', err);
@@ -392,17 +417,35 @@ const LoginPage: React.FC = () => {
 
   return (
     <Box sx={styles.container}>
-      <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Fade in={mounted} timeout={600}>
-          <Card sx={styles.card}>
-            <Box sx={styles.header}>
-              <Logo />
-              <Typography
-                variant="h4"
-                component="h1"
-                sx={{ fontWeight: 700, mb: 0.5, letterSpacing: '-0.5px' }}
-              >
-                {showTwoFactor ? 'Two-Factor Authentication' : 'Welcome Back'}
+      <Box
+        sx={{
+          display: 'flex',
+          width: '100%',
+          minHeight: '100vh',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {/* Login Form Side */}
+        <Container 
+          maxWidth="sm" 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'center',
+            flex: isDesktop && branding.companyLoginLogoUrl ? '0 0 50%' : '1',
+            maxWidth: isDesktop && branding.companyLoginLogoUrl ? '50%' : undefined,
+          }}
+        >
+          <Fade in={mounted} timeout={600}>
+            <Card sx={styles.card}>
+              <Box sx={styles.header}>
+                <Logo logoUrl={branding.companyLogoUrl} />
+                <Typography
+                  variant="h4"
+                  component="h1"
+                  sx={{ fontWeight: 700, mb: 0.5, letterSpacing: '-0.5px' }}
+                >
+                  {showTwoFactor ? 'Two-Factor Authentication' : 'Welcome Back'}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.85 }}>
                 {showTwoFactor 
@@ -668,6 +711,58 @@ const LoginPage: React.FC = () => {
         </Fade>
       </Container>
 
+      {/* Login Logo Panel - shown on desktop when login logo is set */}
+      {isDesktop && branding.companyLoginLogoUrl && (
+        <Fade in={mounted} timeout={800}>
+          <Box
+            sx={{
+              flex: '0 0 50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 4,
+              backgroundColor: 'rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <Box
+              sx={{
+                maxWidth: 400,
+                width: '100%',
+                textAlign: 'center',
+              }}
+            >
+              <Box
+                component="img"
+                src={branding.companyLoginLogoUrl}
+                alt={branding.companyName || 'Company Logo'}
+                sx={{
+                  maxWidth: '100%',
+                  maxHeight: 300,
+                  objectFit: 'contain',
+                  borderRadius: 3,
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                  mb: 3,
+                }}
+              />
+              {branding.companyName && (
+                <Typography
+                  variant="h4"
+                  sx={{
+                    color: 'white',
+                    fontWeight: 700,
+                    textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  {branding.companyName}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        </Fade>
+      )}
+      </Box>
+
       <Typography
         variant="caption"
         sx={{
@@ -679,7 +774,7 @@ const LoginPage: React.FC = () => {
           color: 'rgba(255,255,255,0.7)',
         }}
       >
-        © {new Date().getFullYear()} CRM System. All rights reserved.
+        © {new Date().getFullYear()} {branding.companyName || 'CRM System'}. All rights reserved.
       </Typography>
     </Box>
   );

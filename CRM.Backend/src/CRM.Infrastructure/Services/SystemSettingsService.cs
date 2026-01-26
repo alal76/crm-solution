@@ -124,6 +124,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             
             if (!string.IsNullOrEmpty(request.CompanyName)) settings.CompanyName = request.CompanyName;
             if (request.CompanyLogoUrl != null) settings.CompanyLogoUrl = request.CompanyLogoUrl;
+            if (request.CompanyLoginLogoUrl != null) settings.CompanyLoginLogoUrl = request.CompanyLoginLogoUrl;
             if (!string.IsNullOrEmpty(request.PrimaryColor)) settings.PrimaryColor = request.PrimaryColor;
             if (!string.IsNullOrEmpty(request.SecondaryColor)) settings.SecondaryColor = request.SecondaryColor;
             if (!string.IsNullOrEmpty(request.TertiaryColor)) settings.TertiaryColor = request.TertiaryColor;
@@ -213,6 +214,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             
             CompanyName = settings.CompanyName,
             CompanyLogoUrl = settings.CompanyLogoUrl,
+            CompanyLoginLogoUrl = settings.CompanyLoginLogoUrl,
             PrimaryColor = settings.PrimaryColor,
             SecondaryColor = settings.SecondaryColor,
             TertiaryColor = settings.TertiaryColor,

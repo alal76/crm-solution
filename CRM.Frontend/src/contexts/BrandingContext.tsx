@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 interface BrandingSettings {
   companyName: string;
   companyLogoUrl: string | null;
+  companyLoginLogoUrl: string | null;
   primaryColor: string;
   secondaryColor: string;
   companyWebsite: string | null;
@@ -22,6 +23,7 @@ interface BrandingContextType {
 const defaultBranding: BrandingSettings = {
   companyName: 'CRM System',
   companyLogoUrl: null,
+  companyLoginLogoUrl: null,
   primaryColor: '#6750A4',
   secondaryColor: '#625B71',
   companyWebsite: null,
@@ -59,6 +61,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setBranding({
           companyName: data.companyName || 'CRM System',
           companyLogoUrl: data.companyLogoUrl || null,
+          companyLoginLogoUrl: data.companyLoginLogoUrl || null,
           primaryColor: data.primaryColor || '#6750A4',
           secondaryColor: data.secondaryColor || '#625B71',
           companyWebsite: data.companyWebsite || null,
@@ -103,6 +106,17 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     refreshBranding();
+  }, [refreshBranding]);
+
+  // Listen for branding updates from other components (e.g., SettingsPage)
+  useEffect(() => {
+    const handleBrandingUpdated = () => {
+      refreshBranding();
+    };
+    window.addEventListener('brandingUpdated', handleBrandingUpdated);
+    return () => {
+      window.removeEventListener('brandingUpdated', handleBrandingUpdated);
+    };
   }, [refreshBranding]);
 
   return (

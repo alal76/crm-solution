@@ -141,9 +141,14 @@ public class SystemSettings : BaseEntity
     public string CompanyName { get; set; } = "CRM System";
     
     /// <summary>
-    /// URL to company logo
+    /// URL to company logo (150x150 for navigation)
     /// </summary>
     public string? CompanyLogoUrl { get; set; }
+    
+    /// <summary>
+    /// URL to company login page logo (larger, for login page display)
+    /// </summary>
+    public string? CompanyLoginLogoUrl { get; set; }
     
     /// <summary>
     /// Primary brand color (hex) - Used for main buttons, headers, navigation

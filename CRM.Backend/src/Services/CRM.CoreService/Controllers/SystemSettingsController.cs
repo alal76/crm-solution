@@ -161,6 +161,29 @@ public class SystemSettingsController : ControllerBase
     }
 
     /// <summary>
+    /// Remove company login page logo (admin only)
+    /// </summary>
+    [HttpDelete("login-logo")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<SystemSettingsDto>> RemoveLoginLogo()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+            
+            var request = new UpdateSystemSettingsRequest { CompanyLoginLogoUrl = "" };
+            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing login logo");
+            return StatusCode(500, "Error removing login logo");
+        }
+    }
+
+    /// <summary>
     /// Reset branding to defaults (admin only)
     /// </summary>
     [HttpPost("reset-branding")]
@@ -175,6 +198,7 @@ public class SystemSettingsController : ControllerBase
             var request = new UpdateSystemSettingsRequest 
             { 
                 CompanyLogoUrl = "",
+                CompanyLoginLogoUrl = "",
                 PrimaryColor = "#6750A4",
                 SecondaryColor = "#625B71",
                 SelectedPaletteId = null,
@@ -454,7 +478,12 @@ public class SystemSettingsController : ControllerBase
                 MicrosoftAuthEnabled = settings.MicrosoftAuthEnabled,
                 LinkedInAuthEnabled = settings.LinkedInAuthEnabled,
                 FacebookAuthEnabled = settings.FacebookAuthEnabled,
-                AllowUserRegistration = settings.AllowUserRegistration
+                AllowUserRegistration = settings.AllowUserRegistration,
+                // Include branding for login page
+                CompanyName = settings.CompanyName,
+                CompanyLogoUrl = settings.CompanyLogoUrl,
+                CompanyLoginLogoUrl = settings.CompanyLoginLogoUrl,
+                PrimaryColor = settings.PrimaryColor
             });
         }
         catch (Exception ex)
@@ -707,4 +736,10 @@ public class LoginSettingsResponse
     public bool LinkedInAuthEnabled { get; set; }
     public bool FacebookAuthEnabled { get; set; }
     public bool AllowUserRegistration { get; set; }
+    
+    // Branding for login page
+    public string? CompanyName { get; set; }
+    public string? CompanyLogoUrl { get; set; }
+    public string? CompanyLoginLogoUrl { get; set; }
+    public string? PrimaryColor { get; set; }
 }

@@ -133,6 +133,7 @@ function CompanyBrandingTab() {
   const [formData, setFormData] = useState({
     companyName: '',
     companyLogoUrl: '',
+    companyLoginLogoUrl: '',
     primaryColor: '#6750A4',
     secondaryColor: '#625B71',
     tertiaryColor: '#7D5260',
@@ -145,10 +146,12 @@ function CompanyBrandingTab() {
     selectedPaletteName: '' as string,
   });
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [loginLogoPreview, setLoginLogoPreview] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [applied, setApplied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadingLoginLogo, setUploadingLoginLogo] = useState(false);
   
   // Palette state
   const [palettes, setPalettes] = useState<ColorPalette[]>([]);
@@ -274,6 +277,7 @@ function CompanyBrandingTab() {
           setFormData({
             companyName: data.companyName || 'CRM System',
             companyLogoUrl: data.companyLogoUrl || '',
+            companyLoginLogoUrl: data.companyLoginLogoUrl || '',
             primaryColor: data.primaryColor || '#6750A4',
             secondaryColor: data.secondaryColor || '#625B71',
             tertiaryColor: data.tertiaryColor || '#7D5260',
@@ -288,6 +292,9 @@ function CompanyBrandingTab() {
           setUseGroupHeaderColor(data.useGroupHeaderColor || false);
           if (data.companyLogoUrl) {
             setLogoPreview(data.companyLogoUrl);
+          }
+          if (data.companyLoginLogoUrl) {
+            setLoginLogoPreview(data.companyLoginLogoUrl);
           }
           if (data.palettesLastRefreshed) {
             setPalettesLastRefreshed(data.palettesLastRefreshed);
@@ -390,6 +397,53 @@ function CompanyBrandingTab() {
     }
   };
 
+  const handleLoginLogoFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadingLoginLogo(true);
+      try {
+        const token = localStorage.getItem('accessToken');
+        const apiUrl = getApiUrl();
+        
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        
+        const response = await fetch(`${apiUrl}/fileupload/login-logo`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formDataUpload,
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          setLoginLogoPreview(result.url);
+          setFormData(prev => ({ ...prev, companyLoginLogoUrl: result.url }));
+        }
+      } catch (err) {
+        console.error('Error uploading login logo:', err);
+      } finally {
+        setUploadingLoginLogo(false);
+      }
+    }
+  };
+
+  const handleRemoveLoginLogo = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const apiUrl = getApiUrl();
+      
+      await fetch(`${apiUrl}/systemsettings/login-logo`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      setLoginLogoPreview(null);
+      setFormData(prev => ({ ...prev, companyLoginLogoUrl: '' }));
+    } catch (err) {
+      console.error('Error removing login logo:', err);
+    }
+  };
+
   const handleResetBranding = async () => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -410,10 +464,12 @@ function CompanyBrandingTab() {
           surfaceColor: '#FFFBFE',
           backgroundColor: '#FFFBFE',
           companyLogoUrl: '',
+          companyLoginLogoUrl: '',
           selectedPaletteId: null,
           selectedPaletteName: '',
         }));
         setLogoPreview(null);
+        setLoginLogoPreview(null);
         setSelectedPalette(null);
         setResetDialogOpen(false);
         setSnackbar({ open: true, message: 'Branding reset to defaults', severity: 'success' });
@@ -478,6 +534,8 @@ function CompanyBrandingTab() {
         setSaved(true);
         setSnackbar({ open: true, message: 'Branding settings saved successfully!', severity: 'success' });
         setTimeout(() => setSaved(false), 3000);
+        // Dispatch event so other components (like navigation) know branding has changed
+        window.dispatchEvent(new CustomEvent('brandingUpdated', { detail: formData }));
       }
     } catch (err) {
       console.error('Error saving settings:', err);
@@ -618,7 +676,10 @@ function CompanyBrandingTab() {
           <Card sx={{ borderRadius: 3, boxShadow: 1, textAlign: 'center' }}>
             <CardContent>
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#625B71' }}>
-                Company Logo
+                Navigation Logo
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#79747E', display: 'block', mb: 2 }}>
+                Used in the app header/navigation (150×150px)
               </Typography>
               {logoPreview ? (
                 <Box sx={{ position: 'relative', display: 'inline-block' }}>
@@ -687,13 +748,102 @@ function CompanyBrandingTab() {
                 />
               </Button>
               <Typography variant="caption" sx={{ color: '#79747E', display: 'block', mt: 1 }}>
-                Recommended: 150x150px PNG/JPG (max 5MB)
+                Auto-resized to 150×150px (max 5MB)
               </Typography>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={8}>
+        {/* Login Page Logo Section */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ borderRadius: 3, boxShadow: 1, textAlign: 'center' }}>
+            <CardContent>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#625B71' }}>
+                Login Page Logo
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#79747E', display: 'block', mb: 2 }}>
+                Displayed on the login page (400px width)
+              </Typography>
+              {loginLogoPreview ? (
+                <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                  <Box
+                    component="img"
+                    src={loginLogoPreview}
+                    alt="Login Logo"
+                    sx={{
+                      maxWidth: 180,
+                      maxHeight: 120,
+                      objectFit: 'contain',
+                      margin: '0 auto',
+                      mb: 2,
+                      borderRadius: 2,
+                      border: '1px solid #E8DEF8',
+                    }}
+                  />
+                  <Tooltip title="Remove Login Logo">
+                    <IconButton
+                      size="small"
+                      onClick={handleRemoveLoginLogo}
+                      sx={{
+                        position: 'absolute',
+                        top: -8,
+                        right: -8,
+                        backgroundColor: '#f44336',
+                        color: 'white',
+                        '&:hover': { backgroundColor: '#d32f2f' },
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    width: 180,
+                    height: 120,
+                    margin: '0 auto',
+                    mb: 2,
+                    backgroundColor: '#E8DEF8',
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <LoginIcon sx={{ fontSize: 48, color: '#79747E' }} />
+                </Box>
+              )}
+              <Typography variant="caption" sx={{ color: '#79747E', display: 'block', mb: 2 }}>
+                {loginLogoPreview ? 'Custom login logo uploaded' : 'No login logo set'}
+              </Typography>
+              <Button
+                variant="outlined"
+                component="label"
+                disabled={uploadingLoginLogo}
+                sx={{
+                  textTransform: 'none',
+                  color: '#6750A4',
+                  borderColor: '#6750A4',
+                  width: '100%',
+                }}
+              >
+                {uploadingLoginLogo ? 'Uploading...' : 'Upload Login Logo'}
+                <input
+                  hidden
+                  accept="image/*"
+                  type="file"
+                  onChange={handleLoginLogoFileChange}
+                />
+              </Button>
+              <Typography variant="caption" sx={{ color: '#79747E', display: 'block', mt: 1 }}>
+                Auto-resized to 400px width (max 5MB)
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
           <Paper sx={{ borderRadius: 3, p: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>

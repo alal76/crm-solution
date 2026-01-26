@@ -33,6 +33,7 @@ public class SystemSettingsDto
     
     public string CompanyName { get; set; } = string.Empty;
     public string? CompanyLogoUrl { get; set; }
+    public string? CompanyLoginLogoUrl { get; set; }
     public string PrimaryColor { get; set; } = "#6750A4";
     public string SecondaryColor { get; set; } = "#625B71";
     public string TertiaryColor { get; set; } = "#7D5260";
@@ -172,6 +173,7 @@ public class UpdateSystemSettingsRequest
     // Company/Branding
     public string? CompanyName { get; set; }
     public string? CompanyLogoUrl { get; set; }
+    public string? CompanyLoginLogoUrl { get; set; }
     public string? PrimaryColor { get; set; }
     public string? SecondaryColor { get; set; }
     public string? TertiaryColor { get; set; }
