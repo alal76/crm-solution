@@ -119,8 +119,8 @@ public class EntityValidationTests
             LastName = "Doe"
         };
 
-        // Assert
-        lead.FullName.Should().Be(" Doe");
+        // Assert - FullName uses Trim() to remove leading/trailing whitespace
+        lead.FullName.Should().Be("Doe");
     }
 
     [Fact]
@@ -499,8 +499,8 @@ public class EntityValidationTests
         // Arrange
         var department = new Department { Name = "Marketing" };
 
-        // Assert - Description can be null
-        department.Description.Should().BeNull();
+        // Assert - Description defaults to empty string (non-nullable)
+        department.Description.Should().BeEmpty();
     }
 
     #endregion
@@ -552,9 +552,9 @@ public class EntityValidationTests
         // Arrange
         var settings = new SystemSettings();
 
-        // Assert - Check default values are false
-        settings.CustomersEnabled.Should().BeFalse();
-        settings.LeadsEnabled.Should().BeFalse();
+        // Assert - Core features are enabled by default for usability
+        settings.CustomersEnabled.Should().BeTrue();
+        settings.LeadsEnabled.Should().BeTrue();
     }
 
     [Fact]

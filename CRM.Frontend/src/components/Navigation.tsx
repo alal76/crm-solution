@@ -14,7 +14,6 @@ import {
   ListItemText,
   Divider,
   Typography,
-  Chip,
   Collapse,
   ListItemButton,
 } from '@mui/material';
@@ -37,7 +36,6 @@ import {
   Timeline as ActivityIcon,
   Business as BusinessIcon,
   SupportAgent as SupportAgentIcon,
-  Science as ScienceIcon,
   PersonSearch as PersonSearchIcon,
   Forum as CommunicationsIcon,
   SwapHoriz as InteractionsIcon,
@@ -90,7 +88,7 @@ function NavigationContent() {
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  // Demo mode feature removed - using production database only
   const [navRefreshKey, setNavRefreshKey] = useState(0); // Force re-render on nav update
   
   // Collapsible categories state
@@ -192,33 +190,6 @@ function NavigationContent() {
       window.removeEventListener('brandingUpdated', handleBrandingUpdate);
     };
   }, []);
-
-  // Fetch demo mode status
-  useEffect(() => {
-    const fetchDemoStatus = async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        if (!token) return;
-        
-        const response = await fetch(getApiEndpoint('/systemsettings/demo/status'), {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setIsDemoMode(data.useDemoDatabase);
-        }
-      } catch (err) {
-        console.error('Failed to fetch demo status', err);
-      }
-    };
-
-    if (isAuthenticated) {
-      fetchDemoStatus();
-      // Refresh demo status every 30 seconds
-      const interval = setInterval(fetchDemoStatus, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [isAuthenticated]);
 
   // Nav item ID to path/icon mapping (defined outside useMemo for stability)
   const navItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
@@ -525,20 +496,6 @@ function NavigationContent() {
             <Typography variant="h6" component={RouterLink} to="/" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 600 }}>
               {branding.companyName || 'CRM System'}
             </Typography>
-            {isDemoMode && (
-              <Chip
-                icon={<ScienceIcon />}
-                label="DEMO"
-                size="small"
-                sx={{
-                  ml: 2,
-                  backgroundColor: '#ff9800',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  '& .MuiChip-icon': { color: 'white' }
-                }}
-              />
-            )}
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

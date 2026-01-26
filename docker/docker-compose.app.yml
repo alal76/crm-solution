@@ -51,15 +51,20 @@ services:
       Jwt__Audience: ${JWT_AUDIENCE:-CRMUsers}
       Jwt__ExpirationMinutes: ${JWT_EXPIRATION:-15}
       
-      # Demo Database (auto-seeded)
-      DemoDatabase__AutoSeed: "true"
-      DemoDatabase__DatabaseName: "crm_demodb"
+      # LLM Configuration (Ollama - Local)
+      LLMProviders__DefaultProvider: "local"
+      LLMProviders__LocalLLM__Enabled: "true"
+      LLMProviders__LocalLLM__BaseUrl: "http://host.docker.internal:11434"
+      LLMProviders__LocalLLM__DefaultModel: "qwen2.5:0.5b"
+      LLMProviders__LocalLLM__ApiFormat: "ollama"
       
       # Contract Storage
       CONTRACT_STORAGE_PATH: /app/data/contracts
       MAX_CONTRACT_FILE_SIZE_BYTES: "10485760"
     volumes:
       - api-data:/app/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s

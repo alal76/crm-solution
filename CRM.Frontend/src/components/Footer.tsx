@@ -11,12 +11,6 @@ interface HealthStatus {
   timestamp?: string;
 }
 
-interface DemoStatus {
-  useDemoDatabase: boolean;
-  demoDataSeeded: boolean;
-  demoDataLastSeeded?: string;
-}
-
 interface VersionInfo {
   major: number;
   minor: number;
@@ -34,7 +28,6 @@ interface VersionInfo {
 function Footer() {
   const [apiStatus, setApiStatus] = useState<HealthStatus>({ status: 'down' });
   const [dbStatus, setDbStatus] = useState<HealthStatus>({ status: 'down' });
-  const [demoStatus, setDemoStatus] = useState<DemoStatus | null>(null);
   const [ports, setPorts] = useState(getServicePorts());
   const { branding } = useBranding();
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
@@ -67,31 +60,6 @@ function Footer() {
   useEffect(() => {
     // Cache the port configuration
     setPorts(getServicePorts());
-  }, []);
-
-  // Fetch demo database status
-  useEffect(() => {
-    const fetchDemoStatus = async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        if (!token) return;
-        
-        const response = await fetch(getApiEndpoint('/systemsettings/demo/status'), {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setDemoStatus(data);
-        }
-      } catch (err) {
-        debugError('Failed to fetch demo status', err);
-      }
-    };
-
-    fetchDemoStatus();
-    // Refresh demo status every 60 seconds
-    const interval = setInterval(fetchDemoStatus, 60000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -167,19 +135,6 @@ function Footer() {
             <span className="status-text" title={versionInfo?.components?.database ? `${versionInfo.components.database.zipCodes} ZIPs, ${versionInfo.components.database.countries} Countries` : ''}>
               DB
             </span>
-            {demoStatus && (
-              <>
-                <span className="separator">|</span>
-                <span 
-                  className={`db-mode ${demoStatus.useDemoDatabase ? 'demo-mode' : 'prod-mode'}`}
-                  title={demoStatus.useDemoDatabase && demoStatus.demoDataLastSeeded 
-                    ? `Demo data seeded: ${new Date(demoStatus.demoDataLastSeeded).toLocaleDateString()}` 
-                    : 'Production database'}
-                >
-                  {demoStatus.useDemoDatabase ? '🧪 Demo' : '🏭 Prod'}
-                </span>
-              </>
-            )}
           </div>
         </div>
 

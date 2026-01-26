@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -37,6 +37,7 @@ import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import { useAccountContext } from '../contexts/AccountContextProvider';
 import { BaseEntity } from '../types';
 
 // Search fields for Advanced Search
@@ -164,12 +165,27 @@ function OpportunitiesPage() {
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
 
+  // Get account context for filtering
+  const { selectedAccounts, isContextActive, getAccountIds } = useAccountContext();
+
   const handleSearch = (filters: SearchFilter[], text: string) => {
     setSearchFilters(filters);
     setSearchText(text);
   };
 
-  const filteredOpportunities = filterData(opportunities, searchFilters, searchText, SEARCHABLE_FIELDS);
+  // Filter opportunities based on search AND account context
+  const filteredOpportunities = useMemo(() => {
+    let result = opportunities;
+    
+    // Apply account context filter first (filter by accountId)
+    if (isContextActive) {
+      const accountIds = getAccountIds();
+      result = result.filter(opp => accountIds.includes(opp.accountId));
+    }
+    
+    // Then apply search filters
+    return filterData(result, searchFilters, searchText, SEARCHABLE_FIELDS);
+  }, [opportunities, searchFilters, searchText, isContextActive, getAccountIds]);
 
   useEffect(() => {
     fetchAllData();

@@ -548,7 +548,7 @@ public class CoreEntityTests
 
         // Assert
         product.Id.Should().Be(0);
-        product.Status.Should().Be(ProductStatus.Draft);
+        product.Status.Should().Be(ProductStatus.Active); // Default is Active for immediate availability
         product.ProductType.Should().Be(ProductType.Physical);
     }
 

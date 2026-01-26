@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, CircularProgress, Alert, Button, Dialog, DialogTitle,
@@ -18,7 +18,8 @@ import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
   Business as BusinessIcon, Person as PersonIcon, Email as EmailIcon,
   Phone as PhoneIcon, PersonAdd as PersonAddIcon, Group as GroupIcon,
-  ContactPhone as ContactPhoneIcon, Refresh as RefreshIcon
+  ContactPhone as ContactPhoneIcon, Refresh as RefreshIcon,
+  FilterAlt as FilterIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import FieldRenderer from '../components/FieldRenderer';
@@ -26,6 +27,7 @@ import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { useFieldConfig, ModuleFieldConfiguration, dispatchFieldConfigUpdate } from '../hooks/useFieldConfig';
+import { useAccountContext } from '../contexts/AccountContextProvider';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
 
@@ -229,8 +231,22 @@ function CustomersPage() {
     isFieldVisible 
   } = useFieldConfig('Customers');
 
-  // Filter customers based on search
-  const filteredCustomers = filterData(customers, searchFilters, searchText, SEARCHABLE_FIELDS);
+  // Get account context for filtering
+  const { selectedAccounts, isContextActive, getAccountIds } = useAccountContext();
+
+  // Filter customers based on search AND account context
+  const filteredCustomers = useMemo(() => {
+    let result = customers;
+    
+    // Apply account context filter first
+    if (isContextActive) {
+      const accountIds = getAccountIds();
+      result = result.filter(customer => accountIds.includes(customer.id!));
+    }
+    
+    // Then apply search filters
+    return filterData(result, searchFilters, searchText, SEARCHABLE_FIELDS);
+  }, [customers, searchFilters, searchText, isContextActive, getAccountIds]);
 
   // Fetch data on mount
   useEffect(() => {

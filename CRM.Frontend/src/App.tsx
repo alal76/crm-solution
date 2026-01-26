@@ -24,7 +24,9 @@ import { AuthProvider } from './contexts/AuthContext';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { BrandingProvider } from './contexts/BrandingContext';
+import { AccountContextProvider } from './contexts/AccountContextProvider';
 import Navigation from './components/Navigation';
+import ContextFlyout from './components/ContextFlyout';
 import BreadcrumbsComponent from './components/Breadcrumbs';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -113,11 +115,12 @@ function App() {
             <ProfileProvider>
               <BrandingProvider>
                 <LayoutProvider>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                    <Navigation />
-                    <BreadcrumbsComponent />
-                    <Box sx={{ flex: 1, py: 4, px: 2 }}>
-                      <Container maxWidth="lg">
+                  <AccountContextProvider>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                      <Navigation />
+                      <BreadcrumbsComponent />
+                      <Box sx={{ flex: 1, py: 4, px: 2 }}>
+                        <Container maxWidth="lg">
                     <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
@@ -595,11 +598,13 @@ function App() {
               <Route path="/help" element={<HelpPage />} />
               <Route path="/help/api" element={<ApiDocumentationPage />} />
               <Route path="/licenses" element={<LicensesPage />} />
-                    </Routes>
-                      </Container>
+                        </Routes>
+                        </Container>
+                      </Box>
+                      <Footer />
+                      <ContextFlyout />
                     </Box>
-                    <Footer />
-                  </Box>
+                  </AccountContextProvider>
                 </LayoutProvider>
               </BrandingProvider>
             </ProfileProvider>

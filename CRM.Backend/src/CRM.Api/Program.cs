@@ -77,51 +77,65 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Add rate limiting (disabled in Development for testing)
+// Add rate limiting - configurable via appsettings.json
 builder.Services.AddMemoryCache();
 var isDevelopment = builder.Environment.IsDevelopment();
+var rateLimitingConfig = builder.Configuration.GetSection("RateLimiting");
+
 builder.Services.Configure<IpRateLimitOptions>(options =>
 {
-    options.EnableEndpointRateLimiting = !isDevelopment; // Disable in Development
-    options.StackBlockedRequests = false;
-    options.RealIpHeader = "X-Real-IP";
-    options.ClientIdHeader = "X-ClientId";
-    options.HttpStatusCode = 429;
-    options.GeneralRules = new List<RateLimitRule>
+    // Read base settings from config with defaults
+    options.EnableEndpointRateLimiting = rateLimitingConfig.GetValue("EnableEndpointRateLimiting", !isDevelopment);
+    options.StackBlockedRequests = rateLimitingConfig.GetValue("StackBlockedRequests", false);
+    options.RealIpHeader = rateLimitingConfig.GetValue("RealIpHeader", "X-Real-IP");
+    options.ClientIdHeader = rateLimitingConfig.GetValue("ClientIdHeader", "X-ClientId");
+    options.HttpStatusCode = rateLimitingConfig.GetValue("HttpStatusCode", 429);
+    options.QuotaExceededResponse = new QuotaExceededResponse
     {
-        // General API limit - relaxed in development
-        new RateLimitRule
-        {
-            Endpoint = "*",
-            Period = "1m",
-            Limit = isDevelopment ? 1000 : 100
-        },
-        // Stricter limits for auth endpoints to prevent brute force attacks
-        new RateLimitRule
-        {
-            Endpoint = "*:/api/auth/login",
-            Period = "1m",
-            Limit = isDevelopment ? 100 : 10
-        },
-        new RateLimitRule
-        {
-            Endpoint = "*:/api/auth/register",
-            Period = "1h",
-            Limit = isDevelopment ? 100 : 5
-        },
-        new RateLimitRule
-        {
-            Endpoint = "*:/api/auth/verify-2fa",
-            Period = "1m",
-            Limit = isDevelopment ? 100 : 5
-        },
-        new RateLimitRule
-        {
-            Endpoint = "*:/api/auth/forgot-password",
-            Period = "1h",
-            Limit = isDevelopment ? 100 : 3
-        }
+        Content = rateLimitingConfig.GetValue("QuotaExceededMessage", "API calls quota exceeded!"),
+        ContentType = "text/plain"
     };
+    
+    // Build rules list from configuration
+    var rules = new List<RateLimitRule>();
+    
+    // Add general rules from config
+    var generalRulesSection = rateLimitingConfig.GetSection("GeneralRules");
+    if (generalRulesSection.Exists())
+    {
+        foreach (var ruleSection in generalRulesSection.GetChildren())
+        {
+            rules.Add(new RateLimitRule
+            {
+                Endpoint = ruleSection.GetValue("Endpoint", "*"),
+                Period = ruleSection.GetValue("Period", "1m"),
+                Limit = ruleSection.GetValue("Limit", 1000)
+            });
+        }
+    }
+    else
+    {
+        // Default general rule if not configured
+        rules.Add(new RateLimitRule { Endpoint = "*", Period = "1m", Limit = 1000 });
+    }
+    
+    // Add endpoint-specific rules from config
+    var endpointRulesSection = rateLimitingConfig.GetSection("EndpointRules");
+    if (endpointRulesSection.Exists())
+    {
+        foreach (var endpointSection in endpointRulesSection.GetChildren())
+        {
+            var endpoint = endpointSection.Key;
+            rules.Add(new RateLimitRule
+            {
+                Endpoint = $"*:{endpoint}*",
+                Period = endpointSection.GetValue("Period", "1m"),
+                Limit = endpointSection.GetValue("Limit", 100)
+            });
+        }
+    }
+    
+    options.GeneralRules = rules;
 });
 builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
 builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();

@@ -26,7 +26,7 @@ import {
   Tooltip,
   IconButton,
 } from '@mui/material';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import apiClient from '../services/apiClient';
 import lookupService, { LookupItem } from '../services/lookupService';
 import AddIcon from '@mui/icons-material/Add';
@@ -46,6 +46,7 @@ import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { contactInfoService, EntityContactInfoDto, LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from '../services/contactInfoService';
+import { useAccountContext } from '../contexts/AccountContextProvider';
 import { BaseEntity } from '../types';
 
 interface SocialMediaLink {
@@ -403,8 +404,22 @@ function ContactsPage() {
     setSearchText(text);
   };
 
-  // Apply filters and search text to contacts
-  const filteredContacts = filterData(contacts, searchFilters, searchText, CONTACT_SEARCHABLE_FIELDS);
+  // Get account context for filtering
+  const { selectedAccounts, isContextActive, getAccountIds } = useAccountContext();
+
+  // Apply filters, search text, AND account context to contacts
+  const filteredContacts = useMemo(() => {
+    let result = contacts;
+    
+    // Apply account context filter first (filter by customerId)
+    if (isContextActive) {
+      const accountIds = getAccountIds();
+      result = result.filter(contact => contact.customerId && accountIds.includes(contact.customerId));
+    }
+    
+    // Then apply search filters
+    return filterData(result, searchFilters, searchText, CONTACT_SEARCHABLE_FIELDS);
+  }, [contacts, searchFilters, searchText, isContextActive, getAccountIds]);
 
   return (
     <Box sx={{ py: 4 }}>

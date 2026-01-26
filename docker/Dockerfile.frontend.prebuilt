@@ -3,18 +3,18 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install serve to run the built app
-RUN npm install -g serve
+# Install serve to run the built app and curl for healthcheck
+RUN npm install -g serve && apk add --no-cache curl
 
 # Copy pre-built app directly
 COPY CRM.Frontend/build ./build
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget -q --spider http://localhost:3000 || exit 1
+    CMD curl -f http://localhost:80/ || exit 1
 
 # Expose the port
-EXPOSE 3000
+EXPOSE 80
 
 # Start the server
-CMD ["serve", "-s", "build", "-l", "3000"]
+CMD ["serve", "-s", "build", "-l", "80"]
