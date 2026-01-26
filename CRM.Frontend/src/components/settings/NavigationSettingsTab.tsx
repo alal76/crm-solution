@@ -416,12 +416,10 @@ function NavigationSettingsTab() {
       if (response.ok) {
         // Save to localStorage for immediate use by Navigation component (include categories)
         localStorage.setItem('crm_nav_order', JSON.stringify(configToSave));
-        setSuccess('Navigation order saved successfully. Page will reload to apply changes.');
+        // Dispatch custom event to trigger Navigation refresh without page reload
+        window.dispatchEvent(new CustomEvent('navigationUpdated', { detail: configToSave }));
+        setSuccess('Navigation order saved successfully. Changes applied.');
         setHasChanges(false);
-        // Trigger page reload to apply changes
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Failed to save navigation order');

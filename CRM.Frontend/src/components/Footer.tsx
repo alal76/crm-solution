@@ -17,16 +17,52 @@ interface DemoStatus {
   demoDataLastSeeded?: string;
 }
 
+interface VersionInfo {
+  major: number;
+  minor: number;
+  patch: number;
+  lastUpdate: string;
+  components?: {
+    api?: { version: string; build: string; lastDeployed: string };
+    frontend?: { version: string; build: string; lastDeployed: string };
+    database?: { version: string; schema: string; zipCodes: number; countries: number };
+  };
+  git?: { branch: string; commit: string };
+  buildServer?: string;
+}
+
 function Footer() {
   const [apiStatus, setApiStatus] = useState<HealthStatus>({ status: 'down' });
   const [dbStatus, setDbStatus] = useState<HealthStatus>({ status: 'down' });
   const [demoStatus, setDemoStatus] = useState<DemoStatus | null>(null);
   const [ports, setPorts] = useState(getServicePorts());
   const { branding } = useBranding();
-  const [buildInfo] = useState({
-    version: process.env.REACT_APP_VERSION || '1.3.0',
+  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+  const [buildInfo, setBuildInfo] = useState({
+    version: process.env.REACT_APP_VERSION || '1.5.0',
     buildDate: process.env.REACT_APP_BUILD_DATE || new Date().toISOString().split('T')[0],
   });
+
+  // Fetch version info from API
+  useEffect(() => {
+    const fetchVersionInfo = async () => {
+      try {
+        const response = await fetch('/version.json');
+        if (response.ok) {
+          const data = await response.json();
+          setVersionInfo(data);
+          setBuildInfo({
+            version: `${data.major}.${data.minor}.${data.patch}`,
+            buildDate: data.lastUpdate || new Date().toISOString().split('T')[0],
+          });
+        }
+      } catch (err) {
+        debugError('Failed to fetch version info', err);
+      }
+    };
+
+    fetchVersionInfo();
+  }, []);
 
   useEffect(() => {
     // Cache the port configuration
@@ -108,15 +144,29 @@ function Footer() {
         <div className="footer-left">
           <span className="company-name">{branding.companyName || 'CRM System'}</span>
           <span className="separator">|</span>
-          <span className="version">v{buildInfo.version}</span>
+          <span className="version" title={versionInfo ? `API: ${versionInfo.components?.api?.build || 'N/A'} | Frontend: ${versionInfo.components?.frontend?.build || 'N/A'} | DB: ${versionInfo.components?.database?.zipCodes || 0} ZIPs` : ''}>
+            v{buildInfo.version}
+          </span>
+          {versionInfo?.git?.commit && (
+            <>
+              <span className="separator">|</span>
+              <span className="git-info" title={`Branch: ${versionInfo.git.branch}`}>
+                #{versionInfo.git.commit}
+              </span>
+            </>
+          )}
         </div>
 
         <div className="footer-center">
           <div className="status-compact">
             <span className={`status-dot ${getStatusClass(apiStatus.status)}`}>{getStatusText(apiStatus.status)}</span>
-            <span className="status-text">API</span>
+            <span className="status-text" title={versionInfo?.components?.api?.build ? `Build: ${versionInfo.components.api.build}` : ''}>
+              API {versionInfo?.components?.api?.build ? `(${versionInfo.components.api.build})` : ''}
+            </span>
             <span className={`status-dot ${getStatusClass(dbStatus.status)}`}>{getStatusText(dbStatus.status)}</span>
-            <span className="status-text">DB</span>
+            <span className="status-text" title={versionInfo?.components?.database ? `${versionInfo.components.database.zipCodes} ZIPs, ${versionInfo.components.database.countries} Countries` : ''}>
+              DB
+            </span>
             {demoStatus && (
               <>
                 <span className="separator">|</span>

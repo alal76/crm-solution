@@ -88,13 +88,18 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       });
 
       if (response.ok) {
+        // Update local state immediately
         setBranding(prev => ({ ...prev, ...settings }));
+        // Dispatch custom event so other components can refresh
+        window.dispatchEvent(new CustomEvent('brandingUpdated', { detail: settings }));
+        // Re-fetch to ensure we have the latest from server
+        await refreshBranding();
       }
     } catch (error) {
       console.error('Failed to update branding settings:', error);
       throw error;
     }
-  }, []);
+  }, [refreshBranding]);
 
   useEffect(() => {
     refreshBranding();

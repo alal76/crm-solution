@@ -1,32 +1,38 @@
 {
   "major": 1,
-  "minor": 5,
+  "minor": 6,
   "patch": 0,
-  "lastUpdate": "2026-01-26",
-  "description": "Added ZIP code import workflow task with GeoNames/GitHub support",
+  "lastUpdate": "2026-01-27",
+  "description": "Build automation, collapsible admin nav, standardized admin UI",
   "components": {
     "api": {
-      "version": "1.5.0",
-      "build": "v32",
-      "lastDeployed": "2026-01-26"
+      "version": "1.6.0",
+      "build": "v33",
+      "lastDeployed": "2026-01-27"
     },
     "frontend": {
-      "version": "1.5.0",
-      "build": "v40",
-      "lastDeployed": "2026-01-26"
+      "version": "1.6.0",
+      "build": "v41",
+      "lastDeployed": "2026-01-27"
     },
     "database": {
-      "version": "1.5.0",
+      "version": "1.6.0",
       "schema": "EF Core Migrations",
       "zipCodes": 115,
       "countries": 21
     }
   },
+  "git": {
+    "branch": "main",
+    "commit": ""
+  },
   "features": [
-    "ZIP code import from GeoNames (download.geonames.org)",
-    "ZIP code import from GitHub JSON URLs",
-    "Workflow integration for ZipCodeImport action",
-    "Background scheduled imports with cron expressions",
-    "Import status and statistics API endpoints"
+    "Build & deploy script with 192.168.0.9 build server",
+    "Automatic version.json update on each build",
+    "Version display in footer with tooltips",
+    "Collapsible admin subcategories in navigation (8 sections)",
+    "Real-time refresh on branding and navigation changes",
+    "Standardized AdminPageHeader component for admin pages",
+    "UI reset scripts for deployment"
   ]
 }

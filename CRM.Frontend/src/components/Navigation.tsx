@@ -15,6 +15,8 @@ import {
   Divider,
   Typography,
   Chip,
+  Collapse,
+  ListItemButton,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -56,8 +58,20 @@ import {
   Info as InfoIcon,
   Help as HelpIcon,
   Gavel as LicenseIcon,
+  // Expand/Collapse icons
+  ExpandLess,
+  ExpandMore,
+  // Admin subcategory icons
+  AdminPanelSettings as SystemAdminIcon,
+  ManageAccounts as UserAdminIcon,
+  Store as CRMAdminIcon,
+  Build as ServiceReqIcon,
+  Navigation as NavAdminIcon,
+  ViewQuilt as ModulesIcon,
+  DashboardCustomize as DashboardAdminIcon,
+  Podcasts as ChannelAdminIcon,
 } from '@mui/icons-material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../contexts/ProfileContext';
 import { useBranding } from '../contexts/BrandingContext';
@@ -70,9 +84,74 @@ function NavigationContent() {
   const { profile, hasPermission, canAccessMenu } = useProfile();
   const { branding } = useBranding();
   const navigate = useNavigate();
+  const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [navRefreshKey, setNavRefreshKey] = useState(0); // Force re-render on nav update
+  
+  // Collapsible admin subcategories state
+  const [expandedAdminSections, setExpandedAdminSections] = useState<Record<string, boolean>>({
+    'admin-system': false,
+    'admin-users': false,
+    'admin-crm': false,
+    'admin-service': false,
+    'admin-navigation': false,
+    'admin-modules': false,
+    'admin-workflows': false,
+    'admin-channels': false,
+  });
+
+  // Toggle admin subcategory expansion
+  const toggleAdminSection = (sectionId: string) => {
+    setExpandedAdminSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }));
+  };
+
+  // Auto-expand section if current route matches
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.startsWith('/admin/')) {
+      // Determine which section to expand based on path
+      if (path.includes('database') || path.includes('deployment') || path.includes('monitoring') || path.includes('security') || path.includes('features')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'admin-system': true }));
+      } else if (path.includes('users') || path.includes('approvals') || path.includes('groups') || path.includes('social-login')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'admin-users': true }));
+      } else if (path.includes('branding') || path.includes('master-data')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'admin-crm': true }));
+      } else if (path.includes('service-requests')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'admin-service': true }));
+      } else if (path.includes('navigation')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'admin-navigation': true }));
+      } else if (path.includes('modules')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'admin-modules': true }));
+      } else if (path.includes('workflows') || path.includes('dashboards')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'admin-workflows': true }));
+      }
+    }
+    if (path.includes('channel')) {
+      setExpandedAdminSections(prev => ({ ...prev, 'admin-channels': true }));
+    }
+  }, [location.pathname]);
+
+  // Listen for navigation and branding updates to refresh drawer
+  useEffect(() => {
+    const handleNavUpdate = () => {
+      setNavRefreshKey(k => k + 1);
+    };
+    const handleBrandingUpdate = () => {
+      // Branding is already handled by context, but force refresh key for edge cases
+      setNavRefreshKey(k => k + 1);
+    };
+    window.addEventListener('navigationUpdated', handleNavUpdate);
+    window.addEventListener('brandingUpdated', handleBrandingUpdate);
+    return () => {
+      window.removeEventListener('navigationUpdated', handleNavUpdate);
+      window.removeEventListener('brandingUpdated', handleBrandingUpdate);
+    };
+  }, []);
 
   // Fetch demo mode status
   useEffect(() => {
@@ -173,6 +252,18 @@ function NavigationContent() {
     { id: 'admin', label: 'Administration', order: 5 },
   ], []);
 
+  // Admin subcategories with icons for collapsible sections
+  const adminSubcategories = useMemo(() => [
+    { id: 'admin-system', label: 'System Settings', icon: SystemAdminIcon, order: 0, items: ['database-settings', 'deployment-settings', 'monitoring-settings', 'security-settings', 'feature-management'] },
+    { id: 'admin-users', label: 'User & Group Settings', icon: UserAdminIcon, order: 1, items: ['user-management', 'user-approvals', 'group-management', 'social-login'] },
+    { id: 'admin-crm', label: 'CRM Settings', icon: CRMAdminIcon, order: 2, items: ['branding-settings', 'master-data'] },
+    { id: 'admin-service', label: 'Service Request Setup', icon: ServiceReqIcon, order: 3, items: ['sr-definitions'] },
+    { id: 'admin-navigation', label: 'Navigation', icon: NavAdminIcon, order: 4, items: ['navigation-settings'] },
+    { id: 'admin-modules', label: 'Modules & Fields', icon: ModulesIcon, order: 5, items: ['module-fields'] },
+    { id: 'admin-workflows', label: 'Workflows & Dashboards', icon: DashboardAdminIcon, order: 6, items: ['workflow-settings', 'dashboard-settings'] },
+    { id: 'admin-channels', label: 'Channels', icon: ChannelAdminIcon, order: 7, items: ['channel-settings'] },
+  ], []);
+
   // Default nav items with their proper categories (matching NavigationSettingsTab)
   const defaultNavItemsWithCategory = useMemo(() => [
     { id: 'dashboard', order: 0, visible: true, category: 'main' },
@@ -220,6 +311,7 @@ function NavigationContent() {
   ], []);
 
   // Get nav config from localStorage or use defaults
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const navConfig = useMemo(() => {
     try {
       const savedConfig = localStorage.getItem('crm_nav_order');
@@ -238,7 +330,7 @@ function NavigationContent() {
       // Use defaults
     }
     return null;
-  }, [defaultCategories]);
+  }, [defaultCategories, navRefreshKey]); // Include navRefreshKey to force recalculation on nav update
 
   // Build ordered nav items with category info
   const navItemsWithCategory = useMemo(() => {
@@ -475,6 +567,101 @@ function NavigationContent() {
             return null;
           }
           
+          // For admin category, render collapsible subcategories
+          if (category.id === 'admin') {
+            return (
+              <React.Fragment key={category.id}>
+                {catIdx > 0 && <Divider sx={{ my: 0.5 }} />}
+                <Box sx={{ px: 2, py: 1, bgcolor: 'warning.light' }}>
+                  <Typography variant="overline" sx={{ color: 'warning.dark', fontWeight: 600, fontSize: '0.65rem' }}>
+                    {category.label}
+                  </Typography>
+                </Box>
+                <List dense sx={{ py: 0 }}>
+                  {adminSubcategories.map((subcat) => {
+                    const subcatItems = subcat.items
+                      .filter(itemId => adminItemsConfig[itemId])
+                      .map(itemId => ({
+                        ...adminItemsConfig[itemId],
+                        id: itemId,
+                      }))
+                      .filter(item => canAccessMenu(item.menuName));
+                    
+                    if (subcatItems.length === 0) return null;
+                    
+                    const SubcatIcon = subcat.icon;
+                    const isExpanded = expandedAdminSections[subcat.id];
+                    
+                    return (
+                      <React.Fragment key={subcat.id}>
+                        <ListItemButton
+                          onClick={() => toggleAdminSection(subcat.id)}
+                          sx={{
+                            py: 0.5,
+                            bgcolor: isExpanded ? 'action.selected' : 'transparent',
+                            '&:hover': { bgcolor: 'action.hover' },
+                          }}
+                        >
+                          <ListItemIcon sx={{ minWidth: 32 }}>
+                            <SubcatIcon fontSize="small" color="action" />
+                          </ListItemIcon>
+                          <ListItemText 
+                            primary={subcat.label} 
+                            primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: 500 }} 
+                          />
+                          {isExpanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
+                        </ListItemButton>
+                        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                          <List component="div" disablePadding dense>
+                            {subcatItems.map((item) => (
+                              <ListItemButton
+                                key={item.id}
+                                component={RouterLink}
+                                to={item.path}
+                                onClick={() => setDrawerOpen(false)}
+                                sx={{
+                                  pl: 4,
+                                  py: 0.5,
+                                  bgcolor: location.pathname === item.path ? 'action.selected' : 'transparent',
+                                  '&:hover': { bgcolor: 'action.hover' },
+                                }}
+                              >
+                                <ListItemIcon sx={{ minWidth: 28 }}>
+                                  <item.icon fontSize="small" sx={{ fontSize: '1rem' }} />
+                                </ListItemIcon>
+                                <ListItemText 
+                                  primary={item.label} 
+                                  primaryTypographyProps={{ fontSize: '0.8rem' }} 
+                                />
+                              </ListItemButton>
+                            ))}
+                          </List>
+                        </Collapse>
+                      </React.Fragment>
+                    );
+                  })}
+                  
+                  {/* All Settings link at the bottom */}
+                  <Divider sx={{ my: 0.5 }} />
+                  <ListItemButton
+                    component={RouterLink}
+                    to="/settings"
+                    onClick={() => setDrawerOpen(false)}
+                    sx={{ py: 0.5 }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 32 }}>
+                      <SettingsIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="All Settings" 
+                      primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: 500 }} 
+                    />
+                  </ListItemButton>
+                </List>
+              </React.Fragment>
+            );
+          }
+          
           const categoryItems = navItemsWithCategory.filter(
             (item: { category?: string; menuName: string }) => 
               item.category === category.id && canAccessMenu(item.menuName)
@@ -485,31 +672,29 @@ function NavigationContent() {
           return (
             <React.Fragment key={category.id}>
               {catIdx > 0 && <Divider sx={{ my: 0.5 }} />}
-              <Box sx={{ px: 2, py: 1, bgcolor: category.id === 'admin' ? 'warning.light' : 'action.hover' }}>
-                <Typography variant="overline" sx={{ color: category.id === 'admin' ? 'warning.dark' : 'text.secondary', fontWeight: 600, fontSize: '0.65rem' }}>
+              <Box sx={{ px: 2, py: 1, bgcolor: 'action.hover' }}>
+                <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.65rem' }}>
                   {category.label}
                 </Typography>
               </Box>
               <List dense sx={{ py: 0 }}>
                 {categoryItems.map((item: { id: string; path: string; icon: typeof DashboardIcon; label: string; customLabel?: string }) => (
-                  <ListItem
-                    button
+                  <ListItemButton
                     key={item.id || item.path}
                     component={RouterLink}
                     to={item.path}
                     onClick={() => setDrawerOpen(false)}
                     sx={{
                       py: 0.75,
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                      },
+                      bgcolor: location.pathname === item.path ? 'action.selected' : 'transparent',
+                      '&:hover': { bgcolor: 'action.hover' },
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: 36 }}>
                       <item.icon fontSize="small" />
                     </ListItemIcon>
                     <ListItemText primary={item.customLabel || item.label} primaryTypographyProps={{ fontSize: '0.9rem' }} />
-                  </ListItem>
+                  </ListItemButton>
                 ))}
               </List>
             </React.Fragment>
