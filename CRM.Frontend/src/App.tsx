@@ -78,6 +78,7 @@ import {
   WorkflowListPage,
   WorkflowDesignerPage,
   WorkflowMonitorPage,
+  TestResultsPage,
 } from './pages/admin';
 import './App.css';
 
@@ -532,6 +533,16 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <WorkflowMonitorPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/test-results"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <TestResultsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

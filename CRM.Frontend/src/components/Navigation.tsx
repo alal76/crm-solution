@@ -43,6 +43,7 @@ import {
   SwapHoriz as InteractionsIcon,
   SettingsInputAntenna as ChannelSettingsIcon,
   AccountTree as WorkflowIcon,
+  BugReport as TestResultsIcon,
   // Admin section icons
   Storage as StorageIcon,
   Cloud as CloudIcon,
@@ -224,6 +225,7 @@ function NavigationContent() {
     'master-data': { label: 'Master Data', icon: StorageIcon, path: '/admin/master-data', menuName: 'MasterData' },
     'dashboard-settings': { label: 'Dashboards', icon: DashboardIcon, path: '/admin/dashboards', menuName: 'DashboardSettings' },
     'workflow-settings': { label: 'Workflows', icon: WorkflowIcon, path: '/admin/workflows', menuName: 'WorkflowSettings' },
+    'test-results': { label: 'Test Results', icon: TestResultsIcon, path: '/admin/test-results', menuName: 'TestResults' },
     // Legacy items
     'channel-settings': { label: 'Channel Settings', icon: ChannelSettingsIcon, path: '/channel-settings', menuName: 'ChannelSettings' },
     'settings': { label: 'All Settings', icon: SettingsIcon, path: '/settings', menuName: 'Settings' },
