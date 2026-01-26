@@ -51,7 +51,7 @@ function RegisterPage() {
   const validateStep = () => {
     setError('');
     if (activeStep === 0) {
-      if (!firstName || !lastName || !email) {
+      if (!firstName.trim() || !lastName.trim() || !email.trim()) {
         setError('Please fill in all fields');
         return false;
       }
@@ -70,6 +70,7 @@ function RegisterPage() {
         setError('Password must be at least 8 characters long');
         return false;
       }
+      // Use strict string comparison - passwords should match exactly
       if (password !== confirmPassword) {
         setError('Passwords do not match');
         return false;
@@ -226,6 +227,9 @@ function RegisterPage() {
                     disabled={loading}
                     margin="normal"
                     required
+                    autoComplete="new-password"
+                    error={password.length > 0 && password.length < 8}
+                    helperText={password.length > 0 && password.length < 8 ? 'Must be at least 8 characters' : ''}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -249,6 +253,9 @@ function RegisterPage() {
                     disabled={loading}
                     margin="normal"
                     required
+                    autoComplete="new-password"
+                    error={confirmPassword.length > 0 && password !== confirmPassword}
+                    helperText={confirmPassword.length > 0 && password !== confirmPassword ? 'Passwords do not match' : ''}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">

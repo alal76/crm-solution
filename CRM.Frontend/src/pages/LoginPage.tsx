@@ -32,9 +32,31 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { debugLog, debugWarn, debugError, debugInfo } from '../utils/debug';
 
-// Lazy load logo for faster initial render
-const Logo = React.memo(({ logoUrl }: { logoUrl: string | null }) => {
+// Small header logo for the login card
+const HeaderLogo = React.memo(({ logoUrl }: { logoUrl: string | null }) => {
   const [logoLoaded, setLogoLoaded] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  
+  // If no logo or error, just show lock icon
+  if (!logoUrl || logoError) {
+    return (
+      <Box
+        sx={{
+          width: 60,
+          height: 60,
+          mx: 'auto',
+          mb: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(255,255,255,0.15)',
+          borderRadius: '50%',
+        }}
+      >
+        <LockOutlined sx={{ fontSize: 32, color: 'white' }} />
+      </Box>
+    );
+  }
   
   return (
     <Box
@@ -53,22 +75,113 @@ const Logo = React.memo(({ logoUrl }: { logoUrl: string | null }) => {
       }}
     >
       <img
-        src={logoUrl || "/logo.png"}
-        alt="CRM"
+        src={logoUrl}
+        alt="Company Logo"
         loading="lazy"
         onLoad={() => setLogoLoaded(true)}
+        onError={() => setLogoError(true)}
         style={{
-          width: 40,
-          height: 40,
+          maxWidth: 40,
+          maxHeight: 40,
           objectFit: 'contain',
           opacity: logoLoaded ? 1 : 0,
           transition: 'opacity 0.3s ease',
         }}
-        onError={(e) => {
-          (e.target as HTMLImageElement).style.display = 'none';
-        }}
       />
       {!logoLoaded && <LockOutlined sx={{ fontSize: 32, color: 'white' }} />}
+    </Box>
+  );
+});
+
+// Large side panel logo with placeholder
+const SidePanelLogo = React.memo(({ logoUrl, companyName }: { logoUrl: string | null; companyName: string | null }) => {
+  const [logoLoaded, setLogoLoaded] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  
+  const showPlaceholder = !logoUrl || logoError;
+  
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 4,
+      }}
+    >
+      {showPlaceholder ? (
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: 280,
+            aspectRatio: '1',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            borderRadius: 4,
+            border: '3px dashed rgba(255,255,255,0.4)',
+            p: 4,
+          }}
+        >
+          <LockOutlined sx={{ fontSize: 64, color: 'rgba(255,255,255,0.5)', mb: 2 }} />
+          <Typography
+            variant="h6"
+            sx={{
+              color: 'rgba(255,255,255,0.7)',
+              textAlign: 'center',
+              fontWeight: 600,
+              lineHeight: 1.4,
+            }}
+          >
+            YOUR LOGO
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'rgba(255,255,255,0.5)',
+              textAlign: 'center',
+              mt: 1,
+            }}
+          >
+            Upload via Settings → System
+          </Typography>
+        </Box>
+      ) : (
+        <Box
+          component="img"
+          src={logoUrl}
+          alt={companyName || 'Company Logo'}
+          onLoad={() => setLogoLoaded(true)}
+          onError={() => setLogoError(true)}
+          sx={{
+            maxWidth: '100%',
+            maxHeight: '80%',
+            objectFit: 'contain',
+            borderRadius: 3,
+            opacity: logoLoaded ? 1 : 0,
+            transition: 'opacity 0.3s ease',
+          }}
+        />
+      )}
+      {companyName && !showPlaceholder && (
+        <Typography
+          variant="h5"
+          sx={{
+            color: 'white',
+            fontWeight: 700,
+            mt: 3,
+            textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+            textAlign: 'center',
+          }}
+        >
+          {companyName}
+        </Typography>
+      )}
     </Box>
   );
 });
@@ -421,25 +534,27 @@ const LoginPage: React.FC = () => {
         sx={{
           display: 'flex',
           width: '100%',
-          minHeight: '100vh',
-          alignItems: 'center',
+          maxWidth: isDesktop ? 900 : 440,
+          minHeight: isDesktop ? 'auto' : undefined,
+          alignItems: 'stretch',
           justifyContent: 'center',
+          borderRadius: 4,
+          overflow: 'hidden',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
         }}
       >
         {/* Login Form Side */}
-        <Container 
-          maxWidth="sm" 
+        <Box
           sx={{ 
-            display: 'flex', 
-            justifyContent: 'center',
-            flex: isDesktop && branding.companyLoginLogoUrl ? '0 0 50%' : '1',
-            maxWidth: isDesktop && branding.companyLoginLogoUrl ? '50%' : undefined,
+            flex: isDesktop ? '0 0 50%' : '1',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
           <Fade in={mounted} timeout={600}>
-            <Card sx={styles.card}>
+            <Card sx={{ ...styles.card, height: '100%', maxWidth: 'none', borderRadius: isDesktop ? 0 : 4 }}>
               <Box sx={styles.header}>
-                <Logo logoUrl={branding.companyLogoUrl} />
+                <HeaderLogo logoUrl={branding.companyLogoUrl} />
                 <Typography
                   variant="h4"
                   component="h1"
@@ -709,10 +824,10 @@ const LoginPage: React.FC = () => {
             </CardContent>
           </Card>
         </Fade>
-      </Container>
+      </Box>
 
-      {/* Login Logo Panel - shown on desktop when login logo is set */}
-      {isDesktop && branding.companyLoginLogoUrl && (
+      {/* Login Logo Panel - shown on desktop (always visible with placeholder or logo) */}
+      {isDesktop && (
         <Fade in={mounted} timeout={800}>
           <Box
             sx={{
@@ -720,44 +835,15 @@ const LoginPage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              p: 4,
               backgroundColor: 'rgba(255,255,255,0.08)',
               backdropFilter: 'blur(10px)',
+              minHeight: 500,
             }}
           >
-            <Box
-              sx={{
-                maxWidth: 400,
-                width: '100%',
-                textAlign: 'center',
-              }}
-            >
-              <Box
-                component="img"
-                src={branding.companyLoginLogoUrl}
-                alt={branding.companyName || 'Company Logo'}
-                sx={{
-                  maxWidth: '100%',
-                  maxHeight: 300,
-                  objectFit: 'contain',
-                  borderRadius: 3,
-                  boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-                  mb: 3,
-                }}
-              />
-              {branding.companyName && (
-                <Typography
-                  variant="h4"
-                  sx={{
-                    color: 'white',
-                    fontWeight: 700,
-                    textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-                  }}
-                >
-                  {branding.companyName}
-                </Typography>
-              )}
-            </Box>
+            <SidePanelLogo 
+              logoUrl={branding.companyLoginLogoUrl} 
+              companyName={branding.companyName}
+            />
           </Box>
         </Fade>
       )}

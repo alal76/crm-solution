@@ -160,6 +160,10 @@ check_ssh() {
 sync_source() {
     log_step "Syncing source code to ${BUILD_HOST}..."
     
+    # Copy version.json to frontend public folder so it can be served
+    log_info "Copying version.json to frontend public folder..."
+    cp "${VERSION_FILE}" "${PROJECT_DIR}/CRM.Frontend/public/version.json"
+    
     ssh ${BUILD_USER}@${BUILD_HOST} "mkdir -p /opt/crm/source"
     
     rsync -avz --delete \
