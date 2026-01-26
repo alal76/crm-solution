@@ -193,5 +193,42 @@ public enum WorkflowNodeType
     /// <summary>
     /// End node - terminates workflow
     /// </summary>
-    End = 9
+    End = 9,
+    
+    // AI-Enhanced Node Types
+    
+    /// <summary>
+    /// AI Decision node - routes workflow based on AI analysis
+    /// </summary>
+    AIDecision = 10,
+    
+    /// <summary>
+    /// AI Agent node - autonomous agent with tool access
+    /// </summary>
+    AIAgent = 11,
+    
+    /// <summary>
+    /// AI Content Generator node - generates emails, summaries, reports
+    /// </summary>
+    AIContentGenerator = 12,
+    
+    /// <summary>
+    /// AI Data Extractor node - extracts structured data from unstructured text
+    /// </summary>
+    AIDataExtractor = 13,
+    
+    /// <summary>
+    /// AI Classifier node - categorizes and tags content
+    /// </summary>
+    AIClassifier = 14,
+    
+    /// <summary>
+    /// AI Sentiment Analyzer node - analyzes sentiment and emotion
+    /// </summary>
+    AISentimentAnalyzer = 15,
+    
+    /// <summary>
+    /// Human Review node - human-in-the-loop review for AI outputs
+    /// </summary>
+    HumanReview = 16
 }

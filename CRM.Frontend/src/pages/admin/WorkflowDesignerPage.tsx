@@ -69,12 +69,22 @@ import {
   CheckCircle as CheckIcon,
   Science as SimulatorIcon,
   History as VersionIcon,
+  // AI-Enhanced Workflow Node Icons
+  Route as AIDecisionIcon,
+  SmartToy as AIAgentIcon,
+  AutoAwesome as AIContentGeneratorIcon,
+  DataObject as AIDataExtractorIcon,
+  Category as AIClassifierIcon,
+  SentimentSatisfied as AISentimentIcon,
+  RateReview as HumanReviewIcon,
+  BuildCircle as AIToolIcon,
 } from '@mui/icons-material';
 import {
   RuleBuilder,
   WorkflowSimulator,
   VersionDiffViewer,
   EnhancedPropertiesPanel,
+  AIPropertiesPanel,
 } from '../../components/workflow';
 import {
   workflowService,
@@ -90,7 +100,7 @@ import {
 } from '../../services/workflowService';
 
 const DRAWER_WIDTH = 280;
-const PROPERTIES_WIDTH = 320;
+const PROPERTIES_WIDTH = 420;
 const GRID_SIZE = 20;
 const DEFAULT_NODE_WIDTH = 180;
 const DEFAULT_NODE_HEIGHT = 72;
@@ -107,20 +117,36 @@ const nodeTypeIcons: Record<string, React.ComponentType> = {
   JoinGateway: JoinIcon,
   Subprocess: SubprocessIcon,
   End: EndIcon,
+  // AI-Enhanced Node Types
+  AIDecision: AIDecisionIcon,
+  AIAgent: AIAgentIcon,
+  AIContentGenerator: AIContentGeneratorIcon,
+  AIDataExtractor: AIDataExtractorIcon,
+  AIClassifier: AIClassifierIcon,
+  AISentimentAnalyzer: AISentimentIcon,
+  HumanReview: HumanReviewIcon,
 };
 
 // Default node type list (will be enhanced from backend config when available)
 const defaultNodeTypeList = [
-  { type: 'Trigger', label: 'Trigger', description: 'Start the workflow' },
-  { type: 'Condition', label: 'Condition', description: 'Branch based on rules' },
-  { type: 'Action', label: 'Action', description: 'Perform automated action' },
-  { type: 'HumanTask', label: 'Human Task', description: 'Require user input' },
-  { type: 'Wait', label: 'Wait/Timer', description: 'Delay execution' },
-  { type: 'LLMAction', label: 'AI/LLM Action', description: 'AI-powered processing' },
-  { type: 'ParallelGateway', label: 'Parallel Split', description: 'Split into parallel paths' },
-  { type: 'JoinGateway', label: 'Parallel Join', description: 'Merge parallel paths' },
-  { type: 'Subprocess', label: 'Subprocess', description: 'Call another workflow' },
-  { type: 'End', label: 'End', description: 'End the workflow' },
+  { type: 'Trigger', label: 'Trigger', description: 'Start the workflow', category: 'flow' },
+  { type: 'Condition', label: 'Condition', description: 'Branch based on rules', category: 'flow' },
+  { type: 'Action', label: 'Action', description: 'Perform automated action', category: 'actions' },
+  { type: 'HumanTask', label: 'Human Task', description: 'Require user input', category: 'actions' },
+  { type: 'Wait', label: 'Wait/Timer', description: 'Delay execution', category: 'flow' },
+  { type: 'LLMAction', label: 'AI/LLM Action', description: 'AI-powered processing', category: 'ai' },
+  { type: 'ParallelGateway', label: 'Parallel Split', description: 'Split into parallel paths', category: 'flow' },
+  { type: 'JoinGateway', label: 'Parallel Join', description: 'Merge parallel paths', category: 'flow' },
+  { type: 'Subprocess', label: 'Subprocess', description: 'Call another workflow', category: 'flow' },
+  { type: 'End', label: 'End', description: 'End the workflow', category: 'flow' },
+  // AI-Enhanced Node Types
+  { type: 'AIDecision', label: 'AI Decision', description: 'Route based on AI analysis', category: 'ai' },
+  { type: 'AIAgent', label: 'AI Agent', description: 'Autonomous agent with tools', category: 'ai' },
+  { type: 'AIContentGenerator', label: 'AI Content Generator', description: 'Generate emails, summaries, reports', category: 'ai' },
+  { type: 'AIDataExtractor', label: 'AI Data Extractor', description: 'Extract structured data from text', category: 'ai' },
+  { type: 'AIClassifier', label: 'AI Classifier', description: 'Categorize and tag content', category: 'ai' },
+  { type: 'AISentimentAnalyzer', label: 'AI Sentiment Analyzer', description: 'Analyze sentiment and emotion', category: 'ai' },
+  { type: 'HumanReview', label: 'Human Review', description: 'Human-in-the-loop review', category: 'ai' },
 ];
 
 // Helper to get icon component for a node type
@@ -172,6 +198,7 @@ function WorkflowDesignerPage() {
           label: nt.label,
           description: nt.description || '',
           icon: getNodeTypeIcon(nt.value),
+          category: 'flow', // Default category
         })));
       }
     }).catch(() => {
@@ -999,78 +1026,94 @@ function WorkflowDesignerPage() {
           </Box>
 
           {selectedNode && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Name"
-                value={selectedNode.name}
-                onChange={(e) => updateNodeProperty('name', e.target.value)}
+            // Check if this is an AI node type - use specialized AI Properties Panel
+            ['AIDecision', 'AIAgent', 'AIContentGenerator', 'AIDataExtractor', 'AIClassifier', 'AISentimentAnalyzer', 'HumanReview'].includes(selectedNode.nodeType) ? (
+              <AIPropertiesPanel
+                nodeId={selectedNode.id}
+                nodeKey={selectedNode.nodeKey}
+                nodeName={selectedNode.name}
+                nodeType={selectedNode.nodeType}
+                configuration={selectedNode.configuration || '{}'}
+                onChange={(property, value) => updateNodeProperty(property as keyof UpdateNodeDto, value)}
+                onDelete={() => deleteNode(selectedNode)}
+                variables={['customer', 'ticket', 'email', 'input', 'context', 'entity', 'workflow_data']}
+                readonly={version?.status === 'Active'}
               />
-              <TextField
-                fullWidth
-                size="small"
-                label="Description"
-                value={selectedNode.description || ''}
-                onChange={(e) => updateNodeProperty('description', e.target.value)}
-                multiline
-                rows={2}
-              />
-              <TextField
-                fullWidth
-                size="small"
-                label="Node Type"
-                value={nodeTypeInfo[selectedNode.nodeType]?.label || selectedNode.nodeType}
-                disabled
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={selectedNode.isStartNode}
-                    onChange={(e) => updateNodeProperty('isStartNode', e.target.checked)}
-                    size="small"
-                  />
-                }
-                label="Start Node"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={selectedNode.isEndNode}
-                    onChange={(e) => updateNodeProperty('isEndNode', e.target.checked)}
-                    size="small"
-                  />
-                }
-                label="End Node"
-              />
-              <TextField
-                fullWidth
-                size="small"
-                type="number"
-                label="Timeout (minutes)"
-                value={selectedNode.timeoutMinutes}
-                onChange={(e) => updateNodeProperty('timeoutMinutes', parseInt(e.target.value) || 0)}
-              />
-              <TextField
-                fullWidth
-                size="small"
-                type="number"
-                label="Retry Count"
-                value={selectedNode.retryCount}
-                onChange={(e) => updateNodeProperty('retryCount', parseInt(e.target.value) || 0)}
-              />
+            ) : (
+              // Standard node properties panel for non-AI nodes
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Name"
+                  value={selectedNode.name}
+                  onChange={(e) => updateNodeProperty('name', e.target.value)}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Description"
+                  value={selectedNode.description || ''}
+                  onChange={(e) => updateNodeProperty('description', e.target.value)}
+                  multiline
+                  rows={2}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Node Type"
+                  value={nodeTypeInfo[selectedNode.nodeType]?.label || selectedNode.nodeType}
+                  disabled
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={selectedNode.isStartNode}
+                      onChange={(e) => updateNodeProperty('isStartNode', e.target.checked)}
+                      size="small"
+                    />
+                  }
+                  label="Start Node"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={selectedNode.isEndNode}
+                      onChange={(e) => updateNodeProperty('isEndNode', e.target.checked)}
+                      size="small"
+                    />
+                  }
+                  label="End Node"
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="number"
+                  label="Timeout (minutes)"
+                  value={selectedNode.timeoutMinutes}
+                  onChange={(e) => updateNodeProperty('timeoutMinutes', parseInt(e.target.value) || 0)}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="number"
+                  label="Retry Count"
+                  value={selectedNode.retryCount}
+                  onChange={(e) => updateNodeProperty('retryCount', parseInt(e.target.value) || 0)}
+                />
 
-              <Divider />
+                <Divider />
 
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={() => deleteNode(selectedNode)}
-              >
-                Delete Node
-              </Button>
-            </Box>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<DeleteIcon />}
+                  onClick={() => deleteNode(selectedNode)}
+                >
+                  Delete Node
+                </Button>
+              </Box>
+            )
           )}
 
           {selectedTransition && (

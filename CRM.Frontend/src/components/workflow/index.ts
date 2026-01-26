@@ -42,3 +42,9 @@ export {
   EnhancedPropertiesPanel,
   type NodeConfiguration,
 } from './EnhancedPropertiesPanel';
+
+// AI Properties Panel - AI-enhanced workflow node configurations
+export { AIPropertiesPanel } from './AIPropertiesPanel';
+
+// AI Analytics Dashboard - Cost tracking and performance monitoring
+export { AIAnalyticsDashboard } from './AIAnalyticsDashboard';

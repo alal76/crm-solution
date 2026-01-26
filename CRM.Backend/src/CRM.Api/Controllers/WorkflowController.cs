@@ -989,6 +989,14 @@ public class WorkflowController : ControllerBase
         WorkflowNodeType.Subprocess => "Execute another workflow as a step",
         WorkflowNodeType.LLMAction => "Execute an AI/LLM powered action",
         WorkflowNodeType.End => "End the workflow",
+        // AI-Enhanced Node Types
+        WorkflowNodeType.AIDecision => "Route workflow based on AI analysis of content",
+        WorkflowNodeType.AIAgent => "Autonomous AI agent with tool access",
+        WorkflowNodeType.AIContentGenerator => "Generate emails, summaries, reports using AI",
+        WorkflowNodeType.AIDataExtractor => "Extract structured data from unstructured text",
+        WorkflowNodeType.AIClassifier => "Categorize and tag content using AI",
+        WorkflowNodeType.AISentimentAnalyzer => "Analyze sentiment and emotion in text",
+        WorkflowNodeType.HumanReview => "Human-in-the-loop review for AI outputs",
         _ => ""
     };
 
@@ -1064,6 +1072,14 @@ public class WorkflowController : ControllerBase
             WorkflowNodeType.Subprocess => "AccountTree",
             WorkflowNodeType.LLMAction => "Psychology",
             WorkflowNodeType.End => "StopCircle",
+            // AI-Enhanced Node Types
+            WorkflowNodeType.AIDecision => "Route",
+            WorkflowNodeType.AIAgent => "SmartToy",
+            WorkflowNodeType.AIContentGenerator => "AutoAwesome",
+            WorkflowNodeType.AIDataExtractor => "DataObject",
+            WorkflowNodeType.AIClassifier => "Category",
+            WorkflowNodeType.AISentimentAnalyzer => "SentimentSatisfied",
+            WorkflowNodeType.HumanReview => "RateReview",
             _ => "Circle"
         };
     }
@@ -1082,6 +1098,14 @@ public class WorkflowController : ControllerBase
             WorkflowNodeType.Subprocess => "#795548",
             WorkflowNodeType.LLMAction => "#E91E63",
             WorkflowNodeType.End => "#F44336",
+            // AI-Enhanced Node Types
+            WorkflowNodeType.AIDecision => "#00BCD4",
+            WorkflowNodeType.AIAgent => "#673AB7",
+            WorkflowNodeType.AIContentGenerator => "#3F51B5",
+            WorkflowNodeType.AIDataExtractor => "#009688",
+            WorkflowNodeType.AIClassifier => "#8BC34A",
+            WorkflowNodeType.AISentimentAnalyzer => "#FFEB3B",
+            WorkflowNodeType.HumanReview => "#FF5722",
             _ => "#6750A4"
         };
     }
@@ -1100,6 +1124,14 @@ public class WorkflowController : ControllerBase
             WorkflowNodeType.Subprocess => "Subprocess",
             WorkflowNodeType.LLMAction => "AI/LLM Action",
             WorkflowNodeType.End => "End",
+            // AI-Enhanced Node Types
+            WorkflowNodeType.AIDecision => "AI Decision",
+            WorkflowNodeType.AIAgent => "AI Agent",
+            WorkflowNodeType.AIContentGenerator => "AI Content Generator",
+            WorkflowNodeType.AIDataExtractor => "AI Data Extractor",
+            WorkflowNodeType.AIClassifier => "AI Classifier",
+            WorkflowNodeType.AISentimentAnalyzer => "AI Sentiment Analyzer",
+            WorkflowNodeType.HumanReview => "Human Review",
             _ => nodeType.ToString()
         };
     }
