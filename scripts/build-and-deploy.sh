@@ -229,7 +229,7 @@ deploy_docker_compose() {
             -e "Jwt__ExpirationMinutes=1440" \
             -e "Cors__AllowedOrigins=http://192.168.0.9,http://localhost:3000,http://localhost" \
             -e "AllowedHosts=*" \
-            --health-cmd="curl -f http://localhost:5000/api/health || exit 1" \
+            --health-cmd="curl -f http://localhost:5000/health || exit 1" \
             --health-interval=30s \
             --health-timeout=10s \
             --health-retries=3 \
