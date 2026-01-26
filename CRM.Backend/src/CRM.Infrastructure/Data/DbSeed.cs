@@ -427,6 +427,9 @@ public class DbSeed
             await context.SaveChangesAsync();
         }
 
+        // Seed additional master data categories if not exist
+        await SeedAdditionalMasterDataAsync(context);
+
         // Seed sample contacts if none exist
         if (!context.Contacts.Any())
         {
@@ -1032,5 +1035,152 @@ public class DbSeed
             // Terms Tab (2)
             new() { ModuleName = "Quotes", FieldName = "terms", FieldLabel = "Terms & Conditions", FieldType = "textarea", TabIndex = 2, TabName = "Terms", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
             new() { ModuleName = "Quotes", FieldName = "notes", FieldLabel = "Notes", FieldType = "textarea", TabIndex = 2, TabName = "Terms", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
-        };    }
+        };
+    }
+
+    /// <summary>
+    /// Seeds additional master data categories for addresses, contact methods, and account locations
+    /// </summary>
+    private static async Task SeedAdditionalMasterDataAsync(CrmDbContext context)
+    {
+        // Check if AddressType category exists
+        var addressTypeCategory = await context.LookupCategories.FirstOrDefaultAsync(c => c.Name == "AddressType");
+        if (addressTypeCategory == null)
+        {
+            addressTypeCategory = new LookupCategory
+            {
+                Name = "AddressType",
+                Description = "Types of addresses (Primary, Billing, Shipping, Work, Home, etc.)",
+                IsActive = true
+            };
+            context.LookupCategories.Add(addressTypeCategory);
+            await context.SaveChangesAsync();
+
+            var addressTypes = new[]
+            {
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Primary", Value = "Primary", SortOrder = 1, IsActive = true, Meta = "{\"icon\":\"🏠\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Billing", Value = "Billing", SortOrder = 2, IsActive = true, Meta = "{\"icon\":\"💳\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Shipping", Value = "Shipping", SortOrder = 3, IsActive = true, Meta = "{\"icon\":\"📦\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Work", Value = "Work", SortOrder = 4, IsActive = true, Meta = "{\"icon\":\"🏢\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Home", Value = "Home", SortOrder = 5, IsActive = true, Meta = "{\"icon\":\"🏡\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Office", Value = "Office", SortOrder = 6, IsActive = true, Meta = "{\"icon\":\"🏬\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Headquarters", Value = "Headquarters", SortOrder = 7, IsActive = true, Meta = "{\"icon\":\"🏛️\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Branch", Value = "Branch", SortOrder = 8, IsActive = true, Meta = "{\"icon\":\"🏪\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Store", Value = "Store", SortOrder = 9, IsActive = true, Meta = "{\"icon\":\"🛒\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Factory", Value = "Factory", SortOrder = 10, IsActive = true, Meta = "{\"icon\":\"🏭\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Warehouse", Value = "Warehouse", SortOrder = 11, IsActive = true, Meta = "{\"icon\":\"📦\"}" },
+                new LookupItem { LookupCategoryId = addressTypeCategory.Id, Key = "Other", Value = "Other", SortOrder = 99, IsActive = true, Meta = "{\"icon\":\"📍\"}" }
+            };
+            context.LookupItems.AddRange(addressTypes);
+            await context.SaveChangesAsync();
+        }
+
+        // Check if ContactMethodType category exists
+        var contactMethodTypeCategory = await context.LookupCategories.FirstOrDefaultAsync(c => c.Name == "ContactMethodType");
+        if (contactMethodTypeCategory == null)
+        {
+            contactMethodTypeCategory = new LookupCategory
+            {
+                Name = "ContactMethodType",
+                Description = "Types of contact methods (Work, Home, Mobile, Personal, Other)",
+                IsActive = true
+            };
+            context.LookupCategories.Add(contactMethodTypeCategory);
+            await context.SaveChangesAsync();
+
+            var contactMethodTypes = new[]
+            {
+                new LookupItem { LookupCategoryId = contactMethodTypeCategory.Id, Key = "Work", Value = "Work", SortOrder = 1, IsActive = true, Meta = "{\"icon\":\"🏢\"}" },
+                new LookupItem { LookupCategoryId = contactMethodTypeCategory.Id, Key = "Home", Value = "Home", SortOrder = 2, IsActive = true, Meta = "{\"icon\":\"🏠\"}" },
+                new LookupItem { LookupCategoryId = contactMethodTypeCategory.Id, Key = "Mobile", Value = "Mobile", SortOrder = 3, IsActive = true, Meta = "{\"icon\":\"📱\"}" },
+                new LookupItem { LookupCategoryId = contactMethodTypeCategory.Id, Key = "Personal", Value = "Personal", SortOrder = 4, IsActive = true, Meta = "{\"icon\":\"👤\"}" },
+                new LookupItem { LookupCategoryId = contactMethodTypeCategory.Id, Key = "Other", Value = "Other", SortOrder = 99, IsActive = true, Meta = "{\"icon\":\"📋\"}" }
+            };
+            context.LookupItems.AddRange(contactMethodTypes);
+            await context.SaveChangesAsync();
+        }
+
+        // Check if ContactPriority category exists
+        var contactPriorityCategory = await context.LookupCategories.FirstOrDefaultAsync(c => c.Name == "ContactPriority");
+        if (contactPriorityCategory == null)
+        {
+            contactPriorityCategory = new LookupCategory
+            {
+                Name = "ContactPriority",
+                Description = "Priority of contact information (Primary, Secondary, Other)",
+                IsActive = true
+            };
+            context.LookupCategories.Add(contactPriorityCategory);
+            await context.SaveChangesAsync();
+
+            var contactPriorities = new[]
+            {
+                new LookupItem { LookupCategoryId = contactPriorityCategory.Id, Key = "Primary", Value = "Primary", SortOrder = 1, IsActive = true, Meta = "{\"icon\":\"⭐\"}" },
+                new LookupItem { LookupCategoryId = contactPriorityCategory.Id, Key = "Secondary", Value = "Secondary", SortOrder = 2, IsActive = true, Meta = "{\"icon\":\"✦\"}" },
+                new LookupItem { LookupCategoryId = contactPriorityCategory.Id, Key = "Other", Value = "Other", SortOrder = 99, IsActive = true, Meta = "{\"icon\":\"○\"}" }
+            };
+            context.LookupItems.AddRange(contactPriorities);
+            await context.SaveChangesAsync();
+        }
+
+        // Check if AccountLocationType category exists
+        var accountLocationCategory = await context.LookupCategories.FirstOrDefaultAsync(c => c.Name == "AccountLocationType");
+        if (accountLocationCategory == null)
+        {
+            accountLocationCategory = new LookupCategory
+            {
+                Name = "AccountLocationType",
+                Description = "Types of account/corporate locations (Office, HQ, Branch, Store, Factory, Warehouse, etc.)",
+                IsActive = true
+            };
+            context.LookupCategories.Add(accountLocationCategory);
+            await context.SaveChangesAsync();
+
+            var accountLocationTypes = new[]
+            {
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "Office", Value = "Office", SortOrder = 1, IsActive = true, Meta = "{\"icon\":\"🏢\",\"description\":\"General office location\"}" },
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "Headquarters", Value = "Headquarters", SortOrder = 2, IsActive = true, Meta = "{\"icon\":\"🏛️\",\"description\":\"Main headquarters\"}" },
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "RegionalHQ", Value = "Regional HQ", SortOrder = 3, IsActive = true, Meta = "{\"icon\":\"🌍\",\"description\":\"Regional headquarters\"}" },
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "Branch", Value = "Branch", SortOrder = 4, IsActive = true, Meta = "{\"icon\":\"🏬\",\"description\":\"Branch office\"}" },
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "Store", Value = "Store", SortOrder = 5, IsActive = true, Meta = "{\"icon\":\"🛒\",\"description\":\"Retail store\"}" },
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "Factory", Value = "Factory", SortOrder = 6, IsActive = true, Meta = "{\"icon\":\"🏭\",\"description\":\"Manufacturing plant\"}" },
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "Warehouse", Value = "Warehouse", SortOrder = 7, IsActive = true, Meta = "{\"icon\":\"📦\",\"description\":\"Storage warehouse\"}" },
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "DistributionCenter", Value = "Distribution Center", SortOrder = 8, IsActive = true, Meta = "{\"icon\":\"🚚\",\"description\":\"Distribution hub\"}" },
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "DataCenter", Value = "Data Center", SortOrder = 9, IsActive = true, Meta = "{\"icon\":\"🖥️\",\"description\":\"Data center facility\"}" },
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "RDCenter", Value = "R&D Center", SortOrder = 10, IsActive = true, Meta = "{\"icon\":\"🔬\",\"description\":\"Research & development\"}" },
+                new LookupItem { LookupCategoryId = accountLocationCategory.Id, Key = "Other", Value = "Other", SortOrder = 99, IsActive = true, Meta = "{\"icon\":\"📍\",\"description\":\"Other location type\"}" }
+            };
+            context.LookupItems.AddRange(accountLocationTypes);
+            await context.SaveChangesAsync();
+        }
+
+        // Check if SocialMediaPlatform category exists
+        var socialPlatformCategory = await context.LookupCategories.FirstOrDefaultAsync(c => c.Name == "SocialMediaPlatform");
+        if (socialPlatformCategory == null)
+        {
+            socialPlatformCategory = new LookupCategory
+            {
+                Name = "SocialMediaPlatform",
+                Description = "Social media platforms (LinkedIn, Twitter, Facebook, etc.)",
+                IsActive = true
+            };
+            context.LookupCategories.Add(socialPlatformCategory);
+            await context.SaveChangesAsync();
+
+            var socialPlatforms = new[]
+            {
+                new LookupItem { LookupCategoryId = socialPlatformCategory.Id, Key = "LinkedIn", Value = "LinkedIn", SortOrder = 1, IsActive = true, Meta = "{\"icon\":\"💼\",\"urlPrefix\":\"https://linkedin.com/in/\"}" },
+                new LookupItem { LookupCategoryId = socialPlatformCategory.Id, Key = "Twitter", Value = "Twitter/X", SortOrder = 2, IsActive = true, Meta = "{\"icon\":\"🐦\",\"urlPrefix\":\"https://twitter.com/\"}" },
+                new LookupItem { LookupCategoryId = socialPlatformCategory.Id, Key = "Facebook", Value = "Facebook", SortOrder = 3, IsActive = true, Meta = "{\"icon\":\"📘\",\"urlPrefix\":\"https://facebook.com/\"}" },
+                new LookupItem { LookupCategoryId = socialPlatformCategory.Id, Key = "Instagram", Value = "Instagram", SortOrder = 4, IsActive = true, Meta = "{\"icon\":\"📷\",\"urlPrefix\":\"https://instagram.com/\"}" },
+                new LookupItem { LookupCategoryId = socialPlatformCategory.Id, Key = "YouTube", Value = "YouTube", SortOrder = 5, IsActive = true, Meta = "{\"icon\":\"🎬\",\"urlPrefix\":\"https://youtube.com/@\"}" },
+                new LookupItem { LookupCategoryId = socialPlatformCategory.Id, Key = "TikTok", Value = "TikTok", SortOrder = 6, IsActive = true, Meta = "{\"icon\":\"🎵\",\"urlPrefix\":\"https://tiktok.com/@\"}" },
+                new LookupItem { LookupCategoryId = socialPlatformCategory.Id, Key = "GitHub", Value = "GitHub", SortOrder = 7, IsActive = true, Meta = "{\"icon\":\"💻\",\"urlPrefix\":\"https://github.com/\"}" },
+                new LookupItem { LookupCategoryId = socialPlatformCategory.Id, Key = "Website", Value = "Website", SortOrder = 8, IsActive = true, Meta = "{\"icon\":\"🌐\",\"urlPrefix\":\"\"}" },
+                new LookupItem { LookupCategoryId = socialPlatformCategory.Id, Key = "Other", Value = "Other", SortOrder = 99, IsActive = true, Meta = "{\"icon\":\"🔗\",\"urlPrefix\":\"\"}" }
+            };
+            context.LookupItems.AddRange(socialPlatforms);
+            await context.SaveChangesAsync();
+        }
+    }
 }

@@ -4,19 +4,19 @@
  */
 
 // ============================================================================
-// Customer & Contact Constants
+// Account & Contact Constants
 // ============================================================================
 
 /**
- * Customer Lifecycle Stages
- * Flow: Other (default) → Lead → Opportunity → Customer → CustomerAtRisk → Churned → (Win-back) → Lead
+ * Account Lifecycle Stages
+ * Flow: Other (default) → Lead → Opportunity → Active → At Risk → Churned → (Win-back) → Lead
  */
 export const LIFECYCLE_STAGES = [
   'Other',
   'Lead',
   'Opportunity',
-  'Customer',
-  'CustomerAtRisk',
+  'Active',
+  'AtRisk',
   'Churned',
   'WinBack',
 ] as const;
@@ -28,31 +28,167 @@ export type LifecycleStage = typeof LIFECYCLE_STAGES[number];
  */
 export const LIFECYCLE_STAGE_OPTIONS = [
   { value: 0, key: 'Other', label: 'Other', color: '#9e9e9e', description: 'Initial default value' },
-  { value: 1, key: 'Lead', label: 'Lead', color: '#2196f3', description: 'Potential customer showing interest' },
+  { value: 1, key: 'Lead', label: 'Lead', color: '#2196f3', description: 'Potential account showing interest' },
   { value: 2, key: 'Opportunity', label: 'Opportunity', color: '#ff9800', description: 'Qualified lead with active sales opportunity' },
-  { value: 3, key: 'Customer', label: 'Customer', color: '#4caf50', description: 'Active paying customer' },
-  { value: 4, key: 'CustomerAtRisk', label: 'Customer at Risk', color: '#f44336', description: 'Customer at risk of churning' },
-  { value: 5, key: 'Churned', label: 'Churned', color: '#607d8b', description: 'Former customer who stopped doing business' },
-  { value: 6, key: 'WinBack', label: 'Win-back', color: '#9c27b0', description: 'Churned customer being re-engaged' },
+  { value: 3, key: 'Active', label: 'Active', color: '#4caf50', description: 'Active paying account' },
+  { value: 4, key: 'AtRisk', label: 'At Risk', color: '#f44336', description: 'Account at risk of churning' },
+  { value: 5, key: 'Churned', label: 'Churned', color: '#607d8b', description: 'Former account who stopped doing business' },
+  { value: 6, key: 'WinBack', label: 'Win-back', color: '#9c27b0', description: 'Churned account being re-engaged' },
 ] as const;
 
-export const CUSTOMER_TYPES = [
+export const ACCOUNT_TYPES = [
   'Individual',
   'Business',
   'Enterprise',
   'Government',
 ] as const;
 
-export type CustomerType = typeof CUSTOMER_TYPES[number];
+export type AccountType = typeof ACCOUNT_TYPES[number];
 
-export const CUSTOMER_STATUSES = [
+// Legacy alias for backward compatibility
+export const CUSTOMER_TYPES = ACCOUNT_TYPES;
+export type CustomerType = AccountType;
+
+export const ACCOUNT_STATUSES = [
   'Active',
   'Inactive',
   'Pending',
   'Suspended',
 ] as const;
 
-export type CustomerStatus = typeof CUSTOMER_STATUSES[number];
+export type AccountStatus = typeof ACCOUNT_STATUSES[number];
+
+// Legacy alias for backward compatibility
+export const CUSTOMER_STATUSES = ACCOUNT_STATUSES;
+export type CustomerStatus = AccountStatus;
+
+// ============================================================================
+// Address Type Constants
+// ============================================================================
+
+export const ADDRESS_TYPES = [
+  'Primary',
+  'Billing',
+  'Shipping',
+  'Work',
+  'Home',
+  'Office',
+  'Headquarters',
+  'Branch',
+  'Store',
+  'Factory',
+  'Warehouse',
+  'Other',
+] as const;
+
+export type AddressType = typeof ADDRESS_TYPES[number];
+
+export const ADDRESS_TYPE_OPTIONS = [
+  { value: 0, label: 'Primary', description: 'Main address' },
+  { value: 1, label: 'Billing', description: 'Billing/invoice address' },
+  { value: 2, label: 'Shipping', description: 'Shipping/delivery address' },
+  { value: 3, label: 'Work', description: 'Work address' },
+  { value: 4, label: 'Home', description: 'Home/residence address' },
+  { value: 5, label: 'Office', description: 'Office location' },
+  { value: 6, label: 'Headquarters', description: 'HQ/main office' },
+  { value: 7, label: 'Branch', description: 'Branch office' },
+  { value: 8, label: 'Store', description: 'Retail store location' },
+  { value: 9, label: 'Factory', description: 'Manufacturing facility' },
+  { value: 10, label: 'Warehouse', description: 'Storage/distribution center' },
+  { value: 11, label: 'Other', description: 'Other address type' },
+] as const;
+
+// ============================================================================
+// Contact Method Type Constants (Email, Phone, Social)
+// ============================================================================
+
+export const CONTACT_METHOD_TYPES = [
+  'Work',
+  'Home',
+  'Mobile',
+  'Personal',
+  'Other',
+] as const;
+
+export type ContactMethodType = typeof CONTACT_METHOD_TYPES[number];
+
+export const CONTACT_METHOD_TYPE_OPTIONS = [
+  { value: 0, label: 'Work', icon: '🏢' },
+  { value: 1, label: 'Home', icon: '🏠' },
+  { value: 2, label: 'Mobile', icon: '📱' },
+  { value: 3, label: 'Personal', icon: '👤' },
+  { value: 4, label: 'Other', icon: '📋' },
+] as const;
+
+export const CONTACT_PRIORITY_OPTIONS = [
+  { value: 0, label: 'Primary', icon: '⭐' },
+  { value: 1, label: 'Secondary', icon: '✦' },
+  { value: 2, label: 'Other', icon: '○' },
+] as const;
+
+// ============================================================================
+// Account Location Type Constants (for corporate accounts)
+// ============================================================================
+
+export const ACCOUNT_LOCATION_TYPES = [
+  'Office',
+  'Headquarters',
+  'Regional HQ',
+  'Branch',
+  'Store',
+  'Factory',
+  'Warehouse',
+  'Distribution Center',
+  'Data Center',
+  'R&D Center',
+  'Other',
+] as const;
+
+export type AccountLocationType = typeof ACCOUNT_LOCATION_TYPES[number];
+
+export const ACCOUNT_LOCATION_TYPE_OPTIONS = [
+  { value: 0, label: 'Office', icon: '🏢', description: 'General office location' },
+  { value: 1, label: 'Headquarters', icon: '🏛️', description: 'Main headquarters' },
+  { value: 2, label: 'Regional HQ', icon: '🌍', description: 'Regional headquarters' },
+  { value: 3, label: 'Branch', icon: '🏬', description: 'Branch office' },
+  { value: 4, label: 'Store', icon: '🛒', description: 'Retail store' },
+  { value: 5, label: 'Factory', icon: '🏭', description: 'Manufacturing plant' },
+  { value: 6, label: 'Warehouse', icon: '📦', description: 'Storage warehouse' },
+  { value: 7, label: 'Distribution Center', icon: '🚚', description: 'Distribution hub' },
+  { value: 8, label: 'Data Center', icon: '🖥️', description: 'Data center facility' },
+  { value: 9, label: 'R&D Center', icon: '🔬', description: 'Research & development' },
+  { value: 10, label: 'Other', icon: '📍', description: 'Other location type' },
+] as const;
+
+// ============================================================================
+// Social Media Platform Constants
+// ============================================================================
+
+export const SOCIAL_MEDIA_PLATFORMS = [
+  'LinkedIn',
+  'Twitter',
+  'Facebook',
+  'Instagram',
+  'YouTube',
+  'TikTok',
+  'GitHub',
+  'Website',
+  'Other',
+] as const;
+
+export type SocialMediaPlatform = typeof SOCIAL_MEDIA_PLATFORMS[number];
+
+export const SOCIAL_MEDIA_PLATFORM_OPTIONS = [
+  { value: 0, label: 'LinkedIn', icon: '💼', urlPrefix: 'https://linkedin.com/in/' },
+  { value: 1, label: 'Twitter', icon: '🐦', urlPrefix: 'https://twitter.com/' },
+  { value: 2, label: 'Facebook', icon: '📘', urlPrefix: 'https://facebook.com/' },
+  { value: 3, label: 'Instagram', icon: '📷', urlPrefix: 'https://instagram.com/' },
+  { value: 4, label: 'YouTube', icon: '🎬', urlPrefix: 'https://youtube.com/@' },
+  { value: 5, label: 'TikTok', icon: '🎵', urlPrefix: 'https://tiktok.com/@' },
+  { value: 6, label: 'GitHub', icon: '💻', urlPrefix: 'https://github.com/' },
+  { value: 7, label: 'Website', icon: '🌐', urlPrefix: '' },
+  { value: 8, label: 'Other', icon: '🔗', urlPrefix: '' },
+] as const;
 
 // ============================================================================
 // Priority & Status Constants
@@ -171,7 +307,7 @@ export type ActivityType = typeof ACTIVITY_TYPES[number];
 // ============================================================================
 
 export const ENTITY_TYPES = [
-  'Customer',
+  'Account',
   'Contact',
   'Product',
   'Opportunity',
@@ -239,7 +375,7 @@ export const VALIDATION = {
 // Note: LIFECYCLE_STAGE_OPTIONS is defined earlier in this file
 // ============================================================================
 
-export const CUSTOMER_TYPE_OPTIONS = [
+export const ACCOUNT_TYPE_OPTIONS = [
   { value: 0, label: 'Individual' },
   { value: 1, label: 'Small Business' },
   { value: 2, label: 'Mid-Market' },
@@ -247,6 +383,9 @@ export const CUSTOMER_TYPE_OPTIONS = [
   { value: 4, label: 'Government' },
   { value: 5, label: 'Non-Profit' },
 ] as const;
+
+// Legacy alias for backward compatibility
+export const CUSTOMER_TYPE_OPTIONS = ACCOUNT_TYPE_OPTIONS;
 
 export const PRIORITY_OPTIONS = [
   { value: 0, label: 'Low', color: '#9e9e9e' },

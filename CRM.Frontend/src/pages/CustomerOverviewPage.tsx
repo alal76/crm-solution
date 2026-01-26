@@ -312,7 +312,7 @@ function CustomerOverviewPage() {
             <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                  Find Customer
+                  Find Account
                 </Typography>
 
                 {/* Search Type Selector */}
@@ -339,7 +339,7 @@ function CustomerOverviewPage() {
                 {/* Search Input */}
                 <TextField
                   fullWidth
-                  placeholder="Search customers..."
+                  placeholder="Search accounts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   size="small"

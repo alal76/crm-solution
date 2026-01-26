@@ -245,7 +245,7 @@ function CustomersPage() {
       setCustomers(response.data);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch customers');
+      setError(err.response?.data?.message || 'Failed to fetch accounts');
     } finally {
       setLoading(false);
     }
@@ -299,7 +299,7 @@ function CustomersPage() {
   const handleUnassignDirectContact = async (contactId: number) => {
     if (!editingId) return;
 
-    if (window.confirm('Are you sure you want to unassign this contact from the customer?')) {
+    if (window.confirm('Are you sure you want to unassign this contact from the account?')) {
       try {
         await apiClient.delete(`/customers/${editingId}/direct-contacts/${contactId}`);
         fetchDirectContacts(editingId);
@@ -395,28 +395,28 @@ function CustomersPage() {
     try {
       if (editingId) {
         await apiClient.put(`/customers/${editingId}`, formData);
-        setSuccessMessage('Customer updated successfully');
+        setSuccessMessage('Account updated successfully');
       } else {
         await apiClient.post('/customers', formData);
-        setSuccessMessage('Customer created successfully');
+        setSuccessMessage('Account created successfully');
       }
       handleCloseDialog();
       fetchCustomers();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save customer');
+      setError(err.response?.data?.message || 'Failed to save account');
     }
   };
 
   const handleDeleteCustomer = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
+    if (window.confirm('Are you sure you want to delete this account?')) {
       try {
         await apiClient.delete(`/customers/${id}`);
-        setSuccessMessage('Customer deleted successfully');
+        setSuccessMessage('Account deleted successfully');
         fetchCustomers();
         setTimeout(() => setSuccessMessage(null), 3000);
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete customer');
+        setError(err.response?.data?.message || 'Failed to delete account');
       }
     }
   };
@@ -448,7 +448,7 @@ function CustomersPage() {
   const handleRemoveContact = async (contactId: number) => {
     if (!editingId) return;
 
-    if (window.confirm('Are you sure you want to remove this contact from the customer?')) {
+    if (window.confirm('Are you sure you want to remove this contact from the account?')) {
       try {
         await apiClient.delete(`/customers/${editingId}/contacts/${contactId}`);
         fetchCustomerContacts(editingId);
@@ -578,7 +578,7 @@ function CustomersPage() {
         <AdvancedSearch
           fields={SEARCH_FIELDS}
           onSearch={handleSearch}
-          placeholder="Search customers by name, email, company..."
+          placeholder="Search accounts by name, email, company..."
         />
 
         {/* Customer List */}
@@ -972,10 +972,10 @@ function CustomersPage() {
 
       {/* Assign Direct Contact Dialog */}
       <Dialog open={assignContactDialogOpen} onClose={() => setAssignContactDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Assign Contact to Customer</DialogTitle>
+        <DialogTitle>Assign Contact to Account</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="textSecondary" sx={{ mb: 2, mt: 1 }}>
-            Select a contact to assign directly to this customer. This establishes an exclusive ownership relationship.
+            Select a contact to assign directly to this account. This establishes an exclusive ownership relationship.
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12}>

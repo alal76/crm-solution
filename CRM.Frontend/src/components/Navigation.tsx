@@ -52,6 +52,10 @@ import {
   Login as LoginIcon,
   Palette as PaletteIcon,
   ViewModule as ModuleIcon,
+  // About, Help, Licenses icons
+  Info as InfoIcon,
+  Help as HelpIcon,
+  Gavel as LicenseIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -115,6 +119,10 @@ function NavigationContent() {
     'notes': { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
     'communications': { label: 'Communications', icon: CommunicationsIcon, path: '/communications', menuName: 'Communications' },
     'interactions': { label: 'Interactions', icon: InteractionsIcon, path: '/interactions', menuName: 'Interactions' },
+    // Help & Info items
+    'about': { label: 'About', icon: InfoIcon, path: '/about', menuName: 'About' },
+    'help': { label: 'Help', icon: HelpIcon, path: '/help', menuName: 'Help' },
+    'licenses': { label: 'Licenses', icon: LicenseIcon, path: '/licenses', menuName: 'Licenses' },
   }), []);
 
   const adminItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
@@ -161,7 +169,8 @@ function NavigationContent() {
     { id: 'sales', label: 'Sales & Marketing', order: 1 },
     { id: 'support', label: 'Customer Support', order: 2 },
     { id: 'productivity', label: 'Productivity', order: 3 },
-    { id: 'admin', label: 'Administration', order: 4 },
+    { id: 'info', label: 'Help & Info', order: 4 },
+    { id: 'admin', label: 'Administration', order: 5 },
   ], []);
 
   // Default nav items with their proper categories (matching NavigationSettingsTab)
@@ -182,27 +191,32 @@ function NavigationContent() {
     { id: 'notes', order: 13, visible: true, category: 'productivity' },
     { id: 'communications', order: 14, visible: true, category: 'productivity' },
     { id: 'interactions', order: 15, visible: true, category: 'productivity' },
+    // Help & Info
+    { id: 'about', order: 50, visible: true, category: 'info' },
+    { id: 'help', order: 51, visible: true, category: 'info' },
+    { id: 'licenses', order: 52, visible: true, category: 'info' },
     // System Administration
-    { id: 'database-settings', order: 16, visible: true, category: 'admin' },
-    { id: 'deployment-settings', order: 17, visible: true, category: 'admin' },
-    { id: 'monitoring-settings', order: 18, visible: true, category: 'admin' },
-    { id: 'security-settings', order: 19, visible: true, category: 'admin' },
-    { id: 'feature-management', order: 20, visible: true, category: 'admin' },
+    { id: 'database-settings', order: 60, visible: true, category: 'admin' },
+    { id: 'deployment-settings', order: 61, visible: true, category: 'admin' },
+    { id: 'monitoring-settings', order: 62, visible: true, category: 'admin' },
+    { id: 'security-settings', order: 63, visible: true, category: 'admin' },
+    { id: 'feature-management', order: 64, visible: true, category: 'admin' },
     // User Administration
-    { id: 'user-management', order: 21, visible: true, category: 'admin' },
-    { id: 'user-approvals', order: 22, visible: true, category: 'admin' },
-    { id: 'group-management', order: 23, visible: true, category: 'admin' },
-    { id: 'social-login', order: 24, visible: true, category: 'admin' },
+    { id: 'user-management', order: 65, visible: true, category: 'admin' },
+    { id: 'user-approvals', order: 66, visible: true, category: 'admin' },
+    { id: 'group-management', order: 67, visible: true, category: 'admin' },
+    { id: 'social-login', order: 68, visible: true, category: 'admin' },
     // CRM Administration
-    { id: 'branding-settings', order: 25, visible: true, category: 'admin' },
-    { id: 'navigation-settings', order: 26, visible: true, category: 'admin' },
-    { id: 'module-fields', order: 27, visible: true, category: 'admin' },
-    { id: 'sr-definitions', order: 28, visible: true, category: 'admin' },
-    { id: 'master-data', order: 29, visible: true, category: 'admin' },
-    { id: 'dashboard-settings', order: 30, visible: true, category: 'admin' },
+    { id: 'branding-settings', order: 69, visible: true, category: 'admin' },
+    { id: 'navigation-settings', order: 70, visible: true, category: 'admin' },
+    { id: 'module-fields', order: 71, visible: true, category: 'admin' },
+    { id: 'sr-definitions', order: 72, visible: true, category: 'admin' },
+    { id: 'master-data', order: 73, visible: true, category: 'admin' },
+    { id: 'dashboard-settings', order: 74, visible: true, category: 'admin' },
+    { id: 'workflow-settings', order: 75, visible: true, category: 'admin' },
     // Legacy
-    { id: 'channel-settings', order: 31, visible: true, category: 'admin' },
-    { id: 'settings', order: 32, visible: true, category: 'admin' },
+    { id: 'channel-settings', order: 76, visible: true, category: 'admin' },
+    { id: 'settings', order: 77, visible: true, category: 'admin' },
   ], []);
 
   // Get nav config from localStorage or use defaults

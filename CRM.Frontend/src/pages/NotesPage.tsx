@@ -36,7 +36,7 @@ const NOTE_VISIBILITY = [
   { value: 2, label: 'Public', icon: <PublicIcon /> },
 ];
 
-const ENTITY_TYPES = ['Customer', 'Contact', 'Opportunity', 'Task', 'Quote', 'Campaign', 'Product'];
+const ENTITY_TYPES = ['Account', 'Contact', 'Opportunity', 'Task', 'Quote', 'Campaign', 'Product'];
 
 interface Note extends BaseEntity {
   title: string;

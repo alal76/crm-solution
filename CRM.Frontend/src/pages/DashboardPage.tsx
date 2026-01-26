@@ -653,7 +653,7 @@ function DashboardPage() {
     const fallbackStats = [
       { title: 'Total Pipeline', value: formatCurrency(totalPipeline), icon: TrendingUpIcon, color: '#6750A4', link: '/opportunities', menuKey: 'Opportunities' },
       { title: 'Active Campaigns', value: campaignCount, icon: CampaignIcon, color: '#06A77D', link: '/campaigns', menuKey: 'Campaigns' },
-      { title: 'Customers', value: totalCustomers.toLocaleString(), icon: PeopleIcon, color: '#0092BC', link: '/customers', menuKey: 'Customers' },
+      { title: 'Accounts', value: totalCustomers.toLocaleString(), icon: PeopleIcon, color: '#0092BC', link: '/customers', menuKey: 'Customers' },
       { title: 'Total Revenue', value: formatCurrency(totalRevenue), icon: ShoppingCartIcon, color: '#F57C00', link: '/opportunities', menuKey: 'Opportunities' },
     ];
 
