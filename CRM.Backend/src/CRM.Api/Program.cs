@@ -273,6 +273,13 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructu
 builder.Services.AddScoped<NormalizationService>();
 // Master data - ZIP code / Postal code lookups
 builder.Services.AddScoped<IZipCodeService, ZipCodeService>();
+// ZIP code import service - pull from GeoNames/GitHub
+builder.Services.AddScoped<IZipCodeImportService, ZipCodeImportService>();
+// ZIP code import options
+builder.Services.Configure<ZipCodeImportOptions>(
+    builder.Configuration.GetSection(ZipCodeImportOptions.SectionName));
+// ZIP code import background service (scheduled imports)
+builder.Services.AddHostedService<ZipCodeImportHostedService>();
 // Contact info validation service (email, phone, social media)
 builder.Services.AddScoped<IContactInfoValidationService, ContactInfoValidationService>();
 // Master data - Field-to-master-data linking service

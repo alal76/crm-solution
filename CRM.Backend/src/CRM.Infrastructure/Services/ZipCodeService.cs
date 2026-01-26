@@ -255,6 +255,38 @@ public class ZipCodeService : IZipCodeService
     }
     
     /// <inheritdoc />
+    public async Task<int> GetTotalCountAsync()
+    {
+        try
+        {
+            return await _context.ZipCodes.CountAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting total zip code count");
+            return 0;
+        }
+    }
+    
+    /// <inheritdoc />
+    public async Task<int> GetCountryCountAsync()
+    {
+        try
+        {
+            return await _context.ZipCodes
+                .Where(z => z.IsActive)
+                .Select(z => z.CountryCode)
+                .Distinct()
+                .CountAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting country count");
+            return 0;
+        }
+    }
+    
+    /// <inheritdoc />
     public async Task<IEnumerable<CountryInfo>> GetCountriesAsync()
     {
         try

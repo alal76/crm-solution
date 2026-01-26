@@ -1,7 +1,32 @@
 {
   "major": 1,
-  "minor": 4,
-  "patch": 5,
-  "lastUpdate": "2026-01-25",
-  "description": "Updated health checks with startup/readiness/liveness probes, added AllowAnonymous to HealthController"
+  "minor": 5,
+  "patch": 0,
+  "lastUpdate": "2026-01-26",
+  "description": "Added ZIP code import workflow task with GeoNames/GitHub support",
+  "components": {
+    "api": {
+      "version": "1.5.0",
+      "build": "v32",
+      "lastDeployed": "2026-01-26"
+    },
+    "frontend": {
+      "version": "1.5.0",
+      "build": "v40",
+      "lastDeployed": "2026-01-26"
+    },
+    "database": {
+      "version": "1.5.0",
+      "schema": "EF Core Migrations",
+      "zipCodes": 115,
+      "countries": 21
+    }
+  },
+  "features": [
+    "ZIP code import from GeoNames (download.geonames.org)",
+    "ZIP code import from GitHub JSON URLs",
+    "Workflow integration for ZipCodeImport action",
+    "Background scheduled imports with cron expressions",
+    "Import status and statistics API endpoints"
+  ]
 }

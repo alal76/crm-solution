@@ -1,4 +1,5 @@
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,12 +15,17 @@ namespace CRM.API.Controllers;
 public class ZipCodesController : ControllerBase
 {
     private readonly IZipCodeService _zipCodeService;
+    private readonly IZipCodeImportService? _zipCodeImportService;
     private readonly ILogger<ZipCodesController> _logger;
 
-    public ZipCodesController(IZipCodeService zipCodeService, ILogger<ZipCodesController> logger)
+    public ZipCodesController(
+        IZipCodeService zipCodeService, 
+        ILogger<ZipCodesController> logger,
+        IZipCodeImportService? zipCodeImportService = null)
     {
         _zipCodeService = zipCodeService;
         _logger = logger;
+        _zipCodeImportService = zipCodeImportService;
     }
 
     /// <summary>
@@ -239,6 +245,156 @@ public class ZipCodesController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
+    #region Import Endpoints
+
+    /// <summary>
+    /// Get the current ZIP code import status
+    /// </summary>
+    /// <returns>Import status including progress if running</returns>
+    [HttpGet("import/status")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ZipCodeImportStatus>> GetImportStatus()
+    {
+        if (_zipCodeImportService == null)
+        {
+            return NotFound("ZIP code import service is not configured");
+        }
+
+        var status = await _zipCodeImportService.GetImportStatusAsync();
+        return Ok(status);
+    }
+
+    /// <summary>
+    /// Import ZIP codes from GeoNames for all countries
+    /// </summary>
+    /// <returns>Import result</returns>
+    [HttpPost("import/geonames")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ZipCodeImportResult>> ImportFromGeoNames()
+    {
+        if (_zipCodeImportService == null)
+        {
+            return NotFound("ZIP code import service is not configured");
+        }
+
+        if (_zipCodeImportService.IsImportRunning)
+        {
+            return Conflict("An import is already in progress");
+        }
+
+        _logger.LogInformation("Admin triggered ZIP code import from GeoNames (all countries)");
+        var result = await _zipCodeImportService.ImportFromGeoNamesAsync();
+        
+        if (result.Success)
+        {
+            return Ok(result);
+        }
+        return StatusCode(500, result);
+    }
+
+    /// <summary>
+    /// Import ZIP codes from GeoNames for a specific country
+    /// </summary>
+    /// <param name="countryCode">ISO 2-letter country code (e.g., US, CA, GB)</param>
+    /// <returns>Import result</returns>
+    [HttpPost("import/geonames/{countryCode}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ZipCodeImportResult>> ImportCountryFromGeoNames(string countryCode)
+    {
+        if (_zipCodeImportService == null)
+        {
+            return NotFound("ZIP code import service is not configured");
+        }
+
+        if (_zipCodeImportService.IsImportRunning)
+        {
+            return Conflict("An import is already in progress");
+        }
+
+        if (string.IsNullOrWhiteSpace(countryCode) || countryCode.Length != 2)
+        {
+            return BadRequest("Country code must be a 2-letter ISO code");
+        }
+
+        _logger.LogInformation("Admin triggered ZIP code import from GeoNames for {Country}", countryCode);
+        var result = await _zipCodeImportService.ImportCountryFromGeoNamesAsync(countryCode.ToUpperInvariant());
+        
+        if (result.Success)
+        {
+            return Ok(result);
+        }
+        return StatusCode(500, result);
+    }
+
+    /// <summary>
+    /// Import ZIP codes from a GitHub repository
+    /// </summary>
+    /// <param name="request">Import request with optional custom URL</param>
+    /// <returns>Import result</returns>
+    [HttpPost("import/github")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ZipCodeImportResult>> ImportFromGitHub([FromBody] GitHubImportRequest? request = null)
+    {
+        if (_zipCodeImportService == null)
+        {
+            return NotFound("ZIP code import service is not configured");
+        }
+
+        if (_zipCodeImportService.IsImportRunning)
+        {
+            return Conflict("An import is already in progress");
+        }
+
+        _logger.LogInformation("Admin triggered ZIP code import from GitHub: {Url}", request?.Url ?? "default");
+        var result = await _zipCodeImportService.ImportFromGitHubAsync(request?.Url);
+        
+        if (result.Success)
+        {
+            return Ok(result);
+        }
+        return StatusCode(500, result);
+    }
+
+    /// <summary>
+    /// Get ZIP code statistics
+    /// </summary>
+    /// <returns>Statistics about ZIP code data</returns>
+    [HttpGet("stats")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ZipCodeStats>> GetStats()
+    {
+        var countryCount = await _zipCodeService.GetCountryCountAsync();
+        var totalCount = await _zipCodeService.GetTotalCountAsync();
+        
+        return Ok(new ZipCodeStats
+        {
+            TotalRecords = totalCount,
+            CountryCount = countryCount
+        });
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// Request for GitHub ZIP code import
+/// </summary>
+public class GitHubImportRequest
+{
+    /// <summary>
+    /// Custom GitHub raw URL for ZIP code data JSON file
+    /// </summary>
+    public string? Url { get; set; }
+}
+
+/// <summary>
+/// ZIP code database statistics
+/// </summary>
+public class ZipCodeStats
+{
+    public int TotalRecords { get; set; }
+    public int CountryCount { get; set; }
 }
 
 /// <summary>

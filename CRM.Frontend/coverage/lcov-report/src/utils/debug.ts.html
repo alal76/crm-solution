@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
-            </div>
-        
-            
-            <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
-                <span class="quiet">Branches</span>
                 <span class='fraction'>0/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/14</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
@@ -83,8 +83,24 @@
 <a name='L18'></a><a href='#L18'>18</a>
 <a name='L19'></a><a href='#L19'>19</a>
 <a name='L20'></a><a href='#L20'>20</a>
-<a name='L21'></a><a href='#L21'>21</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -97,30 +113,29 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Debug utility for logging - always enabled for troubleshooting
-const DEBUG = <span class="cstat-no" title="statement not covered" >true;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Debug utility for logging - disabled in production builds
+const DEBUG = <span class="cstat-no" title="statement not covered" >process.env.NODE_ENV !== 'production';</span>
 &nbsp;
 export const debugLog = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(l</span>abel: string, data?: any) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  if (DEBUG) {</span>
-<span class="cstat-no" title="statement not covered" >    console.log(`[CRM DEBUG] ${label}`, data || '');</span>
+<span class="cstat-no" title="statement not covered" >    console.log(`[CRM] ${label}`, data !== undefined ? data : '');</span>
   }
 };
 &nbsp;
 export const debugError = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(l</span>abel: string, error?: any) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  if (DEBUG) {</span>
-<span class="cstat-no" title="statement not covered" >    console.error(`[CRM ERROR] ${label}`, error || '');</span>
-  }
+  // Always log errors even in production
+<span class="cstat-no" title="statement not covered" >  console.error(`[CRM ERROR] ${label}`, error !== undefined ? error : '');</span>
 };
 &nbsp;
 export const debugWarn = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(l</span>abel: string, data?: any) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  if (DEBUG) {</span>
-<span class="cstat-no" title="statement not covered" >    console.warn(`[CRM WARN] ${label}`, data || '');</span>
+<span class="cstat-no" title="statement not covered" >    console.warn(`[CRM WARN] ${label}`, data !== undefined ? data : '');</span>
+  }
+};
+&nbsp;
+export const debugInfo = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(l</span>abel: string, data?: any) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  if (DEBUG) {</span>
+<span class="cstat-no" title="statement not covered" >    console.info(`[CRM INFO] ${label}`, data !== undefined ? data : '');</span>
   }
 };
 &nbsp;</pre></td></tr></table></pre>
@@ -130,7 +145,7 @@ export const debugWarn = <span class="cstat-no" title="statement not covered" ><
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-20T01:05:31.586Z
+                at 2026-01-26T14:56:31.546Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

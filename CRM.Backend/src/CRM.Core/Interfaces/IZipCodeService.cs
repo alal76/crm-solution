@@ -69,6 +69,18 @@ public interface IZipCodeService
     Task<int> GetZipCodeCountAsync();
     
     /// <summary>
+    /// Get total count of ZIP codes in the database
+    /// </summary>
+    /// <returns>Total count</returns>
+    Task<int> GetTotalCountAsync();
+    
+    /// <summary>
+    /// Get count of distinct countries in the database
+    /// </summary>
+    /// <returns>Country count</returns>
+    Task<int> GetCountryCountAsync();
+    
+    /// <summary>
     /// Get localities (neighborhoods) for a postal code
     /// </summary>
     /// <param name="zipCodeId">ZipCode ID</param>

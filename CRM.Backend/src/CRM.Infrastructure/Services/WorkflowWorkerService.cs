@@ -69,6 +69,7 @@ public class WorkflowWorkerService : BackgroundService
             { "Notification", ExecuteNotificationAction },
             { "Integration", ExecuteIntegrationAction },
             { "DataOperation", ExecuteDataOperationAction },
+            { "ZipCodeImport", ExecuteZipCodeImportAction },
         };
     }
 
@@ -873,6 +874,103 @@ public class WorkflowWorkerService : BackgroundService
         });
     }
 
+    /// <summary>
+    /// Execute ZIP code import from GeoNames or GitHub
+    /// Configuration options in task InputData:
+    /// - source: "GeoNames" or "GitHub" (default: "GeoNames")
+    /// - countryCode: ISO 2-letter code (e.g., "US") or empty for all countries
+    /// - gitHubUrl: Custom URL for GitHub import
+    /// </summary>
+    private async Task<TaskResult> ExecuteZipCodeImportAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)
+    {
+        _logger.LogInformation("Executing ZIP code import action for task {TaskId}", task.Id);
+
+        try
+        {
+            // Parse configuration from task input data
+            var config = new ZipCodeImportConfig();
+            if (!string.IsNullOrEmpty(task.InputData))
+            {
+                try
+                {
+                    config = JsonSerializer.Deserialize<ZipCodeImportConfig>(task.InputData, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    }) ?? new ZipCodeImportConfig();
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Failed to parse ZIP code import config, using defaults");
+                }
+            }
+
+            // Get the import service
+            using var scope = _serviceProvider.CreateScope();
+            var importService = scope.ServiceProvider.GetService<IZipCodeImportService>();
+            
+            if (importService == null)
+            {
+                return new TaskResult
+                {
+                    Success = false,
+                    ErrorMessage = "ZIP code import service is not configured"
+                };
+            }
+
+            if (importService.IsImportRunning)
+            {
+                return new TaskResult
+                {
+                    Success = false,
+                    ErrorMessage = "Another ZIP code import is already in progress"
+                };
+            }
+
+            // Execute import based on configuration
+            ZipCodeImportResult result;
+            
+            if (config.Source?.Equals("GitHub", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                _logger.LogInformation("Starting ZIP code import from GitHub: {Url}", config.GitHubUrl ?? "default");
+                result = await importService.ImportFromGitHubAsync(config.GitHubUrl, ct);
+            }
+            else if (!string.IsNullOrEmpty(config.CountryCode))
+            {
+                _logger.LogInformation("Starting ZIP code import from GeoNames for {Country}", config.CountryCode);
+                result = await importService.ImportCountryFromGeoNamesAsync(config.CountryCode, ct);
+            }
+            else
+            {
+                _logger.LogInformation("Starting ZIP code import from GeoNames (all countries)");
+                result = await importService.ImportFromGeoNamesAsync(ct);
+            }
+
+            return new TaskResult
+            {
+                Success = result.Success,
+                ResultData = JsonSerializer.Serialize(new
+                {
+                    result.RecordsImported,
+                    result.RecordsSkipped,
+                    result.RecordsFailed,
+                    result.Source,
+                    Duration = result.Duration.ToString(),
+                    result.CompletedAt
+                }),
+                ErrorMessage = result.ErrorMessage
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing ZIP code import action");
+            return new TaskResult
+            {
+                Success = false,
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+
     private Task<TaskResult> ExecuteGenericAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)
     {
         _logger.LogInformation("Executing generic action for task {TaskId} of type {TaskType}", task.Id, task.TaskType);
@@ -892,4 +990,26 @@ public class TaskResult
     public bool Success { get; set; }
     public string? ResultData { get; set; }
     public string? ErrorMessage { get; set; }
+}
+
+/// <summary>
+/// Configuration for ZIP code import workflow action
+/// </summary>
+public class ZipCodeImportConfig
+{
+    /// <summary>
+    /// Import source: "GeoNames" or "GitHub"
+    /// </summary>
+    public string Source { get; set; } = "GeoNames";
+    
+    /// <summary>
+    /// Country code for single-country import (e.g., "US", "CA")
+    /// Leave empty to import all countries
+    /// </summary>
+    public string? CountryCode { get; set; }
+    
+    /// <summary>
+    /// Custom GitHub URL for JSON ZIP code data
+    /// </summary>
+    public string? GitHubUrl { get; set; }
 }
