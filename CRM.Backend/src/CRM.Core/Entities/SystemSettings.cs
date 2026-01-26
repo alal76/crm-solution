@@ -472,19 +472,14 @@ public class SystemSettings : BaseEntity
     #region Demo Database Settings
     
     /// <summary>
-    /// Whether the system is using the demo database instead of production
+    /// Whether sample data has been seeded to production database
     /// </summary>
-    public bool UseDemoDatabase { get; set; } = false;
+    public bool SampleDataSeeded { get; set; } = false;
     
     /// <summary>
-    /// Whether demo data has been seeded
+    /// Last time sample data was seeded to production database
     /// </summary>
-    public bool DemoDataSeeded { get; set; } = false;
-    
-    /// <summary>
-    /// Last time demo data was seeded/refreshed
-    /// </summary>
-    public DateTime? DemoDataLastSeeded { get; set; }
+    public DateTime? SampleDataLastSeeded { get; set; }
     
     #endregion
     

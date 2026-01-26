@@ -155,8 +155,15 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             if (request.SslCertificateSubject != null) settings.SslCertificateSubject = request.SslCertificateSubject;
             if (request.ForceHttpsRedirect.HasValue) settings.ForceHttpsRedirect = request.ForceHttpsRedirect.Value;
             
-            // Demo database settings
-            if (request.UseDemoDatabase.HasValue) settings.UseDemoDatabase = request.UseDemoDatabase.Value;
+            // Sample data settings
+            if (request.SampleDataSeeded.HasValue) settings.SampleDataSeeded = request.SampleDataSeeded.Value;
+            if (request.SampleDataLastSeeded.HasValue) settings.SampleDataLastSeeded = request.SampleDataLastSeeded.Value;
+            
+            if (!string.IsNullOrEmpty(request.DateFormat)) settings.DateFormat = request.DateFormat;
+            if (!string.IsNullOrEmpty(request.TimeFormat)) settings.TimeFormat = request.TimeFormat;
+            if (!string.IsNullOrEmpty(request.DefaultCurrency)) settings.DefaultCurrency = request.DefaultCurrency;
+            if (!string.IsNullOrEmpty(request.DefaultTimezone)) settings.DefaultTimezone = request.DefaultTimezone;
+            if (!string.IsNullOrEmpty(request.DefaultLanguage)) settings.DefaultLanguage = request.DefaultLanguage;
             
             if (!string.IsNullOrEmpty(request.DateFormat)) settings.DateFormat = request.DateFormat;
             if (!string.IsNullOrEmpty(request.TimeFormat)) settings.TimeFormat = request.TimeFormat;
@@ -236,9 +243,8 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             SslCertificateSubject = settings.SslCertificateSubject,
             ForceHttpsRedirect = settings.ForceHttpsRedirect,
             
-            UseDemoDatabase = settings.UseDemoDatabase,
-            DemoDataSeeded = settings.DemoDataSeeded,
-            DemoDataLastSeeded = settings.DemoDataLastSeeded,
+            SampleDataSeeded = settings.SampleDataSeeded,
+            SampleDataLastSeeded = settings.SampleDataLastSeeded,
             
             DateFormat = settings.DateFormat,
             TimeFormat = settings.TimeFormat,

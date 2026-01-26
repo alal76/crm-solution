@@ -20,19 +20,16 @@ public class SystemSettingsController : ControllerBase
     private readonly ISystemSettingsService _settingsService;
     private readonly ILogger<SystemSettingsController> _logger;
     private readonly IDbContextResolver? _contextResolver;
-    private readonly IDemoModeState _demoModeState;
     private readonly IDatabaseSyncService? _databaseSyncService;
 
     public SystemSettingsController(
         ISystemSettingsService settingsService, 
         ILogger<SystemSettingsController> logger,
-        IDemoModeState demoModeState,
         IDbContextResolver? contextResolver = null,
         IDatabaseSyncService? databaseSyncService = null)
     {
         _settingsService = settingsService;
         _logger = logger;
-        _demoModeState = demoModeState;
         _contextResolver = contextResolver;
         _databaseSyncService = databaseSyncService;
     }
@@ -416,57 +413,26 @@ public class SystemSettingsController : ControllerBase
     }
 
     /// <summary>
-    /// Toggle demo database mode
+    /// Get sample data status (use SampleDataController for seed/clear operations)
     /// </summary>
-    [HttpPost("demo/toggle")]
+    [HttpGet("sampledata/status")]
     [Authorize(Roles = "Admin")]
-    public ActionResult<DemoStatusResponse> ToggleDemoMode([FromBody] ToggleDemoModeRequest request)
+    public async Task<ActionResult<SampleDataStatusResponse>> GetSampleDataStatus()
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-
-            // Update the API-layer singleton state (immediate effect)
-            _demoModeState.IsDemoMode = request.Enabled;
+            var settings = await _settingsService.GetSettingsAsync();
             
-            _logger.LogInformation("Demo mode {Action} by user {UserId}. Current state: {State}", 
-                request.Enabled ? "ENABLED" : "DISABLED", userId, _demoModeState.IsDemoMode);
-            
-            return Ok(new DemoStatusResponse
+            return Ok(new SampleDataStatusResponse
             {
-                UseDemoDatabase = _demoModeState.IsDemoMode,
-                DemoDataSeeded = true, // Demo data is always seeded
-                DemoDataLastSeeded = DateTime.UtcNow
+                SampleDataSeeded = settings.SampleDataSeeded,
+                SampleDataLastSeeded = settings.SampleDataLastSeeded
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error toggling demo mode");
-            return StatusCode(500, "Error toggling demo mode");
-        }
-    }
-
-    /// <summary>
-    /// Get demo database status
-    /// </summary>
-    [HttpGet("demo/status")]
-    public ActionResult<DemoStatusResponse> GetDemoStatus()
-    {
-        try
-        {
-            // Return the current API-layer state
-            return Ok(new DemoStatusResponse
-            {
-                UseDemoDatabase = _demoModeState.IsDemoMode,
-                DemoDataSeeded = true,
-                DemoDataLastSeeded = null
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting demo status");
-            return StatusCode(500, "Error getting demo status");
+            _logger.LogError(ex, "Error getting sample data status");
+            return StatusCode(500, "Error getting sample data status");
         }
     }
 
@@ -546,17 +512,10 @@ public class SystemSettingsController : ControllerBase
                 productionDatabase = new
                 {
                     name = "crm_db",
-                    isActive = !_demoModeState.IsDemoMode,
+                    isActive = true,
                     modules = result.ProductionFieldCounts
                 },
-                demoDatabase = new
-                {
-                    name = "crm_demodb",
-                    isActive = _demoModeState.IsDemoMode,
-                    modules = result.DemoFieldCounts
-                },
-                inSync = result.ProductionFieldCounts.Count == result.DemoFieldCounts.Count &&
-                    result.ProductionFieldCounts.All(kvp => result.DemoFieldCounts.TryGetValue(kvp.Key, out var v) && v == kvp.Value),
+                inSync = true,
                 lastChecked = result.CheckedAt
             });
         }
@@ -617,8 +576,8 @@ public class SystemSettingsController : ControllerBase
                 },
                 systemSettings = new
                 {
-                    demoModeEnabled = _demoModeState.IsDemoMode,
-                    useDemoDatabase = settings.UseDemoDatabase
+                    sampleDataSeeded = settings.SampleDataSeeded,
+                    sampleDataLastSeeded = settings.SampleDataLastSeeded
                 }
             });
         }
@@ -659,17 +618,10 @@ public class SystemSettingsController : ControllerBase
                 DashboardEnabled = request.DashboardEnabled,
                 EmailEnabled = request.EmailEnabled,
                 WhatsAppEnabled = request.WhatsAppEnabled,
-                SocialMediaEnabled = request.SocialMediaEnabled,
-                UseDemoDatabase = request.UseDemoDatabase
+                SocialMediaEnabled = request.SocialMediaEnabled
             };
             
             var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
-            
-            // Update demo mode state if changed
-            if (request.UseDemoDatabase.HasValue)
-            {
-                _demoModeState.IsDemoMode = request.UseDemoDatabase.Value;
-            }
             
             _logger.LogInformation("Features updated by user {UserId}", userId);
             
@@ -701,21 +653,12 @@ public class UpdateNavOrderRequest
 }
 
 /// <summary>
-/// Request to toggle demo mode
+/// Response for sample data status
 /// </summary>
-public class ToggleDemoModeRequest
+public class SampleDataStatusResponse
 {
-    public bool Enabled { get; set; }
-}
-
-/// <summary>
-/// Response for demo status
-/// </summary>
-public class DemoStatusResponse
-{
-    public bool UseDemoDatabase { get; set; }
-    public bool DemoDataSeeded { get; set; }
-    public DateTime? DemoDataLastSeeded { get; set; }
+    public bool SampleDataSeeded { get; set; }
+    public DateTime? SampleDataLastSeeded { get; set; }
 }
 
 /// <summary>
@@ -751,9 +694,6 @@ public class UpdateFeaturesRequest
     public bool? EmailEnabled { get; set; }
     public bool? WhatsAppEnabled { get; set; }
     public bool? SocialMediaEnabled { get; set; }
-    
-    // System Settings
-    public bool? UseDemoDatabase { get; set; }
 }
 
 /// <summary>

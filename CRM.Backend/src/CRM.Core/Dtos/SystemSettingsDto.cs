@@ -124,11 +124,10 @@ public class SystemSettingsDto
     
     #endregion
     
-    #region Demo Database Settings
+    #region Sample Data Settings
     
-    public bool UseDemoDatabase { get; set; }
-    public bool DemoDataSeeded { get; set; }
-    public DateTime? DemoDataLastSeeded { get; set; }
+    public bool SampleDataSeeded { get; set; }
+    public DateTime? SampleDataLastSeeded { get; set; }
     
     #endregion
     
@@ -234,8 +233,9 @@ public class UpdateSystemSettingsRequest
     public string? SslCertificateSubject { get; set; }
     public bool? ForceHttpsRedirect { get; set; }
     
-    // Demo Database Settings
-    public bool? UseDemoDatabase { get; set; }
+    // Sample Data Settings
+    public bool? SampleDataSeeded { get; set; }
+    public DateTime? SampleDataLastSeeded { get; set; }
     
     // Customization
     public string? DateFormat { get; set; }

@@ -7,19 +7,18 @@ using Microsoft.Extensions.Logging;
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Service to seed comprehensive demo data for the CRM system.
-/// Uses a demo database (crm_demodb) on the same server as production to ensure data isolation.
-/// The demo database is automatically created if it doesn't exist.
+/// Service to seed comprehensive sample data for the CRM system.
+/// Seeds data directly to the production database.
 /// Includes 100+ entries for products, services, customers, contacts, leads, opportunities, etc.
+/// Admin users can clear all sample data while preserving master data (ZipCodes, ColorPalettes).
 /// </summary>
-public class DemoDataSeederService
+public class SampleDataSeederService
 {
-    private readonly ICrmDbContext _productionContext;
-    private readonly IDemoDbContextFactory _demoDbContextFactory;
-    private readonly ILogger<DemoDataSeederService> _logger;
+    private readonly ICrmDbContext _context;
+    private readonly ILogger<SampleDataSeederService> _logger;
     private readonly Random _random = new();
     
-    // Demo company and person name data
+    // Sample company and person name data
     private static readonly string[] CompanyPrefixes = { "Tech", "Global", "Digital", "Smart", "Cloud", "Cyber", "Data", "Info", "Net", "Soft", "Pro", "Prime", "Elite", "Advanced", "Modern", "Innovative", "Strategic", "Dynamic", "Unified", "Integrated" };
     private static readonly string[] CompanySuffixes = { "Solutions", "Systems", "Technologies", "Services", "Consulting", "Partners", "Group", "Corp", "Inc", "Labs", "Networks", "Dynamics", "Enterprises", "Associates", "Innovations" };
     private static readonly string[] FirstNames = { "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Lisa", "Matthew", "Betty", "Anthony", "Margaret", "Mark", "Sandra", "Donald", "Ashley", "Steven", "Kimberly", "Paul", "Emily", "Andrew", "Donna", "Joshua", "Michelle" };
@@ -28,111 +27,87 @@ public class DemoDataSeederService
     private static readonly string[] Cities = { "New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose", "Austin", "Seattle", "Denver", "Boston", "Atlanta", "Miami", "Portland", "Minneapolis", "Detroit", "Charlotte" };
     private static readonly string[] States = { "NY", "CA", "IL", "TX", "AZ", "PA", "TX", "CA", "TX", "CA", "TX", "WA", "CO", "MA", "GA", "FL", "OR", "MN", "MI", "NC" };
     
-    public DemoDataSeederService(
-        ICrmDbContext productionContext, 
-        IDemoDbContextFactory demoDbContextFactory,
-        ILogger<DemoDataSeederService> logger)
+    public SampleDataSeederService(
+        ICrmDbContext context, 
+        ILogger<SampleDataSeederService> logger)
     {
-        _productionContext = productionContext;
-        _demoDbContextFactory = demoDbContextFactory;
+        _context = context;
         _logger = logger;
-    }
-    
-    /// <summary>
-    /// Check if demo database connection is available
-    /// </summary>
-    public async Task<bool> IsDemoDbAvailableAsync()
-    {
-        return await _demoDbContextFactory.IsDemoConnectionAvailableAsync();
-    }
-    
-    /// <summary>
-    /// Initialize the demo database schema
-    /// </summary>
-    public async Task InitializeDemoDbAsync()
-    {
-        await _demoDbContextFactory.EnsureDemoSchemaCreatedAsync();
     }
 
     /// <summary>
-    /// Seed all demo data to the DEMO database (not production)
+    /// Seed all sample data to the production database
     /// </summary>
-    public async Task SeedAllDemoDataAsync()
+    public async Task SeedAllSampleDataAsync()
     {
-        _logger.LogInformation("Starting demo data seeding to DEMO database...");
+        _logger.LogInformation("Starting sample data seeding to production database...");
         
         try
         {
-            // Ensure demo database schema exists
-            await _demoDbContextFactory.EnsureDemoSchemaCreatedAsync();
+            var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
             
-            // Use demo database context for all seeding operations
-            using var demoContext = _demoDbContextFactory.CreateDemoContext();
-            
-            // Check if demo data already exists
-            var settings = await demoContext.SystemSettings.FirstOrDefaultAsync();
+            // Check if sample data already exists
+            var settings = await dbContext.SystemSettings.FirstOrDefaultAsync();
             if (settings == null)
             {
-                // Create initial system settings in demo database
                 settings = new SystemSettings
                 {
-                    DemoDataSeeded = false,
-                    UseDemoDatabase = true,
+                    SampleDataSeeded = false,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
-                demoContext.SystemSettings.Add(settings);
-                await demoContext.SaveChangesAsync();
+                dbContext.SystemSettings.Add(settings);
+                await dbContext.SaveChangesAsync();
             }
 
             // Seed in order to maintain relationships
-            await SeedDemoUsersToContextAsync(demoContext);
-            await SeedProductsToContextAsync(demoContext);
-            await SeedServiceRequestCategoriesToContextAsync(demoContext);
-            await SeedCustomersToContextAsync(demoContext);
-            await SeedContactsToContextAsync(demoContext);
-            await SeedLeadsToContextAsync(demoContext);
-            await SeedOpportunitiesToContextAsync(demoContext);
+            await SeedSampleUsersToContextAsync(dbContext);
+            await SeedProductsToContextAsync(dbContext);
+            await SeedServiceRequestCategoriesToContextAsync(dbContext);
+            await SeedCustomersToContextAsync(dbContext);
+            await SeedContactsToContextAsync(dbContext);
+            await SeedLeadsToContextAsync(dbContext);
+            await SeedOpportunitiesToContextAsync(dbContext);
             
-            // Update settings to mark demo data as seeded
-            settings.DemoDataSeeded = true;
-            settings.DemoDataLastSeeded = DateTime.UtcNow;
-            settings.UseDemoDatabase = true;
-            await demoContext.SaveChangesAsync();
+            // Update settings to mark sample data as seeded
+            settings.SampleDataSeeded = true;
+            settings.SampleDataLastSeeded = DateTime.UtcNow;
+            await dbContext.SaveChangesAsync();
             
-            // Also update production settings to indicate demo mode is available
-            var prodSettings = await _productionContext.SystemSettings.FirstOrDefaultAsync();
-            if (prodSettings != null)
-            {
-                prodSettings.DemoDataSeeded = true;
-                prodSettings.DemoDataLastSeeded = DateTime.UtcNow;
-                await _productionContext.SaveChangesAsync();
-            }
-            
-            _logger.LogInformation("Demo data seeding to DEMO database completed successfully");
+            _logger.LogInformation("Sample data seeding completed successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error seeding demo data to DEMO database");
+            _logger.LogError(ex, "Error seeding sample data");
             throw;
         }
     }
 
     /// <summary>
-    /// Legacy method - Seed to production context (redirects to demo database)
+    /// Check if sample data has been seeded
     /// </summary>
-    public async Task SeedDemoUsersAsync()
+    public async Task<bool> IsSampleDataSeededAsync()
     {
-        using var demoContext = _demoDbContextFactory.CreateDemoContext();
-        await SeedDemoUsersToContextAsync(demoContext);
+        var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
+        var settings = await dbContext.SystemSettings.FirstOrDefaultAsync();
+        return settings?.SampleDataSeeded ?? false;
     }
 
     /// <summary>
-    /// Seed 10 demo users with different groups and profiles
+    /// Seed sample users
     /// </summary>
-    private async Task SeedDemoUsersToContextAsync(CrmDbContext context)
+    public async Task SeedSampleUsersAsync()
     {
-        _logger.LogInformation("Seeding demo users...");
+        var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
+        await SeedSampleUsersToContextAsync(dbContext);
+    }
+
+    /// <summary>
+    /// Seed 10 sample users with different groups and profiles
+    /// </summary>
+    private async Task SeedSampleUsersToContextAsync(CrmDbContext context)
+    {
+        _logger.LogInformation("Seeding sample users...");
         
         // Check if demo users already exist
         var existingDemoUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "demo.admin");
@@ -233,16 +208,16 @@ public class DemoDataSeederService
         }
         
         await context.SaveChangesAsync();
-        _logger.LogInformation("Seeded 10 demo users");
+        _logger.LogInformation("Seeded 10 sample users");
     }
 
     /// <summary>
-    /// Legacy wrapper - Seed products to demo database
+    /// Seed products to production database
     /// </summary>
     public async Task SeedProductsAsync()
     {
-        using var context = _demoDbContextFactory.CreateDemoContext();
-        await SeedProductsToContextAsync(context);
+        var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
+        await SeedProductsToContextAsync(dbContext);
     }
 
     /// <summary>
@@ -250,7 +225,7 @@ public class DemoDataSeederService
     /// </summary>
     private async Task SeedProductsToContextAsync(CrmDbContext context)
     {
-        _logger.LogInformation("Seeding demo products...");
+        _logger.LogInformation("Seeding sample products...");
         
         var existingProducts = await context.Products.CountAsync();
         if (existingProducts >= 50)
@@ -702,16 +677,16 @@ public class DemoDataSeederService
 
         context.Products.AddRange(products);
         await context.SaveChangesAsync();
-        _logger.LogInformation("Seeded {Count} demo products across all categories", products.Count);
+        _logger.LogInformation("Seeded {Count} sample products across all categories", products.Count);
     }
 
     /// <summary>
-    /// Legacy wrapper - Seed service request categories to demo database
+    /// Seed service request categories to production database
     /// </summary>
     public async Task SeedServiceRequestCategoriesAsync()
     {
-        using var context = _demoDbContextFactory.CreateDemoContext();
-        await SeedServiceRequestCategoriesToContextAsync(context);
+        var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
+        await SeedServiceRequestCategoriesToContextAsync(dbContext);
     }
 
     /// <summary>
@@ -1354,12 +1329,12 @@ public class DemoDataSeederService
         string FinalCustomerResolutions);
 
     /// <summary>
-    /// Legacy wrapper - Seed customers to demo database
+    /// Seed customers to production database
     /// </summary>
     public async Task SeedCustomersAsync()
     {
-        using var context = _demoDbContextFactory.CreateDemoContext();
-        await SeedCustomersToContextAsync(context);
+        var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
+        await SeedCustomersToContextAsync(dbContext);
     }
 
     /// <summary>
@@ -1367,7 +1342,7 @@ public class DemoDataSeederService
     /// </summary>
     private async Task SeedCustomersToContextAsync(CrmDbContext context)
     {
-        _logger.LogInformation("Seeding demo customers...");
+        _logger.LogInformation("Seeding sample customers...");
         
         var existingCustomers = await context.Customers.CountAsync();
         if (existingCustomers >= 50)
@@ -1435,16 +1410,16 @@ public class DemoDataSeederService
 
         context.Customers.AddRange(customers);
         await context.SaveChangesAsync();
-        _logger.LogInformation("Seeded {Count} demo customers", customers.Count);
+        _logger.LogInformation("Seeded {Count} sample customers", customers.Count);
     }
 
     /// <summary>
-    /// Legacy wrapper - Seed contacts to demo database
+    /// Seed contacts to production database
     /// </summary>
     public async Task SeedContactsAsync()
     {
-        using var context = _demoDbContextFactory.CreateDemoContext();
-        await SeedContactsToContextAsync(context);
+        var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
+        await SeedContactsToContextAsync(dbContext);
     }
 
     /// <summary>
@@ -1452,7 +1427,7 @@ public class DemoDataSeederService
     /// </summary>
     private async Task SeedContactsToContextAsync(CrmDbContext context)
     {
-        _logger.LogInformation("Seeding demo contacts...");
+        _logger.LogInformation("Seeding sample contacts...");
         
         var existingContacts = await context.Contacts.CountAsync();
         if (existingContacts >= 50)
@@ -1505,12 +1480,12 @@ public class DemoDataSeederService
     }
 
     /// <summary>
-    /// Legacy wrapper - Seed leads to demo database
+    /// Seed leads to production database
     /// </summary>
     public async Task SeedLeadsAsync()
     {
-        using var context = _demoDbContextFactory.CreateDemoContext();
-        await SeedLeadsToContextAsync(context);
+        var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
+        await SeedLeadsToContextAsync(dbContext);
     }
 
     /// <summary>
@@ -1519,7 +1494,7 @@ public class DemoDataSeederService
     /// </summary>
     private async Task SeedLeadsToContextAsync(CrmDbContext context)
     {
-        _logger.LogInformation("Seeding demo leads...");
+        _logger.LogInformation("Seeding sample leads...");
         
         var existingLeads = await context.Leads.CountAsync();
         if (existingLeads >= 50)
@@ -1592,16 +1567,16 @@ public class DemoDataSeederService
 
         context.Leads.AddRange(leads);
         await context.SaveChangesAsync();
-        _logger.LogInformation("Seeded {Count} demo leads", leads.Count);
+        _logger.LogInformation("Seeded {Count} sample leads", leads.Count);
     }
 
     /// <summary>
-    /// Legacy wrapper - Seed opportunities to demo database
+    /// Seed opportunities to production database
     /// </summary>
     public async Task SeedOpportunitiesAsync()
     {
-        using var context = _demoDbContextFactory.CreateDemoContext();
-        await SeedOpportunitiesToContextAsync(context);
+        var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
+        await SeedOpportunitiesToContextAsync(dbContext);
     }
 
     /// <summary>
@@ -1610,7 +1585,7 @@ public class DemoDataSeederService
     /// </summary>
     private async Task SeedOpportunitiesToContextAsync(CrmDbContext context)
     {
-        _logger.LogInformation("Seeding demo opportunities...");
+        _logger.LogInformation("Seeding sample opportunities...");
         
         var existingOpportunities = await context.Opportunities.CountAsync();
         if (existingOpportunities >= 50)
@@ -1673,55 +1648,115 @@ public class DemoDataSeederService
     }
 
     /// <summary>
-    /// Clear demo user data
+    /// Clear all sample data from the production database.
+    /// Preserves master data (ZipCodes, ColorPalettes) and admin users.
     /// </summary>
-    /// <summary>
-    /// Clear all demo data from the demo database
-    /// </summary>
-    public async Task ClearDemoDataAsync()
+    public async Task ClearSampleDataAsync()
     {
-        _logger.LogInformation("Clearing demo data...");
+        _logger.LogInformation("Clearing sample data from production database...");
         
-        using var context = _demoDbContextFactory.CreateDemoContext();
+        var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
         
-        // Clear all data from demo database tables in reverse dependency order
-        // Opportunities depend on Customers
-        var opportunities = await context.Opportunities.ToListAsync();
-        context.Opportunities.RemoveRange(opportunities);
+        // Clear all sample data tables in reverse dependency order
+        // Preserves: ZipCodes, ColorPalettes, SystemSettings, non-demo Users
+        
+        // Clear service requests first (depends on everything)
+        var serviceRequests = await dbContext.ServiceRequests.ToListAsync();
+        dbContext.ServiceRequests.RemoveRange(serviceRequests);
+        await dbContext.SaveChangesAsync();
+        
+        // Opportunities depend on Accounts
+        var opportunities = await dbContext.Opportunities.ToListAsync();
+        dbContext.Opportunities.RemoveRange(opportunities);
+        await dbContext.SaveChangesAsync();
         
         // Leads
-        var leads = await context.Leads.ToListAsync();
-        context.Leads.RemoveRange(leads);
+        var leads = await dbContext.Leads.ToListAsync();
+        dbContext.Leads.RemoveRange(leads);
+        await dbContext.SaveChangesAsync();
         
         // Contacts depend on Customers
-        var contacts = await context.Contacts.ToListAsync();
-        context.Contacts.RemoveRange(contacts);
+        var contacts = await dbContext.Contacts.ToListAsync();
+        dbContext.Contacts.RemoveRange(contacts);
+        await dbContext.SaveChangesAsync();
         
-        // Customers
-        var customers = await context.Customers.ToListAsync();
-        context.Customers.RemoveRange(customers);
+        // Customers/Accounts
+        var customers = await dbContext.Customers.ToListAsync();
+        dbContext.Customers.RemoveRange(customers);
+        await dbContext.SaveChangesAsync();
+        
+        // Service Request Types (depends on subcategories and categories)
+        var types = await dbContext.ServiceRequestTypes.ToListAsync();
+        dbContext.ServiceRequestTypes.RemoveRange(types);
+        await dbContext.SaveChangesAsync();
+        
+        // Service Request Subcategories (depends on categories)
+        var subcategories = await dbContext.ServiceRequestSubcategories.ToListAsync();
+        dbContext.ServiceRequestSubcategories.RemoveRange(subcategories);
+        await dbContext.SaveChangesAsync();
         
         // Service Request Categories
-        var categories = await context.ServiceRequestCategories.ToListAsync();
-        context.ServiceRequestCategories.RemoveRange(categories);
+        var categories = await dbContext.ServiceRequestCategories.ToListAsync();
+        dbContext.ServiceRequestCategories.RemoveRange(categories);
+        await dbContext.SaveChangesAsync();
         
         // Products
-        var products = await context.Products.ToListAsync();
-        context.Products.RemoveRange(products);
+        var products = await dbContext.Products.ToListAsync();
+        dbContext.Products.RemoveRange(products);
+        await dbContext.SaveChangesAsync();
         
-        // Demo users
-        var demoUsers = await context.Users.Where(u => u.Username.StartsWith("demo.")).ToListAsync();
-        context.Users.RemoveRange(demoUsers);
+        // Sample users (username starts with "demo." or "sample.")
+        var sampleUsers = await dbContext.Users
+            .Where(u => u.Username.StartsWith("demo.") || u.Username.StartsWith("sample."))
+            .ToListAsync();
+        dbContext.Users.RemoveRange(sampleUsers);
+        await dbContext.SaveChangesAsync();
         
         // Update settings if they exist
-        var settings = await context.SystemSettings.FirstOrDefaultAsync();
+        var settings = await dbContext.SystemSettings.FirstOrDefaultAsync();
         if (settings != null)
         {
-            settings.DemoDataSeeded = false;
-            settings.UseDemoDatabase = false;
+            settings.SampleDataSeeded = false;
         }
         
-        await context.SaveChangesAsync();
-        _logger.LogInformation("Demo data cleared from demo database");
+        await dbContext.SaveChangesAsync();
+        _logger.LogInformation("Sample data cleared from production database. Master data (ZipCodes, ColorPalettes) preserved.");
     }
+
+    /// <summary>
+    /// Get sample data statistics
+    /// </summary>
+    public async Task<SampleDataStats> GetSampleDataStatsAsync()
+    {
+        var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
+        
+        return new SampleDataStats
+        {
+            ProductCount = await dbContext.Products.CountAsync(),
+            CustomerCount = await dbContext.Customers.CountAsync(),
+            ContactCount = await dbContext.Contacts.CountAsync(),
+            LeadCount = await dbContext.Leads.CountAsync(),
+            OpportunityCount = await dbContext.Opportunities.CountAsync(),
+            ServiceRequestTypeCount = await dbContext.ServiceRequestTypes.CountAsync(),
+            ServiceRequestCategoryCount = await dbContext.ServiceRequestCategories.CountAsync(),
+            ServiceRequestSubcategoryCount = await dbContext.ServiceRequestSubcategories.CountAsync(),
+            SampleUserCount = await dbContext.Users.CountAsync(u => u.Username.StartsWith("demo.") || u.Username.StartsWith("sample."))
+        };
+    }
+}
+
+/// <summary>
+/// Statistics about sample data in the database
+/// </summary>
+public class SampleDataStats
+{
+    public int ProductCount { get; set; }
+    public int CustomerCount { get; set; }
+    public int ContactCount { get; set; }
+    public int LeadCount { get; set; }
+    public int OpportunityCount { get; set; }
+    public int ServiceRequestTypeCount { get; set; }
+    public int ServiceRequestCategoryCount { get; set; }
+    public int ServiceRequestSubcategoryCount { get; set; }
+    public int SampleUserCount { get; set; }
 }

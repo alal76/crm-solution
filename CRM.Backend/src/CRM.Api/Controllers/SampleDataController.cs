@@ -1,4 +1,3 @@
-using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,112 +5,117 @@ using Microsoft.AspNetCore.Mvc;
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// Controller for managing demo database and data seeding.
-/// Demo data is seeded to a completely separate database to protect production data.
+/// Controller for managing sample data seeding and clearing.
+/// Sample data (Products, Customers, Contacts, Leads, etc.) can be seeded to production
+/// and cleared while preserving master data (ZipCodes, ColorPalettes).
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
-public class DemoDataController : ControllerBase
+public class SampleDataController : ControllerBase
 {
-    private readonly DemoDataSeederService _seederService;
-    private readonly IDemoDbContextFactory _demoDbContextFactory;
-    private readonly ILogger<DemoDataController> _logger;
+    private readonly SampleDataSeederService _seederService;
+    private readonly ILogger<SampleDataController> _logger;
 
-    public DemoDataController(
-        DemoDataSeederService seederService, 
-        IDemoDbContextFactory demoDbContextFactory,
-        ILogger<DemoDataController> logger)
+    public SampleDataController(
+        SampleDataSeederService seederService,
+        ILogger<SampleDataController> logger)
     {
         _seederService = seederService;
-        _demoDbContextFactory = demoDbContextFactory;
         _logger = logger;
     }
 
     /// <summary>
-    /// Get demo database status
+    /// Get sample data status and statistics
     /// </summary>
     [HttpGet("status")]
-    public async Task<IActionResult> GetDemoStatus()
+    public async Task<IActionResult> GetStatus()
     {
         try
         {
-            var isAvailable = await _seederService.IsDemoDbAvailableAsync();
-            var connectionString = _demoDbContextFactory.GetDemoConnectionString();
-            var isConfigured = !string.IsNullOrEmpty(connectionString);
+            var isSeeded = await _seederService.IsSampleDataSeededAsync();
+            var stats = await _seederService.GetSampleDataStatsAsync();
             
             return Ok(new 
             { 
-                isConfigured,
-                isAvailable,
-                message = isAvailable 
-                    ? "Demo database is available and connected" 
-                    : (isConfigured 
-                        ? "Demo database is configured but not reachable" 
-                        : "Demo database is not configured. Set ConnectionStrings:DemoConnection")
+                isSeeded,
+                statistics = new
+                {
+                    products = stats.ProductCount,
+                    serviceRequestCategories = stats.ServiceRequestCategoryCount,
+                    serviceRequestSubcategories = stats.ServiceRequestSubcategoryCount,
+                    serviceRequestTypes = stats.ServiceRequestTypeCount,
+                    customers = stats.CustomerCount,
+                    contacts = stats.ContactCount,
+                    leads = stats.LeadCount,
+                    opportunities = stats.OpportunityCount,
+                    sampleUsers = stats.SampleUserCount
+                },
+                message = isSeeded 
+                    ? "Sample data is seeded in the database" 
+                    : "No sample data has been seeded yet"
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking demo database status");
-            return StatusCode(500, new { message = "Error checking demo database status: " + ex.Message });
+            _logger.LogError(ex, "Error checking sample data status");
+            return StatusCode(500, new { message = "Error checking sample data status: " + ex.Message });
         }
     }
 
     /// <summary>
-    /// Initialize demo database schema
-    /// </summary>
-    [HttpPost("initialize")]
-    public async Task<IActionResult> InitializeDemoDatabase()
-    {
-        try
-        {
-            _logger.LogInformation("Initializing demo database...");
-            await _seederService.InitializeDemoDbAsync();
-            return Ok(new { message = "Demo database initialized successfully", success = true });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error initializing demo database");
-            return StatusCode(500, new { message = "Error initializing demo database: " + ex.Message, success = false });
-        }
-    }
-
-    /// <summary>
-    /// Seed all demo data to the demo database (NOT production)
+    /// Seed all sample data to the production database
     /// </summary>
     [HttpPost("seed")]
-    public async Task<IActionResult> SeedDemoData()
+    public async Task<IActionResult> SeedSampleData()
     {
         try
         {
-            _logger.LogInformation("Starting demo data seeding to DEMO database...");
-            await _seederService.SeedAllDemoDataAsync();
-            return Ok(new { message = "Demo data seeded successfully to demo database", success = true });
+            _logger.LogInformation("Starting sample data seeding...");
+            await _seederService.SeedAllSampleDataAsync();
+            var stats = await _seederService.GetSampleDataStatsAsync();
+            
+            return Ok(new 
+            { 
+                message = "Sample data seeded successfully",
+                success = true,
+                statistics = new
+                {
+                    products = stats.ProductCount,
+                    serviceRequestCategories = stats.ServiceRequestCategoryCount,
+                    serviceRequestSubcategories = stats.ServiceRequestSubcategoryCount,
+                    serviceRequestTypes = stats.ServiceRequestTypeCount,
+                    customers = stats.CustomerCount,
+                    contacts = stats.ContactCount,
+                    leads = stats.LeadCount,
+                    opportunities = stats.OpportunityCount,
+                    sampleUsers = stats.SampleUserCount
+                }
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error seeding demo data");
-            return StatusCode(500, new { message = "Error seeding demo data: " + ex.Message, success = false });
+            _logger.LogError(ex, "Error seeding sample data");
+            return StatusCode(500, new { message = "Error seeding sample data: " + ex.Message, success = false });
         }
     }
 
     /// <summary>
-    /// Seed only demo users
+    /// Seed only sample users
     /// </summary>
     [HttpPost("seed/users")]
-    public async Task<IActionResult> SeedDemoUsers()
+    public async Task<IActionResult> SeedSampleUsers()
     {
         try
         {
-            _logger.LogInformation("Seeding demo users...");
-            await _seederService.SeedDemoUsersAsync();
-            return Ok(new { message = "Demo users seeded successfully", success = true });
+            _logger.LogInformation("Seeding sample users...");
+            await _seederService.SeedSampleUsersAsync();
+            return Ok(new { message = "Sample users seeded successfully", success = true });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error seeding demo users");
-            return StatusCode(500, new { message = "Error seeding demo users: " + ex.Message, success = false });
+            _logger.LogError(ex, "Error seeding sample users");
+            return StatusCode(500, new { message = "Error seeding sample users: " + ex.Message, success = false });
         }
     }
 
@@ -135,7 +139,7 @@ public class DemoDataController : ControllerBase
     }
 
     /// <summary>
-    /// Seed only service request categories
+    /// Seed only service request categories and types
     /// </summary>
     [HttpPost("seed/servicerequests")]
     public async Task<IActionResult> SeedServiceRequestCategories()
@@ -230,21 +234,25 @@ public class DemoDataController : ControllerBase
     }
 
     /// <summary>
-    /// Clear demo data from demo database
+    /// Clear all sample data while preserving master data (ZipCodes, ColorPalettes)
     /// </summary>
     [HttpDelete("clear")]
-    public async Task<IActionResult> ClearDemoData()
+    public async Task<IActionResult> ClearSampleData()
     {
         try
         {
-            _logger.LogInformation("Clearing demo data from demo database...");
-            await _seederService.ClearDemoDataAsync();
-            return Ok(new { message = "Demo data cleared successfully", success = true });
+            _logger.LogInformation("Clearing sample data while preserving master data...");
+            await _seederService.ClearSampleDataAsync();
+            return Ok(new 
+            { 
+                message = "Sample data cleared successfully. Master data (ZipCodes, ColorPalettes) preserved.", 
+                success = true 
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error clearing demo data");
-            return StatusCode(500, new { message = "Error clearing demo data: " + ex.Message, success = false });
+            _logger.LogError(ex, "Error clearing sample data");
+            return StatusCode(500, new { message = "Error clearing sample data: " + ex.Message, success = false });
         }
     }
 }

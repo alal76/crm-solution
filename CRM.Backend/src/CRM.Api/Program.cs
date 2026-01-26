@@ -233,10 +233,7 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
     }
 });
 
-// Register Demo Mode State as Singleton (API-layer state management, defaults to demo mode)
-builder.Services.AddSingleton<IDemoModeState, DemoModeState>();
-
-// Register ICrmDbContext interface with dynamic resolution (production or demo based on settings)
+// Register ICrmDbContext interface with dynamic resolution
 builder.Services.AddScoped<IDbContextResolver, DynamicDbContextResolver>();
 builder.Services.AddScoped<ICrmDbContext>(provider => 
     provider.GetRequiredService<IDbContextResolver>().ResolveContext());
@@ -267,8 +264,7 @@ builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();
-builder.Services.AddSingleton<IDemoDbContextFactory, DemoDbContextFactory>();
-builder.Services.AddScoped<DemoDataSeederService>();
+builder.Services.AddScoped<SampleDataSeederService>();
 // Database Sync BVT Service - runs on startup to ensure db consistency
 builder.Services.AddSingleton<IDatabaseSyncService, DatabaseSyncService>();
 builder.Services.AddHostedService<DatabaseSyncHostedService>();
@@ -468,38 +464,32 @@ using (var scope = app.Services.CreateScope())
             Log.Warning(masterDataEx, "Failed to seed master data - continuing without");
         }
         
-        // Auto-seed demo database if configured
-        var autoSeedDemo = builder.Configuration.GetValue<bool>("DemoDatabase:AutoSeed", false);
-        if (autoSeedDemo)
+        // Auto-seed sample data if configured
+        var autoSeedSampleData = builder.Configuration.GetValue<bool>("SampleData:AutoSeed", false);
+        if (autoSeedSampleData)
         {
-            Log.Information("Auto-seeding demo database...");
+            Log.Information("Auto-seeding sample data...");
             try
             {
-                var demoSeeder = scope.ServiceProvider.GetRequiredService<DemoDataSeederService>();
-                var demoDbFactory = scope.ServiceProvider.GetRequiredService<IDemoDbContextFactory>();
-                
-                // Always ensure demo database schema exists
-                Log.Information("Ensuring demo database schema exists...");
-                await demoSeeder.InitializeDemoDbAsync();
+                var sampleSeeder = scope.ServiceProvider.GetRequiredService<SampleDataSeederService>();
                 
                 // Check if already seeded
-                using var demoContext = demoDbFactory.CreateDemoContext();
-                var settings = await demoContext.SystemSettings.FirstOrDefaultAsync();
+                var isSeeded = await sampleSeeder.IsSampleDataSeededAsync();
                 
-                if (settings == null || !settings.DemoDataSeeded)
+                if (!isSeeded)
                 {
-                    Log.Information("Seeding demo database with sample data...");
-                    await demoSeeder.SeedAllDemoDataAsync();
-                    Log.Information("Demo database seeded successfully");
+                    Log.Information("Seeding production database with sample data...");
+                    await sampleSeeder.SeedAllSampleDataAsync();
+                    Log.Information("Sample data seeded successfully");
                 }
                 else
                 {
-                    Log.Information("Demo database already seeded (last seeded: {LastSeeded})", settings.DemoDataLastSeeded);
+                    Log.Information("Sample data already seeded");
                 }
             }
-            catch (Exception demoEx)
+            catch (Exception sampleDataEx)
             {
-                Log.Warning(demoEx, "Failed to auto-seed demo database - continuing with production database");
+                Log.Warning(sampleDataEx, "Failed to auto-seed sample data - continuing without");
             }
         }
     }
