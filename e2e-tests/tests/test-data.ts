@@ -371,7 +371,7 @@ export const TEST_QUOTES = {
  */
 export function uniqueTestData<T extends Record<string, any>>(data: T): T {
   const timestamp = Date.now();
-  const result = { ...data };
+  const result: Record<string, any> = { ...data };
   
   // Add timestamp to string fields that should be unique
   for (const key of Object.keys(result)) {
@@ -385,7 +385,7 @@ export function uniqueTestData<T extends Record<string, any>>(data: T): T {
     }
   }
   
-  return result;
+  return result as T;
 }
 
 /**

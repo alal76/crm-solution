@@ -252,7 +252,7 @@ test.describe('Data Lifecycle - Customer Management', () => {
         
         const nameInput = page.locator('input[name="company"], input[name="name"], #company').first();
         if (await nameInput.isVisible()) {
-          await nameInput.fill(customer.company || customer.name);
+          await nameInput.fill((customer as any).company || customer.name);
         }
         
         const emailInput = page.locator('input[name="email"], input[type="email"]').first();

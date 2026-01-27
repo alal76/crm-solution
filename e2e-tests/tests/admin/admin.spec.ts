@@ -5,8 +5,8 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { DataGridHelper } from '../fixtures';
-import { TEST_USERS, uniqueTestData, randomString } from '../test-data';
+import { DataGridHelper, randomString } from '../fixtures';
+import { TEST_USERS, uniqueTestData } from '../test-data';
 
 test.describe('Admin - Users Management', () => {
   test.beforeEach(async ({ page }) => {

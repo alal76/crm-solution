@@ -41,7 +41,7 @@ test.describe('Workflow Execution - Creation', () => {
   });
 
   test('TC-WF-CREATE-001: Should create lead qualification workflow', async ({ page }) => {
-    const workflow = COMPREHENSIVE_TEST_WORKFLOWS.leadQualification;
+    const workflow = COMPREHENSIVE_TEST_WORKFLOWS.leadScoringWorkflow;
     log(`Creating workflow: ${workflow.name}`);
     
     const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
@@ -75,7 +75,7 @@ test.describe('Workflow Execution - Creation', () => {
   });
 
   test('TC-WF-CREATE-002: Should create customer onboarding workflow', async ({ page }) => {
-    const workflow = COMPREHENSIVE_TEST_WORKFLOWS.customerOnboarding;
+    const workflow = COMPREHENSIVE_TEST_WORKFLOWS.customerOnboardingWorkflow;
     log(`Creating workflow: ${workflow.name}`);
     
     const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
@@ -101,7 +101,7 @@ test.describe('Workflow Execution - Creation', () => {
   });
 
   test('TC-WF-CREATE-003: Should create ticket escalation workflow', async ({ page }) => {
-    const workflow = COMPREHENSIVE_TEST_WORKFLOWS.ticketEscalation;
+    const workflow = COMPREHENSIVE_TEST_WORKFLOWS.serviceEscalationWorkflow;
     log(`Creating workflow: ${workflow.name}`);
     
     const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
@@ -122,7 +122,7 @@ test.describe('Workflow Execution - Creation', () => {
   });
 
   test('TC-WF-CREATE-004: Should create deal approval workflow', async ({ page }) => {
-    const workflow = COMPREHENSIVE_TEST_WORKFLOWS.dealApproval;
+    const workflow = COMPREHENSIVE_TEST_WORKFLOWS.opportunityStageWorkflow;
     log(`Creating workflow: ${workflow.name}`);
     
     const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
