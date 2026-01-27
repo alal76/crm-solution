@@ -1,0 +1,129 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "open drawer" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+        - img [ref=e11]
+        - link "CRM System" [ref=e13] [cursor=pointer]:
+          - /url: /
+      - button "AL" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: AL
+  - navigation [ref=e18]:
+    - list [ref=e19]:
+      - listitem [ref=e20]:
+        - link "Home" [ref=e21] [cursor=pointer]:
+          - /url: /
+          - img [ref=e22]
+          - text: Home
+      - listitem [ref=e24]: ›
+      - listitem [ref=e25]:
+        - link "Admin" [ref=e26] [cursor=pointer]:
+          - /url: /admin
+      - listitem [ref=e27]: ›
+      - listitem [ref=e28]:
+        - paragraph [ref=e29]: Workflows
+  - generic [ref=e32]:
+    - generic [ref=e33]:
+      - generic [ref=e34]:
+        - img [ref=e35]
+        - heading "Workflow Management" [level=4] [ref=e37]
+      - generic [ref=e38]:
+        - button "Refresh" [ref=e39] [cursor=pointer]:
+          - img [ref=e41]
+          - text: Refresh
+        - button "New Workflow" [ref=e43] [cursor=pointer]:
+          - img [ref=e45]
+          - text: New Workflow
+    - alert [ref=e47]:
+      - img [ref=e49]
+      - generic [ref=e51]: Failed to load workflows
+      - button "Close" [ref=e53] [cursor=pointer]:
+        - img [ref=e54]
+    - tablist [ref=e58]:
+      - tab "Workflows" [selected] [ref=e59] [cursor=pointer]:
+        - img [ref=e60]
+        - text: Workflows
+      - tab "Statistics" [ref=e62] [cursor=pointer]:
+        - img [ref=e63]
+        - text: Statistics
+    - tabpanel [ref=e66]:
+      - generic [ref=e67]:
+        - generic [ref=e70]:
+          - generic [ref=e73]:
+            - img [ref=e75]
+            - textbox "Search workflows..." [ref=e77]
+            - group
+          - generic [ref=e79]:
+            - generic: Status
+            - generic [ref=e80]:
+              - combobox [ref=e81] [cursor=pointer]
+              - textbox
+              - img
+              - group:
+                - generic: Status
+          - generic [ref=e83]:
+            - generic: Entity Type
+            - generic [ref=e84]:
+              - combobox [ref=e85] [cursor=pointer]
+              - textbox
+              - img
+              - group:
+                - generic: Entity Type
+          - generic [ref=e87]:
+            - generic: Category
+            - generic [ref=e88]:
+              - combobox [ref=e89] [cursor=pointer]
+              - textbox
+              - img
+              - group:
+                - generic: Category
+          - button "Clear Filters" [ref=e91] [cursor=pointer]:
+            - img [ref=e93]
+            - text: Clear Filters
+        - table [ref=e96]:
+          - rowgroup [ref=e97]:
+            - row "Workflow Entity Type Category Status Version Priority Actions" [ref=e98]:
+              - columnheader "Workflow" [ref=e99]
+              - columnheader "Entity Type" [ref=e100]
+              - columnheader "Category" [ref=e101]
+              - columnheader "Status" [ref=e102]
+              - columnheader "Version" [ref=e103]
+              - columnheader "Priority" [ref=e104]
+              - columnheader "Actions" [ref=e105]
+          - rowgroup [ref=e106]:
+            - row "No workflows found. Create your first workflow to get started." [ref=e107]:
+              - cell "No workflows found. Create your first workflow to get started." [ref=e108]:
+                - paragraph [ref=e109]: No workflows found. Create your first workflow to get started.
+  - contentinfo [ref=e110]:
+    - generic [ref=e111]:
+      - generic [ref=e112]:
+        - generic [ref=e113]: CRM System
+        - generic [ref=e114]: "|"
+        - 'generic "API: v2 | Frontend: v2 | DB: 0 ZIPs" [ref=e115]': v1.7.24
+        - generic [ref=e116]: "|"
+        - 'generic "Branch: dev" [ref=e117]': "#003a60d"
+      - generic [ref=e119]:
+        - generic [ref=e120]: ●
+        - 'generic "Build: v2" [ref=e121]': API (v2)
+        - generic [ref=e122]: ●
+        - generic "0 ZIPs, 0 Countries" [ref=e123]: DB
+      - generic [ref=e124]:
+        - link "About" [ref=e125] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e126]: "|"
+        - link "Help" [ref=e127] [cursor=pointer]:
+          - /url: /help
+        - generic [ref=e128]: "|"
+        - link "Licenses" [ref=e129] [cursor=pointer]:
+          - /url: /licenses
+        - generic [ref=e130]: "|"
+        - generic [ref=e131]: © 2026 Abhishek Lal - AGPL-3.0
+  - button "Open Context Panel" [ref=e132] [cursor=pointer]:
+    - generic [ref=e133]:
+      - img [ref=e134]
+      - generic: "0"
+```

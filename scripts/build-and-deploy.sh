@@ -1,18 +1,19 @@
 #!/bin/bash
 # =============================================================================
 # CRM Solution - Unified Build & Deploy Script
-# Always builds on 192.168.0.9, updates version.json, resets UI settings
+# Default target: 192.168.0.9 (Docker Compose deployment)
 # =============================================================================
 
 set -e
 
-# Configuration
-BUILD_HOST="192.168.0.9"
+# Configuration - Default to 192.168.0.9
+BUILD_HOST="${BUILD_HOST:-192.168.0.9}"
 BUILD_USER="${BUILD_USER:-root}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 VERSION_FILE="${PROJECT_DIR}/version.json"
 KUBE_NAMESPACE="crm-app"
+DEBUG_MODE="${DEBUG:-false}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -28,12 +29,18 @@ log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_step() { echo -e "${CYAN}[STEP]${NC} $1"; }
+log_debug() { 
+    if [ "$DEBUG_MODE" = "true" ]; then 
+        echo -e "${YELLOW}[DEBUG]${NC} $1"; 
+    fi
+}
 
 print_banner() {
     echo ""
     echo "╔══════════════════════════════════════════════════════════════════╗"
     echo "║         CRM Solution - Build & Deploy Pipeline                   ║"
-    echo "║              Build Server: 192.168.0.9                          ║"
+    echo "║              Build Server: ${BUILD_HOST}                          ║"
+    echo "║              Debug Mode: ${DEBUG_MODE}                                   ║"
     echo "╚══════════════════════════════════════════════════════════════════╝"
     echo ""
 }
@@ -182,20 +189,27 @@ sync_source() {
 build_images() {
     log_step "Building Docker images on ${BUILD_HOST}..."
     
+    local api_tag="${API_BUILD_TAG:-v2}"
+    local frontend_tag="${FRONTEND_BUILD_TAG:-v2}"
+    local app_version="${APP_VERSION:-1.0.0}"
+    
+    log_info "Building API: crm-backend:${api_tag}"
+    log_info "Building Frontend: crm-frontend:${frontend_tag}"
+    
     ssh ${BUILD_USER}@${BUILD_HOST} << BUILD_SCRIPT
         set -e
         cd /opt/crm/source
         
-        echo "=== Building Backend API (${API_BUILD_TAG}) ==="
-        docker build -f docker/Dockerfile.backend -t crm-backend:${API_BUILD_TAG} .
+        echo "=== Building Backend API (crm-backend:${api_tag}) ==="
+        docker build -f docker/Dockerfile.backend -t crm-backend:${api_tag} . 2>&1
         
-        echo "=== Building Frontend (${FRONTEND_BUILD_TAG}) ==="
-        docker build -f docker/Dockerfile.frontend -t crm-frontend:${FRONTEND_BUILD_TAG} \
-            --build-arg REACT_APP_VERSION=${APP_VERSION} \
-            --build-arg REACT_APP_BUILD_DATE=$(date +%Y-%m-%d) .
+        echo "=== Building Frontend (crm-frontend:${frontend_tag}) ==="
+        docker build -f docker/Dockerfile.frontend -t crm-frontend:${frontend_tag} \\
+            --build-arg REACT_APP_VERSION=${app_version} \\
+            --build-arg REACT_APP_BUILD_DATE=\$(date +%Y-%m-%d) . 2>&1
         
         echo "=== Images built successfully ==="
-        docker images | grep -E "crm-(backend|frontend):${API_BUILD_TAG}|crm-(backend|frontend):${FRONTEND_BUILD_TAG}" || true
+        docker images | grep -E "crm-backend|crm-frontend" | head -10
 BUILD_SCRIPT
     
     log_success "Docker images built"
@@ -205,7 +219,12 @@ BUILD_SCRIPT
 deploy_docker_compose() {
     log_step "Deploying with Docker Compose on ${BUILD_HOST}..."
     
-    ssh ${BUILD_USER}@${BUILD_HOST} << 'DEPLOY_SCRIPT'
+    local api_tag="${API_BUILD_TAG:-v2}"
+    local frontend_tag="${FRONTEND_BUILD_TAG:-v2}"
+    
+    log_debug "API Tag: ${api_tag}, Frontend Tag: ${frontend_tag}"
+    
+    ssh ${BUILD_USER}@${BUILD_HOST} << DEPLOY_SCRIPT
         set -e
         cd /opt/crm/source
         
@@ -213,44 +232,55 @@ deploy_docker_compose() {
         docker stop crm-api crm-frontend 2>/dev/null || true
         docker rm crm-api crm-frontend 2>/dev/null || true
         
-        echo "=== Starting API container ==="
-        docker run -d --name crm-api \
-            --restart unless-stopped \
-            --network crm-database-network \
-            -p 5000:5000 \
-            -v /opt/crm/data:/app/data \
-            -v /opt/crm/ssl:/app/ssl:ro \
-            -e ASPNETCORE_ENVIRONMENT=Production \
-            -e "ASPNETCORE_URLS=http://+:5000" \
-            -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024!;" \
-            -e "Jwt__Secret=CrmSuperSecretKey2024ForJwtTokenGenerationMinimum32Chars" \
-            -e "Jwt__Issuer=CrmApi" \
-            -e "Jwt__Audience=CrmClient" \
-            -e "Jwt__ExpirationMinutes=1440" \
-            -e "Cors__AllowedOrigins=http://192.168.0.9,http://localhost:3000,http://localhost" \
-            -e "AllowedHosts=*" \
-            --health-cmd="curl -f http://localhost:5000/health || exit 1" \
-            --health-interval=30s \
-            --health-timeout=10s \
-            --health-retries=3 \
-            crm-backend:v2
+        echo "=== Starting API container (crm-backend:${api_tag}) ==="
+        docker run -d --name crm-api \\
+            --restart unless-stopped \\
+            --network crm-database-network \\
+            -p 5000:5000 \\
+            -v /opt/crm/data:/app/data \\
+            -v /opt/crm/ssl:/app/ssl:ro \\
+            -e ASPNETCORE_ENVIRONMENT=Development \\
+            -e "ASPNETCORE_URLS=http://+:5000" \\
+            -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024!;AllowUserVariables=true" \\
+            -e "DatabaseProvider=MariaDb" \\
+            -e "Jwt__Secret=CrmSuperSecretKey2024ForJwtTokenGenerationMinimum32Chars" \\
+            -e "Jwt__Issuer=CrmApi" \\
+            -e "Jwt__Audience=CrmClient" \\
+            -e "Jwt__ExpirationMinutes=1440" \\
+            -e "Cors__AllowedOrigins=http://192.168.0.9,http://localhost:3000,http://localhost" \\
+            -e "AllowedHosts=*" \\
+            -e "LLMProviders__LocalLLM__Enabled=true" \\
+            -e "LLMProviders__LocalLLM__BaseUrl=http://192.168.0.9:11434" \\
+            -e "LLMProviders__LocalLLM__DefaultModel=qwen2.5:0.5b" \\
+            -e "LLMProviders__LocalLLM__ApiFormat=ollama" \\
+            --health-cmd="curl -f http://localhost:5000/health || exit 1" \\
+            --health-interval=30s \\
+            --health-timeout=10s \\
+            --health-retries=3 \\
+            crm-backend:${api_tag}
         
-        echo "=== Starting Frontend container ==="
-        docker run -d --name crm-frontend \
-            --restart unless-stopped \
-            --network crm-database-network \
-            -p 80:80 \
-            --health-cmd="curl -f http://localhost/ || exit 1" \
-            --health-interval=30s \
-            --health-timeout=10s \
-            --health-retries=3 \
-            crm-frontend:v2
+        echo "=== Starting Frontend container (crm-frontend:${frontend_tag}) ==="
+        docker run -d --name crm-frontend \\
+            --restart unless-stopped \\
+            --network crm-database-network \\
+            -p 80:80 \\
+            --health-cmd="curl -f http://localhost/ || exit 1" \\
+            --health-interval=30s \\
+            --health-timeout=10s \\
+            --health-retries=3 \\
+            crm-frontend:${frontend_tag}
         
         echo "=== Waiting for containers to be healthy ==="
         sleep 5
         
         echo "=== Container Status ==="
         docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "crm-api|crm-frontend|NAMES"
+        
+        echo "=== Container Logs (last 10 lines each) ==="
+        echo "--- API Logs ---"
+        docker logs crm-api --tail 10 2>&1 || true
+        echo "--- Frontend Logs ---"
+        docker logs crm-frontend --tail 10 2>&1 || true
 DEPLOY_SCRIPT
     
     log_success "Docker Compose deployment complete"
@@ -356,6 +386,8 @@ main() {
     
     log_info "Build Type: ${version_type}"
     log_info "Current Version: $(get_version)"
+    log_info "Target Host: ${BUILD_HOST}"
+    log_info "Debug Mode: ${DEBUG_MODE}"
     
     check_ssh
     
@@ -380,26 +412,56 @@ main() {
 }
 
 # Parse command line arguments
-case "$1" in
-    major|minor|patch)
-        main "$1"
-        ;;
-    reset-ui)
-        check_ssh
-        reset_ui_settings
-        ;;
-    version)
-        echo "Current version: $(get_version)"
-        ;;
-    *)
-        echo "Usage: $0 [major|minor|patch|reset-ui|version]"
-        echo ""
-        echo "Commands:"
-        echo "  patch    - Increment patch version and deploy (default)"
-        echo "  minor    - Increment minor version and deploy"
-        echo "  major    - Increment major version and deploy"
-        echo "  reset-ui - Reset UI settings to defaults only"
-        echo "  version  - Show current version"
-        exit 0
-        ;;
-esac
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --debug|-d)
+            DEBUG_MODE="true"
+            shift
+            ;;
+        --host|-h)
+            BUILD_HOST="$2"
+            shift 2
+            ;;
+        major|minor|patch)
+            VERSION_TYPE="$1"
+            shift
+            ;;
+        reset-ui)
+            check_ssh
+            reset_ui_settings
+            exit 0
+            ;;
+        version)
+            echo "Current version: $(get_version)"
+            exit 0
+            ;;
+        help|--help)
+            echo "Usage: $0 [options] [command]"
+            echo ""
+            echo "Commands:"
+            echo "  patch      - Increment patch version and deploy (default)"
+            echo "  minor      - Increment minor version and deploy"
+            echo "  major      - Increment major version and deploy"
+            echo "  reset-ui   - Reset UI settings to defaults only"
+            echo "  version    - Show current version"
+            echo ""
+            echo "Options:"
+            echo "  --debug, -d    - Enable debug mode with full logs"
+            echo "  --host, -h     - Specify target host (default: 192.168.0.9)"
+            echo ""
+            echo "Environment Variables:"
+            echo "  BUILD_HOST     - Target deployment host (default: 192.168.0.9)"
+            echo "  BUILD_USER     - SSH user (default: root)"
+            echo "  DEBUG          - Enable debug mode (true/false)"
+            exit 0
+            ;;
+        *)
+            log_error "Unknown option: $1"
+            echo "Run '$0 help' for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+# Execute main with version type
+main "${VERSION_TYPE:-patch}"

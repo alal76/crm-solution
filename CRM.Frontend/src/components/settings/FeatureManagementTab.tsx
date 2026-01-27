@@ -52,6 +52,7 @@ import {
   Warning as WarningIcon,
   CheckCircle as CheckIcon,
   CloudOff as DemoIcon,
+  DataObject as DatabaseIcon,
 } from '@mui/icons-material';
 
 interface FeatureStatus {
@@ -94,6 +95,14 @@ interface FeatureConfiguration {
     demoModeEnabled: boolean;
     useDemoDatabase: boolean;
   };
+  databaseProviders: {
+    mariadb: FeatureStatus;
+    postgresql: FeatureStatus;
+    sqlserver: FeatureStatus;
+    sqlite: FeatureStatus;
+    mysql: FeatureStatus;
+  };
+  activeDatabaseProvider: string;
 }
 
 interface DatabaseStatus {
@@ -129,6 +138,11 @@ const moduleIcons: Record<string, React.ReactNode> = {
   email: <EmailIcon />,
   whatsapp: <WhatsAppIcon />,
   socialMedia: <SocialMediaIcon />,
+  mariadb: <DatabaseIcon />,
+  postgresql: <DatabaseIcon />,
+  sqlserver: <DatabaseIcon />,
+  sqlite: <DatabaseIcon />,
+  mysql: <DatabaseIcon />,
 };
 
 function FeatureManagementTab() {
@@ -231,6 +245,29 @@ function FeatureManagementTab() {
     setHasChanges(true);
   };
 
+  const handleDatabaseProviderChange = (provider: string) => {
+    if (!features) return;
+
+    const providers = ['mariadb', 'postgresql', 'sqlserver', 'sqlite', 'mysql'];
+    const updatedProviders = providers.reduce((acc, p) => ({
+      ...acc,
+      [p]: {
+        ...features.databaseProviders[p as keyof typeof features.databaseProviders],
+        enabled: p === provider,
+      },
+    }), {} as typeof features.databaseProviders);
+
+    setFeatures((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        databaseProviders: updatedProviders,
+        activeDatabaseProvider: provider,
+      };
+    });
+    setHasChanges(true);
+  };
+
   const handleSave = async () => {
     if (!features) return;
 
@@ -258,6 +295,7 @@ function FeatureManagementTab() {
         whatsAppEnabled: features.communicationModules.whatsapp.enabled,
         socialMediaEnabled: features.communicationModules.socialMedia.enabled,
         useDemoDatabase: features.systemSettings.useDemoDatabase,
+        activeDatabaseProvider: features.activeDatabaseProvider,
       };
 
       const response = await fetch(`${apiUrl}/systemsettings/features`, {
@@ -534,6 +572,53 @@ function FeatureManagementTab() {
             Demo mode is enabled. The system is using the demo database. Disable for production use.
           </Alert>
         )}
+      </Paper>
+
+      {/* Database Provider Selection - Currently Disabled */}
+      <Paper sx={{ p: 3, mb: 3, opacity: 0.7 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <DatabaseIcon color="disabled" />
+          <Box>
+            <Typography variant="h6" color="text.secondary">Database Provider</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Database switching is currently disabled. Contact your administrator for changes.
+            </Typography>
+          </Box>
+        </Box>
+        <Grid container spacing={2}>
+          {features.databaseProviders && Object.entries(features.databaseProviders).map(([key, provider]) => (
+            <Grid item xs={12} sm={6} md={4} key={key}>
+              <Card
+                variant={features.activeDatabaseProvider === key ? 'elevation' : 'outlined'}
+                sx={{
+                  opacity: features.activeDatabaseProvider === key ? 1 : 0.4,
+                  border: features.activeDatabaseProvider === key ? '2px solid' : '1px solid',
+                  borderColor: features.activeDatabaseProvider === key ? 'success.main' : 'divider',
+                  pointerEvents: 'none',
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ color: features.activeDatabaseProvider === key ? 'success.main' : 'action.disabled' }}>
+                        {moduleIcons[key]}
+                      </Box>
+                      <Typography variant="subtitle1" fontWeight={600}>
+                        {provider.name}
+                      </Typography>
+                    </Box>
+                    {features.activeDatabaseProvider === key && (
+                      <Chip label="ACTIVE" color="success" size="small" />
+                    )}
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    {provider.description}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       </Paper>
 
       {/* Module Sections */}

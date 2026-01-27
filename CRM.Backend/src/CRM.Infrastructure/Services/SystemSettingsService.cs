@@ -145,6 +145,18 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             if (request.EmailNotificationsEnabled.HasValue) settings.EmailNotificationsEnabled = request.EmailNotificationsEnabled.Value;
             if (request.AuditLoggingEnabled.HasValue) settings.AuditLoggingEnabled = request.AuditLoggingEnabled.Value;
             
+            // Database provider settings - only one can be active at a time
+            if (request.ActiveDatabaseProvider != null)
+            {
+                settings.ActiveDatabaseProvider = request.ActiveDatabaseProvider;
+                // Set the correct provider to enabled, disable others
+                settings.MariaDbEnabled = request.ActiveDatabaseProvider.Equals("mariadb", StringComparison.OrdinalIgnoreCase);
+                settings.PostgreSqlEnabled = request.ActiveDatabaseProvider.Equals("postgresql", StringComparison.OrdinalIgnoreCase);
+                settings.SqlServerEnabled = request.ActiveDatabaseProvider.Equals("sqlserver", StringComparison.OrdinalIgnoreCase);
+                settings.SqliteEnabled = request.ActiveDatabaseProvider.Equals("sqlite", StringComparison.OrdinalIgnoreCase);
+                settings.MySqlEnabled = request.ActiveDatabaseProvider.Equals("mysql", StringComparison.OrdinalIgnoreCase);
+            }
+            
             // Navigation settings
             if (request.NavOrderConfig != null) settings.NavOrderConfig = request.NavOrderConfig;
             

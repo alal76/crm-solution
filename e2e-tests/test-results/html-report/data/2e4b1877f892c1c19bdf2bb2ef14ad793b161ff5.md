@@ -1,0 +1,124 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "open drawer" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+        - img [ref=e11]
+        - link "CRM System" [ref=e13] [cursor=pointer]:
+          - /url: /
+      - button "AL" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: AL
+  - navigation [ref=e18]:
+    - list [ref=e19]:
+      - listitem [ref=e20]:
+        - link "Home" [ref=e21] [cursor=pointer]:
+          - /url: /
+          - img [ref=e22]
+          - text: Home
+      - listitem [ref=e24]: ›
+      - listitem [ref=e25]:
+        - paragraph [ref=e26]:
+          - img [ref=e27]
+          - text: Settings
+  - generic [ref=e31]:
+    - generic [ref=e32]:
+      - img "CRM Logo" [ref=e34]
+      - generic [ref=e35]:
+        - heading "Settings" [level=3] [ref=e36]
+        - paragraph [ref=e37]: Manage your CRM configuration and preferences
+    - generic [ref=e38]:
+      - generic [ref=e40]:
+        - button "System Administration 5 settings" [ref=e42] [cursor=pointer]:
+          - generic [ref=e44]:
+            - img [ref=e46]
+            - generic [ref=e49]:
+              - heading "System Administration" [level=6] [ref=e50]
+              - generic [ref=e51]: 5 settings
+          - img [ref=e53]
+        - button "User Administration 4 settings" [ref=e56] [cursor=pointer]:
+          - generic [ref=e58]:
+            - img [ref=e60]
+            - generic [ref=e63]:
+              - heading "User Administration" [level=6] [ref=e64]
+              - generic [ref=e65]: 4 settings
+          - img [ref=e67]
+        - generic [ref=e69]:
+          - button "CRM Administration 5 settings" [expanded] [ref=e70] [cursor=pointer]:
+            - generic [ref=e72]:
+              - img [ref=e74]
+              - generic [ref=e76]:
+                - heading "CRM Administration" [level=6] [ref=e77]
+                - generic [ref=e78]: 5 settings
+            - img [ref=e80]
+          - region [ref=e85]:
+            - list [ref=e87]:
+              - listitem [ref=e88]:
+                - button "Company Branding" [ref=e89] [cursor=pointer]:
+                  - img [ref=e91]
+                  - generic [ref=e94]: Company Branding
+              - listitem [ref=e95]:
+                - button "Navigation" [ref=e96] [cursor=pointer]:
+                  - img [ref=e98]
+                  - generic [ref=e101]: Navigation
+              - listitem [ref=e102]:
+                - button "Modules & Fields" [ref=e103] [cursor=pointer]:
+                  - img [ref=e105]
+                  - generic [ref=e108]: Modules & Fields
+              - listitem [ref=e109]:
+                - button "Service Request Definitions" [ref=e110] [cursor=pointer]:
+                  - img [ref=e112]
+                  - generic [ref=e118]: Service Request Definitions
+              - listitem [ref=e119]:
+                - button "Master Data" [ref=e120] [cursor=pointer]:
+                  - img [ref=e122]
+                  - generic [ref=e125]: Master Data
+      - generic [ref=e127]:
+        - img [ref=e128]
+        - heading "Select a Setting" [level=5] [ref=e130]
+        - paragraph [ref=e131]: Choose a section from the left panel and click on a setting to configure it.
+        - generic [ref=e132]:
+          - generic [ref=e134] [cursor=pointer]:
+            - img [ref=e136]
+            - heading "System" [level=6] [ref=e139]
+            - generic [ref=e140]: 5 options
+          - generic [ref=e142] [cursor=pointer]:
+            - img [ref=e144]
+            - heading "User" [level=6] [ref=e147]
+            - generic [ref=e148]: 4 options
+          - generic [ref=e150] [cursor=pointer]:
+            - img [ref=e152]
+            - heading "CRM" [level=6] [ref=e154]
+            - generic [ref=e155]: 5 options
+  - contentinfo [ref=e156]:
+    - generic [ref=e157]:
+      - generic [ref=e158]:
+        - generic [ref=e159]: CRM System
+        - generic [ref=e160]: "|"
+        - 'generic "API: v2 | Frontend: v2 | DB: 0 ZIPs" [ref=e161]': v1.7.24
+        - generic [ref=e162]: "|"
+        - 'generic "Branch: dev" [ref=e163]': "#003a60d"
+      - generic [ref=e165]:
+        - generic [ref=e166]: ●
+        - 'generic "Build: v2" [ref=e167]': API (v2)
+        - generic [ref=e168]: ●
+        - generic "0 ZIPs, 0 Countries" [ref=e169]: DB
+      - generic [ref=e170]:
+        - link "About" [ref=e171] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e172]: "|"
+        - link "Help" [ref=e173] [cursor=pointer]:
+          - /url: /help
+        - generic [ref=e174]: "|"
+        - link "Licenses" [ref=e175] [cursor=pointer]:
+          - /url: /licenses
+        - generic [ref=e176]: "|"
+        - generic [ref=e177]: © 2026 Abhishek Lal - AGPL-3.0
+  - button "Open Context Panel" [ref=e178] [cursor=pointer]:
+    - generic [ref=e179]:
+      - img [ref=e180]
+      - generic: "0"
+```

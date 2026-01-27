@@ -751,6 +751,15 @@ public class SystemSettingsController : ControllerBase
                     whatsapp = new { enabled = settings.WhatsAppEnabled, name = "WhatsApp", description = "WhatsApp integration" },
                     socialMedia = new { enabled = settings.SocialMediaEnabled, name = "Social Media", description = "Social media integration" }
                 },
+                databaseProviders = new
+                {
+                    mariadb = new { enabled = settings.MariaDbEnabled, name = "MariaDB", description = "MySQL-compatible open-source database" },
+                    postgresql = new { enabled = settings.PostgreSqlEnabled, name = "PostgreSQL", description = "Advanced open-source relational database" },
+                    sqlserver = new { enabled = settings.SqlServerEnabled, name = "SQL Server", description = "Microsoft SQL Server database" },
+                    sqlite = new { enabled = settings.SqliteEnabled, name = "SQLite", description = "Lightweight file-based database" },
+                    mysql = new { enabled = settings.MySqlEnabled, name = "MySQL", description = "Popular open-source database" }
+                },
+                activeDatabaseProvider = settings.ActiveDatabaseProvider,
                 systemSettings = new
                 {
                     sampleDataSeeded = settings.SampleDataSeeded,
@@ -795,7 +804,8 @@ public class SystemSettingsController : ControllerBase
                 DashboardEnabled = request.DashboardEnabled,
                 EmailEnabled = request.EmailEnabled,
                 WhatsAppEnabled = request.WhatsAppEnabled,
-                SocialMediaEnabled = request.SocialMediaEnabled
+                SocialMediaEnabled = request.SocialMediaEnabled,
+                ActiveDatabaseProvider = request.ActiveDatabaseProvider
             };
             
             var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
@@ -881,6 +891,9 @@ public class UpdateFeaturesRequest
     public bool? EmailEnabled { get; set; }
     public bool? WhatsAppEnabled { get; set; }
     public bool? SocialMediaEnabled { get; set; }
+    
+    // Database Provider - only one can be active at a time
+    public string? ActiveDatabaseProvider { get; set; }
 }
 
 /// <summary>

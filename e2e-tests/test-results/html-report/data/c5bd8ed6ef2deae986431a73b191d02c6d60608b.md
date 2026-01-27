@@ -1,0 +1,178 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - button [ref=e7] [cursor=pointer]:
+            - img [ref=e8]
+          - img [ref=e11]
+          - link [ref=e13] [cursor=pointer]:
+            - /url: /
+            - text: CRM System
+        - button [ref=e15] [cursor=pointer]:
+          - generic [ref=e16]: AL
+    - navigation [ref=e18]:
+      - list [ref=e19]:
+        - listitem [ref=e20]:
+          - link [ref=e21] [cursor=pointer]:
+            - /url: /
+            - img [ref=e22]
+            - text: Home
+        - listitem [ref=e24]: ›
+        - listitem [ref=e25]:
+          - paragraph [ref=e26]:
+            - img [ref=e27]
+            - text: Campaigns
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - img [ref=e36]
+          - heading [level=4] [ref=e37]: Campaigns
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - button [ref=e40] [cursor=pointer]:
+              - img [ref=e42]
+              - text: Export
+            - button [ref=e44] [cursor=pointer]:
+              - img [ref=e46]
+              - text: Import
+          - button [ref=e48] [cursor=pointer]:
+            - img [ref=e50]
+            - text: Add Campaign
+      - generic [ref=e53]:
+        - table [ref=e54]:
+          - rowgroup [ref=e55]:
+            - row [ref=e56]:
+              - columnheader [ref=e57]:
+                - strong [ref=e58]: Campaign
+              - columnheader [ref=e59]:
+                - strong [ref=e60]: Type
+              - columnheader [ref=e61]:
+                - strong [ref=e62]: Status
+              - columnheader [ref=e63]:
+                - strong [ref=e64]: Budget
+              - columnheader [ref=e65]:
+                - strong [ref=e66]: Performance
+              - columnheader [ref=e67]:
+                - strong [ref=e68]: ROI
+              - columnheader [ref=e69]:
+                - strong [ref=e70]: Dates
+              - columnheader [ref=e71]:
+                - strong [ref=e72]: Actions
+        - paragraph [ref=e73]: No campaigns found. Create your first campaign to get started.
+    - contentinfo [ref=e74]:
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - generic [ref=e77]: CRM System
+          - generic [ref=e78]: "|"
+          - generic [ref=e79]: v1.7.24
+          - generic [ref=e80]: "|"
+          - generic [ref=e81]: "#003a60d"
+        - generic [ref=e83]:
+          - generic [ref=e84]: ●
+          - generic [ref=e85]: API (v2)
+          - generic [ref=e86]: ●
+          - generic [ref=e87]: DB
+        - generic [ref=e88]:
+          - link [ref=e89] [cursor=pointer]:
+            - /url: /about
+            - text: About
+          - generic [ref=e90]: "|"
+          - link [ref=e91] [cursor=pointer]:
+            - /url: /help
+            - text: Help
+          - generic [ref=e92]: "|"
+          - link [ref=e93] [cursor=pointer]:
+            - /url: /licenses
+            - text: Licenses
+          - generic [ref=e94]: "|"
+          - generic [ref=e95]: © 2026 Abhishek Lal - AGPL-3.0
+    - button [ref=e96] [cursor=pointer]:
+      - img [ref=e98]
+  - dialog "Add Campaign" [ref=e102]:
+    - heading "Add Campaign" [level=2] [ref=e103]
+    - tablist [ref=e107]:
+      - tab "Basic Info" [selected] [ref=e108] [cursor=pointer]: Basic Info
+      - tab "Performance" [ref=e109] [cursor=pointer]: Performance
+      - tab "Email Metrics" [ref=e110] [cursor=pointer]: Email Metrics
+      - tab "Social & A/B" [ref=e111] [cursor=pointer]: Social & A/B
+      - tab "Tracking" [ref=e112] [cursor=pointer]: Tracking
+    - tabpanel [ref=e115]:
+      - generic [ref=e117]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - text: Campaign Name
+            - generic [ref=e121]: "*"
+          - generic [ref=e122]:
+            - textbox "Campaign Name" [ref=e123]: TEST_Social Media Blitz_1769542886810
+            - group:
+              - generic: Campaign Name *
+        - generic [ref=e125]:
+          - generic [ref=e126]: Campaign Type
+          - generic [ref=e127]:
+            - combobox "Social Media" [active] [ref=e128] [cursor=pointer]
+            - textbox: "1"
+            - img
+            - group:
+              - generic: Campaign Type
+        - generic [ref=e130]:
+          - generic [ref=e131]: Status
+          - generic [ref=e132]:
+            - combobox "Draft" [ref=e133] [cursor=pointer]
+            - textbox: "0"
+            - img
+            - group:
+              - generic: Status
+        - generic [ref=e135]:
+          - generic [ref=e136]: Priority
+          - generic [ref=e137]:
+            - combobox [ref=e138] [cursor=pointer]
+            - textbox: "1"
+            - img
+            - group:
+              - generic: Priority
+        - generic [ref=e140]:
+          - generic [ref=e141]:
+            - text: Start Date
+            - generic [ref=e142]: "*"
+          - generic [ref=e143]:
+            - textbox "Start Date" [ref=e144]
+            - group:
+              - generic: Start Date *
+        - generic [ref=e146]:
+          - generic [ref=e147]: End Date
+          - generic [ref=e148]:
+            - textbox "End Date" [ref=e149]
+            - group:
+              - generic: End Date
+        - generic [ref=e151]:
+          - generic [ref=e152]: Budget ($)
+          - generic [ref=e153]:
+            - spinbutton "Budget ($)" [ref=e154]: "0"
+            - group:
+              - generic: Budget ($)
+        - generic [ref=e156]:
+          - generic [ref=e157]: Actual Spend ($)
+          - generic [ref=e158]:
+            - spinbutton "Actual Spend ($)" [ref=e159]: "0"
+            - group:
+              - generic: Actual Spend ($)
+        - generic [ref=e161]:
+          - generic [ref=e162]: Target Audience
+          - generic [ref=e163]:
+            - spinbutton "Target Audience" [ref=e164]: "0"
+            - group:
+              - generic: Target Audience
+        - generic [ref=e166]:
+          - generic: Description
+          - generic [ref=e167]:
+            - textbox "Description" [ref=e168]
+            - group:
+              - generic: Description
+    - generic [ref=e169]:
+      - button "Cancel" [ref=e170] [cursor=pointer]: Cancel
+      - button "Create" [ref=e171] [cursor=pointer]: Create
+```

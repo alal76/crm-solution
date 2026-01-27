@@ -1,0 +1,180 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - button [ref=e7] [cursor=pointer]:
+            - img [ref=e8]
+          - img [ref=e11]
+          - link [ref=e13] [cursor=pointer]:
+            - /url: /
+            - text: CRM System
+        - button [ref=e15] [cursor=pointer]:
+          - generic [ref=e16]: AL
+    - navigation [ref=e18]:
+      - list [ref=e19]:
+        - listitem [ref=e20]:
+          - link [ref=e21] [cursor=pointer]:
+            - /url: /
+            - img [ref=e22]
+            - text: Home
+        - listitem [ref=e24]: ›
+        - listitem [ref=e25]:
+          - link [ref=e26] [cursor=pointer]:
+            - /url: /admin
+            - text: Admin
+        - listitem [ref=e27]: ›
+        - listitem [ref=e28]:
+          - paragraph [ref=e29]: Users
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - img [ref=e35]
+        - generic [ref=e36]:
+          - img [ref=e37]
+          - generic [ref=e39]:
+            - heading [level=4] [ref=e40]: User Management
+            - paragraph [ref=e41]: Manage users, roles, and permissions
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - heading [level=6] [ref=e45]: User Management
+          - button [ref=e46] [cursor=pointer]:
+            - img [ref=e48]
+            - text: Add User
+        - table [ref=e51]:
+          - rowgroup [ref=e52]:
+            - row [ref=e53]:
+              - columnheader [ref=e54]: User
+              - columnheader [ref=e55]: Email
+              - columnheader [ref=e56]: Role
+              - columnheader [ref=e57]: Department
+              - columnheader [ref=e58]: Group
+              - columnheader [ref=e59]: Status
+              - columnheader [ref=e60]: Last Login
+              - columnheader [ref=e61]: Actions
+          - rowgroup [ref=e62]:
+            - row [ref=e63]:
+              - cell [ref=e64]:
+                - generic [ref=e65]:
+                  - img [ref=e67]
+                  - generic [ref=e70]:
+                    - paragraph [ref=e71]: Abhishek Lal
+                    - generic [ref=e72]: "@admin"
+              - cell [ref=e73]:
+                - generic [ref=e74]: abhi.lal@gmail.com
+              - cell [ref=e75]:
+                - generic [ref=e77]: Admin
+              - cell [ref=e78]: "-"
+              - cell [ref=e79]: "-"
+              - cell [ref=e80]:
+                - button [ref=e81] [cursor=pointer]:
+                  - generic [ref=e82]: Active
+              - cell [ref=e83]: 1/27/2026
+              - cell [ref=e84]:
+                - button [ref=e85] [cursor=pointer]:
+                  - img [ref=e86]
+                - button [ref=e88] [cursor=pointer]:
+                  - img [ref=e89]
+    - contentinfo [ref=e91]:
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - generic [ref=e94]: CRM System
+          - generic [ref=e95]: "|"
+          - generic [ref=e96]: v1.7.24
+          - generic [ref=e97]: "|"
+          - generic [ref=e98]: "#003a60d"
+        - generic [ref=e100]:
+          - generic [ref=e101]: ●
+          - generic [ref=e102]: API (v2)
+          - generic [ref=e103]: ●
+          - generic [ref=e104]: DB
+        - generic [ref=e105]:
+          - link [ref=e106] [cursor=pointer]:
+            - /url: /about
+            - text: About
+          - generic [ref=e107]: "|"
+          - link [ref=e108] [cursor=pointer]:
+            - /url: /help
+            - text: Help
+          - generic [ref=e109]: "|"
+          - link [ref=e110] [cursor=pointer]:
+            - /url: /licenses
+            - text: Licenses
+          - generic [ref=e111]: "|"
+          - generic [ref=e112]: © 2026 Abhishek Lal - AGPL-3.0
+    - button [ref=e113] [cursor=pointer]:
+      - img [ref=e115]
+  - dialog "Create New User" [ref=e119]:
+    - heading "Create New User" [level=2] [ref=e120]
+    - generic [ref=e122]:
+      - generic [ref=e124]:
+        - generic:
+          - text: Username
+          - generic: "*"
+        - generic [ref=e125]:
+          - textbox "Username" [ref=e126]
+          - group:
+            - generic: Username *
+      - generic [ref=e128]:
+        - generic:
+          - text: Email
+          - generic: "*"
+        - generic [ref=e129]:
+          - textbox "Email" [ref=e130]
+          - group:
+            - generic: Email *
+      - generic [ref=e132]:
+        - generic: First Name
+        - generic [ref=e133]:
+          - textbox "First Name" [ref=e134]
+          - group:
+            - generic: First Name
+      - generic [ref=e136]:
+        - generic: Last Name
+        - generic [ref=e137]:
+          - textbox "Last Name" [ref=e138]
+          - group:
+            - generic: Last Name
+      - generic [ref=e140]:
+        - generic:
+          - text: Password
+          - generic: "*"
+        - generic [ref=e141]:
+          - textbox "Password" [ref=e142]
+          - button [ref=e143] [cursor=pointer]:
+            - img [ref=e144]
+          - group:
+            - generic: Password *
+      - generic [ref=e147]:
+        - generic [ref=e148]: Role
+        - generic [ref=e149]:
+          - combobox [ref=e150] [cursor=pointer]: User
+          - textbox: User
+          - img
+          - group:
+            - generic: Role
+      - generic [ref=e152]:
+        - generic: Department
+        - generic [ref=e153]:
+          - combobox [ref=e154] [cursor=pointer]
+          - textbox
+          - img
+          - group:
+            - generic: Department
+      - generic [ref=e156]:
+        - generic: Primary Group
+        - generic [ref=e157]:
+          - combobox [ref=e158] [cursor=pointer]
+          - textbox
+          - img
+          - group:
+            - generic: Primary Group
+      - generic [ref=e160] [cursor=pointer]:
+        - checkbox "Active" [checked] [ref=e163]
+        - generic [ref=e166]: Active
+    - generic [ref=e167]:
+      - button "Cancel" [ref=e168] [cursor=pointer]: Cancel
+      - button "Create" [ref=e169] [cursor=pointer]: Create
+```

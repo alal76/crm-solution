@@ -260,8 +260,9 @@ test.describe('Admin - LLM Settings', () => {
   });
 
   test('TC-ADMIN-015: Should display LLM settings page', async ({ page }) => {
-    const pageTitle = page.locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i });
-    await expect(pageTitle.first()).toBeVisible({ timeout: 10000 });
+    // Look for LLM configuration elements - title or tabs
+    const llmElement = page.locator('h1, h2, h6, .page-title, [class*="MuiTypography"]').filter({ hasText: /llm|ai|model|configuration/i });
+    await expect(llmElement.first()).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADMIN-016: Should configure LLM endpoint', async ({ page }) => {

@@ -488,6 +488,45 @@ public class SystemSettings : BaseEntity
     
     #endregion
     
+#region Database Provider Features
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether MariaDB database provider is enabled
+    /// TECHNICAL: Only one database provider can be active at a time
+    /// </summary>
+    public bool MariaDbEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether PostgreSQL database provider is enabled
+    /// TECHNICAL: Only one database provider can be active at a time
+    /// </summary>
+    public bool PostgreSqlEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether SQL Server database provider is enabled
+    /// TECHNICAL: Only one database provider can be active at a time
+    /// </summary>
+    public bool SqlServerEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether SQLite database provider is enabled
+    /// TECHNICAL: Only one database provider can be active at a time
+    /// </summary>
+    public bool SqliteEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// FUNCTIONAL: Whether MySQL database provider is enabled
+    /// TECHNICAL: Only one database provider can be active at a time
+    /// </summary>
+    public bool MySqlEnabled { get; set; } = false;
+    
+    /// <summary>
+    /// The currently active database provider name
+    /// </summary>
+    public string ActiveDatabaseProvider { get; set; } = "mariadb";
+    
+    #endregion
+    
     #region Table Statistics Settings
     
     /// <summary>

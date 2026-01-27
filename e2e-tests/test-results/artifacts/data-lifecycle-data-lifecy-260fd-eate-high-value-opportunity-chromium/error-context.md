@@ -1,0 +1,221 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - button [ref=e7] [cursor=pointer]:
+            - img [ref=e8]
+          - img [ref=e11]
+          - link [ref=e13] [cursor=pointer]:
+            - /url: /
+            - text: CRM System
+        - button [ref=e15] [cursor=pointer]:
+          - generic [ref=e16]: AL
+    - navigation [ref=e18]:
+      - list [ref=e19]:
+        - listitem [ref=e20]:
+          - link [ref=e21] [cursor=pointer]:
+            - /url: /
+            - img [ref=e22]
+            - text: Home
+        - listitem [ref=e24]: ›
+        - listitem [ref=e25]:
+          - paragraph [ref=e26]:
+            - img [ref=e27]
+            - text: Opportunities
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - img [ref=e36]
+          - heading [level=4] [ref=e37]: Opportunities
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - button [ref=e40] [cursor=pointer]:
+              - img [ref=e42]
+              - text: Export
+            - button [ref=e44] [cursor=pointer]:
+              - img [ref=e46]
+              - text: Import
+          - button [ref=e48] [cursor=pointer]:
+            - img [ref=e50]
+            - text: Add Opportunity
+      - generic [ref=e52]:
+        - generic [ref=e54]:
+          - generic [ref=e56]:
+            - img [ref=e58]
+            - textbox [ref=e60]:
+              - /placeholder: Search opportunities by title, description...
+            - group
+          - button [ref=e61] [cursor=pointer]:
+            - img [ref=e63]
+            - text: Filters
+            - img [ref=e66]
+        - generic: Title
+        - generic: Stage
+        - generic: Solution Notes
+        - generic: Amount Min
+        - generic: Amount Max
+        - generic: Region
+      - generic [ref=e69]:
+        - table [ref=e71]:
+          - rowgroup [ref=e72]:
+            - row [ref=e73]:
+              - columnheader [ref=e74]:
+                - strong [ref=e75]: Name
+              - columnheader [ref=e76]:
+                - strong [ref=e77]: Account
+              - columnheader [ref=e78]:
+                - strong [ref=e79]: Amount
+              - columnheader [ref=e80]:
+                - strong [ref=e81]: Stage
+              - columnheader [ref=e82]:
+                - strong [ref=e83]: Probability
+              - columnheader [ref=e84]:
+                - strong [ref=e85]: Expected Close
+              - columnheader [ref=e86]:
+                - strong [ref=e87]: Pricing Model
+              - columnheader [ref=e88]:
+                - strong [ref=e89]: Sales Owner
+              - columnheader [ref=e90]:
+                - strong [ref=e91]: Actions
+        - paragraph [ref=e92]: No opportunities found
+    - contentinfo [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]:
+          - generic [ref=e96]: CRM System
+          - generic [ref=e97]: "|"
+          - generic [ref=e98]: v1.7.24
+          - generic [ref=e99]: "|"
+          - generic [ref=e100]: "#003a60d"
+        - generic [ref=e102]:
+          - generic [ref=e103]: ●
+          - generic [ref=e104]: API (v2)
+          - generic [ref=e105]: ●
+          - generic [ref=e106]: DB
+        - generic [ref=e107]:
+          - link [ref=e108] [cursor=pointer]:
+            - /url: /about
+            - text: About
+          - generic [ref=e109]: "|"
+          - link [ref=e110] [cursor=pointer]:
+            - /url: /help
+            - text: Help
+          - generic [ref=e111]: "|"
+          - link [ref=e112] [cursor=pointer]:
+            - /url: /licenses
+            - text: Licenses
+          - generic [ref=e113]: "|"
+          - generic [ref=e114]: © 2026 Abhishek Lal - AGPL-3.0
+    - button [ref=e115] [cursor=pointer]:
+      - img [ref=e117]
+  - dialog "Create New Opportunity" [ref=e121]:
+    - heading "Create New Opportunity" [level=2] [ref=e122]
+    - generic [ref=e124]:
+      - generic [ref=e125]:
+        - generic [ref=e126]:
+          - text: Name
+          - generic [ref=e127]: "*"
+        - generic [ref=e128]:
+          - textbox "Name" [ref=e129]: TEST_GlobalTech_Enterprise_License
+          - group:
+            - generic: Name *
+      - generic [ref=e131]:
+        - generic [ref=e132]:
+          - text: Account
+          - generic [ref=e133]: "*"
+        - generic [ref=e134]:
+          - combobox "Tech Corp" [ref=e135] [cursor=pointer]
+          - textbox: "1"
+          - img
+          - group:
+            - generic: Account *
+      - generic [ref=e136]:
+        - generic [ref=e137]: Amount
+        - generic [ref=e138]:
+          - spinbutton "Amount" [active] [ref=e139]: "500000"
+          - group:
+            - generic: Amount
+      - generic [ref=e140]:
+        - generic [ref=e141]: Currency
+        - generic [ref=e142]:
+          - combobox "USD" [ref=e143] [cursor=pointer]
+          - textbox: USD
+          - img
+          - group:
+            - generic: Currency
+      - generic [ref=e144]:
+        - generic [ref=e145]: Stage
+        - generic [ref=e146]:
+          - combobox [ref=e147] [cursor=pointer]
+          - textbox: "0"
+          - img
+          - group:
+            - generic: Stage
+      - generic [ref=e148]:
+        - generic [ref=e149]: Pricing Model
+        - generic [ref=e150]:
+          - combobox "Subscription" [ref=e151] [cursor=pointer]
+          - textbox: "0"
+          - img
+          - group:
+            - generic: Pricing Model
+      - generic [ref=e152]:
+        - paragraph [ref=e153]: "Probability: 10%"
+        - generic [ref=e154] [cursor=pointer]:
+          - generic [ref=e158]: 0%
+          - generic [ref=e160]: 50%
+          - generic [ref=e162]: 100%
+          - slider [ref=e164]: "10"
+      - generic [ref=e165]:
+        - generic [ref=e166]: Expected Close Date
+        - generic [ref=e167]:
+          - textbox "Expected Close Date" [ref=e168]
+          - group:
+            - generic: Expected Close Date
+      - generic [ref=e169]:
+        - generic [ref=e170]: Term Length (Months)
+        - generic [ref=e171]:
+          - spinbutton "Term Length (Months)" [ref=e172]: "12"
+          - group:
+            - generic: Term Length (Months)
+      - generic [ref=e173]:
+        - generic: Region
+        - generic [ref=e174]:
+          - textbox "Region" [ref=e175]
+          - group:
+            - generic: Region
+      - generic [ref=e176]:
+        - generic: Qualification Reason
+        - generic [ref=e177]:
+          - combobox [ref=e178] [cursor=pointer]
+          - textbox
+          - img
+          - group:
+            - generic: Qualification Reason
+      - generic [ref=e180]:
+        - generic: Sales Owner (Optional)
+        - generic [ref=e181]:
+          - combobox [ref=e182] [cursor=pointer]
+          - textbox
+          - img
+          - group:
+            - generic: Sales Owner (Optional)
+      - generic [ref=e183]:
+        - generic: Solution Notes
+        - generic [ref=e184]:
+          - textbox "Solution Notes" [ref=e185]
+          - group:
+            - generic: Solution Notes
+      - generic [ref=e186]:
+        - generic: Qualification Notes
+        - generic [ref=e187]:
+          - textbox "Qualification Notes" [ref=e188]
+          - group:
+            - generic: Qualification Notes
+    - generic [ref=e189]:
+      - button "Cancel" [ref=e190] [cursor=pointer]: Cancel
+      - button "Create" [ref=e191] [cursor=pointer]: Create
+```

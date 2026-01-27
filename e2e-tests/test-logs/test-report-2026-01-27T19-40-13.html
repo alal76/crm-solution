@@ -1,0 +1,2976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM E2E Test Report - 2026-01-27T19-40-13</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #1976d2, #1565c0); color: white; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .header h1 { font-size: 28px; margin-bottom: 10px; }
+    .header .date { opacity: 0.9; font-size: 14px; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 20px; background: white; }
+    .summary-card { padding: 20px; border-radius: 8px; text-align: center; }
+    .summary-card.total { background: #e3f2fd; border-left: 4px solid #1976d2; }
+    .summary-card.passed { background: #e8f5e9; border-left: 4px solid #4caf50; }
+    .summary-card.failed { background: #ffebee; border-left: 4px solid #f44336; }
+    .summary-card.skipped { background: #fff3e0; border-left: 4px solid #ff9800; }
+    .summary-card .number { font-size: 36px; font-weight: bold; }
+    .summary-card .label { font-size: 14px; color: #666; margin-top: 5px; }
+    .section { background: white; margin-top: 20px; border-radius: 8px; overflow: hidden; }
+    .section-header { padding: 15px 20px; background: #f5f5f5; border-bottom: 1px solid #e0e0e0; font-weight: bold; }
+    .test-list { max-height: 600px; overflow-y: auto; }
+    .test-item { padding: 12px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: flex-start; gap: 15px; }
+    .test-item:hover { background: #f9f9f9; }
+    .test-item .icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; flex-shrink: 0; }
+    .test-item .icon.pass { background: #4caf50; }
+    .test-item .icon.fail { background: #f44336; }
+    .test-item .icon.skip { background: #ff9800; }
+    .test-item .details { flex: 1; }
+    .test-item .test-id { font-size: 12px; color: #666; }
+    .test-item .test-name { font-weight: 500; }
+    .test-item .test-module { font-size: 12px; color: #1976d2; }
+    .test-item .duration { font-size: 12px; color: #666; flex-shrink: 0; }
+    .test-item .error { background: #ffebee; color: #c62828; font-size: 12px; padding: 8px; margin-top: 8px; border-radius: 4px; word-break: break-word; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧪 CRM E2E Test Report</h1>
+      <div class="date">Generated: 1/27/2026, 8:46:11 PM</div>
+      <div class="date">Duration: 5m 58s</div>
+    </div>
+    <div class="summary">
+      <div class="summary-card total">
+        <div class="number">239</div>
+        <div class="label">Total Tests</div>
+      </div>
+      <div class="summary-card passed">
+        <div class="number">202</div>
+        <div class="label">Passed</div>
+      </div>
+      <div class="summary-card failed">
+        <div class="number">33</div>
+        <div class="label">Failed</div>
+      </div>
+      <div class="summary-card skipped">
+        <div class="number">4</div>
+        <div class="label">Skipped</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-header">📋 Test Results</div>
+      <div class="test-list">
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">authenticate</div>
+              <div class="test-module">auth.setup.ts</div>
+              
+            </div>
+            <div class="duration">4518ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-002</div>
+              <div class="test-name">TC-ADMIN-002: Should have create user button</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">1427ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-003</div>
+              <div class="test-name">TC-ADMIN-003: Should create new user</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">4644ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-004</div>
+              <div class="test-name">TC-ADMIN-004: Should edit user</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">5522ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-005</div>
+              <div class="test-name">TC-ADMIN-005: Should disable user</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">5002ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-008</div>
+              <div class="test-name">TC-ADMIN-008: Should create new role</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">950ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-006</div>
+              <div class="test-name">TC-ADMIN-006: Should delete test user</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">4977ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-001</div>
+              <div class="test-name">TC-ADMIN-001: Should display users list</div>
+              <div class="test-module">admin</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()[22m
+</div>
+            </div>
+            <div class="duration">11452ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-007</div>
+              <div class="test-name">TC-ADMIN-007: Should display roles list</div>
+              <div class="test-module">admin</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()[22m
+</div>
+            </div>
+            <div class="duration">10925ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-012</div>
+              <div class="test-name">TC-ADMIN-012: Should access security settings</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">957ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-013</div>
+              <div class="test-name">TC-ADMIN-013: Should configure password policy</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">912ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-014</div>
+              <div class="test-name">TC-ADMIN-014: Should configure session timeout</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">889ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-015</div>
+              <div class="test-name">TC-ADMIN-015: Should display LLM settings page</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">884ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-016</div>
+              <div class="test-name">TC-ADMIN-016: Should configure LLM endpoint</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">905ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-017</div>
+              <div class="test-name">TC-ADMIN-017: Should configure model selection</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">1040ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-011</div>
+              <div class="test-name">TC-ADMIN-011: Should display settings page</div>
+              <div class="test-module">admin</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()[22m
+</div>
+            </div>
+            <div class="duration">10934ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-018</div>
+              <div class="test-name">TC-ADMIN-018: Should test LLM connection</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">862ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-020</div>
+              <div class="test-name">TC-ADMIN-020: Should update company name</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">952ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-021</div>
+              <div class="test-name">TC-ADMIN-021: Should update primary color</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">959ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-009</div>
+              <div class="test-name">TC-ADMIN-009: Should assign permissions to role</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">23941ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-023</div>
+              <div class="test-name">TC-ADMIN-023: Should configure SMTP settings</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">893ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-024</div>
+              <div class="test-name">TC-ADMIN-024: Should send test email</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">895ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-010</div>
+              <div class="test-name">TC-ADMIN-010: Should delete test role</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">24067ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-026</div>
+              <div class="test-name">TC-ADMIN-026: Should filter audit log by date</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">911ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-019</div>
+              <div class="test-name">TC-ADMIN-019: Should display branding settings</div>
+              <div class="test-module">admin</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()[22m
+</div>
+            </div>
+            <div class="duration">11072ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-027</div>
+              <div class="test-name">TC-ADMIN-027: Should filter audit log by action type</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">893ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-022</div>
+              <div class="test-name">TC-ADMIN-022: Should display email settings</div>
+              <div class="test-module">admin</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()[22m
+</div>
+            </div>
+            <div class="duration">10876ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-028</div>
+              <div class="test-name">TC-ADMIN-028: Should export audit log</div>
+              <div class="test-module">admin</div>
+              
+            </div>
+            <div class="duration">921ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-003</div>
+              <div class="test-name">TC-AUTH-003: Should show error for invalid email</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">648ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-002</div>
+              <div class="test-name">TC-AUTH-002: Should login successfully with valid credentials</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">685ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-004</div>
+              <div class="test-name">TC-AUTH-004: Should show error for wrong password</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">2565ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-006</div>
+              <div class="test-name">TC-AUTH-006: Should navigate to forgot password page</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">470ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon skip">○</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-007</div>
+              <div class="test-name">TC-AUTH-007: Should navigate to registration page</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">408ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-008</div>
+              <div class="test-name">TC-AUTH-008: Should remember me functionality</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">642ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-ADMIN-025</div>
+              <div class="test-name">TC-ADMIN-025: Should display audit log</div>
+              <div class="test-module">admin</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()[22m
+</div>
+            </div>
+            <div class="duration">10913ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-009</div>
+              <div class="test-name">TC-AUTH-009: Should logout successfully</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">3166ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-001</div>
+              <div class="test-name">TC-AUTH-001: Should display login page correctly</div>
+              <div class="test-module">auth</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], input[name="username"], #email, #username').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], input[name="username"], #email, #username').first()[22m
+</div>
+            </div>
+            <div class="duration">10305ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-010</div>
+              <div class="test-name">TC-AUTH-010: Should not access protected routes after logout</div>
+              <div class="test-module">auth</div>
+              <div class="error">Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|unauthorized/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m</div>
+            </div>
+            <div class="duration">2774ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-005</div>
+              <div class="test-name">TC-AUTH-005: Should show error for empty fields</div>
+              <div class="test-module">auth</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")')[22m
+[2m    - locator resolved to &lt;button disabled tabindex="-1" type="submit" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-1ov2o8i"&gt;Sign In&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">10289ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-014</div>
+              <div class="test-name">TC-AUTH-014: Should display password reset form</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">409ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-015</div>
+              <div class="test-name">TC-AUTH-015: Should send password reset email</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">3526ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-016</div>
+              <div class="test-name">TC-AUTH-016: Should display 2FA setup option in settings</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">1263ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-011</div>
+              <div class="test-name">TC-AUTH-011: Should display registration form</div>
+              <div class="test-module">auth</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], #email').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], #email').first()[22m
+</div>
+            </div>
+            <div class="duration">10362ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-012</div>
+              <div class="test-name">TC-AUTH-012: Should validate registration form fields</div>
+              <div class="test-module">auth</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"]').first()[22m
+</div>
+            </div>
+            <div class="duration">10400ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-018</div>
+              <div class="test-name">TC-AUTH-018: Should maintain session across page navigation</div>
+              <div class="test-module">auth</div>
+              
+            </div>
+            <div class="duration">2539ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-013</div>
+              <div class="test-name">TC-AUTH-013: Should register new test user</div>
+              <div class="test-module">auth</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="firstName"], #firstName').first()[22m
+</div>
+            </div>
+            <div class="duration">10398ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-019</div>
+              <div class="test-name">TC-AUTH-019: Should handle session timeout gracefully</div>
+              <div class="test-module">auth</div>
+              <div class="error">Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|session|expired/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m</div>
+            </div>
+            <div class="duration">2714ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-002</div>
+              <div class="test-name">TC-CAMP-002: Should show campaign status</div>
+              <div class="test-module">campaigns</div>
+              
+            </div>
+            <div class="duration">951ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-003</div>
+              <div class="test-name">TC-CAMP-003: Should filter by type</div>
+              <div class="test-module">campaigns</div>
+              
+            </div>
+            <div class="duration">886ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-004</div>
+              <div class="test-name">TC-CAMP-004: Should search campaigns</div>
+              <div class="test-module">campaigns</div>
+              
+            </div>
+            <div class="duration">1423ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-017</div>
+              <div class="test-name">TC-AUTH-017: Should handle 2FA verification page</div>
+              <div class="test-module">auth</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="code"], input[name="token"], #code, #token').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="code"], input[name="token"], #code, #token').first()[22m
+</div>
+            </div>
+            <div class="duration">10228ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-AUTH-020</div>
+              <div class="test-name">TC-AUTH-020: Should handle concurrent sessions</div>
+              <div class="test-module">auth</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[name="username"]').first()[22m
+</div>
+            </div>
+            <div class="duration">10423ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-001</div>
+              <div class="test-name">TC-CAMP-001: Should display campaigns list</div>
+              <div class="test-module">campaigns</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /campaign/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /campaign/i })[22m
+</div>
+            </div>
+            <div class="duration">11018ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-008</div>
+              <div class="test-name">TC-CAMP-008: Should start campaign</div>
+              <div class="test-module">campaigns</div>
+              
+            </div>
+            <div class="duration">4031ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-005</div>
+              <div class="test-name">TC-CAMP-005: Should create email campaign</div>
+              <div class="test-module">campaigns</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+</div>
+            </div>
+            <div class="duration">11735ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-006</div>
+              <div class="test-name">TC-CAMP-006: Should create social media campaign</div>
+              <div class="test-module">campaigns</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+</div>
+            </div>
+            <div class="duration">12060ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-009</div>
+              <div class="test-name">TC-CAMP-009: Should pause campaign</div>
+              <div class="test-module">campaigns</div>
+              
+            </div>
+            <div class="duration">3946ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-011</div>
+              <div class="test-name">TC-CAMP-011: Should display campaign metrics</div>
+              <div class="test-module">campaigns</div>
+              
+            </div>
+            <div class="duration">1977ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-010</div>
+              <div class="test-name">TC-CAMP-010: Should complete campaign</div>
+              <div class="test-module">campaigns</div>
+              
+            </div>
+            <div class="duration">3926ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-012</div>
+              <div class="test-name">TC-CAMP-012: Should show ROI data</div>
+              <div class="test-module">campaigns</div>
+              
+            </div>
+            <div class="duration">1931ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-007</div>
+              <div class="test-name">TC-CAMP-007: Should set target audience</div>
+              <div class="test-module">campaigns</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[role="option"]').first()[22m
+</div>
+            </div>
+            <div class="duration">11629ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-002</div>
+              <div class="test-name">TC-CONT-002: Should have Add Contact button</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">1440ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-001</div>
+              <div class="test-name">TC-CONT-001: Should display contacts list page</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">1973ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CAMP-013</div>
+              <div class="test-name">TC-CAMP-013: Should delete test campaign</div>
+              <div class="test-module">campaigns</div>
+              
+            </div>
+            <div class="duration">3921ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-004</div>
+              <div class="test-name">TC-CONT-004: Should filter contacts</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">2043ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-003</div>
+              <div class="test-name">TC-CONT-003: Should search contacts</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">3021ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-005</div>
+              <div class="test-name">TC-CONT-005: Should open create contact dialog</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">2592ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-006</div>
+              <div class="test-name">TC-CONT-006: Should create new contact</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">2574ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-007</div>
+              <div class="test-name">TC-CONT-007: Should validate required fields</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">2537ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-008</div>
+              <div class="test-name">TC-CONT-008: Should link contact to customer</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">2650ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-009</div>
+              <div class="test-name">TC-CONT-009: Should open contact for editing</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">3654ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-010</div>
+              <div class="test-name">TC-CONT-010: Should update contact</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">4100ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-012</div>
+              <div class="test-name">TC-CONT-012: Should manage multiple emails</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">2974ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-011</div>
+              <div class="test-name">TC-CONT-011: Should delete test contact</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">4251ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-013</div>
+              <div class="test-name">TC-CONT-013: Should manage multiple phones</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">3228ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-001</div>
+              <div class="test-name">TC-CUST-001: Should display customers list page</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">2001ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-002</div>
+              <div class="test-name">TC-CUST-002: Should display customer data grid columns</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">1908ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CONT-014</div>
+              <div class="test-name">TC-CONT-014: Should manage social media links</div>
+              <div class="test-module">contacts</div>
+              
+            </div>
+            <div class="duration">3061ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-003</div>
+              <div class="test-name">TC-CUST-003: Should have Add Customer button</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">1924ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-006</div>
+              <div class="test-name">TC-CUST-006: Should paginate customer list</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">2382ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-004</div>
+              <div class="test-name">TC-CUST-004: Should search customers</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3461ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-005</div>
+              <div class="test-name">TC-CUST-005: Should filter customers by type</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3834ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-007</div>
+              <div class="test-name">TC-CUST-007: Should sort customers by column</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3450ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-008</div>
+              <div class="test-name">TC-CUST-008: Should open create customer dialog</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">2587ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-009</div>
+              <div class="test-name">TC-CUST-009: Should validate required fields on create</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3610ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-011</div>
+              <div class="test-name">TC-CUST-011: Should create individual customer</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3613ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-012</div>
+              <div class="test-name">TC-CUST-012: Should cancel customer creation</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3651ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-013</div>
+              <div class="test-name">TC-CUST-013: Should open customer for editing</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3189ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-010</div>
+              <div class="test-name">TC-CUST-010: Should create new corporate customer</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">6729ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-015</div>
+              <div class="test-name">TC-CUST-015: Should validate on update</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">2985ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon skip">○</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-014</div>
+              <div class="test-name">TC-CUST-014: Should update customer name</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3983ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon skip">○</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-016</div>
+              <div class="test-name">TC-CUST-016: Should show delete confirmation</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3971ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-017</div>
+              <div class="test-name">TC-CUST-017: Should cancel delete operation</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">4005ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon skip">○</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-018</div>
+              <div class="test-name">TC-CUST-018: Should delete test customer</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3986ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-019</div>
+              <div class="test-name">TC-CUST-019: Should navigate to customer details</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3994ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-020</div>
+              <div class="test-name">TC-CUST-020: Should display customer overview</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3151ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-021</div>
+              <div class="test-name">TC-CUST-021: Should display contact info section</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3021ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-025</div>
+              <div class="test-name">TC-CUST-025: Should have export button</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">1248ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-026</div>
+              <div class="test-name">TC-CUST-026: Should have import button</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">1139ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-022</div>
+              <div class="test-name">TC-CUST-022: Should add email to customer</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3972ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-023</div>
+              <div class="test-name">TC-CUST-023: Should add phone to customer</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">4003ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-024</div>
+              <div class="test-name">TC-CUST-024: Should add address to customer</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">4419ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-002</div>
+              <div class="test-name">TC-DASH-002: Should display welcome message</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1290ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-001</div>
+              <div class="test-name">TC-DASH-001: Should display dashboard</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1330ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-003</div>
+              <div class="test-name">TC-DASH-003: Should display navigation menu</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1239ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-006</div>
+              <div class="test-name">TC-DASH-006: Should display service requests widget</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1520ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-007</div>
+              <div class="test-name">TC-DASH-007: Should display recent activity widget</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1528ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-004</div>
+              <div class="test-name">TC-DASH-004: Should display customer count widget</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1560ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-005</div>
+              <div class="test-name">TC-DASH-005: Should display opportunity pipeline widget</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1554ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-008</div>
+              <div class="test-name">TC-DASH-008: Should display tasks widget</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1502ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-009</div>
+              <div class="test-name">TC-DASH-009: Should display revenue metrics</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1521ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-010</div>
+              <div class="test-name">TC-DASH-010: Should display lead conversion rate</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1523ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-011</div>
+              <div class="test-name">TC-DASH-011: Should display open tickets count</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1580ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-012</div>
+              <div class="test-name">TC-DASH-012: Should display charts</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1282ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-014</div>
+              <div class="test-name">TC-DASH-014: Should have quick add customer action</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1608ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-015</div>
+              <div class="test-name">TC-DASH-015: Should have quick add opportunity action</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1512ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-013</div>
+              <div class="test-name">TC-DASH-013: Should have chart interactions</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">2217ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-016</div>
+              <div class="test-name">TC-DASH-016: Should have quick add service request action</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1088ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-017</div>
+              <div class="test-name">TC-DASH-017: Should navigate to customers</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1451ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-018</div>
+              <div class="test-name">TC-DASH-018: Should navigate to opportunities</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1473ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-020</div>
+              <div class="test-name">TC-DASH-020: Should navigate to service requests</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1233ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-019</div>
+              <div class="test-name">TC-DASH-019: Should navigate to leads</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1323ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-021</div>
+              <div class="test-name">TC-DASH-021: Should navigate to campaigns</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1158ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-022</div>
+              <div class="test-name">TC-DASH-022: Should navigate to admin</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1224ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-024</div>
+              <div class="test-name">TC-DASH-024: Should access profile settings</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1280ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-023</div>
+              <div class="test-name">TC-DASH-023: Should display user profile menu</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1256ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-025</div>
+              <div class="test-name">TC-DASH-025: Should logout from dashboard</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1404ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-026</div>
+              <div class="test-name">TC-DASH-026: Should have global search</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1344ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-027</div>
+              <div class="test-name">TC-DASH-027: Should search for customer</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1204ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-028</div>
+              <div class="test-name">TC-DASH-028: Should navigate from search results</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1193ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-029</div>
+              <div class="test-name">TC-DASH-029: Should display notification bell</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1056ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-030</div>
+              <div class="test-name">TC-DASH-030: Should open notifications panel</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1041ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-031</div>
+              <div class="test-name">TC-DASH-031: Should be responsive on mobile</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">951ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-032</div>
+              <div class="test-name">TC-DASH-032: Should show mobile menu</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">963ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-004: Should modify user details</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">6078ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-005: Should verify user visibility in lists</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5205ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-002: Should create test sales team users</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">12666ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-003: Should create test support team users</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">12626ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-001: Should create test admin user</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+</div>
+            </div>
+            <div class="duration">13165ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CUST-001: Should create enterprise customer with full details</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5249ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CUST-004: Should verify customer appears in search results</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4615ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CUST-003: Should modify customer data</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5195ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CONT-002: Should modify contact and verify customer link</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5121ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CUST-002: Should create multiple test customers</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-328akr"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">13961ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-OPP-002: Should advance opportunity through stages</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4971ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CONT-001: Should create contacts for enterprise customer</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[type="email"]').first()[22m
+</div>
+            </div>
+            <div class="duration">12686ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-OPP-001: Should create high-value opportunity</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('textarea[name="description"], #description').first()[22m
+</div>
+            </div>
+            <div class="duration">12683ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-LEAD-001: Should create hot lead</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">3727ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-OPP-003: Should verify opportunity-customer relationship</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5000ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-LEAD-002: Should convert lead to opportunity</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">6049ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-LEAD-003: Should update lead score</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">6068ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-SR-002: Should transition service request status</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">6129ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-SR-003: Should verify customer link in service request</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">6090ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CAMP-001: Should create email campaign</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">3763ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CAMP-002: Should start campaign</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4989ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-REL-002: Should verify opportunity affects customer revenue</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4199ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-REL-001: Should verify customer deletion affects contacts</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4217ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-REL-003: Should verify lead conversion creates customer and opportunity</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">3998ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-LEAD-001</div>
+              <div class="test-name">TC-LEAD-001: Should display leads list</div>
+              <div class="test-module">leads</div>
+              
+            </div>
+            <div class="duration">2209ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-REL-004: Should verify service request links to customer history</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4207ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-LEAD-002</div>
+              <div class="test-name">TC-LEAD-002: Should filter by status</div>
+              <div class="test-module">leads</div>
+              
+            </div>
+            <div class="duration">1520ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-LEAD-003</div>
+              <div class="test-name">TC-LEAD-003: Should search leads</div>
+              <div class="test-module">leads</div>
+              
+            </div>
+            <div class="duration">2034ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-LEAD-004</div>
+              <div class="test-name">TC-LEAD-004: Should create new lead</div>
+              <div class="test-module">leads</div>
+              
+            </div>
+            <div class="duration">2679ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-LEAD-005</div>
+              <div class="test-name">TC-LEAD-005: Should set lead status</div>
+              <div class="test-module">leads</div>
+              
+            </div>
+            <div class="duration">2720ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-LEAD-006</div>
+              <div class="test-name">TC-LEAD-006: Should set lead source</div>
+              <div class="test-module">leads</div>
+              
+            </div>
+            <div class="duration">2598ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-SR-001: Should create critical service request</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">12720ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-LEAD-007</div>
+              <div class="test-name">TC-LEAD-007: Should convert lead to opportunity</div>
+              <div class="test-module">leads</div>
+              
+            </div>
+            <div class="duration">5057ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-LEAD-008</div>
+              <div class="test-name">TC-LEAD-008: Should convert lead to customer</div>
+              <div class="test-module">leads</div>
+              
+            </div>
+            <div class="duration">5100ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-LEAD-009</div>
+              <div class="test-name">TC-LEAD-009: Should update lead status</div>
+              <div class="test-module">leads</div>
+              
+            </div>
+            <div class="duration">5093ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-001</div>
+              <div class="test-name">TC-OPP-001: Should display opportunities list</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">1916ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-LEAD-010</div>
+              <div class="test-name">TC-LEAD-010: Should delete test lead</div>
+              <div class="test-module">leads</div>
+              
+            </div>
+            <div class="duration">5005ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-002</div>
+              <div class="test-name">TC-OPP-002: Should display pipeline stages</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">1433ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-003</div>
+              <div class="test-name">TC-OPP-003: Should show opportunity value</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">1529ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-004</div>
+              <div class="test-name">TC-OPP-004: Should filter by stage</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">2091ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-005</div>
+              <div class="test-name">TC-OPP-005: Should open create opportunity dialog</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">2697ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-006</div>
+              <div class="test-name">TC-OPP-006: Should create new opportunity</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">2628ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CLEAN-001: Should list all TEST_ data for cleanup</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">22972ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-007</div>
+              <div class="test-name">TC-OPP-007: Should set close date</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">2519ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-008</div>
+              <div class="test-name">TC-OPP-008: Should link to customer</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">2531ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-009</div>
+              <div class="test-name">TC-OPP-009: Should update opportunity stage</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">3962ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-010</div>
+              <div class="test-name">TC-OPP-010: Should update probability</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">4017ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-011</div>
+              <div class="test-name">TC-OPP-011: Should close opportunity as won</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">4000ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-012</div>
+              <div class="test-name">TC-OPP-012: Should close opportunity as lost</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">3965ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-001</div>
+              <div class="test-name">TC-SR-001: Should display service requests list</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">1589ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-002</div>
+              <div class="test-name">TC-SR-002: Should show priority column</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">926ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-003</div>
+              <div class="test-name">TC-SR-003: Should show status column</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">963ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-OPP-013</div>
+              <div class="test-name">TC-OPP-013: Should delete test opportunity</div>
+              <div class="test-module">opportunities</div>
+              
+            </div>
+            <div class="duration">3991ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-004</div>
+              <div class="test-name">TC-SR-004: Should filter by priority</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">1718ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-005</div>
+              <div class="test-name">TC-SR-005: Should filter by status</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">1873ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-009</div>
+              <div class="test-name">TC-SR-009: Should link to customer</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">2321ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-010</div>
+              <div class="test-name">TC-SR-010: Should change status to In Progress</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">5211ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-SR-006</div>
+              <div class="test-name">TC-SR-006: Should create bug report</div>
+              <div class="test-module">service-requests</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">11855ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-SR-007</div>
+              <div class="test-name">TC-SR-007: Should create feature request</div>
+              <div class="test-module">service-requests</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">11730ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-SR-008</div>
+              <div class="test-name">TC-SR-008: Should create urgent ticket</div>
+              <div class="test-module">service-requests</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">11856ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-011</div>
+              <div class="test-name">TC-SR-011: Should resolve service request</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">5056ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-012</div>
+              <div class="test-name">TC-SR-012: Should close service request</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">5138ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-013</div>
+              <div class="test-name">TC-SR-013: Should assign to user</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">5141ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-015</div>
+              <div class="test-name">TC-SR-015: Should delete test service request</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">5113ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-SR-014</div>
+              <div class="test-name">TC-SR-014: Should reassign to different user</div>
+              <div class="test-module">service-requests</div>
+              
+            </div>
+            <div class="duration">5133ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-001: Should create lead qualification workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">1915ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-002: Should create customer onboarding workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">1923ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-003: Should create ticket escalation workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">1880ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-004: Should create deal approval workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">1877ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-DESIGN-001: Should add trigger node to workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25024ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-DESIGN-002: Should add condition node to workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">24996ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-DESIGN-003: Should add AI action node to workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">24984ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-DESIGN-004: Should connect workflow nodes</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">24952ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-EXEC-003: Should trigger workflow via lead creation</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">8073ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-EXEC-004: Should trigger workflow via service request creation</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">14260ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-EXEC-001: Should activate workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">24989ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-EXEC-002: Should manually trigger workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25017ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-HIST-001: Should view workflow execution history</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25001ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-HIST-002: Should view execution details</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25020ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-HIST-003: Should view execution logs</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">24976ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-AI-001: Should configure AI text generation node</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">24967ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-AI-002: Should configure AI classification node</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25006ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-AI-003: Should configure AI sentiment analysis node</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25000ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-MGT-001: Should duplicate workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">24957ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-MGT-002: Should deactivate workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">24966ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-002</div>
+              <div class="test-name">TC-WF-002: Should have create workflow button</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">911ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-003</div>
+              <div class="test-name">TC-WF-003: Should show workflow status</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">931ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-004</div>
+              <div class="test-name">TC-WF-004: Should open workflow designer</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">2101ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-MGT-003: Should export workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">24967ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-WF-001</div>
+              <div class="test-name">TC-WF-001: Should display workflows list</div>
+              <div class="test-module">workflows</div>
+              <div class="error">Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /workflow/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /workflow/i })[22m
+</div>
+            </div>
+            <div class="duration">10999ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-WF-006</div>
+              <div class="test-name">TC-WF-006: Should set workflow trigger</div>
+              <div class="test-module">workflows</div>
+              <div class="error">Error: locator.isVisible: Unexpected token "=" while parsing css selector "[aria-label*="Trigger"], label:has-text("Trigger") + div, text=/trigger/i". Did you mean to CSS.escape it?
+Call log:
+[2m    - checking visibility of [aria-label*="Trigger"], label:has-text("Trigger") + div, text=/trigger/i &gt;&gt; nth=0[22m
+</div>
+            </div>
+            <div class="duration">2084ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-007</div>
+              <div class="test-name">TC-WF-007: Should display node palette</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">3163ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-SUM-001: Should list all test workflows</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">23949ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-WF-005</div>
+              <div class="test-name">TC-WF-005: Should create new workflow</div>
+              <div class="test-module">workflows</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Save"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button disabled tabindex="-1" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-ive347"&gt;Create & Design&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">12075ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-008</div>
+              <div class="test-name">TC-WF-008: Should add trigger node</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">5148ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-009</div>
+              <div class="test-name">TC-WF-009: Should add action node</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">5171ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-010</div>
+              <div class="test-name">TC-WF-010: Should add condition node</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">5014ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-011</div>
+              <div class="test-name">TC-WF-011: Should display AI node types</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">3055ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-012</div>
+              <div class="test-name">TC-WF-012: Should add AI Decision node</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">5114ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-013</div>
+              <div class="test-name">TC-WF-013: Should add AI Agent node</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">5191ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-014</div>
+              <div class="test-name">TC-WF-014: Should configure AI node properties</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">5178ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-015</div>
+              <div class="test-name">TC-WF-015: Should activate workflow</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">5127ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-016</div>
+              <div class="test-name">TC-WF-016: Should deactivate workflow</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">5101ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-017</div>
+              <div class="test-name">TC-WF-017: Should view workflow execution history</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">3072ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-WF-018</div>
+              <div class="test-name">TC-WF-018: Should delete test workflow</div>
+              <div class="test-module">workflows</div>
+              
+            </div>
+            <div class="duration">5092ms</div>
+          </div>
+        
+      </div>
+    </div>
+    <div class="footer">CRM Solution E2E Test Suite • Powered by Playwright</div>
+  </div>
+</body>
+</html>

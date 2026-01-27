@@ -42,6 +42,7 @@ import {
   AutoAwesome as AIIcon,
 } from '@mui/icons-material';
 import { useAccountContext } from '../contexts/AccountContextProvider';
+import { useAuth } from '../contexts/AuthContext';
 import { Account } from '../services/accountService';
 import apiClient from '../services/apiClient';
 
@@ -60,6 +61,7 @@ interface ContextFlyoutProps {
 const FLYOUT_WIDTH = 400;
 
 const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
+  const { isAuthenticated } = useAuth();
   const {
     selectedAccounts,
     addAccount,
@@ -96,6 +98,7 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
 
   // Load all accounts on mount for autocomplete
   useEffect(() => {
+    if (!isAuthenticated) return;
     const loadAccounts = async () => {
       try {
         const response = await apiClient.get<Account[]>('/accounts?limit=500');
@@ -105,10 +108,11 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
       }
     };
     loadAccounts();
-  }, []);
+  }, [isAuthenticated]);
 
   // Load CRM documentation on mount for chatbot context
   useEffect(() => {
+    if (!isAuthenticated) return;
     const loadDocumentation = async () => {
       if (docsLoaded || docsLoading) return;
       
@@ -129,7 +133,7 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
     if (isFlyoutOpen) {
       loadDocumentation();
     }
-  }, [isFlyoutOpen, docsLoaded, docsLoading]);
+  }, [isFlyoutOpen, docsLoaded, docsLoading, isAuthenticated]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -196,10 +200,16 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
         ? `Current context: Working with ${selectedAccounts.length} account(s): ${selectedAccounts.map(a => a.company || `${a.firstName} ${a.lastName}`).join(', ')}`
         : '';
 
+      // Build conversation history from previous messages (exclude loading messages and welcome message)
+      const conversationHistory = messages
+        .filter(m => !m.isLoading && m.id !== 'welcome' && (m.role === 'user' || m.role === 'assistant'))
+        .map(m => ({ role: m.role, content: m.content }));
+
       const response = await apiClient.post<{ response: string }>('/ai/chatbot/message', {
         message: inputMessage.trim(),
         accountContext,
         accountIds: selectedAccounts.map(a => a.id),
+        conversationHistory,
       });
 
       const assistantMessage: ChatMessage = {
@@ -237,6 +247,11 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
     if (account.company) return account.company;
     return `${account.firstName || ''} ${account.lastName || ''}`.trim() || `Account #${account.id}`;
   };
+
+  // Don't render if user is not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <>

@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/133</span>
+                <span class='fraction'>0/140</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/113</span>
+                <span class='fraction'>0/117</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/38</span>
+                <span class='fraction'>0/40</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/124</span>
+                <span class='fraction'>0/130</span>
             </div>
         
             
@@ -765,7 +765,22 @@
 <a name='L700'></a><a href='#L700'>700</a>
 <a name='L701'></a><a href='#L701'>701</a>
 <a name='L702'></a><a href='#L702'>702</a>
-<a name='L703'></a><a href='#L703'>703</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L703'></a><a href='#L703'>703</a>
+<a name='L704'></a><a href='#L704'>704</a>
+<a name='L705'></a><a href='#L705'>705</a>
+<a name='L706'></a><a href='#L706'>706</a>
+<a name='L707'></a><a href='#L707'>707</a>
+<a name='L708'></a><a href='#L708'>708</a>
+<a name='L709'></a><a href='#L709'>709</a>
+<a name='L710'></a><a href='#L710'>710</a>
+<a name='L711'></a><a href='#L711'>711</a>
+<a name='L712'></a><a href='#L712'>712</a>
+<a name='L713'></a><a href='#L713'>713</a>
+<a name='L714'></a><a href='#L714'>714</a>
+<a name='L715'></a><a href='#L715'>715</a>
+<a name='L716'></a><a href='#L716'>716</a>
+<a name='L717'></a><a href='#L717'>717</a>
+<a name='L718'></a><a href='#L718'>718</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -890,6 +905,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1116,6 +1132,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1159,10 +1181,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1172,6 +1201,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1495,7 +1525,7 @@
   Tooltip,
   IconButton,
 } from '@mui/material';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import apiClient from '../services/apiClient';
 import lookupService, { LookupItem } from '../services/lookupService';
 import AddIcon from '@mui/icons-material/Add';
@@ -1515,6 +1545,7 @@ import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { contactInfoService, EntityContactInfoDto, LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from '../services/contactInfoService';
+import { useAccountContext } from '../contexts/AccountContextProvider';
 import { BaseEntity } from '../types';
 &nbsp;
 interface SocialMediaLink {
@@ -1872,8 +1903,22 @@ function <span class="fstat-no" title="function not covered" >ContactsPage(</spa
 <span class="cstat-no" title="statement not covered" >    setSearchText(text);</span>
   };
 &nbsp;
-  // Apply filters and search text to contacts
-  const filteredContacts = <span class="cstat-no" title="statement not covered" >filterData(contacts, searchFilters, searchText, CONTACT_SEARCHABLE_FIELDS);</span>
+  // Get account context for filtering
+  const { selectedAccounts, isContextActive, getAccountIds } = <span class="cstat-no" title="statement not covered" >useAccountContext();</span>
+&nbsp;
+  // Apply filters, search text, AND account context to contacts
+  const filteredContacts = <span class="cstat-no" title="statement not covered" >useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+    let result = <span class="cstat-no" title="statement not covered" >contacts;</span>
+    
+    // Apply account context filter first (filter by customerId)
+<span class="cstat-no" title="statement not covered" >    if (isContextActive) {</span>
+      const accountIds = <span class="cstat-no" title="statement not covered" >getAccountIds();</span>
+<span class="cstat-no" title="statement not covered" >      result = result.filter(<span class="fstat-no" title="function not covered" >co</span>ntact =&gt; <span class="cstat-no" title="statement not covered" >contact.customerId &amp;&amp; accountIds.includes(contact.customerId))</span>;</span>
+    }
+    
+    // Then apply search filters
+<span class="cstat-no" title="statement not covered" >    return filterData(result, searchFilters, searchText, CONTACT_SEARCHABLE_FIELDS);</span>
+  }, [contacts, searchFilters, searchText, isContextActive, getAccountIds]);
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;Box sx={{ py: 4 }}&gt;
@@ -2176,7 +2221,7 @@ export default ContactsPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-26T21:21:47.721Z
+                at 2026-01-27T19:40:06.086Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

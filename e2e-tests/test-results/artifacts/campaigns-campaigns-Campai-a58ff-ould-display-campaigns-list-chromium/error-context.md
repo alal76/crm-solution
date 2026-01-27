@@ -1,0 +1,93 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "open drawer" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+        - img [ref=e11]
+        - link "CRM System" [ref=e13] [cursor=pointer]:
+          - /url: /
+      - button "AL" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: AL
+  - navigation [ref=e18]:
+    - list [ref=e19]:
+      - listitem [ref=e20]:
+        - link "Home" [ref=e21] [cursor=pointer]:
+          - /url: /
+          - img [ref=e22]
+          - text: Home
+      - listitem [ref=e24]: ›
+      - listitem [ref=e25]:
+        - paragraph [ref=e26]:
+          - img [ref=e27]
+          - text: Campaigns
+  - generic [ref=e32]:
+    - generic [ref=e33]:
+      - generic [ref=e34]:
+        - img "CRM Logo" [ref=e36]
+        - heading "Campaigns" [level=4] [ref=e37]
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - button "Export" [ref=e40] [cursor=pointer]:
+            - img [ref=e42]
+            - text: Export
+          - button "Import" [ref=e44] [cursor=pointer]:
+            - img [ref=e46]
+            - text: Import
+        - button "Add Campaign" [ref=e48] [cursor=pointer]:
+          - img [ref=e50]
+          - text: Add Campaign
+    - generic [ref=e53]:
+      - table [ref=e54]:
+        - rowgroup [ref=e55]:
+          - row "Campaign Type Status Budget Performance ROI Dates Actions" [ref=e56]:
+            - columnheader "Campaign" [ref=e57]:
+              - strong [ref=e58]: Campaign
+            - columnheader "Type" [ref=e59]:
+              - strong [ref=e60]: Type
+            - columnheader "Status" [ref=e61]:
+              - strong [ref=e62]: Status
+            - columnheader "Budget" [ref=e63]:
+              - strong [ref=e64]: Budget
+            - columnheader "Performance" [ref=e65]:
+              - strong [ref=e66]: Performance
+            - columnheader "ROI" [ref=e67]:
+              - strong [ref=e68]: ROI
+            - columnheader "Dates" [ref=e69]:
+              - strong [ref=e70]: Dates
+            - columnheader "Actions" [ref=e71]:
+              - strong [ref=e72]: Actions
+        - rowgroup
+      - paragraph [ref=e73]: No campaigns found. Create your first campaign to get started.
+  - contentinfo [ref=e74]:
+    - generic [ref=e75]:
+      - generic [ref=e76]:
+        - generic [ref=e77]: CRM System
+        - generic [ref=e78]: "|"
+        - 'generic "API: v2 | Frontend: v2 | DB: 0 ZIPs" [ref=e79]': v1.7.24
+        - generic [ref=e80]: "|"
+        - 'generic "Branch: dev" [ref=e81]': "#003a60d"
+      - generic [ref=e83]:
+        - generic [ref=e84]: ●
+        - 'generic "Build: v2" [ref=e85]': API (v2)
+        - generic [ref=e86]: ●
+        - generic "0 ZIPs, 0 Countries" [ref=e87]: DB
+      - generic [ref=e88]:
+        - link "About" [ref=e89] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e90]: "|"
+        - link "Help" [ref=e91] [cursor=pointer]:
+          - /url: /help
+        - generic [ref=e92]: "|"
+        - link "Licenses" [ref=e93] [cursor=pointer]:
+          - /url: /licenses
+        - generic [ref=e94]: "|"
+        - generic [ref=e95]: © 2026 Abhishek Lal - AGPL-3.0
+  - button "Open Context Panel" [ref=e96] [cursor=pointer]:
+    - generic [ref=e97]:
+      - img [ref=e98]
+      - generic: "0"
+```

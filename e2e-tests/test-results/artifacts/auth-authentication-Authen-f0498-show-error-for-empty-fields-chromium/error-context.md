@@ -1,0 +1,88 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "open drawer" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+        - img [ref=e11]
+        - link "CRM System" [ref=e13] [cursor=pointer]:
+          - /url: /
+      - button "AL" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: AL
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - img [ref=e25]
+          - heading "Welcome Back" [level=1] [ref=e27]
+          - paragraph [ref=e28]: Sign in to continue to your CRM
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]:
+              - generic [ref=e32]: Email or Username
+              - generic [ref=e33]:
+                - img [ref=e35]
+                - textbox "Email or Username" [ref=e37]:
+                  - /placeholder: you@company.com
+                - group:
+                  - generic: Email or Username
+            - generic [ref=e38]:
+              - generic [ref=e39]: Password
+              - generic [ref=e40]:
+                - img [ref=e42]
+                - textbox "Password" [ref=e44]:
+                  - /placeholder: ••••••••
+                - button "Show password" [ref=e46] [cursor=pointer]:
+                  - img [ref=e47]
+                - group:
+                  - generic: Password
+            - generic [ref=e49]:
+              - generic [ref=e50] [cursor=pointer]:
+                - generic [ref=e51]:
+                  - checkbox "Remember me" [ref=e52]
+                  - img [ref=e53]
+                - paragraph [ref=e55]: Remember me
+              - link "Forgot password?" [ref=e56] [cursor=pointer]:
+                - /url: /password-reset
+            - button "Sign In" [disabled]
+          - paragraph [ref=e58]:
+            - text: Don't have an account?
+            - link "Create one" [ref=e59] [cursor=pointer]:
+              - /url: /register
+      - generic [ref=e62]:
+        - img [ref=e63]
+        - heading "YOUR LOGO" [level=6] [ref=e65]
+        - paragraph [ref=e66]: Upload via Settings → System
+    - generic [ref=e67]: © 2026 CRM System. All rights reserved.
+  - contentinfo [ref=e68]:
+    - generic [ref=e69]:
+      - generic [ref=e70]:
+        - generic [ref=e71]: CRM System
+        - generic [ref=e72]: "|"
+        - 'generic "API: v2 | Frontend: v2 | DB: 0 ZIPs" [ref=e73]': v1.7.24
+        - generic [ref=e74]: "|"
+        - 'generic "Branch: dev" [ref=e75]': "#003a60d"
+      - generic [ref=e77]:
+        - generic [ref=e78]: ●
+        - 'generic "Build: v2" [ref=e79]': API (v2)
+        - generic [ref=e80]: ●
+        - generic "0 ZIPs, 0 Countries" [ref=e81]: DB
+      - generic [ref=e82]:
+        - link "About" [ref=e83] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e84]: "|"
+        - link "Help" [ref=e85] [cursor=pointer]:
+          - /url: /help
+        - generic [ref=e86]: "|"
+        - link "Licenses" [ref=e87] [cursor=pointer]:
+          - /url: /licenses
+        - generic [ref=e88]: "|"
+        - generic [ref=e89]: © 2026 Abhishek Lal - AGPL-3.0
+  - button "Open Context Panel" [ref=e90] [cursor=pointer]:
+    - generic [ref=e91]:
+      - img [ref=e92]
+      - generic: "0"
+```

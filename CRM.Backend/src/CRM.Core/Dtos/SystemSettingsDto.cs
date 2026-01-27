@@ -108,6 +108,17 @@ public class SystemSettingsDto
     
     #endregion
     
+    #region Database Provider Features
+    
+    public bool MariaDbEnabled { get; set; }
+    public bool PostgreSqlEnabled { get; set; }
+    public bool SqlServerEnabled { get; set; }
+    public bool SqliteEnabled { get; set; }
+    public bool MySqlEnabled { get; set; }
+    public string ActiveDatabaseProvider { get; set; } = "mariadb";
+    
+    #endregion
+    
     #region Navigation Settings
     
     public string? NavOrderConfig { get; set; }
@@ -223,6 +234,14 @@ public class UpdateSystemSettingsRequest
     public bool? ApiAccessEnabled { get; set; }
     public bool? EmailNotificationsEnabled { get; set; }
     public bool? AuditLoggingEnabled { get; set; }
+    
+    // Database Provider Features
+    public bool? MariaDbEnabled { get; set; }
+    public bool? PostgreSqlEnabled { get; set; }
+    public bool? SqlServerEnabled { get; set; }
+    public bool? SqliteEnabled { get; set; }
+    public bool? MySqlEnabled { get; set; }
+    public string? ActiveDatabaseProvider { get; set; }
     
     // Navigation Settings
     public string? NavOrderConfig { get; set; }

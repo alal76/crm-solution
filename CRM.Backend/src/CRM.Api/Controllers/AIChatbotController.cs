@@ -113,6 +113,24 @@ public class AIChatbotController : ControllerBase
                 });
             }
 
+            // Add conversation history if available (limited to last 10 exchanges for context window management)
+            if (request.ConversationHistory?.Any() == true)
+            {
+                var recentHistory = request.ConversationHistory
+                    .Where(m => !string.IsNullOrEmpty(m.Content) && (m.Role == "user" || m.Role == "assistant"))
+                    .TakeLast(20) // Last 20 messages (10 exchanges)
+                    .ToList();
+                
+                foreach (var historyMessage in recentHistory)
+                {
+                    messages.Add(new LLMMessage 
+                    { 
+                        Role = historyMessage.Role, 
+                        Content = historyMessage.Content 
+                    });
+                }
+            }
+
             // Add user message
             messages.Add(new LLMMessage { Role = "user", Content = request.Message });
 
@@ -426,4 +444,14 @@ public class ChatMessageRequest
     public string Message { get; set; } = "";
     public string? AccountContext { get; set; }
     public List<int>? AccountIds { get; set; }
+    public List<ConversationMessage>? ConversationHistory { get; set; }
+}
+
+/// <summary>
+/// A message in the conversation history
+/// </summary>
+public class ConversationMessage
+{
+    public string Role { get; set; } = "";
+    public string Content { get; set; } = "";
 }

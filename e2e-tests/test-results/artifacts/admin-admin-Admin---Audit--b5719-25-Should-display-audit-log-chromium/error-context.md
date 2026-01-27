@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "open drawer" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+        - img [ref=e11]
+        - link "CRM System" [ref=e13] [cursor=pointer]:
+          - /url: /
+      - button "AL" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: AL
+  - navigation [ref=e18]:
+    - list [ref=e19]:
+      - listitem [ref=e20]:
+        - link "Home" [ref=e21] [cursor=pointer]:
+          - /url: /
+          - img [ref=e22]
+          - text: Home
+      - listitem [ref=e24]: ›
+      - listitem [ref=e25]:
+        - link "Admin" [ref=e26] [cursor=pointer]:
+          - /url: /admin
+      - listitem [ref=e27]: ›
+      - listitem [ref=e28]:
+        - paragraph [ref=e29]: Audit-log
+  - contentinfo [ref=e31]:
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - generic [ref=e34]: CRM System
+        - generic [ref=e35]: "|"
+        - 'generic "API: v2 | Frontend: v2 | DB: 0 ZIPs" [ref=e36]': v1.7.24
+        - generic [ref=e37]: "|"
+        - 'generic "Branch: dev" [ref=e38]': "#003a60d"
+      - generic [ref=e40]:
+        - generic [ref=e41]: ●
+        - 'generic "Build: v2" [ref=e42]': API (v2)
+        - generic [ref=e43]: ●
+        - generic "0 ZIPs, 0 Countries" [ref=e44]: DB
+      - generic [ref=e45]:
+        - link "About" [ref=e46] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e47]: "|"
+        - link "Help" [ref=e48] [cursor=pointer]:
+          - /url: /help
+        - generic [ref=e49]: "|"
+        - link "Licenses" [ref=e50] [cursor=pointer]:
+          - /url: /licenses
+        - generic [ref=e51]: "|"
+        - generic [ref=e52]: © 2026 Abhishek Lal - AGPL-3.0
+  - button "Open Context Panel" [ref=e53] [cursor=pointer]:
+    - generic [ref=e54]:
+      - img [ref=e55]
+      - generic: "0"
+```
