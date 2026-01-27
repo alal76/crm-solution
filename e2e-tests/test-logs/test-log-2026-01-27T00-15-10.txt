@@ -1,0 +1,4207 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CRM SOLUTION - E2E TEST EXECUTION LOG                       
+═══════════════════════════════════════════════════════════════════════════════
+
+Test Run Started:  2026-01-27T00:15:10.687Z
+Test Run Ended:    2026-01-27T01:18:26.049Z
+Total Duration:    1h 3m 15s
+
+───────────────────────────────────────────────────────────────────────────────
+                              EXECUTION SUMMARY                                 
+───────────────────────────────────────────────────────────────────────────────
+  Total Tests:     351
+  Passed:          179 (51%)
+  Failed:          167 (48%)
+  Skipped:         5 (1%)
+
+───────────────────────────────────────────────────────────────────────────────
+                              MODULE BREAKDOWN                                  
+───────────────────────────────────────────────────────────────────────────────
+
+  AUTH.SETUP.TS
+  ├─ Total:   1
+  ├─ Passed:  1
+  ├─ Failed:  0
+  ├─ Skipped: 0
+  └─ Pass Rate: 100%
+
+  ADMIN
+  ├─ Total:   46
+  ├─ Passed:  19
+  ├─ Failed:  27
+  ├─ Skipped: 0
+  └─ Pass Rate: 41%
+
+  AUTH
+  ├─ Total:   38
+  ├─ Passed:  10
+  ├─ Failed:  27
+  ├─ Skipped: 1
+  └─ Pass Rate: 26%
+
+  CAMPAIGNS
+  ├─ Total:   21
+  ├─ Passed:  9
+  ├─ Failed:  12
+  ├─ Skipped: 0
+  └─ Pass Rate: 43%
+
+  CONTACTS
+  ├─ Total:   20
+  ├─ Passed:  11
+  ├─ Failed:  9
+  ├─ Skipped: 0
+  └─ Pass Rate: 55%
+
+  CUSTOMERS
+  ├─ Total:   34
+  ├─ Passed:  19
+  ├─ Failed:  12
+  ├─ Skipped: 3
+  └─ Pass Rate: 56%
+
+  DASHBOARD
+  ├─ Total:   32
+  ├─ Passed:  32
+  ├─ Failed:  0
+  ├─ Skipped: 0
+  └─ Pass Rate: 100%
+
+  DATA-LIFECYCLE
+  ├─ Total:   33
+  ├─ Passed:  25
+  ├─ Failed:  8
+  ├─ Skipped: 0
+  └─ Pass Rate: 76%
+
+  LEADS
+  ├─ Total:   18
+  ├─ Passed:  5
+  ├─ Failed:  12
+  ├─ Skipped: 1
+  └─ Pass Rate: 28%
+
+  OPPORTUNITIES
+  ├─ Total:   25
+  ├─ Passed:  7
+  ├─ Failed:  18
+  ├─ Skipped: 0
+  └─ Pass Rate: 28%
+
+  SERVICE-REQUESTS
+  ├─ Total:   25
+  ├─ Passed:  10
+  ├─ Failed:  15
+  ├─ Skipped: 0
+  └─ Pass Rate: 40%
+
+  WORKFLOW-EXECUTION
+  ├─ Total:   30
+  ├─ Passed:  18
+  ├─ Failed:  12
+  ├─ Skipped: 0
+  └─ Pass Rate: 60%
+
+  WORKFLOWS
+  ├─ Total:   28
+  ├─ Passed:  13
+  ├─ Failed:  15
+  ├─ Skipped: 0
+  └─ Pass Rate: 46%
+
+───────────────────────────────────────────────────────────────────────────────
+                              DETAILED TEST LOG                                 
+───────────────────────────────────────────────────────────────────────────────
+
+[2026-01-27T00:15:18.916Z] [✓ PASS] TC-UNKNOWN
+   Test: authenticate
+   Module: auth.setup.ts
+   Duration: 5349ms
+
+[2026-01-27T00:15:31.546Z] [✗ FAIL] TC-ADMIN-001
+   Test: TC-ADMIN-001: Should display users list
+   Module: admin
+   Duration: 11568ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()[22m
+
+
+[2026-01-27T00:15:44.846Z] [✗ FAIL] TC-ADMIN-001
+   Test: TC-ADMIN-001: Should display users list
+   Module: admin
+   Duration: 12363ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()[22m
+
+
+[2026-01-27T00:15:58.698Z] [✗ FAIL] TC-ADMIN-001
+   Test: TC-ADMIN-001: Should display users list
+   Module: admin
+   Duration: 12536ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()[22m
+
+
+[2026-01-27T00:16:01.251Z] [✓ PASS] TC-ADMIN-002
+   Test: TC-ADMIN-002: Should have create user button
+   Module: admin
+   Duration: 1407ms
+
+[2026-01-27T00:16:02.654Z] [✗ FAIL] TC-ADMIN-003
+   Test: TC-ADMIN-003: Should create new user
+   Module: admin
+   Duration: 1365ms
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+[2026-01-27T00:16:04.763Z] [✗ FAIL] TC-ADMIN-003
+   Test: TC-ADMIN-003: Should create new user
+   Module: admin
+   Duration: 1353ms
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+[2026-01-27T00:16:06.864Z] [✗ FAIL] TC-ADMIN-003
+   Test: TC-ADMIN-003: Should create new user
+   Module: admin
+   Duration: 1379ms
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+[2026-01-27T00:16:12.922Z] [✓ PASS] TC-ADMIN-004
+   Test: TC-ADMIN-004: Should edit user
+   Module: admin
+   Duration: 5369ms
+
+[2026-01-27T00:16:19.038Z] [✓ PASS] TC-ADMIN-005
+   Test: TC-ADMIN-005: Should disable user
+   Module: admin
+   Duration: 6097ms
+
+[2026-01-27T00:16:24.664Z] [✓ PASS] TC-ADMIN-006
+   Test: TC-ADMIN-006: Should delete test user
+   Module: admin
+   Duration: 5609ms
+
+[2026-01-27T00:16:38.438Z] [✗ FAIL] TC-ADMIN-007
+   Test: TC-ADMIN-007: Should display roles list
+   Module: admin
+   Duration: 13724ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()[22m
+
+
+[2026-01-27T00:16:51.508Z] [✗ FAIL] TC-ADMIN-007
+   Test: TC-ADMIN-007: Should display roles list
+   Module: admin
+   Duration: 12088ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()[22m
+
+
+[2026-01-27T00:17:03.630Z] [✗ FAIL] TC-ADMIN-007
+   Test: TC-ADMIN-007: Should display roles list
+   Module: admin
+   Duration: 11270ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()[22m
+
+
+[2026-01-27T00:17:05.892Z] [✗ FAIL] TC-ADMIN-008
+   Test: TC-ADMIN-008: Should create new role
+   Module: admin
+   Duration: 1316ms
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+[2026-01-27T00:17:08.159Z] [✗ FAIL] TC-ADMIN-008
+   Test: TC-ADMIN-008: Should create new role
+   Module: admin
+   Duration: 1285ms
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+[2026-01-27T00:17:10.043Z] [✗ FAIL] TC-ADMIN-008
+   Test: TC-ADMIN-008: Should create new role
+   Module: admin
+   Duration: 1181ms
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+[2026-01-27T00:17:35.045Z] [✓ PASS] TC-ADMIN-009
+   Test: TC-ADMIN-009: Should assign permissions to role
+   Module: admin
+   Duration: 24295ms
+
+[2026-01-27T00:17:59.284Z] [✓ PASS] TC-ADMIN-010
+   Test: TC-ADMIN-010: Should delete test role
+   Module: admin
+   Duration: 24217ms
+
+[2026-01-27T00:18:10.474Z] [✗ FAIL] TC-ADMIN-011
+   Test: TC-ADMIN-011: Should display settings page
+   Module: admin
+   Duration: 11148ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()[22m
+
+
+[2026-01-27T00:18:23.377Z] [✗ FAIL] TC-ADMIN-011
+   Test: TC-ADMIN-011: Should display settings page
+   Module: admin
+   Duration: 12072ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()[22m
+
+
+[2026-01-27T00:18:35.591Z] [✗ FAIL] TC-ADMIN-011
+   Test: TC-ADMIN-011: Should display settings page
+   Module: admin
+   Duration: 11521ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()[22m
+
+
+[2026-01-27T00:18:37.670Z] [✓ PASS] TC-ADMIN-012
+   Test: TC-ADMIN-012: Should access security settings
+   Module: admin
+   Duration: 1371ms
+
+[2026-01-27T00:18:38.915Z] [✓ PASS] TC-ADMIN-013
+   Test: TC-ADMIN-013: Should configure password policy
+   Module: admin
+   Duration: 1227ms
+
+[2026-01-27T00:18:40.302Z] [✓ PASS] TC-ADMIN-014
+   Test: TC-ADMIN-014: Should configure session timeout
+   Module: admin
+   Duration: 1366ms
+
+[2026-01-27T00:18:51.841Z] [✗ FAIL] TC-ADMIN-015
+   Test: TC-ADMIN-015: Should display LLM settings page
+   Module: admin
+   Duration: 11498ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()[22m
+
+
+[2026-01-27T00:19:04.578Z] [✗ FAIL] TC-ADMIN-015
+   Test: TC-ADMIN-015: Should display LLM settings page
+   Module: admin
+   Duration: 11938ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()[22m
+
+
+[2026-01-27T00:19:17.655Z] [✗ FAIL] TC-ADMIN-015
+   Test: TC-ADMIN-015: Should display LLM settings page
+   Module: admin
+   Duration: 12328ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()[22m
+
+
+[2026-01-27T00:19:19.742Z] [✓ PASS] TC-ADMIN-016
+   Test: TC-ADMIN-016: Should configure LLM endpoint
+   Module: admin
+   Duration: 1406ms
+
+[2026-01-27T00:19:20.990Z] [✓ PASS] TC-ADMIN-017
+   Test: TC-ADMIN-017: Should configure model selection
+   Module: admin
+   Duration: 1232ms
+
+[2026-01-27T00:19:22.106Z] [✓ PASS] TC-ADMIN-018
+   Test: TC-ADMIN-018: Should test LLM connection
+   Module: admin
+   Duration: 1105ms
+
+[2026-01-27T00:19:33.435Z] [✗ FAIL] TC-ADMIN-019
+   Test: TC-ADMIN-019: Should display branding settings
+   Module: admin
+   Duration: 11285ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()[22m
+
+
+[2026-01-27T00:19:47.713Z] [✗ FAIL] TC-ADMIN-019
+   Test: TC-ADMIN-019: Should display branding settings
+   Module: admin
+   Duration: 13470ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()[22m
+
+
+[2026-01-27T00:19:59.659Z] [✗ FAIL] TC-ADMIN-019
+   Test: TC-ADMIN-019: Should display branding settings
+   Module: admin
+   Duration: 11244ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()[22m
+
+
+[2026-01-27T00:20:01.767Z] [✓ PASS] TC-ADMIN-020
+   Test: TC-ADMIN-020: Should update company name
+   Module: admin
+   Duration: 1354ms
+
+[2026-01-27T00:20:02.947Z] [✓ PASS] TC-ADMIN-021
+   Test: TC-ADMIN-021: Should update primary color
+   Module: admin
+   Duration: 1168ms
+
+[2026-01-27T00:20:14.088Z] [✗ FAIL] TC-ADMIN-022
+   Test: TC-ADMIN-022: Should display email settings
+   Module: admin
+   Duration: 11090ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()[22m
+
+
+[2026-01-27T00:20:28.560Z] [✗ FAIL] TC-ADMIN-022
+   Test: TC-ADMIN-022: Should display email settings
+   Module: admin
+   Duration: 13664ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()[22m
+
+
+[2026-01-27T00:20:42.095Z] [✗ FAIL] TC-ADMIN-022
+   Test: TC-ADMIN-022: Should display email settings
+   Module: admin
+   Duration: 12149ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()[22m
+
+
+[2026-01-27T00:20:44.076Z] [✓ PASS] TC-ADMIN-023
+   Test: TC-ADMIN-023: Should configure SMTP settings
+   Module: admin
+   Duration: 1199ms
+
+[2026-01-27T00:20:45.243Z] [✓ PASS] TC-ADMIN-024
+   Test: TC-ADMIN-024: Should send test email
+   Module: admin
+   Duration: 1152ms
+
+[2026-01-27T00:20:56.839Z] [✗ FAIL] TC-ADMIN-025
+   Test: TC-ADMIN-025: Should display audit log
+   Module: admin
+   Duration: 11368ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()[22m
+
+
+[2026-01-27T00:21:09.598Z] [✗ FAIL] TC-ADMIN-025
+   Test: TC-ADMIN-025: Should display audit log
+   Module: admin
+   Duration: 11946ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()[22m
+
+
+[2026-01-27T00:21:22.342Z] [✗ FAIL] TC-ADMIN-025
+   Test: TC-ADMIN-025: Should display audit log
+   Module: admin
+   Duration: 11998ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()[22m
+
+
+[2026-01-27T00:21:24.946Z] [✓ PASS] TC-ADMIN-026
+   Test: TC-ADMIN-026: Should filter audit log by date
+   Module: admin
+   Duration: 1924ms
+
+[2026-01-27T00:21:26.060Z] [✓ PASS] TC-ADMIN-027
+   Test: TC-ADMIN-027: Should filter audit log by action type
+   Module: admin
+   Duration: 1103ms
+
+[2026-01-27T00:21:27.208Z] [✓ PASS] TC-ADMIN-028
+   Test: TC-ADMIN-028: Should export audit log
+   Module: admin
+   Duration: 1136ms
+
+[2026-01-27T00:21:37.804Z] [✗ FAIL] TC-AUTH-001
+   Test: TC-AUTH-001: Should display login page correctly
+   Module: auth
+   Duration: 10550ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], input[name="username"], #email, #username').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], input[name="username"], #email, #username').first()[22m
+
+
+[2026-01-27T00:21:50.450Z] [✗ FAIL] TC-AUTH-001
+   Test: TC-AUTH-001: Should display login page correctly
+   Module: auth
+   Duration: 11694ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], input[name="username"], #email, #username').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], input[name="username"], #email, #username').first()[22m
+
+
+[2026-01-27T00:22:02.117Z] [✗ FAIL] TC-AUTH-001
+   Test: TC-AUTH-001: Should display login page correctly
+   Module: auth
+   Duration: 10746ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], input[name="username"], #email, #username').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], input[name="username"], #email, #username').first()[22m
+
+
+[2026-01-27T00:22:04.894Z] [✓ PASS] TC-AUTH-002
+   Test: TC-AUTH-002: Should login successfully with valid credentials
+   Module: auth
+   Duration: 1537ms
+
+[2026-01-27T00:22:05.922Z] [✓ PASS] TC-AUTH-003
+   Test: TC-AUTH-003: Should show error for invalid email
+   Module: auth
+   Duration: 1002ms
+
+[2026-01-27T00:22:09.242Z] [✓ PASS] TC-AUTH-004
+   Test: TC-AUTH-004: Should show error for wrong password
+   Module: auth
+   Duration: 3307ms
+
+[2026-01-27T00:22:19.824Z] [✗ FAIL] TC-AUTH-005
+   Test: TC-AUTH-005: Should show error for empty fields
+   Module: auth
+   Duration: 10546ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")')[22m
+[2m    - locator resolved to <button disabled tabindex="-1" type="submit" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-1ov2o8i">Sign In</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:22:32.002Z] [✗ FAIL] TC-AUTH-005
+   Test: TC-AUTH-005: Should show error for empty fields
+   Module: auth
+   Duration: 11332ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")')[22m
+[2m    - locator resolved to <button disabled tabindex="-1" type="submit" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-1ov2o8i">Sign In</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    18 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+[2m    - waiting for element to be visible, enabled and stable[22m
+
+
+[2026-01-27T00:22:43.361Z] [✗ FAIL] TC-AUTH-005
+   Test: TC-AUTH-005: Should show error for empty fields
+   Module: auth
+   Duration: 10619ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")')[22m
+[2m    - locator resolved to <button disabled tabindex="-1" type="submit" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-1ov2o8i">Sign In</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:22:45.231Z] [✓ PASS] TC-AUTH-006
+   Test: TC-AUTH-006: Should navigate to forgot password page
+   Module: auth
+   Duration: 958ms
+
+[2026-01-27T00:22:46.537Z] [○ SKIP] TC-AUTH-007
+   Test: TC-AUTH-007: Should navigate to registration page
+   Module: auth
+   Duration: 1292ms
+
+[2026-01-27T00:22:48.911Z] [✓ PASS] TC-AUTH-008
+   Test: TC-AUTH-008: Should remember me functionality
+   Module: auth
+   Duration: 2356ms
+
+[2026-01-27T00:22:54.730Z] [✓ PASS] TC-AUTH-009
+   Test: TC-AUTH-009: Should logout successfully
+   Module: auth
+   Duration: 5808ms
+
+[2026-01-27T00:22:57.719Z] [✗ FAIL] TC-AUTH-010
+   Test: TC-AUTH-010: Should not access protected routes after logout
+   Module: auth
+   Duration: 2954ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|unauthorized/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+[2026-01-27T00:23:01.937Z] [✗ FAIL] TC-AUTH-010
+   Test: TC-AUTH-010: Should not access protected routes after logout
+   Module: auth
+   Duration: 3414ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|unauthorized/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+[2026-01-27T00:23:05.592Z] [✗ FAIL] TC-AUTH-010
+   Test: TC-AUTH-010: Should not access protected routes after logout
+   Module: auth
+   Duration: 2927ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|unauthorized/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+[2026-01-27T00:23:17.077Z] [✗ FAIL] TC-AUTH-011
+   Test: TC-AUTH-011: Should display registration form
+   Module: auth
+   Duration: 10774ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], #email').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], #email').first()[22m
+
+
+[2026-01-27T00:23:29.566Z] [✗ FAIL] TC-AUTH-011
+   Test: TC-AUTH-011: Should display registration form
+   Module: auth
+   Duration: 11689ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], #email').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], #email').first()[22m
+
+
+[2026-01-27T00:23:41.117Z] [✗ FAIL] TC-AUTH-011
+   Test: TC-AUTH-011: Should display registration form
+   Module: auth
+   Duration: 10768ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], #email').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], #email').first()[22m
+
+
+[2026-01-27T00:23:52.357Z] [✗ FAIL] TC-AUTH-012
+   Test: TC-AUTH-012: Should validate registration form fields
+   Module: auth
+   Duration: 10537ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"]').first()[22m
+
+
+[2026-01-27T00:24:04.434Z] [✗ FAIL] TC-AUTH-012
+   Test: TC-AUTH-012: Should validate registration form fields
+   Module: auth
+   Duration: 11324ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"]').first()[22m
+
+
+[2026-01-27T00:24:15.963Z] [✗ FAIL] TC-AUTH-012
+   Test: TC-AUTH-012: Should validate registration form fields
+   Module: auth
+   Duration: 10671ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"]').first()[22m
+
+
+[2026-01-27T00:24:28.375Z] [✗ FAIL] TC-AUTH-013
+   Test: TC-AUTH-013: Should register new test user
+   Module: auth
+   Duration: 10833ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="firstName"], #firstName').first()[22m
+
+
+[2026-01-27T00:24:40.945Z] [✗ FAIL] TC-AUTH-013
+   Test: TC-AUTH-013: Should register new test user
+   Module: auth
+   Duration: 11532ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="firstName"], #firstName').first()[22m
+
+
+[2026-01-27T00:24:52.253Z] [✗ FAIL] TC-AUTH-013
+   Test: TC-AUTH-013: Should register new test user
+   Module: auth
+   Duration: 10583ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="firstName"], #firstName').first()[22m
+
+
+[2026-01-27T00:24:53.576Z] [✓ PASS] TC-AUTH-014
+   Test: TC-AUTH-014: Should display password reset form
+   Module: auth
+   Duration: 617ms
+
+[2026-01-27T00:24:57.270Z] [✓ PASS] TC-AUTH-015
+   Test: TC-AUTH-015: Should send password reset email
+   Module: auth
+   Duration: 3683ms
+
+[2026-01-27T00:24:58.759Z] [✓ PASS] TC-AUTH-016
+   Test: TC-AUTH-016: Should display 2FA setup option in settings
+   Module: auth
+   Duration: 1476ms
+
+[2026-01-27T00:25:09.260Z] [✗ FAIL] TC-AUTH-017
+   Test: TC-AUTH-017: Should handle 2FA verification page
+   Module: auth
+   Duration: 10452ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="code"], input[name="token"], #code, #token').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="code"], input[name="token"], #code, #token').first()[22m
+
+
+[2026-01-27T00:25:21.357Z] [✗ FAIL] TC-AUTH-017
+   Test: TC-AUTH-017: Should handle 2FA verification page
+   Module: auth
+   Duration: 11244ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="code"], input[name="token"], #code, #token').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="code"], input[name="token"], #code, #token').first()[22m
+
+
+[2026-01-27T00:25:32.693Z] [✗ FAIL] TC-AUTH-017
+   Test: TC-AUTH-017: Should handle 2FA verification page
+   Module: auth
+   Duration: 10603ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="code"], input[name="token"], #code, #token').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="code"], input[name="token"], #code, #token').first()[22m
+
+
+[2026-01-27T00:25:36.781Z] [✓ PASS] TC-AUTH-018
+   Test: TC-AUTH-018: Should maintain session across page navigation
+   Module: auth
+   Duration: 3275ms
+
+[2026-01-27T00:25:40.016Z] [✗ FAIL] TC-AUTH-019
+   Test: TC-AUTH-019: Should handle session timeout gracefully
+   Module: auth
+   Duration: 3198ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|session|expired/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+[2026-01-27T00:25:44.936Z] [✗ FAIL] TC-AUTH-019
+   Test: TC-AUTH-019: Should handle session timeout gracefully
+   Module: auth
+   Duration: 3831ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|session|expired/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+[2026-01-27T00:25:50.036Z] [✗ FAIL] TC-AUTH-019
+   Test: TC-AUTH-019: Should handle session timeout gracefully
+   Module: auth
+   Duration: 3472ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|session|expired/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+[2026-01-27T00:26:01.514Z] [✗ FAIL] TC-AUTH-020
+   Test: TC-AUTH-020: Should handle concurrent sessions
+   Module: auth
+   Duration: 10620ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[name="username"]').first()[22m
+
+
+[2026-01-27T00:26:13.657Z] [✗ FAIL] TC-AUTH-020
+   Test: TC-AUTH-020: Should handle concurrent sessions
+   Module: auth
+   Duration: 11064ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[name="username"]').first()[22m
+
+
+[2026-01-27T00:26:26.128Z] [✗ FAIL] TC-AUTH-020
+   Test: TC-AUTH-020: Should handle concurrent sessions
+   Module: auth
+   Duration: 11604ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[name="username"]').first()[22m
+
+
+[2026-01-27T00:26:38.697Z] [✗ FAIL] TC-CAMP-001
+   Test: TC-CAMP-001: Should display campaigns list
+   Module: campaigns
+   Duration: 11558ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /campaign/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /campaign/i })[22m
+
+
+[2026-01-27T00:26:51.565Z] [✗ FAIL] TC-CAMP-001
+   Test: TC-CAMP-001: Should display campaigns list
+   Module: campaigns
+   Duration: 12032ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /campaign/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /campaign/i })[22m
+
+
+[2026-01-27T00:27:03.630Z] [✗ FAIL] TC-CAMP-001
+   Test: TC-CAMP-001: Should display campaigns list
+   Module: campaigns
+   Duration: 11320ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /campaign/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /campaign/i })[22m
+
+
+[2026-01-27T00:27:06.213Z] [✓ PASS] TC-CAMP-002
+   Test: TC-CAMP-002: Should show campaign status
+   Module: campaigns
+   Duration: 1206ms
+
+[2026-01-27T00:27:07.435Z] [✓ PASS] TC-CAMP-003
+   Test: TC-CAMP-003: Should filter by type
+   Module: campaigns
+   Duration: 1210ms
+
+[2026-01-27T00:27:09.103Z] [✓ PASS] TC-CAMP-004
+   Test: TC-CAMP-004: Should search campaigns
+   Module: campaigns
+   Duration: 1656ms
+
+[2026-01-27T00:27:21.495Z] [✗ FAIL] TC-CAMP-005
+   Test: TC-CAMP-005: Should create email campaign
+   Module: campaigns
+   Duration: 12344ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:27:35.167Z] [✗ FAIL] TC-CAMP-005
+   Test: TC-CAMP-005: Should create email campaign
+   Module: campaigns
+   Duration: 12727ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:27:49.347Z] [✗ FAIL] TC-CAMP-005
+   Test: TC-CAMP-005: Should create email campaign
+   Module: campaigns
+   Duration: 13173ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:28:04.495Z] [✗ FAIL] TC-CAMP-006
+   Test: TC-CAMP-006: Should create social media campaign
+   Module: campaigns
+   Duration: 14367ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:28:18.491Z] [✗ FAIL] TC-CAMP-006
+   Test: TC-CAMP-006: Should create social media campaign
+   Module: campaigns
+   Duration: 13155ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:28:33.417Z] [✗ FAIL] TC-CAMP-006
+   Test: TC-CAMP-006: Should create social media campaign
+   Module: campaigns
+   Duration: 12584ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:28:46.646Z] [✗ FAIL] TC-CAMP-007
+   Test: TC-CAMP-007: Should set target audience
+   Module: campaigns
+   Duration: 12229ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[role="option"]').first()[22m
+
+
+[2026-01-27T00:29:01.091Z] [✗ FAIL] TC-CAMP-007
+   Test: TC-CAMP-007: Should set target audience
+   Module: campaigns
+   Duration: 12394ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[role="option"]').first()[22m
+
+
+[2026-01-27T00:29:13.783Z] [✗ FAIL] TC-CAMP-007
+   Test: TC-CAMP-007: Should set target audience
+   Module: campaigns
+   Duration: 11918ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[role="option"]').first()[22m
+
+
+[2026-01-27T00:29:18.910Z] [✓ PASS] TC-CAMP-008
+   Test: TC-CAMP-008: Should start campaign
+   Module: campaigns
+   Duration: 4461ms
+
+[2026-01-27T00:29:23.109Z] [✓ PASS] TC-CAMP-009
+   Test: TC-CAMP-009: Should pause campaign
+   Module: campaigns
+   Duration: 4185ms
+
+[2026-01-27T00:29:27.317Z] [✓ PASS] TC-CAMP-010
+   Test: TC-CAMP-010: Should complete campaign
+   Module: campaigns
+   Duration: 4197ms
+
+[2026-01-27T00:29:29.590Z] [✓ PASS] TC-CAMP-011
+   Test: TC-CAMP-011: Should display campaign metrics
+   Module: campaigns
+   Duration: 2255ms
+
+[2026-01-27T00:29:31.898Z] [✓ PASS] TC-CAMP-012
+   Test: TC-CAMP-012: Should show ROI data
+   Module: campaigns
+   Duration: 2293ms
+
+[2026-01-27T00:29:36.156Z] [✓ PASS] TC-CAMP-013
+   Test: TC-CAMP-013: Should delete test campaign
+   Module: campaigns
+   Duration: 4245ms
+
+[2026-01-27T00:29:47.362Z] [✗ FAIL] TC-CONT-001
+   Test: TC-CONT-001: Should display contacts list page
+   Module: contacts
+   Duration: 11162ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /contact/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /contact/i })[22m
+
+
+[2026-01-27T00:30:00.232Z] [✗ FAIL] TC-CONT-001
+   Test: TC-CONT-001: Should display contacts list page
+   Module: contacts
+   Duration: 12076ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /contact/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /contact/i })[22m
+
+
+[2026-01-27T00:30:12.401Z] [✗ FAIL] TC-CONT-001
+   Test: TC-CONT-001: Should display contacts list page
+   Module: contacts
+   Duration: 11316ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /contact/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /contact/i })[22m
+
+
+[2026-01-27T00:30:14.824Z] [✓ PASS] TC-CONT-002
+   Test: TC-CONT-002: Should have Add Contact button
+   Module: contacts
+   Duration: 1755ms
+
+[2026-01-27T00:30:17.752Z] [✓ PASS] TC-CONT-003
+   Test: TC-CONT-003: Should search contacts
+   Module: contacts
+   Duration: 2901ms
+
+[2026-01-27T00:30:19.604Z] [✓ PASS] TC-CONT-004
+   Test: TC-CONT-004: Should filter contacts
+   Module: contacts
+   Duration: 1824ms
+
+[2026-01-27T00:30:21.363Z] [✓ PASS] TC-CONT-005
+   Test: TC-CONT-005: Should open create contact dialog
+   Module: contacts
+   Duration: 1743ms
+
+[2026-01-27T00:30:33.326Z] [✗ FAIL] TC-CONT-006
+   Test: TC-CONT-006: Should create new contact
+   Module: contacts
+   Duration: 11918ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:30:46.810Z] [✗ FAIL] TC-CONT-006
+   Test: TC-CONT-006: Should create new contact
+   Module: contacts
+   Duration: 12322ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:31:01.411Z] [✗ FAIL] TC-CONT-006
+   Test: TC-CONT-006: Should create new contact
+   Module: contacts
+   Duration: 13662ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:31:15.341Z] [✗ FAIL] TC-CONT-007
+   Test: TC-CONT-007: Should validate required fields
+   Module: contacts
+   Duration: 12407ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:31:29.800Z] [✗ FAIL] TC-CONT-007
+   Test: TC-CONT-007: Should validate required fields
+   Module: contacts
+   Duration: 13435ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:31:42.778Z] [✗ FAIL] TC-CONT-007
+   Test: TC-CONT-007: Should validate required fields
+   Module: contacts
+   Duration: 11985ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+[2026-01-27T00:31:45.961Z] [✓ PASS] TC-CONT-008
+   Test: TC-CONT-008: Should link contact to customer
+   Module: contacts
+   Duration: 2466ms
+
+[2026-01-27T00:31:50.048Z] [✓ PASS] TC-CONT-009
+   Test: TC-CONT-009: Should open contact for editing
+   Module: contacts
+   Duration: 4074ms
+
+[2026-01-27T00:31:54.301Z] [✓ PASS] TC-CONT-010
+   Test: TC-CONT-010: Should update contact
+   Module: contacts
+   Duration: 4241ms
+
+[2026-01-27T00:31:58.527Z] [✓ PASS] TC-CONT-011
+   Test: TC-CONT-011: Should delete test contact
+   Module: contacts
+   Duration: 4212ms
+
+[2026-01-27T00:32:01.868Z] [✓ PASS] TC-CONT-012
+   Test: TC-CONT-012: Should manage multiple emails
+   Module: contacts
+   Duration: 3327ms
+
+[2026-01-27T00:32:05.250Z] [✓ PASS] TC-CONT-013
+   Test: TC-CONT-013: Should manage multiple phones
+   Module: contacts
+   Duration: 3371ms
+
+[2026-01-27T00:32:08.648Z] [✓ PASS] TC-CONT-014
+   Test: TC-CONT-014: Should manage social media links
+   Module: contacts
+   Duration: 3387ms
+
+[2026-01-27T00:32:10.820Z] [✓ PASS] TC-CUST-001
+   Test: TC-CUST-001: Should display customers list page
+   Module: customers
+   Duration: 2151ms
+
+[2026-01-27T00:32:13.173Z] [✓ PASS] TC-CUST-002
+   Test: TC-CUST-002: Should display customer data grid columns
+   Module: customers
+   Duration: 2341ms
+
+[2026-01-27T00:32:15.337Z] [✓ PASS] TC-CUST-003
+   Test: TC-CUST-003: Should have Add Customer button
+   Module: customers
+   Duration: 2154ms
+
+[2026-01-27T00:32:19.072Z] [✓ PASS] TC-CUST-004
+   Test: TC-CUST-004: Should search customers
+   Module: customers
+   Duration: 3718ms
+
+[2026-01-27T00:32:23.043Z] [✓ PASS] TC-CUST-005
+   Test: TC-CUST-005: Should filter customers by type
+   Module: customers
+   Duration: 3949ms
+
+[2026-01-27T00:32:26.015Z] [✓ PASS] TC-CUST-006
+   Test: TC-CUST-006: Should paginate customer list
+   Module: customers
+   Duration: 2959ms
+
+[2026-01-27T00:32:29.115Z] [✓ PASS] TC-CUST-007
+   Test: TC-CUST-007: Should sort customers by column
+   Module: customers
+   Duration: 3082ms
+
+[2026-01-27T00:32:31.015Z] [✓ PASS] TC-CUST-008
+   Test: TC-CUST-008: Should open create customer dialog
+   Module: customers
+   Duration: 1887ms
+
+[2026-01-27T00:32:34.046Z] [✓ PASS] TC-CUST-009
+   Test: TC-CUST-009: Should validate required fields on create
+   Module: customers
+   Duration: 3021ms
+
+[2026-01-27T00:32:46.121Z] [✗ FAIL] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 12033ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+[2026-01-27T00:33:00.025Z] [✗ FAIL] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 12886ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+[2026-01-27T00:33:12.625Z] [✗ FAIL] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 11864ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+[2026-01-27T00:33:25.400Z] [✗ FAIL] TC-CUST-011
+   Test: TC-CUST-011: Should create individual customer
+   Module: customers
+   Duration: 11870ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:33:38.875Z] [✗ FAIL] TC-CUST-011
+   Test: TC-CUST-011: Should create individual customer
+   Module: customers
+   Duration: 12689ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:33:51.728Z] [✗ FAIL] TC-CUST-011
+   Test: TC-CUST-011: Should create individual customer
+   Module: customers
+   Duration: 11992ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:34:04.312Z] [✗ FAIL] TC-CUST-012
+   Test: TC-CUST-012: Should cancel customer creation
+   Module: customers
+   Duration: 11853ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:34:18.307Z] [✗ FAIL] TC-CUST-012
+   Test: TC-CUST-012: Should cancel customer creation
+   Module: customers
+   Duration: 12862ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:34:31.065Z] [✗ FAIL] TC-CUST-012
+   Test: TC-CUST-012: Should cancel customer creation
+   Module: customers
+   Duration: 11927ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:34:35.145Z] [✓ PASS] TC-CUST-013
+   Test: TC-CUST-013: Should open customer for editing
+   Module: customers
+   Duration: 3388ms
+
+[2026-01-27T00:34:39.387Z] [○ SKIP] TC-CUST-014
+   Test: TC-CUST-014: Should update customer name
+   Module: customers
+   Duration: 4230ms
+
+[2026-01-27T00:34:42.734Z] [✓ PASS] TC-CUST-015
+   Test: TC-CUST-015: Should validate on update
+   Module: customers
+   Duration: 3333ms
+
+[2026-01-27T00:34:47.071Z] [○ SKIP] TC-CUST-016
+   Test: TC-CUST-016: Should show delete confirmation
+   Module: customers
+   Duration: 4325ms
+
+[2026-01-27T00:34:51.356Z] [✓ PASS] TC-CUST-017
+   Test: TC-CUST-017: Should cancel delete operation
+   Module: customers
+   Duration: 4273ms
+
+[2026-01-27T00:34:55.606Z] [○ SKIP] TC-CUST-018
+   Test: TC-CUST-018: Should delete test customer
+   Module: customers
+   Duration: 4237ms
+
+[2026-01-27T00:35:08.976Z] [✗ FAIL] TC-CUST-019
+   Test: TC-CUST-019: Should navigate to customer details
+   Module: customers
+   Duration: 13317ms
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+[2026-01-27T00:35:23.820Z] [✗ FAIL] TC-CUST-019
+   Test: TC-CUST-019: Should navigate to customer details
+   Module: customers
+   Duration: 14093ms
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+[2026-01-27T00:35:37.999Z] [✗ FAIL] TC-CUST-019
+   Test: TC-CUST-019: Should navigate to customer details
+   Module: customers
+   Duration: 13345ms
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+[2026-01-27T00:35:43.139Z] [✓ PASS] TC-CUST-020
+   Test: TC-CUST-020: Should display customer overview
+   Module: customers
+   Duration: 4434ms
+
+[2026-01-27T00:35:46.485Z] [✓ PASS] TC-CUST-021
+   Test: TC-CUST-021: Should display contact info section
+   Module: customers
+   Duration: 3330ms
+
+[2026-01-27T00:35:51.024Z] [✓ PASS] TC-CUST-022
+   Test: TC-CUST-022: Should add email to customer
+   Module: customers
+   Duration: 4523ms
+
+[2026-01-27T00:35:55.328Z] [✓ PASS] TC-CUST-023
+   Test: TC-CUST-023: Should add phone to customer
+   Module: customers
+   Duration: 4288ms
+
+[2026-01-27T00:35:59.759Z] [✓ PASS] TC-CUST-024
+   Test: TC-CUST-024: Should add address to customer
+   Module: customers
+   Duration: 4411ms
+
+[2026-01-27T00:36:01.083Z] [✓ PASS] TC-CUST-025
+   Test: TC-CUST-025: Should have export button
+   Module: customers
+   Duration: 1291ms
+
+[2026-01-27T00:36:03.093Z] [✓ PASS] TC-CUST-026
+   Test: TC-CUST-026: Should have import button
+   Module: customers
+   Duration: 1999ms
+
+[2026-01-27T00:36:05.667Z] [✓ PASS] TC-DASH-001
+   Test: TC-DASH-001: Should display dashboard
+   Module: dashboard
+   Duration: 2556ms
+
+[2026-01-27T00:36:09.541Z] [✓ PASS] TC-DASH-002
+   Test: TC-DASH-002: Should display welcome message
+   Module: dashboard
+   Duration: 3857ms
+
+[2026-01-27T00:36:11.051Z] [✓ PASS] TC-DASH-003
+   Test: TC-DASH-003: Should display navigation menu
+   Module: dashboard
+   Duration: 1494ms
+
+[2026-01-27T00:36:12.365Z] [✓ PASS] TC-DASH-004
+   Test: TC-DASH-004: Should display customer count widget
+   Module: dashboard
+   Duration: 1300ms
+
+[2026-01-27T00:36:13.657Z] [✓ PASS] TC-DASH-005
+   Test: TC-DASH-005: Should display opportunity pipeline widget
+   Module: dashboard
+   Duration: 1275ms
+
+[2026-01-27T00:36:14.957Z] [✓ PASS] TC-DASH-006
+   Test: TC-DASH-006: Should display service requests widget
+   Module: dashboard
+   Duration: 1284ms
+
+[2026-01-27T00:36:16.164Z] [✓ PASS] TC-DASH-007
+   Test: TC-DASH-007: Should display recent activity widget
+   Module: dashboard
+   Duration: 1196ms
+
+[2026-01-27T00:36:17.384Z] [✓ PASS] TC-DASH-008
+   Test: TC-DASH-008: Should display tasks widget
+   Module: dashboard
+   Duration: 1209ms
+
+[2026-01-27T00:36:18.554Z] [✓ PASS] TC-DASH-009
+   Test: TC-DASH-009: Should display revenue metrics
+   Module: dashboard
+   Duration: 1159ms
+
+[2026-01-27T00:36:19.736Z] [✓ PASS] TC-DASH-010
+   Test: TC-DASH-010: Should display lead conversion rate
+   Module: dashboard
+   Duration: 1173ms
+
+[2026-01-27T00:36:20.992Z] [✓ PASS] TC-DASH-011
+   Test: TC-DASH-011: Should display open tickets count
+   Module: dashboard
+   Duration: 1242ms
+
+[2026-01-27T00:36:25.468Z] [✓ PASS] TC-DASH-012
+   Test: TC-DASH-012: Should display charts
+   Module: dashboard
+   Duration: 4466ms
+
+[2026-01-27T00:36:28.771Z] [✓ PASS] TC-DASH-013
+   Test: TC-DASH-013: Should have chart interactions
+   Module: dashboard
+   Duration: 3288ms
+
+[2026-01-27T00:36:30.041Z] [✓ PASS] TC-DASH-014
+   Test: TC-DASH-014: Should have quick add customer action
+   Module: dashboard
+   Duration: 1255ms
+
+[2026-01-27T00:36:31.505Z] [✓ PASS] TC-DASH-015
+   Test: TC-DASH-015: Should have quick add opportunity action
+   Module: dashboard
+   Duration: 1455ms
+
+[2026-01-27T00:36:32.718Z] [✓ PASS] TC-DASH-016
+   Test: TC-DASH-016: Should have quick add service request action
+   Module: dashboard
+   Duration: 1200ms
+
+[2026-01-27T00:36:33.942Z] [✓ PASS] TC-DASH-017
+   Test: TC-DASH-017: Should navigate to customers
+   Module: dashboard
+   Duration: 1204ms
+
+[2026-01-27T00:36:35.321Z] [✓ PASS] TC-DASH-018
+   Test: TC-DASH-018: Should navigate to opportunities
+   Module: dashboard
+   Duration: 1368ms
+
+[2026-01-27T00:36:36.488Z] [✓ PASS] TC-DASH-019
+   Test: TC-DASH-019: Should navigate to leads
+   Module: dashboard
+   Duration: 1157ms
+
+[2026-01-27T00:36:37.821Z] [✓ PASS] TC-DASH-020
+   Test: TC-DASH-020: Should navigate to service requests
+   Module: dashboard
+   Duration: 1323ms
+
+[2026-01-27T00:36:39.033Z] [✓ PASS] TC-DASH-021
+   Test: TC-DASH-021: Should navigate to campaigns
+   Module: dashboard
+   Duration: 1203ms
+
+[2026-01-27T00:36:40.239Z] [✓ PASS] TC-DASH-022
+   Test: TC-DASH-022: Should navigate to admin
+   Module: dashboard
+   Duration: 1197ms
+
+[2026-01-27T00:36:41.421Z] [✓ PASS] TC-DASH-023
+   Test: TC-DASH-023: Should display user profile menu
+   Module: dashboard
+   Duration: 1174ms
+
+[2026-01-27T00:36:42.688Z] [✓ PASS] TC-DASH-024
+   Test: TC-DASH-024: Should access profile settings
+   Module: dashboard
+   Duration: 1259ms
+
+[2026-01-27T00:36:43.879Z] [✓ PASS] TC-DASH-025
+   Test: TC-DASH-025: Should logout from dashboard
+   Module: dashboard
+   Duration: 1178ms
+
+[2026-01-27T00:36:45.039Z] [✓ PASS] TC-DASH-026
+   Test: TC-DASH-026: Should have global search
+   Module: dashboard
+   Duration: 1144ms
+
+[2026-01-27T00:36:46.191Z] [✓ PASS] TC-DASH-027
+   Test: TC-DASH-027: Should search for customer
+   Module: dashboard
+   Duration: 1142ms
+
+[2026-01-27T00:36:47.365Z] [✓ PASS] TC-DASH-028
+   Test: TC-DASH-028: Should navigate from search results
+   Module: dashboard
+   Duration: 1166ms
+
+[2026-01-27T00:36:48.568Z] [✓ PASS] TC-DASH-029
+   Test: TC-DASH-029: Should display notification bell
+   Module: dashboard
+   Duration: 1195ms
+
+[2026-01-27T00:36:49.790Z] [✓ PASS] TC-DASH-030
+   Test: TC-DASH-030: Should open notifications panel
+   Module: dashboard
+   Duration: 1214ms
+
+[2026-01-27T00:36:50.996Z] [✓ PASS] TC-DASH-031
+   Test: TC-DASH-031: Should be responsive on mobile
+   Module: dashboard
+   Duration: 1197ms
+
+[2026-01-27T00:36:52.102Z] [✓ PASS] TC-DASH-032
+   Test: TC-DASH-032: Should show mobile menu
+   Module: dashboard
+   Duration: 1097ms
+
+[2026-01-27T00:37:05.343Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-001: Should create test admin user
+   Module: data-lifecycle
+   Duration: 13183ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+
+
+[2026-01-27T00:37:20.327Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-001: Should create test admin user
+   Module: data-lifecycle
+   Duration: 14059ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+
+
+[2026-01-27T00:37:23.175Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-USER-001: Should create test admin user
+   Module: data-lifecycle
+   Duration: 2189ms
+
+[2026-01-27T00:37:25.309Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-USER-002: Should create test sales team users
+   Module: data-lifecycle
+   Duration: 2121ms
+
+[2026-01-27T00:37:27.528Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-USER-003: Should create test support team users
+   Module: data-lifecycle
+   Duration: 2207ms
+
+[2026-01-27T00:37:52.794Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-USER-004: Should modify user details
+   Module: data-lifecycle
+   Duration: 25251ms
+
+[2026-01-27T00:38:18.118Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-USER-005: Should verify user visibility in lists
+   Module: data-lifecycle
+   Duration: 25308ms
+
+[2026-01-27T00:38:30.391Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-CUST-001: Should create enterprise customer with full details
+   Module: data-lifecycle
+   Duration: 12225ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:38:44.073Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-CUST-001: Should create enterprise customer with full details
+   Module: data-lifecycle
+   Duration: 12843ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:38:57.175Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-CUST-001: Should create enterprise customer with full details
+   Module: data-lifecycle
+   Duration: 12251ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:39:00.048Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CUST-002: Should create multiple test customers
+   Module: data-lifecycle
+   Duration: 2198ms
+
+[2026-01-27T00:39:25.257Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CUST-003: Should modify customer data
+   Module: data-lifecycle
+   Duration: 25196ms
+
+[2026-01-27T00:39:40.034Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CUST-004: Should verify customer appears in search results
+   Module: data-lifecycle
+   Duration: 14761ms
+
+[2026-01-27T00:39:42.214Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CONT-001: Should create contacts for enterprise customer
+   Module: data-lifecycle
+   Duration: 2166ms
+
+[2026-01-27T00:40:07.873Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CONT-002: Should modify contact and verify customer link
+   Module: data-lifecycle
+   Duration: 25645ms
+
+[2026-01-27T00:40:10.056Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-OPP-001: Should create high-value opportunity
+   Module: data-lifecycle
+   Duration: 2171ms
+
+[2026-01-27T00:40:35.278Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-OPP-002: Should advance opportunity through stages
+   Module: data-lifecycle
+   Duration: 25207ms
+
+[2026-01-27T00:41:00.559Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-OPP-003: Should verify opportunity-customer relationship
+   Module: data-lifecycle
+   Duration: 25269ms
+
+[2026-01-27T00:41:02.794Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-LEAD-001: Should create hot lead
+   Module: data-lifecycle
+   Duration: 2225ms
+
+[2026-01-27T00:41:28.100Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-LEAD-002: Should convert lead to opportunity
+   Module: data-lifecycle
+   Duration: 25281ms
+
+[2026-01-27T00:41:53.729Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-LEAD-003: Should update lead score
+   Module: data-lifecycle
+   Duration: 25604ms
+
+[2026-01-27T00:41:56.019Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-SR-001: Should create critical service request
+   Module: data-lifecycle
+   Duration: 2272ms
+
+[2026-01-27T00:42:21.351Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-SR-002: Should transition service request status
+   Module: data-lifecycle
+   Duration: 25320ms
+
+[2026-01-27T00:42:46.589Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-SR-003: Should verify customer link in service request
+   Module: data-lifecycle
+   Duration: 25227ms
+
+[2026-01-27T00:42:48.936Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CAMP-001: Should create email campaign
+   Module: data-lifecycle
+   Duration: 2321ms
+
+[2026-01-27T00:43:14.198Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CAMP-002: Should start campaign
+   Module: data-lifecycle
+   Duration: 25251ms
+
+[2026-01-27T00:43:38.479Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-REL-001: Should verify customer deletion affects contacts
+   Module: data-lifecycle
+   Duration: 24269ms
+
+[2026-01-27T00:44:02.797Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-REL-002: Should verify opportunity affects customer revenue
+   Module: data-lifecycle
+   Duration: 24307ms
+
+[2026-01-27T00:44:27.119Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-REL-003: Should verify lead conversion creates customer and opportunity
+   Module: data-lifecycle
+   Duration: 24313ms
+
+[2026-01-27T00:44:51.512Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-REL-004: Should verify service request links to customer history
+   Module: data-lifecycle
+   Duration: 24374ms
+
+[2026-01-27T00:45:51.705Z] [○ ERROR] TC-UNKNOWN
+   Test: TC-DL-CLEAN-001: Should list all TEST_ data for cleanup
+   Module: data-lifecycle
+   Duration: 60139ms
+   Error: [31mTest timeout of 60000ms exceeded.[39m
+
+[2026-01-27T00:46:53.303Z] [○ ERROR] TC-UNKNOWN
+   Test: TC-DL-CLEAN-001: Should list all TEST_ data for cleanup
+   Module: data-lifecycle
+   Duration: 60607ms
+   Error: [31mTest timeout of 60000ms exceeded.[39m
+
+[2026-01-27T00:47:54.224Z] [○ ERROR] TC-UNKNOWN
+   Test: TC-DL-CLEAN-001: Should list all TEST_ data for cleanup
+   Module: data-lifecycle
+   Duration: 60143ms
+   Error: [31mTest timeout of 60000ms exceeded.[39m
+
+[2026-01-27T00:48:06.221Z] [✗ FAIL] TC-LEAD-001
+   Test: TC-LEAD-001: Should display leads list
+   Module: leads
+   Duration: 11289ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /lead/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /lead/i })[22m
+
+
+[2026-01-27T00:48:19.229Z] [✗ FAIL] TC-LEAD-001
+   Test: TC-LEAD-001: Should display leads list
+   Module: leads
+   Duration: 12186ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /lead/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /lead/i })[22m
+
+
+[2026-01-27T00:48:31.262Z] [✗ FAIL] TC-LEAD-001
+   Test: TC-LEAD-001: Should display leads list
+   Module: leads
+   Duration: 11262ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /lead/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /lead/i })[22m
+
+
+[2026-01-27T00:48:33.104Z] [✓ PASS] TC-LEAD-002
+   Test: TC-LEAD-002: Should filter by status
+   Module: leads
+   Duration: 1141ms
+
+[2026-01-27T00:48:44.782Z] [✓ PASS] TC-LEAD-003
+   Test: TC-LEAD-003: Should search leads
+   Module: leads
+   Duration: 11664ms
+
+[2026-01-27T00:48:56.028Z] [✗ FAIL] TC-LEAD-004
+   Test: TC-LEAD-004: Should create new lead
+   Module: leads
+   Duration: 11193ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:49:08.646Z] [✗ FAIL] TC-LEAD-004
+   Test: TC-LEAD-004: Should create new lead
+   Module: leads
+   Duration: 11797ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:49:20.531Z] [✗ FAIL] TC-LEAD-004
+   Test: TC-LEAD-004: Should create new lead
+   Module: leads
+   Duration: 11198ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:49:32.427Z] [✗ FAIL] TC-LEAD-005
+   Test: TC-LEAD-005: Should set lead status
+   Module: leads
+   Duration: 11218ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:49:45.491Z] [✗ FAIL] TC-LEAD-005
+   Test: TC-LEAD-005: Should set lead status
+   Module: leads
+   Duration: 12115ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:49:58.029Z] [✗ FAIL] TC-LEAD-005
+   Test: TC-LEAD-005: Should set lead status
+   Module: leads
+   Duration: 11566ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:50:09.987Z] [✗ FAIL] TC-LEAD-006
+   Test: TC-LEAD-006: Should set lead source
+   Module: leads
+   Duration: 11214ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:50:22.600Z] [✗ FAIL] TC-LEAD-006
+   Test: TC-LEAD-006: Should set lead source
+   Module: leads
+   Duration: 11839ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:50:34.465Z] [✗ FAIL] TC-LEAD-006
+   Test: TC-LEAD-006: Should set lead source
+   Module: leads
+   Duration: 11182ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:50:59.476Z] [○ SKIP] TC-LEAD-007
+   Test: TC-LEAD-007: Should convert lead to opportunity
+   Module: leads
+   Duration: 24280ms
+
+[2026-01-27T00:51:23.792Z] [✓ PASS] TC-LEAD-008
+   Test: TC-LEAD-008: Should convert lead to customer
+   Module: leads
+   Duration: 24301ms
+
+[2026-01-27T00:51:48.307Z] [✓ PASS] TC-LEAD-009
+   Test: TC-LEAD-009: Should update lead status
+   Module: leads
+   Duration: 24500ms
+
+[2026-01-27T00:52:12.587Z] [✓ PASS] TC-LEAD-010
+   Test: TC-LEAD-010: Should delete test lead
+   Module: leads
+   Duration: 24264ms
+
+[2026-01-27T00:52:23.830Z] [✗ FAIL] TC-OPP-001
+   Test: TC-OPP-001: Should display opportunities list
+   Module: opportunities
+   Duration: 11198ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })[22m
+
+
+[2026-01-27T00:52:36.585Z] [✗ FAIL] TC-OPP-001
+   Test: TC-OPP-001: Should display opportunities list
+   Module: opportunities
+   Duration: 11903ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })[22m
+
+
+[2026-01-27T00:52:48.557Z] [✗ FAIL] TC-OPP-001
+   Test: TC-OPP-001: Should display opportunities list
+   Module: opportunities
+   Duration: 11284ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })[22m
+
+
+[2026-01-27T00:52:50.447Z] [✗ FAIL] TC-OPP-002
+   Test: TC-OPP-002: Should display pipeline stages
+   Module: opportunities
+   Duration: 1239ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-27T00:52:52.559Z] [✗ FAIL] TC-OPP-002
+   Test: TC-OPP-002: Should display pipeline stages
+   Module: opportunities
+   Duration: 1390ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-27T00:52:54.428Z] [✗ FAIL] TC-OPP-002
+   Test: TC-OPP-002: Should display pipeline stages
+   Module: opportunities
+   Duration: 1202ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-27T00:52:56.243Z] [✓ PASS] TC-OPP-003
+   Test: TC-OPP-003: Should show opportunity value
+   Module: opportunities
+   Duration: 1161ms
+
+[2026-01-27T00:52:57.357Z] [✓ PASS] TC-OPP-004
+   Test: TC-OPP-004: Should filter by stage
+   Module: opportunities
+   Duration: 1104ms
+
+[2026-01-27T00:53:08.716Z] [✗ FAIL] TC-OPP-005
+   Test: TC-OPP-005: Should open create opportunity dialog
+   Module: opportunities
+   Duration: 11318ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:53:21.404Z] [✗ FAIL] TC-OPP-005
+   Test: TC-OPP-005: Should open create opportunity dialog
+   Module: opportunities
+   Duration: 11928ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:53:33.376Z] [✗ FAIL] TC-OPP-005
+   Test: TC-OPP-005: Should open create opportunity dialog
+   Module: opportunities
+   Duration: 11268ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:53:45.499Z] [✗ FAIL] TC-OPP-006
+   Test: TC-OPP-006: Should create new opportunity
+   Module: opportunities
+   Duration: 11263ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:53:58.190Z] [✗ FAIL] TC-OPP-006
+   Test: TC-OPP-006: Should create new opportunity
+   Module: opportunities
+   Duration: 11957ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:54:10.031Z] [✗ FAIL] TC-OPP-006
+   Test: TC-OPP-006: Should create new opportunity
+   Module: opportunities
+   Duration: 11152ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:54:21.912Z] [✗ FAIL] TC-OPP-007
+   Test: TC-OPP-007: Should set close date
+   Module: opportunities
+   Duration: 11184ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:54:34.613Z] [✗ FAIL] TC-OPP-007
+   Test: TC-OPP-007: Should set close date
+   Module: opportunities
+   Duration: 11948ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:54:46.622Z] [✗ FAIL] TC-OPP-007
+   Test: TC-OPP-007: Should set close date
+   Module: opportunities
+   Duration: 11253ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:54:58.678Z] [✗ FAIL] TC-OPP-008
+   Test: TC-OPP-008: Should link to customer
+   Module: opportunities
+   Duration: 11342ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:55:11.448Z] [✗ FAIL] TC-OPP-008
+   Test: TC-OPP-008: Should link to customer
+   Module: opportunities
+   Duration: 11996ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:55:23.420Z] [✗ FAIL] TC-OPP-008
+   Test: TC-OPP-008: Should link to customer
+   Module: opportunities
+   Duration: 11295ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:55:48.419Z] [✓ PASS] TC-OPP-009
+   Test: TC-OPP-009: Should update opportunity stage
+   Module: opportunities
+   Duration: 24359ms
+
+[2026-01-27T00:56:12.689Z] [✓ PASS] TC-OPP-010
+   Test: TC-OPP-010: Should update probability
+   Module: opportunities
+   Duration: 24256ms
+
+[2026-01-27T00:56:37.080Z] [✓ PASS] TC-OPP-011
+   Test: TC-OPP-011: Should close opportunity as won
+   Module: opportunities
+   Duration: 24371ms
+
+[2026-01-27T00:57:01.571Z] [✓ PASS] TC-OPP-012
+   Test: TC-OPP-012: Should close opportunity as lost
+   Module: opportunities
+   Duration: 24476ms
+
+[2026-01-27T00:57:25.792Z] [✓ PASS] TC-OPP-013
+   Test: TC-OPP-013: Should delete test opportunity
+   Module: opportunities
+   Duration: 24211ms
+
+[2026-01-27T00:57:37.044Z] [✗ FAIL] TC-SR-001
+   Test: TC-SR-001: Should display service requests list
+   Module: service-requests
+   Duration: 11198ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })[22m
+
+
+[2026-01-27T00:57:49.905Z] [✗ FAIL] TC-SR-001
+   Test: TC-SR-001: Should display service requests list
+   Module: service-requests
+   Duration: 11861ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })[22m
+
+
+[2026-01-27T00:58:01.817Z] [✗ FAIL] TC-SR-001
+   Test: TC-SR-001: Should display service requests list
+   Module: service-requests
+   Duration: 11220ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })[22m
+
+
+[2026-01-27T00:58:03.670Z] [✓ PASS] TC-SR-002
+   Test: TC-SR-002: Should show priority column
+   Module: service-requests
+   Duration: 1176ms
+
+[2026-01-27T00:58:04.799Z] [✓ PASS] TC-SR-003
+   Test: TC-SR-003: Should show status column
+   Module: service-requests
+   Duration: 1119ms
+
+[2026-01-27T00:58:05.952Z] [✓ PASS] TC-SR-004
+   Test: TC-SR-004: Should filter by priority
+   Module: service-requests
+   Duration: 1141ms
+
+[2026-01-27T00:58:07.350Z] [✓ PASS] TC-SR-005
+   Test: TC-SR-005: Should filter by status
+   Module: service-requests
+   Duration: 1386ms
+
+[2026-01-27T00:58:18.701Z] [✗ FAIL] TC-SR-006
+   Test: TC-SR-006: Should create bug report
+   Module: service-requests
+   Duration: 11287ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:58:31.698Z] [✗ FAIL] TC-SR-006
+   Test: TC-SR-006: Should create bug report
+   Module: service-requests
+   Duration: 12037ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:58:43.745Z] [✗ FAIL] TC-SR-006
+   Test: TC-SR-006: Should create bug report
+   Module: service-requests
+   Duration: 11218ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:58:55.655Z] [✗ FAIL] TC-SR-007
+   Test: TC-SR-007: Should create feature request
+   Module: service-requests
+   Duration: 11226ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:59:08.844Z] [✗ FAIL] TC-SR-007
+   Test: TC-SR-007: Should create feature request
+   Module: service-requests
+   Duration: 11946ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:59:20.763Z] [✗ FAIL] TC-SR-007
+   Test: TC-SR-007: Should create feature request
+   Module: service-requests
+   Duration: 11176ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:59:32.948Z] [✗ FAIL] TC-SR-008
+   Test: TC-SR-008: Should create urgent ticket
+   Module: service-requests
+   Duration: 11531ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:59:46.017Z] [✗ FAIL] TC-SR-008
+   Test: TC-SR-008: Should create urgent ticket
+   Module: service-requests
+   Duration: 12201ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T00:59:58.398Z] [✗ FAIL] TC-SR-008
+   Test: TC-SR-008: Should create urgent ticket
+   Module: service-requests
+   Duration: 11310ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:00:10.259Z] [✗ FAIL] TC-SR-009
+   Test: TC-SR-009: Should link to customer
+   Module: service-requests
+   Duration: 11165ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:00:22.959Z] [✗ FAIL] TC-SR-009
+   Test: TC-SR-009: Should link to customer
+   Module: service-requests
+   Duration: 11913ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:00:34.824Z] [✗ FAIL] TC-SR-009
+   Test: TC-SR-009: Should link to customer
+   Module: service-requests
+   Duration: 11185ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:00:59.787Z] [✓ PASS] TC-SR-010
+   Test: TC-SR-010: Should change status to In Progress
+   Module: service-requests
+   Duration: 24267ms
+
+[2026-01-27T01:01:24.028Z] [✓ PASS] TC-SR-011
+   Test: TC-SR-011: Should resolve service request
+   Module: service-requests
+   Duration: 24229ms
+
+[2026-01-27T01:01:48.234Z] [✓ PASS] TC-SR-012
+   Test: TC-SR-012: Should close service request
+   Module: service-requests
+   Duration: 24191ms
+
+[2026-01-27T01:02:12.521Z] [✓ PASS] TC-SR-013
+   Test: TC-SR-013: Should assign to user
+   Module: service-requests
+   Duration: 24274ms
+
+[2026-01-27T01:02:36.761Z] [✓ PASS] TC-SR-014
+   Test: TC-SR-014: Should reassign to different user
+   Module: service-requests
+   Duration: 24225ms
+
+[2026-01-27T01:03:01.023Z] [✓ PASS] TC-SR-015
+   Test: TC-SR-015: Should delete test service request
+   Module: service-requests
+   Duration: 24251ms
+
+[2026-01-27T01:03:03.332Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-001: Should create lead qualification workflow
+   Module: workflow-execution
+   Duration: 2250ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:06.583Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-001: Should create lead qualification workflow
+   Module: workflow-execution
+   Duration: 2427ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:09.527Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-001: Should create lead qualification workflow
+   Module: workflow-execution
+   Duration: 2258ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:12.449Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-002: Should create customer onboarding workflow
+   Module: workflow-execution
+   Duration: 2241ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:15.637Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-002: Should create customer onboarding workflow
+   Module: workflow-execution
+   Duration: 2463ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:18.568Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-002: Should create customer onboarding workflow
+   Module: workflow-execution
+   Duration: 2250ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:21.607Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-003: Should create ticket escalation workflow
+   Module: workflow-execution
+   Duration: 2307ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:24.792Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-003: Should create ticket escalation workflow
+   Module: workflow-execution
+   Duration: 2460ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:27.688Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-003: Should create ticket escalation workflow
+   Module: workflow-execution
+   Duration: 2231ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:31.301Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-004: Should create deal approval workflow
+   Module: workflow-execution
+   Duration: 2672ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:35.150Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-004: Should create deal approval workflow
+   Module: workflow-execution
+   Duration: 2828ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:03:38.577Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-004: Should create deal approval workflow
+   Module: workflow-execution
+   Duration: 2621ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T01:04:05.927Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-DESIGN-001: Should add trigger node to workflow
+   Module: workflow-execution
+   Duration: 26677ms
+
+[2026-01-27T01:04:31.288Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-DESIGN-002: Should add condition node to workflow
+   Module: workflow-execution
+   Duration: 25345ms
+
+[2026-01-27T01:04:56.634Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-DESIGN-003: Should add AI action node to workflow
+   Module: workflow-execution
+   Duration: 25332ms
+
+[2026-01-27T01:05:21.963Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-DESIGN-004: Should connect workflow nodes
+   Module: workflow-execution
+   Duration: 25317ms
+
+[2026-01-27T01:05:47.276Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-EXEC-001: Should activate workflow
+   Module: workflow-execution
+   Duration: 25298ms
+
+[2026-01-27T01:06:12.617Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-EXEC-002: Should manually trigger workflow
+   Module: workflow-execution
+   Duration: 25327ms
+
+[2026-01-27T01:06:16.526Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-EXEC-003: Should trigger workflow via lead creation
+   Module: workflow-execution
+   Duration: 3898ms
+
+[2026-01-27T01:06:20.528Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-EXEC-004: Should trigger workflow via service request creation
+   Module: workflow-execution
+   Duration: 3987ms
+
+[2026-01-27T01:06:46.028Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-HIST-001: Should view workflow execution history
+   Module: workflow-execution
+   Duration: 25476ms
+
+[2026-01-27T01:07:11.621Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-HIST-002: Should view execution details
+   Module: workflow-execution
+   Duration: 25576ms
+
+[2026-01-27T01:07:37.019Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-HIST-003: Should view execution logs
+   Module: workflow-execution
+   Duration: 25383ms
+
+[2026-01-27T01:08:02.376Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-AI-001: Should configure AI text generation node
+   Module: workflow-execution
+   Duration: 25341ms
+
+[2026-01-27T01:08:27.868Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-AI-002: Should configure AI classification node
+   Module: workflow-execution
+   Duration: 25462ms
+
+[2026-01-27T01:08:54.240Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-AI-003: Should configure AI sentiment analysis node
+   Module: workflow-execution
+   Duration: 26207ms
+
+[2026-01-27T01:09:19.587Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-MGT-001: Should duplicate workflow
+   Module: workflow-execution
+   Duration: 25329ms
+
+[2026-01-27T01:09:44.956Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-MGT-002: Should deactivate workflow
+   Module: workflow-execution
+   Duration: 25350ms
+
+[2026-01-27T01:10:10.362Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-MGT-003: Should export workflow
+   Module: workflow-execution
+   Duration: 25387ms
+
+[2026-01-27T01:10:34.819Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-SUM-001: Should list all test workflows
+   Module: workflow-execution
+   Duration: 24430ms
+
+[2026-01-27T01:10:46.121Z] [✗ FAIL] TC-WF-001
+   Test: TC-WF-001: Should display workflows list
+   Module: workflows
+   Duration: 11235ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /workflow/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /workflow/i })[22m
+
+
+[2026-01-27T01:10:59.070Z] [✗ FAIL] TC-WF-001
+   Test: TC-WF-001: Should display workflows list
+   Module: workflows
+   Duration: 12050ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /workflow/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /workflow/i })[22m
+
+
+[2026-01-27T01:11:11.050Z] [✗ FAIL] TC-WF-001
+   Test: TC-WF-001: Should display workflows list
+   Module: workflows
+   Duration: 11250ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /workflow/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /workflow/i })[22m
+
+
+[2026-01-27T01:11:22.873Z] [✗ FAIL] TC-WF-002
+   Test: TC-WF-002: Should have create workflow button
+   Module: workflows
+   Duration: 11174ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:11:35.432Z] [✗ FAIL] TC-WF-002
+   Test: TC-WF-002: Should have create workflow button
+   Module: workflows
+   Duration: 11817ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:11:47.439Z] [✗ FAIL] TC-WF-002
+   Test: TC-WF-002: Should have create workflow button
+   Module: workflows
+   Duration: 11240ms
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:11:49.761Z] [✓ PASS] TC-WF-003
+   Test: TC-WF-003: Should show workflow status
+   Module: workflows
+   Duration: 1198ms
+
+[2026-01-27T01:12:00.935Z] [✗ FAIL] TC-WF-004
+   Test: TC-WF-004: Should open workflow designer
+   Module: workflows
+   Duration: 11126ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:12:14.370Z] [✗ FAIL] TC-WF-004
+   Test: TC-WF-004: Should open workflow designer
+   Module: workflows
+   Duration: 12567ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:12:26.261Z] [✗ FAIL] TC-WF-004
+   Test: TC-WF-004: Should open workflow designer
+   Module: workflows
+   Duration: 11190ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:12:38.078Z] [✗ FAIL] TC-WF-005
+   Test: TC-WF-005: Should create new workflow
+   Module: workflows
+   Duration: 11164ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:12:50.834Z] [✗ FAIL] TC-WF-005
+   Test: TC-WF-005: Should create new workflow
+   Module: workflows
+   Duration: 11843ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:13:03.352Z] [✗ FAIL] TC-WF-005
+   Test: TC-WF-005: Should create new workflow
+   Module: workflows
+   Duration: 11777ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:13:15.218Z] [✗ FAIL] TC-WF-006
+   Test: TC-WF-006: Should set workflow trigger
+   Module: workflows
+   Duration: 11192ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:13:27.770Z] [✗ FAIL] TC-WF-006
+   Test: TC-WF-006: Should set workflow trigger
+   Module: workflows
+   Duration: 11815ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:13:40.037Z] [✗ FAIL] TC-WF-006
+   Test: TC-WF-006: Should set workflow trigger
+   Module: workflows
+   Duration: 11436ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+[2026-01-27T01:14:03.179Z] [✓ PASS] TC-WF-007
+   Test: TC-WF-007: Should display node palette
+   Module: workflows
+   Duration: 22284ms
+
+[2026-01-27T01:14:27.384Z] [✓ PASS] TC-WF-008
+   Test: TC-WF-008: Should add trigger node
+   Module: workflows
+   Duration: 24188ms
+
+[2026-01-27T01:14:51.772Z] [✓ PASS] TC-WF-009
+   Test: TC-WF-009: Should add action node
+   Module: workflows
+   Duration: 24373ms
+
+[2026-01-27T01:15:16.036Z] [✓ PASS] TC-WF-010
+   Test: TC-WF-010: Should add condition node
+   Module: workflows
+   Duration: 24250ms
+
+[2026-01-27T01:15:38.260Z] [✓ PASS] TC-WF-011
+   Test: TC-WF-011: Should display AI node types
+   Module: workflows
+   Duration: 22204ms
+
+[2026-01-27T01:16:02.500Z] [✓ PASS] TC-WF-012
+   Test: TC-WF-012: Should add AI Decision node
+   Module: workflows
+   Duration: 24229ms
+
+[2026-01-27T01:16:26.772Z] [✓ PASS] TC-WF-013
+   Test: TC-WF-013: Should add AI Agent node
+   Module: workflows
+   Duration: 24259ms
+
+[2026-01-27T01:16:50.976Z] [✓ PASS] TC-WF-014
+   Test: TC-WF-014: Should configure AI node properties
+   Module: workflows
+   Duration: 24190ms
+
+[2026-01-27T01:17:15.239Z] [✓ PASS] TC-WF-015
+   Test: TC-WF-015: Should activate workflow
+   Module: workflows
+   Duration: 24247ms
+
+[2026-01-27T01:17:39.615Z] [✓ PASS] TC-WF-016
+   Test: TC-WF-016: Should deactivate workflow
+   Module: workflows
+   Duration: 24359ms
+
+[2026-01-27T01:18:01.778Z] [✓ PASS] TC-WF-017
+   Test: TC-WF-017: Should view workflow execution history
+   Module: workflows
+   Duration: 22150ms
+
+[2026-01-27T01:18:26.000Z] [✓ PASS] TC-WF-018
+   Test: TC-WF-018: Should delete test workflow
+   Module: workflows
+   Duration: 24211ms
+
+───────────────────────────────────────────────────────────────────────────────
+                              FAILED TESTS                                     
+───────────────────────────────────────────────────────────────────────────────
+
+1. TC-ADMIN-001 - TC-ADMIN-001: Should display users list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()[22m
+
+
+2. TC-ADMIN-001 - TC-ADMIN-001: Should display users list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()[22m
+
+
+3. TC-ADMIN-001 - TC-ADMIN-001: Should display users list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()[22m
+
+
+4. TC-ADMIN-003 - TC-ADMIN-003: Should create new user
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+5. TC-ADMIN-003 - TC-ADMIN-003: Should create new user
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+6. TC-ADMIN-003 - TC-ADMIN-003: Should create new user
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+7. TC-ADMIN-007 - TC-ADMIN-007: Should display roles list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()[22m
+
+
+8. TC-ADMIN-007 - TC-ADMIN-007: Should display roles list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()[22m
+
+
+9. TC-ADMIN-007 - TC-ADMIN-007: Should display roles list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()[22m
+
+
+10. TC-ADMIN-008 - TC-ADMIN-008: Should create new role
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+11. TC-ADMIN-008 - TC-ADMIN-008: Should create new role
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+12. TC-ADMIN-008 - TC-ADMIN-008: Should create new role
+   Error: TypeError: (0 , _testData.randomString) is not a function
+
+13. TC-ADMIN-011 - TC-ADMIN-011: Should display settings page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()[22m
+
+
+14. TC-ADMIN-011 - TC-ADMIN-011: Should display settings page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()[22m
+
+
+15. TC-ADMIN-011 - TC-ADMIN-011: Should display settings page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()[22m
+
+
+16. TC-ADMIN-015 - TC-ADMIN-015: Should display LLM settings page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()[22m
+
+
+17. TC-ADMIN-015 - TC-ADMIN-015: Should display LLM settings page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()[22m
+
+
+18. TC-ADMIN-015 - TC-ADMIN-015: Should display LLM settings page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()[22m
+
+
+19. TC-ADMIN-019 - TC-ADMIN-019: Should display branding settings
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()[22m
+
+
+20. TC-ADMIN-019 - TC-ADMIN-019: Should display branding settings
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()[22m
+
+
+21. TC-ADMIN-019 - TC-ADMIN-019: Should display branding settings
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()[22m
+
+
+22. TC-ADMIN-022 - TC-ADMIN-022: Should display email settings
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()[22m
+
+
+23. TC-ADMIN-022 - TC-ADMIN-022: Should display email settings
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()[22m
+
+
+24. TC-ADMIN-022 - TC-ADMIN-022: Should display email settings
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()[22m
+
+
+25. TC-ADMIN-025 - TC-ADMIN-025: Should display audit log
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()[22m
+
+
+26. TC-ADMIN-025 - TC-ADMIN-025: Should display audit log
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()[22m
+
+
+27. TC-ADMIN-025 - TC-ADMIN-025: Should display audit log
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()[22m
+
+
+28. TC-AUTH-001 - TC-AUTH-001: Should display login page correctly
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], input[name="username"], #email, #username').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], input[name="username"], #email, #username').first()[22m
+
+
+29. TC-AUTH-001 - TC-AUTH-001: Should display login page correctly
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], input[name="username"], #email, #username').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], input[name="username"], #email, #username').first()[22m
+
+
+30. TC-AUTH-001 - TC-AUTH-001: Should display login page correctly
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], input[name="username"], #email, #username').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], input[name="username"], #email, #username').first()[22m
+
+
+31. TC-AUTH-005 - TC-AUTH-005: Should show error for empty fields
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")')[22m
+[2m    - locator resolved to <button disabled tabindex="-1" type="submit" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-1ov2o8i">Sign In</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+32. TC-AUTH-005 - TC-AUTH-005: Should show error for empty fields
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")')[22m
+[2m    - locator resolved to <button disabled tabindex="-1" type="submit" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-1ov2o8i">Sign In</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    18 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+[2m    - waiting for element to be visible, enabled and stable[22m
+
+
+33. TC-AUTH-005 - TC-AUTH-005: Should show error for empty fields
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")')[22m
+[2m    - locator resolved to <button disabled tabindex="-1" type="submit" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-1ov2o8i">Sign In</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+34. TC-AUTH-010 - TC-AUTH-010: Should not access protected routes after logout
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|unauthorized/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+35. TC-AUTH-010 - TC-AUTH-010: Should not access protected routes after logout
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|unauthorized/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+36. TC-AUTH-010 - TC-AUTH-010: Should not access protected routes after logout
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|unauthorized/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+37. TC-AUTH-011 - TC-AUTH-011: Should display registration form
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], #email').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], #email').first()[22m
+
+
+38. TC-AUTH-011 - TC-AUTH-011: Should display registration form
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], #email').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], #email').first()[22m
+
+
+39. TC-AUTH-011 - TC-AUTH-011: Should display registration form
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="email"], #email').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="email"], #email').first()[22m
+
+
+40. TC-AUTH-012 - TC-AUTH-012: Should validate registration form fields
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"]').first()[22m
+
+
+41. TC-AUTH-012 - TC-AUTH-012: Should validate registration form fields
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"]').first()[22m
+
+
+42. TC-AUTH-012 - TC-AUTH-012: Should validate registration form fields
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"]').first()[22m
+
+
+43. TC-AUTH-013 - TC-AUTH-013: Should register new test user
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="firstName"], #firstName').first()[22m
+
+
+44. TC-AUTH-013 - TC-AUTH-013: Should register new test user
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="firstName"], #firstName').first()[22m
+
+
+45. TC-AUTH-013 - TC-AUTH-013: Should register new test user
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="firstName"], #firstName').first()[22m
+
+
+46. TC-AUTH-017 - TC-AUTH-017: Should handle 2FA verification page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="code"], input[name="token"], #code, #token').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="code"], input[name="token"], #code, #token').first()[22m
+
+
+47. TC-AUTH-017 - TC-AUTH-017: Should handle 2FA verification page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="code"], input[name="token"], #code, #token').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="code"], input[name="token"], #code, #token').first()[22m
+
+
+48. TC-AUTH-017 - TC-AUTH-017: Should handle 2FA verification page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('input[name="code"], input[name="token"], #code, #token').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('input[name="code"], input[name="token"], #code, #token').first()[22m
+
+
+49. TC-AUTH-019 - TC-AUTH-019: Should handle session timeout gracefully
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|session|expired/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+50. TC-AUTH-019 - TC-AUTH-019: Should handle session timeout gracefully
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|session|expired/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+51. TC-AUTH-019 - TC-AUTH-019: Should handle session timeout gracefully
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+Expected pattern: [32m/login|session|expired/i[39m
+Received string:  [31m"http://192.168.0.9/customers"[39m
+
+52. TC-AUTH-020 - TC-AUTH-020: Should handle concurrent sessions
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[name="username"]').first()[22m
+
+
+53. TC-AUTH-020 - TC-AUTH-020: Should handle concurrent sessions
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[name="username"]').first()[22m
+
+
+54. TC-AUTH-020 - TC-AUTH-020: Should handle concurrent sessions
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[name="username"]').first()[22m
+
+
+55. TC-CAMP-001 - TC-CAMP-001: Should display campaigns list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /campaign/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /campaign/i })[22m
+
+
+56. TC-CAMP-001 - TC-CAMP-001: Should display campaigns list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /campaign/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /campaign/i })[22m
+
+
+57. TC-CAMP-001 - TC-CAMP-001: Should display campaigns list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /campaign/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /campaign/i })[22m
+
+
+58. TC-CAMP-005 - TC-CAMP-005: Should create email campaign
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+59. TC-CAMP-005 - TC-CAMP-005: Should create email campaign
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+60. TC-CAMP-005 - TC-CAMP-005: Should create email campaign
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+61. TC-CAMP-006 - TC-CAMP-006: Should create social media campaign
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+62. TC-CAMP-006 - TC-CAMP-006: Should create social media campaign
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+63. TC-CAMP-006 - TC-CAMP-006: Should create social media campaign
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+64. TC-CAMP-007 - TC-CAMP-007: Should set target audience
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[role="option"]').first()[22m
+
+
+65. TC-CAMP-007 - TC-CAMP-007: Should set target audience
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[role="option"]').first()[22m
+
+
+66. TC-CAMP-007 - TC-CAMP-007: Should set target audience
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[role="option"]').first()[22m
+
+
+67. TC-CONT-001 - TC-CONT-001: Should display contacts list page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /contact/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /contact/i })[22m
+
+
+68. TC-CONT-001 - TC-CONT-001: Should display contacts list page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /contact/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /contact/i })[22m
+
+
+69. TC-CONT-001 - TC-CONT-001: Should display contacts list page
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /contact/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /contact/i })[22m
+
+
+70. TC-CONT-006 - TC-CONT-006: Should create new contact
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+71. TC-CONT-006 - TC-CONT-006: Should create new contact
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+72. TC-CONT-006 - TC-CONT-006: Should create new contact
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+73. TC-CONT-007 - TC-CONT-007: Should validate required fields
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+74. TC-CONT-007 - TC-CONT-007: Should validate required fields
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+75. TC-CONT-007 - TC-CONT-007: Should validate required fields
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"], button:has-text("Save")').first()[22m
+
+
+76. TC-CUST-010 - TC-CUST-010: Should create new corporate customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+77. TC-CUST-010 - TC-CUST-010: Should create new corporate customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+78. TC-CUST-010 - TC-CUST-010: Should create new corporate customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+79. TC-CUST-011 - TC-CUST-011: Should create individual customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+80. TC-CUST-011 - TC-CUST-011: Should create individual customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+81. TC-CUST-011 - TC-CUST-011: Should create individual customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+82. TC-CUST-012 - TC-CUST-012: Should cancel customer creation
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+83. TC-CUST-012 - TC-CUST-012: Should cancel customer creation
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+84. TC-CUST-012 - TC-CUST-012: Should cancel customer creation
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+85. TC-CUST-019 - TC-CUST-019: Should navigate to customer details
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+86. TC-CUST-019 - TC-CUST-019: Should navigate to customer details
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+87. TC-CUST-019 - TC-CUST-019: Should navigate to customer details
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+88. TC-UNKNOWN - TC-DL-USER-001: Should create test admin user
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+
+
+89. TC-UNKNOWN - TC-DL-USER-001: Should create test admin user
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+
+
+90. TC-UNKNOWN - TC-DL-CUST-001: Should create enterprise customer with full details
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+91. TC-UNKNOWN - TC-DL-CUST-001: Should create enterprise customer with full details
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+92. TC-UNKNOWN - TC-DL-CUST-001: Should create enterprise customer with full details
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+93. TC-LEAD-001 - TC-LEAD-001: Should display leads list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /lead/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /lead/i })[22m
+
+
+94. TC-LEAD-001 - TC-LEAD-001: Should display leads list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /lead/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /lead/i })[22m
+
+
+95. TC-LEAD-001 - TC-LEAD-001: Should display leads list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /lead/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /lead/i })[22m
+
+
+96. TC-LEAD-004 - TC-LEAD-004: Should create new lead
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+97. TC-LEAD-004 - TC-LEAD-004: Should create new lead
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+98. TC-LEAD-004 - TC-LEAD-004: Should create new lead
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+99. TC-LEAD-005 - TC-LEAD-005: Should set lead status
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+100. TC-LEAD-005 - TC-LEAD-005: Should set lead status
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+101. TC-LEAD-005 - TC-LEAD-005: Should set lead status
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+102. TC-LEAD-006 - TC-LEAD-006: Should set lead source
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+103. TC-LEAD-006 - TC-LEAD-006: Should set lead source
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+104. TC-LEAD-006 - TC-LEAD-006: Should set lead source
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+105. TC-OPP-001 - TC-OPP-001: Should display opportunities list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })[22m
+
+
+106. TC-OPP-001 - TC-OPP-001: Should display opportunities list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })[22m
+
+
+107. TC-OPP-001 - TC-OPP-001: Should display opportunities list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })[22m
+
+
+108. TC-OPP-002 - TC-OPP-002: Should display pipeline stages
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+109. TC-OPP-002 - TC-OPP-002: Should display pipeline stages
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+110. TC-OPP-002 - TC-OPP-002: Should display pipeline stages
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+111. TC-OPP-005 - TC-OPP-005: Should open create opportunity dialog
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+112. TC-OPP-005 - TC-OPP-005: Should open create opportunity dialog
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+113. TC-OPP-005 - TC-OPP-005: Should open create opportunity dialog
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+114. TC-OPP-006 - TC-OPP-006: Should create new opportunity
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+115. TC-OPP-006 - TC-OPP-006: Should create new opportunity
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+116. TC-OPP-006 - TC-OPP-006: Should create new opportunity
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+117. TC-OPP-007 - TC-OPP-007: Should set close date
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+118. TC-OPP-007 - TC-OPP-007: Should set close date
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+119. TC-OPP-007 - TC-OPP-007: Should set close date
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+120. TC-OPP-008 - TC-OPP-008: Should link to customer
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+121. TC-OPP-008 - TC-OPP-008: Should link to customer
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+122. TC-OPP-008 - TC-OPP-008: Should link to customer
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+123. TC-SR-001 - TC-SR-001: Should display service requests list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })[22m
+
+
+124. TC-SR-001 - TC-SR-001: Should display service requests list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })[22m
+
+
+125. TC-SR-001 - TC-SR-001: Should display service requests list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })[22m
+
+
+126. TC-SR-006 - TC-SR-006: Should create bug report
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+127. TC-SR-006 - TC-SR-006: Should create bug report
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+128. TC-SR-006 - TC-SR-006: Should create bug report
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+129. TC-SR-007 - TC-SR-007: Should create feature request
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+130. TC-SR-007 - TC-SR-007: Should create feature request
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+131. TC-SR-007 - TC-SR-007: Should create feature request
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+132. TC-SR-008 - TC-SR-008: Should create urgent ticket
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+133. TC-SR-008 - TC-SR-008: Should create urgent ticket
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+134. TC-SR-008 - TC-SR-008: Should create urgent ticket
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+135. TC-SR-009 - TC-SR-009: Should link to customer
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+136. TC-SR-009 - TC-SR-009: Should link to customer
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+137. TC-SR-009 - TC-SR-009: Should link to customer
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+138. TC-UNKNOWN - TC-WF-CREATE-001: Should create lead qualification workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+139. TC-UNKNOWN - TC-WF-CREATE-001: Should create lead qualification workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+140. TC-UNKNOWN - TC-WF-CREATE-001: Should create lead qualification workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+141. TC-UNKNOWN - TC-WF-CREATE-002: Should create customer onboarding workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+142. TC-UNKNOWN - TC-WF-CREATE-002: Should create customer onboarding workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+143. TC-UNKNOWN - TC-WF-CREATE-002: Should create customer onboarding workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+144. TC-UNKNOWN - TC-WF-CREATE-003: Should create ticket escalation workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+145. TC-UNKNOWN - TC-WF-CREATE-003: Should create ticket escalation workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+146. TC-UNKNOWN - TC-WF-CREATE-003: Should create ticket escalation workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+147. TC-UNKNOWN - TC-WF-CREATE-004: Should create deal approval workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+148. TC-UNKNOWN - TC-WF-CREATE-004: Should create deal approval workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+149. TC-UNKNOWN - TC-WF-CREATE-004: Should create deal approval workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+150. TC-WF-001 - TC-WF-001: Should display workflows list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /workflow/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /workflow/i })[22m
+
+
+151. TC-WF-001 - TC-WF-001: Should display workflows list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /workflow/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /workflow/i })[22m
+
+
+152. TC-WF-001 - TC-WF-001: Should display workflows list
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('h1, h2, .page-title').filter({ hasText: /workflow/i })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /workflow/i })[22m
+
+
+153. TC-WF-002 - TC-WF-002: Should have create workflow button
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+154. TC-WF-002 - TC-WF-002: Should have create workflow button
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+155. TC-WF-002 - TC-WF-002: Should have create workflow button
+   Error: Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+Locator: locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+[2m  - Expect "toBeVisible" with timeout 10000ms[22m
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+156. TC-WF-004 - TC-WF-004: Should open workflow designer
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+157. TC-WF-004 - TC-WF-004: Should open workflow designer
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+158. TC-WF-004 - TC-WF-004: Should open workflow designer
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+159. TC-WF-005 - TC-WF-005: Should create new workflow
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+160. TC-WF-005 - TC-WF-005: Should create new workflow
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+161. TC-WF-005 - TC-WF-005: Should create new workflow
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+162. TC-WF-006 - TC-WF-006: Should set workflow trigger
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+163. TC-WF-006 - TC-WF-006: Should set workflow trigger
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+164. TC-WF-006 - TC-WF-006: Should set workflow trigger
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              END OF LOG                                        
+═══════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,29 @@
+{
+  "name": "crm-e2e-tests",
+  "version": "1.0.0",
+  "description": "CRM Solution - End-to-End Test Suite",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "test:auth": "playwright test tests/auth/",
+    "test:customers": "playwright test tests/customers/",
+    "test:contacts": "playwright test tests/contacts/",
+    "test:opportunities": "playwright test tests/opportunities/",
+    "test:leads": "playwright test tests/leads/",
+    "test:service-requests": "playwright test tests/service-requests/",
+    "test:campaigns": "playwright test tests/campaigns/",
+    "test:workflows": "playwright test tests/workflows/",
+    "test:admin": "playwright test tests/admin/",
+    "test:dashboard": "playwright test tests/dashboard/"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0"
+  },
+  "keywords": ["e2e", "testing", "playwright", "crm"],
+  "author": "CRM Solution QA Team",
+  "license": "AGPL-3.0"
+}

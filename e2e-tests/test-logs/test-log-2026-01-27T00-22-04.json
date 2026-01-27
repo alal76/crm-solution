@@ -1,0 +1,319 @@
+{
+  "summary": {
+    "startTime": "2026-01-27T00:22:04.373Z",
+    "totalTests": 35,
+    "passed": 20,
+    "failed": 12,
+    "skipped": 3,
+    "duration": 244168,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "customers": {
+        "total": 34,
+        "passed": 19,
+        "failed": 12,
+        "skipped": 3
+      }
+    },
+    "endTime": "2026-01-27T00:26:08.541Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-01-27T00:22:11.045Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 5097
+    },
+    {
+      "timestamp": "2026-01-27T00:22:14.026Z",
+      "testId": "TC-CUST-001",
+      "testName": "TC-CUST-001: Should display customers list page",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 2212
+    },
+    {
+      "timestamp": "2026-01-27T00:22:16.390Z",
+      "testId": "TC-CUST-002",
+      "testName": "TC-CUST-002: Should display customer data grid columns",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 2352
+    },
+    {
+      "timestamp": "2026-01-27T00:22:18.769Z",
+      "testId": "TC-CUST-003",
+      "testName": "TC-CUST-003: Should have Add Customer button",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 2367
+    },
+    {
+      "timestamp": "2026-01-27T00:22:22.598Z",
+      "testId": "TC-CUST-004",
+      "testName": "TC-CUST-004: Should search customers",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3812
+    },
+    {
+      "timestamp": "2026-01-27T00:22:26.450Z",
+      "testId": "TC-CUST-005",
+      "testName": "TC-CUST-005: Should filter customers by type",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3839
+    },
+    {
+      "timestamp": "2026-01-27T00:22:29.905Z",
+      "testId": "TC-CUST-006",
+      "testName": "TC-CUST-006: Should paginate customer list",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3440
+    },
+    {
+      "timestamp": "2026-01-27T00:22:32.804Z",
+      "testId": "TC-CUST-007",
+      "testName": "TC-CUST-007: Should sort customers by column",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 2884
+    },
+    {
+      "timestamp": "2026-01-27T00:22:34.741Z",
+      "testId": "TC-CUST-008",
+      "testName": "TC-CUST-008: Should open create customer dialog",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 1927
+    },
+    {
+      "timestamp": "2026-01-27T00:22:37.648Z",
+      "testId": "TC-CUST-009",
+      "testName": "TC-CUST-009: Should validate required fields on create",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 2896
+    },
+    {
+      "timestamp": "2026-01-27T00:22:49.482Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 11792,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], input[aria-label*=\"Name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:04.509Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 14201,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], input[aria-label*=\"Name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:17.301Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 12044,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], input[aria-label*=\"Name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:30.215Z",
+      "testId": "TC-CUST-011",
+      "testName": "TC-CUST-011: Should create individual customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 12170,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:44.009Z",
+      "testId": "TC-CUST-011",
+      "testName": "TC-CUST-011: Should create individual customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 12811,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:56.731Z",
+      "testId": "TC-CUST-011",
+      "testName": "TC-CUST-011: Should create individual customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 11945,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:24:09.708Z",
+      "testId": "TC-CUST-012",
+      "testName": "TC-CUST-012: Should cancel customer creation",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 11979,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:24:23.166Z",
+      "testId": "TC-CUST-012",
+      "testName": "TC-CUST-012: Should cancel customer creation",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 12667,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:24:35.710Z",
+      "testId": "TC-CUST-012",
+      "testName": "TC-CUST-012: Should cancel customer creation",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 11843,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:24:39.856Z",
+      "testId": "TC-CUST-013",
+      "testName": "TC-CUST-013: Should open customer for editing",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3484
+    },
+    {
+      "timestamp": "2026-01-27T00:24:44.121Z",
+      "testId": "TC-CUST-014",
+      "testName": "TC-CUST-014: Should update customer name",
+      "module": "customers",
+      "status": "SKIP",
+      "duration": 4251
+    },
+    {
+      "timestamp": "2026-01-27T00:24:47.536Z",
+      "testId": "TC-CUST-015",
+      "testName": "TC-CUST-015: Should validate on update",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3398
+    },
+    {
+      "timestamp": "2026-01-27T00:24:51.972Z",
+      "testId": "TC-CUST-016",
+      "testName": "TC-CUST-016: Should show delete confirmation",
+      "module": "customers",
+      "status": "SKIP",
+      "duration": 4424
+    },
+    {
+      "timestamp": "2026-01-27T00:24:56.297Z",
+      "testId": "TC-CUST-017",
+      "testName": "TC-CUST-017: Should cancel delete operation",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 4311
+    },
+    {
+      "timestamp": "2026-01-27T00:25:00.774Z",
+      "testId": "TC-CUST-018",
+      "testName": "TC-CUST-018: Should delete test customer",
+      "module": "customers",
+      "status": "SKIP",
+      "duration": 4462
+    },
+    {
+      "timestamp": "2026-01-27T00:25:14.096Z",
+      "testId": "TC-CUST-019",
+      "testName": "TC-CUST-019: Should navigate to customer details",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 13266,
+      "error": "TimeoutError: locator.dblclick: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.MuiDataGrid-row').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:25:29.738Z",
+      "testId": "TC-CUST-019",
+      "testName": "TC-CUST-019: Should navigate to customer details",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 14618,
+      "error": "TimeoutError: locator.dblclick: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.MuiDataGrid-row').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:25:44.405Z",
+      "testId": "TC-CUST-019",
+      "testName": "TC-CUST-019: Should navigate to customer details",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 13657,
+      "error": "TimeoutError: locator.dblclick: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.MuiDataGrid-row').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:25:49.599Z",
+      "testId": "TC-CUST-020",
+      "testName": "TC-CUST-020: Should display customer overview",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3680
+    },
+    {
+      "timestamp": "2026-01-27T00:25:52.885Z",
+      "testId": "TC-CUST-021",
+      "testName": "TC-CUST-021: Should display contact info section",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3274
+    },
+    {
+      "timestamp": "2026-01-27T00:25:57.258Z",
+      "testId": "TC-CUST-022",
+      "testName": "TC-CUST-022: Should add email to customer",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 4359
+    },
+    {
+      "timestamp": "2026-01-27T00:26:01.707Z",
+      "testId": "TC-CUST-023",
+      "testName": "TC-CUST-023: Should add phone to customer",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 4432
+    },
+    {
+      "timestamp": "2026-01-27T00:26:06.032Z",
+      "testId": "TC-CUST-024",
+      "testName": "TC-CUST-024: Should add address to customer",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 4309
+    },
+    {
+      "timestamp": "2026-01-27T00:26:07.235Z",
+      "testId": "TC-CUST-025",
+      "testName": "TC-CUST-025: Should have export button",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 1193
+    },
+    {
+      "timestamp": "2026-01-27T00:26:08.494Z",
+      "testId": "TC-CUST-026",
+      "testName": "TC-CUST-026: Should have import button",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 1247
+    }
+  ]
+}

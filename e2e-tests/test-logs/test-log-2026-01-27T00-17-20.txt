@@ -1,0 +1,1125 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CRM SOLUTION - E2E TEST EXECUTION LOG                       
+═══════════════════════════════════════════════════════════════════════════════
+
+Test Run Started:  2026-01-27T00:17:20.970Z
+Test Run Ended:    2026-01-27T00:34:03.969Z
+Total Duration:    16m 42s
+
+───────────────────────────────────────────────────────────────────────────────
+                              EXECUTION SUMMARY                                 
+───────────────────────────────────────────────────────────────────────────────
+  Total Tests:     74
+  Passed:          38 (51%)
+  Failed:          36 (49%)
+  Skipped:         0 (0%)
+
+───────────────────────────────────────────────────────────────────────────────
+                              MODULE BREAKDOWN                                  
+───────────────────────────────────────────────────────────────────────────────
+
+  AUTH.SETUP.TS
+  ├─ Total:   1
+  ├─ Passed:  1
+  ├─ Failed:  0
+  ├─ Skipped: 0
+  └─ Pass Rate: 100%
+
+  DATA-LIFECYCLE
+  ├─ Total:   41
+  ├─ Passed:  20
+  ├─ Failed:  21
+  ├─ Skipped: 0
+  └─ Pass Rate: 49%
+
+  WORKFLOW-EXECUTION
+  ├─ Total:   32
+  ├─ Passed:  17
+  ├─ Failed:  15
+  ├─ Skipped: 0
+  └─ Pass Rate: 53%
+
+───────────────────────────────────────────────────────────────────────────────
+                              DETAILED TEST LOG                                 
+───────────────────────────────────────────────────────────────────────────────
+
+[2026-01-27T00:17:26.904Z] [✓ PASS] TC-UNKNOWN
+   Test: authenticate
+   Module: auth.setup.ts
+   Duration: 4479ms
+
+[2026-01-27T00:17:41.562Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-001: Should create test admin user
+   Module: data-lifecycle
+   Duration: 13909ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+
+
+[2026-01-27T00:17:56.839Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-001: Should create test admin user
+   Module: data-lifecycle
+   Duration: 14243ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+
+
+[2026-01-27T00:18:10.844Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-001: Should create test admin user
+   Module: data-lifecycle
+   Duration: 13271ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+
+
+[2026-01-27T00:18:24.446Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-002: Should create test sales team users
+   Module: data-lifecycle
+   Duration: 12819ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:18:39.367Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-002: Should create test sales team users
+   Module: data-lifecycle
+   Duration: 13944ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:18:53.505Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-002: Should create test sales team users
+   Module: data-lifecycle
+   Duration: 13227ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:19:07.098Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-003: Should create test support team users
+   Module: data-lifecycle
+   Duration: 12871ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:19:21.546Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-003: Should create test support team users
+   Module: data-lifecycle
+   Duration: 13616ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:19:35.220Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-USER-003: Should create test support team users
+   Module: data-lifecycle
+   Duration: 12970ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:19:44.209Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-USER-004: Should modify user details
+   Module: data-lifecycle
+   Duration: 8240ms
+
+[2026-01-27T00:19:49.513Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-USER-005: Should verify user visibility in lists
+   Module: data-lifecycle
+   Duration: 5289ms
+
+[2026-01-27T00:19:54.989Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CUST-001: Should create enterprise customer with full details
+   Module: data-lifecycle
+   Duration: 5461ms
+
+[2026-01-27T00:20:09.008Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-CUST-002: Should create multiple test customers
+   Module: data-lifecycle
+   Duration: 13977ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-328akr">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:20:24.324Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-CUST-002: Should create multiple test customers
+   Module: data-lifecycle
+   Duration: 14425ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-328akr">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:20:39.169Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-CUST-002: Should create multiple test customers
+   Module: data-lifecycle
+   Duration: 14130ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-328akr">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-01-27T00:20:45.296Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CUST-003: Should modify customer data
+   Module: data-lifecycle
+   Duration: 5266ms
+
+[2026-01-27T00:20:50.271Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CUST-004: Should verify customer appears in search results
+   Module: data-lifecycle
+   Duration: 4958ms
+
+[2026-01-27T00:21:03.355Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-CONT-001: Should create contacts for enterprise customer
+   Module: data-lifecycle
+   Duration: 13037ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[type="email"]').first()[22m
+
+
+[2026-01-27T00:21:18.521Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-CONT-001: Should create contacts for enterprise customer
+   Module: data-lifecycle
+   Duration: 14188ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[type="email"]').first()[22m
+
+
+[2026-01-27T00:21:32.363Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-CONT-001: Should create contacts for enterprise customer
+   Module: data-lifecycle
+   Duration: 13097ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[type="email"]').first()[22m
+
+
+[2026-01-27T00:21:38.597Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CONT-002: Should modify contact and verify customer link
+   Module: data-lifecycle
+   Duration: 5397ms
+
+[2026-01-27T00:21:52.118Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-OPP-001: Should create high-value opportunity
+   Module: data-lifecycle
+   Duration: 13424ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('textarea[name="description"], #description').first()[22m
+
+
+[2026-01-27T00:23:06.332Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-OPP-001: Should create high-value opportunity
+   Module: data-lifecycle
+   Duration: 13123ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('textarea[name="description"], #description').first()[22m
+
+
+[2026-01-27T00:23:20.151Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-OPP-001: Should create high-value opportunity
+   Module: data-lifecycle
+   Duration: 12834ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('textarea[name="description"], #description').first()[22m
+
+
+[2026-01-27T00:23:26.054Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-OPP-002: Should advance opportunity through stages
+   Module: data-lifecycle
+   Duration: 5262ms
+
+[2026-01-27T00:23:31.720Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-OPP-003: Should verify opportunity-customer relationship
+   Module: data-lifecycle
+   Duration: 5650ms
+
+[2026-01-27T00:23:35.988Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-LEAD-001: Should create hot lead
+   Module: data-lifecycle
+   Duration: 4248ms
+
+[2026-01-27T00:23:42.223Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-LEAD-002: Should convert lead to opportunity
+   Module: data-lifecycle
+   Duration: 6220ms
+
+[2026-01-27T00:23:48.532Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-LEAD-003: Should update lead score
+   Module: data-lifecycle
+   Duration: 6294ms
+
+[2026-01-27T00:24:01.546Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-SR-001: Should create critical service request
+   Module: data-lifecycle
+   Duration: 12973ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+[2026-01-27T00:24:16.360Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-SR-001: Should create critical service request
+   Module: data-lifecycle
+   Duration: 13868ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+[2026-01-27T00:24:31.121Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-DL-SR-001: Should create critical service request
+   Module: data-lifecycle
+   Duration: 13422ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+[2026-01-27T00:24:38.345Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-SR-002: Should transition service request status
+   Module: data-lifecycle
+   Duration: 6494ms
+
+[2026-01-27T00:24:44.738Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-SR-003: Should verify customer link in service request
+   Module: data-lifecycle
+   Duration: 6377ms
+
+[2026-01-27T00:24:48.778Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CAMP-001: Should create email campaign
+   Module: data-lifecycle
+   Duration: 4018ms
+
+[2026-01-27T00:24:54.098Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CAMP-002: Should start campaign
+   Module: data-lifecycle
+   Duration: 5298ms
+
+[2026-01-27T00:24:58.403Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-REL-001: Should verify customer deletion affects contacts
+   Module: data-lifecycle
+   Duration: 4295ms
+
+[2026-01-27T00:25:02.788Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-REL-002: Should verify opportunity affects customer revenue
+   Module: data-lifecycle
+   Duration: 4372ms
+
+[2026-01-27T00:25:07.002Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-REL-003: Should verify lead conversion creates customer and opportunity
+   Module: data-lifecycle
+   Duration: 4200ms
+
+[2026-01-27T00:25:11.811Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-REL-004: Should verify service request links to customer history
+   Module: data-lifecycle
+   Duration: 4797ms
+
+[2026-01-27T00:25:36.434Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-DL-CLEAN-001: Should list all TEST_ data for cleanup
+   Module: data-lifecycle
+   Duration: 24597ms
+
+[2026-01-27T00:25:38.945Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-001: Should create lead qualification workflow
+   Module: workflow-execution
+   Duration: 2452ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:25:42.221Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-001: Should create lead qualification workflow
+   Module: workflow-execution
+   Duration: 2394ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:25:45.341Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-001: Should create lead qualification workflow
+   Module: workflow-execution
+   Duration: 2341ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:25:49.616Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-002: Should create customer onboarding workflow
+   Module: workflow-execution
+   Duration: 2376ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:25:52.913Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-002: Should create customer onboarding workflow
+   Module: workflow-execution
+   Duration: 2403ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:25:56.190Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-002: Should create customer onboarding workflow
+   Module: workflow-execution
+   Duration: 2461ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:25:59.836Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-003: Should create ticket escalation workflow
+   Module: workflow-execution
+   Duration: 2297ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:26:03.031Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-003: Should create ticket escalation workflow
+   Module: workflow-execution
+   Duration: 2396ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:26:06.050Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-003: Should create ticket escalation workflow
+   Module: workflow-execution
+   Duration: 2204ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:26:09.430Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-004: Should create deal approval workflow
+   Module: workflow-execution
+   Duration: 2328ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:26:13.655Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-004: Should create deal approval workflow
+   Module: workflow-execution
+   Duration: 2682ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:26:20.211Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-CREATE-004: Should create deal approval workflow
+   Module: workflow-execution
+   Duration: 5675ms
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+[2026-01-27T00:26:46.906Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-DESIGN-001: Should add trigger node to workflow
+   Module: workflow-execution
+   Duration: 25941ms
+
+[2026-01-27T00:27:12.177Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-DESIGN-002: Should add condition node to workflow
+   Module: workflow-execution
+   Duration: 25221ms
+
+[2026-01-27T00:27:37.586Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-DESIGN-003: Should add AI action node to workflow
+   Module: workflow-execution
+   Duration: 25390ms
+
+[2026-01-27T00:28:02.989Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-DESIGN-004: Should connect workflow nodes
+   Module: workflow-execution
+   Duration: 25384ms
+
+[2026-01-27T00:28:28.488Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-EXEC-001: Should activate workflow
+   Module: workflow-execution
+   Duration: 25478ms
+
+[2026-01-27T00:28:54.016Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-EXEC-002: Should manually trigger workflow
+   Module: workflow-execution
+   Duration: 25482ms
+
+[2026-01-27T00:29:02.538Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-EXEC-003: Should trigger workflow via lead creation
+   Module: workflow-execution
+   Duration: 8510ms
+
+[2026-01-27T00:29:17.651Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-EXEC-004: Should trigger workflow via service request creation
+   Module: workflow-execution
+   Duration: 15067ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+[2026-01-27T00:29:34.046Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-EXEC-004: Should trigger workflow via service request creation
+   Module: workflow-execution
+   Duration: 15472ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+[2026-01-27T00:29:49.447Z] [✗ FAIL] TC-UNKNOWN
+   Test: TC-WF-EXEC-004: Should trigger workflow via service request creation
+   Module: workflow-execution
+   Duration: 14615ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+[2026-01-27T00:30:15.457Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-HIST-001: Should view workflow execution history
+   Module: workflow-execution
+   Duration: 25254ms
+
+[2026-01-27T00:30:40.734Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-HIST-002: Should view execution details
+   Module: workflow-execution
+   Duration: 25260ms
+
+[2026-01-27T00:31:06.238Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-HIST-003: Should view execution logs
+   Module: workflow-execution
+   Duration: 25462ms
+
+[2026-01-27T00:31:32.132Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-AI-001: Should configure AI text generation node
+   Module: workflow-execution
+   Duration: 25838ms
+
+[2026-01-27T00:31:58.288Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-AI-002: Should configure AI classification node
+   Module: workflow-execution
+   Duration: 26136ms
+
+[2026-01-27T00:32:23.536Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-AI-003: Should configure AI sentiment analysis node
+   Module: workflow-execution
+   Duration: 25231ms
+
+[2026-01-27T00:32:48.978Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-MGT-001: Should duplicate workflow
+   Module: workflow-execution
+   Duration: 25426ms
+
+[2026-01-27T00:33:14.304Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-MGT-002: Should deactivate workflow
+   Module: workflow-execution
+   Duration: 25314ms
+
+[2026-01-27T00:33:39.487Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-MGT-003: Should export workflow
+   Module: workflow-execution
+   Duration: 25167ms
+
+[2026-01-27T00:34:03.921Z] [✓ PASS] TC-UNKNOWN
+   Test: TC-WF-SUM-001: Should list all test workflows
+   Module: workflow-execution
+   Duration: 24411ms
+
+───────────────────────────────────────────────────────────────────────────────
+                              FAILED TESTS                                     
+───────────────────────────────────────────────────────────────────────────────
+
+1. TC-UNKNOWN - TC-DL-USER-001: Should create test admin user
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+
+
+2. TC-UNKNOWN - TC-DL-USER-001: Should create test admin user
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+
+
+3. TC-UNKNOWN - TC-DL-USER-001: Should create test admin user
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+
+
+4. TC-UNKNOWN - TC-DL-USER-002: Should create test sales team users
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+5. TC-UNKNOWN - TC-DL-USER-002: Should create test sales team users
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+6. TC-UNKNOWN - TC-DL-USER-002: Should create test sales team users
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+7. TC-UNKNOWN - TC-DL-USER-003: Should create test support team users
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+8. TC-UNKNOWN - TC-DL-USER-003: Should create test support team users
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+9. TC-UNKNOWN - TC-DL-USER-003: Should create test support team users
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+10. TC-UNKNOWN - TC-DL-CUST-002: Should create multiple test customers
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-328akr">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+11. TC-UNKNOWN - TC-DL-CUST-002: Should create multiple test customers
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-328akr">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+12. TC-UNKNOWN - TC-DL-CUST-002: Should create multiple test customers
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-328akr">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+13. TC-UNKNOWN - TC-DL-CONT-001: Should create contacts for enterprise customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[type="email"]').first()[22m
+
+
+14. TC-UNKNOWN - TC-DL-CONT-001: Should create contacts for enterprise customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[type="email"]').first()[22m
+
+
+15. TC-UNKNOWN - TC-DL-CONT-001: Should create contacts for enterprise customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[type="email"]').first()[22m
+
+
+16. TC-UNKNOWN - TC-DL-OPP-001: Should create high-value opportunity
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('textarea[name="description"], #description').first()[22m
+
+
+17. TC-UNKNOWN - TC-DL-OPP-001: Should create high-value opportunity
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('textarea[name="description"], #description').first()[22m
+
+
+18. TC-UNKNOWN - TC-DL-OPP-001: Should create high-value opportunity
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('textarea[name="description"], #description').first()[22m
+
+
+19. TC-UNKNOWN - TC-DL-SR-001: Should create critical service request
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+20. TC-UNKNOWN - TC-DL-SR-001: Should create critical service request
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+21. TC-UNKNOWN - TC-DL-SR-001: Should create critical service request
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+22. TC-UNKNOWN - TC-WF-CREATE-001: Should create lead qualification workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+23. TC-UNKNOWN - TC-WF-CREATE-001: Should create lead qualification workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+24. TC-UNKNOWN - TC-WF-CREATE-001: Should create lead qualification workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+25. TC-UNKNOWN - TC-WF-CREATE-002: Should create customer onboarding workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+26. TC-UNKNOWN - TC-WF-CREATE-002: Should create customer onboarding workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+27. TC-UNKNOWN - TC-WF-CREATE-002: Should create customer onboarding workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+28. TC-UNKNOWN - TC-WF-CREATE-003: Should create ticket escalation workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+29. TC-UNKNOWN - TC-WF-CREATE-003: Should create ticket escalation workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+30. TC-UNKNOWN - TC-WF-CREATE-003: Should create ticket escalation workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+31. TC-UNKNOWN - TC-WF-CREATE-004: Should create deal approval workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+32. TC-UNKNOWN - TC-WF-CREATE-004: Should create deal approval workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+33. TC-UNKNOWN - TC-WF-CREATE-004: Should create deal approval workflow
+   Error: TypeError: Cannot read properties of undefined (reading 'name')
+
+34. TC-UNKNOWN - TC-WF-EXEC-004: Should trigger workflow via service request creation
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+35. TC-UNKNOWN - TC-WF-EXEC-004: Should trigger workflow via service request creation
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+36. TC-UNKNOWN - TC-WF-EXEC-004: Should trigger workflow via service request creation
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              END OF LOG                                        
+═══════════════════════════════════════════════════════════════════════════════

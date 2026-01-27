@@ -1,0 +1,341 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CRM SOLUTION - E2E TEST EXECUTION LOG                       
+═══════════════════════════════════════════════════════════════════════════════
+
+Test Run Started:  2026-01-27T00:22:04.373Z
+Test Run Ended:    2026-01-27T00:26:08.541Z
+Total Duration:    4m 4s
+
+───────────────────────────────────────────────────────────────────────────────
+                              EXECUTION SUMMARY                                 
+───────────────────────────────────────────────────────────────────────────────
+  Total Tests:     35
+  Passed:          20 (57%)
+  Failed:          12 (34%)
+  Skipped:         3 (9%)
+
+───────────────────────────────────────────────────────────────────────────────
+                              MODULE BREAKDOWN                                  
+───────────────────────────────────────────────────────────────────────────────
+
+  AUTH.SETUP.TS
+  ├─ Total:   1
+  ├─ Passed:  1
+  ├─ Failed:  0
+  ├─ Skipped: 0
+  └─ Pass Rate: 100%
+
+  CUSTOMERS
+  ├─ Total:   34
+  ├─ Passed:  19
+  ├─ Failed:  12
+  ├─ Skipped: 3
+  └─ Pass Rate: 56%
+
+───────────────────────────────────────────────────────────────────────────────
+                              DETAILED TEST LOG                                 
+───────────────────────────────────────────────────────────────────────────────
+
+[2026-01-27T00:22:11.045Z] [✓ PASS] TC-UNKNOWN
+   Test: authenticate
+   Module: auth.setup.ts
+   Duration: 5097ms
+
+[2026-01-27T00:22:14.026Z] [✓ PASS] TC-CUST-001
+   Test: TC-CUST-001: Should display customers list page
+   Module: customers
+   Duration: 2212ms
+
+[2026-01-27T00:22:16.390Z] [✓ PASS] TC-CUST-002
+   Test: TC-CUST-002: Should display customer data grid columns
+   Module: customers
+   Duration: 2352ms
+
+[2026-01-27T00:22:18.769Z] [✓ PASS] TC-CUST-003
+   Test: TC-CUST-003: Should have Add Customer button
+   Module: customers
+   Duration: 2367ms
+
+[2026-01-27T00:22:22.598Z] [✓ PASS] TC-CUST-004
+   Test: TC-CUST-004: Should search customers
+   Module: customers
+   Duration: 3812ms
+
+[2026-01-27T00:22:26.450Z] [✓ PASS] TC-CUST-005
+   Test: TC-CUST-005: Should filter customers by type
+   Module: customers
+   Duration: 3839ms
+
+[2026-01-27T00:22:29.905Z] [✓ PASS] TC-CUST-006
+   Test: TC-CUST-006: Should paginate customer list
+   Module: customers
+   Duration: 3440ms
+
+[2026-01-27T00:22:32.804Z] [✓ PASS] TC-CUST-007
+   Test: TC-CUST-007: Should sort customers by column
+   Module: customers
+   Duration: 2884ms
+
+[2026-01-27T00:22:34.741Z] [✓ PASS] TC-CUST-008
+   Test: TC-CUST-008: Should open create customer dialog
+   Module: customers
+   Duration: 1927ms
+
+[2026-01-27T00:22:37.648Z] [✓ PASS] TC-CUST-009
+   Test: TC-CUST-009: Should validate required fields on create
+   Module: customers
+   Duration: 2896ms
+
+[2026-01-27T00:22:49.482Z] [✗ FAIL] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 11792ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+[2026-01-27T00:23:04.509Z] [✗ FAIL] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 14201ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+[2026-01-27T00:23:17.301Z] [✗ FAIL] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 12044ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+[2026-01-27T00:23:30.215Z] [✗ FAIL] TC-CUST-011
+   Test: TC-CUST-011: Should create individual customer
+   Module: customers
+   Duration: 12170ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:23:44.009Z] [✗ FAIL] TC-CUST-011
+   Test: TC-CUST-011: Should create individual customer
+   Module: customers
+   Duration: 12811ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:23:56.731Z] [✗ FAIL] TC-CUST-011
+   Test: TC-CUST-011: Should create individual customer
+   Module: customers
+   Duration: 11945ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:24:09.708Z] [✗ FAIL] TC-CUST-012
+   Test: TC-CUST-012: Should cancel customer creation
+   Module: customers
+   Duration: 11979ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:24:23.166Z] [✗ FAIL] TC-CUST-012
+   Test: TC-CUST-012: Should cancel customer creation
+   Module: customers
+   Duration: 12667ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:24:35.710Z] [✗ FAIL] TC-CUST-012
+   Test: TC-CUST-012: Should cancel customer creation
+   Module: customers
+   Duration: 11843ms
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+[2026-01-27T00:24:39.856Z] [✓ PASS] TC-CUST-013
+   Test: TC-CUST-013: Should open customer for editing
+   Module: customers
+   Duration: 3484ms
+
+[2026-01-27T00:24:44.121Z] [○ SKIP] TC-CUST-014
+   Test: TC-CUST-014: Should update customer name
+   Module: customers
+   Duration: 4251ms
+
+[2026-01-27T00:24:47.536Z] [✓ PASS] TC-CUST-015
+   Test: TC-CUST-015: Should validate on update
+   Module: customers
+   Duration: 3398ms
+
+[2026-01-27T00:24:51.972Z] [○ SKIP] TC-CUST-016
+   Test: TC-CUST-016: Should show delete confirmation
+   Module: customers
+   Duration: 4424ms
+
+[2026-01-27T00:24:56.297Z] [✓ PASS] TC-CUST-017
+   Test: TC-CUST-017: Should cancel delete operation
+   Module: customers
+   Duration: 4311ms
+
+[2026-01-27T00:25:00.774Z] [○ SKIP] TC-CUST-018
+   Test: TC-CUST-018: Should delete test customer
+   Module: customers
+   Duration: 4462ms
+
+[2026-01-27T00:25:14.096Z] [✗ FAIL] TC-CUST-019
+   Test: TC-CUST-019: Should navigate to customer details
+   Module: customers
+   Duration: 13266ms
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+[2026-01-27T00:25:29.738Z] [✗ FAIL] TC-CUST-019
+   Test: TC-CUST-019: Should navigate to customer details
+   Module: customers
+   Duration: 14618ms
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+[2026-01-27T00:25:44.405Z] [✗ FAIL] TC-CUST-019
+   Test: TC-CUST-019: Should navigate to customer details
+   Module: customers
+   Duration: 13657ms
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+[2026-01-27T00:25:49.599Z] [✓ PASS] TC-CUST-020
+   Test: TC-CUST-020: Should display customer overview
+   Module: customers
+   Duration: 3680ms
+
+[2026-01-27T00:25:52.885Z] [✓ PASS] TC-CUST-021
+   Test: TC-CUST-021: Should display contact info section
+   Module: customers
+   Duration: 3274ms
+
+[2026-01-27T00:25:57.258Z] [✓ PASS] TC-CUST-022
+   Test: TC-CUST-022: Should add email to customer
+   Module: customers
+   Duration: 4359ms
+
+[2026-01-27T00:26:01.707Z] [✓ PASS] TC-CUST-023
+   Test: TC-CUST-023: Should add phone to customer
+   Module: customers
+   Duration: 4432ms
+
+[2026-01-27T00:26:06.032Z] [✓ PASS] TC-CUST-024
+   Test: TC-CUST-024: Should add address to customer
+   Module: customers
+   Duration: 4309ms
+
+[2026-01-27T00:26:07.235Z] [✓ PASS] TC-CUST-025
+   Test: TC-CUST-025: Should have export button
+   Module: customers
+   Duration: 1193ms
+
+[2026-01-27T00:26:08.494Z] [✓ PASS] TC-CUST-026
+   Test: TC-CUST-026: Should have import button
+   Module: customers
+   Duration: 1247ms
+
+───────────────────────────────────────────────────────────────────────────────
+                              FAILED TESTS                                     
+───────────────────────────────────────────────────────────────────────────────
+
+1. TC-CUST-010 - TC-CUST-010: Should create new corporate customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+2. TC-CUST-010 - TC-CUST-010: Should create new corporate customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+3. TC-CUST-010 - TC-CUST-010: Should create new corporate customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+
+
+4. TC-CUST-011 - TC-CUST-011: Should create individual customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+5. TC-CUST-011 - TC-CUST-011: Should create individual customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+6. TC-CUST-011 - TC-CUST-011: Should create individual customer
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+7. TC-CUST-012 - TC-CUST-012: Should cancel customer creation
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+8. TC-CUST-012 - TC-CUST-012: Should cancel customer creation
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+9. TC-CUST-012 - TC-CUST-012: Should cancel customer creation
+   Error: TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+
+
+10. TC-CUST-019 - TC-CUST-019: Should navigate to customer details
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+11. TC-CUST-019 - TC-CUST-019: Should navigate to customer details
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+12. TC-CUST-019 - TC-CUST-019: Should navigate to customer details
+   Error: TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              END OF LOG                                        
+═══════════════════════════════════════════════════════════════════════════════

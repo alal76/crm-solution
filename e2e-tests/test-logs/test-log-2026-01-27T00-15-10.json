@@ -1,0 +1,3068 @@
+{
+  "summary": {
+    "startTime": "2026-01-27T00:15:10.687Z",
+    "totalTests": 351,
+    "passed": 179,
+    "failed": 167,
+    "skipped": 5,
+    "duration": 3795362,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "admin": {
+        "total": 46,
+        "passed": 19,
+        "failed": 27,
+        "skipped": 0
+      },
+      "auth": {
+        "total": 38,
+        "passed": 10,
+        "failed": 27,
+        "skipped": 1
+      },
+      "campaigns": {
+        "total": 21,
+        "passed": 9,
+        "failed": 12,
+        "skipped": 0
+      },
+      "contacts": {
+        "total": 20,
+        "passed": 11,
+        "failed": 9,
+        "skipped": 0
+      },
+      "customers": {
+        "total": 34,
+        "passed": 19,
+        "failed": 12,
+        "skipped": 3
+      },
+      "dashboard": {
+        "total": 32,
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0
+      },
+      "data-lifecycle": {
+        "total": 33,
+        "passed": 25,
+        "failed": 8,
+        "skipped": 0
+      },
+      "leads": {
+        "total": 18,
+        "passed": 5,
+        "failed": 12,
+        "skipped": 1
+      },
+      "opportunities": {
+        "total": 25,
+        "passed": 7,
+        "failed": 18,
+        "skipped": 0
+      },
+      "service-requests": {
+        "total": 25,
+        "passed": 10,
+        "failed": 15,
+        "skipped": 0
+      },
+      "workflow-execution": {
+        "total": 30,
+        "passed": 18,
+        "failed": 12,
+        "skipped": 0
+      },
+      "workflows": {
+        "total": 28,
+        "passed": 13,
+        "failed": 15,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-01-27T01:18:26.049Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-01-27T00:15:18.916Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 5349
+    },
+    {
+      "timestamp": "2026-01-27T00:15:31.546Z",
+      "testId": "TC-ADMIN-001",
+      "testName": "TC-ADMIN-001: Should display users list",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11568,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:15:44.846Z",
+      "testId": "TC-ADMIN-001",
+      "testName": "TC-ADMIN-001: Should display users list",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 12363,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:15:58.698Z",
+      "testId": "TC-ADMIN-001",
+      "testName": "TC-ADMIN-001: Should display users list",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 12536,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /user/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:16:01.251Z",
+      "testId": "TC-ADMIN-002",
+      "testName": "TC-ADMIN-002: Should have create user button",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1407
+    },
+    {
+      "timestamp": "2026-01-27T00:16:02.654Z",
+      "testId": "TC-ADMIN-003",
+      "testName": "TC-ADMIN-003: Should create new user",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 1365,
+      "error": "TypeError: (0 , _testData.randomString) is not a function"
+    },
+    {
+      "timestamp": "2026-01-27T00:16:04.763Z",
+      "testId": "TC-ADMIN-003",
+      "testName": "TC-ADMIN-003: Should create new user",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 1353,
+      "error": "TypeError: (0 , _testData.randomString) is not a function"
+    },
+    {
+      "timestamp": "2026-01-27T00:16:06.864Z",
+      "testId": "TC-ADMIN-003",
+      "testName": "TC-ADMIN-003: Should create new user",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 1379,
+      "error": "TypeError: (0 , _testData.randomString) is not a function"
+    },
+    {
+      "timestamp": "2026-01-27T00:16:12.922Z",
+      "testId": "TC-ADMIN-004",
+      "testName": "TC-ADMIN-004: Should edit user",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 5369
+    },
+    {
+      "timestamp": "2026-01-27T00:16:19.038Z",
+      "testId": "TC-ADMIN-005",
+      "testName": "TC-ADMIN-005: Should disable user",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 6097
+    },
+    {
+      "timestamp": "2026-01-27T00:16:24.664Z",
+      "testId": "TC-ADMIN-006",
+      "testName": "TC-ADMIN-006: Should delete test user",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 5609
+    },
+    {
+      "timestamp": "2026-01-27T00:16:38.438Z",
+      "testId": "TC-ADMIN-007",
+      "testName": "TC-ADMIN-007: Should display roles list",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 13724,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:16:51.508Z",
+      "testId": "TC-ADMIN-007",
+      "testName": "TC-ADMIN-007: Should display roles list",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 12088,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:17:03.630Z",
+      "testId": "TC-ADMIN-007",
+      "testName": "TC-ADMIN-007: Should display roles list",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11270,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /role/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:17:05.892Z",
+      "testId": "TC-ADMIN-008",
+      "testName": "TC-ADMIN-008: Should create new role",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 1316,
+      "error": "TypeError: (0 , _testData.randomString) is not a function"
+    },
+    {
+      "timestamp": "2026-01-27T00:17:08.159Z",
+      "testId": "TC-ADMIN-008",
+      "testName": "TC-ADMIN-008: Should create new role",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 1285,
+      "error": "TypeError: (0 , _testData.randomString) is not a function"
+    },
+    {
+      "timestamp": "2026-01-27T00:17:10.043Z",
+      "testId": "TC-ADMIN-008",
+      "testName": "TC-ADMIN-008: Should create new role",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 1181,
+      "error": "TypeError: (0 , _testData.randomString) is not a function"
+    },
+    {
+      "timestamp": "2026-01-27T00:17:35.045Z",
+      "testId": "TC-ADMIN-009",
+      "testName": "TC-ADMIN-009: Should assign permissions to role",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 24295
+    },
+    {
+      "timestamp": "2026-01-27T00:17:59.284Z",
+      "testId": "TC-ADMIN-010",
+      "testName": "TC-ADMIN-010: Should delete test role",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 24217
+    },
+    {
+      "timestamp": "2026-01-27T00:18:10.474Z",
+      "testId": "TC-ADMIN-011",
+      "testName": "TC-ADMIN-011: Should display settings page",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11148,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:18:23.377Z",
+      "testId": "TC-ADMIN-011",
+      "testName": "TC-ADMIN-011: Should display settings page",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 12072,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:18:35.591Z",
+      "testId": "TC-ADMIN-011",
+      "testName": "TC-ADMIN-011: Should display settings page",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11521,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /setting/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:18:37.670Z",
+      "testId": "TC-ADMIN-012",
+      "testName": "TC-ADMIN-012: Should access security settings",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1371
+    },
+    {
+      "timestamp": "2026-01-27T00:18:38.915Z",
+      "testId": "TC-ADMIN-013",
+      "testName": "TC-ADMIN-013: Should configure password policy",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1227
+    },
+    {
+      "timestamp": "2026-01-27T00:18:40.302Z",
+      "testId": "TC-ADMIN-014",
+      "testName": "TC-ADMIN-014: Should configure session timeout",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1366
+    },
+    {
+      "timestamp": "2026-01-27T00:18:51.841Z",
+      "testId": "TC-ADMIN-015",
+      "testName": "TC-ADMIN-015: Should display LLM settings page",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11498,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:19:04.578Z",
+      "testId": "TC-ADMIN-015",
+      "testName": "TC-ADMIN-015: Should display LLM settings page",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11938,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:19:17.655Z",
+      "testId": "TC-ADMIN-015",
+      "testName": "TC-ADMIN-015: Should display LLM settings page",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 12328,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /llm|ai|model/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:19:19.742Z",
+      "testId": "TC-ADMIN-016",
+      "testName": "TC-ADMIN-016: Should configure LLM endpoint",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1406
+    },
+    {
+      "timestamp": "2026-01-27T00:19:20.990Z",
+      "testId": "TC-ADMIN-017",
+      "testName": "TC-ADMIN-017: Should configure model selection",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1232
+    },
+    {
+      "timestamp": "2026-01-27T00:19:22.106Z",
+      "testId": "TC-ADMIN-018",
+      "testName": "TC-ADMIN-018: Should test LLM connection",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1105
+    },
+    {
+      "timestamp": "2026-01-27T00:19:33.435Z",
+      "testId": "TC-ADMIN-019",
+      "testName": "TC-ADMIN-019: Should display branding settings",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11285,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:19:47.713Z",
+      "testId": "TC-ADMIN-019",
+      "testName": "TC-ADMIN-019: Should display branding settings",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 13470,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:19:59.659Z",
+      "testId": "TC-ADMIN-019",
+      "testName": "TC-ADMIN-019: Should display branding settings",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11244,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /brand|theme|appearance/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:20:01.767Z",
+      "testId": "TC-ADMIN-020",
+      "testName": "TC-ADMIN-020: Should update company name",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1354
+    },
+    {
+      "timestamp": "2026-01-27T00:20:02.947Z",
+      "testId": "TC-ADMIN-021",
+      "testName": "TC-ADMIN-021: Should update primary color",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1168
+    },
+    {
+      "timestamp": "2026-01-27T00:20:14.088Z",
+      "testId": "TC-ADMIN-022",
+      "testName": "TC-ADMIN-022: Should display email settings",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11090,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:20:28.560Z",
+      "testId": "TC-ADMIN-022",
+      "testName": "TC-ADMIN-022: Should display email settings",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 13664,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:20:42.095Z",
+      "testId": "TC-ADMIN-022",
+      "testName": "TC-ADMIN-022: Should display email settings",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 12149,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /email|smtp/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:20:44.076Z",
+      "testId": "TC-ADMIN-023",
+      "testName": "TC-ADMIN-023: Should configure SMTP settings",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1199
+    },
+    {
+      "timestamp": "2026-01-27T00:20:45.243Z",
+      "testId": "TC-ADMIN-024",
+      "testName": "TC-ADMIN-024: Should send test email",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1152
+    },
+    {
+      "timestamp": "2026-01-27T00:20:56.839Z",
+      "testId": "TC-ADMIN-025",
+      "testName": "TC-ADMIN-025: Should display audit log",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11368,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:21:09.598Z",
+      "testId": "TC-ADMIN-025",
+      "testName": "TC-ADMIN-025: Should display audit log",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11946,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:21:22.342Z",
+      "testId": "TC-ADMIN-025",
+      "testName": "TC-ADMIN-025: Should display audit log",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 11998,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /audit|log|activity/i }).first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:21:24.946Z",
+      "testId": "TC-ADMIN-026",
+      "testName": "TC-ADMIN-026: Should filter audit log by date",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1924
+    },
+    {
+      "timestamp": "2026-01-27T00:21:26.060Z",
+      "testId": "TC-ADMIN-027",
+      "testName": "TC-ADMIN-027: Should filter audit log by action type",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1103
+    },
+    {
+      "timestamp": "2026-01-27T00:21:27.208Z",
+      "testId": "TC-ADMIN-028",
+      "testName": "TC-ADMIN-028: Should export audit log",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1136
+    },
+    {
+      "timestamp": "2026-01-27T00:21:37.804Z",
+      "testId": "TC-AUTH-001",
+      "testName": "TC-AUTH-001: Should display login page correctly",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10550,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[name=\"email\"], input[name=\"username\"], #email, #username').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"email\"], input[name=\"username\"], #email, #username').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:21:50.450Z",
+      "testId": "TC-AUTH-001",
+      "testName": "TC-AUTH-001: Should display login page correctly",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 11694,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[name=\"email\"], input[name=\"username\"], #email, #username').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"email\"], input[name=\"username\"], #email, #username').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:22:02.117Z",
+      "testId": "TC-AUTH-001",
+      "testName": "TC-AUTH-001: Should display login page correctly",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10746,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[name=\"email\"], input[name=\"username\"], #email, #username').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"email\"], input[name=\"username\"], #email, #username').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:22:04.894Z",
+      "testId": "TC-AUTH-002",
+      "testName": "TC-AUTH-002: Should login successfully with valid credentials",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 1537
+    },
+    {
+      "timestamp": "2026-01-27T00:22:05.922Z",
+      "testId": "TC-AUTH-003",
+      "testName": "TC-AUTH-003: Should show error for invalid email",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 1002
+    },
+    {
+      "timestamp": "2026-01-27T00:22:09.242Z",
+      "testId": "TC-AUTH-004",
+      "testName": "TC-AUTH-004: Should show error for wrong password",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 3307
+    },
+    {
+      "timestamp": "2026-01-27T00:22:19.824Z",
+      "testId": "TC-AUTH-005",
+      "testName": "TC-AUTH-005: Should show error for empty fields",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10546,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Login\"), button:has-text(\"Sign In\")')\u001b[22m\n\u001b[2m    - locator resolved to <button disabled tabindex=\"-1\" type=\"submit\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-1ov2o8i\">Sign In</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:22:32.002Z",
+      "testId": "TC-AUTH-005",
+      "testName": "TC-AUTH-005: Should show error for empty fields",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 11332,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Login\"), button:has-text(\"Sign In\")')\u001b[22m\n\u001b[2m    - locator resolved to <button disabled tabindex=\"-1\" type=\"submit\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-1ov2o8i\">Sign In</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    18 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:22:43.361Z",
+      "testId": "TC-AUTH-005",
+      "testName": "TC-AUTH-005: Should show error for empty fields",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10619,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Login\"), button:has-text(\"Sign In\")')\u001b[22m\n\u001b[2m    - locator resolved to <button disabled tabindex=\"-1\" type=\"submit\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-1ov2o8i\">Sign In</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:22:45.231Z",
+      "testId": "TC-AUTH-006",
+      "testName": "TC-AUTH-006: Should navigate to forgot password page",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 958
+    },
+    {
+      "timestamp": "2026-01-27T00:22:46.537Z",
+      "testId": "TC-AUTH-007",
+      "testName": "TC-AUTH-007: Should navigate to registration page",
+      "module": "auth",
+      "status": "SKIP",
+      "duration": 1292
+    },
+    {
+      "timestamp": "2026-01-27T00:22:48.911Z",
+      "testId": "TC-AUTH-008",
+      "testName": "TC-AUTH-008: Should remember me functionality",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 2356
+    },
+    {
+      "timestamp": "2026-01-27T00:22:54.730Z",
+      "testId": "TC-AUTH-009",
+      "testName": "TC-AUTH-009: Should logout successfully",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 5808
+    },
+    {
+      "timestamp": "2026-01-27T00:22:57.719Z",
+      "testId": "TC-AUTH-010",
+      "testName": "TC-AUTH-010: Should not access protected routes after logout",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 2954,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/login|unauthorized/i\u001b[39m\nReceived string:  \u001b[31m\"http://192.168.0.9/customers\"\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:01.937Z",
+      "testId": "TC-AUTH-010",
+      "testName": "TC-AUTH-010: Should not access protected routes after logout",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 3414,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/login|unauthorized/i\u001b[39m\nReceived string:  \u001b[31m\"http://192.168.0.9/customers\"\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:05.592Z",
+      "testId": "TC-AUTH-010",
+      "testName": "TC-AUTH-010: Should not access protected routes after logout",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 2927,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/login|unauthorized/i\u001b[39m\nReceived string:  \u001b[31m\"http://192.168.0.9/customers\"\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:17.077Z",
+      "testId": "TC-AUTH-011",
+      "testName": "TC-AUTH-011: Should display registration form",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10774,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[name=\"email\"], #email').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"email\"], #email').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:29.566Z",
+      "testId": "TC-AUTH-011",
+      "testName": "TC-AUTH-011: Should display registration form",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 11689,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[name=\"email\"], #email').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"email\"], #email').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:41.117Z",
+      "testId": "TC-AUTH-011",
+      "testName": "TC-AUTH-011: Should display registration form",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10768,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[name=\"email\"], #email').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"email\"], #email').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:23:52.357Z",
+      "testId": "TC-AUTH-012",
+      "testName": "TC-AUTH-012: Should validate registration form fields",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10537,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"]').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:24:04.434Z",
+      "testId": "TC-AUTH-012",
+      "testName": "TC-AUTH-012: Should validate registration form fields",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 11324,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"]').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:24:15.963Z",
+      "testId": "TC-AUTH-012",
+      "testName": "TC-AUTH-012: Should validate registration form fields",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10671,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"]').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:24:28.375Z",
+      "testId": "TC-AUTH-013",
+      "testName": "TC-AUTH-013: Should register new test user",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10833,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"firstName\"], #firstName').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:24:40.945Z",
+      "testId": "TC-AUTH-013",
+      "testName": "TC-AUTH-013: Should register new test user",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 11532,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"firstName\"], #firstName').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:24:52.253Z",
+      "testId": "TC-AUTH-013",
+      "testName": "TC-AUTH-013: Should register new test user",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10583,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"firstName\"], #firstName').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:24:53.576Z",
+      "testId": "TC-AUTH-014",
+      "testName": "TC-AUTH-014: Should display password reset form",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 617
+    },
+    {
+      "timestamp": "2026-01-27T00:24:57.270Z",
+      "testId": "TC-AUTH-015",
+      "testName": "TC-AUTH-015: Should send password reset email",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 3683
+    },
+    {
+      "timestamp": "2026-01-27T00:24:58.759Z",
+      "testId": "TC-AUTH-016",
+      "testName": "TC-AUTH-016: Should display 2FA setup option in settings",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 1476
+    },
+    {
+      "timestamp": "2026-01-27T00:25:09.260Z",
+      "testId": "TC-AUTH-017",
+      "testName": "TC-AUTH-017: Should handle 2FA verification page",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10452,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[name=\"code\"], input[name=\"token\"], #code, #token').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"code\"], input[name=\"token\"], #code, #token').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:25:21.357Z",
+      "testId": "TC-AUTH-017",
+      "testName": "TC-AUTH-017: Should handle 2FA verification page",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 11244,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[name=\"code\"], input[name=\"token\"], #code, #token').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"code\"], input[name=\"token\"], #code, #token').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:25:32.693Z",
+      "testId": "TC-AUTH-017",
+      "testName": "TC-AUTH-017: Should handle 2FA verification page",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10603,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('input[name=\"code\"], input[name=\"token\"], #code, #token').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"code\"], input[name=\"token\"], #code, #token').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:25:36.781Z",
+      "testId": "TC-AUTH-018",
+      "testName": "TC-AUTH-018: Should maintain session across page navigation",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 3275
+    },
+    {
+      "timestamp": "2026-01-27T00:25:40.016Z",
+      "testId": "TC-AUTH-019",
+      "testName": "TC-AUTH-019: Should handle session timeout gracefully",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 3198,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/login|session|expired/i\u001b[39m\nReceived string:  \u001b[31m\"http://192.168.0.9/customers\"\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:25:44.936Z",
+      "testId": "TC-AUTH-019",
+      "testName": "TC-AUTH-019: Should handle session timeout gracefully",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 3831,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/login|session|expired/i\u001b[39m\nReceived string:  \u001b[31m\"http://192.168.0.9/customers\"\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:25:50.036Z",
+      "testId": "TC-AUTH-019",
+      "testName": "TC-AUTH-019: Should handle session timeout gracefully",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 3472,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/login|session|expired/i\u001b[39m\nReceived string:  \u001b[31m\"http://192.168.0.9/customers\"\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:26:01.514Z",
+      "testId": "TC-AUTH-020",
+      "testName": "TC-AUTH-020: Should handle concurrent sessions",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 10620,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"], input[name=\"username\"]').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:26:13.657Z",
+      "testId": "TC-AUTH-020",
+      "testName": "TC-AUTH-020: Should handle concurrent sessions",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 11064,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"], input[name=\"username\"]').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:26:26.128Z",
+      "testId": "TC-AUTH-020",
+      "testName": "TC-AUTH-020: Should handle concurrent sessions",
+      "module": "auth",
+      "status": "FAIL",
+      "duration": 11604,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"], input[name=\"username\"]').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:26:38.697Z",
+      "testId": "TC-CAMP-001",
+      "testName": "TC-CAMP-001: Should display campaigns list",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 11558,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /campaign/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /campaign/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:26:51.565Z",
+      "testId": "TC-CAMP-001",
+      "testName": "TC-CAMP-001: Should display campaigns list",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 12032,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /campaign/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /campaign/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:27:03.630Z",
+      "testId": "TC-CAMP-001",
+      "testName": "TC-CAMP-001: Should display campaigns list",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 11320,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /campaign/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /campaign/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:27:06.213Z",
+      "testId": "TC-CAMP-002",
+      "testName": "TC-CAMP-002: Should show campaign status",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 1206
+    },
+    {
+      "timestamp": "2026-01-27T00:27:07.435Z",
+      "testId": "TC-CAMP-003",
+      "testName": "TC-CAMP-003: Should filter by type",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 1210
+    },
+    {
+      "timestamp": "2026-01-27T00:27:09.103Z",
+      "testId": "TC-CAMP-004",
+      "testName": "TC-CAMP-004: Should search campaigns",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 1656
+    },
+    {
+      "timestamp": "2026-01-27T00:27:21.495Z",
+      "testId": "TC-CAMP-005",
+      "testName": "TC-CAMP-005: Should create email campaign",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 12344,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:27:35.167Z",
+      "testId": "TC-CAMP-005",
+      "testName": "TC-CAMP-005: Should create email campaign",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 12727,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:27:49.347Z",
+      "testId": "TC-CAMP-005",
+      "testName": "TC-CAMP-005: Should create email campaign",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 13173,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:28:04.495Z",
+      "testId": "TC-CAMP-006",
+      "testName": "TC-CAMP-006: Should create social media campaign",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 14367,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:28:18.491Z",
+      "testId": "TC-CAMP-006",
+      "testName": "TC-CAMP-006: Should create social media campaign",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 13155,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:28:33.417Z",
+      "testId": "TC-CAMP-006",
+      "testName": "TC-CAMP-006: Should create social media campaign",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 12584,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:28:46.646Z",
+      "testId": "TC-CAMP-007",
+      "testName": "TC-CAMP-007: Should set target audience",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 12229,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[role=\"option\"]').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:29:01.091Z",
+      "testId": "TC-CAMP-007",
+      "testName": "TC-CAMP-007: Should set target audience",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 12394,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[role=\"option\"]').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:29:13.783Z",
+      "testId": "TC-CAMP-007",
+      "testName": "TC-CAMP-007: Should set target audience",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 11918,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[role=\"option\"]').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:29:18.910Z",
+      "testId": "TC-CAMP-008",
+      "testName": "TC-CAMP-008: Should start campaign",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 4461
+    },
+    {
+      "timestamp": "2026-01-27T00:29:23.109Z",
+      "testId": "TC-CAMP-009",
+      "testName": "TC-CAMP-009: Should pause campaign",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 4185
+    },
+    {
+      "timestamp": "2026-01-27T00:29:27.317Z",
+      "testId": "TC-CAMP-010",
+      "testName": "TC-CAMP-010: Should complete campaign",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 4197
+    },
+    {
+      "timestamp": "2026-01-27T00:29:29.590Z",
+      "testId": "TC-CAMP-011",
+      "testName": "TC-CAMP-011: Should display campaign metrics",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 2255
+    },
+    {
+      "timestamp": "2026-01-27T00:29:31.898Z",
+      "testId": "TC-CAMP-012",
+      "testName": "TC-CAMP-012: Should show ROI data",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 2293
+    },
+    {
+      "timestamp": "2026-01-27T00:29:36.156Z",
+      "testId": "TC-CAMP-013",
+      "testName": "TC-CAMP-013: Should delete test campaign",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 4245
+    },
+    {
+      "timestamp": "2026-01-27T00:29:47.362Z",
+      "testId": "TC-CONT-001",
+      "testName": "TC-CONT-001: Should display contacts list page",
+      "module": "contacts",
+      "status": "FAIL",
+      "duration": 11162,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /contact/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /contact/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:30:00.232Z",
+      "testId": "TC-CONT-001",
+      "testName": "TC-CONT-001: Should display contacts list page",
+      "module": "contacts",
+      "status": "FAIL",
+      "duration": 12076,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /contact/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /contact/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:30:12.401Z",
+      "testId": "TC-CONT-001",
+      "testName": "TC-CONT-001: Should display contacts list page",
+      "module": "contacts",
+      "status": "FAIL",
+      "duration": 11316,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /contact/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /contact/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:30:14.824Z",
+      "testId": "TC-CONT-002",
+      "testName": "TC-CONT-002: Should have Add Contact button",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 1755
+    },
+    {
+      "timestamp": "2026-01-27T00:30:17.752Z",
+      "testId": "TC-CONT-003",
+      "testName": "TC-CONT-003: Should search contacts",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 2901
+    },
+    {
+      "timestamp": "2026-01-27T00:30:19.604Z",
+      "testId": "TC-CONT-004",
+      "testName": "TC-CONT-004: Should filter contacts",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 1824
+    },
+    {
+      "timestamp": "2026-01-27T00:30:21.363Z",
+      "testId": "TC-CONT-005",
+      "testName": "TC-CONT-005: Should open create contact dialog",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 1743
+    },
+    {
+      "timestamp": "2026-01-27T00:30:33.326Z",
+      "testId": "TC-CONT-006",
+      "testName": "TC-CONT-006: Should create new contact",
+      "module": "contacts",
+      "status": "FAIL",
+      "duration": 11918,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:30:46.810Z",
+      "testId": "TC-CONT-006",
+      "testName": "TC-CONT-006: Should create new contact",
+      "module": "contacts",
+      "status": "FAIL",
+      "duration": 12322,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:31:01.411Z",
+      "testId": "TC-CONT-006",
+      "testName": "TC-CONT-006: Should create new contact",
+      "module": "contacts",
+      "status": "FAIL",
+      "duration": 13662,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:31:15.341Z",
+      "testId": "TC-CONT-007",
+      "testName": "TC-CONT-007: Should validate required fields",
+      "module": "contacts",
+      "status": "FAIL",
+      "duration": 12407,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:31:29.800Z",
+      "testId": "TC-CONT-007",
+      "testName": "TC-CONT-007: Should validate required fields",
+      "module": "contacts",
+      "status": "FAIL",
+      "duration": 13435,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:31:42.778Z",
+      "testId": "TC-CONT-007",
+      "testName": "TC-CONT-007: Should validate required fields",
+      "module": "contacts",
+      "status": "FAIL",
+      "duration": 11985,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"], button:has-text(\"Save\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:31:45.961Z",
+      "testId": "TC-CONT-008",
+      "testName": "TC-CONT-008: Should link contact to customer",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 2466
+    },
+    {
+      "timestamp": "2026-01-27T00:31:50.048Z",
+      "testId": "TC-CONT-009",
+      "testName": "TC-CONT-009: Should open contact for editing",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 4074
+    },
+    {
+      "timestamp": "2026-01-27T00:31:54.301Z",
+      "testId": "TC-CONT-010",
+      "testName": "TC-CONT-010: Should update contact",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 4241
+    },
+    {
+      "timestamp": "2026-01-27T00:31:58.527Z",
+      "testId": "TC-CONT-011",
+      "testName": "TC-CONT-011: Should delete test contact",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 4212
+    },
+    {
+      "timestamp": "2026-01-27T00:32:01.868Z",
+      "testId": "TC-CONT-012",
+      "testName": "TC-CONT-012: Should manage multiple emails",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 3327
+    },
+    {
+      "timestamp": "2026-01-27T00:32:05.250Z",
+      "testId": "TC-CONT-013",
+      "testName": "TC-CONT-013: Should manage multiple phones",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 3371
+    },
+    {
+      "timestamp": "2026-01-27T00:32:08.648Z",
+      "testId": "TC-CONT-014",
+      "testName": "TC-CONT-014: Should manage social media links",
+      "module": "contacts",
+      "status": "PASS",
+      "duration": 3387
+    },
+    {
+      "timestamp": "2026-01-27T00:32:10.820Z",
+      "testId": "TC-CUST-001",
+      "testName": "TC-CUST-001: Should display customers list page",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 2151
+    },
+    {
+      "timestamp": "2026-01-27T00:32:13.173Z",
+      "testId": "TC-CUST-002",
+      "testName": "TC-CUST-002: Should display customer data grid columns",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 2341
+    },
+    {
+      "timestamp": "2026-01-27T00:32:15.337Z",
+      "testId": "TC-CUST-003",
+      "testName": "TC-CUST-003: Should have Add Customer button",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 2154
+    },
+    {
+      "timestamp": "2026-01-27T00:32:19.072Z",
+      "testId": "TC-CUST-004",
+      "testName": "TC-CUST-004: Should search customers",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3718
+    },
+    {
+      "timestamp": "2026-01-27T00:32:23.043Z",
+      "testId": "TC-CUST-005",
+      "testName": "TC-CUST-005: Should filter customers by type",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3949
+    },
+    {
+      "timestamp": "2026-01-27T00:32:26.015Z",
+      "testId": "TC-CUST-006",
+      "testName": "TC-CUST-006: Should paginate customer list",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 2959
+    },
+    {
+      "timestamp": "2026-01-27T00:32:29.115Z",
+      "testId": "TC-CUST-007",
+      "testName": "TC-CUST-007: Should sort customers by column",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3082
+    },
+    {
+      "timestamp": "2026-01-27T00:32:31.015Z",
+      "testId": "TC-CUST-008",
+      "testName": "TC-CUST-008: Should open create customer dialog",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 1887
+    },
+    {
+      "timestamp": "2026-01-27T00:32:34.046Z",
+      "testId": "TC-CUST-009",
+      "testName": "TC-CUST-009: Should validate required fields on create",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3021
+    },
+    {
+      "timestamp": "2026-01-27T00:32:46.121Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 12033,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], input[aria-label*=\"Name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:33:00.025Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 12886,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], input[aria-label*=\"Name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:33:12.625Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 11864,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], input[aria-label*=\"Name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:33:25.400Z",
+      "testId": "TC-CUST-011",
+      "testName": "TC-CUST-011: Should create individual customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 11870,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:33:38.875Z",
+      "testId": "TC-CUST-011",
+      "testName": "TC-CUST-011: Should create individual customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 12689,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:33:51.728Z",
+      "testId": "TC-CUST-011",
+      "testName": "TC-CUST-011: Should create individual customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 11992,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:34:04.312Z",
+      "testId": "TC-CUST-012",
+      "testName": "TC-CUST-012: Should cancel customer creation",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 11853,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:34:18.307Z",
+      "testId": "TC-CUST-012",
+      "testName": "TC-CUST-012: Should cancel customer creation",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 12862,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:34:31.065Z",
+      "testId": "TC-CUST-012",
+      "testName": "TC-CUST-012: Should cancel customer creation",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 11927,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"], #name').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:34:35.145Z",
+      "testId": "TC-CUST-013",
+      "testName": "TC-CUST-013: Should open customer for editing",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3388
+    },
+    {
+      "timestamp": "2026-01-27T00:34:39.387Z",
+      "testId": "TC-CUST-014",
+      "testName": "TC-CUST-014: Should update customer name",
+      "module": "customers",
+      "status": "SKIP",
+      "duration": 4230
+    },
+    {
+      "timestamp": "2026-01-27T00:34:42.734Z",
+      "testId": "TC-CUST-015",
+      "testName": "TC-CUST-015: Should validate on update",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3333
+    },
+    {
+      "timestamp": "2026-01-27T00:34:47.071Z",
+      "testId": "TC-CUST-016",
+      "testName": "TC-CUST-016: Should show delete confirmation",
+      "module": "customers",
+      "status": "SKIP",
+      "duration": 4325
+    },
+    {
+      "timestamp": "2026-01-27T00:34:51.356Z",
+      "testId": "TC-CUST-017",
+      "testName": "TC-CUST-017: Should cancel delete operation",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 4273
+    },
+    {
+      "timestamp": "2026-01-27T00:34:55.606Z",
+      "testId": "TC-CUST-018",
+      "testName": "TC-CUST-018: Should delete test customer",
+      "module": "customers",
+      "status": "SKIP",
+      "duration": 4237
+    },
+    {
+      "timestamp": "2026-01-27T00:35:08.976Z",
+      "testId": "TC-CUST-019",
+      "testName": "TC-CUST-019: Should navigate to customer details",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 13317,
+      "error": "TimeoutError: locator.dblclick: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.MuiDataGrid-row').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:35:23.820Z",
+      "testId": "TC-CUST-019",
+      "testName": "TC-CUST-019: Should navigate to customer details",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 14093,
+      "error": "TimeoutError: locator.dblclick: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.MuiDataGrid-row').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:35:37.999Z",
+      "testId": "TC-CUST-019",
+      "testName": "TC-CUST-019: Should navigate to customer details",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 13345,
+      "error": "TimeoutError: locator.dblclick: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.MuiDataGrid-row').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:35:43.139Z",
+      "testId": "TC-CUST-020",
+      "testName": "TC-CUST-020: Should display customer overview",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 4434
+    },
+    {
+      "timestamp": "2026-01-27T00:35:46.485Z",
+      "testId": "TC-CUST-021",
+      "testName": "TC-CUST-021: Should display contact info section",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 3330
+    },
+    {
+      "timestamp": "2026-01-27T00:35:51.024Z",
+      "testId": "TC-CUST-022",
+      "testName": "TC-CUST-022: Should add email to customer",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 4523
+    },
+    {
+      "timestamp": "2026-01-27T00:35:55.328Z",
+      "testId": "TC-CUST-023",
+      "testName": "TC-CUST-023: Should add phone to customer",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 4288
+    },
+    {
+      "timestamp": "2026-01-27T00:35:59.759Z",
+      "testId": "TC-CUST-024",
+      "testName": "TC-CUST-024: Should add address to customer",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 4411
+    },
+    {
+      "timestamp": "2026-01-27T00:36:01.083Z",
+      "testId": "TC-CUST-025",
+      "testName": "TC-CUST-025: Should have export button",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 1291
+    },
+    {
+      "timestamp": "2026-01-27T00:36:03.093Z",
+      "testId": "TC-CUST-026",
+      "testName": "TC-CUST-026: Should have import button",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 1999
+    },
+    {
+      "timestamp": "2026-01-27T00:36:05.667Z",
+      "testId": "TC-DASH-001",
+      "testName": "TC-DASH-001: Should display dashboard",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 2556
+    },
+    {
+      "timestamp": "2026-01-27T00:36:09.541Z",
+      "testId": "TC-DASH-002",
+      "testName": "TC-DASH-002: Should display welcome message",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 3857
+    },
+    {
+      "timestamp": "2026-01-27T00:36:11.051Z",
+      "testId": "TC-DASH-003",
+      "testName": "TC-DASH-003: Should display navigation menu",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1494
+    },
+    {
+      "timestamp": "2026-01-27T00:36:12.365Z",
+      "testId": "TC-DASH-004",
+      "testName": "TC-DASH-004: Should display customer count widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1300
+    },
+    {
+      "timestamp": "2026-01-27T00:36:13.657Z",
+      "testId": "TC-DASH-005",
+      "testName": "TC-DASH-005: Should display opportunity pipeline widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1275
+    },
+    {
+      "timestamp": "2026-01-27T00:36:14.957Z",
+      "testId": "TC-DASH-006",
+      "testName": "TC-DASH-006: Should display service requests widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1284
+    },
+    {
+      "timestamp": "2026-01-27T00:36:16.164Z",
+      "testId": "TC-DASH-007",
+      "testName": "TC-DASH-007: Should display recent activity widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1196
+    },
+    {
+      "timestamp": "2026-01-27T00:36:17.384Z",
+      "testId": "TC-DASH-008",
+      "testName": "TC-DASH-008: Should display tasks widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1209
+    },
+    {
+      "timestamp": "2026-01-27T00:36:18.554Z",
+      "testId": "TC-DASH-009",
+      "testName": "TC-DASH-009: Should display revenue metrics",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1159
+    },
+    {
+      "timestamp": "2026-01-27T00:36:19.736Z",
+      "testId": "TC-DASH-010",
+      "testName": "TC-DASH-010: Should display lead conversion rate",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1173
+    },
+    {
+      "timestamp": "2026-01-27T00:36:20.992Z",
+      "testId": "TC-DASH-011",
+      "testName": "TC-DASH-011: Should display open tickets count",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1242
+    },
+    {
+      "timestamp": "2026-01-27T00:36:25.468Z",
+      "testId": "TC-DASH-012",
+      "testName": "TC-DASH-012: Should display charts",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 4466
+    },
+    {
+      "timestamp": "2026-01-27T00:36:28.771Z",
+      "testId": "TC-DASH-013",
+      "testName": "TC-DASH-013: Should have chart interactions",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 3288
+    },
+    {
+      "timestamp": "2026-01-27T00:36:30.041Z",
+      "testId": "TC-DASH-014",
+      "testName": "TC-DASH-014: Should have quick add customer action",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1255
+    },
+    {
+      "timestamp": "2026-01-27T00:36:31.505Z",
+      "testId": "TC-DASH-015",
+      "testName": "TC-DASH-015: Should have quick add opportunity action",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1455
+    },
+    {
+      "timestamp": "2026-01-27T00:36:32.718Z",
+      "testId": "TC-DASH-016",
+      "testName": "TC-DASH-016: Should have quick add service request action",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1200
+    },
+    {
+      "timestamp": "2026-01-27T00:36:33.942Z",
+      "testId": "TC-DASH-017",
+      "testName": "TC-DASH-017: Should navigate to customers",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1204
+    },
+    {
+      "timestamp": "2026-01-27T00:36:35.321Z",
+      "testId": "TC-DASH-018",
+      "testName": "TC-DASH-018: Should navigate to opportunities",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1368
+    },
+    {
+      "timestamp": "2026-01-27T00:36:36.488Z",
+      "testId": "TC-DASH-019",
+      "testName": "TC-DASH-019: Should navigate to leads",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1157
+    },
+    {
+      "timestamp": "2026-01-27T00:36:37.821Z",
+      "testId": "TC-DASH-020",
+      "testName": "TC-DASH-020: Should navigate to service requests",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1323
+    },
+    {
+      "timestamp": "2026-01-27T00:36:39.033Z",
+      "testId": "TC-DASH-021",
+      "testName": "TC-DASH-021: Should navigate to campaigns",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1203
+    },
+    {
+      "timestamp": "2026-01-27T00:36:40.239Z",
+      "testId": "TC-DASH-022",
+      "testName": "TC-DASH-022: Should navigate to admin",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1197
+    },
+    {
+      "timestamp": "2026-01-27T00:36:41.421Z",
+      "testId": "TC-DASH-023",
+      "testName": "TC-DASH-023: Should display user profile menu",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1174
+    },
+    {
+      "timestamp": "2026-01-27T00:36:42.688Z",
+      "testId": "TC-DASH-024",
+      "testName": "TC-DASH-024: Should access profile settings",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1259
+    },
+    {
+      "timestamp": "2026-01-27T00:36:43.879Z",
+      "testId": "TC-DASH-025",
+      "testName": "TC-DASH-025: Should logout from dashboard",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1178
+    },
+    {
+      "timestamp": "2026-01-27T00:36:45.039Z",
+      "testId": "TC-DASH-026",
+      "testName": "TC-DASH-026: Should have global search",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1144
+    },
+    {
+      "timestamp": "2026-01-27T00:36:46.191Z",
+      "testId": "TC-DASH-027",
+      "testName": "TC-DASH-027: Should search for customer",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1142
+    },
+    {
+      "timestamp": "2026-01-27T00:36:47.365Z",
+      "testId": "TC-DASH-028",
+      "testName": "TC-DASH-028: Should navigate from search results",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1166
+    },
+    {
+      "timestamp": "2026-01-27T00:36:48.568Z",
+      "testId": "TC-DASH-029",
+      "testName": "TC-DASH-029: Should display notification bell",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1195
+    },
+    {
+      "timestamp": "2026-01-27T00:36:49.790Z",
+      "testId": "TC-DASH-030",
+      "testName": "TC-DASH-030: Should open notifications panel",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1214
+    },
+    {
+      "timestamp": "2026-01-27T00:36:50.996Z",
+      "testId": "TC-DASH-031",
+      "testName": "TC-DASH-031: Should be responsive on mobile",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1197
+    },
+    {
+      "timestamp": "2026-01-27T00:36:52.102Z",
+      "testId": "TC-DASH-032",
+      "testName": "TC-DASH-032: Should show mobile menu",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1097
+    },
+    {
+      "timestamp": "2026-01-27T00:37:05.343Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-USER-001: Should create test admin user",
+      "module": "data-lifecycle",
+      "status": "FAIL",
+      "duration": 13183,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"username\"], #username').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:37:20.327Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-USER-001: Should create test admin user",
+      "module": "data-lifecycle",
+      "status": "FAIL",
+      "duration": 14059,
+      "error": "TimeoutError: locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"username\"], #username').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:37:23.175Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-USER-001: Should create test admin user",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 2189
+    },
+    {
+      "timestamp": "2026-01-27T00:37:25.309Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-USER-002: Should create test sales team users",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 2121
+    },
+    {
+      "timestamp": "2026-01-27T00:37:27.528Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-USER-003: Should create test support team users",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 2207
+    },
+    {
+      "timestamp": "2026-01-27T00:37:52.794Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-USER-004: Should modify user details",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25251
+    },
+    {
+      "timestamp": "2026-01-27T00:38:18.118Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-USER-005: Should verify user visibility in lists",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25308
+    },
+    {
+      "timestamp": "2026-01-27T00:38:30.391Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CUST-001: Should create enterprise customer with full details",
+      "module": "data-lifecycle",
+      "status": "FAIL",
+      "duration": 12225,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:38:44.073Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CUST-001: Should create enterprise customer with full details",
+      "module": "data-lifecycle",
+      "status": "FAIL",
+      "duration": 12843,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:38:57.175Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CUST-001: Should create enterprise customer with full details",
+      "module": "data-lifecycle",
+      "status": "FAIL",
+      "duration": 12251,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:39:00.048Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CUST-002: Should create multiple test customers",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 2198
+    },
+    {
+      "timestamp": "2026-01-27T00:39:25.257Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CUST-003: Should modify customer data",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25196
+    },
+    {
+      "timestamp": "2026-01-27T00:39:40.034Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CUST-004: Should verify customer appears in search results",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 14761
+    },
+    {
+      "timestamp": "2026-01-27T00:39:42.214Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CONT-001: Should create contacts for enterprise customer",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 2166
+    },
+    {
+      "timestamp": "2026-01-27T00:40:07.873Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CONT-002: Should modify contact and verify customer link",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25645
+    },
+    {
+      "timestamp": "2026-01-27T00:40:10.056Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-OPP-001: Should create high-value opportunity",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 2171
+    },
+    {
+      "timestamp": "2026-01-27T00:40:35.278Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-OPP-002: Should advance opportunity through stages",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25207
+    },
+    {
+      "timestamp": "2026-01-27T00:41:00.559Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-OPP-003: Should verify opportunity-customer relationship",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25269
+    },
+    {
+      "timestamp": "2026-01-27T00:41:02.794Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-LEAD-001: Should create hot lead",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 2225
+    },
+    {
+      "timestamp": "2026-01-27T00:41:28.100Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-LEAD-002: Should convert lead to opportunity",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25281
+    },
+    {
+      "timestamp": "2026-01-27T00:41:53.729Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-LEAD-003: Should update lead score",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25604
+    },
+    {
+      "timestamp": "2026-01-27T00:41:56.019Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-SR-001: Should create critical service request",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 2272
+    },
+    {
+      "timestamp": "2026-01-27T00:42:21.351Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-SR-002: Should transition service request status",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25320
+    },
+    {
+      "timestamp": "2026-01-27T00:42:46.589Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-SR-003: Should verify customer link in service request",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25227
+    },
+    {
+      "timestamp": "2026-01-27T00:42:48.936Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CAMP-001: Should create email campaign",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 2321
+    },
+    {
+      "timestamp": "2026-01-27T00:43:14.198Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CAMP-002: Should start campaign",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 25251
+    },
+    {
+      "timestamp": "2026-01-27T00:43:38.479Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-REL-001: Should verify customer deletion affects contacts",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 24269
+    },
+    {
+      "timestamp": "2026-01-27T00:44:02.797Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-REL-002: Should verify opportunity affects customer revenue",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 24307
+    },
+    {
+      "timestamp": "2026-01-27T00:44:27.119Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-REL-003: Should verify lead conversion creates customer and opportunity",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 24313
+    },
+    {
+      "timestamp": "2026-01-27T00:44:51.512Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-REL-004: Should verify service request links to customer history",
+      "module": "data-lifecycle",
+      "status": "PASS",
+      "duration": 24374
+    },
+    {
+      "timestamp": "2026-01-27T00:45:51.705Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CLEAN-001: Should list all TEST_ data for cleanup",
+      "module": "data-lifecycle",
+      "status": "ERROR",
+      "duration": 60139,
+      "error": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:46:53.303Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CLEAN-001: Should list all TEST_ data for cleanup",
+      "module": "data-lifecycle",
+      "status": "ERROR",
+      "duration": 60607,
+      "error": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:47:54.224Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-DL-CLEAN-001: Should list all TEST_ data for cleanup",
+      "module": "data-lifecycle",
+      "status": "ERROR",
+      "duration": 60143,
+      "error": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:48:06.221Z",
+      "testId": "TC-LEAD-001",
+      "testName": "TC-LEAD-001: Should display leads list",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 11289,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /lead/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /lead/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:48:19.229Z",
+      "testId": "TC-LEAD-001",
+      "testName": "TC-LEAD-001: Should display leads list",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 12186,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /lead/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /lead/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:48:31.262Z",
+      "testId": "TC-LEAD-001",
+      "testName": "TC-LEAD-001: Should display leads list",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 11262,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /lead/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /lead/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:48:33.104Z",
+      "testId": "TC-LEAD-002",
+      "testName": "TC-LEAD-002: Should filter by status",
+      "module": "leads",
+      "status": "PASS",
+      "duration": 1141
+    },
+    {
+      "timestamp": "2026-01-27T00:48:44.782Z",
+      "testId": "TC-LEAD-003",
+      "testName": "TC-LEAD-003: Should search leads",
+      "module": "leads",
+      "status": "PASS",
+      "duration": 11664
+    },
+    {
+      "timestamp": "2026-01-27T00:48:56.028Z",
+      "testId": "TC-LEAD-004",
+      "testName": "TC-LEAD-004: Should create new lead",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 11193,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:49:08.646Z",
+      "testId": "TC-LEAD-004",
+      "testName": "TC-LEAD-004: Should create new lead",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 11797,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:49:20.531Z",
+      "testId": "TC-LEAD-004",
+      "testName": "TC-LEAD-004: Should create new lead",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 11198,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:49:32.427Z",
+      "testId": "TC-LEAD-005",
+      "testName": "TC-LEAD-005: Should set lead status",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 11218,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:49:45.491Z",
+      "testId": "TC-LEAD-005",
+      "testName": "TC-LEAD-005: Should set lead status",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 12115,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:49:58.029Z",
+      "testId": "TC-LEAD-005",
+      "testName": "TC-LEAD-005: Should set lead status",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 11566,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:50:09.987Z",
+      "testId": "TC-LEAD-006",
+      "testName": "TC-LEAD-006: Should set lead source",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 11214,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:50:22.600Z",
+      "testId": "TC-LEAD-006",
+      "testName": "TC-LEAD-006: Should set lead source",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 11839,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:50:34.465Z",
+      "testId": "TC-LEAD-006",
+      "testName": "TC-LEAD-006: Should set lead source",
+      "module": "leads",
+      "status": "FAIL",
+      "duration": 11182,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:50:59.476Z",
+      "testId": "TC-LEAD-007",
+      "testName": "TC-LEAD-007: Should convert lead to opportunity",
+      "module": "leads",
+      "status": "SKIP",
+      "duration": 24280
+    },
+    {
+      "timestamp": "2026-01-27T00:51:23.792Z",
+      "testId": "TC-LEAD-008",
+      "testName": "TC-LEAD-008: Should convert lead to customer",
+      "module": "leads",
+      "status": "PASS",
+      "duration": 24301
+    },
+    {
+      "timestamp": "2026-01-27T00:51:48.307Z",
+      "testId": "TC-LEAD-009",
+      "testName": "TC-LEAD-009: Should update lead status",
+      "module": "leads",
+      "status": "PASS",
+      "duration": 24500
+    },
+    {
+      "timestamp": "2026-01-27T00:52:12.587Z",
+      "testId": "TC-LEAD-010",
+      "testName": "TC-LEAD-010: Should delete test lead",
+      "module": "leads",
+      "status": "PASS",
+      "duration": 24264
+    },
+    {
+      "timestamp": "2026-01-27T00:52:23.830Z",
+      "testId": "TC-OPP-001",
+      "testName": "TC-OPP-001: Should display opportunities list",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11198,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:52:36.585Z",
+      "testId": "TC-OPP-001",
+      "testName": "TC-OPP-001: Should display opportunities list",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11903,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:52:48.557Z",
+      "testId": "TC-OPP-001",
+      "testName": "TC-OPP-001: Should display opportunities list",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11284,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /opportunit/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:52:50.447Z",
+      "testId": "TC-OPP-002",
+      "testName": "TC-OPP-002: Should display pipeline stages",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 1239,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:52:52.559Z",
+      "testId": "TC-OPP-002",
+      "testName": "TC-OPP-002: Should display pipeline stages",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 1390,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:52:54.428Z",
+      "testId": "TC-OPP-002",
+      "testName": "TC-OPP-002: Should display pipeline stages",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 1202,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-27T00:52:56.243Z",
+      "testId": "TC-OPP-003",
+      "testName": "TC-OPP-003: Should show opportunity value",
+      "module": "opportunities",
+      "status": "PASS",
+      "duration": 1161
+    },
+    {
+      "timestamp": "2026-01-27T00:52:57.357Z",
+      "testId": "TC-OPP-004",
+      "testName": "TC-OPP-004: Should filter by stage",
+      "module": "opportunities",
+      "status": "PASS",
+      "duration": 1104
+    },
+    {
+      "timestamp": "2026-01-27T00:53:08.716Z",
+      "testId": "TC-OPP-005",
+      "testName": "TC-OPP-005: Should open create opportunity dialog",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11318,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:53:21.404Z",
+      "testId": "TC-OPP-005",
+      "testName": "TC-OPP-005: Should open create opportunity dialog",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11928,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:53:33.376Z",
+      "testId": "TC-OPP-005",
+      "testName": "TC-OPP-005: Should open create opportunity dialog",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11268,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:53:45.499Z",
+      "testId": "TC-OPP-006",
+      "testName": "TC-OPP-006: Should create new opportunity",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11263,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:53:58.190Z",
+      "testId": "TC-OPP-006",
+      "testName": "TC-OPP-006: Should create new opportunity",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11957,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:54:10.031Z",
+      "testId": "TC-OPP-006",
+      "testName": "TC-OPP-006: Should create new opportunity",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11152,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:54:21.912Z",
+      "testId": "TC-OPP-007",
+      "testName": "TC-OPP-007: Should set close date",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11184,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:54:34.613Z",
+      "testId": "TC-OPP-007",
+      "testName": "TC-OPP-007: Should set close date",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11948,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:54:46.622Z",
+      "testId": "TC-OPP-007",
+      "testName": "TC-OPP-007: Should set close date",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11253,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:54:58.678Z",
+      "testId": "TC-OPP-008",
+      "testName": "TC-OPP-008: Should link to customer",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11342,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:55:11.448Z",
+      "testId": "TC-OPP-008",
+      "testName": "TC-OPP-008: Should link to customer",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11996,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:55:23.420Z",
+      "testId": "TC-OPP-008",
+      "testName": "TC-OPP-008: Should link to customer",
+      "module": "opportunities",
+      "status": "FAIL",
+      "duration": 11295,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:55:48.419Z",
+      "testId": "TC-OPP-009",
+      "testName": "TC-OPP-009: Should update opportunity stage",
+      "module": "opportunities",
+      "status": "PASS",
+      "duration": 24359
+    },
+    {
+      "timestamp": "2026-01-27T00:56:12.689Z",
+      "testId": "TC-OPP-010",
+      "testName": "TC-OPP-010: Should update probability",
+      "module": "opportunities",
+      "status": "PASS",
+      "duration": 24256
+    },
+    {
+      "timestamp": "2026-01-27T00:56:37.080Z",
+      "testId": "TC-OPP-011",
+      "testName": "TC-OPP-011: Should close opportunity as won",
+      "module": "opportunities",
+      "status": "PASS",
+      "duration": 24371
+    },
+    {
+      "timestamp": "2026-01-27T00:57:01.571Z",
+      "testId": "TC-OPP-012",
+      "testName": "TC-OPP-012: Should close opportunity as lost",
+      "module": "opportunities",
+      "status": "PASS",
+      "duration": 24476
+    },
+    {
+      "timestamp": "2026-01-27T00:57:25.792Z",
+      "testId": "TC-OPP-013",
+      "testName": "TC-OPP-013: Should delete test opportunity",
+      "module": "opportunities",
+      "status": "PASS",
+      "duration": 24211
+    },
+    {
+      "timestamp": "2026-01-27T00:57:37.044Z",
+      "testId": "TC-SR-001",
+      "testName": "TC-SR-001: Should display service requests list",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11198,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:57:49.905Z",
+      "testId": "TC-SR-001",
+      "testName": "TC-SR-001: Should display service requests list",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11861,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:58:01.817Z",
+      "testId": "TC-SR-001",
+      "testName": "TC-SR-001: Should display service requests list",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11220,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /service|request|ticket/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:58:03.670Z",
+      "testId": "TC-SR-002",
+      "testName": "TC-SR-002: Should show priority column",
+      "module": "service-requests",
+      "status": "PASS",
+      "duration": 1176
+    },
+    {
+      "timestamp": "2026-01-27T00:58:04.799Z",
+      "testId": "TC-SR-003",
+      "testName": "TC-SR-003: Should show status column",
+      "module": "service-requests",
+      "status": "PASS",
+      "duration": 1119
+    },
+    {
+      "timestamp": "2026-01-27T00:58:05.952Z",
+      "testId": "TC-SR-004",
+      "testName": "TC-SR-004: Should filter by priority",
+      "module": "service-requests",
+      "status": "PASS",
+      "duration": 1141
+    },
+    {
+      "timestamp": "2026-01-27T00:58:07.350Z",
+      "testId": "TC-SR-005",
+      "testName": "TC-SR-005: Should filter by status",
+      "module": "service-requests",
+      "status": "PASS",
+      "duration": 1386
+    },
+    {
+      "timestamp": "2026-01-27T00:58:18.701Z",
+      "testId": "TC-SR-006",
+      "testName": "TC-SR-006: Should create bug report",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11287,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:58:31.698Z",
+      "testId": "TC-SR-006",
+      "testName": "TC-SR-006: Should create bug report",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 12037,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:58:43.745Z",
+      "testId": "TC-SR-006",
+      "testName": "TC-SR-006: Should create bug report",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11218,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:58:55.655Z",
+      "testId": "TC-SR-007",
+      "testName": "TC-SR-007: Should create feature request",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11226,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:59:08.844Z",
+      "testId": "TC-SR-007",
+      "testName": "TC-SR-007: Should create feature request",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11946,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:59:20.763Z",
+      "testId": "TC-SR-007",
+      "testName": "TC-SR-007: Should create feature request",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11176,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:59:32.948Z",
+      "testId": "TC-SR-008",
+      "testName": "TC-SR-008: Should create urgent ticket",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11531,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:59:46.017Z",
+      "testId": "TC-SR-008",
+      "testName": "TC-SR-008: Should create urgent ticket",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 12201,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T00:59:58.398Z",
+      "testId": "TC-SR-008",
+      "testName": "TC-SR-008: Should create urgent ticket",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11310,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:00:10.259Z",
+      "testId": "TC-SR-009",
+      "testName": "TC-SR-009: Should link to customer",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11165,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:00:22.959Z",
+      "testId": "TC-SR-009",
+      "testName": "TC-SR-009: Should link to customer",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11913,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:00:34.824Z",
+      "testId": "TC-SR-009",
+      "testName": "TC-SR-009: Should link to customer",
+      "module": "service-requests",
+      "status": "FAIL",
+      "duration": 11185,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:00:59.787Z",
+      "testId": "TC-SR-010",
+      "testName": "TC-SR-010: Should change status to In Progress",
+      "module": "service-requests",
+      "status": "PASS",
+      "duration": 24267
+    },
+    {
+      "timestamp": "2026-01-27T01:01:24.028Z",
+      "testId": "TC-SR-011",
+      "testName": "TC-SR-011: Should resolve service request",
+      "module": "service-requests",
+      "status": "PASS",
+      "duration": 24229
+    },
+    {
+      "timestamp": "2026-01-27T01:01:48.234Z",
+      "testId": "TC-SR-012",
+      "testName": "TC-SR-012: Should close service request",
+      "module": "service-requests",
+      "status": "PASS",
+      "duration": 24191
+    },
+    {
+      "timestamp": "2026-01-27T01:02:12.521Z",
+      "testId": "TC-SR-013",
+      "testName": "TC-SR-013: Should assign to user",
+      "module": "service-requests",
+      "status": "PASS",
+      "duration": 24274
+    },
+    {
+      "timestamp": "2026-01-27T01:02:36.761Z",
+      "testId": "TC-SR-014",
+      "testName": "TC-SR-014: Should reassign to different user",
+      "module": "service-requests",
+      "status": "PASS",
+      "duration": 24225
+    },
+    {
+      "timestamp": "2026-01-27T01:03:01.023Z",
+      "testId": "TC-SR-015",
+      "testName": "TC-SR-015: Should delete test service request",
+      "module": "service-requests",
+      "status": "PASS",
+      "duration": 24251
+    },
+    {
+      "timestamp": "2026-01-27T01:03:03.332Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-001: Should create lead qualification workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2250,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:06.583Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-001: Should create lead qualification workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2427,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:09.527Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-001: Should create lead qualification workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2258,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:12.449Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-002: Should create customer onboarding workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2241,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:15.637Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-002: Should create customer onboarding workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2463,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:18.568Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-002: Should create customer onboarding workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2250,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:21.607Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-003: Should create ticket escalation workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2307,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:24.792Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-003: Should create ticket escalation workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2460,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:27.688Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-003: Should create ticket escalation workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2231,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:31.301Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-004: Should create deal approval workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2672,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:35.150Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-004: Should create deal approval workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2828,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:03:38.577Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-CREATE-004: Should create deal approval workflow",
+      "module": "workflow-execution",
+      "status": "FAIL",
+      "duration": 2621,
+      "error": "TypeError: Cannot read properties of undefined (reading 'name')"
+    },
+    {
+      "timestamp": "2026-01-27T01:04:05.927Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-DESIGN-001: Should add trigger node to workflow",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 26677
+    },
+    {
+      "timestamp": "2026-01-27T01:04:31.288Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-DESIGN-002: Should add condition node to workflow",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25345
+    },
+    {
+      "timestamp": "2026-01-27T01:04:56.634Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-DESIGN-003: Should add AI action node to workflow",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25332
+    },
+    {
+      "timestamp": "2026-01-27T01:05:21.963Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-DESIGN-004: Should connect workflow nodes",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25317
+    },
+    {
+      "timestamp": "2026-01-27T01:05:47.276Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-EXEC-001: Should activate workflow",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25298
+    },
+    {
+      "timestamp": "2026-01-27T01:06:12.617Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-EXEC-002: Should manually trigger workflow",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25327
+    },
+    {
+      "timestamp": "2026-01-27T01:06:16.526Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-EXEC-003: Should trigger workflow via lead creation",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 3898
+    },
+    {
+      "timestamp": "2026-01-27T01:06:20.528Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-EXEC-004: Should trigger workflow via service request creation",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 3987
+    },
+    {
+      "timestamp": "2026-01-27T01:06:46.028Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-HIST-001: Should view workflow execution history",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25476
+    },
+    {
+      "timestamp": "2026-01-27T01:07:11.621Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-HIST-002: Should view execution details",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25576
+    },
+    {
+      "timestamp": "2026-01-27T01:07:37.019Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-HIST-003: Should view execution logs",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25383
+    },
+    {
+      "timestamp": "2026-01-27T01:08:02.376Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-AI-001: Should configure AI text generation node",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25341
+    },
+    {
+      "timestamp": "2026-01-27T01:08:27.868Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-AI-002: Should configure AI classification node",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25462
+    },
+    {
+      "timestamp": "2026-01-27T01:08:54.240Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-AI-003: Should configure AI sentiment analysis node",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 26207
+    },
+    {
+      "timestamp": "2026-01-27T01:09:19.587Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-MGT-001: Should duplicate workflow",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25329
+    },
+    {
+      "timestamp": "2026-01-27T01:09:44.956Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-MGT-002: Should deactivate workflow",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25350
+    },
+    {
+      "timestamp": "2026-01-27T01:10:10.362Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-MGT-003: Should export workflow",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 25387
+    },
+    {
+      "timestamp": "2026-01-27T01:10:34.819Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "TC-WF-SUM-001: Should list all test workflows",
+      "module": "workflow-execution",
+      "status": "PASS",
+      "duration": 24430
+    },
+    {
+      "timestamp": "2026-01-27T01:10:46.121Z",
+      "testId": "TC-WF-001",
+      "testName": "TC-WF-001: Should display workflows list",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11235,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /workflow/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /workflow/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:10:59.070Z",
+      "testId": "TC-WF-001",
+      "testName": "TC-WF-001: Should display workflows list",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 12050,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /workflow/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /workflow/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:11:11.050Z",
+      "testId": "TC-WF-001",
+      "testName": "TC-WF-001: Should display workflows list",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11250,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2, .page-title').filter({ hasText: /workflow/i })\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2, .page-title').filter({ hasText: /workflow/i })\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:11:22.873Z",
+      "testId": "TC-WF-002",
+      "testName": "TC-WF-002: Should have create workflow button",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11174,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:11:35.432Z",
+      "testId": "TC-WF-002",
+      "testName": "TC-WF-002: Should have create workflow button",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11817,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:11:47.439Z",
+      "testId": "TC-WF-002",
+      "testName": "TC-WF-002: Should have create workflow button",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11240,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:11:49.761Z",
+      "testId": "TC-WF-003",
+      "testName": "TC-WF-003: Should show workflow status",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 1198
+    },
+    {
+      "timestamp": "2026-01-27T01:12:00.935Z",
+      "testId": "TC-WF-004",
+      "testName": "TC-WF-004: Should open workflow designer",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11126,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:12:14.370Z",
+      "testId": "TC-WF-004",
+      "testName": "TC-WF-004: Should open workflow designer",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 12567,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:12:26.261Z",
+      "testId": "TC-WF-004",
+      "testName": "TC-WF-004: Should open workflow designer",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11190,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:12:38.078Z",
+      "testId": "TC-WF-005",
+      "testName": "TC-WF-005: Should create new workflow",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11164,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:12:50.834Z",
+      "testId": "TC-WF-005",
+      "testName": "TC-WF-005: Should create new workflow",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11843,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:13:03.352Z",
+      "testId": "TC-WF-005",
+      "testName": "TC-WF-005: Should create new workflow",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11777,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:13:15.218Z",
+      "testId": "TC-WF-006",
+      "testName": "TC-WF-006: Should set workflow trigger",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11192,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:13:27.770Z",
+      "testId": "TC-WF-006",
+      "testName": "TC-WF-006: Should set workflow trigger",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11815,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:13:40.037Z",
+      "testId": "TC-WF-006",
+      "testName": "TC-WF-006: Should set workflow trigger",
+      "module": "workflows",
+      "status": "FAIL",
+      "duration": 11436,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Add\"), button:has-text(\"New\"), button:has-text(\"Create\")').first()\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-01-27T01:14:03.179Z",
+      "testId": "TC-WF-007",
+      "testName": "TC-WF-007: Should display node palette",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 22284
+    },
+    {
+      "timestamp": "2026-01-27T01:14:27.384Z",
+      "testId": "TC-WF-008",
+      "testName": "TC-WF-008: Should add trigger node",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 24188
+    },
+    {
+      "timestamp": "2026-01-27T01:14:51.772Z",
+      "testId": "TC-WF-009",
+      "testName": "TC-WF-009: Should add action node",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 24373
+    },
+    {
+      "timestamp": "2026-01-27T01:15:16.036Z",
+      "testId": "TC-WF-010",
+      "testName": "TC-WF-010: Should add condition node",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 24250
+    },
+    {
+      "timestamp": "2026-01-27T01:15:38.260Z",
+      "testId": "TC-WF-011",
+      "testName": "TC-WF-011: Should display AI node types",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 22204
+    },
+    {
+      "timestamp": "2026-01-27T01:16:02.500Z",
+      "testId": "TC-WF-012",
+      "testName": "TC-WF-012: Should add AI Decision node",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 24229
+    },
+    {
+      "timestamp": "2026-01-27T01:16:26.772Z",
+      "testId": "TC-WF-013",
+      "testName": "TC-WF-013: Should add AI Agent node",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 24259
+    },
+    {
+      "timestamp": "2026-01-27T01:16:50.976Z",
+      "testId": "TC-WF-014",
+      "testName": "TC-WF-014: Should configure AI node properties",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 24190
+    },
+    {
+      "timestamp": "2026-01-27T01:17:15.239Z",
+      "testId": "TC-WF-015",
+      "testName": "TC-WF-015: Should activate workflow",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 24247
+    },
+    {
+      "timestamp": "2026-01-27T01:17:39.615Z",
+      "testId": "TC-WF-016",
+      "testName": "TC-WF-016: Should deactivate workflow",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 24359
+    },
+    {
+      "timestamp": "2026-01-27T01:18:01.778Z",
+      "testId": "TC-WF-017",
+      "testName": "TC-WF-017: Should view workflow execution history",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 22150
+    },
+    {
+      "timestamp": "2026-01-27T01:18:26.000Z",
+      "testId": "TC-WF-018",
+      "testName": "TC-WF-018: Should delete test workflow",
+      "module": "workflows",
+      "status": "PASS",
+      "duration": 24211
+    }
+  ]
+}

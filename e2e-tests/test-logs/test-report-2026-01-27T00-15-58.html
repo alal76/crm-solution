@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM E2E Test Report - 2026-01-27T00-15-58</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #1976d2, #1565c0); color: white; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .header h1 { font-size: 28px; margin-bottom: 10px; }
+    .header .date { opacity: 0.9; font-size: 14px; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 20px; background: white; }
+    .summary-card { padding: 20px; border-radius: 8px; text-align: center; }
+    .summary-card.total { background: #e3f2fd; border-left: 4px solid #1976d2; }
+    .summary-card.passed { background: #e8f5e9; border-left: 4px solid #4caf50; }
+    .summary-card.failed { background: #ffebee; border-left: 4px solid #f44336; }
+    .summary-card.skipped { background: #fff3e0; border-left: 4px solid #ff9800; }
+    .summary-card .number { font-size: 36px; font-weight: bold; }
+    .summary-card .label { font-size: 14px; color: #666; margin-top: 5px; }
+    .section { background: white; margin-top: 20px; border-radius: 8px; overflow: hidden; }
+    .section-header { padding: 15px 20px; background: #f5f5f5; border-bottom: 1px solid #e0e0e0; font-weight: bold; }
+    .test-list { max-height: 600px; overflow-y: auto; }
+    .test-item { padding: 12px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: flex-start; gap: 15px; }
+    .test-item:hover { background: #f9f9f9; }
+    .test-item .icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; flex-shrink: 0; }
+    .test-item .icon.pass { background: #4caf50; }
+    .test-item .icon.fail { background: #f44336; }
+    .test-item .icon.skip { background: #ff9800; }
+    .test-item .details { flex: 1; }
+    .test-item .test-id { font-size: 12px; color: #666; }
+    .test-item .test-name { font-weight: 500; }
+    .test-item .test-module { font-size: 12px; color: #1976d2; }
+    .test-item .duration { font-size: 12px; color: #666; flex-shrink: 0; }
+    .test-item .error { background: #ffebee; color: #c62828; font-size: 12px; padding: 8px; margin-top: 8px; border-radius: 4px; word-break: break-word; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧪 CRM E2E Test Report</h1>
+      <div class="date">Generated: 1/27/2026, 12:16:58 AM</div>
+      <div class="date">Duration: 59s</div>
+    </div>
+    <div class="summary">
+      <div class="summary-card total">
+        <div class="number">33</div>
+        <div class="label">Total Tests</div>
+      </div>
+      <div class="summary-card passed">
+        <div class="number">33</div>
+        <div class="label">Passed</div>
+      </div>
+      <div class="summary-card failed">
+        <div class="number">0</div>
+        <div class="label">Failed</div>
+      </div>
+      <div class="summary-card skipped">
+        <div class="number">0</div>
+        <div class="label">Skipped</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-header">📋 Test Results</div>
+      <div class="test-list">
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">authenticate</div>
+              <div class="test-module">auth.setup.ts</div>
+              
+            </div>
+            <div class="duration">4616ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-001</div>
+              <div class="test-name">TC-DASH-001: Should display dashboard</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1628ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-002</div>
+              <div class="test-name">TC-DASH-002: Should display welcome message</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1466ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-003</div>
+              <div class="test-name">TC-DASH-003: Should display navigation menu</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1333ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-004</div>
+              <div class="test-name">TC-DASH-004: Should display customer count widget</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1275ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-005</div>
+              <div class="test-name">TC-DASH-005: Should display opportunity pipeline widget</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1939ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-006</div>
+              <div class="test-name">TC-DASH-006: Should display service requests widget</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1993ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-007</div>
+              <div class="test-name">TC-DASH-007: Should display recent activity widget</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1291ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-008</div>
+              <div class="test-name">TC-DASH-008: Should display tasks widget</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1399ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-009</div>
+              <div class="test-name">TC-DASH-009: Should display revenue metrics</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1289ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-010</div>
+              <div class="test-name">TC-DASH-010: Should display lead conversion rate</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1826ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-011</div>
+              <div class="test-name">TC-DASH-011: Should display open tickets count</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">3491ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-012</div>
+              <div class="test-name">TC-DASH-012: Should display charts</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">5050ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-013</div>
+              <div class="test-name">TC-DASH-013: Should have chart interactions</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1878ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-014</div>
+              <div class="test-name">TC-DASH-014: Should have quick add customer action</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1304ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-015</div>
+              <div class="test-name">TC-DASH-015: Should have quick add opportunity action</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">2123ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-016</div>
+              <div class="test-name">TC-DASH-016: Should have quick add service request action</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1357ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-017</div>
+              <div class="test-name">TC-DASH-017: Should navigate to customers</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1529ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-018</div>
+              <div class="test-name">TC-DASH-018: Should navigate to opportunities</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1591ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-019</div>
+              <div class="test-name">TC-DASH-019: Should navigate to leads</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1522ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-020</div>
+              <div class="test-name">TC-DASH-020: Should navigate to service requests</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1261ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-021</div>
+              <div class="test-name">TC-DASH-021: Should navigate to campaigns</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1260ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-022</div>
+              <div class="test-name">TC-DASH-022: Should navigate to admin</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1300ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-023</div>
+              <div class="test-name">TC-DASH-023: Should display user profile menu</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1220ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-024</div>
+              <div class="test-name">TC-DASH-024: Should access profile settings</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1309ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-025</div>
+              <div class="test-name">TC-DASH-025: Should logout from dashboard</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1233ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-026</div>
+              <div class="test-name">TC-DASH-026: Should have global search</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1212ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-027</div>
+              <div class="test-name">TC-DASH-027: Should search for customer</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1242ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-028</div>
+              <div class="test-name">TC-DASH-028: Should navigate from search results</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1567ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-029</div>
+              <div class="test-name">TC-DASH-029: Should display notification bell</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">2240ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-030</div>
+              <div class="test-name">TC-DASH-030: Should open notifications panel</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1161ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-031</div>
+              <div class="test-name">TC-DASH-031: Should be responsive on mobile</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1264ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-DASH-032</div>
+              <div class="test-name">TC-DASH-032: Should show mobile menu</div>
+              <div class="test-module">dashboard</div>
+              
+            </div>
+            <div class="duration">1173ms</div>
+          </div>
+        
+      </div>
+    </div>
+    <div class="footer">CRM Solution E2E Test Suite • Powered by Playwright</div>
+  </div>
+</body>
+</html>

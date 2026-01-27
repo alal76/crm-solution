@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM E2E Test Report - 2026-01-27T00-22-04</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #1976d2, #1565c0); color: white; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .header h1 { font-size: 28px; margin-bottom: 10px; }
+    .header .date { opacity: 0.9; font-size: 14px; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 20px; background: white; }
+    .summary-card { padding: 20px; border-radius: 8px; text-align: center; }
+    .summary-card.total { background: #e3f2fd; border-left: 4px solid #1976d2; }
+    .summary-card.passed { background: #e8f5e9; border-left: 4px solid #4caf50; }
+    .summary-card.failed { background: #ffebee; border-left: 4px solid #f44336; }
+    .summary-card.skipped { background: #fff3e0; border-left: 4px solid #ff9800; }
+    .summary-card .number { font-size: 36px; font-weight: bold; }
+    .summary-card .label { font-size: 14px; color: #666; margin-top: 5px; }
+    .section { background: white; margin-top: 20px; border-radius: 8px; overflow: hidden; }
+    .section-header { padding: 15px 20px; background: #f5f5f5; border-bottom: 1px solid #e0e0e0; font-weight: bold; }
+    .test-list { max-height: 600px; overflow-y: auto; }
+    .test-item { padding: 12px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: flex-start; gap: 15px; }
+    .test-item:hover { background: #f9f9f9; }
+    .test-item .icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; flex-shrink: 0; }
+    .test-item .icon.pass { background: #4caf50; }
+    .test-item .icon.fail { background: #f44336; }
+    .test-item .icon.skip { background: #ff9800; }
+    .test-item .details { flex: 1; }
+    .test-item .test-id { font-size: 12px; color: #666; }
+    .test-item .test-name { font-weight: 500; }
+    .test-item .test-module { font-size: 12px; color: #1976d2; }
+    .test-item .duration { font-size: 12px; color: #666; flex-shrink: 0; }
+    .test-item .error { background: #ffebee; color: #c62828; font-size: 12px; padding: 8px; margin-top: 8px; border-radius: 4px; word-break: break-word; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧪 CRM E2E Test Report</h1>
+      <div class="date">Generated: 1/27/2026, 12:26:08 AM</div>
+      <div class="date">Duration: 4m 4s</div>
+    </div>
+    <div class="summary">
+      <div class="summary-card total">
+        <div class="number">35</div>
+        <div class="label">Total Tests</div>
+      </div>
+      <div class="summary-card passed">
+        <div class="number">20</div>
+        <div class="label">Passed</div>
+      </div>
+      <div class="summary-card failed">
+        <div class="number">12</div>
+        <div class="label">Failed</div>
+      </div>
+      <div class="summary-card skipped">
+        <div class="number">3</div>
+        <div class="label">Skipped</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-header">📋 Test Results</div>
+      <div class="test-list">
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">authenticate</div>
+              <div class="test-module">auth.setup.ts</div>
+              
+            </div>
+            <div class="duration">5097ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-001</div>
+              <div class="test-name">TC-CUST-001: Should display customers list page</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">2212ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-002</div>
+              <div class="test-name">TC-CUST-002: Should display customer data grid columns</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">2352ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-003</div>
+              <div class="test-name">TC-CUST-003: Should have Add Customer button</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">2367ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-004</div>
+              <div class="test-name">TC-CUST-004: Should search customers</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3812ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-005</div>
+              <div class="test-name">TC-CUST-005: Should filter customers by type</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3839ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-006</div>
+              <div class="test-name">TC-CUST-006: Should paginate customer list</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3440ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-007</div>
+              <div class="test-name">TC-CUST-007: Should sort customers by column</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">2884ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-008</div>
+              <div class="test-name">TC-CUST-008: Should open create customer dialog</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">1927ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-009</div>
+              <div class="test-name">TC-CUST-009: Should validate required fields on create</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">2896ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-010</div>
+              <div class="test-name">TC-CUST-010: Should create new corporate customer</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+</div>
+            </div>
+            <div class="duration">11792ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-010</div>
+              <div class="test-name">TC-CUST-010: Should create new corporate customer</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+</div>
+            </div>
+            <div class="duration">14201ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-010</div>
+              <div class="test-name">TC-CUST-010: Should create new corporate customer</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], input[aria-label*="Name"], #name').first()[22m
+</div>
+            </div>
+            <div class="duration">12044ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-011</div>
+              <div class="test-name">TC-CUST-011: Should create individual customer</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+</div>
+            </div>
+            <div class="duration">12170ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-011</div>
+              <div class="test-name">TC-CUST-011: Should create individual customer</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+</div>
+            </div>
+            <div class="duration">12811ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-011</div>
+              <div class="test-name">TC-CUST-011: Should create individual customer</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+</div>
+            </div>
+            <div class="duration">11945ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-012</div>
+              <div class="test-name">TC-CUST-012: Should cancel customer creation</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+</div>
+            </div>
+            <div class="duration">11979ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-012</div>
+              <div class="test-name">TC-CUST-012: Should cancel customer creation</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+</div>
+            </div>
+            <div class="duration">12667ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-012</div>
+              <div class="test-name">TC-CUST-012: Should cancel customer creation</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="name"], #name').first()[22m
+</div>
+            </div>
+            <div class="duration">11843ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-013</div>
+              <div class="test-name">TC-CUST-013: Should open customer for editing</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3484ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon skip">○</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-014</div>
+              <div class="test-name">TC-CUST-014: Should update customer name</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">4251ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-015</div>
+              <div class="test-name">TC-CUST-015: Should validate on update</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3398ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon skip">○</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-016</div>
+              <div class="test-name">TC-CUST-016: Should show delete confirmation</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">4424ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-017</div>
+              <div class="test-name">TC-CUST-017: Should cancel delete operation</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">4311ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon skip">○</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-018</div>
+              <div class="test-name">TC-CUST-018: Should delete test customer</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">4462ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-019</div>
+              <div class="test-name">TC-CUST-019: Should navigate to customer details</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+</div>
+            </div>
+            <div class="duration">13266ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-019</div>
+              <div class="test-name">TC-CUST-019: Should navigate to customer details</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+</div>
+            </div>
+            <div class="duration">14618ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-019</div>
+              <div class="test-name">TC-CUST-019: Should navigate to customer details</div>
+              <div class="test-module">customers</div>
+              <div class="error">TimeoutError: locator.dblclick: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.MuiDataGrid-row').first()[22m
+</div>
+            </div>
+            <div class="duration">13657ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-020</div>
+              <div class="test-name">TC-CUST-020: Should display customer overview</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3680ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-021</div>
+              <div class="test-name">TC-CUST-021: Should display contact info section</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">3274ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-022</div>
+              <div class="test-name">TC-CUST-022: Should add email to customer</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">4359ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-023</div>
+              <div class="test-name">TC-CUST-023: Should add phone to customer</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">4432ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-024</div>
+              <div class="test-name">TC-CUST-024: Should add address to customer</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">4309ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-025</div>
+              <div class="test-name">TC-CUST-025: Should have export button</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">1193ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-CUST-026</div>
+              <div class="test-name">TC-CUST-026: Should have import button</div>
+              <div class="test-module">customers</div>
+              
+            </div>
+            <div class="duration">1247ms</div>
+          </div>
+        
+      </div>
+    </div>
+    <div class="footer">CRM Solution E2E Test Suite • Powered by Playwright</div>
+  </div>
+</body>
+</html>

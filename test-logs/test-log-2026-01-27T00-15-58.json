@@ -1,0 +1,291 @@
+{
+  "summary": {
+    "startTime": "2026-01-27T00:15:58.836Z",
+    "totalTests": 33,
+    "passed": 33,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 59984,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "dashboard": {
+        "total": 32,
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-01-27T00:16:58.820Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-01-27T00:16:04.800Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 4616
+    },
+    {
+      "timestamp": "2026-01-27T00:16:07.143Z",
+      "testId": "TC-DASH-001",
+      "testName": "TC-DASH-001: Should display dashboard",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1628
+    },
+    {
+      "timestamp": "2026-01-27T00:16:08.620Z",
+      "testId": "TC-DASH-002",
+      "testName": "TC-DASH-002: Should display welcome message",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1466
+    },
+    {
+      "timestamp": "2026-01-27T00:16:09.965Z",
+      "testId": "TC-DASH-003",
+      "testName": "TC-DASH-003: Should display navigation menu",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1333
+    },
+    {
+      "timestamp": "2026-01-27T00:16:11.252Z",
+      "testId": "TC-DASH-004",
+      "testName": "TC-DASH-004: Should display customer count widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1275
+    },
+    {
+      "timestamp": "2026-01-27T00:16:13.204Z",
+      "testId": "TC-DASH-005",
+      "testName": "TC-DASH-005: Should display opportunity pipeline widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1939
+    },
+    {
+      "timestamp": "2026-01-27T00:16:15.210Z",
+      "testId": "TC-DASH-006",
+      "testName": "TC-DASH-006: Should display service requests widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1993
+    },
+    {
+      "timestamp": "2026-01-27T00:16:16.518Z",
+      "testId": "TC-DASH-007",
+      "testName": "TC-DASH-007: Should display recent activity widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1291
+    },
+    {
+      "timestamp": "2026-01-27T00:16:17.942Z",
+      "testId": "TC-DASH-008",
+      "testName": "TC-DASH-008: Should display tasks widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1399
+    },
+    {
+      "timestamp": "2026-01-27T00:16:19.241Z",
+      "testId": "TC-DASH-009",
+      "testName": "TC-DASH-009: Should display revenue metrics",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1289
+    },
+    {
+      "timestamp": "2026-01-27T00:16:21.092Z",
+      "testId": "TC-DASH-010",
+      "testName": "TC-DASH-010: Should display lead conversion rate",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1826
+    },
+    {
+      "timestamp": "2026-01-27T00:16:24.607Z",
+      "testId": "TC-DASH-011",
+      "testName": "TC-DASH-011: Should display open tickets count",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 3491
+    },
+    {
+      "timestamp": "2026-01-27T00:16:29.693Z",
+      "testId": "TC-DASH-012",
+      "testName": "TC-DASH-012: Should display charts",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 5050
+    },
+    {
+      "timestamp": "2026-01-27T00:16:31.681Z",
+      "testId": "TC-DASH-013",
+      "testName": "TC-DASH-013: Should have chart interactions",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1878
+    },
+    {
+      "timestamp": "2026-01-27T00:16:32.996Z",
+      "testId": "TC-DASH-014",
+      "testName": "TC-DASH-014: Should have quick add customer action",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1304
+    },
+    {
+      "timestamp": "2026-01-27T00:16:35.130Z",
+      "testId": "TC-DASH-015",
+      "testName": "TC-DASH-015: Should have quick add opportunity action",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 2123
+    },
+    {
+      "timestamp": "2026-01-27T00:16:36.504Z",
+      "testId": "TC-DASH-016",
+      "testName": "TC-DASH-016: Should have quick add service request action",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1357
+    },
+    {
+      "timestamp": "2026-01-27T00:16:38.052Z",
+      "testId": "TC-DASH-017",
+      "testName": "TC-DASH-017: Should navigate to customers",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1529
+    },
+    {
+      "timestamp": "2026-01-27T00:16:39.659Z",
+      "testId": "TC-DASH-018",
+      "testName": "TC-DASH-018: Should navigate to opportunities",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1591
+    },
+    {
+      "timestamp": "2026-01-27T00:16:41.196Z",
+      "testId": "TC-DASH-019",
+      "testName": "TC-DASH-019: Should navigate to leads",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1522
+    },
+    {
+      "timestamp": "2026-01-27T00:16:42.468Z",
+      "testId": "TC-DASH-020",
+      "testName": "TC-DASH-020: Should navigate to service requests",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1261
+    },
+    {
+      "timestamp": "2026-01-27T00:16:43.737Z",
+      "testId": "TC-DASH-021",
+      "testName": "TC-DASH-021: Should navigate to campaigns",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1260
+    },
+    {
+      "timestamp": "2026-01-27T00:16:45.047Z",
+      "testId": "TC-DASH-022",
+      "testName": "TC-DASH-022: Should navigate to admin",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1300
+    },
+    {
+      "timestamp": "2026-01-27T00:16:46.276Z",
+      "testId": "TC-DASH-023",
+      "testName": "TC-DASH-023: Should display user profile menu",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1220
+    },
+    {
+      "timestamp": "2026-01-27T00:16:47.595Z",
+      "testId": "TC-DASH-024",
+      "testName": "TC-DASH-024: Should access profile settings",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1309
+    },
+    {
+      "timestamp": "2026-01-27T00:16:48.848Z",
+      "testId": "TC-DASH-025",
+      "testName": "TC-DASH-025: Should logout from dashboard",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1233
+    },
+    {
+      "timestamp": "2026-01-27T00:16:50.071Z",
+      "testId": "TC-DASH-026",
+      "testName": "TC-DASH-026: Should have global search",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1212
+    },
+    {
+      "timestamp": "2026-01-27T00:16:51.329Z",
+      "testId": "TC-DASH-027",
+      "testName": "TC-DASH-027: Should search for customer",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1242
+    },
+    {
+      "timestamp": "2026-01-27T00:16:52.906Z",
+      "testId": "TC-DASH-028",
+      "testName": "TC-DASH-028: Should navigate from search results",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1567
+    },
+    {
+      "timestamp": "2026-01-27T00:16:55.155Z",
+      "testId": "TC-DASH-029",
+      "testName": "TC-DASH-029: Should display notification bell",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 2240
+    },
+    {
+      "timestamp": "2026-01-27T00:16:56.324Z",
+      "testId": "TC-DASH-030",
+      "testName": "TC-DASH-030: Should open notifications panel",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1161
+    },
+    {
+      "timestamp": "2026-01-27T00:16:57.597Z",
+      "testId": "TC-DASH-031",
+      "testName": "TC-DASH-031: Should be responsive on mobile",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1264
+    },
+    {
+      "timestamp": "2026-01-27T00:16:58.778Z",
+      "testId": "TC-DASH-032",
+      "testName": "TC-DASH-032: Should show mobile menu",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1173
+    }
+  ]
+}

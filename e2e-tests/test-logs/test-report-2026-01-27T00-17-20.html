@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM E2E Test Report - 2026-01-27T00-17-20</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #1976d2, #1565c0); color: white; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .header h1 { font-size: 28px; margin-bottom: 10px; }
+    .header .date { opacity: 0.9; font-size: 14px; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 20px; background: white; }
+    .summary-card { padding: 20px; border-radius: 8px; text-align: center; }
+    .summary-card.total { background: #e3f2fd; border-left: 4px solid #1976d2; }
+    .summary-card.passed { background: #e8f5e9; border-left: 4px solid #4caf50; }
+    .summary-card.failed { background: #ffebee; border-left: 4px solid #f44336; }
+    .summary-card.skipped { background: #fff3e0; border-left: 4px solid #ff9800; }
+    .summary-card .number { font-size: 36px; font-weight: bold; }
+    .summary-card .label { font-size: 14px; color: #666; margin-top: 5px; }
+    .section { background: white; margin-top: 20px; border-radius: 8px; overflow: hidden; }
+    .section-header { padding: 15px 20px; background: #f5f5f5; border-bottom: 1px solid #e0e0e0; font-weight: bold; }
+    .test-list { max-height: 600px; overflow-y: auto; }
+    .test-item { padding: 12px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: flex-start; gap: 15px; }
+    .test-item:hover { background: #f9f9f9; }
+    .test-item .icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; flex-shrink: 0; }
+    .test-item .icon.pass { background: #4caf50; }
+    .test-item .icon.fail { background: #f44336; }
+    .test-item .icon.skip { background: #ff9800; }
+    .test-item .details { flex: 1; }
+    .test-item .test-id { font-size: 12px; color: #666; }
+    .test-item .test-name { font-weight: 500; }
+    .test-item .test-module { font-size: 12px; color: #1976d2; }
+    .test-item .duration { font-size: 12px; color: #666; flex-shrink: 0; }
+    .test-item .error { background: #ffebee; color: #c62828; font-size: 12px; padding: 8px; margin-top: 8px; border-radius: 4px; word-break: break-word; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧪 CRM E2E Test Report</h1>
+      <div class="date">Generated: 1/27/2026, 12:34:03 AM</div>
+      <div class="date">Duration: 16m 42s</div>
+    </div>
+    <div class="summary">
+      <div class="summary-card total">
+        <div class="number">74</div>
+        <div class="label">Total Tests</div>
+      </div>
+      <div class="summary-card passed">
+        <div class="number">38</div>
+        <div class="label">Passed</div>
+      </div>
+      <div class="summary-card failed">
+        <div class="number">36</div>
+        <div class="label">Failed</div>
+      </div>
+      <div class="summary-card skipped">
+        <div class="number">0</div>
+        <div class="label">Skipped</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-header">📋 Test Results</div>
+      <div class="test-list">
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">authenticate</div>
+              <div class="test-module">auth.setup.ts</div>
+              
+            </div>
+            <div class="duration">4479ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-001: Should create test admin user</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+</div>
+            </div>
+            <div class="duration">13909ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-001: Should create test admin user</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+</div>
+            </div>
+            <div class="duration">14243ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-001: Should create test admin user</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="username"], #username').first()[22m
+</div>
+            </div>
+            <div class="duration">13271ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-002: Should create test sales team users</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">12819ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-002: Should create test sales team users</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">13944ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-002: Should create test sales team users</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">13227ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-003: Should create test support team users</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">12871ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-003: Should create test support team users</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">13616ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-003: Should create test support team users</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-2hrcta"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">12970ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-004: Should modify user details</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">8240ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-USER-005: Should verify user visibility in lists</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5289ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CUST-001: Should create enterprise customer with full details</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5461ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CUST-002: Should create multiple test customers</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-328akr"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">13977ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CUST-002: Should create multiple test customers</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-328akr"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">14425ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CUST-002: Should create multiple test customers</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to &lt;button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-328akr"&gt;…&lt;/button&gt;[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - &lt;div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0"&gt;…&lt;/div&gt; from &lt;div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f"&gt;…&lt;/div&gt; subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+</div>
+            </div>
+            <div class="duration">14130ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CUST-003: Should modify customer data</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5266ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CUST-004: Should verify customer appears in search results</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4958ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CONT-001: Should create contacts for enterprise customer</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[type="email"]').first()[22m
+</div>
+            </div>
+            <div class="duration">13037ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CONT-001: Should create contacts for enterprise customer</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[type="email"]').first()[22m
+</div>
+            </div>
+            <div class="duration">14188ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CONT-001: Should create contacts for enterprise customer</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="email"], input[type="email"]').first()[22m
+</div>
+            </div>
+            <div class="duration">13097ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CONT-002: Should modify contact and verify customer link</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5397ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-OPP-001: Should create high-value opportunity</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('textarea[name="description"], #description').first()[22m
+</div>
+            </div>
+            <div class="duration">13424ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-OPP-001: Should create high-value opportunity</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('textarea[name="description"], #description').first()[22m
+</div>
+            </div>
+            <div class="duration">13123ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-OPP-001: Should create high-value opportunity</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('textarea[name="description"], #description').first()[22m
+</div>
+            </div>
+            <div class="duration">12834ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-OPP-002: Should advance opportunity through stages</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5262ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-OPP-003: Should verify opportunity-customer relationship</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5650ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-LEAD-001: Should create hot lead</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4248ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-LEAD-002: Should convert lead to opportunity</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">6220ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-LEAD-003: Should update lead score</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">6294ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-SR-001: Should create critical service request</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">12973ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-SR-001: Should create critical service request</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">13868ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-SR-001: Should create critical service request</div>
+              <div class="test-module">data-lifecycle</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">13422ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-SR-002: Should transition service request status</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">6494ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-SR-003: Should verify customer link in service request</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">6377ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CAMP-001: Should create email campaign</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4018ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CAMP-002: Should start campaign</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">5298ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-REL-001: Should verify customer deletion affects contacts</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4295ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-REL-002: Should verify opportunity affects customer revenue</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4372ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-REL-003: Should verify lead conversion creates customer and opportunity</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4200ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-REL-004: Should verify service request links to customer history</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">4797ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-DL-CLEAN-001: Should list all TEST_ data for cleanup</div>
+              <div class="test-module">data-lifecycle</div>
+              
+            </div>
+            <div class="duration">24597ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-001: Should create lead qualification workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2452ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-001: Should create lead qualification workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2394ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-001: Should create lead qualification workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2341ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-002: Should create customer onboarding workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2376ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-002: Should create customer onboarding workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2403ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-002: Should create customer onboarding workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2461ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-003: Should create ticket escalation workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2297ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-003: Should create ticket escalation workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2396ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-003: Should create ticket escalation workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2204ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-004: Should create deal approval workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2328ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-004: Should create deal approval workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">2682ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-CREATE-004: Should create deal approval workflow</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TypeError: Cannot read properties of undefined (reading 'name')</div>
+            </div>
+            <div class="duration">5675ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-DESIGN-001: Should add trigger node to workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25941ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-DESIGN-002: Should add condition node to workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25221ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-DESIGN-003: Should add AI action node to workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25390ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-DESIGN-004: Should connect workflow nodes</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25384ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-EXEC-001: Should activate workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25478ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-EXEC-002: Should manually trigger workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25482ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-EXEC-003: Should trigger workflow via lead creation</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">8510ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-EXEC-004: Should trigger workflow via service request creation</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">15067ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-EXEC-004: Should trigger workflow via service request creation</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">15472ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon fail">✗</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-EXEC-004: Should trigger workflow via service request creation</div>
+              <div class="test-module">workflow-execution</div>
+              <div class="error">TimeoutError: locator.fill: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('input[name="title"], input[name="subject"], #title').first()[22m
+</div>
+            </div>
+            <div class="duration">14615ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-HIST-001: Should view workflow execution history</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25254ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-HIST-002: Should view execution details</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25260ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-HIST-003: Should view execution logs</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25462ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-AI-001: Should configure AI text generation node</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25838ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-AI-002: Should configure AI classification node</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">26136ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-AI-003: Should configure AI sentiment analysis node</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25231ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-MGT-001: Should duplicate workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25426ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-MGT-002: Should deactivate workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25314ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-MGT-003: Should export workflow</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">25167ms</div>
+          </div>
+        
+          <div class="test-item">
+            <div class="icon pass">✓</div>
+            <div class="details">
+              <div class="test-id">TC-UNKNOWN</div>
+              <div class="test-name">TC-WF-SUM-001: Should list all test workflows</div>
+              <div class="test-module">workflow-execution</div>
+              
+            </div>
+            <div class="duration">24411ms</div>
+          </div>
+        
+      </div>
+    </div>
+    <div class="footer">CRM Solution E2E Test Suite • Powered by Playwright</div>
+  </div>
+</body>
+</html>

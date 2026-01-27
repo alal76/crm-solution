@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  e2e-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crm-e2e-tests
+    environment:
+      - CI=true
+      - BASE_URL=${BASE_URL:-http://192.168.0.9}
+      - TEST_USERNAME=${TEST_USERNAME:-admin}
+      - TEST_PASSWORD=${TEST_PASSWORD:-admin}
+    volumes:
+      - ./test-results:/app/e2e-tests/test-results
+      - ./playwright-report:/app/e2e-tests/playwright-report
+    network_mode: host
+    command: npm test
+
+  # Alternative service to run specific test suites
+  e2e-auth-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crm-e2e-auth-tests
+    environment:
+      - CI=true
+      - BASE_URL=${BASE_URL:-http://192.168.0.9}
+    volumes:
+      - ./test-results:/app/e2e-tests/test-results
+    network_mode: host
+    command: npm run test:auth
+    profiles:
+      - auth
+
+  e2e-customers-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crm-e2e-customers-tests
+    environment:
+      - CI=true
+      - BASE_URL=${BASE_URL:-http://192.168.0.9}
+    volumes:
+      - ./test-results:/app/e2e-tests/test-results
+    network_mode: host
+    command: npm run test:customers
+    profiles:
+      - customers
+
+  e2e-debug:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crm-e2e-debug
+    environment:
+      - CI=true
+      - BASE_URL=${BASE_URL:-http://192.168.0.9}
+      - DEBUG=pw:api
+    volumes:
+      - ./test-results:/app/e2e-tests/test-results
+      - ./playwright-report:/app/e2e-tests/playwright-report
+    network_mode: host
+    command: npm run test:debug
+    profiles:
+      - debug
