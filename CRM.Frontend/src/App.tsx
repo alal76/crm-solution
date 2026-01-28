@@ -64,6 +64,8 @@ import CustomerOverviewPage from './pages/CustomerOverviewPage';
 import CommunicationsPage from './pages/CommunicationsPage';
 import InteractionsPage from './pages/InteractionsPage';
 import ChannelSettingsPage from './pages/ChannelSettingsPage';
+import RelationshipsPage from './pages/RelationshipsPage';
+import CampaignExecutionPage from './pages/CampaignExecutionPage';
 import {
   DatabaseSettingsPage,
   DeploymentSettingsPage,
@@ -204,6 +206,26 @@ function App() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Campaigns">
                       <CampaignsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/campaigns/:campaignId/execution"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Campaigns">
+                      <CampaignExecutionPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/relationships"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <RelationshipsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

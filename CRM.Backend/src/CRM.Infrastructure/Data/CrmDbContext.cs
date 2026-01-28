@@ -149,6 +149,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<WorkflowNodeInstance> WorkflowNodeInstances { get; set; }
     public DbSet<WorkflowTask> WorkflowTasks { get; set; }
     public DbSet<WorkflowLog> WorkflowLogs { get; set; }
+    
+    // Relationship Management entities
+    public DbSet<RelationshipType> RelationshipTypes { get; set; }
+    public DbSet<AccountRelationship> AccountRelationships { get; set; }
+    public DbSet<RelationshipInteraction> RelationshipInteractions { get; set; }
+    public DbSet<AccountHealthSnapshot> AccountHealthSnapshots { get; set; }
+    public DbSet<RelationshipMap> RelationshipMaps { get; set; }
+    public DbSet<AccountTerritory> AccountTerritories { get; set; }
+    public DbSet<CustomerTerritoryAssignment> CustomerTerritoryAssignments { get; set; }
+    
+    // Campaign execution entities
+    public DbSet<CampaignRecipient> CampaignRecipients { get; set; }
+    public DbSet<CampaignLinkClick> CampaignLinkClicks { get; set; }
+    public DbSet<CampaignABTest> CampaignABTests { get; set; }
+    public DbSet<CampaignConversion> CampaignConversions { get; set; }
+    public DbSet<CampaignWorkflow> CampaignWorkflows { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -1609,6 +1625,305 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // ===================================================================
+        // RELATIONSHIP MANAGEMENT ENTITIES
+        // ===================================================================
+        
+        // RelationshipType configuration
+        modelBuilder.Entity<RelationshipType>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TypeName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.TypeCategory).HasMaxLength(50);
+            entity.Property(e => e.ReverseTypeName).HasMaxLength(100);
+            entity.Property(e => e.Icon).HasMaxLength(50);
+            entity.Property(e => e.Color).HasMaxLength(20);
+            entity.HasIndex(e => e.TypeName).IsUnique();
+            entity.HasIndex(e => e.TypeCategory);
+            entity.HasIndex(e => e.IsActive);
+        });
+        
+        // AccountRelationship configuration
+        modelBuilder.Entity<AccountRelationship>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.StrategicImportance).HasMaxLength(50);
+            entity.HasIndex(e => e.SourceCustomerId);
+            entity.HasIndex(e => e.TargetCustomerId);
+            entity.HasIndex(e => e.RelationshipTypeId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => new { e.SourceCustomerId, e.TargetCustomerId, e.RelationshipTypeId }).IsUnique();
+            
+            entity.HasOne(e => e.SourceCustomer)
+                .WithMany()
+                .HasForeignKey(e => e.SourceCustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.TargetCustomer)
+                .WithMany()
+                .HasForeignKey(e => e.TargetCustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.RelationshipType)
+                .WithMany(t => t.Relationships)
+                .HasForeignKey(e => e.RelationshipTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        // RelationshipInteraction configuration
+        modelBuilder.Entity<RelationshipInteraction>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.InteractionType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Subject).HasMaxLength(255);
+            entity.Property(e => e.Outcome).HasMaxLength(100);
+            entity.Property(e => e.HealthImpact).HasMaxLength(50);
+            entity.Property(e => e.Location).HasMaxLength(255);
+            entity.Property(e => e.MeetingLink).HasMaxLength(500);
+            entity.Property(e => e.ParticipantContactIds).HasColumnType("TEXT");
+            entity.Property(e => e.ParticipantUserIds).HasColumnType("TEXT");
+            entity.Property(e => e.ActionItems).HasColumnType("TEXT");
+            entity.Property(e => e.NextSteps).HasColumnType("TEXT");
+            entity.Property(e => e.Metadata).HasColumnType("TEXT");
+            entity.HasIndex(e => e.AccountRelationshipId);
+            entity.HasIndex(e => e.InteractionDate);
+            entity.HasIndex(e => e.InteractionType);
+            
+            entity.HasOne(e => e.AccountRelationship)
+                .WithMany(r => r.Interactions)
+                .HasForeignKey(e => e.AccountRelationshipId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // AccountHealthSnapshot configuration
+        modelBuilder.Entity<AccountHealthSnapshot>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.HealthTrend).HasMaxLength(20);
+            entity.Property(e => e.RiskFactors).HasColumnType("TEXT");
+            entity.Property(e => e.WarningSignals).HasColumnType("TEXT");
+            entity.Property(e => e.GrowthIndicators).HasColumnType("TEXT");
+            entity.Property(e => e.AnalystNotes).HasColumnType("TEXT");
+            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.SnapshotDate);
+            entity.HasIndex(e => new { e.CustomerId, e.SnapshotDate }).IsUnique();
+            
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // RelationshipMap configuration
+        modelBuilder.Entity<RelationshipMap>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MapName).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.IncludeRelationshipTypeIds).HasColumnType("TEXT");
+            entity.Property(e => e.ExcludeRelationshipTypeIds).HasColumnType("TEXT");
+            entity.Property(e => e.IncludeStatuses).HasColumnType("TEXT");
+            entity.Property(e => e.LayoutConfig).HasColumnType("TEXT");
+            entity.Property(e => e.ViewSettings).HasColumnType("TEXT");
+            entity.Property(e => e.SharedWithUserIds).HasColumnType("TEXT");
+            entity.Property(e => e.SharedWithGroupIds).HasColumnType("TEXT");
+            entity.HasIndex(e => e.IsPublic);
+            
+            entity.HasOne(e => e.CentralCustomer)
+                .WithMany()
+                .HasForeignKey(e => e.CentralCustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // AccountTerritory configuration
+        modelBuilder.Entity<AccountTerritory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TerritoryName).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.TerritoryCode).HasMaxLength(50);
+            entity.Property(e => e.Countries).HasColumnType("TEXT");
+            entity.Property(e => e.Regions).HasColumnType("TEXT");
+            entity.Property(e => e.States).HasColumnType("TEXT");
+            entity.Property(e => e.Cities).HasColumnType("TEXT");
+            entity.Property(e => e.Industries).HasColumnType("TEXT");
+            entity.Property(e => e.CustomerTypes).HasColumnType("TEXT");
+            entity.Property(e => e.TeamMemberIds).HasColumnType("TEXT");
+            entity.Property(e => e.QuotaCurrency).HasMaxLength(10);
+            entity.HasIndex(e => e.TerritoryCode).IsUnique();
+            entity.HasIndex(e => e.PrimaryOwnerId);
+            entity.HasIndex(e => e.IsActive);
+            
+            entity.HasOne(e => e.PrimaryOwner)
+                .WithMany()
+                .HasForeignKey(e => e.PrimaryOwnerId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // CustomerTerritoryAssignment configuration
+        modelBuilder.Entity<CustomerTerritoryAssignment>(entity =>
+        {
+            entity.HasKey(e => new { e.CustomerId, e.TerritoryId });
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.HasIndex(e => e.TerritoryId);
+            entity.HasIndex(e => e.IsPrimary);
+            
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.Territory)
+                .WithMany(t => t.CustomerAssignments)
+                .HasForeignKey(e => e.TerritoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // ===================================================================
+        // CAMPAIGN EXECUTION ENTITIES
+        // ===================================================================
+        
+        // CampaignRecipient configuration
+        modelBuilder.Entity<CampaignRecipient>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Email).HasMaxLength(255);
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.LastName).HasMaxLength(100);
+            entity.Property(e => e.Company).HasMaxLength(255);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.BounceType).HasMaxLength(50);
+            entity.Property(e => e.ABTestVariant).HasMaxLength(10);
+            entity.Property(e => e.PersonalizationData).HasColumnType("TEXT");
+            entity.Property(e => e.BounceReason).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorMessage).HasColumnType("TEXT");
+            entity.HasIndex(e => e.CampaignId);
+            entity.HasIndex(e => e.ContactId);
+            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.Email);
+            
+            entity.HasOne(e => e.Campaign)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.Contact)
+                .WithMany()
+                .HasForeignKey(e => e.ContactId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // CampaignLinkClick configuration
+        modelBuilder.Entity<CampaignLinkClick>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.LinkUrl).IsRequired().HasColumnType("TEXT");
+            entity.Property(e => e.LinkLabel).HasMaxLength(255);
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.DeviceType).HasMaxLength(50);
+            entity.Property(e => e.Browser).HasMaxLength(100);
+            entity.Property(e => e.OperatingSystem).HasMaxLength(100);
+            entity.Property(e => e.UserAgent).HasColumnType("TEXT");
+            entity.Property(e => e.LocationData).HasColumnType("TEXT");
+            entity.HasIndex(e => e.CampaignRecipientId);
+            entity.HasIndex(e => e.CampaignId);
+            entity.HasIndex(e => e.ClickedAt);
+            
+            entity.HasOne(e => e.CampaignRecipient)
+                .WithMany(r => r.LinkClicks)
+                .HasForeignKey(e => e.CampaignRecipientId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.Campaign)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // CampaignABTest configuration
+        modelBuilder.Entity<CampaignABTest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TestName).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.TestType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.TestMetric).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.WinnerVariant).HasMaxLength(10);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.TrafficSplit).HasColumnType("TEXT");
+            entity.Property(e => e.VariantConfigs).HasColumnType("TEXT");
+            entity.Property(e => e.WinningCriteria).HasColumnType("TEXT");
+            entity.HasIndex(e => e.CampaignId);
+            entity.HasIndex(e => e.Status);
+            
+            entity.HasOne(e => e.Campaign)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // CampaignConversion configuration
+        modelBuilder.Entity<CampaignConversion>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ConversionType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.ConversionCurrency).HasMaxLength(10);
+            entity.Property(e => e.AttributionModel).HasMaxLength(50);
+            entity.Property(e => e.ExternalOrderId).HasMaxLength(100);
+            entity.Property(e => e.ExternalTransactionId).HasMaxLength(100);
+            entity.Property(e => e.ConversionData).HasColumnType("TEXT");
+            entity.HasIndex(e => e.CampaignId);
+            entity.HasIndex(e => e.CampaignRecipientId);
+            entity.HasIndex(e => e.ConversionType);
+            entity.HasIndex(e => e.ConvertedAt);
+            
+            entity.HasOne(e => e.Campaign)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.CampaignRecipient)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignRecipientId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.Contact)
+                .WithMany()
+                .HasForeignKey(e => e.ContactId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // CampaignWorkflow configuration
+        modelBuilder.Entity<CampaignWorkflow>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.WorkflowType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.TriggerEvent).HasMaxLength(100);
+            entity.Property(e => e.TriggerConditions).HasColumnType("TEXT");
+            entity.HasIndex(e => e.CampaignId);
+            entity.HasIndex(e => e.WorkflowDefinitionId);
+            entity.HasIndex(e => e.IsActive);
+            
+            entity.HasOne(e => e.Campaign)
+                .WithMany()
+                .HasForeignKey(e => e.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.WorkflowDefinition)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

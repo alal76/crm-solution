@@ -308,6 +308,12 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<WorkflowService>();
 builder.Services.AddScoped<WorkflowInstanceService>();
 
+// Relationship management services
+builder.Services.AddScoped<RelationshipService>();
+
+// Campaign execution services
+builder.Services.AddScoped<CampaignExecutionService>();
+
 // LLM and Resilience services
 builder.Services.Configure<LLMProviderOptions>(builder.Configuration.GetSection("LLMProviders"));
 builder.Services.Configure<ResilienceOptions>(builder.Configuration.GetSection("Resilience"));

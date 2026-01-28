@@ -855,4 +855,279 @@ public class CriticalPathBVTTests
     }
 
     #endregion
+
+    #region BVT-096 to BVT-110: Relationship Management Critical Path
+
+    [Fact]
+    public void BVT096_RelationshipType_Creation()
+    {
+        // Arrange & Act
+        var type = new RelationshipType
+        {
+            Id = 1,
+            TypeName = "Partner",
+            TypeCategory = "Business",
+            IsBidirectional = true,
+            IsActive = true
+        };
+
+        // Assert
+        type.TypeName.Should().Be("Partner");
+        type.TypeCategory.Should().Be("Business");
+    }
+
+    [Fact]
+    public void BVT097_AccountRelationship_Creation()
+    {
+        // Arrange & Act
+        var relationship = new AccountRelationship
+        {
+            Id = 1,
+            SourceCustomerId = 100,
+            TargetCustomerId = 200,
+            RelationshipTypeId = 1,
+            Status = "Active",
+            StrengthScore = 75
+        };
+
+        // Assert
+        relationship.SourceCustomerId.Should().Be(100);
+        relationship.Status.Should().Be("Active");
+    }
+
+    [Fact]
+    public void BVT098_RelationshipInteraction_Logging()
+    {
+        // Arrange & Act
+        var interaction = new RelationshipInteraction
+        {
+            Id = 1,
+            AccountRelationshipId = 1,
+            InteractionType = "Meeting",
+            Subject = "Business Review",
+            Outcome = "Successful"
+        };
+
+        // Assert
+        interaction.InteractionType.Should().Be("Meeting");
+        interaction.Outcome.Should().Be("Successful");
+    }
+
+    [Fact]
+    public void BVT099_AccountHealthSnapshot_Creation()
+    {
+        // Arrange & Act
+        var snapshot = new AccountHealthSnapshot
+        {
+            Id = 1,
+            CustomerId = 100,
+            OverallHealthScore = 78,
+            HealthTrend = "Improving"
+        };
+
+        // Assert
+        snapshot.OverallHealthScore.Should().Be(78);
+        snapshot.HealthTrend.Should().Be("Improving");
+    }
+
+    [Fact]
+    public void BVT100_RelationshipMap_Configuration()
+    {
+        // Arrange & Act
+        var map = new RelationshipMap
+        {
+            Id = 1,
+            MapName = "Partner Network",
+            CentralCustomerId = 100,
+            RelationshipDepth = 2
+        };
+
+        // Assert
+        map.MapName.Should().Be("Partner Network");
+        map.RelationshipDepth.Should().Be(2);
+    }
+
+    #endregion
+
+    #region BVT-101 to BVT-110: Campaign Execution Critical Path
+
+    [Fact]
+    public void BVT101_CampaignWorkflow_Linking()
+    {
+        // Arrange & Act
+        var workflow = new CampaignWorkflow
+        {
+            Id = 1,
+            CampaignId = 100,
+            WorkflowDefinitionId = 5,
+            WorkflowType = "Sequential",
+            TriggerEvent = "CampaignStarted",
+            IsActive = true
+        };
+
+        // Assert
+        workflow.CampaignId.Should().Be(100);
+        workflow.WorkflowType.Should().Be("Sequential");
+    }
+
+    [Fact]
+    public void BVT102_CampaignRecipient_Tracking()
+    {
+        // Arrange & Act
+        var recipient = new CampaignRecipient
+        {
+            Id = 1,
+            CampaignId = 100,
+            Email = "test@example.com",
+            Status = "Delivered"
+        };
+
+        // Assert
+        recipient.Email.Should().Be("test@example.com");
+        recipient.Status.Should().Be("Delivered");
+    }
+
+    [Fact]
+    public void BVT103_CampaignRecipient_OpenTracking()
+    {
+        // Arrange
+        var recipient = new CampaignRecipient { Status = "Delivered" };
+
+        // Act
+        recipient.Status = "Opened";
+        recipient.OpenCount = 1;
+        recipient.FirstOpenedAt = DateTime.UtcNow;
+
+        // Assert
+        recipient.Status.Should().Be("Opened");
+        recipient.OpenCount.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void BVT104_CampaignRecipient_ClickTracking()
+    {
+        // Arrange
+        var recipient = new CampaignRecipient { Status = "Opened" };
+
+        // Act
+        recipient.Status = "Clicked";
+        recipient.ClickCount = 1;
+
+        // Assert
+        recipient.Status.Should().Be("Clicked");
+    }
+
+    [Fact]
+    public void BVT105_CampaignABTest_Creation()
+    {
+        // Arrange & Act
+        var test = new CampaignABTest
+        {
+            Id = 1,
+            CampaignId = 100,
+            TestName = "Subject Line Test",
+            TestType = "SubjectLine",
+            Status = "Draft",
+            VariantConfigs = "[{\"id\": \"A\", \"content\": \"Variant A\"}, {\"id\": \"B\", \"content\": \"Variant B\"}]"
+        };
+
+        // Assert
+        test.TestType.Should().Be("SubjectLine");
+        test.Status.Should().Be("Draft");
+    }
+
+    [Fact]
+    public void BVT106_CampaignABTest_Execution()
+    {
+        // Arrange
+        var test = new CampaignABTest { Status = "Draft" };
+
+        // Act
+        test.Status = "Running";
+        test.TestStartedAt = DateTime.UtcNow;
+
+        // Assert
+        test.Status.Should().Be("Running");
+        test.TestStartedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void BVT107_CampaignABTest_Completion()
+    {
+        // Arrange
+        var test = new CampaignABTest
+        {
+            Status = "Running"
+        };
+
+        // Act
+        test.Status = "Completed";
+        test.WinnerVariant = "B";
+
+        // Assert
+        test.Status.Should().Be("Completed");
+        test.WinnerVariant.Should().Be("B");
+    }
+
+    [Fact]
+    public void BVT108_CampaignConversion_Recording()
+    {
+        // Arrange & Act
+        var conversion = new CampaignConversion
+        {
+            Id = 1,
+            CampaignId = 100,
+            ConversionType = "Purchase",
+            ConversionValue = 99.99m,
+            AttributionModel = "LastTouch"
+        };
+
+        // Assert
+        conversion.ConversionType.Should().Be("Purchase");
+        conversion.ConversionValue.Should().Be(99.99m);
+    }
+
+    [Fact]
+    public void BVT109_CampaignLinkClick_Tracking()
+    {
+        // Arrange & Act
+        var click = new CampaignLinkClick
+        {
+            Id = 1,
+            CampaignRecipientId = 100,
+            CampaignId = 50,
+            LinkUrl = "https://example.com/offer",
+            ClickedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        click.LinkUrl.Should().Contain("offer");
+    }
+
+    [Fact]
+    public void BVT110_FullCampaignFunnel_Tracking()
+    {
+        // Arrange - Full funnel tracking
+        var recipient = new CampaignRecipient
+        {
+            CampaignId = 100,
+            Email = "test@example.com",
+            Status = "Pending"
+        };
+
+        // Act - Progress through funnel
+        recipient.Status = "Delivered";
+        recipient.Status = "Opened";
+        recipient.OpenCount = 1;
+        recipient.Status = "Clicked";
+        recipient.ClickCount = 1;
+        recipient.Status = "Converted";
+        recipient.ConvertedAt = DateTime.UtcNow;
+
+        // Assert
+        recipient.Status.Should().Be("Converted");
+        recipient.ConvertedAt.Should().NotBeNull();
+    }
+
+    #endregion
 }
