@@ -185,6 +185,12 @@ public class User : BaseEntity
     /// URL to user's profile photo
     /// </summary>
     public string? PhotoUrl { get; set; }
+    
+    /// <summary>
+    /// User's theme preference: light, dark, or high-contrast
+    /// Defaults to "light" if not set
+    /// </summary>
+    public string ThemePreference { get; set; } = "light";
 
     // === Navigation Properties ===
     

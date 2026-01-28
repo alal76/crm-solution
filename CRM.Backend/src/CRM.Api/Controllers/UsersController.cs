@@ -387,6 +387,87 @@ public class UsersController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get current user's preferences
+    /// </summary>
+    [HttpGet("me/preferences")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<UserPreferencesDto>> GetMyPreferences()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                return Unauthorized(new { message = "User not authenticated" });
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(new UserPreferencesDto
+            {
+                ThemePreference = user.ThemePreference ?? "light",
+                HeaderColor = user.HeaderColor
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user preferences");
+            return StatusCode(500, new { message = "Error getting preferences", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Update current user's preferences (theme, header color, etc.)
+    /// </summary>
+    [HttpPut("me/preferences")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<UserPreferencesDto>> UpdateMyPreferences([FromBody] UpdatePreferencesDto dto)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                return Unauthorized(new { message = "User not authenticated" });
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+                return NotFound(new { message = "User not found" });
+
+            // Validate theme preference
+            var validThemes = new[] { "light", "dark", "high-contrast" };
+            if (!string.IsNullOrEmpty(dto.ThemePreference) && !validThemes.Contains(dto.ThemePreference.ToLower()))
+                return BadRequest(new { message = "Invalid theme preference. Valid values: light, dark, high-contrast" });
+
+            if (!string.IsNullOrEmpty(dto.ThemePreference))
+                user.ThemePreference = dto.ThemePreference.ToLower();
+
+            if (dto.HeaderColor != null) // Allow empty string to clear
+                user.HeaderColor = string.IsNullOrEmpty(dto.HeaderColor) ? null : dto.HeaderColor;
+
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveAsync();
+
+            _logger.LogInformation("User {UserId} updated preferences: theme={Theme}", userId, user.ThemePreference);
+
+            return Ok(new UserPreferencesDto
+            {
+                ThemePreference = user.ThemePreference ?? "light",
+                HeaderColor = user.HeaderColor
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user preferences");
+            return StatusCode(500, new { message = "Error updating preferences", error = ex.Message });
+        }
+    }
+
     private UserDto MapToDto(User user, ContactDto? contact)
     {
         return new UserDto
@@ -420,4 +501,22 @@ public class AssignProfileDto
 {
     public int UserProfileId { get; set; }
     public int? DepartmentId { get; set; }
+}
+
+/// <summary>
+/// DTO for user preferences response
+/// </summary>
+public class UserPreferencesDto
+{
+    public string ThemePreference { get; set; } = "light";
+    public string? HeaderColor { get; set; }
+}
+
+/// <summary>
+/// DTO for updating user preferences
+/// </summary>
+public class UpdatePreferencesDto
+{
+    public string? ThemePreference { get; set; }
+    public string? HeaderColor { get; set; }
 }

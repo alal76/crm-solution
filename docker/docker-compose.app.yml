@@ -34,16 +34,18 @@ services:
       # Allow all hosts (for health checks and external access)
       AllowedHosts: "*"
       
-      # Database Configuration (MariaDB by default)
-      DatabaseProvider: ${DATABASE_PROVIDER:-mariadb}
-      DB_HOST: ${DB_HOST:-crm-mariadb}
-      DB_PORT: ${DB_PORT:-3306}
+      # Database Configuration (SQL Server or MariaDB)
+      DatabaseProvider: ${DATABASE_PROVIDER:-sqlserver}
+      DB_HOST: ${DB_HOST:-crm-mssql}
+      DB_PORT: ${DB_PORT:-1433}
       DB_NAME: ${DB_NAME:-crm_db}
       DB_USER: ${DB_USER:-crm_user}
       DB_PASSWORD: ${DB_PASSWORD:-CrmPass@Dev2024!}
       
-      # Connection String (auto-generated if not provided)
-      ConnectionStrings__DefaultConnection: "Server=${DB_HOST:-crm-mariadb};Port=${DB_PORT:-3306};Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024!};"
+      # Connection String - format depends on DATABASE_PROVIDER
+      # For sqlserver: Server=host;Database=db;User Id=user;Password=pass;TrustServerCertificate=True;
+      # For mariadb: Server=host;Port=port;Database=db;User=user;Password=pass;
+      ConnectionStrings__DefaultConnection: ${CONNECTION_STRING:-Server=${DB_HOST:-crm-mssql};Database=${DB_NAME:-crm_db};User Id=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024!};TrustServerCertificate=True;}
       
       # JWT Configuration
       Jwt__Secret: ${JWT_SECRET:-CrmJwtSecretKey2024!@ForSecureAuthentication}
@@ -93,7 +95,7 @@ services:
       api:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/"]
       interval: 30s
       timeout: 10s
       retries: 3

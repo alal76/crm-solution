@@ -210,6 +210,17 @@ public class CrmDbContext : DbContext, ICrmDbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Get database provider - check both configuration and actual provider
+        var databaseProvider = _configuration["DatabaseProvider"]?.ToLower() ?? "mariadb";
+        
+        // Also check if we're using SQL Server based on the actual provider
+        var isSqlServer = databaseProvider == "sqlserver" || 
+                          Database.ProviderName?.Contains("SqlServer", StringComparison.OrdinalIgnoreCase) == true;
+        
+        // Database-agnostic column types for large text fields
+        var longTextType = isSqlServer ? "nvarchar(max)" : "LONGTEXT";
+        var textType = isSqlServer ? "nvarchar(max)" : "TEXT";
+
         // Configure Customer
         modelBuilder.Entity<Customer>(entity =>
         {
@@ -1287,10 +1298,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.BuildNumber).HasMaxLength(50);
             entity.Property(e => e.BackendImageTag).HasMaxLength(100);
             entity.Property(e => e.FrontendImageTag).HasMaxLength(100);
-            entity.Property(e => e.BuildLog).HasColumnType("LONGTEXT");
-            entity.Property(e => e.DeployLog).HasColumnType("LONGTEXT");
+            entity.Property(e => e.BuildLog).HasColumnType(longTextType);
+            entity.Property(e => e.DeployLog).HasColumnType(longTextType);
             entity.Property(e => e.ErrorMessage).HasMaxLength(2000);
-            entity.Property(e => e.ErrorStackTrace).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorStackTrace).HasColumnType(textType);
             entity.Property(e => e.TriggerType).HasMaxLength(50);
             entity.HasIndex(e => e.CloudDeploymentId);
             entity.HasIndex(e => e.Status);
@@ -1925,5 +1936,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.WorkflowDefinitionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+        
+        // SQL Server specific: disable cascade deletes to avoid "multiple cascade paths" errors
+        // This MUST be at the end after all entity configurations
+        // For SQL Server, we set ALL foreign keys to Restrict/NoAction to avoid any cascade issues
+        if (isSqlServer)
+        {
+            foreach (var relationship in modelBuilder.Model.GetEntityTypes()
+                .SelectMany(e => e.GetForeignKeys()))
+            {
+                // SQL Server doesn't support cascade delete on multiple paths
+                relationship.DeleteBehavior = DeleteBehavior.NoAction;
+            }
+        }
     }
 }

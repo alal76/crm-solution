@@ -37,6 +37,11 @@ public class AuthResponse
     public string? PhotoUrl { get; set; }
     
     /// <summary>
+    /// User's preferred theme: light, dark, or high-contrast
+    /// </summary>
+    public string ThemePreference { get; set; } = "light";
+    
+    /// <summary>
     /// Whether 2FA verification is required to complete login
     /// </summary>
     public bool RequiresTwoFactor { get; set; } = false;

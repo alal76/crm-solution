@@ -55,6 +55,28 @@ interface ServerLoad {
   status: 'green' | 'amber' | 'red';
 }
 
+interface DeploymentSettings {
+  deploymentType: string;
+  buildServer: string;
+  buildServerFQDN: string;
+  databaseProvider: string;
+  kubernetesNamespace: string;
+  enableK8sMonitoring: boolean;
+  enableDockerMonitoring: boolean;
+  healthCheckTimeoutSeconds: number;
+  cacheDurationSeconds: number;
+  sqlServer?: {
+    version: string;
+    edition: string;
+  };
+  configuredEndpoints?: {
+    apiEndpoints: string[];
+    databaseServers: string[];
+    frontendUrls: string[];
+    redisEndpoints: string[];
+  };
+}
+
 const STATUS_COLORS = {
   healthy: '#4caf50',
   degraded: '#ff9800',
@@ -72,6 +94,9 @@ function MonitoringSettingsTab() {
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Deployment settings
+  const [deploymentSettings, setDeploymentSettings] = useState<DeploymentSettings | null>(null);
   
   // Real data from API
   const [services, setServices] = useState<ServiceStatus[]>([]);
@@ -109,6 +134,17 @@ function MonitoringSettingsTab() {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       };
+
+      // Fetch deployment settings
+      try {
+        const settingsRes = await fetch('/api/monitoring/deployment-settings', { headers });
+        if (settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          setDeploymentSettings(settingsData);
+        }
+      } catch (e) {
+        console.warn('Failed to fetch deployment settings:', e);
+      }
 
       // Fetch all monitoring data in one call
       const response = await fetch('/api/monitoring/all', { headers });
@@ -380,6 +416,88 @@ function MonitoringSettingsTab() {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Deployment Architecture Section */}
+      {deploymentSettings && (
+        <Card sx={{ borderRadius: 2, mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              <ServerIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+              Deployment Architecture
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                    Deployment Type
+                  </Typography>
+                  <Typography variant="body1" fontWeight={600}>
+                    {deploymentSettings.deploymentType || 'Docker'}
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                    Server
+                  </Typography>
+                  <Typography variant="body1" fontWeight={600}>
+                    {deploymentSettings.buildServerFQDN || deploymentSettings.buildServer || 'localhost'}
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                    Database Provider
+                  </Typography>
+                  <Typography variant="body1" fontWeight={600}>
+                    {deploymentSettings.databaseProvider || 'MariaDB'}
+                    {deploymentSettings.sqlServer?.version && ` (${deploymentSettings.sqlServer.version})`}
+                  </Typography>
+                </Paper>
+              </Grid>
+              {deploymentSettings.kubernetesNamespace && (
+                <Grid item xs={12} md={4}>
+                  <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                    <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                      Kubernetes Namespace
+                    </Typography>
+                    <Typography variant="body1" fontWeight={600}>
+                      {deploymentSettings.kubernetesNamespace}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              )}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                    Monitoring Features
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {deploymentSettings.enableDockerMonitoring && (
+                      <Chip label="Docker" size="small" color="primary" variant="outlined" />
+                    )}
+                    {deploymentSettings.enableK8sMonitoring && (
+                      <Chip label="Kubernetes" size="small" color="secondary" variant="outlined" />
+                    )}
+                  </Box>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                    Health Check Timeout
+                  </Typography>
+                  <Typography variant="body1" fontWeight={600}>
+                    {deploymentSettings.healthCheckTimeoutSeconds || 10}s
+                  </Typography>
+                </Paper>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      )}
 
       <Grid container spacing={3}>
         {/* Service Status */}

@@ -134,8 +134,8 @@ function App() {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
-                      <DashboardPage />
+                    <RoleBasedRoute requiredPage="MyQueue">
+                      <TasksPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

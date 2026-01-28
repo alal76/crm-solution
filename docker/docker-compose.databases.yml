@@ -103,25 +103,27 @@ services:
   # Microsoft SQL Server 2022 (Developer Edition)
   # ============================================
   mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/mssql/server:${MSSQL_VERSION:-2022-latest}
     container_name: crm-mssql
     restart: unless-stopped
     ports:
-      - "1433:1433"
+      - "${MSSQL_EXTERNAL_PORT:-1433}:1433"
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-CrmPass@Dev2024!}
-      MSSQL_PID: "Developer"
-      MSSQL_COLLATION: "SQL_Latin1_General_CP1_CI_AS"
+      MSSQL_PID: ${MSSQL_PID:-Developer}
+      MSSQL_COLLATION: ${MSSQL_COLLATION:-SQL_Latin1_General_CP1_CI_AS}
+      # Health check tool path - set to /opt/mssql-tools/bin for 2019, /opt/mssql-tools18/bin for 2022
+      MSSQL_TOOLS_PATH: ${MSSQL_TOOLS_PATH:-/opt/mssql-tools18/bin}
     volumes:
       - mssql-data:/var/opt/mssql
       - ./init-scripts/mssql:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${MSSQL_SA_PASSWORD:-CrmPass@Dev2024!} -Q 'SELECT 1' || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+      test: ["CMD-SHELL", "${MSSQL_TOOLS_PATH:-/opt/mssql-tools18/bin}/sqlcmd -S localhost -U sa -P '${MSSQL_SA_PASSWORD:-CrmPass@Dev2024!}' -Q 'SELECT 1' -C || exit 1"]
+      interval: ${MSSQL_HEALTH_INTERVAL:-30s}
+      timeout: ${MSSQL_HEALTH_TIMEOUT:-10s}
+      retries: ${MSSQL_HEALTH_RETRIES:-5}
+      start_period: ${MSSQL_START_PERIOD:-60s}
     networks:
       - crm-database-network
     labels:

@@ -29,7 +29,7 @@ spec:
       serviceAccountName: crm-api
       containers:
       - name: crm-api
-        image: your-registry/crm-api:latest
+        image: 192.168.0.9:5000/crm-api:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
@@ -56,7 +56,7 @@ spec:
             secretKeyRef:
               name: crm-secrets
               key: JWT_AUDIENCE
-        - name: DefaultConnection
+        - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:
               name: crm-secrets

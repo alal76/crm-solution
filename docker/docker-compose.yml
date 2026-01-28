@@ -48,8 +48,8 @@ services:
     env_file:
       - .env
     environment:
-      - DatabaseProvider=mariadb
-      - DB_HOST=mariadb
+      - DatabaseProvider=${DATABASE_PROVIDER:-mariadb}
+      - DB_HOST=${DB_HOST:-mariadb}
       - DB_PORT=${DB_INTERNAL_PORT:-3306}
       - DB_NAME=${DB_NAME:-crm_db}
       - DB_USER=${DB_USER:-crm_user}
@@ -57,24 +57,33 @@ services:
       # Default connection string for production database
       - ConnectionStrings__DefaultConnection=Server=${DB_HOST:-mariadb};Port=${DB_PORT:-3306};Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};
       # Demo database (crm_demodb) is auto-created on same server
-      - DemoDatabase__AutoSeed=true
-      - DemoDatabase__DatabaseName=crm_demodb
+      - DemoDatabase__AutoSeed=${DEMO_AUTO_SEED:-true}
+      - DemoDatabase__DatabaseName=${DEMO_DB_NAME:-crm_demodb}
       - API_EXTERNAL_PORT=${API_EXTERNAL_PORT:-5000}
-      - API_INTERNAL_PORT=5000
-      - Jwt__ExpirationMinutes=15
+      - API_INTERNAL_PORT=${API_INTERNAL_PORT:-5000}
+      - Jwt__ExpirationMinutes=${JWT_EXPIRATION_MINUTES:-15}
+      - Jwt__Secret=${JWT_SECRET:-CrmJwtSecretKey2024ForSecureAuthentication}
       # Contract storage configuration
-      - CONTRACT_STORAGE_PATH=/app/data/contracts
-      - MAX_CONTRACT_FILE_SIZE_BYTES=10485760
-      - ALLOWED_CONTRACT_MIME_TYPES=application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document
+      - CONTRACT_STORAGE_PATH=${CONTRACT_STORAGE_PATH:-/app/data/contracts}
+      - MAX_CONTRACT_FILE_SIZE_BYTES=${MAX_CONTRACT_FILE_SIZE:-10485760}
+      - ALLOWED_CONTRACT_MIME_TYPES=${ALLOWED_MIME_TYPES:-application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document}
       # Redis cache configuration
-      - Redis__ConnectionString=redis:6379
-      - Redis__InstanceName=crm_
-      - Redis__Enabled=true
+      - Redis__ConnectionString=${REDIS_HOST:-redis}:${REDIS_PORT:-6379}
+      - Redis__InstanceName=${REDIS_INSTANCE:-crm_}
+      - Redis__Enabled=${REDIS_ENABLED:-true}
+      # Monitoring configuration
+      - Monitoring__DeploymentType=${DEPLOYMENT_TYPE:-docker}
+      - Monitoring__BuildServer=${BUILD_SERVER:-localhost}
+      - Monitoring__BuildServerFQDN=${BUILD_SERVER_FQDN:-}
+      - Monitoring__EnableDockerMonitoring=${ENABLE_DOCKER_MONITORING:-true}
+      - Monitoring__EnableK8sMonitoring=${ENABLE_K8S_MONITORING:-false}
+      - Monitoring__DatabaseProvider=${DATABASE_PROVIDER:-mariadb}
+      - Frontend__Url=${FRONTEND_URL:-http://localhost}
     volumes:
       - api-data:/app/data
-    # depends_on:
-    #   mariadb:
-    #     condition: service_healthy
+    depends_on:
+      - mariadb
+      - redis
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s

@@ -79,6 +79,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../contexts/ProfileContext';
 import { useBranding } from '../contexts/BrandingContext';
 import { getApiEndpoint } from '../config/ports';
+import UserSettingsDialog from './UserSettingsDialog';
 import logo from '../assets/logo.png';
 import './Navigation.css';
 
@@ -90,6 +91,7 @@ function NavigationContent() {
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [userSettingsOpen, setUserSettingsOpen] = useState(false);
   // Demo mode feature removed - using production database only
   const [navRefreshKey, setNavRefreshKey] = useState(0); // Force re-render on nav update
   
@@ -553,6 +555,10 @@ function NavigationContent() {
                 <AccountCircleIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
                 Settings
               </MenuItem>
+              <MenuItem onClick={() => { handleMenuClose(); setUserSettingsOpen(true); }}>
+                <SettingsIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
+                User Preferences
+              </MenuItem>
               <Divider />
               <MenuItem onClick={handleLogout}>
                 <LogoutIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
@@ -796,6 +802,18 @@ function NavigationContent() {
         })}
         </Box>
       </Drawer>
+      
+      {/* User Settings Dialog */}
+      <UserSettingsDialog 
+        open={userSettingsOpen} 
+        onClose={() => setUserSettingsOpen(false)}
+        onThemeChange={(theme) => {
+          // Theme change handler - could trigger app-wide theme switch
+          console.log('Theme changed to:', theme);
+          // Force page reload to apply theme (simple approach)
+          // In a more sophisticated implementation, this would update a theme context
+        }}
+      />
     </>
   );
 }

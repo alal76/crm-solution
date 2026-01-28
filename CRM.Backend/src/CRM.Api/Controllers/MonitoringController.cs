@@ -1,4 +1,5 @@
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,16 +19,19 @@ public class MonitoringController : ControllerBase
     private readonly ICrmDbContext _context;
     private readonly ILogger<MonitoringController> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IMonitoringService _monitoringService;
     private static readonly DateTime _startTime = DateTime.UtcNow;
 
     public MonitoringController(
         ICrmDbContext context, 
         ILogger<MonitoringController> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IMonitoringService monitoringService)
     {
         _context = context;
         _logger = logger;
         _configuration = configuration;
+        _monitoringService = monitoringService;
     }
 
     /// <summary>
@@ -88,7 +92,7 @@ public class MonitoringController : ControllerBase
                 // Database metrics
                 Database = new DatabaseMetricsDto
                 {
-                    Provider = "MariaDB",
+                    Provider = GetDatabaseProviderName(),
                     ConnectionStatus = "Connected",
                     ActiveConnections = dbConnections,
                     DatabaseSizeMB = dbSize,
@@ -141,7 +145,7 @@ public class MonitoringController : ControllerBase
             var dbStatus = await CheckDatabaseHealthAsync();
             services.Add(new ServiceStatusDto
             {
-                Name = "MariaDB Database",
+                Name = $"{GetDatabaseProviderName()} Database",
                 Type = "database",
                 Status = dbStatus.IsHealthy ? "healthy" : "error",
                 Endpoint = GetDatabaseHost(),
@@ -311,6 +315,166 @@ public class MonitoringController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get comprehensive health summary including all endpoints, containers, and pods
+    /// </summary>
+    [HttpGet("health-summary")]
+    public async Task<ActionResult<SystemHealthSummary>> GetHealthSummary()
+    {
+        try
+        {
+            var summary = await _monitoringService.GetSystemHealthAsync();
+            return Ok(summary);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting health summary");
+            return StatusCode(500, new { message = "Error getting health summary" });
+        }
+    }
+
+    /// <summary>
+    /// Discover all monitored endpoints from configuration
+    /// </summary>
+    [HttpGet("endpoints")]
+    public async Task<ActionResult<List<MonitoredEndpoint>>> GetEndpoints()
+    {
+        try
+        {
+            var endpoints = await _monitoringService.DiscoverEndpointsAsync();
+            return Ok(endpoints);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error discovering endpoints");
+            return StatusCode(500, new { message = "Error discovering endpoints" });
+        }
+    }
+
+    /// <summary>
+    /// Check health of all discovered endpoints
+    /// </summary>
+    [HttpGet("endpoints/health")]
+    public async Task<ActionResult<List<MonitoredEndpoint>>> GetEndpointHealth()
+    {
+        try
+        {
+            var endpoints = await _monitoringService.CheckEndpointHealthAsync();
+            return Ok(endpoints);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking endpoint health");
+            return StatusCode(500, new { message = "Error checking endpoint health" });
+        }
+    }
+
+    /// <summary>
+    /// Get Docker container health status
+    /// </summary>
+    [HttpGet("containers")]
+    public async Task<ActionResult<List<ContainerHealth>>> GetContainerHealth()
+    {
+        try
+        {
+            var containers = await _monitoringService.GetContainerHealthAsync();
+            return Ok(containers);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting container health");
+            return StatusCode(500, new { message = "Error getting container health" });
+        }
+    }
+
+    /// <summary>
+    /// Get Kubernetes pod health status
+    /// </summary>
+    [HttpGet("pods")]
+    public async Task<ActionResult<List<PodHealth>>> GetPodHealth()
+    {
+        try
+        {
+            var pods = await _monitoringService.GetPodHealthAsync();
+            return Ok(pods);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting pod health");
+            return StatusCode(500, new { message = "Error getting pod health" });
+        }
+    }
+
+    /// <summary>
+    /// Get API metrics for a specific endpoint
+    /// </summary>
+    [HttpGet("api-metrics")]
+    public async Task<ActionResult<Dictionary<string, object>>> GetApiMetrics([FromQuery] string endpoint)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(endpoint))
+            {
+                return BadRequest(new { message = "Endpoint parameter is required" });
+            }
+            
+            var metrics = await _monitoringService.GetApiMetricsAsync(endpoint);
+            return Ok(metrics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting API metrics for {Endpoint}", endpoint);
+            return StatusCode(500, new { message = "Error getting API metrics" });
+        }
+    }
+
+    /// <summary>
+    /// Get deployment configuration settings (cached from environment)
+    /// </summary>
+    [HttpGet("deployment-settings")]
+    public ActionResult<object> GetDeploymentSettings()
+    {
+        try
+        {
+            var options = _monitoringService.GetMonitoringOptions();
+            return Ok(new
+            {
+                DeploymentType = options.DeploymentType,
+                BuildServer = options.BuildServer,
+                BuildServerFQDN = options.BuildServerFQDN,
+                DatabaseProvider = options.DatabaseProvider,
+                KubernetesNamespace = options.KubernetesNamespace,
+                EnableK8sMonitoring = options.EnableK8sMonitoring,
+                EnableDockerMonitoring = options.EnableDockerMonitoring,
+                HealthCheckTimeoutSeconds = options.HealthCheckTimeoutSeconds,
+                CacheDurationSeconds = options.CacheDurationSeconds,
+                SqlServer = new
+                {
+                    Version = options.MssqlVersion,
+                    Edition = options.MssqlEdition,
+                    ToolsPath = options.MssqlToolsPath,
+                    HealthCheckInterval = options.MssqlHealthInterval,
+                    HealthCheckTimeout = options.MssqlHealthTimeout,
+                    HealthCheckRetries = options.MssqlHealthRetries,
+                    StartPeriod = options.MssqlStartPeriod,
+                    Collation = options.MssqlCollation
+                },
+                ConfiguredEndpoints = new
+                {
+                    ApiEndpoints = options.ApiEndpoints,
+                    DatabaseServers = options.DatabaseServers,
+                    FrontendUrls = options.FrontendUrls,
+                    RedisEndpoints = options.RedisEndpoints
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting deployment settings");
+            return StatusCode(500, new { message = "Error getting deployment settings" });
+        }
+    }
+
     #region Private Methods
 
     private async Task<SystemMetricsDto> GetSystemMetricsInternal()
@@ -350,7 +514,7 @@ public class MonitoringController : ControllerBase
             },
             Database = new DatabaseMetricsDto
             {
-                Provider = "MariaDB",
+                Provider = GetDatabaseProviderName(),
                 ConnectionStatus = "Connected",
                 ActiveConnections = dbConnections,
                 DatabaseSizeMB = dbSize,
@@ -384,7 +548,7 @@ public class MonitoringController : ControllerBase
         var dbStatus = await CheckDatabaseHealthAsync();
         services.Add(new ServiceStatusDto
         {
-            Name = "MariaDB Database",
+            Name = $"{GetDatabaseProviderName()} Database",
             Type = "database",
             Status = dbStatus.IsHealthy ? "healthy" : "error",
             Endpoint = GetDatabaseHost(),
@@ -490,15 +654,31 @@ public class MonitoringController : ControllerBase
         {
             var connection = _context.Database.GetDbConnection();
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SHOW STATUS LIKE 'Threads_connected'";
+            
+            if (IsSqlServer())
+            {
+                cmd.CommandText = "SELECT COUNT(*) FROM sys.dm_exec_sessions WHERE is_user_process = 1";
+            }
+            else
+            {
+                cmd.CommandText = "SHOW STATUS LIKE 'Threads_connected'";
+            }
             
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
             
-            await using var reader = await cmd.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            if (IsSqlServer())
             {
-                return int.TryParse(reader.GetString(1), out var count) ? count : 0;
+                var result = await cmd.ExecuteScalarAsync();
+                return Convert.ToInt32(result);
+            }
+            else
+            {
+                await using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return int.TryParse(reader.GetString(1), out var count) ? count : 0;
+                }
             }
         }
         catch (Exception ex)
@@ -514,10 +694,21 @@ public class MonitoringController : ControllerBase
         {
             var connection = _context.Database.GetDbConnection();
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb
-                FROM information_schema.tables 
-                WHERE table_schema = DATABASE()";
+            
+            if (IsSqlServer())
+            {
+                cmd.CommandText = @"
+                    SELECT CAST(SUM(size * 8.0 / 1024) AS DECIMAL(18,2)) AS size_mb
+                    FROM sys.master_files
+                    WHERE database_id = DB_ID()";
+            }
+            else
+            {
+                cmd.CommandText = @"
+                    SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb
+                    FROM information_schema.tables 
+                    WHERE table_schema = DATABASE()";
+            }
             
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
@@ -535,6 +726,20 @@ public class MonitoringController : ControllerBase
         return 0;
     }
 
+    private bool IsSqlServer()
+    {
+        var provider = _configuration["DatabaseProvider"]?.ToLower() ?? "";
+        if (provider == "sqlserver" || provider == "mssql") return true;
+        
+        var connString = _configuration.GetConnectionString("DefaultConnection") ?? "";
+        return connString.Contains("Server=") && !connString.Contains("Port=");
+    }
+
+    private string GetDatabaseProviderName()
+    {
+        return IsSqlServer() ? "SQL Server" : "MariaDB";
+    }
+
     private async Task<(bool IsHealthy, string Version, string Uptime, int ResponseTimeMs)> CheckDatabaseHealthAsync()
     {
         var sw = Stopwatch.StartNew();
@@ -542,7 +747,15 @@ public class MonitoringController : ControllerBase
         {
             var connection = _context.Database.GetDbConnection();
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SELECT VERSION()";
+            
+            if (IsSqlServer())
+            {
+                cmd.CommandText = "SELECT @@VERSION";
+            }
+            else
+            {
+                cmd.CommandText = "SELECT VERSION()";
+            }
             
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
@@ -551,16 +764,41 @@ public class MonitoringController : ControllerBase
             sw.Stop();
             
             // Get uptime
-            await using var uptimeCmd = connection.CreateCommand();
-            uptimeCmd.CommandText = "SHOW GLOBAL STATUS LIKE 'Uptime'";
-            await using var reader = await uptimeCmd.ExecuteReaderAsync();
-            var uptimeSeconds = 0L;
-            if (await reader.ReadAsync())
+            TimeSpan uptimeSpan = TimeSpan.Zero;
+            
+            if (IsSqlServer())
             {
-                long.TryParse(reader.GetString(1), out uptimeSeconds);
+                await using var uptimeCmd = connection.CreateCommand();
+                uptimeCmd.CommandText = "SELECT sqlserver_start_time FROM sys.dm_os_sys_info";
+                try
+                {
+                    var startTime = await uptimeCmd.ExecuteScalarAsync();
+                    if (startTime is DateTime dt)
+                    {
+                        uptimeSpan = DateTime.UtcNow - dt;
+                    }
+                }
+                catch
+                {
+                    // Fallback if dm_os_sys_info not accessible
+                    uptimeSpan = DateTime.UtcNow - _startTime;
+                }
+            }
+            else
+            {
+                await using var uptimeCmd = connection.CreateCommand();
+                uptimeCmd.CommandText = "SHOW GLOBAL STATUS LIKE 'Uptime'";
+                await using var reader = await uptimeCmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    if (long.TryParse(reader.GetString(1), out var uptimeSeconds))
+                    {
+                        uptimeSpan = TimeSpan.FromSeconds(uptimeSeconds);
+                    }
+                }
             }
             
-            return (true, version, FormatUptime(TimeSpan.FromSeconds(uptimeSeconds)), (int)sw.ElapsedMilliseconds);
+            return (true, version, FormatUptime(uptimeSpan), (int)sw.ElapsedMilliseconds);
         }
         catch (Exception ex)
         {
@@ -594,11 +832,22 @@ public class MonitoringController : ControllerBase
             var connection = _context.Database.GetDbConnection();
             await using var cmd = connection.CreateCommand();
             
-            // Get thread count as approximation of load
-            cmd.CommandText = @"
-                SELECT 
-                    (SELECT COUNT(*) FROM information_schema.processlist) as threads,
-                    (SELECT VARIABLE_VALUE FROM information_schema.global_status WHERE VARIABLE_NAME = 'Threads_running') as running";
+            if (IsSqlServer())
+            {
+                // Get SQL Server connection count as approximation of load
+                cmd.CommandText = @"
+                    SELECT 
+                        (SELECT COUNT(*) FROM sys.dm_exec_sessions WHERE is_user_process = 1) as sessions,
+                        (SELECT COUNT(*) FROM sys.dm_exec_requests WHERE status = 'running') as running";
+            }
+            else
+            {
+                // Get thread count as approximation of load
+                cmd.CommandText = @"
+                    SELECT 
+                        (SELECT COUNT(*) FROM information_schema.processlist) as threads,
+                        (SELECT VARIABLE_VALUE FROM information_schema.global_status WHERE VARIABLE_NAME = 'Threads_running') as running";
+            }
             
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
@@ -607,7 +856,16 @@ public class MonitoringController : ControllerBase
             if (await reader.ReadAsync())
             {
                 var threads = reader.GetInt32(0);
-                var running = int.TryParse(reader.IsDBNull(1) ? "0" : reader.GetString(1), out var r) ? r : 0;
+                int running = 0;
+                
+                if (IsSqlServer())
+                {
+                    running = reader.IsDBNull(1) ? 0 : reader.GetInt32(1);
+                }
+                else
+                {
+                    running = reader.IsDBNull(1) ? 0 : (int.TryParse(reader.GetString(1), out var r) ? r : 0);
+                }
                 
                 // Estimate load based on running threads (simplified)
                 var cpuLoad = Math.Min(100, running * 10.0);

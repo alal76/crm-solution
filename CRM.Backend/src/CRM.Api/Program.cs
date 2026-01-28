@@ -109,6 +109,14 @@ else
 // Add database caching service
 builder.Services.AddScoped<IDbCacheService, DbCacheService>();
 
+// Configure monitoring service
+var monitoringConfig = builder.Configuration.GetSection("Monitoring");
+builder.Services.Configure<MonitoringOptions>(monitoringConfig);
+builder.Services.AddScoped<IMonitoringService, MonitoringService>();
+Log.Information("Monitoring configured - DeploymentType: {Type}, BuildServer: {Server}", 
+    monitoringConfig.GetValue<string>("DeploymentType", "docker"),
+    monitoringConfig.GetValue<string>("BuildServer", "localhost"));
+
 // Add rate limiting - configurable via appsettings.json
 var isDevelopment = builder.Environment.IsDevelopment();
 var rateLimitingConfig = builder.Configuration.GetSection("RateLimiting");

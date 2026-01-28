@@ -19,11 +19,53 @@ import {
   AccountCircle as ProfileIcon,
   MiscellaneousServices as ServicesIcon,
   SupportAgent as SupportAgentIcon,
+  Storage as StorageIcon,
+  Cloud as CloudIcon,
+  Monitor as MonitorIcon,
+  Security as SecurityIcon,
+  ToggleOn as FeatureToggleIcon,
+  PersonAdd as PersonAddIcon,
+  Groups as GroupsIcon,
+  Login as LoginIcon,
+  Palette as PaletteIcon,
+  ViewModule as ModuleIcon,
+  AdminPanelSettings as AdminIcon,
 } from '@mui/icons-material';
 
+// Define admin category structure
+const ADMIN_CATEGORIES: Record<string, { label: string; items: string[] }> = {
+  'system': {
+    label: 'System Administration',
+    items: ['database', 'deployment', 'monitoring', 'security', 'features']
+  },
+  'users': {
+    label: 'User Administration',
+    items: ['users', 'approvals', 'groups', 'social-login']
+  },
+  'crm': {
+    label: 'CRM Administration',
+    items: ['branding', 'navigation', 'modules', 'service-requests', 'master-data', 'dashboards', 'workflows']
+  },
+  'advanced': {
+    label: 'Advanced',
+    items: ['test-results', 'llm', 'api-docs']
+  }
+};
+
+// Helper function to find admin category for a path
+const getAdminCategory = (adminPath: string): { category: string; categoryLabel: string } | null => {
+  for (const [categoryId, category] of Object.entries(ADMIN_CATEGORIES)) {
+    if (category.items.includes(adminPath)) {
+      return { category: categoryId, categoryLabel: category.label };
+    }
+  }
+  return null;
+};
+
 const BREADCRUMB_LABELS: { [key: string]: { label: string; icon?: React.ReactNode } } = {
-  '/': { label: 'Dashboard', icon: <DashboardIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/': { label: 'My Queue', icon: <TaskIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/dashboard': { label: 'Dashboard', icon: <DashboardIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/my-queue': { label: 'My Queue', icon: <TaskIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/customers': { label: 'Customers', icon: <PeopleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/contacts': { label: 'Contacts', icon: <ContactsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/leads': { label: 'Leads', icon: <PeopleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
@@ -44,6 +86,27 @@ const BREADCRUMB_LABELS: { [key: string]: { label: string; icon?: React.ReactNod
   '/departments': { label: 'Departments', icon: <DepartmentIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/profiles': { label: 'Profiles', icon: <ProfileIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/settings': { label: 'Settings', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  // Admin pages
+  '/admin': { label: 'Administration', icon: <AdminIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/database': { label: 'Database', icon: <StorageIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/deployment': { label: 'Deployment', icon: <CloudIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/monitoring': { label: 'Monitoring', icon: <MonitorIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/security': { label: 'Security', icon: <SecurityIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/features': { label: 'Features', icon: <FeatureToggleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/users': { label: 'Users', icon: <PeopleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/approvals': { label: 'Approvals', icon: <PersonAddIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/groups': { label: 'Groups', icon: <GroupsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/social-login': { label: 'Social Login', icon: <LoginIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/branding': { label: 'Branding', icon: <PaletteIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/navigation': { label: 'Navigation', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/modules': { label: 'Modules & Fields', icon: <ModuleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/service-requests': { label: 'Service Requests', icon: <SupportAgentIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/master-data': { label: 'Master Data', icon: <StorageIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/dashboards': { label: 'Dashboards', icon: <DashboardIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/workflows': { label: 'Workflows', icon: <WorkflowIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/test-results': { label: 'Test Results', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/llm': { label: 'AI / LLM Settings', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/api-docs': { label: 'API Documentation', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
 };
 
 function BreadcrumbsComponent() {
@@ -73,42 +136,83 @@ function BreadcrumbsComponent() {
     </Link>,
   ];
 
-  let currentPath = '';
-  pathnames.forEach((pathname, index) => {
-    currentPath += `/${pathname}`;
-    const isLast = index === pathnames.length - 1;
-    const breadcrumbData = BREADCRUMB_LABELS[currentPath];
-    const label = breadcrumbData?.label || pathname.charAt(0).toUpperCase() + pathname.slice(1);
-    const icon = breadcrumbData?.icon;
-
-    if (isLast) {
+  // Special handling for admin pages to show category hierarchy
+  const isAdminPath = location.pathname.startsWith('/admin/');
+  
+  if (isAdminPath && pathnames.length >= 2) {
+    // For admin pages, show: Home > Category > Page
+    const adminItem = pathnames[1]; // e.g., 'database', 'monitoring', etc.
+    const categoryInfo = getAdminCategory(adminItem);
+    
+    if (categoryInfo) {
+      // Add the category as a clickable breadcrumb (links to first item in that category)
       breadcrumbs.push(
-        <Typography key={currentPath} sx={{ display: 'flex', alignItems: 'center', color: '#625B71', fontWeight: 600, fontSize: '0.875rem' }}>
-          {icon}
-          {label}
-        </Typography>
-      );
-    } else {
-      breadcrumbs.push(
-        <Link
-          component={RouterLink}
-          to={currentPath}
-          key={currentPath}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
+        <Typography 
+          key="admin-category" 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
             color: '#6750A4',
-            textDecoration: 'none',
             fontSize: '0.875rem',
-            '&:hover': { textDecoration: 'underline' },
           }}
         >
-          {icon}
-          {label}
-        </Link>
+          <AdminIcon sx={{ mr: 0.5, fontSize: 18 }} />
+          {categoryInfo.categoryLabel}
+        </Typography>
       );
     }
-  });
+    
+    // Add the final page item
+    const fullPath = `/${pathnames.join('/')}`;
+    const breadcrumbData = BREADCRUMB_LABELS[fullPath];
+    const label = breadcrumbData?.label || adminItem.charAt(0).toUpperCase() + adminItem.slice(1).replace(/-/g, ' ');
+    const icon = breadcrumbData?.icon;
+    
+    breadcrumbs.push(
+      <Typography key={fullPath} sx={{ display: 'flex', alignItems: 'center', color: '#625B71', fontWeight: 600, fontSize: '0.875rem' }}>
+        {icon}
+        {label}
+      </Typography>
+    );
+  } else {
+    // Standard breadcrumb handling for non-admin pages
+    let currentPath = '';
+    pathnames.forEach((pathname, index) => {
+      currentPath += `/${pathname}`;
+      const isLast = index === pathnames.length - 1;
+      const breadcrumbData = BREADCRUMB_LABELS[currentPath];
+      const label = breadcrumbData?.label || pathname.charAt(0).toUpperCase() + pathname.slice(1).replace(/-/g, ' ');
+      const icon = breadcrumbData?.icon;
+
+      if (isLast) {
+        breadcrumbs.push(
+          <Typography key={currentPath} sx={{ display: 'flex', alignItems: 'center', color: '#625B71', fontWeight: 600, fontSize: '0.875rem' }}>
+            {icon}
+            {label}
+          </Typography>
+        );
+      } else {
+        breadcrumbs.push(
+          <Link
+            component={RouterLink}
+            to={currentPath}
+            key={currentPath}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              color: '#6750A4',
+              textDecoration: 'none',
+              fontSize: '0.875rem',
+              '&:hover': { textDecoration: 'underline' },
+            }}
+          >
+            {icon}
+            {label}
+          </Link>
+        );
+      }
+    });
+  }
 
   return (
     <Box sx={{ 
