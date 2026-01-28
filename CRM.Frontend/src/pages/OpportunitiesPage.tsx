@@ -11,6 +11,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -50,6 +51,7 @@ import { useProfile } from '../contexts/ProfileContext';
 import { BaseEntity } from '../types';
 import { DialogError, DialogSuccess, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
+import { usePagination } from '../hooks/usePagination';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
@@ -212,6 +214,15 @@ function OpportunitiesPage() {
     // Then apply search filters
     return filterData(result, searchFilters, searchText, SEARCHABLE_FIELDS);
   }, [opportunities, searchFilters, searchText, isContextActive, getAccountIds]);
+
+  const {
+    page,
+    pageSize,
+    paginatedData: paginatedOpportunities,
+    handlePageChange,
+    handlePageSizeChange,
+    pageSizeOptions,
+  } = usePagination(filteredOpportunities, { defaultPageSize: 25 });
 
   useEffect(() => {
     fetchAllData();
@@ -567,7 +578,7 @@ function OpportunitiesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredOpportunities.map((opp) => {
+                {paginatedOpportunities.map((opp) => {
                   const stageInfo = getStageInfo(opp.stage);
                   const pricingInfo = PRICING_MODELS.find(p => p.value === opp.pricingModel) || PRICING_MODELS[0];
                   return (
@@ -617,6 +628,17 @@ function OpportunitiesPage() {
               </TableBody>
               </Table>
             </TableContainer>
+            <TablePagination
+              component="div"
+              count={filteredOpportunities.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+              showFirstButton
+              showLastButton
+            />
             {filteredOpportunities.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
                 No opportunities found

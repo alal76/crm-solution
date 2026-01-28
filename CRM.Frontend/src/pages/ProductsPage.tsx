@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
+  TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Tabs, Tab,
   FormControlLabel, Checkbox, Grid, IconButton, Tooltip, SelectChangeEvent
 } from '@mui/material';
@@ -15,6 +15,7 @@ import { TabPanel, DialogError } from '../components/common';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import { usePagination } from '../hooks/usePagination';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
 
@@ -182,6 +183,16 @@ function ProductsPage() {
   };
 
   const filteredProducts = filterData(products, searchFilters, searchText, SEARCHABLE_FIELDS);
+
+  const {
+    page,
+    pageSize,
+    paginatedData: paginatedProducts,
+    handlePageChange,
+    handlePageSizeChange,
+    pageSizeOptions,
+  } = usePagination(filteredProducts, { defaultPageSize: 25 });
+
   const emptyForm: ProductForm = {
     name: '', sku: '', barcode: '', category: '', subcategory: '', price: 0,
     listPrice: 0, minimumPrice: 0, costPrice: 0, stock: 0, productType: 0, status: 1,
@@ -343,7 +354,7 @@ function ProductsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredProducts.map((product) => {
+                {paginatedProducts.map((product) => {
                   const status = getStatus(product.status);
                   const type = getType(product.productType);
                   return (
@@ -409,6 +420,17 @@ function ProductsPage() {
               </TableBody>
               </Table>
             </TableContainer>
+            <TablePagination
+              component="div"
+              count={filteredProducts.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+              showFirstButton
+              showLastButton
+            />
             {products.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
                 No products found. Add your first product to get started.

@@ -5,7 +5,7 @@ import {
   DialogContent, DialogActions, Grid, Chip, Tabs, Tab, IconButton, Tooltip, Divider,
   List, ListItem, ListItemText, ListItemSecondaryAction, Autocomplete, TextField,
   FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, Paper,
-  SelectChangeEvent, Collapse, Stack
+  SelectChangeEvent, Collapse, Stack, TablePagination
 } from '@mui/material';
 import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
 import {
@@ -28,6 +28,7 @@ import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { useFieldConfig, ModuleFieldConfiguration, dispatchFieldConfigUpdate } from '../hooks/useFieldConfig';
+import { usePagination } from '../hooks/usePagination';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
 import { useApiState } from '../hooks/useApiState';
@@ -262,6 +263,16 @@ function CustomersPage() {
     // Then apply search filters
     return filterData(result, searchFilters, searchText, SEARCHABLE_FIELDS);
   }, [customers, searchFilters, searchText, isContextActive, getAccountIds]);
+
+  // Pagination - applies to filtered results
+  const {
+    page,
+    pageSize,
+    paginatedData: paginatedCustomers,
+    handlePageChange,
+    handlePageSizeChange,
+    pageSizeOptions,
+  } = usePagination(filteredCustomers, { defaultPageSize: 25 });
 
   // Fetch data on mount
   useEffect(() => {
@@ -732,7 +743,7 @@ function CustomersPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredCustomers.map((customer) => {
+                  {paginatedCustomers.map((customer) => {
                     const stage = getLifecycleStage(customer.lifecycleStage);
                     const priority = getPriority(customer.priority);
                     const type = getCustomerType(customer.customerType);
@@ -815,6 +826,17 @@ function CustomersPage() {
                 </TableBody>
               </Table>
             </TableContainer>
+            <TablePagination
+              component="div"
+              count={filteredCustomers.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+              showFirstButton
+              showLastButton
+            />
             {customers.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
                 No accounts found. Add your first account to get started.

@@ -1,0 +1,25 @@
+{
+  "admin_username": "sysadmin",
+  "admin_password": "Password@123",
+  "hosting_platform": "local",
+  "cloud_provider": "aws",
+  "orchestration": "docker",
+  "database_type": "vm",
+  "database_provider": "mariadb",
+  "script_format": "unix",
+  "seed_data": {
+    "users": true,
+    "demo_customers": false,
+    "demo_opportunities": false,
+    "demo_campaigns": false,
+    "sample_workflows": false,
+    "zip_codes": false
+  },
+  "network": {
+    "api_port": 5000,
+    "frontend_port": 3000,
+    "database_port": 3306
+  },
+  "ssl_enabled": false,
+  "domain": "localhost"
+}

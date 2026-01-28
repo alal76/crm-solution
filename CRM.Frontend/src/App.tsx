@@ -221,6 +221,16 @@ function App() {
                 }
               />
               <Route
+                path="/campaign-execution"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Campaigns">
+                      <CampaignExecutionPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/relationships"
                 element={
                   <ProtectedRoute>

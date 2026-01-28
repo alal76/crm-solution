@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { 
   FormControl, InputLabel, Select, MenuItem, TextField, FormControlLabel, Checkbox,
-  Switch, Box, Typography, Paper, InputAdornment, Slider, FormHelperText
+  Switch, Box, Typography, Paper, InputAdornment, Slider, FormHelperText,
+  Autocomplete
 } from '@mui/material';
 import {
   LinkedIn as LinkedInIcon,
@@ -10,6 +11,11 @@ import {
   Business as BusinessIcon
 } from '@mui/icons-material';
 import lookupService, { LookupItem } from '../services/lookupService';
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
 
 interface ModuleFieldConfiguration {
   id: number;
@@ -152,27 +158,48 @@ const FieldRenderer: React.FC<Props> = ({ config, formData, onChange, onSelectCh
     );
   }
 
-  // Select field handling
+  // Select field handling - using Autocomplete for better UX
   if (config.fieldType === 'select') {
-    const options = config.options && config.options.startsWith('lookup:') 
+    const options: SelectOption[] = config.options && config.options.startsWith('lookup:') 
       ? (items || []).map(i => ({ value: i.key || i.value, label: i.value }))
       : (config.options || '').split(',').map(o => o.trim()).filter(Boolean).map(opt => ({ value: opt, label: opt }));
 
+    const selectedOption = options.find(opt => opt.value === fieldValue) || null;
+
     return (
-      <FormControl fullWidth size="small" required={config.isRequired} disabled={disabled}>
-        <InputLabel>{config.fieldLabel}</InputLabel>
-        <Select 
-          name={config.fieldName} 
-          value={fieldValue ?? ''} 
-          onChange={onSelectChange} 
-          label={config.fieldLabel}
-        >
-          {options.map(opt => (
-            <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-          ))}
-        </Select>
-        {config.helpText && <FormHelperText>{config.helpText}</FormHelperText>}
-      </FormControl>
+      <Autocomplete
+        value={selectedOption}
+        onChange={(_, newValue) => {
+          // Create a synthetic event for compatibility with existing handlers
+          const syntheticEvent = {
+            target: {
+              name: config.fieldName,
+              value: newValue?.value ?? ''
+            }
+          };
+          onSelectChange(syntheticEvent);
+        }}
+        options={options}
+        getOptionLabel={(option) => option.label}
+        isOptionEqualToValue={(option, value) => option.value === value.value}
+        disabled={disabled}
+        size="small"
+        fullWidth
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={config.fieldLabel}
+            required={config.isRequired}
+            helperText={config.helpText}
+            placeholder={config.placeholder}
+          />
+        )}
+        renderOption={(props, option) => (
+          <li {...props} key={option.value}>
+            {option.label}
+          </li>
+        )}
+      />
     );
   }
 

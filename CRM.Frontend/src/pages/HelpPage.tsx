@@ -135,6 +135,20 @@ const HelpPage: React.FC = () => {
       topics: ['Enabling 2FA', 'Backup Codes', 'Password Security', 'Session Management'],
     },
     {
+      title: 'Relationship Management',
+      description: 'Track B2B and B2C relationships with hierarchies and health metrics.',
+      duration: '25 min',
+      level: 'Intermediate',
+      topics: ['B2B Relationships', 'B2C Customer Tracking', 'Hierarchy Management', 'Influence Levels', 'Relationship Health'],
+    },
+    {
+      title: 'Campaign Execution',
+      description: 'Execute multi-channel campaigns with batch processing and analytics.',
+      duration: '30 min',
+      level: 'Advanced',
+      topics: ['Batch Processing', 'Channel Selection', 'A/B Testing', 'Real-time Analytics', 'Workflow Integration'],
+    },
+    {
       title: 'Admin Configuration',
       description: 'System administration and configuration options.',
       duration: '30 min',
@@ -182,6 +196,14 @@ const HelpPage: React.FC = () => {
     {
       question: 'How do I track campaign performance?',
       answer: 'Go to Campaigns and select a campaign. View metrics including budget spent, leads generated, and conversions. The dashboard also shows campaign performance summaries.',
+    },
+    {
+      question: 'How do I set up B2B relationships?',
+      answer: 'Navigate to the Relationships page from the sidebar. Click "Add Relationship" and select the relationship type (B2B). Link two accounts and define the hierarchy, ownership level, and influence level. You can track relationship health and engagement over time.',
+    },
+    {
+      question: 'How do I execute a campaign?',
+      answer: 'Go to Campaign Execution from the sidebar. Select a campaign and configure execution settings including target audience, channel (Email, SMS, etc.), and schedule. Enable A/B testing if needed. Start the batch process and monitor real-time analytics from the execution dashboard.',
     },
     {
       question: 'What browsers are supported?',

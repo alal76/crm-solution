@@ -28,6 +28,13 @@ Welcome to the CRM Solution documentation. Use this index to quickly find what y
    - Technology stack details
    - Quality checklist
 
+4. **[HOWTO.md](HOWTO.md)** 📚 **NEW**
+   - Comprehensive user guide
+   - Step-by-step tutorials
+   - All system features explained
+   - Keyboard shortcuts
+   - API integration guide
+
 ---
 
 ## 📚 Detailed Documentation

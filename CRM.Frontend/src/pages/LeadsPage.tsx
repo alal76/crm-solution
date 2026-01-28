@@ -10,6 +10,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TablePagination,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -49,6 +50,7 @@ import { BaseEntity } from '../types';
 import { useProfile } from '../contexts/ProfileContext';
 import { DialogError, DialogSuccess, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
+import { usePagination } from '../hooks/usePagination';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 
 // Lead sources for the dropdown
@@ -149,6 +151,15 @@ function LeadsPage() {
   const filteredLeads = useMemo(() => {
     return filterData(leads, searchFilters, searchText, SEARCHABLE_FIELDS);
   }, [leads, searchFilters, searchText]);
+
+  const {
+    page,
+    pageSize,
+    paginatedData: paginatedLeads,
+    handlePageChange,
+    handlePageSizeChange,
+    pageSizeOptions,
+  } = usePagination(filteredLeads, { defaultPageSize: 25 });
 
   const handleSearch = (filters: SearchFilter[], text: string) => {
     setSearchFilters(filters);
@@ -553,7 +564,7 @@ function LeadsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredLeads.map((lead) => {
+                {paginatedLeads.map((lead) => {
                   const sourceStyle = getSourceStyle(lead.source);
                   const statusStyle = getStatusStyle(lead.status);
                   return (
@@ -647,6 +658,17 @@ function LeadsPage() {
             </TableBody>
           </Table>
           </TableContainer>
+          <TablePagination
+            component="div"
+            count={filteredLeads.length}
+            page={page}
+            onPageChange={handlePageChange}
+            rowsPerPage={pageSize}
+            onRowsPerPageChange={handlePageSizeChange}
+            rowsPerPageOptions={pageSizeOptions}
+            showFirstButton
+            showLastButton
+          />
         </CardContent>
       </Card>
 

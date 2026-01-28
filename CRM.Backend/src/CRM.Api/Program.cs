@@ -22,6 +22,7 @@ using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using AspNetCoreRateLimit;
@@ -285,8 +286,15 @@ builder.Services.AddHostedService<DatabaseSyncHostedService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields
 builder.Services.AddScoped<NormalizationService>();
-// Master data - ZIP code / Postal code lookups
-builder.Services.AddScoped<IZipCodeService, ZipCodeService>();
+// Master data - ZIP code / Postal code lookups with caching
+builder.Services.AddScoped<ZipCodeService>();
+builder.Services.AddScoped<IZipCodeService>(sp =>
+{
+    var innerService = sp.GetRequiredService<ZipCodeService>();
+    var cache = sp.GetRequiredService<IMemoryCache>();
+    var logger = sp.GetRequiredService<ILogger<CachedZipCodeService>>();
+    return new CachedZipCodeService(innerService, cache, logger);
+});
 // ZIP code import service - pull from GeoNames/GitHub
 builder.Services.AddScoped<IZipCodeImportService, ZipCodeImportService>();
 // ZIP code import options

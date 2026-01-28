@@ -10,6 +10,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   CircularProgress,
   Alert,
   Button,
@@ -62,6 +63,7 @@ import { useProfile } from '../contexts/ProfileContext';
 import { BaseEntity } from '../types';
 import { DialogError, DialogSuccess, ActionButton, StatusSnackbar } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
+import { usePagination } from '../hooks/usePagination';
 
 interface SocialMediaLink {
   id: number;
@@ -547,6 +549,15 @@ function ContactsPage() {
     return filterData(result, searchFilters, searchText, CONTACT_SEARCHABLE_FIELDS);
   }, [contacts, searchFilters, searchText, isContextActive, getAccountIds]);
 
+  const {
+    page,
+    pageSize,
+    paginatedData: paginatedContacts,
+    handlePageChange,
+    handlePageSizeChange,
+    pageSizeOptions,
+  } = usePagination(filteredContacts, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ py: 4 }}>
       <Container maxWidth="lg">
@@ -653,7 +664,7 @@ function ContactsPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredContacts.map((contact) => (
+                  {paginatedContacts.map((contact) => (
                     <TableRow 
                       key={contact.id}
                       selected={selectedIds.includes(contact.id)}
@@ -736,6 +747,17 @@ function ContactsPage() {
                 </TableBody>
                 </Table>
               </TableContainer>
+              <TablePagination
+                component="div"
+                count={filteredContacts.length}
+                page={page}
+                onPageChange={handlePageChange}
+                rowsPerPage={pageSize}
+                onRowsPerPageChange={handlePageSizeChange}
+                rowsPerPageOptions={pageSizeOptions}
+                showFirstButton
+                showLastButton
+              />
               {filteredContacts.length === 0 && !loading && (
                 <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
                   No contacts found

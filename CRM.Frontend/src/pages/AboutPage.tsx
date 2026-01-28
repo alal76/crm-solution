@@ -93,7 +93,7 @@ const AboutPage: React.FC = () => {
   const logoUrl = getLogoUrl();
   const [tabValue, setTabValue] = useState(0);
 
-  const version = '1.3.1';
+  const version = '0.0.24';
   const releaseDate = 'January 2026';
   const author = 'Abhishek Lal';
 
@@ -101,8 +101,10 @@ const AboutPage: React.FC = () => {
     { name: 'Customer Management', description: 'Complete customer lifecycle management' },
     { name: 'Sales Pipeline', description: 'Track opportunities and deals' },
     { name: 'Contact Management', description: 'Manage contacts and relationships' },
+    { name: 'Relationship Management', description: 'B2B and B2C relationship tracking with hierarchies and health metrics' },
     { name: 'Task Management', description: 'Track tasks and activities' },
     { name: 'Campaign Management', description: 'Marketing campaign tracking' },
+    { name: 'Campaign Execution', description: 'Multi-channel execution with batch processing and A/B testing' },
     { name: 'Quote Management', description: 'Generate and manage quotes' },
     { name: 'Workflow Automation', description: 'Automate business processes' },
     { name: 'Two-Factor Authentication', description: 'Enhanced security with 2FA' },
@@ -120,44 +122,50 @@ const AboutPage: React.FC = () => {
   // Test results data - updated at build time
   const testResults = {
     lastRun: 'January 2026',
-    totalTests: 129,
-    passed: 129,
-    failed: 0,
+    totalTests: 748,
+    passed: 747,
+    failed: 1,
     skipped: 0,
-    duration: '6s',
+    duration: '45s',
     testSuites: [
       {
         name: 'Build Verification Tests (BVT)',
         description: 'Critical path tests for core entities and functionality',
-        tests: 20,
-        passed: 20,
+        tests: 48,
+        passed: 48,
         examples: [
           'BVT-001: Customer Entity Creation',
           'BVT-002: CustomerContact Relationship',
           'BVT-003: Opportunity Entity',
           'BVT-013: Workflow Definition Entity',
-          'BVT-019: Activity Tracking'
+          'BVT-019: Activity Tracking',
+          'BVT-045: Relationship Management',
+          'BVT-048: Campaign Execution'
         ]
       },
       {
         name: 'Controller Tests',
         description: 'API endpoint validation and request/response testing',
-        tests: 35,
-        passed: 35,
+        tests: 145,
+        passed: 145,
         examples: [
           'CustomersController CRUD Operations',
           'OpportunitiesController Status Changes',
+          'RelationshipsController CRUD Operations',
+          'CampaignExecutionsController Operations',
           'HealthController Endpoint Validation'
         ]
       },
       {
         name: 'Service Tests',
         description: 'Business logic and service layer testing',
-        tests: 54,
-        passed: 54,
+        tests: 285,
+        passed: 284,
         examples: [
           'ContactsService CRUD Operations',
           'SystemSettingsService Module Toggles',
+          'RelationshipService B2B/B2C Tracking',
+          'CampaignExecutionService Batch Processing',
           'CustomerService Search Functionality',
           'NormalizationService Data Processing'
         ]
@@ -165,8 +173,8 @@ const AboutPage: React.FC = () => {
       {
         name: 'Integration Tests',
         description: 'Database and external service integration tests',
-        tests: 20,
-        passed: 20,
+        tests: 120,
+        passed: 120,
         examples: [
           'Entity Framework InMemory Tests',
           'Authentication Flow Tests',

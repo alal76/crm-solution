@@ -43,6 +43,8 @@ import {
   AccountTree as WorkflowIcon,
   BugReport as TestResultsIcon,
   Psychology as LLMIcon,
+  Handshake as RelationshipsIcon,
+  RocketLaunch as CampaignExecutionIcon,
   // Admin section icons
   Storage as StorageIcon,
   Cloud as CloudIcon,
@@ -203,6 +205,8 @@ function NavigationContent() {
     'services': { label: 'Services', icon: SettingsIcon, path: '/services', menuName: 'Services' },
     'service-requests': { label: 'Service Requests', icon: SupportAgentIcon, path: '/service-requests', menuName: 'ServiceRequests' },
     'campaigns': { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', menuName: 'Campaigns' },
+    'campaign-execution': { label: 'Campaign Execution', icon: CampaignExecutionIcon, path: '/campaign-execution', menuName: 'CampaignExecution' },
+    'relationships': { label: 'Relationships', icon: RelationshipsIcon, path: '/relationships', menuName: 'Relationships' },
     'quotes': { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
     'my-queue': { label: 'My Queue', icon: TaskIcon, path: '/my-queue', menuName: 'MyQueue' },
     'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
@@ -243,8 +247,8 @@ function NavigationContent() {
 
   // Default order for nav items
   const defaultNavOrder = useMemo(() => [
-    'dashboard', 'customers', 'customer-overview', 'contacts', 'leads', 'opportunities',
-    'products', 'services', 'service-requests', 'campaigns', 'quotes',
+    'dashboard', 'customers', 'customer-overview', 'contacts', 'relationships', 'leads', 'opportunities',
+    'products', 'services', 'service-requests', 'campaigns', 'campaign-execution', 'quotes',
     'my-queue', 'activities', 'notes', 'communications', 'interactions'
   ], []);
   const defaultAdminOrder = useMemo(() => [
