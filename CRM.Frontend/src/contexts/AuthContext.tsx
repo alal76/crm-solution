@@ -50,7 +50,7 @@ interface AuthContextType {
   user: any | null;
   login: (email: string, password: string) => Promise<{ requiresTwoFactor?: boolean; twoFactorToken?: string }>;
   verifyTwoFactor: (twoFactorToken: string, code: string) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  register: (data: any) => Promise<{ requiresApproval?: boolean; message?: string } | void>;
   logout: () => void;
   googleLogin: (idToken: string) => Promise<void>;
   initiateMicrosoftLogin: () => void;

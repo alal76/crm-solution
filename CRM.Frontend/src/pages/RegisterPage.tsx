@@ -91,7 +91,7 @@ function RegisterPage() {
       const response = await register({ email, firstName, lastName, password });
       
       // Check if registration requires approval
-      if (response?.requiresApproval) {
+      if (response && typeof response === 'object' && 'requiresApproval' in response && response.requiresApproval) {
         setPendingApproval(true);
         setApprovalMessage(response.message || 'Your registration is pending approval. You will be notified when your account is activated.');
       } else {

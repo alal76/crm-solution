@@ -516,12 +516,12 @@ function WorkflowListPage() {
                         <Tooltip title="View Instances">
                           <IconButton
                             size="small"
-                            onClick={() => navigate(`/admin/workflows/${workflow.id}/instances`)}
+                            onClick={() => navigate(`/admin/workflows/${workflow.id}/monitor`)}
                           >
                             <TimelineIcon />
                           </IconButton>
                         </Tooltip>
-                        {workflow.status === 'Draft' && (
+                        {(workflow.status === 'Draft' || workflow.status === 'Paused') && (
                           <Tooltip title="Activate">
                             <IconButton
                               size="small"

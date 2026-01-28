@@ -533,7 +533,7 @@ function App() {
                 }
               />
               <Route
-                path="/admin/workflows/:id/design"
+                path="/admin/workflows/:id/designer"
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute>

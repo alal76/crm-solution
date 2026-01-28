@@ -11,7 +11,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- ============================================================================
 -- WorkflowDefinitions - Main workflow templates
--- Status: 1=Draft, 2=Active, 3=Inactive, 4=Archived
+-- Status: 0=Draft, 1=Active, 2=Paused, 3=Archived, 4=Deprecated
 -- ============================================================================
 INSERT INTO WorkflowDefinitions (
   Id, WorkflowKey, Name, Description, Category, EntityType, Status,
@@ -21,108 +21,108 @@ INSERT INTO WorkflowDefinitions (
 -- Lead Management Workflows
 (1, 'lead-assignment', 'New Lead Assignment', 
  'Automatically assign new leads to sales representatives based on territory or round-robin', 
- 'Lead Management', 'Lead', 2, 1, 'UserPlus', '#2563eb', 1, 1, 100, 24, 
+ 'Lead Management', 'Lead', 1, 1, 'UserPlus', '#2563eb', 1, 1, 100, 24, 
  'leads,assignment,automation', NULL, NOW(), 0),
 
 (2, 'lead-followup', 'Lead Follow-up Reminder', 
  'Create follow-up task when lead has not been contacted in 3 days', 
- 'Lead Management', 'Lead', 2, 1, 'Clock', '#f59e0b', 1, 2, 500, 48, 
+ 'Lead Management', 'Lead', 1, 1, 'Clock', '#f59e0b', 1, 2, 500, 48, 
  'leads,followup,reminder', NULL, NOW(), 0),
 
 (3, 'lead-scoring', 'Lead Qualification Scoring', 
  'Update lead score based on activity and engagement metrics', 
- 'Lead Management', 'Lead', 2, 1, 'TrendingUp', '#10b981', 1, 2, 200, 12, 
+ 'Lead Management', 'Lead', 1, 1, 'TrendingUp', '#10b981', 1, 2, 200, 12, 
  'leads,scoring', NULL, NOW(), 0),
 
 (4, 'hot-lead-alert', 'Hot Lead Alert', 
  'Notify sales manager when a lead reaches high score threshold', 
- 'Lead Management', 'Lead', 2, 1, 'Flame', '#ef4444', 1, 1, 50, 1, 
+ 'Lead Management', 'Lead', 1, 1, 'Flame', '#ef4444', 1, 1, 50, 1, 
  'leads,alert,notification', NULL, NOW(), 0),
 
 -- Sales Process Workflows
 (5, 'opp-stage-notification', 'Opportunity Stage Change Notification', 
  'Notify relevant parties when opportunity moves to a new stage', 
- 'Sales Process', 'Opportunity', 2, 1, 'ArrowRight', '#8b5cf6', 1, 2, 200, 4, 
+ 'Sales Process', 'Opportunity', 1, 1, 'ArrowRight', '#8b5cf6', 1, 2, 200, 4, 
  'sales,opportunity,notification', NULL, NOW(), 0),
 
 (6, 'opp-close-reminder', 'Opportunity Close Date Reminder', 
  'Remind owner when expected close date is approaching', 
- 'Sales Process', 'Opportunity', 2, 1, 'Calendar', '#f97316', 1, 2, 500, 48, 
+ 'Sales Process', 'Opportunity', 1, 1, 'Calendar', '#f97316', 1, 2, 500, 48, 
  'sales,reminder', NULL, NOW(), 0),
 
 (7, 'stale-opp-alert', 'Stale Opportunity Alert', 
  'Alert when opportunity has no activity for 14 days', 
- 'Sales Process', 'Opportunity', 2, 1, 'AlertTriangle', '#eab308', 1, 2, 300, 72, 
+ 'Sales Process', 'Opportunity', 1, 1, 'AlertTriangle', '#eab308', 1, 2, 300, 72, 
  'sales,alert', NULL, NOW(), 0),
 
 (8, 'won-opportunity', 'Won Opportunity Processing', 
  'Trigger post-sale actions when opportunity is marked as won', 
- 'Sales Process', 'Opportunity', 2, 1, 'Trophy', '#22c55e', 1, 1, 100, 24, 
+ 'Sales Process', 'Opportunity', 1, 1, 'Trophy', '#22c55e', 1, 1, 100, 24, 
  'sales,won,automation', NULL, NOW(), 0),
 
 -- Customer Service Workflows
 (9, 'ticket-assignment', 'New Ticket Assignment', 
  'Auto-assign new service requests based on type and priority', 
- 'Service Desk', 'ServiceRequest', 2, 1, 'TicketCheck', '#06b6d4', 1, 1, 200, 8, 
+ 'Service Desk', 'ServiceRequest', 1, 1, 'TicketCheck', '#06b6d4', 1, 1, 200, 8, 
  'service,assignment', NULL, NOW(), 0),
 
 (10, 'sla-breach-warning', 'SLA Breach Warning', 
  'Alert before SLA breach for high priority service requests', 
- 'Service Desk', 'ServiceRequest', 2, 1, 'Clock', '#dc2626', 1, 1, 500, 1, 
+ 'Service Desk', 'ServiceRequest', 1, 1, 'Clock', '#dc2626', 1, 1, 500, 1, 
  'service,sla,alert', NULL, NOW(), 0),
 
 (11, 'ticket-escalation', 'Escalation Workflow', 
  'Escalate tickets based on priority and age thresholds', 
- 'Service Desk', 'ServiceRequest', 2, 1, 'ArrowUp', '#b91c1c', 1, 1, 100, 4, 
+ 'Service Desk', 'ServiceRequest', 1, 1, 'ArrowUp', '#b91c1c', 1, 1, 100, 4, 
  'service,escalation', NULL, NOW(), 0),
 
 (12, 'csat-survey', 'Customer Satisfaction Survey', 
  'Send satisfaction survey after ticket resolution', 
- 'Service Desk', 'ServiceRequest', 2, 1, 'Star', '#a855f7', 1, 3, 500, 72, 
+ 'Service Desk', 'ServiceRequest', 1, 1, 'Star', '#a855f7', 1, 3, 500, 72, 
  'service,survey', NULL, NOW(), 0),
 
 -- Marketing Workflows
 (13, 'campaign-launch', 'Campaign Launch Checklist', 
  'Validate campaign setup and requirements before launch', 
- 'Marketing', 'Campaign', 2, 1, 'Rocket', '#ec4899', 1, 2, 50, 24, 
+ 'Marketing', 'Campaign', 1, 1, 'Rocket', '#ec4899', 1, 2, 50, 24, 
  'marketing,campaign', NULL, NOW(), 0),
 
 (14, 'lead-nurture', 'Lead Nurture Sequence', 
  'Enroll leads in nurture campaign based on source and criteria', 
- 'Marketing', 'Lead', 2, 1, 'Mail', '#14b8a6', 1, 3, 1000, 168, 
+ 'Marketing', 'Lead', 1, 1, 'Mail', '#14b8a6', 1, 3, 1000, 168, 
  'marketing,nurture', NULL, NOW(), 0),
 
 -- Approval Workflows
 (15, 'quote-approval', 'Quote Approval Workflow', 
  'Route quotes for approval based on discount level and amount', 
- 'Approvals', 'Quote', 2, 1, 'FileCheck', '#3b82f6', 1, 1, 100, 48, 
+ 'Approvals', 'Quote', 1, 1, 'FileCheck', '#3b82f6', 1, 1, 100, 48, 
  'sales,quote,approval', NULL, NOW(), 0),
 
 (16, 'large-deal-approval', 'Large Deal Approval', 
  'Require executive approval for deals over threshold amount', 
- 'Approvals', 'Opportunity', 2, 1, 'DollarSign', '#0ea5e9', 1, 1, 50, 72, 
+ 'Approvals', 'Opportunity', 1, 1, 'DollarSign', '#0ea5e9', 1, 1, 50, 72, 
  'sales,approval', NULL, NOW(), 0),
 
 -- Notification Workflows
 (17, 'customer-welcome', 'New Customer Welcome', 
  'Send welcome email and onboarding sequence when account becomes active', 
- 'Notifications', 'Customer', 2, 1, 'Smile', '#22d3ee', 1, 2, 100, 24, 
+ 'Notifications', 'Customer', 1, 1, 'Smile', '#22d3ee', 1, 2, 100, 24, 
  'customer,welcome,notification', NULL, NOW(), 0),
 
 (18, 'task-due-reminder', 'Task Due Reminder', 
  'Remind assignee when task is due today', 
- 'Notifications', 'Task', 2, 1, 'Bell', '#fbbf24', 1, 3, 1000, 24, 
+ 'Notifications', 'Task', 1, 1, 'Bell', '#fbbf24', 1, 3, 1000, 24, 
  'task,reminder', NULL, NOW(), 0),
 
 -- Data Management Workflows
 (19, 'duplicate-detection', 'Duplicate Detection Alert', 
  'Alert when potential duplicate record is detected during creation', 
- 'Data Quality', 'Lead', 2, 1, 'Copy', '#6366f1', 1, 2, 200, 4, 
+ 'Data Quality', 'Lead', 1, 1, 'Copy', '#6366f1', 1, 2, 200, 4, 
  'data,duplicate', NULL, NOW(), 0),
 
 (20, 'data-quality-check', 'Data Quality Check', 
  'Weekly check and flag records with missing required fields', 
- 'Data Quality', 'Customer', 2, 1, 'CheckCircle', '#16a34a', 1, 3, 10, 168, 
+ 'Data Quality', 'Customer', 1, 1, 'CheckCircle', '#16a34a', 1, 3, 10, 168, 
  'data,quality', NULL, NOW(), 0)
 
 ON DUPLICATE KEY UPDATE 

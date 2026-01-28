@@ -1006,45 +1006,45 @@ export const workflowService = {
     skip?: number;
     take?: number;
   }): Promise<WorkflowDefinition[]> {
-    const response = await apiClient.get('/api/workflows', { params });
+    const response = await apiClient.get('/workflows', { params });
     return response.data;
   },
 
   // Get a single workflow with versions
   async getWorkflow(id: number): Promise<WorkflowDefinitionDetail> {
-    const response = await apiClient.get(`/api/workflows/${id}`);
+    const response = await apiClient.get(`/workflows/${id}`);
     return response.data;
   },
 
   // Create a new workflow
   async createWorkflow(workflow: CreateWorkflowDto): Promise<{ id: number }> {
-    const response = await apiClient.post('/api/workflows', workflow);
+    const response = await apiClient.post('/workflows', workflow);
     return response.data;
   },
 
   // Update a workflow
   async updateWorkflow(id: number, workflow: UpdateWorkflowDto): Promise<void> {
-    await apiClient.put(`/api/workflows/${id}`, workflow);
+    await apiClient.put(`/workflows/${id}`, workflow);
   },
 
   // Delete a workflow
   async deleteWorkflow(id: number): Promise<void> {
-    await apiClient.delete(`/api/workflows/${id}`);
+    await apiClient.delete(`/workflows/${id}`);
   },
 
   // Activate a workflow version
   async activateWorkflow(workflowId: number, versionId: number): Promise<void> {
-    await apiClient.post(`/api/workflows/${workflowId}/activate/${versionId}`);
+    await apiClient.post(`/workflows/${workflowId}/activate/${versionId}`);
   },
 
   // Pause a workflow
   async pauseWorkflow(id: number): Promise<void> {
-    await apiClient.post(`/api/workflows/${id}/pause`);
+    await apiClient.post(`/workflows/${id}/pause`);
   },
 
   // Get workflow statistics
   async getStatistics(): Promise<WorkflowStatistics> {
-    const response = await apiClient.get('/api/workflows/statistics');
+    const response = await apiClient.get('/workflows/statistics');
     return response.data;
   },
 
@@ -1058,7 +1058,7 @@ export const workflowService = {
       return configLoadPromise;
     }
 
-    configLoadPromise = apiClient.get('/api/workflows/config')
+    configLoadPromise = apiClient.get('/workflows/config')
       .then(response => {
         cachedConfig = response.data;
         configLoadPromise = null;
@@ -1168,19 +1168,19 @@ export const workflowService = {
 
   // Get a specific version with full graph
   async getVersion(versionId: number): Promise<WorkflowVersionDetail> {
-    const response = await apiClient.get(`/api/workflows/versions/${versionId}`);
+    const response = await apiClient.get(`/workflows/versions/${versionId}`);
     return response.data;
   },
 
   // Create a new version
   async createVersion(workflowId: number, sourceVersionId?: number): Promise<{ id: number; versionNumber: number }> {
-    const response = await apiClient.post(`/api/workflows/${workflowId}/versions`, { sourceVersionId });
+    const response = await apiClient.post(`/workflows/${workflowId}/versions`, { sourceVersionId });
     return response.data;
   },
 
   // Save canvas layout
   async saveCanvasLayout(versionId: number, canvasLayout: string): Promise<void> {
-    await apiClient.put(`/api/workflows/versions/${versionId}/layout`, { canvasLayout });
+    await apiClient.put(`/workflows/versions/${versionId}/layout`, { canvasLayout });
   },
 
   // ============================================================================
@@ -1189,23 +1189,23 @@ export const workflowService = {
 
   // Add a node
   async addNode(versionId: number, node: CreateNodeDto): Promise<{ id: number; nodeKey: string }> {
-    const response = await apiClient.post(`/api/workflows/versions/${versionId}/nodes`, node);
+    const response = await apiClient.post(`/workflows/versions/${versionId}/nodes`, node);
     return response.data;
   },
 
   // Update a node
   async updateNode(nodeId: number, node: UpdateNodeDto): Promise<void> {
-    await apiClient.put(`/api/workflows/nodes/${nodeId}`, node);
+    await apiClient.put(`/workflows/nodes/${nodeId}`, node);
   },
 
   // Delete a node
   async deleteNode(nodeId: number): Promise<void> {
-    await apiClient.delete(`/api/workflows/nodes/${nodeId}`);
+    await apiClient.delete(`/workflows/nodes/${nodeId}`);
   },
 
   // Update node positions (bulk)
   async updateNodePositions(versionId: number, positions: NodePositionDto[]): Promise<void> {
-    await apiClient.put(`/api/workflows/versions/${versionId}/nodes/positions`, positions);
+    await apiClient.put(`/workflows/versions/${versionId}/nodes/positions`, positions);
   },
 
   // ============================================================================
@@ -1214,18 +1214,18 @@ export const workflowService = {
 
   // Add a transition
   async addTransition(versionId: number, transition: CreateTransitionDto): Promise<{ id: number }> {
-    const response = await apiClient.post(`/api/workflows/versions/${versionId}/transitions`, transition);
+    const response = await apiClient.post(`/workflows/versions/${versionId}/transitions`, transition);
     return response.data;
   },
 
   // Update a transition
   async updateTransition(transitionId: number, transition: UpdateTransitionDto): Promise<void> {
-    await apiClient.put(`/api/workflows/transitions/${transitionId}`, transition);
+    await apiClient.put(`/workflows/transitions/${transitionId}`, transition);
   },
 
   // Delete a transition
   async deleteTransition(transitionId: number): Promise<void> {
-    await apiClient.delete(`/api/workflows/transitions/${transitionId}`);
+    await apiClient.delete(`/workflows/transitions/${transitionId}`);
   }
 };
 
@@ -1257,7 +1257,7 @@ export const workflowInstanceService = {
     pageNumber?: number;
     pageSize?: number;
   }): Promise<PaginatedResult<WorkflowInstance>> {
-    const response = await apiClient.get('/api/workflow-instances', { params });
+    const response = await apiClient.get('/workflow-instances', { params });
     // Handle both array and paginated response formats
     if (Array.isArray(response.data)) {
       return {
@@ -1273,61 +1273,61 @@ export const workflowInstanceService = {
 
   // Get a specific instance with details
   async getInstance(id: number): Promise<WorkflowInstanceDetail> {
-    const response = await apiClient.get(`/api/workflow-instances/${id}`);
+    const response = await apiClient.get(`/workflow-instances/${id}`);
     return response.data;
   },
 
   // Get instances for an entity
   async getInstancesForEntity(entityType: string, entityId: number): Promise<WorkflowInstance[]> {
-    const response = await apiClient.get(`/api/workflow-instances/entity/${entityType}/${entityId}`);
+    const response = await apiClient.get(`/workflow-instances/entity/${entityType}/${entityId}`);
     return response.data;
   },
 
   // Start a new workflow instance
   async startWorkflow(dto: StartWorkflowDto): Promise<{ id: number; correlationId: string }> {
-    const response = await apiClient.post('/api/workflow-instances', dto);
+    const response = await apiClient.post('/workflow-instances', dto);
     return response.data;
   },
 
   // Cancel an instance
   async cancelInstance(id: number, reason: string): Promise<void> {
-    await apiClient.post(`/api/workflow-instances/${id}/cancel`, { reason });
+    await apiClient.post(`/workflow-instances/${id}/cancel`, { reason });
   },
 
   // Pause an instance
   async pauseInstance(id: number): Promise<void> {
-    await apiClient.post(`/api/workflow-instances/${id}/pause`);
+    await apiClient.post(`/workflow-instances/${id}/pause`);
   },
 
   // Resume an instance
   async resumeInstance(id: number): Promise<void> {
-    await apiClient.post(`/api/workflow-instances/${id}/resume`);
+    await apiClient.post(`/workflow-instances/${id}/resume`);
   },
 
   // Retry a failed instance
   async retryInstance(id: number): Promise<void> {
-    await apiClient.post(`/api/workflow-instances/${id}/retry`);
+    await apiClient.post(`/workflow-instances/${id}/retry`);
   },
 
   // Skip a node
   async skipNode(instanceId: number, nodeId: number, reason: string): Promise<void> {
-    await apiClient.post(`/api/workflow-instances/${instanceId}/skip-node/${nodeId}`, { reason });
+    await apiClient.post(`/workflow-instances/${instanceId}/skip-node/${nodeId}`, { reason });
   },
 
   // Get my human tasks
   async getMyTasks(): Promise<HumanTask[]> {
-    const response = await apiClient.get('/api/workflow-instances/my-tasks');
+    const response = await apiClient.get('/workflow-instances/my-tasks');
     return response.data;
   },
 
   // Claim a task
   async claimTask(taskId: number): Promise<void> {
-    await apiClient.post(`/api/workflow-instances/tasks/${taskId}/claim`);
+    await apiClient.post(`/workflow-instances/tasks/${taskId}/claim`);
   },
 
   // Complete a task
   async completeTask(taskId: number, formData?: string, outputData?: string): Promise<void> {
-    await apiClient.post(`/api/workflow-instances/tasks/${taskId}/complete`, { formData, outputData });
+    await apiClient.post(`/workflow-instances/tasks/${taskId}/complete`, { formData, outputData });
   },
 
   // Get logs for an instance
@@ -1337,7 +1337,7 @@ export const workflowInstanceService = {
     skip?: number;
     take?: number;
   }): Promise<WorkflowLog[]> {
-    const response = await apiClient.get(`/api/workflow-instances/${instanceId}/logs`, { params });
+    const response = await apiClient.get(`/workflow-instances/${instanceId}/logs`, { params });
     return response.data;
   },
 
@@ -1352,7 +1352,7 @@ export const workflowInstanceService = {
     fromDate?: string;
     toDate?: string;
   }): Promise<InstanceStatistics> {
-    const response = await apiClient.get('/api/workflow-instances/statistics', { params });
+    const response = await apiClient.get('/workflow-instances/statistics', { params });
     return response.data;
   },
 
@@ -1369,7 +1369,7 @@ export const workflowInstanceService = {
     skip?: number;
     take?: number;
   }): Promise<{ items: AuditLogEntry[]; hasMore: boolean }> {
-    const response = await apiClient.get(`/api/workflow-instances/definitions/${definitionId}/audit-log`, { params });
+    const response = await apiClient.get(`/workflow-instances/definitions/${definitionId}/audit-log`, { params });
     return response.data;
   },
 
@@ -1379,7 +1379,7 @@ export const workflowInstanceService = {
     toDate?: string;
   }): Promise<Blob> {
     const response = await apiClient.get(
-      `/api/workflow-instances/definitions/${definitionId}/audit-log/export`, 
+      `/workflow-instances/definitions/${definitionId}/audit-log/export`, 
       { params, responseType: 'blob' }
     );
     return response.data;
@@ -1387,13 +1387,13 @@ export const workflowInstanceService = {
 
   // Get execution timeline for an instance
   async getExecutionTimeline(instanceId: number): Promise<ExecutionTimeline> {
-    const response = await apiClient.get(`/api/workflow-instances/${instanceId}/timeline`);
+    const response = await apiClient.get(`/workflow-instances/${instanceId}/timeline`);
     return response.data;
   },
 
   // Simulate workflow execution (dry run)
   async simulateWorkflow(workflowId: number, sampleData: object): Promise<SimulationResult> {
-    const response = await apiClient.post(`/api/workflows/${workflowId}/simulate`, { sampleData });
+    const response = await apiClient.post(`/workflows/${workflowId}/simulate`, { sampleData });
     return response.data;
   }
 };
