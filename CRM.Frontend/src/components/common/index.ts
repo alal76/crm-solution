@@ -8,8 +8,8 @@ export type { ConfirmDialogProps } from './ConfirmDialog';
 export { LoadingSpinner } from './LoadingSpinner';
 export type { LoadingSpinnerProps } from './LoadingSpinner';
 
-export { ErrorAlert, SuccessAlert } from './ErrorAlert';
-export type { ErrorAlertProps, SuccessAlertProps } from './ErrorAlert';
+export { ErrorAlert, SuccessAlert, ValidationErrorAlert } from './ErrorAlert';
+export type { ErrorAlertProps, SuccessAlertProps, ValidationErrorAlertProps } from './ErrorAlert';
 
 export { 
   DialogError,

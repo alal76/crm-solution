@@ -22,6 +22,7 @@ import {
   FilterAlt as FilterIcon, Close as CloseIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { getApiErrorMessage } from '../utils/errorHandler';
 import FieldRenderer from '../components/FieldRenderer';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
@@ -274,7 +275,7 @@ function CustomersPage() {
       setCustomers(response.data);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch accounts');
+      setError(getApiErrorMessage(err, 'Failed to fetch accounts'));
     } finally {
       setLoading(false);
     }
@@ -377,18 +378,27 @@ function CustomersPage() {
     if (!validateRequiredFields()) return;
 
     try {
+      // Transform form data before sending - convert empty strings to null for date fields
+      const submitData = { ...formData };
+      const dateFields = ['dateOfBirth', 'firstContactDate', 'conversionDate', 'lastActivityDate', 'nextFollowUpDate'];
+      dateFields.forEach(field => {
+        if (submitData[field] === '' || submitData[field] === undefined) {
+          submitData[field] = null;
+        }
+      });
+
       if (editingId) {
-        await apiClient.put(`/customers/${editingId}`, formData);
+        await apiClient.put(`/customers/${editingId}`, submitData);
         setSuccessMessage('Account updated successfully');
       } else {
-        await apiClient.post('/customers', formData);
+        await apiClient.post('/customers', submitData);
         setSuccessMessage('Account created successfully');
       }
       handleCloseDialog();
       fetchCustomers();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save account');
+      setError(getApiErrorMessage(err, 'Failed to save account'));
     }
   };
 
@@ -405,7 +415,7 @@ function CustomersPage() {
         setSuccessMessage('Account deleted successfully');
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
-        setError(dialogApi.error?.message || 'Failed to delete account');
+        setError(getApiErrorMessage(dialogApi.error, 'Failed to delete account'));
       }
     }
   };
@@ -518,7 +528,7 @@ function CustomersPage() {
       setSuccessMessage('Contact linked successfully');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to link contact');
+      setError(getApiErrorMessage(err, 'Failed to link contact'));
     }
   };
 
@@ -532,7 +542,7 @@ function CustomersPage() {
         setSuccessMessage('Contact removed successfully');
         setTimeout(() => setSuccessMessage(null), 3000);
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to remove contact');
+        setError(getApiErrorMessage(err, 'Failed to remove contact'));
       }
     }
   };
@@ -642,7 +652,15 @@ function CustomersPage() {
         </Box>
 
         {/* Alerts */}
-        {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
+        {error && (
+          <Alert 
+            severity="error" 
+            sx={{ mb: 2, whiteSpace: 'pre-line' }} 
+            onClose={() => setError(null)}
+          >
+            {error}
+          </Alert>
+        )}
         {fieldConfigError && <Alert severity="warning" sx={{ mb: 2 }}>Field configurations could not be loaded. Using defaults.</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>{successMessage}</Alert>}
 

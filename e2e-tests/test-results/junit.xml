@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="6" failures="3" skipped="0" errors="0" time="29.126522">
-<testsuite name="auth.setup.ts" timestamp="2026-01-27T22:30:26.917Z" hostname="setup" tests="1" failures="0" skipped="0" time="13.318" errors="0">
-<testcase name="authenticate" classname="auth.setup.ts" time="13.318">
+<testsuites id="" name="" tests="11" failures="6" skipped="0" errors="0" time="39.505018">
+<testsuite name="auth.setup.ts" timestamp="2026-01-28T04:28:40.115Z" hostname="setup" tests="1" failures="0" skipped="0" time="14.856" errors="0">
+<testcase name="authenticate" classname="auth.setup.ts" time="14.856">
 <system-out>
 <![CDATA[🔐 Attempting login with: abhi.lal@gmail.com
 📋 Found 3 input fields
@@ -10,14 +10,108 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="customers/customers.spec.ts" timestamp="2026-01-27T22:30:26.917Z" hostname="chromium" tests="1" failures="0" skipped="0" time="12.367" errors="0">
-<testcase name="Customers - Create › TC-CUST-010: Should create new corporate customer" classname="customers/customers.spec.ts" time="12.367">
+<testsuite name="account-contact-linking.spec.ts" timestamp="2026-01-28T04:28:40.115Z" hostname="chromium" tests="2" failures="0" skipped="0" time="30.702" errors="0">
+<testcase name="Account-Contact Linking via Mapping Table › create 10 accounts and link random contacts via API" classname="account-contact-linking.spec.ts" time="20.204">
+<system-out>
+<![CDATA[
+[1/10] Quantum Dynamics Labs - Creating account with 21 contacts
+  ✓ Created account ID: 42
+  ✓ Created 21 contacts
+  ✓ Linked 21/21 contacts to account
+
+[2/10] Horizon Pharmaceuticals - Creating account with 11 contacts
+  ✓ Created account ID: 44
+  ✓ Created 11 contacts
+  ✓ Linked 11/11 contacts to account
+
+[3/10] Nexus Logistics Group - Creating account with 16 contacts
+  ✓ Created account ID: 45
+  ✓ Created 16 contacts
+  ✓ Linked 16/16 contacts to account
+
+[4/10] Evergreen Sustainable - Creating account with 21 contacts
+  ✓ Created account ID: 47
+  ✓ Created 21 contacts
+  ✓ Linked 21/21 contacts to account
+
+[5/10] Atlas Capital Partners - Creating account with 13 contacts
+  ✓ Created account ID: 50
+  ✓ Created 13 contacts
+  ✓ Linked 13/13 contacts to account
+
+[6/10] Coastal Hospitality - Creating account with 24 contacts
+  ✓ Created account ID: 52
+  ✓ Created 24 contacts
+  ✓ Linked 24/24 contacts to account
+
+[7/10] Apex Aerospace - Creating account with 14 contacts
+  ✓ Created account ID: 54
+  ✓ Created 14 contacts
+  ✓ Linked 14/14 contacts to account
+
+[8/10] Digital Frontier - Creating account with 23 contacts
+  ✓ Created account ID: 57
+  ✓ Created 23 contacts
+  ✓ Linked 23/23 contacts to account
+
+[9/10] TerraForm Build - Creating account with 24 contacts
+  ✓ Created account ID: 59
+  ✓ Created 24 contacts
+  ✓ Linked 24/24 contacts to account
+
+[10/10] Nova EdTech - Creating account with 9 contacts
+  ✓ Created account ID: 61
+  ✓ Created 9 contacts
+  ✓ Linked 9/9 contacts to account
+
+=== SUMMARY ===
+✓ Quantum Dynamics Labs: 21 contacts, 21 linked
+✓ Horizon Pharmaceuticals: 11 contacts, 11 linked
+✓ Nexus Logistics Group: 16 contacts, 16 linked
+✓ Evergreen Sustainable: 21 contacts, 21 linked
+✓ Atlas Capital Partners: 13 contacts, 13 linked
+✓ Coastal Hospitality: 24 contacts, 24 linked
+✓ Apex Aerospace: 14 contacts, 14 linked
+✓ Digital Frontier: 23 contacts, 23 linked
+✓ TerraForm Build: 24 contacts, 24 linked
+✓ Nova EdTech: 9 contacts, 9 linked
+
+Total: 10/10 accounts
+Total contacts created: 176
+Total links created: 176
+
+=== VERIFYING IN UI ===
+Found 3 rows in accounts table
+]]>
+</system-out>
+</testcase>
+<testcase name="Account-Contact Linking via Mapping Table › verify linked contacts appear in UI" classname="account-contact-linking.spec.ts" time="10.498">
+<system-out>
+<![CDATA[Found 2 customer rows
+]]>
+</system-out>
 </testcase>
 </testsuite>
-<testsuite name="customers/customers.spec.ts" timestamp="2026-01-27T22:30:26.917Z" hostname="firefox" tests="1" failures="1" skipped="0" time="0.002" errors="0">
-<testcase name="Customers - Create › TC-CUST-010: Should create new corporate customer" classname="customers/customers.spec.ts" time="0.002">
-<failure message="customers.spec.ts:142:7 TC-CUST-010: Should create new corporate customer" type="FAILURE">
-<![CDATA[  [firefox] › customers/customers.spec.ts:142:7 › Customers - Create › TC-CUST-010: Should create new corporate customer 
+<testsuite name="account-contact-linking.spec.ts" timestamp="2026-01-28T04:28:40.115Z" hostname="firefox" tests="2" failures="2" skipped="0" time="0.008" errors="0">
+<testcase name="Account-Contact Linking via Mapping Table › create 10 accounts and link random contacts via API" classname="account-contact-linking.spec.ts" time="0.003">
+<failure message="account-contact-linking.spec.ts:30:7 create 10 accounts and link random contacts via API" type="FAILURE">
+<![CDATA[  [firefox] › account-contact-linking.spec.ts:30:7 › Account-Contact Linking via Mapping Table › create 10 accounts and link random contacts via API 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Account-Contact Linking via Mapping Table › verify linked contacts appear in UI" classname="account-contact-linking.spec.ts" time="0.005">
+<failure message="account-contact-linking.spec.ts:169:7 verify linked contacts appear in UI" type="FAILURE">
+<![CDATA[  [firefox] › account-contact-linking.spec.ts:169:7 › Account-Contact Linking via Mapping Table › verify linked contacts appear in UI 
 
     Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox
     ╔═════════════════════════════════════════════════════════════════════════╗
@@ -32,10 +126,26 @@
 </failure>
 </testcase>
 </testsuite>
-<testsuite name="customers/customers.spec.ts" timestamp="2026-01-27T22:30:26.917Z" hostname="webkit" tests="1" failures="1" skipped="0" time="0.005" errors="0">
-<testcase name="Customers - Create › TC-CUST-010: Should create new corporate customer" classname="customers/customers.spec.ts" time="0.005">
-<failure message="customers.spec.ts:142:7 TC-CUST-010: Should create new corporate customer" type="FAILURE">
-<![CDATA[  [webkit] › customers/customers.spec.ts:142:7 › Customers - Create › TC-CUST-010: Should create new corporate customer 
+<testsuite name="account-contact-linking.spec.ts" timestamp="2026-01-28T04:28:40.115Z" hostname="webkit" tests="2" failures="2" skipped="0" time="0.011" errors="0">
+<testcase name="Account-Contact Linking via Mapping Table › create 10 accounts and link random contacts via API" classname="account-contact-linking.spec.ts" time="0.005">
+<failure message="account-contact-linking.spec.ts:30:7 create 10 accounts and link random contacts via API" type="FAILURE">
+<![CDATA[  [webkit] › account-contact-linking.spec.ts:30:7 › Account-Contact Linking via Mapping Table › create 10 accounts and link random contacts via API 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Account-Contact Linking via Mapping Table › verify linked contacts appear in UI" classname="account-contact-linking.spec.ts" time="0.006">
+<failure message="account-contact-linking.spec.ts:169:7 verify linked contacts appear in UI" type="FAILURE">
+<![CDATA[  [webkit] › account-contact-linking.spec.ts:169:7 › Account-Contact Linking via Mapping Table › verify linked contacts appear in UI 
 
     Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
     ╔═════════════════════════════════════════════════════════════════════════╗
@@ -50,14 +160,108 @@
 </failure>
 </testcase>
 </testsuite>
-<testsuite name="customers/customers.spec.ts" timestamp="2026-01-27T22:30:26.917Z" hostname="Mobile Chrome" tests="1" failures="0" skipped="0" time="11.492" errors="0">
-<testcase name="Customers - Create › TC-CUST-010: Should create new corporate customer" classname="customers/customers.spec.ts" time="11.492">
+<testsuite name="account-contact-linking.spec.ts" timestamp="2026-01-28T04:28:40.115Z" hostname="Mobile Chrome" tests="2" failures="0" skipped="0" time="27.556" errors="0">
+<testcase name="Account-Contact Linking via Mapping Table › create 10 accounts and link random contacts via API" classname="account-contact-linking.spec.ts" time="16.825">
+<system-out>
+<![CDATA[
+[1/10] Quantum Dynamics Labs - Creating account with 16 contacts
+  ✓ Created account ID: 43
+  ✓ Created 16 contacts
+  ✓ Linked 16/16 contacts to account
+
+[2/10] Horizon Pharmaceuticals - Creating account with 19 contacts
+  ✓ Created account ID: 46
+  ✓ Created 19 contacts
+  ✓ Linked 19/19 contacts to account
+
+[3/10] Nexus Logistics Group - Creating account with 10 contacts
+  ✓ Created account ID: 48
+  ✓ Created 10 contacts
+  ✓ Linked 10/10 contacts to account
+
+[4/10] Evergreen Sustainable - Creating account with 5 contacts
+  ✓ Created account ID: 49
+  ✓ Created 5 contacts
+  ✓ Linked 5/5 contacts to account
+
+[5/10] Atlas Capital Partners - Creating account with 15 contacts
+  ✓ Created account ID: 51
+  ✓ Created 15 contacts
+  ✓ Linked 15/15 contacts to account
+
+[6/10] Coastal Hospitality - Creating account with 25 contacts
+  ✓ Created account ID: 53
+  ✓ Created 25 contacts
+  ✓ Linked 25/25 contacts to account
+
+[7/10] Apex Aerospace - Creating account with 4 contacts
+  ✓ Created account ID: 55
+  ✓ Created 4 contacts
+  ✓ Linked 4/4 contacts to account
+
+[8/10] Digital Frontier - Creating account with 20 contacts
+  ✓ Created account ID: 56
+  ✓ Created 20 contacts
+  ✓ Linked 20/20 contacts to account
+
+[9/10] TerraForm Build - Creating account with 16 contacts
+  ✓ Created account ID: 58
+  ✓ Created 16 contacts
+  ✓ Linked 16/16 contacts to account
+
+[10/10] Nova EdTech - Creating account with 15 contacts
+  ✓ Created account ID: 60
+  ✓ Created 15 contacts
+  ✓ Linked 15/15 contacts to account
+
+=== SUMMARY ===
+✓ Quantum Dynamics Labs: 16 contacts, 16 linked
+✓ Horizon Pharmaceuticals: 19 contacts, 19 linked
+✓ Nexus Logistics Group: 10 contacts, 10 linked
+✓ Evergreen Sustainable: 5 contacts, 5 linked
+✓ Atlas Capital Partners: 15 contacts, 15 linked
+✓ Coastal Hospitality: 25 contacts, 25 linked
+✓ Apex Aerospace: 4 contacts, 4 linked
+✓ Digital Frontier: 20 contacts, 20 linked
+✓ TerraForm Build: 16 contacts, 16 linked
+✓ Nova EdTech: 15 contacts, 15 linked
+
+Total: 10/10 accounts
+Total contacts created: 145
+Total links created: 145
+
+=== VERIFYING IN UI ===
+Found 3 rows in accounts table
+]]>
+</system-out>
+</testcase>
+<testcase name="Account-Contact Linking via Mapping Table › verify linked contacts appear in UI" classname="account-contact-linking.spec.ts" time="10.731">
+<system-out>
+<![CDATA[Found 2 customer rows
+]]>
+</system-out>
 </testcase>
 </testsuite>
-<testsuite name="customers/customers.spec.ts" timestamp="2026-01-27T22:30:26.917Z" hostname="Mobile Safari" tests="1" failures="1" skipped="0" time="0.001" errors="0">
-<testcase name="Customers - Create › TC-CUST-010: Should create new corporate customer" classname="customers/customers.spec.ts" time="0.001">
-<failure message="customers.spec.ts:142:7 TC-CUST-010: Should create new corporate customer" type="FAILURE">
-<![CDATA[  [Mobile Safari] › customers/customers.spec.ts:142:7 › Customers - Create › TC-CUST-010: Should create new corporate customer 
+<testsuite name="account-contact-linking.spec.ts" timestamp="2026-01-28T04:28:40.115Z" hostname="Mobile Safari" tests="2" failures="2" skipped="0" time="0.003" errors="0">
+<testcase name="Account-Contact Linking via Mapping Table › create 10 accounts and link random contacts via API" classname="account-contact-linking.spec.ts" time="0.001">
+<failure message="account-contact-linking.spec.ts:30:7 create 10 accounts and link random contacts via API" type="FAILURE">
+<![CDATA[  [Mobile Safari] › account-contact-linking.spec.ts:30:7 › Account-Contact Linking via Mapping Table › create 10 accounts and link random contacts via API 
+
+    Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="Account-Contact Linking via Mapping Table › verify linked contacts appear in UI" classname="account-contact-linking.spec.ts" time="0.002">
+<failure message="account-contact-linking.spec.ts:169:7 verify linked contacts appear in UI" type="FAILURE">
+<![CDATA[  [Mobile Safari] › account-contact-linking.spec.ts:169:7 › Account-Contact Linking via Mapping Table › verify linked contacts appear in UI 
 
     Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
     ╔═════════════════════════════════════════════════════════════════════════╗

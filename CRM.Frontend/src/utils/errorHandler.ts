@@ -422,6 +422,150 @@ if (typeof window !== 'undefined') {
   };
 }
 
+/**
+ * Parse API validation errors into user-friendly messages
+ * Handles .NET ValidationProblemDetails format and other common error formats
+ */
+export interface ParsedApiError {
+  message: string;
+  fieldErrors: { field: string; messages: string[] }[];
+  hasFieldErrors: boolean;
+}
+
+export const parseApiError = (error: any, defaultMessage = 'An error occurred'): ParsedApiError => {
+  const result: ParsedApiError = {
+    message: defaultMessage,
+    fieldErrors: [],
+    hasFieldErrors: false,
+  };
+
+  if (!error) return result;
+
+  const responseData = error.response?.data || error.data || error;
+
+  // Handle .NET ValidationProblemDetails format
+  // { "errors": { "fieldName": ["error1", "error2"], "$.jsonPath": ["error"] } }
+  if (responseData?.errors && typeof responseData.errors === 'object') {
+    const errors = responseData.errors;
+    
+    for (const [field, messages] of Object.entries(errors)) {
+      if (Array.isArray(messages) && messages.length > 0) {
+        // Clean up field names: remove $ prefix, camelCase to readable
+        let cleanField = field
+          .replace(/^\$\.?/, '') // Remove leading $. or $
+          .replace(/([A-Z])/g, ' $1') // Add space before capitals
+          .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+          .trim();
+        
+        // Handle special cases
+        if (cleanField.toLowerCase() === 'dto') {
+          cleanField = 'Request Data';
+        }
+        
+        result.fieldErrors.push({
+          field: cleanField,
+          messages: messages.map(m => String(m)),
+        });
+      }
+    }
+    
+    result.hasFieldErrors = result.fieldErrors.length > 0;
+    
+    // Build a comprehensive error message
+    if (result.hasFieldErrors) {
+      const errorParts = result.fieldErrors.map(fe => {
+        const fieldName = fe.field || 'Unknown field';
+        const msgs = fe.messages.map(m => {
+          // Make common error messages more user-friendly
+          return m
+            .replace(/The JSON value could not be converted to [^.]+\./g, 'Invalid format.')
+            .replace(/is required/gi, 'is required')
+            .replace(/must be/gi, 'must be')
+            .replace(/cannot be/gi, 'cannot be');
+        }).join('; ');
+        return `${fieldName}: ${msgs}`;
+      });
+      result.message = `Validation failed:\n• ${errorParts.join('\n• ')}`;
+    }
+    
+    // Use title from ValidationProblemDetails if available
+    if (responseData.title && !result.hasFieldErrors) {
+      result.message = responseData.title;
+    }
+    
+    // Include detail if available
+    if (responseData.detail) {
+      result.message = result.hasFieldErrors 
+        ? result.message 
+        : responseData.detail;
+    }
+    
+    return result;
+  }
+
+  // Handle simple message format: { "message": "error text" }
+  if (responseData?.message) {
+    result.message = responseData.message;
+    return result;
+  }
+
+  // Handle .NET ProblemDetails format: { "title": "...", "detail": "..." }
+  if (responseData?.title) {
+    result.message = responseData.detail || responseData.title;
+    return result;
+  }
+
+  // Handle array of errors: ["error1", "error2"]
+  if (Array.isArray(responseData)) {
+    result.message = responseData.map(e => String(e)).join('; ');
+    return result;
+  }
+
+  // Handle string error
+  if (typeof responseData === 'string') {
+    result.message = responseData;
+    return result;
+  }
+
+  // Handle Axios error message
+  if (error.message) {
+    result.message = error.message;
+    
+    // Add HTTP status info if available
+    if (error.response?.status) {
+      const statusText = error.response.statusText || getHttpStatusText(error.response.status);
+      result.message = `${statusText}: ${result.message}`;
+    }
+  }
+
+  return result;
+};
+
+/**
+ * Get user-friendly error message from an API error
+ */
+export const getApiErrorMessage = (error: any, defaultMessage = 'An error occurred'): string => {
+  return parseApiError(error, defaultMessage).message;
+};
+
+/**
+ * Get HTTP status text for common status codes
+ */
+const getHttpStatusText = (status: number): string => {
+  const statusTexts: Record<number, string> = {
+    400: 'Bad Request',
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not Found',
+    409: 'Conflict',
+    422: 'Validation Error',
+    500: 'Server Error',
+    502: 'Bad Gateway',
+    503: 'Service Unavailable',
+  };
+  return statusTexts[status] || `Error ${status}`;
+};
+
 export default {
   initializeErrorHandler,
   getErrorLogs,
@@ -434,4 +578,6 @@ export default {
   isDebugEnabled,
   disableErrorHandler,
   createDebugPanel,
+  parseApiError,
+  getApiErrorMessage,
 };

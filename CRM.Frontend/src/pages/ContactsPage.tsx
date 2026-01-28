@@ -36,6 +36,7 @@ import {
 } from '@mui/material';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import apiClient from '../services/apiClient';
+import { getApiErrorMessage } from '../utils/errorHandler';
 import lookupService, { LookupItem } from '../services/lookupService';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -268,7 +269,7 @@ function ContactsPage() {
       fetchContactInfoSummaries(response.data);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch contacts');
+      setError(getApiErrorMessage(err, 'Failed to fetch contacts'));
       console.error('Error fetching contacts:', err);
     } finally {
       setLoading(false);
@@ -317,7 +318,7 @@ function ContactsPage() {
         setSuccessMessage('Contact deleted successfully');
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
-        setError(dialogApi.error?.message || 'Failed to delete contact');
+        setError(getApiErrorMessage(dialogApi.error, 'Failed to delete contact'));
       }
     }
   };
@@ -444,7 +445,7 @@ function ContactsPage() {
       setSuccessMessage(`Successfully deleted ${result} contact(s)`);
       setTimeout(() => setSuccessMessage(null), 3000);
     } else {
-      setError(bulkApi.error?.message || 'Failed to delete some contacts');
+      setError(getApiErrorMessage(bulkApi.error, 'Failed to delete some contacts'));
     }
   };
 
@@ -573,7 +574,15 @@ function ContactsPage() {
           </Box>
         </Box>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
+        {error && (
+          <Alert 
+            severity="error" 
+            sx={{ mb: 2, whiteSpace: 'pre-line' }} 
+            onClose={() => setError(null)}
+          >
+            {error}
+          </Alert>
+        )}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>{successMessage}</Alert>}
 
         <AdvancedSearch

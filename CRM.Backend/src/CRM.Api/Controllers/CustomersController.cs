@@ -441,9 +441,7 @@ public class CustomersController : ControllerBase
             if (customer == null)
                 return NotFound(new { message = "Customer not found" });
 
-            if (customer.Category != "Organization")
-                return BadRequest(new { message = "Can only link contacts to Organization customers" });
-
+            // Allow linking contacts to any account type (Individual or Organization)
             var result = await _customerService.LinkContactToCustomerAsync(id, dto);
             if (result == null)
                 return BadRequest(new { message = "Failed to link contact. Contact may not exist or is already linked." });

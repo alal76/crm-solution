@@ -39,6 +39,7 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { getApiErrorMessage } from '../utils/errorHandler';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
@@ -229,7 +230,7 @@ function OpportunitiesPage() {
       setUsers(userRes.data);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch data');
+      setError(getApiErrorMessage(err, 'Failed to fetch data'));
       console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
@@ -490,7 +491,15 @@ function OpportunitiesPage() {
           </Box>
         </Box>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
+        {error && (
+          <Alert 
+            severity="error" 
+            sx={{ mb: 2, whiteSpace: 'pre-line' }} 
+            onClose={() => setError(null)}
+          >
+            {error}
+          </Alert>
+        )}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>{successMessage}</Alert>}
 
         <AdvancedSearch

@@ -1,0 +1,221 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CRM SOLUTION - E2E TEST EXECUTION LOG                       
+═══════════════════════════════════════════════════════════════════════════════
+
+Test Run Started:  2026-01-28T04:28:40.022Z
+Test Run Ended:    2026-01-28T04:29:19.528Z
+Total Duration:    39s
+
+───────────────────────────────────────────────────────────────────────────────
+                              EXECUTION SUMMARY                                 
+───────────────────────────────────────────────────────────────────────────────
+  Total Tests:     11
+  Passed:          5 (45%)
+  Failed:          6 (55%)
+  Skipped:         0 (0%)
+
+───────────────────────────────────────────────────────────────────────────────
+                              MODULE BREAKDOWN                                  
+───────────────────────────────────────────────────────────────────────────────
+
+  AUTH.SETUP.TS
+  ├─ Total:   1
+  ├─ Passed:  1
+  ├─ Failed:  0
+  ├─ Skipped: 0
+  └─ Pass Rate: 100%
+
+  ACCOUNT-CONTACT-LINKING
+  ├─ Total:   10
+  ├─ Passed:  4
+  ├─ Failed:  6
+  ├─ Skipped: 0
+  └─ Pass Rate: 40%
+
+───────────────────────────────────────────────────────────────────────────────
+                              DETAILED TEST LOG                                 
+───────────────────────────────────────────────────────────────────────────────
+
+[2026-01-28T04:28:56.689Z] [✓ PASS] TC-UNKNOWN
+   Test: authenticate
+   Module: auth.setup.ts
+   Duration: 14856ms
+
+[2026-01-28T04:28:58.777Z] [✗ FAIL] TC-UNKNOWN
+   Test: create 10 accounts and link random contacts via API
+   Module: account-contact-linking
+   Duration: 3ms
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+[2026-01-28T04:28:58.858Z] [✗ FAIL] TC-UNKNOWN
+   Test: verify linked contacts appear in UI
+   Module: account-contact-linking
+   Duration: 5ms
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+[2026-01-28T04:29:00.836Z] [✗ FAIL] TC-UNKNOWN
+   Test: create 10 accounts and link random contacts via API
+   Module: account-contact-linking
+   Duration: 5ms
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+[2026-01-28T04:29:00.915Z] [✗ FAIL] TC-UNKNOWN
+   Test: verify linked contacts appear in UI
+   Module: account-contact-linking
+   Duration: 6ms
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+[2026-01-28T04:29:09.681Z] [✓ PASS] TC-UNKNOWN
+   Test: verify linked contacts appear in UI
+   Module: account-contact-linking
+   Duration: 10498ms
+
+[2026-01-28T04:29:11.407Z] [✗ FAIL] TC-UNKNOWN
+   Test: create 10 accounts and link random contacts via API
+   Module: account-contact-linking
+   Duration: 1ms
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+[2026-01-28T04:29:12.377Z] [✗ FAIL] TC-UNKNOWN
+   Test: verify linked contacts appear in UI
+   Module: account-contact-linking
+   Duration: 2ms
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+[2026-01-28T04:29:12.917Z] [✓ PASS] TC-UNKNOWN
+   Test: verify linked contacts appear in UI
+   Module: account-contact-linking
+   Duration: 10731ms
+
+[2026-01-28T04:29:19.008Z] [✓ PASS] TC-UNKNOWN
+   Test: create 10 accounts and link random contacts via API
+   Module: account-contact-linking
+   Duration: 16825ms
+
+[2026-01-28T04:29:19.390Z] [✓ PASS] TC-UNKNOWN
+   Test: create 10 accounts and link random contacts via API
+   Module: account-contact-linking
+   Duration: 20204ms
+
+───────────────────────────────────────────────────────────────────────────────
+                              FAILED TESTS                                     
+───────────────────────────────────────────────────────────────────────────────
+
+1. TC-UNKNOWN - create 10 accounts and link random contacts via API
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+2. TC-UNKNOWN - verify linked contacts appear in UI
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+3. TC-UNKNOWN - create 10 accounts and link random contacts via API
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+4. TC-UNKNOWN - verify linked contacts appear in UI
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+5. TC-UNKNOWN - create 10 accounts and link random contacts via API
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+6. TC-UNKNOWN - verify linked contacts appear in UI
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              END OF LOG                                        
+═══════════════════════════════════════════════════════════════════════════════

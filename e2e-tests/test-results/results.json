@@ -179,7 +179,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13318,
+                  "duration": 14856,
                   "errors": [],
                   "stdout": [
                     {
@@ -197,7 +197,7 @@
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-01-27T22:30:27.531Z",
+                  "startTime": "2026-01-28T04:28:40.722Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -213,25 +213,25 @@
       ]
     },
     {
-      "title": "customers/customers.spec.ts",
-      "file": "customers/customers.spec.ts",
+      "title": "account-contact-linking.spec.ts",
+      "file": "account-contact-linking.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Customers - Create",
-          "file": "customers/customers.spec.ts",
-          "line": 101,
+          "title": "Account-Contact Linking via Mapping Table",
+          "file": "account-contact-linking.spec.ts",
+          "line": 27,
           "column": 6,
           "specs": [
             {
-              "title": "TC-CUST-010: Should create new corporate customer",
+              "title": "create 10 accounts and link random contacts via API",
               "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 60000,
+                  "timeout": 180000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -241,12 +241,181 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 12367,
+                      "duration": 20204,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "\n[1/10] Quantum Dynamics Labs - Creating account with 21 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 42\n"
+                        },
+                        {
+                          "text": "  ✓ Created 21 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 21/21 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[2/10] Horizon Pharmaceuticals - Creating account with 11 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 44\n"
+                        },
+                        {
+                          "text": "  ✓ Created 11 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 11/11 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[3/10] Nexus Logistics Group - Creating account with 16 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 45\n"
+                        },
+                        {
+                          "text": "  ✓ Created 16 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 16/16 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[4/10] Evergreen Sustainable - Creating account with 21 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 47\n"
+                        },
+                        {
+                          "text": "  ✓ Created 21 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 21/21 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[5/10] Atlas Capital Partners - Creating account with 13 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 50\n"
+                        },
+                        {
+                          "text": "  ✓ Created 13 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 13/13 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[6/10] Coastal Hospitality - Creating account with 24 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 52\n"
+                        },
+                        {
+                          "text": "  ✓ Created 24 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 24/24 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[7/10] Apex Aerospace - Creating account with 14 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 54\n"
+                        },
+                        {
+                          "text": "  ✓ Created 14 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 14/14 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[8/10] Digital Frontier - Creating account with 23 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 57\n"
+                        },
+                        {
+                          "text": "  ✓ Created 23 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 23/23 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[9/10] TerraForm Build - Creating account with 24 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 59\n"
+                        },
+                        {
+                          "text": "  ✓ Created 24 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 24/24 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[10/10] Nova EdTech - Creating account with 9 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 61\n"
+                        },
+                        {
+                          "text": "  ✓ Created 9 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 9/9 contacts to account\n"
+                        },
+                        {
+                          "text": "\n=== SUMMARY ===\n"
+                        },
+                        {
+                          "text": "✓ Quantum Dynamics Labs: 21 contacts, 21 linked\n"
+                        },
+                        {
+                          "text": "✓ Horizon Pharmaceuticals: 11 contacts, 11 linked\n"
+                        },
+                        {
+                          "text": "✓ Nexus Logistics Group: 16 contacts, 16 linked\n"
+                        },
+                        {
+                          "text": "✓ Evergreen Sustainable: 21 contacts, 21 linked\n"
+                        },
+                        {
+                          "text": "✓ Atlas Capital Partners: 13 contacts, 13 linked\n"
+                        },
+                        {
+                          "text": "✓ Coastal Hospitality: 24 contacts, 24 linked\n"
+                        },
+                        {
+                          "text": "✓ Apex Aerospace: 14 contacts, 14 linked\n"
+                        },
+                        {
+                          "text": "✓ Digital Frontier: 23 contacts, 23 linked\n"
+                        },
+                        {
+                          "text": "✓ TerraForm Build: 24 contacts, 24 linked\n"
+                        },
+                        {
+                          "text": "✓ Nova EdTech: 9 contacts, 9 linked\n"
+                        },
+                        {
+                          "text": "\nTotal: 10/10 accounts\n"
+                        },
+                        {
+                          "text": "Total contacts created: 176\n"
+                        },
+                        {
+                          "text": "Total links created: 176\n"
+                        },
+                        {
+                          "text": "\n=== VERIFYING IN UI ===\n"
+                        },
+                        {
+                          "text": "Found 3 rows in accounts table\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-27T22:30:42.883Z",
+                      "startTime": "2026-01-28T04:28:58.683Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -254,28 +423,66 @@
                   "status": "expected"
                 }
               ],
-              "id": "cea04daca23608812dae-30ed5969c68890c20417",
-              "file": "customers/customers.spec.ts",
-              "line": 142,
+              "id": "0606e6dc14c8ed0d5c6d-9d2bdd29a5ff98a631da",
+              "file": "account-contact-linking.spec.ts",
+              "line": 30,
               "column": 7
             },
             {
-              "title": "TC-CUST-010: Should create new corporate customer",
+              "title": "verify linked contacts appear in UI",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 10498,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Found 2 customer rows\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-28T04:28:58.662Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0606e6dc14c8ed0d5c6d-4d525a2b58a9e23c4ca1",
+              "file": "account-contact-linking.spec.ts",
+              "line": 169,
+              "column": 7
+            },
+            {
+              "title": "create 10 accounts and link random contacts via API",
               "ok": false,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 60000,
+                  "timeout": 180000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "firefox",
                   "projectName": "firefox",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
+                      "workerIndex": 3,
+                      "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 2,
+                      "duration": 3,
                       "error": {
                         "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
                         "stack": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
@@ -288,7 +495,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-27T22:30:42.875Z",
+                      "startTime": "2026-01-28T04:28:58.658Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -296,25 +503,67 @@
                   "status": "unexpected"
                 }
               ],
-              "id": "cea04daca23608812dae-67a39ec1ac8fd31e546d",
-              "file": "customers/customers.spec.ts",
-              "line": 142,
+              "id": "0606e6dc14c8ed0d5c6d-b2256f6b0b053d08b210",
+              "file": "account-contact-linking.spec.ts",
+              "line": 30,
               "column": 7
             },
             {
-              "title": "TC-CUST-010: Should create new corporate customer",
+              "title": "verify linked contacts appear in UI",
               "ok": false,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 60000,
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 5,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-28T04:28:58.665Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0606e6dc14c8ed0d5c6d-aaf648422bf9e9b02fd0",
+              "file": "account-contact-linking.spec.ts",
+              "line": 169,
+              "column": 7
+            },
+            {
+              "title": "create 10 accounts and link random contacts via API",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "webkit",
                   "projectName": "webkit",
                   "results": [
                     {
-                      "workerIndex": 3,
+                      "workerIndex": 5,
                       "parallelIndex": 2,
                       "status": "failed",
                       "duration": 5,
@@ -330,7 +579,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-27T22:30:42.884Z",
+                      "startTime": "2026-01-28T04:29:00.741Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -338,33 +587,244 @@
                   "status": "unexpected"
                 }
               ],
-              "id": "cea04daca23608812dae-0e6494a997089fc4d035",
-              "file": "customers/customers.spec.ts",
-              "line": 142,
+              "id": "0606e6dc14c8ed0d5c6d-95858f1b56e1174f1f1a",
+              "file": "account-contact-linking.spec.ts",
+              "line": 30,
               "column": 7
             },
             {
-              "title": "TC-CUST-010: Should create new corporate customer",
+              "title": "verify linked contacts appear in UI",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 6,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-28T04:29:00.815Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0606e6dc14c8ed0d5c6d-c7ad15255a62be2f857a",
+              "file": "account-contact-linking.spec.ts",
+              "line": 169,
+              "column": 7
+            },
+            {
+              "title": "create 10 accounts and link random contacts via API",
               "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 60000,
+                  "timeout": 180000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "Mobile Chrome",
                   "projectName": "Mobile Chrome",
                   "results": [
                     {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
+                      "workerIndex": 7,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 11492,
+                      "duration": 16825,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "\n[1/10] Quantum Dynamics Labs - Creating account with 16 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 43\n"
+                        },
+                        {
+                          "text": "  ✓ Created 16 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 16/16 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[2/10] Horizon Pharmaceuticals - Creating account with 19 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 46\n"
+                        },
+                        {
+                          "text": "  ✓ Created 19 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 19/19 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[3/10] Nexus Logistics Group - Creating account with 10 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 48\n"
+                        },
+                        {
+                          "text": "  ✓ Created 10 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 10/10 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[4/10] Evergreen Sustainable - Creating account with 5 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 49\n"
+                        },
+                        {
+                          "text": "  ✓ Created 5 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 5/5 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[5/10] Atlas Capital Partners - Creating account with 15 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 51\n"
+                        },
+                        {
+                          "text": "  ✓ Created 15 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 15/15 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[6/10] Coastal Hospitality - Creating account with 25 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 53\n"
+                        },
+                        {
+                          "text": "  ✓ Created 25 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 25/25 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[7/10] Apex Aerospace - Creating account with 4 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 55\n"
+                        },
+                        {
+                          "text": "  ✓ Created 4 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 4/4 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[8/10] Digital Frontier - Creating account with 20 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 56\n"
+                        },
+                        {
+                          "text": "  ✓ Created 20 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 20/20 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[9/10] TerraForm Build - Creating account with 16 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 58\n"
+                        },
+                        {
+                          "text": "  ✓ Created 16 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 16/16 contacts to account\n"
+                        },
+                        {
+                          "text": "\n[10/10] Nova EdTech - Creating account with 15 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Created account ID: 60\n"
+                        },
+                        {
+                          "text": "  ✓ Created 15 contacts\n"
+                        },
+                        {
+                          "text": "  ✓ Linked 15/15 contacts to account\n"
+                        },
+                        {
+                          "text": "\n=== SUMMARY ===\n"
+                        },
+                        {
+                          "text": "✓ Quantum Dynamics Labs: 16 contacts, 16 linked\n"
+                        },
+                        {
+                          "text": "✓ Horizon Pharmaceuticals: 19 contacts, 19 linked\n"
+                        },
+                        {
+                          "text": "✓ Nexus Logistics Group: 10 contacts, 10 linked\n"
+                        },
+                        {
+                          "text": "✓ Evergreen Sustainable: 5 contacts, 5 linked\n"
+                        },
+                        {
+                          "text": "✓ Atlas Capital Partners: 15 contacts, 15 linked\n"
+                        },
+                        {
+                          "text": "✓ Coastal Hospitality: 25 contacts, 25 linked\n"
+                        },
+                        {
+                          "text": "✓ Apex Aerospace: 4 contacts, 4 linked\n"
+                        },
+                        {
+                          "text": "✓ Digital Frontier: 20 contacts, 20 linked\n"
+                        },
+                        {
+                          "text": "✓ TerraForm Build: 16 contacts, 16 linked\n"
+                        },
+                        {
+                          "text": "✓ Nova EdTech: 15 contacts, 15 linked\n"
+                        },
+                        {
+                          "text": "\nTotal: 10/10 accounts\n"
+                        },
+                        {
+                          "text": "Total contacts created: 145\n"
+                        },
+                        {
+                          "text": "Total links created: 145\n"
+                        },
+                        {
+                          "text": "\n=== VERIFYING IN UI ===\n"
+                        },
+                        {
+                          "text": "Found 3 rows in accounts table\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-27T22:30:42.875Z",
+                      "startTime": "2026-01-28T04:29:01.702Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -372,25 +832,63 @@
                   "status": "expected"
                 }
               ],
-              "id": "cea04daca23608812dae-fffb1f3bd52a7acdc0b3",
-              "file": "customers/customers.spec.ts",
-              "line": 142,
+              "id": "0606e6dc14c8ed0d5c6d-0618cb9859e588ceccea",
+              "file": "account-contact-linking.spec.ts",
+              "line": 30,
               "column": 7
             },
             {
-              "title": "TC-CUST-010: Should create new corporate customer",
+              "title": "verify linked contacts appear in UI",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 10731,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Found 2 customer rows\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-28T04:29:01.705Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0606e6dc14c8ed0d5c6d-5793651c26a541da301f",
+              "file": "account-contact-linking.spec.ts",
+              "line": 169,
+              "column": 7
+            },
+            {
+              "title": "create 10 accounts and link random contacts via API",
               "ok": false,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 60000,
+                  "timeout": 180000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "Mobile Safari",
                   "projectName": "Mobile Safari",
                   "results": [
                     {
-                      "workerIndex": 5,
+                      "workerIndex": 9,
                       "parallelIndex": 1,
                       "status": "failed",
                       "duration": 1,
@@ -406,7 +904,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-27T22:30:44.309Z",
+                      "startTime": "2026-01-28T04:29:11.359Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -414,9 +912,51 @@
                   "status": "unexpected"
                 }
               ],
-              "id": "cea04daca23608812dae-efeb8d5616ed53a16a21",
-              "file": "customers/customers.spec.ts",
-              "line": 142,
+              "id": "0606e6dc14c8ed0d5c6d-039bca46e1c50e21ed50",
+              "file": "account-contact-linking.spec.ts",
+              "line": 30,
+              "column": 7
+            },
+            {
+              "title": "verify linked contacts appear in UI",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 2,
+                      "error": {
+                        "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
+                        "stack": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-28T04:29:12.314Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0606e6dc14c8ed0d5c6d-eb7cbb0927ef60b110c2",
+              "file": "account-contact-linking.spec.ts",
+              "line": 169,
               "column": 7
             }
           ]
@@ -426,11 +966,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-01-27T22:30:26.892Z",
-    "duration": 29126.522,
-    "expected": 3,
+    "startTime": "2026-01-28T04:28:40.023Z",
+    "duration": 39505.018,
+    "expected": 5,
     "skipped": 0,
-    "unexpected": 3,
+    "unexpected": 6,
     "flaky": 0
   }
 }

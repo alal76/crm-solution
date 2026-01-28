@@ -72,4 +72,45 @@ export const SuccessAlert: React.FC<SuccessAlertProps> = ({
   );
 };
 
+export interface ValidationErrorAlertProps {
+  /** Error message to display (can be multi-line with validation details) */
+  error: string | null | undefined;
+  /** Callback when alert is dismissed */
+  onClose?: () => void;
+  /** Whether the alert is dismissible (default: true if onClose is provided) */
+  dismissible?: boolean;
+  /** Custom sx styles */
+  sx?: AlertProps['sx'];
+}
+
+/**
+ * Specialized error alert for validation errors
+ * Displays multi-line error messages with proper formatting
+ * Use with getApiErrorMessage() from errorHandler.ts
+ */
+export const ValidationErrorAlert: React.FC<ValidationErrorAlertProps> = ({
+  error,
+  onClose,
+  dismissible = !!onClose,
+  sx = { mb: 2 },
+}) => {
+  if (!error) return null;
+
+  return (
+    <Alert 
+      severity="error" 
+      sx={{ 
+        ...sx as object,
+        whiteSpace: 'pre-line',
+        '& .MuiAlert-message': {
+          whiteSpace: 'pre-line',
+        }
+      }} 
+      onClose={dismissible ? onClose : undefined}
+    >
+      {error}
+    </Alert>
+  );
+};
+
 export default ErrorAlert;
