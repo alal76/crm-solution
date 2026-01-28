@@ -155,6 +155,32 @@ public class DbSeed
             await context.SaveChangesAsync();
         }
 
+        // Seed Departments if none exist
+        if (!context.Departments.Any())
+        {
+            var departments = new List<Department>
+            {
+                new Department { Name = "Executive", Description = "Executive leadership and C-suite", DepartmentCode = "EXEC", IsActive = true },
+                new Department { Name = "Sales", Description = "Sales and business development", DepartmentCode = "SALES", IsActive = true },
+                new Department { Name = "Marketing", Description = "Marketing, branding, and campaigns", DepartmentCode = "MKTG", IsActive = true },
+                new Department { Name = "Customer Support", Description = "Customer support and service desk", DepartmentCode = "SUPPORT", IsActive = true },
+                new Department { Name = "Customer Success", Description = "Customer success and account management", DepartmentCode = "CS", IsActive = true },
+                new Department { Name = "Engineering", Description = "Product development and engineering", DepartmentCode = "ENG", IsActive = true },
+                new Department { Name = "Product", Description = "Product management and strategy", DepartmentCode = "PROD", IsActive = true },
+                new Department { Name = "Finance", Description = "Finance, accounting, and billing", DepartmentCode = "FIN", IsActive = true },
+                new Department { Name = "Human Resources", Description = "HR, recruiting, and people operations", DepartmentCode = "HR", IsActive = true },
+                new Department { Name = "Legal", Description = "Legal and compliance", DepartmentCode = "LEGAL", IsActive = true },
+                new Department { Name = "Operations", Description = "Business operations and logistics", DepartmentCode = "OPS", IsActive = true },
+                new Department { Name = "IT", Description = "Information technology and infrastructure", DepartmentCode = "IT", IsActive = true },
+                new Department { Name = "Quality Assurance", Description = "QA and testing", DepartmentCode = "QA", IsActive = true },
+                new Department { Name = "Research & Development", Description = "R&D and innovation", DepartmentCode = "RD", IsActive = true },
+                new Department { Name = "Procurement", Description = "Procurement and vendor management", DepartmentCode = "PROC", IsActive = true },
+            };
+
+            context.Departments.AddRange(departments);
+            await context.SaveChangesAsync();
+        }
+
         // Seed sample customers if none exist
         if (!context.Customers.Any())
         {

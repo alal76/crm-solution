@@ -1,6 +1,7 @@
 volumes:
   db-data:
   api-data:
+  redis-data:
 services:
   # Database Tier (MariaDB - Hosts both production and demo databases)
   mariadb:
@@ -15,6 +16,23 @@ services:
       - MARIADB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024}
     volumes:
       - db-data:/var/lib/mysql
+    networks:
+      - crm-network
+
+  # Redis Cache (Distributed Caching)
+  redis:
+    image: redis:7-alpine
+    container_name: crm-redis
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - crm-network
 
@@ -48,6 +66,10 @@ services:
       - CONTRACT_STORAGE_PATH=/app/data/contracts
       - MAX_CONTRACT_FILE_SIZE_BYTES=10485760
       - ALLOWED_CONTRACT_MIME_TYPES=application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document
+      # Redis cache configuration
+      - Redis__ConnectionString=redis:6379
+      - Redis__InstanceName=crm_
+      - Redis__Enabled=true
     volumes:
       - api-data:/app/data
     # depends_on:

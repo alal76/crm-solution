@@ -78,8 +78,38 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Add rate limiting - configurable via appsettings.json
+// Add caching services
 builder.Services.AddMemoryCache();
+
+// Configure Redis cache
+var redisConfig = builder.Configuration.GetSection("Redis");
+builder.Services.Configure<RedisCacheOptions>(redisConfig);
+
+var redisEnabled = redisConfig.GetValue("Enabled", true);
+var redisConnectionString = redisConfig.GetValue<string>("ConnectionString") ?? "localhost:6379";
+var redisInstanceName = redisConfig.GetValue<string>("InstanceName") ?? "crm_";
+
+if (redisEnabled && !string.IsNullOrEmpty(redisConnectionString))
+{
+    Log.Information("Configuring Redis cache at {ConnectionString}", redisConnectionString);
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = redisInstanceName;
+    });
+    builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
+}
+else
+{
+    Log.Information("Redis disabled, using in-memory distributed cache");
+    builder.Services.AddDistributedMemoryCache();
+    builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
+}
+
+// Add database caching service
+builder.Services.AddScoped<IDbCacheService, DbCacheService>();
+
+// Add rate limiting - configurable via appsettings.json
 var isDevelopment = builder.Environment.IsDevelopment();
 var rateLimitingConfig = builder.Configuration.GetSection("RateLimiting");
 
