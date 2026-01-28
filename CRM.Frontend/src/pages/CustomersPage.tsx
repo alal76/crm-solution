@@ -75,7 +75,8 @@ interface Contact extends BaseEntity {
 }
 
 interface Customer extends BaseEntity {
-  category: number;
+  category: number | string;
+  isOrganization?: boolean;
   firstName: string;
   lastName: string;
   email: string;
@@ -213,11 +214,6 @@ function CustomersPage() {
   const [contactIsPrimary, setContactIsPrimary] = useState(false);
   const [contactIsDecisionMaker, setContactIsDecisionMaker] = useState(false);
 
-  // Direct contacts state (one-to-many relationship)
-  const [directContacts, setDirectContacts] = useState<Contact[]>([]);
-  const [assignContactDialogOpen, setAssignContactDialogOpen] = useState(false);
-  const [selectedDirectContactId, setSelectedDirectContactId] = useState<number | null>(null);
-
   // Search state
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
@@ -303,48 +299,6 @@ function CustomersPage() {
     }
   };
 
-  const fetchDirectContacts = async (customerId: number) => {
-    try {
-      const response = await apiClient.get(`/customers/${customerId}/direct-contacts`);
-      setDirectContacts(response.data);
-    } catch (err) {
-      console.error('Error fetching direct contacts:', err);
-      setDirectContacts([]);
-    }
-  };
-
-  const handleAssignDirectContact = async () => {
-    if (!editingId || !selectedDirectContactId) return;
-
-    try {
-      await apiClient.post(`/customers/${editingId}/direct-contacts/${selectedDirectContactId}`);
-      fetchDirectContacts(editingId);
-      fetchContacts(); // Refresh all contacts to update their customerId
-      setAssignContactDialogOpen(false);
-      setSelectedDirectContactId(null);
-      setSuccessMessage('Contact assigned successfully');
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to assign contact');
-    }
-  };
-
-  const handleUnassignDirectContact = async (contactId: number) => {
-    if (!editingId) return;
-
-    if (window.confirm('Are you sure you want to unassign this contact from the account?')) {
-      try {
-        await apiClient.delete(`/customers/${editingId}/direct-contacts/${contactId}`);
-        fetchDirectContacts(editingId);
-        fetchContacts(); // Refresh all contacts to update their customerId
-        setSuccessMessage('Contact unassigned successfully');
-        setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to unassign contact');
-      }
-    }
-  };
-
   // Form handlers
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -372,19 +326,16 @@ function CustomersPage() {
           (formValues as any)[key] = customer[key] ?? (INITIAL_FORM_DATA as any)[key];
         }
       });
-      setFormData(formValues);
-      // Fetch direct contacts for all customers
-      fetchDirectContacts(customer.id);
-      // Fetch linked contacts for organizations
-      if (customer.category === 1) {
-        fetchCustomerContacts(customer.id);
-      } else {
-        setCustomerContacts([]);
+      // Normalize category to number for form if it's a string
+      if (typeof customer.category === 'string') {
+        formValues.category = customer.category === 'Organization' ? 1 : 0;
       }
+      setFormData(formValues);
+      // Fetch linked contacts for all accounts
+      fetchCustomerContacts(customer.id);
     } else {
       setEditingId(null);
       setCustomerContacts([]);
-      setDirectContacts([]);
       setFormData(INITIAL_FORM_DATA);
     }
     setOpenDialog(true);
@@ -635,13 +586,8 @@ function CustomersPage() {
       baseTabs.push({ index: 100, name: 'Contact Info' });
     }
 
-    // Add Direct Contacts tab when editing (one-to-many relationship)
+    // Add Linked Contacts tab when editing (all accounts can have linked contacts)
     if (editingId) {
-      baseTabs.push({ index: 102, name: 'Direct Contacts' });
-    }
-    
-    // Add Linked Contacts tab for organizations when editing (many-to-many relationship)
-    if (formData.category === 1 && editingId) {
       baseTabs.push({ index: 101, name: 'Linked Contacts' });
     }
 
@@ -755,7 +701,6 @@ function CustomersPage() {
                         onChange={handleSelectAll}
                       />
                     </TableCell>
-                    <TableCell><strong>Category</strong></TableCell>
                     <TableCell><strong>Name</strong></TableCell>
                     <TableCell><strong>Contact</strong></TableCell>
                     <TableCell><strong>Type</strong></TableCell>
@@ -771,7 +716,6 @@ function CustomersPage() {
                     const stage = getLifecycleStage(customer.lifecycleStage);
                     const priority = getPriority(customer.priority);
                     const type = getCustomerType(customer.customerType);
-                    const isOrganization = customer.category === 1;
                     return (
                       <TableRow key={customer.id} hover selected={selectedIds.includes(customer.id)}>
                         <TableCell padding="checkbox">
@@ -781,30 +725,14 @@ function CustomersPage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <Chip
-                            icon={isOrganization ? <BusinessIcon fontSize="small" /> : <PersonIcon fontSize="small" />}
-                            label={isOrganization ? 'Organization' : 'Individual'}
-                            size="small"
-                            variant="outlined"
-                            color={isOrganization ? 'primary' : 'default'}
-                          />
-                        </TableCell>
-                        <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            {isOrganization ? (
-                              <BusinessIcon fontSize="small" sx={{ color: '#6750A4' }} />
-                            ) : (
-                              <PersonIcon fontSize="small" sx={{ color: '#6750A4' }} />
-                            )}
+                            <BusinessIcon fontSize="small" sx={{ color: '#6750A4' }} />
                             <Box>
                               <Typography fontWeight={500}>
-                                {customer.displayName || (isOrganization ? customer.company : `${customer.firstName} ${customer.lastName}`)}
+                                {customer.displayName || customer.company || `${customer.firstName} ${customer.lastName}`}
                               </Typography>
-                              {isOrganization && customer.legalName && (
+                              {customer.legalName && (
                                 <Typography variant="caption" color="textSecondary">{customer.legalName}</Typography>
-                              )}
-                              {!isOrganization && customer.jobTitle && (
-                                <Typography variant="caption" color="textSecondary">{customer.jobTitle}</Typography>
                               )}
                             </Box>
                           </Box>
@@ -844,14 +772,10 @@ function CustomersPage() {
                           ${customer.annualRevenue?.toLocaleString() || 0}
                         </TableCell>
                         <TableCell>
-                          {isOrganization ? (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <GroupIcon fontSize="small" sx={{ color: '#666' }} />
-                              <Typography variant="body2">{customer.contactCount || 0}</Typography>
-                            </Box>
-                          ) : (
-                            <Typography variant="body2" color="textSecondary">—</Typography>
-                          )}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <GroupIcon fontSize="small" sx={{ color: '#666' }} />
+                            <Typography variant="body2">{customer.contactCount || 0}</Typography>
+                          </Box>
                         </TableCell>
                         <TableCell align="center">
                           <Tooltip title="Edit">
@@ -929,86 +853,12 @@ function CustomersPage() {
                 </TabPanel>
               )}
 
-              {/* Direct Contacts Tab (one-to-many relationship) */}
+              {/* Linked Contacts Tab - available for all accounts */}
               {editingId && (
-                <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 102)}>
-                  <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      Direct Contacts ({directContacts.length})
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      startIcon={<PersonAddIcon />}
-                      onClick={() => setAssignContactDialogOpen(true)}
-                      size="small"
-                    >
-                      Assign Contact
-                    </Button>
-                  </Box>
-
-                  <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                    These contacts are directly owned by this customer. Use this for contacts that belong exclusively to this customer.
-                  </Typography>
-
-                  {directContacts.length === 0 ? (
-                    <Paper elevation={0} sx={{ p: 4, textAlign: 'center', backgroundColor: '#F5EFF7', borderRadius: 2 }}>
-                      <PersonIcon sx={{ fontSize: 48, color: '#6750A4', opacity: 0.5, mb: 1 }} />
-                      <Typography color="textSecondary">No contacts directly assigned to this customer</Typography>
-                    </Paper>
-                  ) : (
-                    <List sx={{ bgcolor: 'background.paper', borderRadius: 1, border: '1px solid #e0e0e0' }}>
-                      {directContacts.map((contact: any, index: number) => (
-                        <Box key={contact.id}>
-                          {index > 0 && <Divider />}
-                          <ListItem>
-                            <ListItemText
-                              primary={
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <PersonIcon fontSize="small" sx={{ color: '#6750A4' }} />
-                                  <Typography fontWeight={500}>{contact.fullName}</Typography>
-                                  {contact.jobTitle && (
-                                    <Chip label={contact.jobTitle} size="small" variant="outlined" />
-                                  )}
-                                </Box>
-                              }
-                              secondary={
-                                <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
-                                  {contact.emailPrimary && (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                      <EmailIcon fontSize="small" sx={{ fontSize: 14, color: '#666' }} />
-                                      <Typography variant="caption">{contact.emailPrimary}</Typography>
-                                    </Box>
-                                  )}
-                                  {contact.phonePrimary && (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                      <PhoneIcon fontSize="small" sx={{ fontSize: 14, color: '#666' }} />
-                                      <Typography variant="caption">{contact.phonePrimary}</Typography>
-                                    </Box>
-                                  )}
-                                </Box>
-                              }
-                            />
-                            <ListItemSecondaryAction>
-                              <Tooltip title="Unassign from customer">
-                                <IconButton edge="end" onClick={() => handleUnassignDirectContact(contact.id)} size="small" color="error">
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </ListItemSecondaryAction>
-                          </ListItem>
-                        </Box>
-                      ))}
-                    </List>
-                  )}
-                </TabPanel>
-              )}
-
-              {/* Linked Contacts Tab for Organizations */}
-              {formData.category === 1 && editingId && (
                 <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 101)}>
                   <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="subtitle1" fontWeight={600}>
-                      Organization Contacts ({customerContacts.length})
+                      Linked Contacts ({customerContacts.length})
                     </Typography>
                     <Button
                       variant="outlined"
@@ -1023,7 +873,7 @@ function CustomersPage() {
                   {customerContacts.length === 0 ? (
                     <Paper elevation={0} sx={{ p: 4, textAlign: 'center', backgroundColor: '#F5EFF7', borderRadius: 2 }}>
                       <GroupIcon sx={{ fontSize: 48, color: '#6750A4', opacity: 0.5, mb: 1 }} />
-                      <Typography color="textSecondary">No contacts linked to this organization</Typography>
+                      <Typography color="textSecondary">No contacts linked to this account</Typography>
                     </Paper>
                   ) : (
                     <List sx={{ bgcolor: 'background.paper', borderRadius: 1, border: '1px solid #e0e0e0' }}>
@@ -1087,7 +937,7 @@ function CustomersPage() {
 
       {/* Add Contact Dialog */}
       <Dialog open={addContactDialogOpen} onClose={() => setAddContactDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Link Contact to Organization</DialogTitle>
+        <DialogTitle>Link Contact to Account</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
@@ -1139,45 +989,6 @@ function CustomersPage() {
           <Button onClick={() => setAddContactDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleAddContact} variant="contained" disabled={!selectedContactId} sx={{ backgroundColor: '#6750A4' }}>
             Add Contact
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Assign Direct Contact Dialog */}
-      <Dialog open={assignContactDialogOpen} onClose={() => setAssignContactDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Assign Contact to Account</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="textSecondary" sx={{ mb: 2, mt: 1 }}>
-            Select a contact to assign directly to this account. This establishes an exclusive ownership relationship.
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Autocomplete
-                options={contacts.filter(c => !c.customerId && !directContacts.some((dc: any) => dc.id === c.id))}
-                getOptionLabel={(option) => `${option.firstName} ${option.lastName}${option.company ? ` (${option.company})` : ''}`}
-                value={contacts.find(c => c.id === selectedDirectContactId) || null}
-                onChange={(_, newValue) => setSelectedDirectContactId(newValue?.id || null)}
-                renderInput={(params) => (
-                  <TextField {...params} label="Select Contact" required />
-                )}
-                renderOption={(props, option) => (
-                  <li {...props}>
-                    <Box>
-                      <Typography>{option.firstName} {option.lastName}</Typography>
-                      <Typography variant="caption" color="textSecondary">
-                        {option.emailPrimary} {option.company && `• ${option.company}`}
-                      </Typography>
-                    </Box>
-                  </li>
-                )}
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAssignContactDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleAssignDirectContact} variant="contained" disabled={!selectedDirectContactId} sx={{ backgroundColor: '#6750A4' }}>
-            Assign Contact
           </Button>
         </DialogActions>
       </Dialog>
