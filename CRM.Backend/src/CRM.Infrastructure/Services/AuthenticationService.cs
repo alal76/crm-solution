@@ -530,7 +530,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             GroupPermissions = groupPermissions,
             HeaderColor = user.HeaderColor ?? (user.Role == 0 ? "#C62828" : null), // Red for admin
             PhotoUrl = user.PhotoUrl,
-            ThemePreference = user.ThemePreference ?? "light"
+            ThemePreference = user.ThemePreference ?? "system"
         };
     }
 

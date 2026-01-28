@@ -187,10 +187,50 @@ public class User : BaseEntity
     public string? PhotoUrl { get; set; }
     
     /// <summary>
-    /// User's theme preference: light, dark, or high-contrast
-    /// Defaults to "light" if not set
+    /// User's theme preference: system, light, dark, or high-contrast
+    /// Defaults to "system" to inherit from OS
     /// </summary>
-    public string ThemePreference { get; set; } = "light";
+    public string ThemePreference { get; set; } = "system";
+
+    /// <summary>
+    /// User's preferred language code (e.g., en, es, fr)
+    /// </summary>
+    public string? Language { get; set; }
+
+    /// <summary>
+    /// User's preferred timezone (IANA format, e.g., America/New_York)
+    /// </summary>
+    public string? Timezone { get; set; }
+
+    /// <summary>
+    /// User's preferred date format (e.g., MM/DD/YYYY, DD/MM/YYYY)
+    /// </summary>
+    public string? DateFormat { get; set; }
+
+    /// <summary>
+    /// User's preferred time format (12h or 24h)
+    /// </summary>
+    public string? TimeFormat { get; set; }
+
+    /// <summary>
+    /// Default number of rows per page in tables
+    /// </summary>
+    public int? RowsPerPage { get; set; }
+
+    /// <summary>
+    /// Whether to receive email notifications
+    /// </summary>
+    public bool? EmailNotifications { get; set; }
+
+    /// <summary>
+    /// Whether to enable desktop/browser notifications
+    /// </summary>
+    public bool? DesktopNotifications { get; set; }
+
+    /// <summary>
+    /// Whether to use compact UI mode
+    /// </summary>
+    public bool? CompactMode { get; set; }
 
     // === Navigation Properties ===
     

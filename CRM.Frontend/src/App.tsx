@@ -25,6 +25,7 @@ import { LayoutProvider } from './contexts/LayoutContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { BrandingProvider } from './contexts/BrandingContext';
 import { AccountContextProvider } from './contexts/AccountContextProvider';
+import { AppThemeProvider, useTheme } from './contexts/ThemeContext';
 import Navigation from './components/Navigation';
 import ContextFlyout from './components/ContextFlyout';
 import BreadcrumbsComponent from './components/Breadcrumbs';
@@ -33,7 +34,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import RoleBasedRoute from './components/RoleBasedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initializeErrorHandler } from './utils/errorHandler';
-import { muiTheme } from './theme/muiTheme';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PasswordResetPage from './pages/PasswordResetPage';
@@ -91,7 +91,10 @@ import {
 } from './pages/admin';
 import './App.css';
 
-function App() {
+// Inner component that can access the theme context
+function ThemedApp() {
+  const { theme } = useTheme();
+
   // Initialize global error handler on mount
   useEffect(() => {
     initializeErrorHandler({
@@ -109,7 +112,7 @@ function App() {
   }, []);
 
   return (
-    <ThemeProvider theme={muiTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <ErrorBoundary>
         <Router>
@@ -644,6 +647,15 @@ function App() {
         </Router>
       </ErrorBoundary>
     </ThemeProvider>
+  );
+}
+
+// Main App component that wraps everything with the theme provider
+function App() {
+  return (
+    <AppThemeProvider>
+      <ThemedApp />
+    </AppThemeProvider>
   );
 }
 

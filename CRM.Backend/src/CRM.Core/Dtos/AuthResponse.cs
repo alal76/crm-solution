@@ -37,9 +37,10 @@ public class AuthResponse
     public string? PhotoUrl { get; set; }
     
     /// <summary>
-    /// User's preferred theme: light, dark, or high-contrast
+    /// User's preferred theme: system, light, dark, or high-contrast
+    /// Defaults to "system" to inherit from OS
     /// </summary>
-    public string ThemePreference { get; set; } = "light";
+    public string ThemePreference { get; set; } = "system";
     
     /// <summary>
     /// Whether 2FA verification is required to complete login

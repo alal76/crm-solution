@@ -407,8 +407,16 @@ public class UsersController : ControllerBase
 
             return Ok(new UserPreferencesDto
             {
-                ThemePreference = user.ThemePreference ?? "light",
-                HeaderColor = user.HeaderColor
+                ThemePreference = user.ThemePreference ?? "system",
+                HeaderColor = user.HeaderColor,
+                Language = user.Language,
+                Timezone = user.Timezone,
+                DateFormat = user.DateFormat,
+                TimeFormat = user.TimeFormat,
+                RowsPerPage = user.RowsPerPage,
+                EmailNotifications = user.EmailNotifications,
+                DesktopNotifications = user.DesktopNotifications,
+                CompactMode = user.CompactMode
             });
         }
         catch (Exception ex)
@@ -438,15 +446,39 @@ public class UsersController : ControllerBase
                 return NotFound(new { message = "User not found" });
 
             // Validate theme preference
-            var validThemes = new[] { "light", "dark", "high-contrast" };
+            var validThemes = new[] { "system", "light", "dark", "high-contrast" };
             if (!string.IsNullOrEmpty(dto.ThemePreference) && !validThemes.Contains(dto.ThemePreference.ToLower()))
-                return BadRequest(new { message = "Invalid theme preference. Valid values: light, dark, high-contrast" });
+                return BadRequest(new { message = "Invalid theme preference. Valid values: system, light, dark, high-contrast" });
 
+            // Update theme preference
             if (!string.IsNullOrEmpty(dto.ThemePreference))
                 user.ThemePreference = dto.ThemePreference.ToLower();
 
+            // Update header color
             if (dto.HeaderColor != null) // Allow empty string to clear
                 user.HeaderColor = string.IsNullOrEmpty(dto.HeaderColor) ? null : dto.HeaderColor;
+
+            // Update regional settings
+            if (dto.Language != null)
+                user.Language = string.IsNullOrEmpty(dto.Language) ? null : dto.Language;
+            if (dto.Timezone != null)
+                user.Timezone = string.IsNullOrEmpty(dto.Timezone) ? null : dto.Timezone;
+            if (dto.DateFormat != null)
+                user.DateFormat = string.IsNullOrEmpty(dto.DateFormat) ? null : dto.DateFormat;
+            if (dto.TimeFormat != null)
+                user.TimeFormat = string.IsNullOrEmpty(dto.TimeFormat) ? null : dto.TimeFormat;
+            
+            // Update display settings
+            if (dto.RowsPerPage.HasValue)
+                user.RowsPerPage = dto.RowsPerPage;
+            if (dto.CompactMode.HasValue)
+                user.CompactMode = dto.CompactMode;
+
+            // Update notification settings
+            if (dto.EmailNotifications.HasValue)
+                user.EmailNotifications = dto.EmailNotifications;
+            if (dto.DesktopNotifications.HasValue)
+                user.DesktopNotifications = dto.DesktopNotifications;
 
             user.UpdatedAt = DateTime.UtcNow;
 
@@ -457,8 +489,16 @@ public class UsersController : ControllerBase
 
             return Ok(new UserPreferencesDto
             {
-                ThemePreference = user.ThemePreference ?? "light",
-                HeaderColor = user.HeaderColor
+                ThemePreference = user.ThemePreference ?? "system",
+                HeaderColor = user.HeaderColor,
+                Language = user.Language,
+                Timezone = user.Timezone,
+                DateFormat = user.DateFormat,
+                TimeFormat = user.TimeFormat,
+                RowsPerPage = user.RowsPerPage,
+                EmailNotifications = user.EmailNotifications,
+                DesktopNotifications = user.DesktopNotifications,
+                CompactMode = user.CompactMode
             });
         }
         catch (Exception ex)
@@ -508,8 +548,16 @@ public class AssignProfileDto
 /// </summary>
 public class UserPreferencesDto
 {
-    public string ThemePreference { get; set; } = "light";
+    public string ThemePreference { get; set; } = "system";
     public string? HeaderColor { get; set; }
+    public string? Language { get; set; }
+    public string? Timezone { get; set; }
+    public string? DateFormat { get; set; }
+    public string? TimeFormat { get; set; }
+    public int? RowsPerPage { get; set; }
+    public bool? EmailNotifications { get; set; }
+    public bool? DesktopNotifications { get; set; }
+    public bool? CompactMode { get; set; }
 }
 
 /// <summary>
@@ -519,4 +567,12 @@ public class UpdatePreferencesDto
 {
     public string? ThemePreference { get; set; }
     public string? HeaderColor { get; set; }
+    public string? Language { get; set; }
+    public string? Timezone { get; set; }
+    public string? DateFormat { get; set; }
+    public string? TimeFormat { get; set; }
+    public int? RowsPerPage { get; set; }
+    public bool? EmailNotifications { get; set; }
+    public bool? DesktopNotifications { get; set; }
+    public bool? CompactMode { get; set; }
 }

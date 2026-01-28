@@ -493,11 +493,7 @@ function NavigationContent() {
               <MenuIcon />
             </IconButton>
             <Box sx={{ width: 36, height: 36, mr: 1.5, flexShrink: 0, backgroundColor: 'white', borderRadius: 1, p: 0.25 }}>
-              {branding.companyLogoUrl ? (
-                <img src={getLogoUrl()} alt="Company Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              ) : (
-                <BusinessIcon sx={{ width: '100%', height: '100%', color: getHeaderColor() }} />
-              )}
+              <img src={branding.companyLogoUrl ? getLogoUrl() : logo} alt="Company Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </Box>
             <Typography variant="h6" component={RouterLink} to="/" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 600 }}>
               {branding.companyName || 'CRM System'}
