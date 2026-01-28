@@ -13,7 +13,7 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
-import { TabPanel } from '../components/common';
+import { TabPanel, DialogError } from '../components/common';
 import { BaseEntity } from '../types';
 import {
   TASK_STATUS_OPTIONS,
@@ -161,6 +161,7 @@ function TasksPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogError, setDialogError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('pending');
@@ -248,7 +249,7 @@ function TasksPage() {
     setOpenDialog(true);
   };
 
-  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); };
+  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); setDialogError(null); };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -265,7 +266,7 @@ function TasksPage() {
 
   const handleSaveTask = async () => {
     if (!formData.title.trim()) {
-      setError('Please enter a task title');
+      setDialogError('Please enter a task title');
       return;
     }
     try {
@@ -286,7 +287,7 @@ function TasksPage() {
       fetchMyQueue();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save task');
+      setDialogError(err.response?.data?.message || 'Failed to save task');
     }
   };
 
@@ -634,6 +635,7 @@ function TasksPage() {
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 350 }}>
+          <DialogError error={dialogError} onClose={() => setDialogError(null)} />
           <TabPanel value={dialogTab} index={0}>
             <Grid container spacing={2}>
               <Grid item xs={12}>

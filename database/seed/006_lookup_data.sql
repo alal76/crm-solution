@@ -33,7 +33,8 @@ INSERT INTO LookupCategories (Id, Name, Description, IsActive, CreatedAt, IsDele
 (17, 'Region', 'Sales/geographic regions', 1, NOW(), 0),
 (18, 'ContactRole', 'Role of contact within account', 1, NOW(), 0),
 (19, 'PaymentTerms', 'Payment term options', 1, NOW(), 0),
-(20, 'AccountLifecycleStage', 'Account lifecycle stages', 1, NOW(), 0)
+(20, 'AccountLifecycleStage', 'Account lifecycle stages', 1, NOW(), 0),
+(21, 'Timezone', 'IANA timezone identifiers', 1, NOW(), 0)
 ON DUPLICATE KEY UPDATE Name = VALUES(Name), Description = VALUES(Description);
 
 -- ============================================================================
@@ -307,6 +308,62 @@ INSERT INTO LookupItems (LookupCategoryId, `Key`, Value, Meta, SortOrder, IsActi
 (20, 'RISK', 'At Risk', '{"color":"#f44336","value":4}', 5, 1, NOW(), 0),
 (20, 'CHURN', 'Churned', '{"color":"#607d8b","value":5}', 6, 1, NOW(), 0),
 (20, 'WINBACK', 'Win-back', '{"color":"#9c27b0","value":6}', 7, 1, NOW(), 0)
+ON DUPLICATE KEY UPDATE Value = VALUES(Value);
+
+-- Timezone Items (Category 21)
+INSERT INTO LookupItems (LookupCategoryId, `Key`, Value, Meta, SortOrder, IsActive, CreatedAt, IsDeleted) VALUES
+-- North America
+(21, 'America/Los_Angeles', 'Pacific Time (US & Canada)', '{"offset":"-08:00","dst":true,"abbr":"PST/PDT"}', 1, 1, NOW(), 0),
+(21, 'America/Denver', 'Mountain Time (US & Canada)', '{"offset":"-07:00","dst":true,"abbr":"MST/MDT"}', 2, 1, NOW(), 0),
+(21, 'America/Phoenix', 'Arizona', '{"offset":"-07:00","dst":false,"abbr":"MST"}', 3, 1, NOW(), 0),
+(21, 'America/Chicago', 'Central Time (US & Canada)', '{"offset":"-06:00","dst":true,"abbr":"CST/CDT"}', 4, 1, NOW(), 0),
+(21, 'America/New_York', 'Eastern Time (US & Canada)', '{"offset":"-05:00","dst":true,"abbr":"EST/EDT","default":true}', 5, 1, NOW(), 0),
+(21, 'America/Anchorage', 'Alaska', '{"offset":"-09:00","dst":true,"abbr":"AKST/AKDT"}', 6, 1, NOW(), 0),
+(21, 'Pacific/Honolulu', 'Hawaii', '{"offset":"-10:00","dst":false,"abbr":"HST"}', 7, 1, NOW(), 0),
+(21, 'America/Toronto', 'Eastern Time (Canada)', '{"offset":"-05:00","dst":true,"abbr":"EST/EDT"}', 8, 1, NOW(), 0),
+(21, 'America/Vancouver', 'Pacific Time (Canada)', '{"offset":"-08:00","dst":true,"abbr":"PST/PDT"}', 9, 1, NOW(), 0),
+(21, 'America/Mexico_City', 'Central Time (Mexico)', '{"offset":"-06:00","dst":true,"abbr":"CST/CDT"}', 10, 1, NOW(), 0),
+-- Europe
+(21, 'Europe/London', 'London', '{"offset":"+00:00","dst":true,"abbr":"GMT/BST"}', 20, 1, NOW(), 0),
+(21, 'Europe/Dublin', 'Dublin', '{"offset":"+00:00","dst":true,"abbr":"GMT/IST"}', 21, 1, NOW(), 0),
+(21, 'Europe/Paris', 'Paris, Berlin, Rome, Madrid', '{"offset":"+01:00","dst":true,"abbr":"CET/CEST"}', 22, 1, NOW(), 0),
+(21, 'Europe/Berlin', 'Berlin', '{"offset":"+01:00","dst":true,"abbr":"CET/CEST"}', 23, 1, NOW(), 0),
+(21, 'Europe/Amsterdam', 'Amsterdam', '{"offset":"+01:00","dst":true,"abbr":"CET/CEST"}', 24, 1, NOW(), 0),
+(21, 'Europe/Brussels', 'Brussels', '{"offset":"+01:00","dst":true,"abbr":"CET/CEST"}', 25, 1, NOW(), 0),
+(21, 'Europe/Stockholm', 'Stockholm', '{"offset":"+01:00","dst":true,"abbr":"CET/CEST"}', 26, 1, NOW(), 0),
+(21, 'Europe/Helsinki', 'Helsinki', '{"offset":"+02:00","dst":true,"abbr":"EET/EEST"}', 27, 1, NOW(), 0),
+(21, 'Europe/Athens', 'Athens', '{"offset":"+02:00","dst":true,"abbr":"EET/EEST"}', 28, 1, NOW(), 0),
+(21, 'Europe/Moscow', 'Moscow', '{"offset":"+03:00","dst":false,"abbr":"MSK"}', 29, 1, NOW(), 0),
+-- Asia
+(21, 'Asia/Dubai', 'Dubai', '{"offset":"+04:00","dst":false,"abbr":"GST"}', 40, 1, NOW(), 0),
+(21, 'Asia/Kolkata', 'Mumbai, Kolkata, New Delhi', '{"offset":"+05:30","dst":false,"abbr":"IST"}', 41, 1, NOW(), 0),
+(21, 'Asia/Dhaka', 'Dhaka', '{"offset":"+06:00","dst":false,"abbr":"BST"}', 42, 1, NOW(), 0),
+(21, 'Asia/Bangkok', 'Bangkok, Hanoi, Jakarta', '{"offset":"+07:00","dst":false,"abbr":"ICT"}', 43, 1, NOW(), 0),
+(21, 'Asia/Singapore', 'Singapore', '{"offset":"+08:00","dst":false,"abbr":"SGT"}', 44, 1, NOW(), 0),
+(21, 'Asia/Hong_Kong', 'Hong Kong', '{"offset":"+08:00","dst":false,"abbr":"HKT"}', 45, 1, NOW(), 0),
+(21, 'Asia/Shanghai', 'Beijing, Shanghai', '{"offset":"+08:00","dst":false,"abbr":"CST"}', 46, 1, NOW(), 0),
+(21, 'Asia/Taipei', 'Taipei', '{"offset":"+08:00","dst":false,"abbr":"CST"}', 47, 1, NOW(), 0),
+(21, 'Asia/Seoul', 'Seoul', '{"offset":"+09:00","dst":false,"abbr":"KST"}', 48, 1, NOW(), 0),
+(21, 'Asia/Tokyo', 'Tokyo, Osaka', '{"offset":"+09:00","dst":false,"abbr":"JST"}', 49, 1, NOW(), 0),
+-- Oceania
+(21, 'Australia/Sydney', 'Sydney, Melbourne', '{"offset":"+10:00","dst":true,"abbr":"AEST/AEDT"}', 60, 1, NOW(), 0),
+(21, 'Australia/Brisbane', 'Brisbane', '{"offset":"+10:00","dst":false,"abbr":"AEST"}', 61, 1, NOW(), 0),
+(21, 'Australia/Adelaide', 'Adelaide', '{"offset":"+09:30","dst":true,"abbr":"ACST/ACDT"}', 62, 1, NOW(), 0),
+(21, 'Australia/Perth', 'Perth', '{"offset":"+08:00","dst":false,"abbr":"AWST"}', 63, 1, NOW(), 0),
+(21, 'Pacific/Auckland', 'Auckland, Wellington', '{"offset":"+12:00","dst":true,"abbr":"NZST/NZDT"}', 64, 1, NOW(), 0),
+-- South America
+(21, 'America/Sao_Paulo', 'Sao Paulo, Brasilia', '{"offset":"-03:00","dst":false,"abbr":"BRT"}', 80, 1, NOW(), 0),
+(21, 'America/Buenos_Aires', 'Buenos Aires', '{"offset":"-03:00","dst":false,"abbr":"ART"}', 81, 1, NOW(), 0),
+(21, 'America/Santiago', 'Santiago', '{"offset":"-04:00","dst":true,"abbr":"CLT/CLST"}', 82, 1, NOW(), 0),
+(21, 'America/Lima', 'Lima', '{"offset":"-05:00","dst":false,"abbr":"PET"}', 83, 1, NOW(), 0),
+(21, 'America/Bogota', 'Bogota', '{"offset":"-05:00","dst":false,"abbr":"COT"}', 84, 1, NOW(), 0),
+-- Africa
+(21, 'Africa/Cairo', 'Cairo', '{"offset":"+02:00","dst":false,"abbr":"EET"}', 90, 1, NOW(), 0),
+(21, 'Africa/Johannesburg', 'Johannesburg', '{"offset":"+02:00","dst":false,"abbr":"SAST"}', 91, 1, NOW(), 0),
+(21, 'Africa/Lagos', 'Lagos', '{"offset":"+01:00","dst":false,"abbr":"WAT"}', 92, 1, NOW(), 0),
+(21, 'Africa/Nairobi', 'Nairobi', '{"offset":"+03:00","dst":false,"abbr":"EAT"}', 93, 1, NOW(), 0),
+-- UTC
+(21, 'UTC', 'Coordinated Universal Time (UTC)', '{"offset":"+00:00","dst":false,"abbr":"UTC"}', 99, 1, NOW(), 0)
 ON DUPLICATE KEY UPDATE Value = VALUES(Value);
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -11,7 +11,7 @@ import {
   Cancel as RejectIcon, Refresh as ReviseIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
-import { TabPanel } from '../components/common';
+import { TabPanel, DialogError } from '../components/common';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
@@ -108,6 +108,7 @@ function QuotesPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogError, setDialogError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
@@ -174,7 +175,7 @@ function QuotesPage() {
     setOpenDialog(true);
   };
 
-  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); };
+  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); setDialogError(null); };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -199,7 +200,7 @@ function QuotesPage() {
 
   const handleSaveQuote = async () => {
     if (!formData.title.trim()) {
-      setError('Please enter a quote title');
+      setDialogError('Please enter a quote title');
       return;
     }
     try {
@@ -223,7 +224,7 @@ function QuotesPage() {
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save quote');
+      setDialogError(err.response?.data?.message || 'Failed to save quote');
     }
   };
 
@@ -468,6 +469,7 @@ function QuotesPage() {
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
+          <DialogError error={dialogError} onClose={() => setDialogError(null)} />
           <TabPanel value={dialogTab} index={0}>
             <Grid container spacing={2}>
               <Grid item xs={12}>

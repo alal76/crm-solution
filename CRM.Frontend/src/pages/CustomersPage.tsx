@@ -206,6 +206,7 @@ function CustomersPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
   const [formData, setFormData] = useState<CustomerForm>(INITIAL_FORM_DATA);
+  const [dialogError, setDialogError] = useState<string | null>(null);
 
   // Contact linking state
   const [customerContacts, setCustomerContacts] = useState<CustomerContact[]>([]);
@@ -345,6 +346,7 @@ function CustomersPage() {
   const handleCloseDialog = useCallback(() => {
     setOpenDialog(false);
     setEditingId(null);
+    setDialogError(null);
   }, []);
 
   // Validation using field configurations
@@ -365,7 +367,7 @@ function CustomersPage() {
     });
 
     if (missing.length) {
-      setError(`Please fill in required fields: ${missing.map(m => m.fieldLabel).join(', ')}`);
+      setDialogError(`Please fill in required fields: ${missing.map(m => m.fieldLabel).join(', ')}`);
       return false;
     }
 
@@ -373,7 +375,7 @@ function CustomersPage() {
   }, [fieldConfigs, fieldConfigsLoading, formData, isFieldVisible]);
 
   const handleSaveCustomer = async () => {
-    setError(null);
+    setDialogError(null);
 
     if (!validateRequiredFields()) return;
 
@@ -398,7 +400,7 @@ function CustomersPage() {
       fetchCustomers();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      setError(getApiErrorMessage(err, 'Failed to save account'));
+      setDialogError(getApiErrorMessage(err, 'Failed to save account'));
     }
   };
 
@@ -843,6 +845,7 @@ function CustomersPage() {
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
+          <DialogError error={dialogError} onClose={() => setDialogError(null)} />
           {fieldConfigsLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <CircularProgress />

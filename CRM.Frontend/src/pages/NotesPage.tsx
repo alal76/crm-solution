@@ -11,6 +11,7 @@ import {
   Visibility as PublicIcon, Lock as PrivateIcon, People as TeamIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { DialogError } from '../components/common';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
@@ -70,6 +71,7 @@ function NotesPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogError, setDialogError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<number | 'all'>('all');
@@ -111,7 +113,7 @@ function NotesPage() {
     setOpenDialog(true);
   };
 
-  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); };
+  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); setDialogError(null); };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -125,7 +127,7 @@ function NotesPage() {
 
   const handleSaveNote = async () => {
     if (!formData.content.trim()) {
-      setError('Please enter note content');
+      setDialogError('Please enter note content');
       return;
     }
     try {
@@ -145,7 +147,7 @@ function NotesPage() {
       fetchNotes();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save note');
+      setDialogError(err.response?.data?.message || 'Failed to save note');
     }
   };
 
@@ -366,6 +368,7 @@ function NotesPage() {
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>{editingId ? 'Edit Note' : 'Add Note'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
+          <DialogError error={dialogError} onClose={() => setDialogError(null)} />
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField fullWidth label="Title (optional)" name="title" value={formData.title} onChange={handleInputChange} />

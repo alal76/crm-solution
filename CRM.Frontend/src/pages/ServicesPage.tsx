@@ -41,6 +41,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { DialogError } from '../components/common';
 import logo from '../assets/logo.png';
 
 // Service types that are considered "Services" (subset of ProductType enum)
@@ -133,6 +134,7 @@ function ServicesPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogError, setDialogError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<ServiceForm>(initialFormData);
 
@@ -181,7 +183,7 @@ function ServicesPage() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingId(null);
-    setError(null);
+    setDialogError(null);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -201,12 +203,12 @@ function ServicesPage() {
 
   const handleSaveService = async () => {
     if (!formData.name.trim()) {
-      setError('Please enter a service name');
+      setDialogError('Please enter a service name');
       return;
     }
 
     if (!formData.sku.trim()) {
-      setError('Please enter a SKU');
+      setDialogError('Please enter a SKU');
       return;
     }
 
@@ -228,7 +230,7 @@ function ServicesPage() {
       fetchServices();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save service');
+      setDialogError(err.response?.data?.message || 'Failed to save service');
       console.error('Error saving service:', err);
     }
   };
@@ -380,7 +382,7 @@ function ServicesPage() {
           {editingId ? 'Edit Service' : 'Create New Service'}
         </DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          <DialogError error={dialogError} onClose={() => setDialogError(null)} />
           
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
             <TextField
