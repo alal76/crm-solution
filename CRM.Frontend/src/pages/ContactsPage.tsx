@@ -25,6 +25,14 @@ import {
   Tab,
   Tooltip,
   IconButton,
+  Checkbox,
+  Toolbar,
+  Paper,
+  FormControl,
+  InputLabel,
+  Select,
+  Collapse,
+  SelectChangeEvent,
 } from '@mui/material';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import apiClient from '../services/apiClient';
@@ -39,6 +47,8 @@ import EmailIcon from '@mui/icons-material/Email';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import CloseIcon from '@mui/icons-material/Close';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
@@ -48,6 +58,8 @@ import { ContactInfoPanel } from '../components/ContactInfo';
 import { contactInfoService, EntityContactInfoDto, LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from '../services/contactInfoService';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { BaseEntity } from '../types';
+import { DialogError, DialogSuccess, ActionButton, StatusSnackbar } from '../components/common';
+import { useApiState } from '../hooks/useApiState';
 
 interface SocialMediaLink {
   id: number;
@@ -156,6 +168,22 @@ function ContactsPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTab, setDialogTab] = useState(0);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  
+  // Multi-select and bulk update state
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkFormData, setBulkFormData] = useState({
+    contactType: '' as string,
+    company: '' as string,
+    department: '' as string,
+    customerId: '' as string | number,
+  });
+  
+  // API state for dialog operations
+  const dialogApi = useApiState({ successTimeout: 3000 });
+  const bulkApi = useApiState({ successTimeout: 3000 });
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateContactRequest>({
     contactType: 'Other',
     firstName: '',
@@ -277,24 +305,29 @@ function ContactsPage() {
 
   const handleDeleteContact = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this contact?')) {
-      try {
+      const result = await dialogApi.execute(async () => {
         await apiClient.delete(`/contacts/${id}`);
+        return true;
+      }, 'Contact deleted successfully');
+      
+      if (result) {
         setContacts(contacts.filter((c) => c.id !== id));
-        setError(null);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete contact');
-        console.error('Error deleting contact:', err);
+        setSelectedIds(prev => prev.filter(sid => sid !== id));
+        setSuccessMessage('Contact deleted successfully');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        setError(dialogApi.error?.message || 'Failed to delete contact');
       }
     }
   };
 
   const handleSaveContact = async () => {
-    try {
-      if (!formData.firstName || !formData.lastName) {
-        setError('First name and last name are required');
-        return;
-      }
+    if (!formData.firstName || !formData.lastName) {
+      dialogApi.setError('First name and last name are required');
+      return;
+    }
 
+    const result = await dialogApi.execute(async () => {
       let savedContactId: number;
       if (selectedContact) {
         // Update
@@ -305,22 +338,112 @@ function ContactsPage() {
         const response = await apiClient.post('/contacts', formData);
         savedContactId = response.data.id;
       }
+      return savedContactId;
+    }, selectedContact ? 'Contact updated successfully' : 'Contact created successfully');
 
+    if (result) {
       await fetchContacts();
-      setError(null);
+      setSuccessMessage(selectedContact ? 'Contact updated successfully' : 'Contact created successfully');
+      setTimeout(() => setSuccessMessage(null), 3000);
 
       // If creating new, switch to edit mode so user can add contact info
-      if (!selectedContact && savedContactId) {
-        const newContact = contacts.find(c => c.id === savedContactId) || 
-                          { ...formData, id: savedContactId, dateAdded: new Date().toISOString(), socialMediaLinks: [] } as Contact;
-        setSelectedContact({ ...newContact, id: savedContactId } as Contact);
+      if (!selectedContact && result) {
+        const newContact = contacts.find(c => c.id === result) || 
+                          { ...formData, id: result, dateAdded: new Date().toISOString(), socialMediaLinks: [] } as Contact;
+        setSelectedContact({ ...newContact, id: result } as Contact);
         setDialogTab(1); // Switch to Contact Info tab
       } else {
         setOpenDialog(false);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save contact');
-      console.error('Error saving contact:', err);
+    }
+    // Error is handled by dialogApi.error which is displayed in dialog
+  };
+
+  // Bulk update handlers
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(filteredContacts.map(c => c.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number) => {
+    setSelectedIds(prev => 
+      prev.includes(id) 
+        ? prev.filter(sid => sid !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleOpenBulkDialog = () => {
+    setBulkFormData({
+      contactType: '',
+      company: '',
+      department: '',
+      customerId: '',
+    });
+    bulkApi.clearError();
+    setBulkDialogOpen(true);
+  };
+
+  const handleBulkUpdate = async () => {
+    if (selectedIds.length === 0) {
+      bulkApi.setError('No contacts selected');
+      return;
+    }
+
+    // Build update payload only with non-empty fields
+    const updatePayload: Record<string, any> = {};
+    if (bulkFormData.contactType) updatePayload.contactType = bulkFormData.contactType;
+    if (bulkFormData.company) updatePayload.company = bulkFormData.company;
+    if (bulkFormData.department) updatePayload.department = bulkFormData.department;
+    if (bulkFormData.customerId) updatePayload.customerId = Number(bulkFormData.customerId);
+
+    if (Object.keys(updatePayload).length === 0) {
+      bulkApi.setError('Please select at least one field to update');
+      return;
+    }
+
+    const result = await bulkApi.execute(async () => {
+      // Update each selected contact
+      const updatePromises = selectedIds.map(id =>
+        apiClient.put(`/contacts/${id}`, updatePayload)
+      );
+      await Promise.all(updatePromises);
+      return selectedIds.length;
+    }, `Successfully updated ${selectedIds.length} contact(s)`);
+
+    if (result) {
+      await fetchContacts();
+      setBulkDialogOpen(false);
+      setSelectedIds([]);
+      setSuccessMessage(`Successfully updated ${result} contact(s)`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    }
+    // Error is kept in dialog if update fails
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} contact(s)?`)) {
+      return;
+    }
+
+    const result = await bulkApi.execute(async () => {
+      const deletePromises = selectedIds.map(id => apiClient.delete(`/contacts/${id}`));
+      await Promise.all(deletePromises);
+      return selectedIds.length;
+    }, `Successfully deleted ${selectedIds.length} contact(s)`);
+
+    if (result) {
+      await fetchContacts();
+      setSelectedIds([]);
+      setSuccessMessage(`Successfully deleted ${result} contact(s)`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } else {
+      setError(bulkApi.error?.message || 'Failed to delete some contacts');
     }
   };
 
@@ -449,12 +572,45 @@ function ContactsPage() {
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
+        {successMessage && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>{successMessage}</Alert>}
 
         <AdvancedSearch
           fields={CONTACT_SEARCH_FIELDS}
           onSearch={handleSearch}
           placeholder="Search contacts by name, email, company..."
         />
+
+        {/* Bulk Actions Toolbar */}
+        <Collapse in={selectedIds.length > 0}>
+          <Paper sx={{ mb: 2, p: 2, backgroundColor: 'primary.light' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography sx={{ color: 'primary.contrastText' }}>
+                {selectedIds.length} contact(s) selected
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleOpenBulkDialog}
+                  sx={{ backgroundColor: 'white', color: 'primary.main', '&:hover': { backgroundColor: 'grey.100' } }}
+                >
+                  Bulk Update
+                </Button>
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="error"
+                  onClick={handleBulkDelete}
+                >
+                  Delete Selected
+                </Button>
+                <IconButton size="small" onClick={() => setSelectedIds([])} sx={{ color: 'white' }}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+            </Box>
+          </Paper>
+        </Collapse>
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -467,6 +623,13 @@ function ContactsPage() {
                 <Table sx={{ minWidth: 1000 }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        indeterminate={selectedIds.length > 0 && selectedIds.length < filteredContacts.length}
+                        checked={filteredContacts.length > 0 && selectedIds.length === filteredContacts.length}
+                        onChange={handleSelectAll}
+                      />
+                    </TableCell>
                     <TableCell><strong>Name</strong></TableCell>
                     <TableCell><strong>Type</strong></TableCell>
                     <TableCell><strong>Customer</strong></TableCell>
@@ -478,7 +641,17 @@ function ContactsPage() {
                 </TableHead>
                 <TableBody>
                   {filteredContacts.map((contact) => (
-                    <TableRow key={contact.id}>
+                    <TableRow 
+                      key={contact.id}
+                      selected={selectedIds.includes(contact.id)}
+                      hover
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selectedIds.includes(contact.id)}
+                          onChange={() => handleSelectOne(contact.id)}
+                        />
+                      </TableCell>
                       <TableCell>
                         {contact.firstName} {contact.lastName}
                       </TableCell>
@@ -561,7 +734,7 @@ function ContactsPage() {
       </Container>
 
       {/* Contact Form Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
+      <Dialog open={openDialog} onClose={() => { dialogApi.clearError(); setOpenDialog(false); }} maxWidth="md" fullWidth>
         <DialogTitle>
           {selectedContact ? 'Edit Contact' : 'Add New Contact'}
         </DialogTitle>
@@ -577,6 +750,16 @@ function ContactsPage() {
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
+          {/* Error Display */}
+          <DialogError 
+            error={dialogApi.error} 
+            onClose={dialogApi.clearError}
+          />
+          <DialogSuccess 
+            message={dialogApi.success} 
+            onClose={dialogApi.clearSuccess}
+          />
+          
           {/* Basic Info Tab */}
           {dialogTab === 0 && (
             <Stack spacing={2}>
@@ -704,10 +887,80 @@ function ContactsPage() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button onClick={handleSaveContact} variant="contained" color="primary">
-            {selectedContact ? 'Update' : 'Create'}
-          </Button>
+          <Button onClick={() => { dialogApi.clearError(); setOpenDialog(false); }}>Cancel</Button>
+          <ActionButton
+            label={selectedContact ? 'Update' : 'Create'}
+            loading={dialogApi.loading}
+            onClick={handleSaveContact}
+            color="primary"
+          />
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Update Dialog */}
+      <Dialog open={bulkDialogOpen} onClose={() => { bulkApi.clearError(); setBulkDialogOpen(false); }} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Bulk Update {selectedIds.length} Contact(s)
+        </DialogTitle>
+        <DialogContent>
+          <DialogError 
+            error={bulkApi.error} 
+            onClose={bulkApi.clearError}
+          />
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+            Only fields with values will be updated. Leave fields empty to keep current values.
+          </Typography>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Contact Type</InputLabel>
+              <Select
+                value={bulkFormData.contactType}
+                label="Contact Type"
+                onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, contactType: e.target.value }))}
+              >
+                <MenuItem value="">-- No Change --</MenuItem>
+                {CONTACT_TYPES.map(type => (
+                  <MenuItem key={type} value={type}>{type}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <TextField
+              label="Company"
+              size="small"
+              value={bulkFormData.company}
+              onChange={(e) => setBulkFormData(prev => ({ ...prev, company: e.target.value }))}
+              placeholder="Leave empty to keep current value"
+              fullWidth
+            />
+            
+            <TextField
+              label="Department"
+              size="small"
+              value={bulkFormData.department}
+              onChange={(e) => setBulkFormData(prev => ({ ...prev, department: e.target.value }))}
+              placeholder="Leave empty to keep current value"
+              fullWidth
+            />
+            
+            <EntitySelect
+              entityType="customer"
+              name="customerId"
+              value={bulkFormData.customerId}
+              onChange={(e) => setBulkFormData(prev => ({ ...prev, customerId: e.target.value }))}
+              label="Owner Customer"
+              showAddNew={false}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { bulkApi.clearError(); setBulkDialogOpen(false); }}>Cancel</Button>
+          <ActionButton
+            label="Update All"
+            loading={bulkApi.loading}
+            onClick={handleBulkUpdate}
+            color="primary"
+          />
         </DialogActions>
       </Dialog>
     </Box>

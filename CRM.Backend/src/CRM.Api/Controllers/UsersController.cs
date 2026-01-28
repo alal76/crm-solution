@@ -1,8 +1,10 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
@@ -18,6 +20,7 @@ public class UsersController : ControllerBase
     private readonly IRepository<UserProfile> _profileRepository;
     private readonly IRepository<Department> _departmentRepository;
     private readonly IContactsService _contactsService;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<UsersController> _logger;
 
     public UsersController(
@@ -25,12 +28,14 @@ public class UsersController : ControllerBase
         IRepository<UserProfile> profileRepository,
         IRepository<Department> departmentRepository,
         IContactsService contactsService,
+        ICrmDbContext dbContext,
         ILogger<UsersController> logger)
     {
         _userRepository = userRepository;
         _profileRepository = profileRepository;
         _departmentRepository = departmentRepository;
         _contactsService = contactsService;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -43,12 +48,19 @@ public class UsersController : ControllerBase
     {
         try
         {
-            var users = await _userRepository.GetAllAsync();
+            // Use DbContext directly with Include for navigation properties
+            var users = await _dbContext.Set<User>()
+                .AsNoTracking()
+                .Include(u => u.Department)
+                .Include(u => u.UserProfile)
+                .Include(u => u.PrimaryGroup)
+                .Where(u => !u.IsDeleted)
+                .ToListAsync();
+            
             var contacts = await _contactsService.GetAllAsync();
             var contactDict = contacts.ToDictionary(c => c.Id);
             
             var userDtos = users
-                .Where(u => !u.IsDeleted)
                 .Select(u => MapToDto(u, u.ContactId.HasValue && contactDict.ContainsKey(u.ContactId.Value) ? contactDict[u.ContactId.Value] : null))
                 .ToList();
 
@@ -390,6 +402,8 @@ public class UsersController : ControllerBase
             DepartmentName = user.Department?.Name,
             UserProfileId = user.UserProfileId,
             UserProfileName = user.UserProfile?.Name,
+            PrimaryGroupId = user.PrimaryGroupId,
+            PrimaryGroupName = user.PrimaryGroup?.Name,
             ContactId = user.ContactId,
             ContactName = contact != null ? $"{contact.FirstName} {contact.LastName}" : null,
             ContactEmail = contact?.EmailPrimary,

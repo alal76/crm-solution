@@ -5,9 +5,9 @@ import {
   DialogContent, DialogActions, Grid, Chip, Tabs, Tab, IconButton, Tooltip, Divider,
   List, ListItem, ListItemText, ListItemSecondaryAction, Autocomplete, TextField,
   FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, Paper,
-  SelectChangeEvent
+  SelectChangeEvent, Collapse, Stack
 } from '@mui/material';
-import { TabPanel } from '../components/common';
+import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
 import {
   LIFECYCLE_STAGE_OPTIONS,
   CUSTOMER_TYPE_OPTIONS,
@@ -19,7 +19,7 @@ import {
   Business as BusinessIcon, Person as PersonIcon, Email as EmailIcon,
   Phone as PhoneIcon, PersonAdd as PersonAddIcon, Group as GroupIcon,
   ContactPhone as ContactPhoneIcon, Refresh as RefreshIcon,
-  FilterAlt as FilterIcon
+  FilterAlt as FilterIcon, Close as CloseIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import FieldRenderer from '../components/FieldRenderer';
@@ -28,6 +28,7 @@ import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../compon
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { useFieldConfig, ModuleFieldConfiguration, dispatchFieldConfigUpdate } from '../hooks/useFieldConfig';
 import { useAccountContext } from '../contexts/AccountContextProvider';
+import { useApiState } from '../hooks/useApiState';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
 
@@ -219,7 +220,21 @@ function CustomersPage() {
   // Search state
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
-
+  
+  // Multi-select and bulk update state
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkFormData, setBulkFormData] = useState({
+    customerType: '' as string | number,
+    lifecycleStage: '' as string | number,
+    priority: '' as string | number,
+    industry: '' as string,
+    territory: '' as string,
+  });
+  
+  // API state for dialog operations
+  const dialogApi = useApiState({ successTimeout: 3000 });
+  const bulkApi = useApiState({ successTimeout: 3000 });
   // Use the field configuration hook - this will automatically refresh when configs change
   const { 
     fieldConfigs, 
@@ -426,14 +441,107 @@ function CustomersPage() {
 
   const handleDeleteCustomer = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this account?')) {
-      try {
+      const result = await dialogApi.execute(async () => {
         await apiClient.delete(`/customers/${id}`);
-        setSuccessMessage('Account deleted successfully');
+        return true;
+      }, 'Account deleted successfully');
+      
+      if (result) {
+        setSelectedIds(prev => prev.filter(sid => sid !== id));
         fetchCustomers();
+        setSuccessMessage('Account deleted successfully');
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete account');
+      } else {
+        setError(dialogApi.error?.message || 'Failed to delete account');
       }
+    }
+  };
+
+  // Multi-select handlers
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(filteredCustomers.map(c => c.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number) => {
+    setSelectedIds(prev => 
+      prev.includes(id) 
+        ? prev.filter(sid => sid !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleOpenBulkDialog = () => {
+    setBulkFormData({
+      customerType: '',
+      lifecycleStage: '',
+      priority: '',
+      industry: '',
+      territory: '',
+    });
+    bulkApi.clearError();
+    setBulkDialogOpen(true);
+  };
+
+  const handleBulkUpdate = async () => {
+    if (selectedIds.length === 0) {
+      bulkApi.setError('No accounts selected');
+      return;
+    }
+
+    // Build update payload only with non-empty fields
+    const updatePayload: Record<string, any> = {};
+    if (bulkFormData.customerType !== '') updatePayload.customerType = Number(bulkFormData.customerType);
+    if (bulkFormData.lifecycleStage !== '') updatePayload.lifecycleStage = Number(bulkFormData.lifecycleStage);
+    if (bulkFormData.priority !== '') updatePayload.priority = Number(bulkFormData.priority);
+    if (bulkFormData.industry) updatePayload.industry = bulkFormData.industry;
+    if (bulkFormData.territory) updatePayload.territory = bulkFormData.territory;
+
+    if (Object.keys(updatePayload).length === 0) {
+      bulkApi.setError('Please select at least one field to update');
+      return;
+    }
+
+    const result = await bulkApi.execute(async () => {
+      const updatePromises = selectedIds.map(id =>
+        apiClient.put(`/customers/${id}`, updatePayload)
+      );
+      await Promise.all(updatePromises);
+      return selectedIds.length;
+    }, `Successfully updated ${selectedIds.length} account(s)`);
+
+    if (result) {
+      fetchCustomers();
+      setBulkDialogOpen(false);
+      setSelectedIds([]);
+      setSuccessMessage(`Successfully updated ${result} account(s)`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} account(s)?`)) {
+      return;
+    }
+
+    const result = await bulkApi.execute(async () => {
+      const deletePromises = selectedIds.map(id => apiClient.delete(`/customers/${id}`));
+      await Promise.all(deletePromises);
+      return selectedIds.length;
+    }, `Successfully deleted ${selectedIds.length} account(s)`);
+
+    if (result) {
+      fetchCustomers();
+      setSelectedIds([]);
+      setSuccessMessage(`Successfully deleted ${result} account(s)`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } else {
+      setError(bulkApi.error?.message || 'Failed to delete some accounts');
     }
   };
 
@@ -588,7 +696,7 @@ function CustomersPage() {
         {/* Alerts */}
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         {fieldConfigError && <Alert severity="warning" sx={{ mb: 2 }}>Field configurations could not be loaded. Using defaults.</Alert>}
-        {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+        {successMessage && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>{successMessage}</Alert>}
 
         {/* Search */}
         <AdvancedSearch
@@ -597,6 +705,38 @@ function CustomersPage() {
           placeholder="Search accounts by name, email, company..."
         />
 
+        {/* Bulk Actions Toolbar */}
+        <Collapse in={selectedIds.length > 0}>
+          <Paper sx={{ mb: 2, p: 2, backgroundColor: 'primary.light' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography sx={{ color: 'primary.contrastText' }}>
+                {selectedIds.length} account(s) selected
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleOpenBulkDialog}
+                  sx={{ backgroundColor: 'white', color: 'primary.main', '&:hover': { backgroundColor: 'grey.100' } }}
+                >
+                  Bulk Update
+                </Button>
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="error"
+                  onClick={handleBulkDelete}
+                >
+                  Delete Selected
+                </Button>
+                <IconButton size="small" onClick={() => setSelectedIds([])} sx={{ color: 'white' }}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+            </Box>
+          </Paper>
+        </Collapse>
+
         {/* Customer List */}
         <Card>
           <CardContent sx={{ p: 0 }}>
@@ -604,6 +744,13 @@ function CustomersPage() {
               <Table sx={{ minWidth: 950 }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        indeterminate={selectedIds.length > 0 && selectedIds.length < filteredCustomers.length}
+                        checked={filteredCustomers.length > 0 && selectedIds.length === filteredCustomers.length}
+                        onChange={handleSelectAll}
+                      />
+                    </TableCell>
                     <TableCell><strong>Category</strong></TableCell>
                     <TableCell><strong>Name</strong></TableCell>
                     <TableCell><strong>Contact</strong></TableCell>
@@ -622,7 +769,13 @@ function CustomersPage() {
                     const type = getCustomerType(customer.customerType);
                     const isOrganization = customer.category === 1;
                     return (
-                      <TableRow key={customer.id} hover>
+                      <TableRow key={customer.id} hover selected={selectedIds.includes(customer.id)}>
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                            checked={selectedIds.includes(customer.id)}
+                            onChange={() => handleSelectOne(customer.id)}
+                          />
+                        </TableCell>
                         <TableCell>
                           <Chip
                             icon={isOrganization ? <BusinessIcon fontSize="small" /> : <PersonIcon fontSize="small" />}
@@ -1022,6 +1175,92 @@ function CustomersPage() {
           <Button onClick={handleAssignDirectContact} variant="contained" disabled={!selectedDirectContactId} sx={{ backgroundColor: '#6750A4' }}>
             Assign Contact
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Update Dialog */}
+      <Dialog open={bulkDialogOpen} onClose={() => { bulkApi.clearError(); setBulkDialogOpen(false); }} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Bulk Update {selectedIds.length} Account(s)
+        </DialogTitle>
+        <DialogContent>
+          <DialogError 
+            error={bulkApi.error} 
+            onClose={bulkApi.clearError}
+          />
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+            Only fields with values will be updated. Leave fields empty to keep current values.
+          </Typography>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Account Type</InputLabel>
+              <Select
+                value={bulkFormData.customerType}
+                label="Account Type"
+                onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, customerType: e.target.value }))}
+              >
+                <MenuItem value="">-- No Change --</MenuItem>
+                {CUSTOMER_TYPE_OPTIONS.map(type => (
+                  <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <FormControl fullWidth size="small">
+              <InputLabel>Lifecycle Stage</InputLabel>
+              <Select
+                value={bulkFormData.lifecycleStage}
+                label="Lifecycle Stage"
+                onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, lifecycleStage: e.target.value }))}
+              >
+                <MenuItem value="">-- No Change --</MenuItem>
+                {LIFECYCLE_STAGE_OPTIONS.map(stage => (
+                  <MenuItem key={stage.value} value={stage.value}>{stage.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <FormControl fullWidth size="small">
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={bulkFormData.priority}
+                label="Priority"
+                onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, priority: e.target.value }))}
+              >
+                <MenuItem value="">-- No Change --</MenuItem>
+                {PRIORITY_OPTIONS.map(priority => (
+                  <MenuItem key={priority.value} value={priority.value}>{priority.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <TextField
+              label="Industry"
+              size="small"
+              value={bulkFormData.industry}
+              onChange={(e) => setBulkFormData(prev => ({ ...prev, industry: e.target.value }))}
+              placeholder="Leave empty to keep current value"
+              fullWidth
+            />
+            
+            <TextField
+              label="Territory"
+              size="small"
+              value={bulkFormData.territory}
+              onChange={(e) => setBulkFormData(prev => ({ ...prev, territory: e.target.value }))}
+              placeholder="Leave empty to keep current value"
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { bulkApi.clearError(); setBulkDialogOpen(false); }}>Cancel</Button>
+          <ActionButton
+            label="Update All"
+            loading={bulkApi.loading}
+            onClick={handleBulkUpdate}
+            color="primary"
+          />
         </DialogActions>
       </Dialog>
     </Box>

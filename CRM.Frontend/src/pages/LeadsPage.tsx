@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -27,6 +27,11 @@ import {
   Tabs,
   Tab,
   Stack,
+  Checkbox,
+  Paper,
+  Collapse,
+  Container,
+  TableContainer,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -34,12 +39,16 @@ import {
   Add as AddIcon,
   PersonAdd as PersonAddIcon,
   ContactPhone as ContactPhoneIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { BaseEntity } from '../types';
+import { DialogError, DialogSuccess, ActionButton } from '../components/common';
+import { useApiState } from '../hooks/useApiState';
+import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 
 // Lead sources for the dropdown
 const LEAD_SOURCES = [
@@ -86,6 +95,17 @@ interface LeadFormData {
   notes: string;
 }
 
+// Search fields for leads
+const SEARCH_FIELDS: SearchField[] = [
+  { name: 'firstName', label: 'First Name', type: 'text' },
+  { name: 'lastName', label: 'Last Name', type: 'text' },
+  { name: 'company', label: 'Company', type: 'text' },
+  { name: 'source', label: 'Source', type: 'select', options: LEAD_SOURCES.map(s => ({ value: s.value, label: s.label })) },
+  { name: 'status', label: 'Status', type: 'select', options: LEAD_STATUSES.map(s => ({ value: s.value, label: s.label })) },
+];
+
+const SEARCHABLE_FIELDS = ['firstName', 'lastName', 'company', 'emailPrimary', 'jobTitle'];
+
 function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,6 +125,33 @@ function LeadsPage() {
     status: 'new',
     notes: '',
   });
+  
+  // Search and filter state
+  const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+  const [searchText, setSearchText] = useState('');
+  
+  // Multi-select and bulk update state
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkFormData, setBulkFormData] = useState({
+    source: '' as string,
+    status: '' as string,
+    company: '' as string,
+  });
+  
+  // API state for dialog operations
+  const dialogApi = useApiState({ successTimeout: 3000 });
+  const bulkApi = useApiState({ successTimeout: 3000 });
+  
+  // Filter leads based on search
+  const filteredLeads = useMemo(() => {
+    return filterData(leads, searchFilters, searchText, SEARCHABLE_FIELDS);
+  }, [leads, searchFilters, searchText]);
+
+  const handleSearch = (filters: SearchFilter[], text: string) => {
+    setSearchFilters(filters);
+    setSearchText(text);
+  };
 
   useEffect(() => {
     fetchLeads();
@@ -185,7 +232,7 @@ function LeadsPage() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingId(null);
-    setError(null);
+    dialogApi.clearError();
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -200,11 +247,11 @@ function LeadsPage() {
 
   const handleSave = async () => {
     if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.emailPrimary.trim()) {
-      setError('Please fill in required fields (First Name, Last Name, Email)');
+      dialogApi.setError('Please fill in required fields (First Name, Last Name, Email)');
       return;
     }
 
-    try {
+    const result = await dialogApi.execute(async () => {
       // Store source, status, and notes as JSON in notes field
       const notesWithMeta = JSON.stringify({
         source: formData.source,
@@ -225,35 +272,126 @@ function LeadsPage() {
 
       if (editingId) {
         await apiClient.put(`/contacts/${editingId}`, contactData);
-        setSuccessMessage('Lead updated successfully');
+        return 'updated';
       } else {
         await apiClient.post('/contacts', contactData);
-        setSuccessMessage('Lead created successfully');
+        return 'created';
       }
-      
+    }, editingId ? 'Lead updated successfully' : 'Lead created successfully');
+
+    if (result) {
       handleCloseDialog();
       fetchLeads();
-      
-      // Clear success message after 3 seconds
+      setSuccessMessage(result === 'updated' ? 'Lead updated successfully' : 'Lead created successfully');
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save lead');
-      console.error('Error saving lead:', err);
     }
+    // Error stays in dialog
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this lead?')) {
-      try {
+      const result = await dialogApi.execute(async () => {
         await apiClient.delete(`/contacts/${id}`);
-        setSuccessMessage('Lead deleted successfully');
+        return true;
+      }, 'Lead deleted successfully');
+      
+      if (result) {
+        setSelectedIds(prev => prev.filter(sid => sid !== id));
         fetchLeads();
-        
+        setSuccessMessage('Lead deleted successfully');
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete lead');
-        console.error('Error deleting lead:', err);
+      } else {
+        setError(dialogApi.error?.message || 'Failed to delete lead');
       }
+    }
+  };
+
+  // Multi-select handlers
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(filteredLeads.map(l => l.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number) => {
+    setSelectedIds(prev => 
+      prev.includes(id) 
+        ? prev.filter(sid => sid !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleOpenBulkDialog = () => {
+    setBulkFormData({
+      source: '',
+      status: '',
+      company: '',
+    });
+    bulkApi.clearError();
+    setBulkDialogOpen(true);
+  };
+
+  const handleBulkUpdate = async () => {
+    if (selectedIds.length === 0) {
+      bulkApi.setError('No leads selected');
+      return;
+    }
+
+    const result = await bulkApi.execute(async () => {
+      // Get current leads data and update only non-empty fields
+      const updatePromises = selectedIds.map(async (id) => {
+        const lead = leads.find(l => l.id === id);
+        if (!lead) return;
+
+        const currentMeta = { source: lead.source, status: lead.status, notes: lead.notes };
+        const newMeta = {
+          source: bulkFormData.source || currentMeta.source,
+          status: bulkFormData.status || currentMeta.status,
+          notes: currentMeta.notes,
+        };
+
+        const updatePayload: Record<string, any> = {
+          notes: JSON.stringify(newMeta),
+        };
+        if (bulkFormData.company) updatePayload.company = bulkFormData.company;
+
+        return apiClient.put(`/contacts/${id}`, updatePayload);
+      });
+      await Promise.all(updatePromises);
+      return selectedIds.length;
+    }, `Successfully updated ${selectedIds.length} lead(s)`);
+
+    if (result) {
+      fetchLeads();
+      setBulkDialogOpen(false);
+      setSelectedIds([]);
+      setSuccessMessage(`Successfully updated ${result} lead(s)`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} lead(s)?`)) {
+      return;
+    }
+
+    const result = await bulkApi.execute(async () => {
+      const deletePromises = selectedIds.map(id => apiClient.delete(`/contacts/${id}`));
+      await Promise.all(deletePromises);
+      return selectedIds.length;
+    }, `Successfully deleted ${selectedIds.length} lead(s)`);
+
+    if (result) {
+      fetchLeads();
+      setSelectedIds([]);
+      setSuccessMessage(`Successfully deleted ${result} lead(s)`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } else {
+      setError(bulkApi.error?.message || 'Failed to delete some leads');
     }
   };
 
@@ -319,7 +457,7 @@ function LeadsPage() {
   }
 
   return (
-    <Box sx={{ py: 2 }}>
+    <Container maxWidth="lg" sx={{ py: 2 }}>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{ width: 40, height: 40, flexShrink: 0 }}>
@@ -345,91 +483,145 @@ function LeadsPage() {
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
-      {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+      {successMessage && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>{successMessage}</Alert>}
+
+      {/* Search */}
+      <AdvancedSearch
+        fields={SEARCH_FIELDS}
+        onSearch={handleSearch}
+        placeholder="Search leads by name, email, company..."
+      />
+
+      {/* Bulk Actions Toolbar */}
+      <Collapse in={selectedIds.length > 0}>
+        <Paper sx={{ mb: 2, p: 2, backgroundColor: 'primary.light' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography sx={{ color: 'primary.contrastText' }}>
+              {selectedIds.length} lead(s) selected
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleOpenBulkDialog}
+                sx={{ backgroundColor: 'white', color: 'primary.main', '&:hover': { backgroundColor: 'grey.100' } }}
+              >
+                Bulk Update
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                color="error"
+                onClick={handleBulkDelete}
+              >
+                Delete Selected
+              </Button>
+              <IconButton size="small" onClick={() => setSelectedIds([])} sx={{ color: 'white' }}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </Box>
+        </Paper>
+      </Collapse>
 
       <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
         <CardContent sx={{ p: 0 }}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Name</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Email</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Company</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Source</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Date Added</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {leads.map((lead) => {
-                const sourceStyle = getSourceStyle(lead.source);
-                const statusStyle = getStatusStyle(lead.status);
-                return (
-                  <TableRow
-                    key={lead.id}
-                    sx={{
-                      '&:hover': { backgroundColor: '#F5EFF7' },
-                      borderBottom: '1px solid #E8DEF8',
-                    }}
-                  >
-                    <TableCell sx={{ fontWeight: 500 }}>
-                      {lead.firstName} {lead.lastName}
-                      {lead.jobTitle && (
-                        <Typography variant="caption" display="block" color="textSecondary">
-                          {lead.jobTitle}
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>{lead.emailPrimary}</TableCell>
-                    <TableCell>{lead.company || '—'}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={LEAD_SOURCES.find(s => s.value === lead.source)?.label || lead.source}
-                        size="small"
-                        sx={{
-                          backgroundColor: sourceStyle.bg,
-                          color: sourceStyle.text,
-                          fontWeight: 600,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={LEAD_STATUSES.find(s => s.value === lead.status)?.label || lead.status}
-                        size="small"
-                        sx={{
-                          backgroundColor: statusStyle.bg,
-                          color: statusStyle.text,
-                          fontWeight: 600,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {lead.dateAdded ? new Date(lead.dateAdded).toLocaleDateString() : '—'}
-                    </TableCell>
-                    <TableCell align="center">
-                      {lead.status !== 'converted' && (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      indeterminate={selectedIds.length > 0 && selectedIds.length < filteredLeads.length}
+                      checked={filteredLeads.length > 0 && selectedIds.length === filteredLeads.length}
+                      onChange={handleSelectAll}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Company</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Source</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Date Added</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredLeads.map((lead) => {
+                  const sourceStyle = getSourceStyle(lead.source);
+                  const statusStyle = getStatusStyle(lead.status);
+                  return (
+                    <TableRow
+                      key={lead.id}
+                      hover
+                      selected={selectedIds.includes(lead.id)}
+                      sx={{
+                        borderBottom: '1px solid #E8DEF8',
+                      }}
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selectedIds.includes(lead.id)}
+                          onChange={() => handleSelectOne(lead.id)}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 500 }}>
+                        {lead.firstName} {lead.lastName}
+                        {lead.jobTitle && (
+                          <Typography variant="caption" display="block" color="textSecondary">
+                            {lead.jobTitle}
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>{lead.emailPrimary}</TableCell>
+                      <TableCell>{lead.company || '—'}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={LEAD_SOURCES.find(s => s.value === lead.source)?.label || lead.source}
+                          size="small"
+                          sx={{
+                            backgroundColor: sourceStyle.bg,
+                            color: sourceStyle.text,
+                            fontWeight: 600,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={LEAD_STATUSES.find(s => s.value === lead.status)?.label || lead.status}
+                          size="small"
+                          sx={{
+                            backgroundColor: statusStyle.bg,
+                            color: statusStyle.text,
+                            fontWeight: 600,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {lead.dateAdded ? new Date(lead.dateAdded).toLocaleDateString() : '—'}
+                      </TableCell>
+                      <TableCell align="center">
+                        {lead.status !== 'converted' && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleConvertToCustomer(lead)}
+                            sx={{ color: '#06A77D' }}
+                            title="Convert to Customer"
+                          >
+                            <PersonAddIcon fontSize="small" />
+                          </IconButton>
+                        )}
                         <IconButton
                           size="small"
-                          onClick={() => handleConvertToCustomer(lead)}
-                          sx={{ color: '#06A77D' }}
-                          title="Convert to Customer"
+                          onClick={() => handleOpenDialog(lead)}
+                          sx={{ color: '#6750A4' }}
+                          title="Edit Lead"
                         >
-                          <PersonAddIcon fontSize="small" />
+                          <EditIcon fontSize="small" />
                         </IconButton>
-                      )}
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenDialog(lead)}
-                        sx={{ color: '#6750A4' }}
-                        title="Edit Lead"
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
+                        <IconButton
                         size="small"
                         onClick={() => handleDelete(lead.id)}
                         sx={{ color: '#B3261E' }}
@@ -441,15 +633,16 @@ function LeadsPage() {
                   </TableRow>
                 );
               })}
-              {leads.length === 0 && (
+              {filteredLeads.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <Typography color="textSecondary">No leads found. Add your first lead to get started.</Typography>
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
+          </TableContainer>
         </CardContent>
       </Card>
 
@@ -465,11 +658,11 @@ function LeadsPage() {
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 350 }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+          {/* Error Display */}
+          <DialogError 
+            error={dialogApi.error} 
+            onClose={dialogApi.clearError}
+          />
 
           {/* Lead Info Tab */}
           {dialogTab === 0 && (
@@ -574,16 +767,78 @@ function LeadsPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
+          <ActionButton
+            label={editingId ? 'Update' : 'Create'}
+            loading={dialogApi.loading}
             onClick={handleSave}
-            variant="contained"
-            sx={{ backgroundColor: '#6750A4', textTransform: 'none' }}
-          >
-            {editingId ? 'Update' : 'Create'}
-          </Button>
+            color="primary"
+          />
         </DialogActions>
       </Dialog>
-    </Box>
+
+      {/* Bulk Update Dialog */}
+      <Dialog open={bulkDialogOpen} onClose={() => { bulkApi.clearError(); setBulkDialogOpen(false); }} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Bulk Update {selectedIds.length} Lead(s)
+        </DialogTitle>
+        <DialogContent>
+          <DialogError 
+            error={bulkApi.error} 
+            onClose={bulkApi.clearError}
+          />
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+            Only fields with values will be updated. Leave fields empty to keep current values.
+          </Typography>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Source</InputLabel>
+              <Select
+                value={bulkFormData.source}
+                label="Source"
+                onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, source: e.target.value }))}
+              >
+                <MenuItem value="">-- No Change --</MenuItem>
+                {LEAD_SOURCES.map(source => (
+                  <MenuItem key={source.value} value={source.value}>{source.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <FormControl fullWidth size="small">
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={bulkFormData.status}
+                label="Status"
+                onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, status: e.target.value }))}
+              >
+                <MenuItem value="">-- No Change --</MenuItem>
+                {LEAD_STATUSES.map(status => (
+                  <MenuItem key={status.value} value={status.value}>{status.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <TextField
+              label="Company"
+              size="small"
+              value={bulkFormData.company}
+              onChange={(e) => setBulkFormData(prev => ({ ...prev, company: e.target.value }))}
+              placeholder="Leave empty to keep current value"
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { bulkApi.clearError(); setBulkDialogOpen(false); }}>Cancel</Button>
+          <ActionButton
+            label="Update All"
+            loading={bulkApi.loading}
+            onClick={handleBulkUpdate}
+            color="primary"
+          />
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
 }
 

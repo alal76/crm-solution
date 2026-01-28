@@ -37,7 +37,11 @@ import {
   Divider,
   Collapse,
   SelectChangeEvent,
+  Checkbox,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import { DialogError, DialogSuccess, ActionButton } from '../components/common';
+import { useApiState } from '../hooks/useApiState';
 import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import { useState, useEffect, useCallback } from 'react';
@@ -245,8 +249,22 @@ function ServiceRequestsPage() {
   const [assignToGroupId, setAssignToGroupId] = useState<number | null>(null);
   const [advancedSearchFilters, setAdvancedSearchFilters] = useState<SearchFilter[]>([]);
   const [advancedSearchText, setAdvancedSearchText] = useState('');
-
-  // Fetch reference data
+  
+  // Multi-select and bulk operations
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkFormData, setBulkFormData] = useState<{ status: string; priority: string; assignedToUserId: string }>({
+    status: '',
+    priority: '',
+    assignedToUserId: '',
+  });
+  
+  // API state hooks
+  const dialogApi = useApiState();
+  const bulkApi = useApiState();
+  const resolveApi = useApiState();
+  const escalateApi = useApiState();
+  const assignApi = useApiState();
   useEffect(() => {
     const fetchReferenceData = async () => {
       try {
@@ -397,21 +415,18 @@ function ServiceRequestsPage() {
 
   const handleDeleteRequest = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this service request?')) {
-      try {
+      await dialogApi.execute(async () => {
         await serviceRequestService.delete(id);
         setSuccessMessage('Service request deleted successfully');
         await fetchRequests();
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete service request');
-      }
+      });
     }
   };
 
   const handleSaveRequest = async () => {
-    try {
+    await dialogApi.execute(async () => {
       if (!formData.subject) {
-        setError('Subject is required');
-        return;
+        throw new Error('Subject is required');
       }
 
       const customFieldValuesArray = Object.entries(customFieldValues)
@@ -439,25 +454,21 @@ function ServiceRequestsPage() {
 
       setOpenDialog(false);
       await fetchRequests();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save service request');
-    }
+    });
   };
 
   const handleResolve = async () => {
     if (!selectedRequest || !actionNotes) {
-      setError('Resolution notes are required');
+      resolveApi.setError('Resolution notes are required');
       return;
     }
-    try {
+    await resolveApi.execute(async () => {
       await serviceRequestService.resolve(selectedRequest.id!, actionNotes);
       setSuccessMessage('Service request resolved');
       setResolveDialogOpen(false);
       setActionNotes('');
       await fetchRequests();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to resolve service request');
-    }
+    });
   };
 
   const handleClose = async (request: ServiceRequest) => {
@@ -472,24 +483,22 @@ function ServiceRequestsPage() {
 
   const handleEscalate = async () => {
     if (!selectedRequest || !actionNotes) {
-      setError('Escalation reason is required');
+      escalateApi.setError('Escalation reason is required');
       return;
     }
-    try {
+    await escalateApi.execute(async () => {
       await serviceRequestService.escalate(selectedRequest.id!, actionNotes, assignToGroupId || undefined);
       setSuccessMessage('Service request escalated');
       setEscalateDialogOpen(false);
       setActionNotes('');
       setAssignToGroupId(null);
       await fetchRequests();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to escalate service request');
-    }
+    });
   };
 
   const handleAssign = async () => {
     if (!selectedRequest) return;
-    try {
+    await assignApi.execute(async () => {
       if (assignToUserId) {
         await serviceRequestService.assignToUser(selectedRequest.id!, assignToUserId, actionNotes || undefined);
       } else if (assignToGroupId) {
@@ -501,9 +510,55 @@ function ServiceRequestsPage() {
       setAssignToUserId(null);
       setAssignToGroupId(null);
       await fetchRequests();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to assign service request');
+    });
+  };
+  
+  // Multi-select handlers
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(filteredRequests.map(r => r.id!));
+    } else {
+      setSelectedIds([]);
     }
+  };
+  
+  const handleSelectOne = (id: number) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+  
+  const handleOpenBulkDialog = () => {
+    setBulkFormData({ status: '', priority: '', assignedToUserId: '' });
+    bulkApi.clearError();
+    setBulkDialogOpen(true);
+  };
+  
+  const handleBulkUpdate = async () => {
+    await bulkApi.execute(async () => {
+      const updates = selectedIds.map(id => {
+        const updatePayload: any = {};
+        if (bulkFormData.status) updatePayload.status = parseInt(bulkFormData.status);
+        if (bulkFormData.priority) updatePayload.priority = parseInt(bulkFormData.priority);
+        if (bulkFormData.assignedToUserId) updatePayload.assignedToUserId = parseInt(bulkFormData.assignedToUserId);
+        return serviceRequestService.update(id, updatePayload);
+      });
+      await Promise.all(updates);
+      setSuccessMessage(`Updated ${selectedIds.length} service requests`);
+      setSelectedIds([]);
+      setBulkDialogOpen(false);
+      await fetchRequests();
+    });
+  };
+  
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} service requests?`)) return;
+    await bulkApi.execute(async () => {
+      await Promise.all(selectedIds.map(id => serviceRequestService.delete(id)));
+      setSuccessMessage(`Deleted ${selectedIds.length} service requests`);
+      setSelectedIds([]);
+      await fetchRequests();
+    });
   };
 
   const handleFormChange = (field: keyof CreateServiceRequest, value: any) => {
@@ -780,6 +835,35 @@ function ServiceRequestsPage() {
             </Paper>
           </Collapse>
 
+          {/* Bulk Actions Toolbar */}
+          <Collapse in={selectedIds.length > 0}>
+            <Paper sx={{ p: 2, mb: 2, backgroundColor: '#e3f2fd' }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Typography variant="body1">
+                  {selectedIds.length} item(s) selected
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleOpenBulkDialog}
+                >
+                  Bulk Update
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={handleBulkDelete}
+                >
+                  Delete Selected
+                </Button>
+                <IconButton size="small" onClick={() => setSelectedIds([])}>
+                  <CloseIcon />
+                </IconButton>
+              </Stack>
+            </Paper>
+          </Collapse>
+
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
               <CircularProgress />
@@ -789,6 +873,13 @@ function ServiceRequestsPage() {
               <Table size="small">
                 <TableHead>
                   <TableRow>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        indeterminate={selectedIds.length > 0 && selectedIds.length < filteredRequests.length}
+                        checked={filteredRequests.length > 0 && selectedIds.length === filteredRequests.length}
+                        onChange={handleSelectAll}
+                      />
+                    </TableCell>
                     <TableCell>Ticket #</TableCell>
                     <TableCell>Subject</TableCell>
                     <TableCell>Channel</TableCell>
@@ -804,13 +895,19 @@ function ServiceRequestsPage() {
                 <TableBody>
                   {filteredRequests.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} align="center">
+                      <TableCell colSpan={11} align="center">
                         No service requests found
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredRequests.map((request) => (
-                      <TableRow key={request.id} hover>
+                      <TableRow key={request.id} hover selected={selectedIds.includes(request.id!)}>
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                            checked={selectedIds.includes(request.id!)}
+                            onChange={() => handleSelectOne(request.id!)}
+                          />
+                        </TableCell>
                         <TableCell>
                           <Typography variant="body2" fontWeight="medium">
                             {request.ticketNumber}
@@ -1229,21 +1326,26 @@ function ServiceRequestsPage() {
               </>
             )}
           </Grid>
+          <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>
+          <Button onClick={() => setOpenDialog(false)} disabled={dialogApi.loading}>
             {viewMode ? 'Close' : 'Cancel'}
           </Button>
           {!viewMode && (
-            <Button variant="contained" onClick={handleSaveRequest}>
+            <ActionButton
+              variant="contained"
+              onClick={handleSaveRequest}
+              loading={dialogApi.loading}
+            >
               {selectedRequest ? 'Update' : 'Create'}
-            </Button>
+            </ActionButton>
           )}
         </DialogActions>
       </Dialog>
 
       {/* Resolve Dialog */}
-      <Dialog open={resolveDialogOpen} onClose={() => setResolveDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={resolveDialogOpen} onClose={() => !resolveApi.loading && setResolveDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Resolve Service Request</DialogTitle>
         <DialogContent>
           <TextField
@@ -1256,17 +1358,18 @@ function ServiceRequestsPage() {
             required
             sx={{ mt: 1 }}
           />
+          <DialogError error={resolveApi.error} onRetry={() => resolveApi.clearError()} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setResolveDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" color="success" onClick={handleResolve}>
+          <Button onClick={() => setResolveDialogOpen(false)} disabled={resolveApi.loading}>Cancel</Button>
+          <ActionButton variant="contained" color="success" onClick={handleResolve} loading={resolveApi.loading}>
             Resolve
-          </Button>
+          </ActionButton>
         </DialogActions>
       </Dialog>
 
       {/* Escalate Dialog */}
-      <Dialog open={escalateDialogOpen} onClose={() => setEscalateDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={escalateDialogOpen} onClose={() => !escalateApi.loading && setEscalateDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Escalate Service Request</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
@@ -1297,17 +1400,18 @@ function ServiceRequestsPage() {
               </Select>
             </FormControl>
           </Stack>
+          <DialogError error={escalateApi.error} onRetry={() => escalateApi.clearError()} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEscalateDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" color="warning" onClick={handleEscalate}>
+          <Button onClick={() => setEscalateDialogOpen(false)} disabled={escalateApi.loading}>Cancel</Button>
+          <ActionButton variant="contained" color="warning" onClick={handleEscalate} loading={escalateApi.loading}>
             Escalate
-          </Button>
+          </ActionButton>
         </DialogActions>
       </Dialog>
 
       {/* Assign Dialog */}
-      <Dialog open={assignDialogOpen} onClose={() => setAssignDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={assignDialogOpen} onClose={() => !assignApi.loading && setAssignDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Assign Service Request</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
@@ -1359,16 +1463,85 @@ function ServiceRequestsPage() {
               fullWidth
             />
           </Stack>
+          <DialogError error={assignApi.error} onRetry={() => assignApi.clearError()} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
-          <Button
+          <Button onClick={() => setAssignDialogOpen(false)} disabled={assignApi.loading}>Cancel</Button>
+          <ActionButton
             variant="contained"
             onClick={handleAssign}
             disabled={!assignToUserId && !assignToGroupId}
+            loading={assignApi.loading}
           >
             Assign
-          </Button>
+          </ActionButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Update Dialog */}
+      <Dialog open={bulkDialogOpen} onClose={() => !bulkApi.loading && setBulkDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Bulk Update {selectedIds.length} Service Requests</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Only fields with values will be updated. Leave fields empty to keep existing values.
+          </Typography>
+          
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={bulkFormData.status}
+              onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, status: e.target.value }))}
+              label="Status"
+            >
+              <MenuItem value="">-- No Change --</MenuItem>
+              {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                <MenuItem key={value} value={value}>{label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Priority</InputLabel>
+            <Select
+              value={bulkFormData.priority}
+              onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, priority: e.target.value }))}
+              label="Priority"
+            >
+              <MenuItem value="">-- No Change --</MenuItem>
+              {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
+                <MenuItem key={value} value={value}>{label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Assign to User</InputLabel>
+            <Select
+              value={bulkFormData.assignedToUserId}
+              onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, assignedToUserId: e.target.value }))}
+              label="Assign to User"
+            >
+              <MenuItem value="">-- No Change --</MenuItem>
+              {users.map((user) => (
+                <MenuItem key={user.id} value={user.id.toString()}>
+                  {user.firstName} {user.lastName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <DialogError error={bulkApi.error} onRetry={() => bulkApi.clearError()} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBulkDialogOpen(false)} disabled={bulkApi.loading}>Cancel</Button>
+          <ActionButton
+            onClick={handleBulkUpdate}
+            loading={bulkApi.loading}
+            variant="contained"
+            color="primary"
+          >
+            Update Selected
+          </ActionButton>
         </DialogActions>
       </Dialog>
     </Container>

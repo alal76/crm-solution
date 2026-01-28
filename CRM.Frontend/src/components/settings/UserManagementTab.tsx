@@ -31,6 +31,8 @@ import {
   Paper,
   Divider,
   Autocomplete,
+  Collapse,
+  Stack,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -52,6 +54,8 @@ import {
 import Checkbox from '@mui/material/Checkbox';
 import Toolbar from '@mui/material/Toolbar';
 import { getApiEndpoint } from '../../config/ports';
+import { DialogError, ActionButton } from '../common';
+import { useApiState } from '../../hooks/useApiState';
 
 interface Contact {
   id: number;
@@ -78,6 +82,7 @@ interface User {
   userProfileId: number | null;
   userProfileName: string | null;
   primaryGroupId: number | null;
+  primaryGroupName: string | null;
   contactId: number | null;
   contact?: Contact;
   lastLoginDate: string | null;
@@ -180,6 +185,11 @@ function UserManagementTab() {
     groupId: '' as string | number,
     isActive: '' as string,
   });
+  
+  // API state hooks for dialog error handling
+  const dialogApi = useApiState();
+  const bulkApi = useApiState();
+  const contactApi = useApiState();
   
   const getToken = () => localStorage.getItem('accessToken');
 
@@ -288,11 +298,12 @@ function UserManagementTab() {
     setEditingUser(null);
     setShowPassword(false);
     setSelectedContact(null);
+    dialogApi.clearError();
   };
 
   const handleSaveUser = async () => {
-    const token = getToken();
-    try {
+    await dialogApi.execute(async () => {
+      const token = getToken();
       const url = editingUser 
         ? getApiEndpoint(`/users/${editingUser.id}`) 
         : getApiEndpoint('/auth/register');
@@ -348,10 +359,7 @@ function UserManagementTab() {
       handleCloseDialog();
       fetchUsers();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to save user');
-      setTimeout(() => setError(null), 5000);
-    }
+    });
   };
 
   const linkContactToUser = async (userId: number, contactId: number) => {
@@ -527,20 +535,20 @@ function UserManagementTab() {
 
   // Bulk update handler
   const handleBulkUpdate = async () => {
-    const token = getToken();
-    const updatePromises = selectedUserIds.map(async (userId) => {
-      const user = users.find(u => u.id === userId);
-      if (!user) return;
-      
-      const payload: any = {};
-      if (bulkFormData.role) payload.role = roleToInt(bulkFormData.role);
-      if (bulkFormData.departmentId) payload.departmentId = Number(bulkFormData.departmentId);
-      if (bulkFormData.groupId) payload.primaryGroupId = Number(bulkFormData.groupId);
-      if (bulkFormData.isActive !== '') payload.isActive = bulkFormData.isActive === 'true';
-      
-      if (Object.keys(payload).length === 0) return;
-      
-      try {
+    await bulkApi.execute(async () => {
+      const token = getToken();
+      const updatePromises = selectedUserIds.map(async (userId) => {
+        const user = users.find(u => u.id === userId);
+        if (!user) return;
+        
+        const payload: any = {};
+        if (bulkFormData.role) payload.role = roleToInt(bulkFormData.role);
+        if (bulkFormData.departmentId) payload.departmentId = Number(bulkFormData.departmentId);
+        if (bulkFormData.groupId) payload.primaryGroupId = Number(bulkFormData.groupId);
+        if (bulkFormData.isActive !== '') payload.isActive = bulkFormData.isActive === 'true';
+        
+        if (Object.keys(payload).length === 0) return;
+        
         const response = await fetch(getApiEndpoint(`/users/${userId}`), {
           method: 'PUT',
           headers: {
@@ -549,13 +557,10 @@ function UserManagementTab() {
           },
           body: JSON.stringify(payload),
         });
+        if (!response.ok) throw new Error(`Failed to update user ${userId}`);
         return response.ok;
-      } catch {
-        return false;
-      }
-    });
+      });
 
-    try {
       await Promise.all(updatePromises);
       setSuccess(`Successfully updated ${selectedUserIds.length} users`);
       setBulkDialogOpen(false);
@@ -563,10 +568,7 @@ function UserManagementTab() {
       setSelectedUserIds([]);
       fetchUsers();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError('Failed to update some users');
-      setTimeout(() => setError(null), 5000);
-    }
+    });
   };
 
   const handleClearFilters = () => {
@@ -832,9 +834,7 @@ function UserManagementTab() {
                     />
                   </TableCell>
                   <TableCell>{user.departmentName || '-'}</TableCell>
-                  <TableCell>
-                    {groups.find(g => g.id === user.primaryGroupId)?.name || '-'}
-                  </TableCell>
+                  <TableCell>{user.primaryGroupName || '-'}</TableCell>
                   <TableCell>
                     <Chip 
                       label={user.isActive ? 'Active' : 'Inactive'} 
@@ -949,17 +949,19 @@ function UserManagementTab() {
               </FormControl>
             </Grid>
           </Grid>
+          <DialogError error={bulkApi.error} onRetry={() => bulkApi.clearError()} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setBulkDialogOpen(false)}>Cancel</Button>
-          <Button 
+          <Button onClick={() => setBulkDialogOpen(false)} disabled={bulkApi.loading}>Cancel</Button>
+          <ActionButton 
             onClick={handleBulkUpdate} 
             variant="contained" 
             color="primary"
+            loading={bulkApi.loading}
             disabled={!bulkFormData.role && !bulkFormData.departmentId && !bulkFormData.groupId && bulkFormData.isActive === ''}
           >
             Update {selectedUserIds.length} User{selectedUserIds.length > 1 ? 's' : ''}
-          </Button>
+          </ActionButton>
         </DialogActions>
       </Dialog>
 
@@ -1175,12 +1177,13 @@ function UserManagementTab() {
               </Grid>
             )}
           </Grid>
+          <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSaveUser} variant="contained" color="primary">
+          <Button onClick={handleCloseDialog} disabled={dialogApi.loading}>Cancel</Button>
+          <ActionButton onClick={handleSaveUser} variant="contained" color="primary" loading={dialogApi.loading}>
             {editingUser ? 'Update' : 'Create'}
-          </Button>
+          </ActionButton>
         </DialogActions>
       </Dialog>
 

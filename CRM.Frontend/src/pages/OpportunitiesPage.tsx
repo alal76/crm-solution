@@ -25,11 +25,18 @@ import {
   MenuItem,
   Chip,
   Slider,
+  Checkbox,
+  Paper,
+  Collapse,
+  Stack,
+  IconButton,
+  SelectChangeEvent,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
@@ -39,6 +46,8 @@ import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { BaseEntity } from '../types';
+import { DialogError, DialogSuccess, ActionButton } from '../components/common';
+import { useApiState } from '../hooks/useApiState';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
@@ -164,6 +173,20 @@ function OpportunitiesPage() {
   });
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
+  
+  // Multi-select and bulk update state
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkFormData, setBulkFormData] = useState({
+    stage: '' as string | number,
+    probability: '' as string | number,
+    pricingModel: '' as string | number,
+    region: '' as string,
+  });
+  
+  // API state for dialog operations
+  const dialogApi = useApiState({ successTimeout: 3000 });
+  const bulkApi = useApiState({ successTimeout: 3000 });
 
   // Get account context for filtering
   const { selectedAccounts, isContextActive, getAccountIds } = useAccountContext();
@@ -302,11 +325,11 @@ function OpportunitiesPage() {
 
   const handleSaveOpportunity = async () => {
     if (!formData.name.trim() || !formData.accountId) {
-      setError('Please fill in required fields (Name, Account)');
+      dialogApi.setError('Please fill in required fields (Name, Account)');
       return;
     }
 
-    try {
+    const result = await dialogApi.execute(async () => {
       const payload = {
         ...formData,
         primaryContactId: formData.primaryContactId || undefined,
@@ -317,29 +340,121 @@ function OpportunitiesPage() {
 
       if (editingId) {
         await apiClient.put(`/opportunities/${editingId}`, payload);
-        setSuccessMessage('Opportunity updated successfully');
+        return 'updated';
       } else {
         await apiClient.post('/opportunities', payload);
-        setSuccessMessage('Opportunity created successfully');
+        return 'created';
       }
+    }, editingId ? 'Opportunity updated successfully' : 'Opportunity created successfully');
+
+    if (result) {
       handleCloseDialog();
       fetchAllData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save opportunity');
-      console.error('Error saving opportunity:', err);
+      setSuccessMessage(result === 'updated' ? 'Opportunity updated successfully' : 'Opportunity created successfully');
+      setTimeout(() => setSuccessMessage(null), 3000);
     }
   };
 
   const handleDeleteOpportunity = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this opportunity?')) {
-      try {
+      const result = await dialogApi.execute(async () => {
         await apiClient.delete(`/opportunities/${id}`);
-        setSuccessMessage('Opportunity deleted successfully');
+        return true;
+      }, 'Opportunity deleted successfully');
+      
+      if (result) {
+        setSelectedIds(prev => prev.filter(sid => sid !== id));
         fetchAllData();
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete opportunity');
-        console.error('Error deleting opportunity:', err);
+        setSuccessMessage('Opportunity deleted successfully');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        setError(dialogApi.error?.message || 'Failed to delete opportunity');
       }
+    }
+  };
+
+  // Multi-select handlers
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(filteredOpportunities.map(o => o.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number) => {
+    setSelectedIds(prev => 
+      prev.includes(id) 
+        ? prev.filter(sid => sid !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleOpenBulkDialog = () => {
+    setBulkFormData({
+      stage: '',
+      probability: '',
+      pricingModel: '',
+      region: '',
+    });
+    bulkApi.clearError();
+    setBulkDialogOpen(true);
+  };
+
+  const handleBulkUpdate = async () => {
+    if (selectedIds.length === 0) {
+      bulkApi.setError('No opportunities selected');
+      return;
+    }
+
+    const updatePayload: Record<string, any> = {};
+    if (bulkFormData.stage !== '') updatePayload.stage = Number(bulkFormData.stage);
+    if (bulkFormData.probability !== '') updatePayload.probability = Number(bulkFormData.probability);
+    if (bulkFormData.pricingModel !== '') updatePayload.pricingModel = Number(bulkFormData.pricingModel);
+    if (bulkFormData.region) updatePayload.region = bulkFormData.region;
+
+    if (Object.keys(updatePayload).length === 0) {
+      bulkApi.setError('Please select at least one field to update');
+      return;
+    }
+
+    const result = await bulkApi.execute(async () => {
+      const updatePromises = selectedIds.map(id =>
+        apiClient.put(`/opportunities/${id}`, updatePayload)
+      );
+      await Promise.all(updatePromises);
+      return selectedIds.length;
+    }, `Successfully updated ${selectedIds.length} opportunity(ies)`);
+
+    if (result) {
+      fetchAllData();
+      setBulkDialogOpen(false);
+      setSelectedIds([]);
+      setSuccessMessage(`Successfully updated ${result} opportunity(ies)`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} opportunity(ies)?`)) {
+      return;
+    }
+
+    const result = await bulkApi.execute(async () => {
+      const deletePromises = selectedIds.map(id => apiClient.delete(`/opportunities/${id}`));
+      await Promise.all(deletePromises);
+      return selectedIds.length;
+    }, `Successfully deleted ${selectedIds.length} opportunity(ies)`);
+
+    if (result) {
+      fetchAllData();
+      setSelectedIds([]);
+      setSuccessMessage(`Successfully deleted ${result} opportunity(ies)`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } else {
+      setError(bulkApi.error?.message || 'Failed to delete some opportunities');
     }
   };
 
@@ -382,12 +497,51 @@ function OpportunitiesPage() {
           placeholder="Search opportunities by title, description..."
         />
 
+        {/* Bulk Actions Toolbar */}
+        <Collapse in={selectedIds.length > 0}>
+          <Paper sx={{ mb: 2, p: 2, backgroundColor: 'primary.light' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography sx={{ color: 'primary.contrastText' }}>
+                {selectedIds.length} opportunity(ies) selected
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleOpenBulkDialog}
+                  sx={{ backgroundColor: 'white', color: 'primary.main', '&:hover': { backgroundColor: 'grey.100' } }}
+                >
+                  Bulk Update
+                </Button>
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="error"
+                  onClick={handleBulkDelete}
+                >
+                  Delete Selected
+                </Button>
+                <IconButton size="small" onClick={() => setSelectedIds([])} sx={{ color: 'white' }}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+            </Box>
+          </Paper>
+        </Collapse>
+
         <Card>
           <CardContent sx={{ p: 0 }}>
             <TableContainer sx={{ overflowX: 'auto' }}>
               <Table sx={{ minWidth: 950 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      indeterminate={selectedIds.length > 0 && selectedIds.length < filteredOpportunities.length}
+                      checked={filteredOpportunities.length > 0 && selectedIds.length === filteredOpportunities.length}
+                      onChange={handleSelectAll}
+                    />
+                  </TableCell>
                   <TableCell><strong>Name</strong></TableCell>
                   <TableCell><strong>Account</strong></TableCell>
                   <TableCell><strong>Amount</strong></TableCell>
@@ -404,7 +558,13 @@ function OpportunitiesPage() {
                   const stageInfo = getStageInfo(opp.stage);
                   const pricingInfo = PRICING_MODELS.find(p => p.value === opp.pricingModel) || PRICING_MODELS[0];
                   return (
-                    <TableRow key={opp.id}>
+                    <TableRow key={opp.id} hover selected={selectedIds.includes(opp.id)}>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selectedIds.includes(opp.id)}
+                          onChange={() => handleSelectOne(opp.id)}
+                        />
+                      </TableCell>
                       <TableCell>{opp.name}</TableCell>
                       <TableCell>{opp.accountName || getAccountName(opp.accountId)}</TableCell>
                       <TableCell>{opp.currency || 'USD'} {opp.amount?.toLocaleString() || 0}</TableCell>
@@ -630,12 +790,91 @@ function OpportunitiesPage() {
               sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
             />
           </Box>
+          <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSaveOpportunity} variant="contained" color="primary">
+          <Button onClick={handleCloseDialog} disabled={dialogApi.loading}>Cancel</Button>
+          <ActionButton
+            onClick={handleSaveOpportunity}
+            loading={dialogApi.loading}
+            variant="contained"
+            color="primary"
+          >
             {editingId ? 'Update' : 'Create'}
-          </Button>
+          </ActionButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Update Dialog */}
+      <Dialog open={bulkDialogOpen} onClose={() => !bulkApi.loading && setBulkDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Bulk Update {selectedIds.length} Opportunities</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Only fields with values will be updated. Leave fields empty to keep existing values.
+          </Typography>
+          
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Stage</InputLabel>
+            <Select
+              name="stage"
+              value={bulkFormData.stage}
+              onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, stage: e.target.value }))}
+              label="Stage"
+            >
+              <MenuItem value="">-- No Change --</MenuItem>
+              {STAGES.map(s => (
+                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Pricing Model</InputLabel>
+            <Select
+              name="pricingModel"
+              value={bulkFormData.pricingModel}
+              onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, pricingModel: e.target.value }))}
+              label="Pricing Model"
+            >
+              <MenuItem value="">-- No Change --</MenuItem>
+              {PRICING_MODELS.map(pm => (
+                <MenuItem key={pm.value} value={pm.value}>{pm.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <TextField
+            fullWidth
+            label="Probability (%)"
+            name="probability"
+            type="number"
+            value={bulkFormData.probability}
+            onChange={(e) => setBulkFormData(prev => ({ ...prev, probability: e.target.value }))}
+            margin="normal"
+            inputProps={{ min: 0, max: 100 }}
+          />
+          
+          <TextField
+            fullWidth
+            label="Region"
+            name="region"
+            value={bulkFormData.region}
+            onChange={(e) => setBulkFormData(prev => ({ ...prev, region: e.target.value }))}
+            margin="normal"
+          />
+          
+          <DialogError error={bulkApi.error} onRetry={() => bulkApi.clearError()} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBulkDialogOpen(false)} disabled={bulkApi.loading}>Cancel</Button>
+          <ActionButton
+            onClick={handleBulkUpdate}
+            loading={bulkApi.loading}
+            variant="contained"
+            color="primary"
+          >
+            Update Selected
+          </ActionButton>
         </DialogActions>
       </Dialog>
     </Box>

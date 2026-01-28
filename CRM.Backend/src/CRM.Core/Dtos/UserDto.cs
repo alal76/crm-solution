@@ -16,6 +16,8 @@ public class UserDto
     public string? DepartmentName { get; set; }
     public int? UserProfileId { get; set; }
     public string? UserProfileName { get; set; }
+    public int? PrimaryGroupId { get; set; }
+    public string? PrimaryGroupName { get; set; }
     public int? ContactId { get; set; }
     public string? ContactName { get; set; }
     public string? ContactEmail { get; set; }

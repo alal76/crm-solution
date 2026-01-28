@@ -5,13 +5,15 @@ import {
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Tabs, Tab,
   Grid, IconButton, Tooltip, FormControlLabel, Checkbox, LinearProgress,
-  SelectChangeEvent
+  SelectChangeEvent, Paper, Collapse, Stack
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Campaign as CampaignIcon, TrendingUp as TrendingUpIcon,
-  Email as EmailIcon, Share as ShareIcon
+  Email as EmailIcon, Share as ShareIcon, Close as CloseIcon
 } from '@mui/icons-material';
+import { DialogError, ActionButton } from '../components/common';
+import { useApiState } from '../hooks/useApiState';
 import apiClient from '../services/apiClient';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
@@ -112,6 +114,19 @@ function CampaignsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
   
+  // Multi-select and bulk operations
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkFormData, setBulkFormData] = useState<{ status: string; priority: string; campaignType: string }>({
+    status: '',
+    priority: '',
+    campaignType: '',
+  });
+  
+  // API state hooks
+  const dialogApi = useApiState();
+  const bulkApi = useApiState();
+  
   const emptyForm: CampaignForm = {
     name: '', description: '', campaignType: 0, status: 0, priority: 1,
     startDate: '', endDate: '', budget: 0, actualSpend: 0, targetAudience: 0,
@@ -182,10 +197,10 @@ function CampaignsPage() {
 
   const handleSaveCampaign = async () => {
     if (!formData.name.trim() || !formData.startDate) {
-      setError('Please fill in required fields (Name, Start Date)');
+      dialogApi.setError('Please fill in required fields (Name, Start Date)');
       return;
     }
-    try {
+    await dialogApi.execute(async () => {
       if (editingId) {
         await apiClient.put(`/campaigns/${editingId}`, formData);
         setSuccessMessage('Campaign updated successfully');
@@ -196,22 +211,66 @@ function CampaignsPage() {
       handleCloseDialog();
       fetchCampaigns();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save campaign');
-    }
+    });
   };
 
   const handleDeleteCampaign = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this campaign?')) {
-      try {
+      await dialogApi.execute(async () => {
         await apiClient.delete(`/campaigns/${id}`);
         setSuccessMessage('Campaign deleted successfully');
         fetchCampaigns();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete campaign');
-      }
+      });
     }
+  };
+  
+  // Multi-select handlers
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedIds(campaigns.map(c => c.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+  
+  const handleSelectOne = (id: number) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+  
+  const handleOpenBulkDialog = () => {
+    setBulkFormData({ status: '', priority: '', campaignType: '' });
+    bulkApi.clearError();
+    setBulkDialogOpen(true);
+  };
+  
+  const handleBulkUpdate = async () => {
+    await bulkApi.execute(async () => {
+      const updates = selectedIds.map(id => {
+        const updatePayload: any = {};
+        if (bulkFormData.status) updatePayload.status = parseInt(bulkFormData.status);
+        if (bulkFormData.priority) updatePayload.priority = parseInt(bulkFormData.priority);
+        if (bulkFormData.campaignType) updatePayload.campaignType = parseInt(bulkFormData.campaignType);
+        return apiClient.put(`/campaigns/${id}`, updatePayload);
+      });
+      await Promise.all(updates);
+      setSuccessMessage(`Updated ${selectedIds.length} campaigns`);
+      setSelectedIds([]);
+      setBulkDialogOpen(false);
+      fetchCampaigns();
+    });
+  };
+  
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} campaigns?`)) return;
+    await bulkApi.execute(async () => {
+      await Promise.all(selectedIds.map(id => apiClient.delete(`/campaigns/${id}`)));
+      setSuccessMessage(`Deleted ${selectedIds.length} campaigns`);
+      setSelectedIds([]);
+      fetchCampaigns();
+    });
   };
 
   const getStatus = (value: number) => CAMPAIGN_STATUSES.find(s => s.value === value);
@@ -261,11 +320,47 @@ function CampaignsPage() {
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
 
+        {/* Bulk Actions Toolbar */}
+        <Collapse in={selectedIds.length > 0}>
+          <Paper sx={{ p: 2, mb: 2, backgroundColor: '#e3f2fd' }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Typography variant="body1">
+                {selectedIds.length} item(s) selected
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleOpenBulkDialog}
+              >
+                Bulk Update
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={handleBulkDelete}
+              >
+                Delete Selected
+              </Button>
+              <IconButton size="small" onClick={() => setSelectedIds([])}>
+                <CloseIcon />
+              </IconButton>
+            </Stack>
+          </Paper>
+        </Collapse>
+
         <Card>
           <CardContent sx={{ p: 0, overflowX: 'auto' }}>
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      indeterminate={selectedIds.length > 0 && selectedIds.length < campaigns.length}
+                      checked={campaigns.length > 0 && selectedIds.length === campaigns.length}
+                      onChange={handleSelectAll}
+                    />
+                  </TableCell>
                   <TableCell><strong>Campaign</strong></TableCell>
                   <TableCell><strong>Type</strong></TableCell>
                   <TableCell><strong>Status</strong></TableCell>
@@ -285,7 +380,13 @@ function CampaignsPage() {
                   const budgetUsed = campaign.budget > 0 ? (campaign.actualSpend / campaign.budget) * 100 : 0;
                   
                   return (
-                    <TableRow key={campaign.id} hover>
+                    <TableRow key={campaign.id} hover selected={selectedIds.includes(campaign.id)}>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selectedIds.includes(campaign.id)}
+                          onChange={() => handleSelectOne(campaign.id)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <CampaignIcon sx={{ color: '#6750A4' }} />
@@ -550,12 +651,78 @@ function CampaignsPage() {
               </Grid>
             </Grid>
           </TabPanel>
+          <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSaveCampaign} variant="contained" sx={{ backgroundColor: '#6750A4' }}>
+          <Button onClick={handleCloseDialog} disabled={dialogApi.loading}>Cancel</Button>
+          <ActionButton onClick={handleSaveCampaign} variant="contained" loading={dialogApi.loading} sx={{ backgroundColor: '#6750A4' }}>
             {editingId ? 'Update' : 'Create'}
-          </Button>
+          </ActionButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Update Dialog */}
+      <Dialog open={bulkDialogOpen} onClose={() => !bulkApi.loading && setBulkDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Bulk Update {selectedIds.length} Campaigns</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Only fields with values will be updated. Leave fields empty to keep existing values.
+          </Typography>
+          
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={bulkFormData.status}
+              onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, status: e.target.value }))}
+              label="Status"
+            >
+              <MenuItem value="">-- No Change --</MenuItem>
+              {CAMPAIGN_STATUSES.map(s => (
+                <MenuItem key={s.value} value={s.value.toString()}>{s.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Priority</InputLabel>
+            <Select
+              value={bulkFormData.priority}
+              onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, priority: e.target.value }))}
+              label="Priority"
+            >
+              <MenuItem value="">-- No Change --</MenuItem>
+              {CAMPAIGN_PRIORITIES.map(p => (
+                <MenuItem key={p.value} value={p.value.toString()}>{p.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Campaign Type</InputLabel>
+            <Select
+              value={bulkFormData.campaignType}
+              onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, campaignType: e.target.value }))}
+              label="Campaign Type"
+            >
+              <MenuItem value="">-- No Change --</MenuItem>
+              {CAMPAIGN_TYPES.map(t => (
+                <MenuItem key={t.value} value={t.value.toString()}>{t.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          <DialogError error={bulkApi.error} onRetry={() => bulkApi.clearError()} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBulkDialogOpen(false)} disabled={bulkApi.loading}>Cancel</Button>
+          <ActionButton
+            onClick={handleBulkUpdate}
+            loading={bulkApi.loading}
+            variant="contained"
+            color="primary"
+          >
+            Update Selected
+          </ActionButton>
         </DialogActions>
       </Dialog>
     </Box>

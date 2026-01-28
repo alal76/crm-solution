@@ -37,6 +37,8 @@ import {
   AdminPanelSettings as AdminIcon,
 } from '@mui/icons-material';
 import { getApiEndpoint } from '../../config/ports';
+import { DialogError, ActionButton } from '../common';
+import { useApiState } from '../../hooks/useApiState';
 
 interface GroupPermissions {
   isSystemAdmin: boolean;
@@ -178,6 +180,9 @@ function GroupManagementTab() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  
+  // API state for dialog error handling
+  const dialogApi = useApiState();
   const [dialogTab, setDialogTab] = useState(0);
   const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
   const [formData, setFormData] = useState<Partial<UserGroup>>({
@@ -240,11 +245,12 @@ function GroupManagementTab() {
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setEditingGroup(null);
+    dialogApi.clearError();
   };
 
   const handleSaveGroup = async () => {
-    const token = getToken();
-    try {
+    await dialogApi.execute(async () => {
+      const token = getToken();
       const url = editingGroup ? getApiEndpoint(`/usergroups/${editingGroup.id}`) : getApiEndpoint('/usergroups');
       const method = editingGroup ? 'PUT' : 'POST';
       
@@ -257,35 +263,37 @@ function GroupManagementTab() {
         body: JSON.stringify(formData),
       });
       
-      if (!response.ok) throw new Error('Failed to save group');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to save group');
+      }
       
       setSuccess(editingGroup ? 'Group updated successfully' : 'Group created successfully');
       handleCloseDialog();
       fetchGroups();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError('Failed to save group');
-    }
+    });
   };
 
   const handleDeleteGroup = async (groupId: number) => {
     if (!window.confirm('Are you sure you want to delete this group?')) return;
     
-    const token = getToken();
-    try {
+    await dialogApi.execute(async () => {
+      const token = getToken();
       const response = await fetch(getApiEndpoint(`/usergroups/${groupId}`), {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
       
-      if (!response.ok) throw new Error('Failed to delete group');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete group');
+      }
       
       setSuccess('Group deleted successfully');
       fetchGroups();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError('Failed to delete group');
-    }
+    });
   };
 
   const handlePermissionChange = (key: keyof GroupPermissions, value: boolean | string) => {
@@ -734,12 +742,13 @@ function GroupManagementTab() {
               </Grid>
             </Box>
           )}
+          <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSaveGroup} variant="contained" color="primary">
+          <Button onClick={handleCloseDialog} disabled={dialogApi.loading}>Cancel</Button>
+          <ActionButton onClick={handleSaveGroup} variant="contained" color="primary" loading={dialogApi.loading}>
             {editingGroup ? 'Update' : 'Create'}
-          </Button>
+          </ActionButton>
         </DialogActions>
       </Dialog>
     </Box>
