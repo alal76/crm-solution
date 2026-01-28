@@ -10,13 +10,43 @@
 
 using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MySqlConnector;
+using Npgsql;
 
 namespace CRM.Infrastructure.Services;
+
+#region Enums
+
+/// <summary>Database providers supported by the monitoring system</summary>
+public enum DatabaseProviderType
+{
+    Unknown,
+    MariaDB,
+    MySQL,
+    SqlServer,
+    PostgreSQL,
+    MongoDB,
+    Oracle
+}
+
+/// <summary>Deployment types supported by the monitoring system</summary>
+public enum DeploymentType
+{
+    Docker,
+    Kubernetes,
+    VirtualMachine,
+    Hybrid,
+    Unknown
+}
+
+#endregion
 
 #region Configuration Options
 
@@ -27,7 +57,7 @@ public class MonitoringOptions
 {
     public const string SectionName = "Monitoring";
     
-    /// <summary>Deployment type: docker, kubernetes, hybrid</summary>
+    /// <summary>Deployment type: docker, kubernetes, vm, hybrid</summary>
     public string DeploymentType { get; set; } = "docker";
     
     /// <summary>Build server hostname/IP</summary>
@@ -36,17 +66,8 @@ public class MonitoringOptions
     /// <summary>Build server FQDN</summary>
     public string BuildServerFQDN { get; set; } = "";
     
-    /// <summary>API endpoints to monitor (comma-separated)</summary>
-    public string ApiEndpoints { get; set; } = "";
-    
-    /// <summary>Database servers to monitor (comma-separated)</summary>
-    public string DatabaseServers { get; set; } = "";
-    
-    /// <summary>Frontend URLs to monitor (comma-separated)</summary>
-    public string FrontendUrls { get; set; } = "";
-    
-    /// <summary>Redis endpoints to monitor (comma-separated)</summary>
-    public string RedisEndpoints { get; set; } = "";
+    /// <summary>Database provider: mariadb, mysql, sqlserver, postgresql, mongodb, oracle</summary>
+    public string DatabaseProvider { get; set; } = "sqlserver";
     
     /// <summary>Kubernetes namespace for pod discovery</summary>
     public string KubernetesNamespace { get; set; } = "crm-app";
@@ -62,59 +83,153 @@ public class MonitoringOptions
     
     /// <summary>Cache duration for monitoring data in seconds</summary>
     public int CacheDurationSeconds { get; set; } = 30;
-    
-    /// <summary>Database provider: mariadb, sqlserver, postgresql</summary>
-    public string DatabaseProvider { get; set; } = "mariadb";
-    
-    #region SQL Server Configuration
-    
-    /// <summary>SQL Server version (e.g., 2022-latest, 2019-latest)</summary>
-    public string MssqlVersion { get; set; } = "2022-latest";
-    
-    /// <summary>SQL Server Edition (Express, Developer, Standard, Enterprise)</summary>
-    public string MssqlEdition { get; set; } = "Express";
-    
-    /// <summary>Path to SQL Server tools (sqlcmd). /opt/mssql-tools18/bin for 2022, /opt/mssql-tools/bin for 2019</summary>
-    public string MssqlToolsPath { get; set; } = "/opt/mssql-tools18/bin";
-    
-    /// <summary>SQL Server health check interval</summary>
-    public string MssqlHealthInterval { get; set; } = "30s";
-    
-    /// <summary>SQL Server health check timeout</summary>
-    public string MssqlHealthTimeout { get; set; } = "10s";
-    
-    /// <summary>SQL Server health check retries</summary>
-    public string MssqlHealthRetries { get; set; } = "5";
-    
-    /// <summary>SQL Server start period before health checks begin</summary>
-    public string MssqlStartPeriod { get; set; } = "60s";
-    
-    /// <summary>SQL Server collation</summary>
-    public string MssqlCollation { get; set; } = "SQL_Latin1_General_CP1_CI_AS";
-    
-    #endregion
 }
 
 #endregion
 
 #region DTOs
 
-public class MonitoredEndpoint
+/// <summary>Detected infrastructure information</summary>
+public class InfrastructureInfo
 {
-    public string Name { get; set; } = "";
-    public string Type { get; set; } = ""; // api, database, frontend, redis, container, pod
-    public string Endpoint { get; set; } = "";
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DeploymentType DeploymentType { get; set; }
+    public string DeploymentTypeName { get; set; } = "";
+    public DatabaseInfo Database { get; set; } = new();
+    public HostInfo Host { get; set; } = new();
+    public List<string> ActiveMonitors { get; set; } = new();
+    public List<string> AvailableMonitors { get; set; } = new();
+}
+
+/// <summary>Database connection information</summary>
+public class DatabaseInfo
+{
+    public DatabaseProviderType Provider { get; set; }
+    public string ProviderName { get; set; } = "";
+    public string Version { get; set; } = "";
     public string Host { get; set; } = "";
     public int Port { get; set; }
+    public bool IsConnected { get; set; }
+    public string Edition { get; set; } = "";
+    public string Collation { get; set; } = "";
+}
+
+/// <summary>Host system information</summary>
+public class HostInfo
+{
+    public string Hostname { get; set; } = "";
     public string FQDN { get; set; } = "";
-    public string Status { get; set; } = "unknown"; // healthy, degraded, error, unknown
+    public string OSDescription { get; set; } = "";
+    public string Architecture { get; set; } = "";
+    public int ProcessorCount { get; set; }
+    public long TotalMemoryMB { get; set; }
+    public string DotNetVersion { get; set; } = "";
+    public bool IsDocker { get; set; }
+    public bool IsKubernetes { get; set; }
+}
+
+/// <summary>System metrics including CPU, memory, disk, network</summary>
+public class SystemMetrics
+{
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public CpuMetrics Cpu { get; set; } = new();
+    public MemoryMetrics Memory { get; set; } = new();
+    public DiskMetrics Disk { get; set; } = new();
+    public NetworkMetrics Network { get; set; } = new();
+    public ProcessMetrics Process { get; set; } = new();
+}
+
+public class CpuMetrics
+{
+    public double UsagePercent { get; set; }
+    public int ProcessorCount { get; set; }
+    public double ProcessCpuPercent { get; set; }
+}
+
+public class MemoryMetrics
+{
+    public long TotalMB { get; set; }
+    public long UsedMB { get; set; }
+    public long FreeMB { get; set; }
+    public double UsagePercent { get; set; }
+    public long ProcessWorkingSetMB { get; set; }
+}
+
+public class DiskMetrics
+{
+    public List<DiskInfo> Drives { get; set; } = new();
+    public long TotalSpaceGB { get; set; }
+    public long UsedSpaceGB { get; set; }
+    public long FreeSpaceGB { get; set; }
+    public double UsagePercent { get; set; }
+}
+
+public class DiskInfo
+{
+    public string Name { get; set; } = "";
+    public string MountPoint { get; set; } = "";
+    public long TotalGB { get; set; }
+    public long UsedGB { get; set; }
+    public long FreeGB { get; set; }
+    public double UsagePercent { get; set; }
+}
+
+public class NetworkMetrics
+{
+    public long BytesReceived { get; set; }
+    public long BytesSent { get; set; }
+    public List<NetworkInterfaceInfo> Interfaces { get; set; } = new();
+}
+
+public class NetworkInterfaceInfo
+{
+    public string Name { get; set; } = "";
+    public string IpAddress { get; set; } = "";
+    public bool IsUp { get; set; }
+    public long BytesReceived { get; set; }
+    public long BytesSent { get; set; }
+}
+
+public class ProcessMetrics
+{
+    public int ThreadCount { get; set; }
+    public int HandleCount { get; set; }
+    public long WorkingSetMB { get; set; }
+    public long PrivateMemoryMB { get; set; }
+    public long CpuTimeMs { get; set; }
+    public TimeSpan Uptime { get; set; }
+    public string UptimeFormatted { get; set; } = "";
+}
+
+/// <summary>Database-specific metrics</summary>
+public class DatabaseMetrics
+{
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DatabaseProviderType Provider { get; set; }
+    public string ProviderName { get; set; } = "";
+    public bool IsHealthy { get; set; }
+    public int ResponseTimeMs { get; set; }
+    public int ActiveConnections { get; set; }
+    public double DatabaseSizeMB { get; set; }
+    public string Version { get; set; } = "";
+    public Dictionary<string, object> ProviderSpecificMetrics { get; set; } = new();
+}
+
+/// <summary>Service health status</summary>
+public class ServiceHealth
+{
+    public string Name { get; set; } = "";
+    public string Type { get; set; } = "";
+    public string Status { get; set; } = "unknown";
+    public string Endpoint { get; set; } = "";
     public int ResponseTimeMs { get; set; }
     public string Version { get; set; } = "";
+    public DateTime LastCheck { get; set; } = DateTime.UtcNow;
     public string Uptime { get; set; } = "";
-    public DateTime LastCheck { get; set; }
     public Dictionary<string, object> Metadata { get; set; } = new();
 }
 
+/// <summary>Docker container health</summary>
 public class ContainerHealth
 {
     public string ContainerId { get; set; } = "";
@@ -124,9 +239,13 @@ public class ContainerHealth
     public string Health { get; set; } = "";
     public DateTime StartedAt { get; set; }
     public string Uptime { get; set; } = "";
-    public ResourceUsage Resources { get; set; } = new();
+    public double CpuPercent { get; set; }
+    public long MemoryMB { get; set; }
+    public long MemoryLimitMB { get; set; }
+    public double MemoryPercent { get; set; }
 }
 
+/// <summary>Kubernetes pod health</summary>
 public class PodHealth
 {
     public string PodName { get; set; } = "";
@@ -141,63 +260,73 @@ public class PodHealth
     public List<ContainerHealth> Containers { get; set; } = new();
 }
 
-public class ResourceUsage
+/// <summary>User session information</summary>
+public class UserSession
 {
-    public double CpuPercent { get; set; }
-    public long MemoryBytes { get; set; }
-    public long MemoryLimitBytes { get; set; }
-    public double MemoryPercent { get; set; }
-    public long NetworkRxBytes { get; set; }
-    public long NetworkTxBytes { get; set; }
+    public string UserId { get; set; } = "";
+    public string UserName { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string Role { get; set; } = "";
+    public DateTime LoginTime { get; set; }
+    public DateTime LastActivity { get; set; }
+    public string IpAddress { get; set; } = "";
+    public bool IsActive { get; set; }
 }
 
-public class SystemHealthSummary
+/// <summary>Complete monitoring data bundle</summary>
+public class MonitoringData
 {
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    public string DeploymentType { get; set; } = "";
-    public string BuildServer { get; set; } = "";
-    public string OverallStatus { get; set; } = "unknown";
-    public int HealthyServices { get; set; }
-    public int DegradedServices { get; set; }
-    public int ErrorServices { get; set; }
-    public int TotalServices { get; set; }
-    public List<MonitoredEndpoint> Endpoints { get; set; } = new();
+    public InfrastructureInfo Infrastructure { get; set; } = new();
+    public SystemMetrics System { get; set; } = new();
+    public DatabaseMetrics Database { get; set; } = new();
+    public List<ServiceHealth> Services { get; set; } = new();
     public List<ContainerHealth> Containers { get; set; } = new();
     public List<PodHealth> Pods { get; set; } = new();
-    public Dictionary<string, object> Metrics { get; set; } = new();
+    public List<UserSession> ActiveSessions { get; set; } = new();
 }
 
 #endregion
 
-/// <summary>
-/// Interface for system monitoring service
-/// </summary>
+#region Interface
+
+/// <summary>Interface for the comprehensive monitoring service</summary>
 public interface IMonitoringService
 {
-    /// <summary>Get all monitored endpoints from configuration</summary>
-    Task<List<MonitoredEndpoint>> DiscoverEndpointsAsync(CancellationToken ct = default);
+    /// <summary>Detect and return infrastructure information</summary>
+    Task<InfrastructureInfo> GetInfrastructureInfoAsync(CancellationToken ct = default);
     
-    /// <summary>Check health of all discovered endpoints</summary>
-    Task<List<MonitoredEndpoint>> CheckEndpointHealthAsync(CancellationToken ct = default);
+    /// <summary>Get system metrics (CPU, memory, disk, network)</summary>
+    Task<SystemMetrics> GetSystemMetricsAsync(CancellationToken ct = default);
     
-    /// <summary>Get container health (Docker)</summary>
+    /// <summary>Get database-specific metrics</summary>
+    Task<DatabaseMetrics> GetDatabaseMetricsAsync(CancellationToken ct = default);
+    
+    /// <summary>Get health status of all services</summary>
+    Task<List<ServiceHealth>> GetServiceHealthAsync(CancellationToken ct = default);
+    
+    /// <summary>Get Docker container health (if applicable)</summary>
     Task<List<ContainerHealth>> GetContainerHealthAsync(CancellationToken ct = default);
     
-    /// <summary>Get pod health (Kubernetes)</summary>
+    /// <summary>Get Kubernetes pod health (if applicable)</summary>
     Task<List<PodHealth>> GetPodHealthAsync(CancellationToken ct = default);
     
-    /// <summary>Get complete system health summary</summary>
-    Task<SystemHealthSummary> GetSystemHealthAsync(CancellationToken ct = default);
+    /// <summary>Get all monitoring data in one call</summary>
+    Task<MonitoringData> GetAllMonitoringDataAsync(CancellationToken ct = default);
     
-    /// <summary>Get API metrics</summary>
-    Task<Dictionary<string, object>> GetApiMetricsAsync(string endpoint, CancellationToken ct = default);
+    /// <summary>Get active user sessions</summary>
+    Task<List<UserSession>> GetActiveSessionsAsync(CancellationToken ct = default);
     
-    /// <summary>Get current monitoring options (deployment settings)</summary>
+    /// <summary>Get monitoring options</summary>
     MonitoringOptions GetMonitoringOptions();
 }
 
+#endregion
+
+#region Implementation
+
 /// <summary>
-/// Comprehensive monitoring service with endpoint discovery and health checks
+/// Comprehensive monitoring service with multi-database and multi-infrastructure support
 /// </summary>
 public class MonitoringService : IMonitoringService
 {
@@ -224,695 +353,1017 @@ public class MonitoringService : IMonitoringService
         };
     }
 
-    /// <summary>
-    /// Get current monitoring options (deployment settings from environment)
-    /// </summary>
     public MonitoringOptions GetMonitoringOptions() => _options;
 
-    public async Task<List<MonitoredEndpoint>> DiscoverEndpointsAsync(CancellationToken ct = default)
-    {
-        const string cacheKey = "monitoring:endpoints";
-        
-        var cached = await _cache.GetAsync<List<MonitoredEndpoint>>(cacheKey, ct);
-        if (cached != null) return cached;
-        
-        var endpoints = new List<MonitoredEndpoint>();
-        
-        // Discover API endpoints
-        endpoints.AddRange(DiscoverApiEndpoints());
-        
-        // Discover Database servers
-        endpoints.AddRange(DiscoverDatabaseServers());
-        
-        // Discover Frontend URLs
-        endpoints.AddRange(DiscoverFrontendUrls());
-        
-        // Discover Redis endpoints
-        endpoints.AddRange(DiscoverRedisEndpoints());
-        
-        // Cache the discovered endpoints
-        await _cache.SetAsync(cacheKey, endpoints, TimeSpan.FromMinutes(5), ct);
-        
-        return endpoints;
-    }
+    #region Infrastructure Detection
 
-    public async Task<List<MonitoredEndpoint>> CheckEndpointHealthAsync(CancellationToken ct = default)
+    public async Task<InfrastructureInfo> GetInfrastructureInfoAsync(CancellationToken ct = default)
     {
-        var cacheKey = "monitoring:health";
-        
-        var cached = await _cache.GetAsync<List<MonitoredEndpoint>>(cacheKey, ct);
-        if (cached != null) return cached;
-        
-        var endpoints = await DiscoverEndpointsAsync(ct);
-        var healthTasks = endpoints.Select(async endpoint =>
+        var info = new InfrastructureInfo
         {
-            try
-            {
-                var health = await CheckEndpointAsync(endpoint, ct);
-                return health;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Health check failed for {Endpoint}", endpoint.Endpoint);
-                endpoint.Status = "error";
-                endpoint.LastCheck = DateTime.UtcNow;
-                return endpoint;
-            }
-        });
+            Timestamp = DateTime.UtcNow,
+            DeploymentType = DetectDeploymentType(),
+            DeploymentTypeName = _options.DeploymentType,
+            Host = GetHostInfo(),
+            ActiveMonitors = new List<string>(),
+            AvailableMonitors = GetAvailableMonitors()
+        };
         
-        var results = await Task.WhenAll(healthTasks);
-        var resultList = results.ToList();
+        info.Database = await DetectDatabaseAsync(ct);
+        info.ActiveMonitors = GetActiveMonitors(info);
         
-        await _cache.SetAsync(cacheKey, resultList, TimeSpan.FromSeconds(_options.CacheDurationSeconds), ct);
-        
-        return resultList;
+        return info;
     }
 
-    public async Task<List<ContainerHealth>> GetContainerHealthAsync(CancellationToken ct = default)
+    private DeploymentType DetectDeploymentType()
     {
-        if (!_options.EnableDockerMonitoring) return new List<ContainerHealth>();
+        // Check if running in Kubernetes
+        if (Environment.GetEnvironmentVariable("KUBERNETES_SERVICE_HOST") != null ||
+            File.Exists("/var/run/secrets/kubernetes.io/serviceaccount/token"))
+        {
+            return DeploymentType.Kubernetes;
+        }
         
-        var cacheKey = "monitoring:containers";
-        var cached = await _cache.GetAsync<List<ContainerHealth>>(cacheKey, ct);
-        if (cached != null) return cached;
+        // Check if running in Docker
+        if (File.Exists("/.dockerenv") || 
+            Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+        {
+            return DeploymentType.Docker;
+        }
         
-        var containers = new List<ContainerHealth>();
+        // Parse from configuration
+        return _options.DeploymentType?.ToLowerInvariant() switch
+        {
+            "kubernetes" or "k8s" => DeploymentType.Kubernetes,
+            "docker" => DeploymentType.Docker,
+            "vm" or "virtualmachine" => DeploymentType.VirtualMachine,
+            "hybrid" => DeploymentType.Hybrid,
+            _ => DeploymentType.Unknown
+        };
+    }
+
+    private HostInfo GetHostInfo()
+    {
+        return new HostInfo
+        {
+            Hostname = Environment.MachineName,
+            FQDN = _options.BuildServerFQDN ?? _options.BuildServer ?? Environment.MachineName,
+            OSDescription = RuntimeInformation.OSDescription,
+            Architecture = RuntimeInformation.OSArchitecture.ToString(),
+            ProcessorCount = Environment.ProcessorCount,
+            TotalMemoryMB = GetTotalPhysicalMemory() / (1024 * 1024),
+            DotNetVersion = RuntimeInformation.FrameworkDescription,
+            IsDocker = File.Exists("/.dockerenv") || Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true",
+            IsKubernetes = Environment.GetEnvironmentVariable("KUBERNETES_SERVICE_HOST") != null
+        };
+    }
+
+    private async Task<DatabaseInfo> DetectDatabaseAsync(CancellationToken ct)
+    {
+        var provider = ParseDatabaseProvider(_options.DatabaseProvider);
+        var info = new DatabaseInfo
+        {
+            Provider = provider,
+            ProviderName = provider.ToString()
+        };
+
+        try
+        {
+            var connectionString = GetDatabaseConnectionString();
+            
+            switch (provider)
+            {
+                case DatabaseProviderType.SqlServer:
+                    info = await GetSqlServerInfoAsync(connectionString, ct);
+                    break;
+                case DatabaseProviderType.MariaDB:
+                case DatabaseProviderType.MySQL:
+                    info = await GetMySqlInfoAsync(connectionString, provider, ct);
+                    break;
+                case DatabaseProviderType.PostgreSQL:
+                    info = await GetPostgreSqlInfoAsync(connectionString, ct);
+                    break;
+                default:
+                    info.IsConnected = false;
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to detect database info");
+            info.IsConnected = false;
+        }
+
+        return info;
+    }
+
+    private DatabaseProviderType ParseDatabaseProvider(string provider)
+    {
+        return provider?.ToLowerInvariant() switch
+        {
+            "sqlserver" or "mssql" => DatabaseProviderType.SqlServer,
+            "mariadb" => DatabaseProviderType.MariaDB,
+            "mysql" => DatabaseProviderType.MySQL,
+            "postgresql" or "postgres" => DatabaseProviderType.PostgreSQL,
+            "mongodb" or "mongo" => DatabaseProviderType.MongoDB,
+            "oracle" => DatabaseProviderType.Oracle,
+            _ => DatabaseProviderType.Unknown
+        };
+    }
+
+    private List<string> GetAvailableMonitors()
+    {
+        return new List<string>
+        {
+            "system", "cpu", "memory", "disk", "network", "process",
+            "database", "mariadb", "mysql", "sqlserver", "postgresql", "mongodb", "oracle",
+            "docker", "kubernetes", "services", "sessions"
+        };
+    }
+
+    private List<string> GetActiveMonitors(InfrastructureInfo info)
+    {
+        var active = new List<string> { "system", "cpu", "memory", "disk", "network", "process", "services", "sessions" };
+        
+        // Add database-specific monitor
+        active.Add("database");
+        active.Add(info.Database.Provider.ToString().ToLowerInvariant());
+        
+        // Add deployment-specific monitors
+        if (info.DeploymentType == DeploymentType.Docker || info.Host.IsDocker || _options.EnableDockerMonitoring)
+        {
+            active.Add("docker");
+        }
+        
+        if (info.DeploymentType == DeploymentType.Kubernetes || info.Host.IsKubernetes || _options.EnableK8sMonitoring)
+        {
+            active.Add("kubernetes");
+        }
+        
+        return active;
+    }
+
+    #endregion
+
+    #region System Metrics
+
+    public async Task<SystemMetrics> GetSystemMetricsAsync(CancellationToken ct = default)
+    {
+        var process = Process.GetCurrentProcess();
+        
+        return new SystemMetrics
+        {
+            Timestamp = DateTime.UtcNow,
+            Cpu = await GetCpuMetricsAsync(process, ct),
+            Memory = GetMemoryMetrics(process),
+            Disk = GetDiskMetrics(),
+            Network = GetNetworkMetrics(),
+            Process = GetProcessMetrics(process)
+        };
+    }
+
+    private async Task<CpuMetrics> GetCpuMetricsAsync(Process process, CancellationToken ct)
+    {
+        var startCpuTime = process.TotalProcessorTime;
+        await Task.Delay(100, ct);
+        process.Refresh();
+        var endCpuTime = process.TotalProcessorTime;
+        
+        var cpuUsedMs = (endCpuTime - startCpuTime).TotalMilliseconds;
+        var cpuPercent = (cpuUsedMs / (100.0 * Environment.ProcessorCount)) * 100;
+        
+        return new CpuMetrics
+        {
+            UsagePercent = Math.Min(100, Math.Max(0, cpuPercent)),
+            ProcessorCount = Environment.ProcessorCount,
+            ProcessCpuPercent = Math.Min(100, Math.Max(0, cpuPercent))
+        };
+    }
+
+    private MemoryMetrics GetMemoryMetrics(Process process)
+    {
+        var totalMemory = GetTotalPhysicalMemory();
+        var workingSet = process.WorkingSet64;
+        
+        return new MemoryMetrics
+        {
+            TotalMB = totalMemory / (1024 * 1024),
+            UsedMB = (totalMemory - GC.GetGCMemoryInfo().HighMemoryLoadThresholdBytes) / (1024 * 1024),
+            FreeMB = GC.GetGCMemoryInfo().HighMemoryLoadThresholdBytes / (1024 * 1024),
+            UsagePercent = totalMemory > 0 ? (workingSet * 100.0 / totalMemory) : 0,
+            ProcessWorkingSetMB = workingSet / (1024 * 1024)
+        };
+    }
+
+    private DiskMetrics GetDiskMetrics()
+    {
+        var metrics = new DiskMetrics { Drives = new List<DiskInfo>() };
         
         try
         {
-            // Try to get Docker container info via Docker API or CLI
-            var dockerHost = _options.BuildServer;
-            var dockerApiUrl = $"http://{dockerHost}:2375/containers/json?all=true";
+            var drives = DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveType == DriveType.Fixed);
+            
+            foreach (var drive in drives)
+            {
+                var diskInfo = new DiskInfo
+                {
+                    Name = drive.Name,
+                    MountPoint = drive.RootDirectory.FullName,
+                    TotalGB = drive.TotalSize / (1024 * 1024 * 1024),
+                    FreeGB = drive.AvailableFreeSpace / (1024 * 1024 * 1024),
+                    UsedGB = (drive.TotalSize - drive.AvailableFreeSpace) / (1024 * 1024 * 1024),
+                    UsagePercent = drive.TotalSize > 0 
+                        ? ((drive.TotalSize - drive.AvailableFreeSpace) * 100.0 / drive.TotalSize) 
+                        : 0
+                };
+                metrics.Drives.Add(diskInfo);
+            }
+            
+            metrics.TotalSpaceGB = metrics.Drives.Sum(d => d.TotalGB);
+            metrics.UsedSpaceGB = metrics.Drives.Sum(d => d.UsedGB);
+            metrics.FreeSpaceGB = metrics.Drives.Sum(d => d.FreeGB);
+            metrics.UsagePercent = metrics.TotalSpaceGB > 0 
+                ? (metrics.UsedSpaceGB * 100.0 / metrics.TotalSpaceGB) 
+                : 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get disk metrics");
+        }
+        
+        return metrics;
+    }
+
+    private NetworkMetrics GetNetworkMetrics()
+    {
+        var metrics = new NetworkMetrics { Interfaces = new List<NetworkInterfaceInfo>() };
+        
+        try
+        {
+            var interfaces = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
+            
+            foreach (var ni in interfaces.Where(n => n.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up))
+            {
+                var stats = ni.GetIPv4Statistics();
+                var addresses = ni.GetIPProperties().UnicastAddresses
+                    .Where(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    .Select(a => a.Address.ToString())
+                    .FirstOrDefault();
+                
+                metrics.Interfaces.Add(new NetworkInterfaceInfo
+                {
+                    Name = ni.Name,
+                    IpAddress = addresses ?? "",
+                    IsUp = true,
+                    BytesReceived = stats.BytesReceived,
+                    BytesSent = stats.BytesSent
+                });
+                
+                metrics.BytesReceived += stats.BytesReceived;
+                metrics.BytesSent += stats.BytesSent;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get network metrics");
+        }
+        
+        return metrics;
+    }
+
+    private ProcessMetrics GetProcessMetrics(Process process)
+    {
+        var uptime = DateTime.UtcNow - _startTime;
+        
+        return new ProcessMetrics
+        {
+            ThreadCount = process.Threads.Count,
+            HandleCount = process.HandleCount,
+            WorkingSetMB = process.WorkingSet64 / (1024 * 1024),
+            PrivateMemoryMB = process.PrivateMemorySize64 / (1024 * 1024),
+            CpuTimeMs = (long)process.TotalProcessorTime.TotalMilliseconds,
+            Uptime = uptime,
+            UptimeFormatted = FormatUptime(uptime)
+        };
+    }
+
+    #endregion
+
+    #region Database Metrics
+
+    public async Task<DatabaseMetrics> GetDatabaseMetricsAsync(CancellationToken ct = default)
+    {
+        var provider = ParseDatabaseProvider(_options.DatabaseProvider);
+        var metrics = new DatabaseMetrics
+        {
+            Timestamp = DateTime.UtcNow,
+            Provider = provider,
+            ProviderName = provider.ToString()
+        };
+
+        var connectionString = GetDatabaseConnectionString();
+        var sw = Stopwatch.StartNew();
+
+        try
+        {
+            switch (provider)
+            {
+                case DatabaseProviderType.SqlServer:
+                    metrics = await GetSqlServerMetricsAsync(connectionString, ct);
+                    break;
+                case DatabaseProviderType.MariaDB:
+                case DatabaseProviderType.MySQL:
+                    metrics = await GetMySqlMetricsAsync(connectionString, provider, ct);
+                    break;
+                case DatabaseProviderType.PostgreSQL:
+                    metrics = await GetPostgreSqlMetricsAsync(connectionString, ct);
+                    break;
+                default:
+                    metrics.IsHealthy = false;
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get database metrics");
+            metrics.IsHealthy = false;
+        }
+
+        sw.Stop();
+        if (metrics.ResponseTimeMs == 0)
+            metrics.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
+
+        return metrics;
+    }
+
+    private string GetDatabaseConnectionString()
+    {
+        return _configuration.GetConnectionString("DefaultConnection") ?? "";
+    }
+
+    private async Task<DatabaseInfo> GetSqlServerInfoAsync(string connectionString, CancellationToken ct)
+    {
+        var info = new DatabaseInfo
+        {
+            Provider = DatabaseProviderType.SqlServer,
+            ProviderName = "SQL Server"
+        };
+
+        try
+        {
+            await using var conn = new SqlConnection(connectionString);
+            await conn.OpenAsync(ct);
+            
+            info.IsConnected = true;
+            info.Host = conn.DataSource ?? "";
+            
+            var cmd = new SqlCommand(@"
+                SELECT 
+                    SERVERPROPERTY('ProductVersion') AS Version,
+                    SERVERPROPERTY('Edition') AS Edition,
+                    SERVERPROPERTY('Collation') AS Collation", conn);
+            
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            if (await reader.ReadAsync(ct))
+            {
+                info.Version = reader["Version"]?.ToString() ?? "";
+                info.Edition = reader["Edition"]?.ToString() ?? "";
+                info.Collation = reader["Collation"]?.ToString() ?? "";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get SQL Server info");
+            info.IsConnected = false;
+        }
+
+        return info;
+    }
+
+    private async Task<DatabaseMetrics> GetSqlServerMetricsAsync(string connectionString, CancellationToken ct)
+    {
+        var metrics = new DatabaseMetrics
+        {
+            Provider = DatabaseProviderType.SqlServer,
+            ProviderName = "SQL Server",
+            ProviderSpecificMetrics = new Dictionary<string, object>()
+        };
+
+        var sw = Stopwatch.StartNew();
+
+        try
+        {
+            await using var conn = new SqlConnection(connectionString);
+            await conn.OpenAsync(ct);
+            sw.Stop();
+            metrics.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
+            metrics.IsHealthy = true;
+
+            // Get version
+            var versionCmd = new SqlCommand("SELECT SERVERPROPERTY('ProductVersion') AS Version", conn);
+            var version = await versionCmd.ExecuteScalarAsync(ct);
+            metrics.Version = version?.ToString() ?? "";
+
+            // Get active connections
+            var connCmd = new SqlCommand(@"
+                SELECT COUNT(*) FROM sys.dm_exec_sessions 
+                WHERE is_user_process = 1", conn);
+            var connCount = await connCmd.ExecuteScalarAsync(ct);
+            metrics.ActiveConnections = Convert.ToInt32(connCount);
+
+            // Get database size
+            var sizeCmd = new SqlCommand(@"
+                SELECT SUM(size * 8.0 / 1024) AS SizeMB 
+                FROM sys.master_files 
+                WHERE database_id = DB_ID()", conn);
+            var size = await sizeCmd.ExecuteScalarAsync(ct);
+            metrics.DatabaseSizeMB = Convert.ToDouble(size ?? 0);
+
+            // Get SQL Server specific metrics
+            var perfCmd = new SqlCommand(@"
+                SELECT 
+                    (SELECT cntr_value FROM sys.dm_os_performance_counters 
+                     WHERE counter_name = 'Batch Requests/sec' AND instance_name = '') AS BatchRequests,
+                    (SELECT cntr_value FROM sys.dm_os_performance_counters 
+                     WHERE counter_name = 'Buffer cache hit ratio' AND instance_name = '') AS CacheHitRatio,
+                    (SELECT COUNT(*) FROM sys.dm_exec_requests WHERE status = 'running') AS ActiveQueries", conn);
             
             try
             {
-                var response = await _httpClient.GetAsync(dockerApiUrl, ct);
-                if (response.IsSuccessStatusCode)
+                await using var reader = await perfCmd.ExecuteReaderAsync(ct);
+                if (await reader.ReadAsync(ct))
                 {
-                    var json = await response.Content.ReadAsStringAsync(ct);
-                    var containerInfos = JsonSerializer.Deserialize<List<JsonElement>>(json);
-                    
-                    if (containerInfos != null)
-                    {
-                        foreach (var info in containerInfos)
-                        {
-                            containers.Add(ParseDockerContainer(info));
-                        }
-                    }
+                    metrics.ProviderSpecificMetrics["batchRequestsPerSec"] = reader["BatchRequests"] ?? 0;
+                    metrics.ProviderSpecificMetrics["bufferCacheHitRatio"] = reader["CacheHitRatio"] ?? 0;
+                    metrics.ProviderSpecificMetrics["activeQueries"] = reader["ActiveQueries"] ?? 0;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogDebug(ex, "Docker API not available, using fallback detection");
-                // Fallback: detect containers from environment/configuration
-                containers = GetContainersFromConfig();
+                // Permissions may prevent reading performance counters
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get SQL Server metrics");
+            sw.Stop();
+            metrics.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
+            metrics.IsHealthy = false;
+        }
+
+        return metrics;
+    }
+
+    private async Task<DatabaseInfo> GetMySqlInfoAsync(string connectionString, DatabaseProviderType provider, CancellationToken ct)
+    {
+        var info = new DatabaseInfo
+        {
+            Provider = provider,
+            ProviderName = provider == DatabaseProviderType.MariaDB ? "MariaDB" : "MySQL"
+        };
+
+        try
+        {
+            await using var conn = new MySqlConnection(connectionString);
+            await conn.OpenAsync(ct);
+            
+            info.IsConnected = true;
+            info.Host = conn.DataSource ?? "";
+            
+            var cmd = new MySqlCommand("SELECT VERSION() AS Version, @@collation_database AS Collation", conn);
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            if (await reader.ReadAsync(ct))
+            {
+                info.Version = reader["Version"]?.ToString() ?? "";
+                info.Collation = reader["Collation"]?.ToString() ?? "";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get MySQL/MariaDB info");
+            info.IsConnected = false;
+        }
+
+        return info;
+    }
+
+    private async Task<DatabaseMetrics> GetMySqlMetricsAsync(string connectionString, DatabaseProviderType provider, CancellationToken ct)
+    {
+        var metrics = new DatabaseMetrics
+        {
+            Provider = provider,
+            ProviderName = provider == DatabaseProviderType.MariaDB ? "MariaDB" : "MySQL",
+            ProviderSpecificMetrics = new Dictionary<string, object>()
+        };
+
+        var sw = Stopwatch.StartNew();
+
+        try
+        {
+            await using var conn = new MySqlConnection(connectionString);
+            await conn.OpenAsync(ct);
+            sw.Stop();
+            metrics.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
+            metrics.IsHealthy = true;
+
+            var versionCmd = new MySqlCommand("SELECT VERSION()", conn);
+            metrics.Version = (await versionCmd.ExecuteScalarAsync(ct))?.ToString() ?? "";
+
+            var connCmd = new MySqlCommand("SHOW STATUS LIKE 'Threads_connected'", conn);
+            await using (var reader = await connCmd.ExecuteReaderAsync(ct))
+            {
+                if (await reader.ReadAsync(ct))
+                {
+                    metrics.ActiveConnections = Convert.ToInt32(reader["Value"]);
+                }
+            }
+
+            var sizeCmd = new MySqlCommand(@"
+                SELECT SUM(data_length + index_length) / 1024 / 1024 AS SizeMB 
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()", conn);
+            var size = await sizeCmd.ExecuteScalarAsync(ct);
+            metrics.DatabaseSizeMB = Convert.ToDouble(size ?? 0);
+
+            // Get MySQL specific metrics
+            var statusCmd = new MySqlCommand("SHOW GLOBAL STATUS WHERE Variable_name IN ('Queries', 'Slow_queries', 'Uptime')", conn);
+            await using (var reader = await statusCmd.ExecuteReaderAsync(ct))
+            {
+                while (await reader.ReadAsync(ct))
+                {
+                    var name = reader["Variable_name"]?.ToString() ?? "";
+                    var value = reader["Value"];
+                    metrics.ProviderSpecificMetrics[name.ToLowerInvariant()] = value ?? 0;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get MySQL/MariaDB metrics");
+            sw.Stop();
+            metrics.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
+            metrics.IsHealthy = false;
+        }
+
+        return metrics;
+    }
+
+    private async Task<DatabaseInfo> GetPostgreSqlInfoAsync(string connectionString, CancellationToken ct)
+    {
+        var info = new DatabaseInfo
+        {
+            Provider = DatabaseProviderType.PostgreSQL,
+            ProviderName = "PostgreSQL"
+        };
+
+        try
+        {
+            await using var conn = new NpgsqlConnection(connectionString);
+            await conn.OpenAsync(ct);
+            
+            info.IsConnected = true;
+            info.Host = conn.Host ?? "";
+            info.Port = conn.Port;
+            
+            var cmd = new NpgsqlCommand("SELECT version(), current_setting('server_encoding')", conn);
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            if (await reader.ReadAsync(ct))
+            {
+                info.Version = reader.GetString(0);
+                info.Collation = reader.GetString(1);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get PostgreSQL info");
+            info.IsConnected = false;
+        }
+
+        return info;
+    }
+
+    private async Task<DatabaseMetrics> GetPostgreSqlMetricsAsync(string connectionString, CancellationToken ct)
+    {
+        var metrics = new DatabaseMetrics
+        {
+            Provider = DatabaseProviderType.PostgreSQL,
+            ProviderName = "PostgreSQL",
+            ProviderSpecificMetrics = new Dictionary<string, object>()
+        };
+
+        var sw = Stopwatch.StartNew();
+
+        try
+        {
+            await using var conn = new NpgsqlConnection(connectionString);
+            await conn.OpenAsync(ct);
+            sw.Stop();
+            metrics.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
+            metrics.IsHealthy = true;
+
+            var versionCmd = new NpgsqlCommand("SELECT version()", conn);
+            metrics.Version = (await versionCmd.ExecuteScalarAsync(ct))?.ToString() ?? "";
+
+            var connCmd = new NpgsqlCommand("SELECT count(*) FROM pg_stat_activity WHERE state = 'active'", conn);
+            metrics.ActiveConnections = Convert.ToInt32(await connCmd.ExecuteScalarAsync(ct));
+
+            var sizeCmd = new NpgsqlCommand("SELECT pg_database_size(current_database()) / 1024.0 / 1024.0", conn);
+            var size = await sizeCmd.ExecuteScalarAsync(ct);
+            metrics.DatabaseSizeMB = Convert.ToDouble(size ?? 0);
+
+            // Get PostgreSQL specific metrics
+            var statsCmd = new NpgsqlCommand(@"
+                SELECT 
+                    xact_commit, xact_rollback, blks_read, blks_hit,
+                    tup_returned, tup_fetched, tup_inserted, tup_updated, tup_deleted
+                FROM pg_stat_database 
+                WHERE datname = current_database()", conn);
+            
+            await using var reader = await statsCmd.ExecuteReaderAsync(ct);
+            if (await reader.ReadAsync(ct))
+            {
+                metrics.ProviderSpecificMetrics["xact_commit"] = reader["xact_commit"];
+                metrics.ProviderSpecificMetrics["xact_rollback"] = reader["xact_rollback"];
+                metrics.ProviderSpecificMetrics["blks_read"] = reader["blks_read"];
+                metrics.ProviderSpecificMetrics["blks_hit"] = reader["blks_hit"];
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get PostgreSQL metrics");
+            sw.Stop();
+            metrics.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
+            metrics.IsHealthy = false;
+        }
+
+        return metrics;
+    }
+
+    #endregion
+
+    #region Service Health
+
+    public async Task<List<ServiceHealth>> GetServiceHealthAsync(CancellationToken ct = default)
+    {
+        var services = new List<ServiceHealth>();
+        
+        // API Server (self)
+        services.Add(GetApiHealth());
+        
+        // Database
+        services.Add(await GetDatabaseHealthAsync(ct));
+        
+        // Frontend
+        var frontendUrl = _configuration["Frontend:Url"] ?? "http://localhost:3000";
+        services.Add(await CheckHttpHealthAsync("CRM Frontend", "frontend", frontendUrl, ct));
+        
+        return services;
+    }
+
+    private ServiceHealth GetApiHealth()
+    {
+        var uptime = DateTime.UtcNow - _startTime;
+        
+        return new ServiceHealth
+        {
+            Name = "CRM API",
+            Type = "api",
+            Status = "healthy",
+            Endpoint = _options.BuildServer ?? "localhost",
+            ResponseTimeMs = 0,
+            Version = GetAssemblyVersion(),
+            LastCheck = DateTime.UtcNow,
+            Uptime = FormatUptime(uptime),
+            Metadata = new Dictionary<string, object>
+            {
+                ["processId"] = Process.GetCurrentProcess().Id,
+                ["threads"] = Process.GetCurrentProcess().Threads.Count,
+                ["memoryMB"] = Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024)
+            }
+        };
+    }
+
+    private async Task<ServiceHealth> GetDatabaseHealthAsync(CancellationToken ct)
+    {
+        var metrics = await GetDatabaseMetricsAsync(ct);
+        
+        return new ServiceHealth
+        {
+            Name = $"Database ({metrics.ProviderName})",
+            Type = "database",
+            Status = metrics.IsHealthy ? "healthy" : "error",
+            Endpoint = GetDatabaseHost(),
+            ResponseTimeMs = metrics.ResponseTimeMs,
+            Version = metrics.Version,
+            LastCheck = DateTime.UtcNow,
+            Uptime = "N/A",
+            Metadata = new Dictionary<string, object>
+            {
+                ["provider"] = metrics.ProviderName,
+                ["activeConnections"] = metrics.ActiveConnections,
+                ["databaseSizeMB"] = metrics.DatabaseSizeMB
+            }
+        };
+    }
+
+    private async Task<ServiceHealth> CheckHttpHealthAsync(string name, string type, string url, CancellationToken ct)
+    {
+        var health = new ServiceHealth
+        {
+            Name = name,
+            Type = type,
+            Endpoint = url,
+            LastCheck = DateTime.UtcNow
+        };
+
+        var sw = Stopwatch.StartNew();
+
+        try
+        {
+            var response = await _httpClient.GetAsync(url, ct);
+            sw.Stop();
+            
+            health.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
+            health.Status = response.IsSuccessStatusCode ? "healthy" : "degraded";
+            health.Version = "1.0.0";
+            health.Uptime = "N/A";
+        }
+        catch (Exception ex)
+        {
+            sw.Stop();
+            health.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
+            health.Status = "error";
+            health.Metadata["error"] = ex.Message;
+            _logger.LogWarning(ex, "Health check failed for {Name}", name);
+        }
+
+        return health;
+    }
+
+    private string GetDatabaseHost()
+    {
+        var connectionString = GetDatabaseConnectionString();
+        
+        // Parse different connection string formats
+        if (connectionString.Contains("Server=", StringComparison.OrdinalIgnoreCase))
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(
+                connectionString, @"Server=([^;]+)", 
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return match.Success ? match.Groups[1].Value : "unknown";
+        }
+        
+        if (connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase))
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(
+                connectionString, @"Host=([^;]+)", 
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return match.Success ? match.Groups[1].Value : "unknown";
+        }
+        
+        return "unknown";
+    }
+
+    #endregion
+
+    #region Container Monitoring
+
+    public async Task<List<ContainerHealth>> GetContainerHealthAsync(CancellationToken ct = default)
+    {
+        if (!_options.EnableDockerMonitoring && !File.Exists("/.dockerenv"))
+        {
+            return new List<ContainerHealth>();
+        }
+
+        var containers = new List<ContainerHealth>();
+
+        try
+        {
+            // Try to get container info via Docker socket
+            var dockerSocket = "/var/run/docker.sock";
+            if (File.Exists(dockerSocket))
+            {
+                containers = await GetDockerContainersAsync(ct);
+            }
+            else
+            {
+                // Fallback: return basic container info if we're in a container
+                if (File.Exists("/.dockerenv"))
+                {
+                    containers.Add(new ContainerHealth
+                    {
+                        ContainerId = Environment.MachineName,
+                        ContainerName = "crm-api",
+                        Status = "running",
+                        Health = "healthy",
+                        StartedAt = _startTime,
+                        Uptime = FormatUptime(DateTime.UtcNow - _startTime)
+                    });
+                }
             }
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to get container health");
         }
-        
-        await _cache.SetAsync(cacheKey, containers, TimeSpan.FromSeconds(_options.CacheDurationSeconds), ct);
+
         return containers;
     }
 
-    public async Task<List<PodHealth>> GetPodHealthAsync(CancellationToken ct = default)
+    private async Task<List<ContainerHealth>> GetDockerContainersAsync(CancellationToken ct)
     {
-        if (!_options.EnableK8sMonitoring) return new List<PodHealth>();
-        
-        var cacheKey = "monitoring:pods";
-        var cached = await _cache.GetAsync<List<PodHealth>>(cacheKey, ct);
-        if (cached != null) return cached;
-        
-        var pods = new List<PodHealth>();
+        var containers = new List<ContainerHealth>();
         
         try
         {
-            // Try to access Kubernetes API
-            var k8sApiUrl = "https://kubernetes.default.svc/api/v1";
-            var ns = _options.KubernetesNamespace;
-            
-            // Check for in-cluster config
-            var tokenPath = "/var/run/secrets/kubernetes.io/serviceaccount/token";
-            if (File.Exists(tokenPath))
+            // Execute docker ps command
+            var psi = new ProcessStartInfo
             {
-                var token = await File.ReadAllTextAsync(tokenPath, ct);
-                _httpClient.DefaultRequestHeaders.Authorization = 
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                
-                var response = await _httpClient.GetAsync($"{k8sApiUrl}/namespaces/{ns}/pods", ct);
-                if (response.IsSuccessStatusCode)
+                FileName = "docker",
+                Arguments = "ps --format \"{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}\"",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(psi);
+            if (process == null) return containers;
+
+            var output = await process.StandardOutput.ReadToEndAsync(ct);
+            await process.WaitForExitAsync(ct);
+
+            foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var parts = line.Split('|');
+                if (parts.Length >= 4)
                 {
-                    var json = await response.Content.ReadAsStringAsync(ct);
-                    pods = ParseKubernetesPods(json);
+                    var status = parts[3].ToLowerInvariant();
+                    containers.Add(new ContainerHealth
+                    {
+                        ContainerId = parts[0],
+                        ContainerName = parts[1],
+                        Image = parts[2],
+                        Status = status.Contains("up") ? "running" : "stopped",
+                        Health = status.Contains("healthy") ? "healthy" : 
+                                 status.Contains("unhealthy") ? "unhealthy" : "none",
+                        Uptime = parts[3]
+                    });
                 }
             }
-            else
-            {
-                _logger.LogDebug("Not running in Kubernetes, skipping pod discovery");
-            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to execute docker ps");
+        }
+
+        return containers;
+    }
+
+    #endregion
+
+    #region Kubernetes Monitoring
+
+    public async Task<List<PodHealth>> GetPodHealthAsync(CancellationToken ct = default)
+    {
+        if (!_options.EnableK8sMonitoring && 
+            Environment.GetEnvironmentVariable("KUBERNETES_SERVICE_HOST") == null)
+        {
+            return new List<PodHealth>();
+        }
+
+        var pods = new List<PodHealth>();
+
+        try
+        {
+            // Try kubectl if available
+            pods = await GetKubernetePodsAsync(ct);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to get pod health");
         }
-        
-        await _cache.SetAsync(cacheKey, pods, TimeSpan.FromSeconds(_options.CacheDurationSeconds), ct);
+
         return pods;
     }
 
-    public async Task<SystemHealthSummary> GetSystemHealthAsync(CancellationToken ct = default)
-    {
-        var cacheKey = "monitoring:summary";
-        var cached = await _cache.GetAsync<SystemHealthSummary>(cacheKey, ct);
-        if (cached != null) return cached;
-        
-        var endpoints = await CheckEndpointHealthAsync(ct);
-        var containers = await GetContainerHealthAsync(ct);
-        var pods = await GetPodHealthAsync(ct);
-        
-        var healthyCount = endpoints.Count(e => e.Status == "healthy");
-        var degradedCount = endpoints.Count(e => e.Status == "degraded");
-        var errorCount = endpoints.Count(e => e.Status == "error");
-        
-        string overallStatus;
-        if (errorCount > 0) overallStatus = "error";
-        else if (degradedCount > 0) overallStatus = "degraded";
-        else overallStatus = "healthy";
-        
-        var summary = new SystemHealthSummary
-        {
-            Timestamp = DateTime.UtcNow,
-            DeploymentType = _options.DeploymentType,
-            BuildServer = !string.IsNullOrEmpty(_options.BuildServerFQDN) 
-                ? _options.BuildServerFQDN 
-                : _options.BuildServer,
-            OverallStatus = overallStatus,
-            HealthyServices = healthyCount,
-            DegradedServices = degradedCount,
-            ErrorServices = errorCount,
-            TotalServices = endpoints.Count,
-            Endpoints = endpoints,
-            Containers = containers,
-            Pods = pods,
-            Metrics = GetSystemMetrics()
-        };
-        
-        await _cache.SetAsync(cacheKey, summary, TimeSpan.FromSeconds(_options.CacheDurationSeconds), ct);
-        return summary;
-    }
-
-    public async Task<Dictionary<string, object>> GetApiMetricsAsync(string endpoint, CancellationToken ct = default)
-    {
-        var metrics = new Dictionary<string, object>();
-        
-        try
-        {
-            var sw = Stopwatch.StartNew();
-            var response = await _httpClient.GetAsync($"{endpoint}/health", ct);
-            sw.Stop();
-            
-            metrics["responseTimeMs"] = sw.ElapsedMilliseconds;
-            metrics["statusCode"] = (int)response.StatusCode;
-            metrics["healthy"] = response.IsSuccessStatusCode;
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync(ct);
-                try
-                {
-                    var healthData = JsonSerializer.Deserialize<Dictionary<string, object>>(content);
-                    if (healthData != null)
-                    {
-                        foreach (var kvp in healthData)
-                        {
-                            metrics[kvp.Key] = kvp.Value;
-                        }
-                    }
-                }
-                catch { /* Ignore parse errors */ }
-            }
-        }
-        catch (Exception ex)
-        {
-            metrics["error"] = ex.Message;
-            metrics["healthy"] = false;
-        }
-        
-        return metrics;
-    }
-
-    #region Private Methods
-
-    private List<MonitoredEndpoint> DiscoverApiEndpoints()
-    {
-        var endpoints = new List<MonitoredEndpoint>();
-        
-        // Get from configuration
-        var configuredApis = _options.ApiEndpoints;
-        if (!string.IsNullOrEmpty(configuredApis))
-        {
-            foreach (var api in configuredApis.Split(',', StringSplitOptions.RemoveEmptyEntries))
-            {
-                var parts = api.Trim().Split('|');
-                var url = parts[0].Trim();
-                var name = parts.Length > 1 ? parts[1].Trim() : ExtractHostFromUrl(url);
-                
-                endpoints.Add(CreateEndpointFromUrl(url, name, "api"));
-            }
-        }
-        
-        // Auto-discover from environment
-        var apiUrl = _configuration["REACT_APP_API_URL"] 
-            ?? _configuration["API_URL"] 
-            ?? $"http://{_options.BuildServer}:5000/api";
-        
-        if (!endpoints.Any(e => e.Endpoint.Contains(apiUrl)))
-        {
-            endpoints.Add(CreateEndpointFromUrl(apiUrl, "CRM API", "api"));
-        }
-        
-        return endpoints;
-    }
-
-    private List<MonitoredEndpoint> DiscoverDatabaseServers()
-    {
-        var endpoints = new List<MonitoredEndpoint>();
-        
-        // Get from configuration
-        var dbServers = _options.DatabaseServers;
-        if (!string.IsNullOrEmpty(dbServers))
-        {
-            foreach (var db in dbServers.Split(',', StringSplitOptions.RemoveEmptyEntries))
-            {
-                var parts = db.Trim().Split('|');
-                var hostPort = parts[0].Trim();
-                var name = parts.Length > 1 ? parts[1].Trim() : $"Database ({hostPort})";
-                
-                var (host, port) = ParseHostPort(hostPort, GetDefaultDbPort());
-                
-                endpoints.Add(new MonitoredEndpoint
-                {
-                    Name = name,
-                    Type = "database",
-                    Host = host,
-                    Port = port,
-                    Endpoint = $"{host}:{port}",
-                    FQDN = ResolveFQDN(host),
-                    Metadata = new Dictionary<string, object>
-                    {
-                        ["provider"] = _options.DatabaseProvider
-                    }
-                });
-            }
-        }
-        
-        // Auto-discover from connection string
-        var connString = _configuration.GetConnectionString("DefaultConnection") 
-            ?? _configuration["DB_HOST"];
-        
-        if (!string.IsNullOrEmpty(connString))
-        {
-            var dbHost = ExtractDbHostFromConnectionString(connString);
-            var dbPort = ExtractDbPortFromConnectionString(connString);
-            
-            if (!endpoints.Any(e => e.Host == dbHost))
-            {
-                endpoints.Add(new MonitoredEndpoint
-                {
-                    Name = $"{_options.DatabaseProvider.ToUpper()} Database",
-                    Type = "database",
-                    Host = dbHost,
-                    Port = dbPort,
-                    Endpoint = $"{dbHost}:{dbPort}",
-                    FQDN = ResolveFQDN(dbHost),
-                    Metadata = new Dictionary<string, object>
-                    {
-                        ["provider"] = _options.DatabaseProvider
-                    }
-                });
-            }
-        }
-        
-        return endpoints;
-    }
-
-    private List<MonitoredEndpoint> DiscoverFrontendUrls()
-    {
-        var endpoints = new List<MonitoredEndpoint>();
-        
-        var frontendUrls = _options.FrontendUrls;
-        if (!string.IsNullOrEmpty(frontendUrls))
-        {
-            foreach (var url in frontendUrls.Split(',', StringSplitOptions.RemoveEmptyEntries))
-            {
-                endpoints.Add(CreateEndpointFromUrl(url.Trim(), "CRM Frontend", "frontend"));
-            }
-        }
-        
-        // Auto-discover
-        var frontendUrl = _configuration["Frontend:Url"] 
-            ?? $"http://{_options.BuildServer}";
-        
-        if (!endpoints.Any(e => e.Endpoint.Contains(frontendUrl)))
-        {
-            endpoints.Add(CreateEndpointFromUrl(frontendUrl, "CRM Frontend", "frontend"));
-        }
-        
-        return endpoints;
-    }
-
-    private List<MonitoredEndpoint> DiscoverRedisEndpoints()
-    {
-        var endpoints = new List<MonitoredEndpoint>();
-        
-        var redisEndpoints = _options.RedisEndpoints;
-        if (!string.IsNullOrEmpty(redisEndpoints))
-        {
-            foreach (var redis in redisEndpoints.Split(',', StringSplitOptions.RemoveEmptyEntries))
-            {
-                var (host, port) = ParseHostPort(redis.Trim(), 6379);
-                endpoints.Add(new MonitoredEndpoint
-                {
-                    Name = "Redis Cache",
-                    Type = "redis",
-                    Host = host,
-                    Port = port,
-                    Endpoint = $"{host}:{port}",
-                    FQDN = ResolveFQDN(host)
-                });
-            }
-        }
-        
-        // Auto-discover from config
-        var redisConn = _configuration["Redis:ConnectionString"];
-        if (!string.IsNullOrEmpty(redisConn))
-        {
-            var (host, port) = ParseHostPort(redisConn.Split(',')[0], 6379);
-            if (!endpoints.Any(e => e.Host == host))
-            {
-                endpoints.Add(new MonitoredEndpoint
-                {
-                    Name = "Redis Cache",
-                    Type = "redis",
-                    Host = host,
-                    Port = port,
-                    Endpoint = $"{host}:{port}",
-                    FQDN = ResolveFQDN(host)
-                });
-            }
-        }
-        
-        return endpoints;
-    }
-
-    private async Task<MonitoredEndpoint> CheckEndpointAsync(MonitoredEndpoint endpoint, CancellationToken ct)
-    {
-        var sw = Stopwatch.StartNew();
-        
-        try
-        {
-            switch (endpoint.Type)
-            {
-                case "api":
-                case "frontend":
-                    await CheckHttpEndpointAsync(endpoint, ct);
-                    break;
-                case "database":
-                    await CheckDatabaseEndpointAsync(endpoint, ct);
-                    break;
-                case "redis":
-                    await CheckRedisEndpointAsync(endpoint, ct);
-                    break;
-                default:
-                    await CheckTcpEndpointAsync(endpoint, ct);
-                    break;
-            }
-        }
-        catch (Exception ex)
-        {
-            endpoint.Status = "error";
-            endpoint.Metadata["error"] = ex.Message;
-        }
-        
-        sw.Stop();
-        endpoint.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
-        endpoint.LastCheck = DateTime.UtcNow;
-        
-        return endpoint;
-    }
-
-    private async Task CheckHttpEndpointAsync(MonitoredEndpoint endpoint, CancellationToken ct)
-    {
-        var url = endpoint.Endpoint.StartsWith("http") 
-            ? endpoint.Endpoint 
-            : $"http://{endpoint.Endpoint}";
-        
-        var healthUrl = endpoint.Type == "api" 
-            ? url.Replace("/api", "/health")
-            : url;
-        
-        var response = await _httpClient.GetAsync(healthUrl, ct);
-        endpoint.Status = response.IsSuccessStatusCode ? "healthy" : "degraded";
-        endpoint.Metadata["statusCode"] = (int)response.StatusCode;
-    }
-
-    private async Task CheckDatabaseEndpointAsync(MonitoredEndpoint endpoint, CancellationToken ct)
-    {
-        // TCP port check for database
-        await CheckTcpEndpointAsync(endpoint, ct);
-    }
-
-    private async Task CheckRedisEndpointAsync(MonitoredEndpoint endpoint, CancellationToken ct)
-    {
-        await CheckTcpEndpointAsync(endpoint, ct);
-    }
-
-    private async Task CheckTcpEndpointAsync(MonitoredEndpoint endpoint, CancellationToken ct)
-    {
-        using var tcpClient = new System.Net.Sockets.TcpClient();
-        var connectTask = tcpClient.ConnectAsync(endpoint.Host, endpoint.Port);
-        var timeoutTask = Task.Delay(_options.HealthCheckTimeoutSeconds * 1000, ct);
-        
-        if (await Task.WhenAny(connectTask, timeoutTask) == connectTask)
-        {
-            await connectTask; // Propagate exception if any
-            endpoint.Status = "healthy";
-        }
-        else
-        {
-            endpoint.Status = "error";
-            endpoint.Metadata["error"] = "Connection timeout";
-        }
-    }
-
-    private MonitoredEndpoint CreateEndpointFromUrl(string url, string name, string type)
-    {
-        var uri = new Uri(url.StartsWith("http") ? url : $"http://{url}");
-        return new MonitoredEndpoint
-        {
-            Name = name,
-            Type = type,
-            Host = uri.Host,
-            Port = uri.Port,
-            Endpoint = url,
-            FQDN = ResolveFQDN(uri.Host)
-        };
-    }
-
-    private (string host, int port) ParseHostPort(string hostPort, int defaultPort)
-    {
-        var parts = hostPort.Split(':');
-        var host = parts[0];
-        var port = parts.Length > 1 && int.TryParse(parts[1], out var p) ? p : defaultPort;
-        return (host, port);
-    }
-
-    private int GetDefaultDbPort() => _options.DatabaseProvider.ToLower() switch
-    {
-        "sqlserver" => 1433,
-        "postgresql" => 5432,
-        "mariadb" => 3306,
-        "mysql" => 3306,
-        _ => 3306
-    };
-
-    private string ExtractHostFromUrl(string url)
-    {
-        try
-        {
-            var uri = new Uri(url.StartsWith("http") ? url : $"http://{url}");
-            return uri.Host;
-        }
-        catch
-        {
-            return url;
-        }
-    }
-
-    private string ExtractDbHostFromConnectionString(string connString)
-    {
-        // Parse Server=host or Host=host or Data Source=host
-        var patterns = new[] { "Server=", "Host=", "Data Source=" };
-        foreach (var pattern in patterns)
-        {
-            var idx = connString.IndexOf(pattern, StringComparison.OrdinalIgnoreCase);
-            if (idx >= 0)
-            {
-                var start = idx + pattern.Length;
-                var end = connString.IndexOfAny(new[] { ';', ',' }, start);
-                var hostPart = end > 0 
-                    ? connString.Substring(start, end - start) 
-                    : connString.Substring(start);
-                return hostPart.Split(':')[0].Split(',')[0];
-            }
-        }
-        return _options.BuildServer;
-    }
-
-    private int ExtractDbPortFromConnectionString(string connString)
-    {
-        // Parse Port= or :port after host
-        var portPattern = "Port=";
-        var idx = connString.IndexOf(portPattern, StringComparison.OrdinalIgnoreCase);
-        if (idx >= 0)
-        {
-            var start = idx + portPattern.Length;
-            var end = connString.IndexOf(';', start);
-            var portStr = end > 0 
-                ? connString.Substring(start, end - start) 
-                : connString.Substring(start);
-            if (int.TryParse(portStr, out var port)) return port;
-        }
-        return GetDefaultDbPort();
-    }
-
-    private string ResolveFQDN(string host)
-    {
-        try
-        {
-            if (System.Net.IPAddress.TryParse(host, out _))
-            {
-                // It's an IP, try reverse DNS
-                var entry = System.Net.Dns.GetHostEntry(host);
-                return entry.HostName;
-            }
-            return host;
-        }
-        catch
-        {
-            return host;
-        }
-    }
-
-    private ContainerHealth ParseDockerContainer(JsonElement info)
-    {
-        var container = new ContainerHealth();
-        
-        try
-        {
-            container.ContainerId = info.GetProperty("Id").GetString()?.Substring(0, 12) ?? "";
-            
-            var names = info.GetProperty("Names");
-            container.ContainerName = names.GetArrayLength() > 0 
-                ? names[0].GetString()?.TrimStart('/') ?? "" 
-                : "";
-            
-            container.Image = info.GetProperty("Image").GetString() ?? "";
-            container.Status = info.GetProperty("State").GetString() ?? "";
-            
-            if (info.TryGetProperty("Status", out var statusProp))
-            {
-                var status = statusProp.GetString() ?? "";
-                container.Health = status.Contains("healthy") ? "healthy" 
-                    : status.Contains("unhealthy") ? "unhealthy" 
-                    : "unknown";
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Error parsing Docker container info");
-        }
-        
-        return container;
-    }
-
-    private List<ContainerHealth> GetContainersFromConfig()
-    {
-        // Fallback: return expected containers based on deployment type
-        var containers = new List<ContainerHealth>();
-        
-        if (_options.DeploymentType == "docker" || _options.DeploymentType == "hybrid")
-        {
-            containers.Add(new ContainerHealth { ContainerName = "crm-api", Status = "running" });
-            containers.Add(new ContainerHealth { ContainerName = "crm-frontend", Status = "running" });
-            containers.Add(new ContainerHealth { ContainerName = "crm-mariadb", Status = "running" });
-            containers.Add(new ContainerHealth { ContainerName = "crm-redis", Status = "running" });
-        }
-        
-        return containers;
-    }
-
-    private List<PodHealth> ParseKubernetesPods(string json)
+    private async Task<List<PodHealth>> GetKubernetePodsAsync(CancellationToken ct)
     {
         var pods = new List<PodHealth>();
         
         try
         {
-            using var doc = JsonDocument.Parse(json);
-            var items = doc.RootElement.GetProperty("items");
-            
-            foreach (var item in items.EnumerateArray())
+            var psi = new ProcessStartInfo
             {
-                var pod = new PodHealth
+                FileName = "kubectl",
+                Arguments = $"get pods -n {_options.KubernetesNamespace} -o json",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(psi);
+            if (process == null) return pods;
+
+            var output = await process.StandardOutput.ReadToEndAsync(ct);
+            await process.WaitForExitAsync(ct);
+
+            if (process.ExitCode == 0 && !string.IsNullOrEmpty(output))
+            {
+                var json = JsonDocument.Parse(output);
+                var items = json.RootElement.GetProperty("items");
+
+                foreach (var item in items.EnumerateArray())
                 {
-                    PodName = item.GetProperty("metadata").GetProperty("name").GetString() ?? "",
-                    Namespace = item.GetProperty("metadata").GetProperty("namespace").GetString() ?? "",
-                    Phase = item.GetProperty("status").GetProperty("phase").GetString() ?? "",
-                };
-                
-                if (item.GetProperty("status").TryGetProperty("conditions", out var conditions))
-                {
-                    foreach (var cond in conditions.EnumerateArray())
+                    var metadata = item.GetProperty("metadata");
+                    var status = item.GetProperty("status");
+                    var spec = item.GetProperty("spec");
+
+                    pods.Add(new PodHealth
                     {
-                        if (cond.GetProperty("type").GetString() == "Ready")
-                        {
-                            pod.Ready = cond.GetProperty("status").GetString() == "True";
-                        }
-                    }
+                        PodName = metadata.GetProperty("name").GetString() ?? "",
+                        Namespace = metadata.GetProperty("namespace").GetString() ?? "",
+                        Phase = status.GetProperty("phase").GetString() ?? "",
+                        PodIP = status.TryGetProperty("podIP", out var ip) ? ip.GetString() ?? "" : "",
+                        NodeName = spec.TryGetProperty("nodeName", out var node) ? node.GetString() ?? "" : "",
+                        Ready = status.GetProperty("phase").GetString() == "Running"
+                    });
                 }
-                
-                pods.Add(pod);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Error parsing Kubernetes pods");
+            _logger.LogWarning(ex, "Failed to execute kubectl");
         }
-        
+
         return pods;
     }
 
-    private Dictionary<string, object> GetSystemMetrics()
+    #endregion
+
+    #region Active Sessions
+
+    public async Task<List<UserSession>> GetActiveSessionsAsync(CancellationToken ct = default)
     {
-        var process = Process.GetCurrentProcess();
-        var uptime = DateTime.UtcNow - _startTime;
+        // This would be implemented to query active user sessions
+        // For now, return empty list - the controller will handle this via EF Core
+        return await Task.FromResult(new List<UserSession>());
+    }
+
+    #endregion
+
+    #region All Monitoring Data
+
+    public async Task<MonitoringData> GetAllMonitoringDataAsync(CancellationToken ct = default)
+    {
+        var cacheKey = "monitoring:all";
         
-        return new Dictionary<string, object>
+        var cached = await _cache.GetAsync<MonitoringData>(cacheKey, ct);
+        if (cached != null) return cached;
+
+        var data = new MonitoringData
         {
-            ["timestamp"] = DateTime.UtcNow,
-            ["uptime"] = FormatUptime(uptime),
-            ["uptimeSeconds"] = (long)uptime.TotalSeconds,
-            ["cpuTimeMs"] = (long)process.TotalProcessorTime.TotalMilliseconds,
-            ["memoryMB"] = process.WorkingSet64 / (1024 * 1024),
-            ["threadCount"] = process.Threads.Count,
-            ["handleCount"] = process.HandleCount,
-            ["machineName"] = Environment.MachineName,
-            ["osDescription"] = RuntimeInformation.OSDescription,
-            ["processorCount"] = Environment.ProcessorCount,
-            ["dotNetVersion"] = RuntimeInformation.FrameworkDescription
+            Timestamp = DateTime.UtcNow
         };
+
+        // Run all tasks in parallel for performance
+        var infraTask = GetInfrastructureInfoAsync(ct);
+        var systemTask = GetSystemMetricsAsync(ct);
+        var dbTask = GetDatabaseMetricsAsync(ct);
+        var servicesTask = GetServiceHealthAsync(ct);
+        var containersTask = GetContainerHealthAsync(ct);
+        var podsTask = GetPodHealthAsync(ct);
+
+        await Task.WhenAll(infraTask, systemTask, dbTask, servicesTask, containersTask, podsTask);
+
+        data.Infrastructure = await infraTask;
+        data.System = await systemTask;
+        data.Database = await dbTask;
+        data.Services = await servicesTask;
+        data.Containers = await containersTask;
+        data.Pods = await podsTask;
+
+        await _cache.SetAsync(cacheKey, data, TimeSpan.FromSeconds(_options.CacheDurationSeconds), ct);
+
+        return data;
+    }
+
+    #endregion
+
+    #region Helpers
+
+    private static long GetTotalPhysicalMemory()
+    {
+        try
+        {
+            var gcInfo = GC.GetGCMemoryInfo();
+            if (gcInfo.TotalAvailableMemoryBytes > 0)
+            {
+                return gcInfo.TotalAvailableMemoryBytes;
+            }
+        }
+        catch { }
+        
+        return 8L * 1024 * 1024 * 1024; // Default 8GB
     }
 
     private static string FormatUptime(TimeSpan uptime)
@@ -924,5 +1375,12 @@ public class MonitoringService : IMonitoringService
         return $"{uptime.Minutes}m {uptime.Seconds}s";
     }
 
+    private static string GetAssemblyVersion()
+    {
+        return typeof(MonitoringService).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+    }
+
     #endregion
 }
+
+#endregion
