@@ -1,0 +1,43 @@
+{
+  "summary": {
+    "startTime": "2026-01-27T22:09:55.168Z",
+    "totalTests": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 27850,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "data-population": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-01-27T22:10:23.018Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-01-27T22:10:14.025Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 15266
+    },
+    {
+      "timestamp": "2026-01-27T22:10:22.915Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "Check what happens when clicking Add User button",
+      "module": "data-population",
+      "status": "PASS",
+      "duration": 7778
+    }
+  ]
+}

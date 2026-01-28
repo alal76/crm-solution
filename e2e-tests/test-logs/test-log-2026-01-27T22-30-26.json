@@ -1,0 +1,78 @@
+{
+  "summary": {
+    "startTime": "2026-01-27T22:30:26.891Z",
+    "totalTests": 6,
+    "passed": 3,
+    "failed": 3,
+    "skipped": 0,
+    "duration": 29128,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "customers": {
+        "total": 5,
+        "passed": 2,
+        "failed": 3,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-01-27T22:30:56.019Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-01-27T22:30:41.641Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 13318
+    },
+    {
+      "timestamp": "2026-01-27T22:30:42.928Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 2,
+      "error": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+    },
+    {
+      "timestamp": "2026-01-27T22:30:42.942Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 5,
+      "error": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+    },
+    {
+      "timestamp": "2026-01-27T22:30:44.346Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "FAIL",
+      "duration": 1,
+      "error": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+    },
+    {
+      "timestamp": "2026-01-27T22:30:54.853Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 11492
+    },
+    {
+      "timestamp": "2026-01-27T22:30:55.703Z",
+      "testId": "TC-CUST-010",
+      "testName": "TC-CUST-010: Should create new corporate customer",
+      "module": "customers",
+      "status": "PASS",
+      "duration": 12367
+    }
+  ]
+}

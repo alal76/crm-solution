@@ -1,0 +1,136 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CRM SOLUTION - E2E TEST EXECUTION LOG                       
+═══════════════════════════════════════════════════════════════════════════════
+
+Test Run Started:  2026-01-27T22:30:26.891Z
+Test Run Ended:    2026-01-27T22:30:56.019Z
+Total Duration:    29s
+
+───────────────────────────────────────────────────────────────────────────────
+                              EXECUTION SUMMARY                                 
+───────────────────────────────────────────────────────────────────────────────
+  Total Tests:     6
+  Passed:          3 (50%)
+  Failed:          3 (50%)
+  Skipped:         0 (0%)
+
+───────────────────────────────────────────────────────────────────────────────
+                              MODULE BREAKDOWN                                  
+───────────────────────────────────────────────────────────────────────────────
+
+  AUTH.SETUP.TS
+  ├─ Total:   1
+  ├─ Passed:  1
+  ├─ Failed:  0
+  ├─ Skipped: 0
+  └─ Pass Rate: 100%
+
+  CUSTOMERS
+  ├─ Total:   5
+  ├─ Passed:  2
+  ├─ Failed:  3
+  ├─ Skipped: 0
+  └─ Pass Rate: 40%
+
+───────────────────────────────────────────────────────────────────────────────
+                              DETAILED TEST LOG                                 
+───────────────────────────────────────────────────────────────────────────────
+
+[2026-01-27T22:30:41.641Z] [✓ PASS] TC-UNKNOWN
+   Test: authenticate
+   Module: auth.setup.ts
+   Duration: 13318ms
+
+[2026-01-27T22:30:42.928Z] [✗ FAIL] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 2ms
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+[2026-01-27T22:30:42.942Z] [✗ FAIL] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 5ms
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+[2026-01-27T22:30:44.346Z] [✗ FAIL] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 1ms
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+[2026-01-27T22:30:54.853Z] [✓ PASS] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 11492ms
+
+[2026-01-27T22:30:55.703Z] [✓ PASS] TC-CUST-010
+   Test: TC-CUST-010: Should create new corporate customer
+   Module: customers
+   Duration: 12367ms
+
+───────────────────────────────────────────────────────────────────────────────
+                              FAILED TESTS                                     
+───────────────────────────────────────────────────────────────────────────────
+
+1. TC-CUST-010 - TC-CUST-010: Should create new corporate customer
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+2. TC-CUST-010 - TC-CUST-010: Should create new corporate customer
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+3. TC-CUST-010 - TC-CUST-010: Should create new corporate customer
+   Error: Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              END OF LOG                                        
+═══════════════════════════════════════════════════════════════════════════════
