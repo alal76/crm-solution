@@ -57,6 +57,7 @@ import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../compon
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { contactInfoService, EntityContactInfoDto, LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from '../services/contactInfoService';
 import { useAccountContext } from '../contexts/AccountContextProvider';
+import { useProfile } from '../contexts/ProfileContext';
 import { BaseEntity } from '../types';
 import { DialogError, DialogSuccess, ActionButton, StatusSnackbar } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
@@ -529,6 +530,7 @@ function ContactsPage() {
 
   // Get account context for filtering
   const { selectedAccounts, isContextActive, getAccountIds } = useAccountContext();
+  const { hasPermission } = useProfile();
 
   // Apply filters, search text, AND account context to contacts
   const filteredContacts = useMemo(() => {
@@ -596,14 +598,16 @@ function ContactsPage() {
                 >
                   Bulk Update
                 </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="error"
-                  onClick={handleBulkDelete}
-                >
-                  Delete Selected
-                </Button>
+                {hasPermission('canDeleteContacts') && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="error"
+                    onClick={handleBulkDelete}
+                  >
+                    Delete Selected
+                  </Button>
+                )}
                 <IconButton size="small" onClick={() => setSelectedIds([])} sx={{ color: 'white' }}>
                   <CloseIcon />
                 </IconButton>

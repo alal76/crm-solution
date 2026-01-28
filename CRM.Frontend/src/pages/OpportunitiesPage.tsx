@@ -45,6 +45,7 @@ import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { useAccountContext } from '../contexts/AccountContextProvider';
+import { useProfile } from '../contexts/ProfileContext';
 import { BaseEntity } from '../types';
 import { DialogError, DialogSuccess, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
@@ -190,6 +191,7 @@ function OpportunitiesPage() {
 
   // Get account context for filtering
   const { selectedAccounts, isContextActive, getAccountIds } = useAccountContext();
+  const { hasPermission } = useProfile();
 
   const handleSearch = (filters: SearchFilter[], text: string) => {
     setSearchFilters(filters);
@@ -513,14 +515,16 @@ function OpportunitiesPage() {
                 >
                   Bulk Update
                 </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="error"
-                  onClick={handleBulkDelete}
-                >
-                  Delete Selected
-                </Button>
+                {hasPermission('canDeleteOpportunities') && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="error"
+                    onClick={handleBulkDelete}
+                  >
+                    Delete Selected
+                  </Button>
+                )}
                 <IconButton size="small" onClick={() => setSelectedIds([])} sx={{ color: 'white' }}>
                   <CloseIcon />
                 </IconButton>

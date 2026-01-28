@@ -28,6 +28,7 @@ import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../compon
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { useFieldConfig, ModuleFieldConfiguration, dispatchFieldConfigUpdate } from '../hooks/useFieldConfig';
 import { useAccountContext } from '../contexts/AccountContextProvider';
+import { useProfile } from '../contexts/ProfileContext';
 import { useApiState } from '../hooks/useApiState';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
@@ -248,6 +249,7 @@ function CustomersPage() {
 
   // Get account context for filtering
   const { selectedAccounts, isContextActive, getAccountIds } = useAccountContext();
+  const { hasPermission } = useProfile();
 
   // Filter customers based on search AND account context
   const filteredCustomers = useMemo(() => {
@@ -721,14 +723,16 @@ function CustomersPage() {
                 >
                   Bulk Update
                 </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="error"
-                  onClick={handleBulkDelete}
-                >
-                  Delete Selected
-                </Button>
+                {hasPermission('canDeleteCustomers') && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="error"
+                    onClick={handleBulkDelete}
+                  >
+                    Delete Selected
+                  </Button>
+                )}
                 <IconButton size="small" onClick={() => setSelectedIds([])} sx={{ color: 'white' }}>
                   <CloseIcon />
                 </IconButton>

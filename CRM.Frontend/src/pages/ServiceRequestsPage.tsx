@@ -42,6 +42,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { DialogError, DialogSuccess, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
+import { useProfile } from '../contexts/ProfileContext';
 import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import { useState, useEffect, useCallback } from 'react';
@@ -265,6 +266,7 @@ function ServiceRequestsPage() {
   const resolveApi = useApiState();
   const escalateApi = useApiState();
   const assignApi = useApiState();
+  const { hasPermission } = useProfile();
   useEffect(() => {
     const fetchReferenceData = async () => {
       try {
@@ -849,14 +851,16 @@ function ServiceRequestsPage() {
                 >
                   Bulk Update
                 </Button>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  size="small"
-                  onClick={handleBulkDelete}
-                >
-                  Delete Selected
-                </Button>
+                {hasPermission('canBulkDelete') && (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={handleBulkDelete}
+                  >
+                    Delete Selected
+                  </Button>
+                )}
                 <IconButton size="small" onClick={() => setSelectedIds([])}>
                   <CloseIcon />
                 </IconButton>

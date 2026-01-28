@@ -14,6 +14,7 @@ import {
 } from '@mui/icons-material';
 import { DialogError, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
+import { useProfile } from '../contexts/ProfileContext';
 import apiClient from '../services/apiClient';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
@@ -126,6 +127,7 @@ function CampaignsPage() {
   // API state hooks
   const dialogApi = useApiState();
   const bulkApi = useApiState();
+  const { hasPermission } = useProfile();
   
   const emptyForm: CampaignForm = {
     name: '', description: '', campaignType: 0, status: 0, priority: 1,
@@ -334,14 +336,16 @@ function CampaignsPage() {
               >
                 Bulk Update
               </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                size="small"
-                onClick={handleBulkDelete}
-              >
-                Delete Selected
-              </Button>
+              {hasPermission('canDeleteCampaigns') && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={handleBulkDelete}
+                >
+                  Delete Selected
+                </Button>
+              )}
               <IconButton size="small" onClick={() => setSelectedIds([])}>
                 <CloseIcon />
               </IconButton>

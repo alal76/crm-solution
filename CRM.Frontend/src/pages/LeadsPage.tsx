@@ -46,6 +46,7 @@ import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import { ContactInfoPanel } from '../components/ContactInfo';
 import { BaseEntity } from '../types';
+import { useProfile } from '../contexts/ProfileContext';
 import { DialogError, DialogSuccess, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
@@ -142,6 +143,7 @@ function LeadsPage() {
   // API state for dialog operations
   const dialogApi = useApiState({ successTimeout: 3000 });
   const bulkApi = useApiState({ successTimeout: 3000 });
+  const { hasPermission } = useProfile();
   
   // Filter leads based on search
   const filteredLeads = useMemo(() => {
@@ -508,14 +510,16 @@ function LeadsPage() {
               >
                 Bulk Update
               </Button>
-              <Button
-                variant="contained"
-                size="small"
-                color="error"
-                onClick={handleBulkDelete}
-              >
-                Delete Selected
-              </Button>
+              {hasPermission('canDeleteLeads') && (
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="error"
+                  onClick={handleBulkDelete}
+                >
+                  Delete Selected
+                </Button>
+              )}
               <IconButton size="small" onClick={() => setSelectedIds([])} sx={{ color: 'white' }}>
                 <CloseIcon />
               </IconButton>
