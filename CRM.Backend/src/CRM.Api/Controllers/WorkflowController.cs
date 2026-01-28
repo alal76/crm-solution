@@ -731,7 +731,9 @@ public class WorkflowController : ControllerBase
             IconOptions = GetIconOptionsInternal(),
             ColorOptions = GetColorOptionsInternal(),
             FallbackActions = GetFallbackActionsInternal(),
-            EventTypes = GetEventTypesInternal()
+            EventTypes = GetEventTypesInternal(),
+            EntityFields = GetEntityFieldsInternal(),
+            RelatedEntities = GetRelatedEntitiesInternal()
         };
 
         return Ok(config);
@@ -998,6 +1000,159 @@ public class WorkflowController : ControllerBase
         WorkflowNodeType.AISentimentAnalyzer => "Analyze sentiment and emotion in text",
         WorkflowNodeType.HumanReview => "Human-in-the-loop review for AI outputs",
         _ => ""
+    };
+
+    private Dictionary<string, List<EntityFieldConfig>> GetEntityFieldsInternal() => new()
+    {
+        ["Lead"] = new()
+        {
+            new() { Name = "Status", Label = "Status", Type = "enum", Required = true, EnumValues = new List<string> { "New", "Working", "Nurturing", "Qualified", "Disqualified", "Converted" }, Group = "Status" },
+            new() { Name = "Source", Label = "Source", Type = "enum", Required = false, EnumValues = new List<string> { "Web", "Campaign", "Referral", "Event", "Partner", "Manual" }, Group = "Status" },
+            new() { Name = "LeadScore", Label = "Lead Score", Type = "number", Required = false, Group = "Scoring" },
+            new() { Name = "Title", Label = "Title", Type = "string", Required = false, Group = "Contact" },
+            new() { Name = "Company", Label = "Company", Type = "string", Required = false, Group = "Company" },
+            new() { Name = "Email", Label = "Email", Type = "string", Required = false, Group = "Contact" },
+            new() { Name = "Phone", Label = "Phone", Type = "string", Required = false, Group = "Contact" },
+            new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
+            new() { Name = "AccountId", Label = "Account", Type = "reference", Required = false, ReferenceEntity = "Account", Group = "Related" },
+            new() { Name = "CampaignId", Label = "Campaign", Type = "reference", Required = false, ReferenceEntity = "Campaign", Group = "Marketing" },
+            new() { Name = "CreatedAt", Label = "Created Date", Type = "date", Required = false, Group = "Audit" },
+            new() { Name = "UpdatedAt", Label = "Updated Date", Type = "date", Required = false, Group = "Audit" },
+        },
+        ["Opportunity"] = new()
+        {
+            new() { Name = "Stage", Label = "Stage", Type = "enum", Required = true, EnumValues = new List<string> { "Prospecting", "Qualification", "Proposal", "Negotiation", "ClosedWon", "ClosedLost" }, Group = "Status" },
+            new() { Name = "Name", Label = "Name", Type = "string", Required = true, Group = "Basic" },
+            new() { Name = "Amount", Label = "Amount", Type = "number", Required = false, Group = "Value" },
+            new() { Name = "Probability", Label = "Probability (%)", Type = "number", Required = false, Group = "Value" },
+            new() { Name = "ExpectedCloseDate", Label = "Expected Close Date", Type = "date", Required = false, Group = "Dates" },
+            new() { Name = "Type", Label = "Type", Type = "enum", Required = false, EnumValues = new List<string> { "NewBusiness", "ExistingBusiness", "Renewal", "Upsell" }, Group = "Classification" },
+            new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
+            new() { Name = "CustomerId", Label = "Customer", Type = "reference", Required = false, ReferenceEntity = "Customer", Group = "Related" },
+            new() { Name = "LeadId", Label = "Lead", Type = "reference", Required = false, ReferenceEntity = "Lead", Group = "Related" },
+            new() { Name = "IsClosed", Label = "Is Closed", Type = "boolean", Required = false, Group = "Status" },
+            new() { Name = "IsWon", Label = "Is Won", Type = "boolean", Required = false, Group = "Status" },
+        },
+        ["Customer"] = new()
+        {
+            new() { Name = "Status", Label = "Status", Type = "enum", Required = true, EnumValues = new List<string> { "Active", "Inactive", "Prospect", "Churned" }, Group = "Status" },
+            new() { Name = "Name", Label = "Name", Type = "string", Required = true, Group = "Basic" },
+            new() { Name = "Email", Label = "Email", Type = "string", Required = false, Group = "Contact" },
+            new() { Name = "Phone", Label = "Phone", Type = "string", Required = false, Group = "Contact" },
+            new() { Name = "Type", Label = "Type", Type = "enum", Required = false, EnumValues = new List<string> { "Individual", "Business", "Enterprise", "Government" }, Group = "Classification" },
+            new() { Name = "Industry", Label = "Industry", Type = "string", Required = false, Group = "Business" },
+            new() { Name = "AnnualRevenue", Label = "Annual Revenue", Type = "number", Required = false, Group = "Business" },
+            new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
+            new() { Name = "AccountId", Label = "Account", Type = "reference", Required = false, ReferenceEntity = "Account", Group = "Related" },
+        },
+        ["ServiceRequest"] = new()
+        {
+            new() { Name = "Status", Label = "Status", Type = "enum", Required = true, EnumValues = new List<string> { "New", "Open", "InProgress", "Pending", "Resolved", "Closed" }, Group = "Status" },
+            new() { Name = "Priority", Label = "Priority", Type = "enum", Required = true, EnumValues = new List<string> { "Low", "Medium", "High", "Urgent", "Critical" }, Group = "Status" },
+            new() { Name = "Subject", Label = "Subject", Type = "string", Required = true, Group = "Basic" },
+            new() { Name = "Description", Label = "Description", Type = "string", Required = false, Group = "Basic" },
+            new() { Name = "Type", Label = "Type", Type = "enum", Required = false, EnumValues = new List<string> { "Question", "Problem", "Incident", "Request", "Task" }, Group = "Classification" },
+            new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
+            new() { Name = "CustomerId", Label = "Customer", Type = "reference", Required = false, ReferenceEntity = "Customer", Group = "Related" },
+            new() { Name = "DueDate", Label = "Due Date", Type = "date", Required = false, Group = "Dates" },
+            new() { Name = "SLABreachedAt", Label = "SLA Breach Date", Type = "date", Required = false, Group = "SLA" },
+        },
+        ["Contact"] = new()
+        {
+            new() { Name = "FirstName", Label = "First Name", Type = "string", Required = true, Group = "Basic" },
+            new() { Name = "LastName", Label = "Last Name", Type = "string", Required = true, Group = "Basic" },
+            new() { Name = "Email", Label = "Email", Type = "string", Required = false, Group = "Contact" },
+            new() { Name = "Phone", Label = "Phone", Type = "string", Required = false, Group = "Contact" },
+            new() { Name = "Title", Label = "Job Title", Type = "string", Required = false, Group = "Business" },
+            new() { Name = "Department", Label = "Department", Type = "string", Required = false, Group = "Business" },
+            new() { Name = "AccountId", Label = "Account", Type = "reference", Required = false, ReferenceEntity = "Account", Group = "Related" },
+            new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
+            new() { Name = "IsPrimary", Label = "Is Primary", Type = "boolean", Required = false, Group = "Status" },
+        },
+        ["Campaign"] = new()
+        {
+            new() { Name = "Status", Label = "Status", Type = "enum", Required = true, EnumValues = new List<string> { "Draft", "Scheduled", "Active", "Paused", "Completed", "Cancelled" }, Group = "Status" },
+            new() { Name = "Name", Label = "Name", Type = "string", Required = true, Group = "Basic" },
+            new() { Name = "Type", Label = "Type", Type = "enum", Required = false, EnumValues = new List<string> { "Email", "Social", "Event", "Webinar", "Advertisement", "Direct" }, Group = "Classification" },
+            new() { Name = "StartDate", Label = "Start Date", Type = "date", Required = false, Group = "Dates" },
+            new() { Name = "EndDate", Label = "End Date", Type = "date", Required = false, Group = "Dates" },
+            new() { Name = "Budget", Label = "Budget", Type = "number", Required = false, Group = "Budget" },
+            new() { Name = "ActualCost", Label = "Actual Cost", Type = "number", Required = false, Group = "Budget" },
+            new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
+        },
+        ["Account"] = new()
+        {
+            new() { Name = "Name", Label = "Name", Type = "string", Required = true, Group = "Basic" },
+            new() { Name = "Type", Label = "Type", Type = "enum", Required = false, EnumValues = new List<string> { "Prospect", "Customer", "Partner", "Vendor", "Other" }, Group = "Classification" },
+            new() { Name = "Industry", Label = "Industry", Type = "string", Required = false, Group = "Business" },
+            new() { Name = "Website", Label = "Website", Type = "string", Required = false, Group = "Contact" },
+            new() { Name = "Phone", Label = "Phone", Type = "string", Required = false, Group = "Contact" },
+            new() { Name = "AnnualRevenue", Label = "Annual Revenue", Type = "number", Required = false, Group = "Business" },
+            new() { Name = "EmployeeCount", Label = "Employee Count", Type = "number", Required = false, Group = "Business" },
+            new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
+        },
+        ["Quote"] = new()
+        {
+            new() { Name = "Status", Label = "Status", Type = "enum", Required = true, EnumValues = new List<string> { "Draft", "Pending", "Approved", "Rejected", "Expired" }, Group = "Status" },
+            new() { Name = "Name", Label = "Name", Type = "string", Required = true, Group = "Basic" },
+            new() { Name = "TotalAmount", Label = "Total Amount", Type = "number", Required = false, Group = "Value" },
+            new() { Name = "Discount", Label = "Discount (%)", Type = "number", Required = false, Group = "Value" },
+            new() { Name = "ExpirationDate", Label = "Expiration Date", Type = "date", Required = false, Group = "Dates" },
+            new() { Name = "OpportunityId", Label = "Opportunity", Type = "reference", Required = false, ReferenceEntity = "Opportunity", Group = "Related" },
+            new() { Name = "CustomerId", Label = "Customer", Type = "reference", Required = false, ReferenceEntity = "Customer", Group = "Related" },
+            new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
+        }
+    };
+
+    private Dictionary<string, List<RelatedEntityConfig>> GetRelatedEntitiesInternal() => new()
+    {
+        ["Lead"] = new()
+        {
+            new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
+            new() { Name = "Account", Label = "Account", EntityType = "Account", RelationType = "parent" },
+            new() { Name = "Campaign", Label = "Campaign", EntityType = "Campaign", RelationType = "parent" },
+        },
+        ["Opportunity"] = new()
+        {
+            new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
+            new() { Name = "Customer", Label = "Customer", EntityType = "Customer", RelationType = "parent" },
+            new() { Name = "Lead", Label = "Source Lead", EntityType = "Lead", RelationType = "parent" },
+            new() { Name = "Quotes", Label = "Quotes", EntityType = "Quote", RelationType = "child" },
+        },
+        ["Customer"] = new()
+        {
+            new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
+            new() { Name = "Account", Label = "Account", EntityType = "Account", RelationType = "parent" },
+            new() { Name = "Opportunities", Label = "Opportunities", EntityType = "Opportunity", RelationType = "child" },
+            new() { Name = "ServiceRequests", Label = "Service Requests", EntityType = "ServiceRequest", RelationType = "child" },
+        },
+        ["ServiceRequest"] = new()
+        {
+            new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
+            new() { Name = "Customer", Label = "Customer", EntityType = "Customer", RelationType = "parent" },
+        },
+        ["Contact"] = new()
+        {
+            new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
+            new() { Name = "Account", Label = "Account", EntityType = "Account", RelationType = "parent" },
+        },
+        ["Campaign"] = new()
+        {
+            new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
+            new() { Name = "Leads", Label = "Leads", EntityType = "Lead", RelationType = "child" },
+        },
+        ["Account"] = new()
+        {
+            new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
+            new() { Name = "Contacts", Label = "Contacts", EntityType = "Contact", RelationType = "child" },
+            new() { Name = "Customers", Label = "Customers", EntityType = "Customer", RelationType = "child" },
+        },
+        ["Quote"] = new()
+        {
+            new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
+            new() { Name = "Opportunity", Label = "Opportunity", EntityType = "Opportunity", RelationType = "parent" },
+            new() { Name = "Customer", Label = "Customer", EntityType = "Customer", RelationType = "parent" },
+        }
     };
 
     /// <summary>
@@ -1377,6 +1532,33 @@ public class WorkflowConfigResponse
     public List<string> ColorOptions { get; set; } = new();
     public List<ConfigOption> FallbackActions { get; set; } = new();
     public List<EventTypeConfig> EventTypes { get; set; } = new();
+    public Dictionary<string, List<EntityFieldConfig>> EntityFields { get; set; } = new();
+    public Dictionary<string, List<RelatedEntityConfig>> RelatedEntities { get; set; } = new();
+}
+
+/// <summary>
+/// Entity field configuration for workflow node configuration
+/// </summary>
+public class EntityFieldConfig
+{
+    public string Name { get; set; } = "";
+    public string Label { get; set; } = "";
+    public string Type { get; set; } = ""; // string, number, boolean, date, enum, reference
+    public bool Required { get; set; }
+    public List<string>? EnumValues { get; set; }
+    public string? ReferenceEntity { get; set; }
+    public string? Group { get; set; }
+}
+
+/// <summary>
+/// Related entity configuration for workflow actions
+/// </summary>
+public class RelatedEntityConfig
+{
+    public string Name { get; set; } = "";
+    public string Label { get; set; } = "";
+    public string EntityType { get; set; } = "";
+    public string RelationType { get; set; } = ""; // parent, child, related
 }
 
 public class ConfigOption

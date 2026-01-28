@@ -85,6 +85,8 @@ import {
   VersionDiffViewer,
   EnhancedPropertiesPanel,
   AIPropertiesPanel,
+  TriggerPropertiesPanel,
+  ActionPropertiesPanel,
 } from '../../components/workflow';
 import {
   workflowService,
@@ -1039,8 +1041,32 @@ function WorkflowDesignerPage() {
                 variables={['customer', 'ticket', 'email', 'input', 'context', 'entity', 'workflow_data']}
                 readonly={version?.status === 'Active'}
               />
+            ) : selectedNode.nodeType === 'Trigger' ? (
+              // Trigger node - use specialized Trigger Properties Panel
+              <TriggerPropertiesPanel
+                nodeId={selectedNode.id}
+                nodeKey={selectedNode.nodeKey}
+                nodeName={selectedNode.name}
+                configuration={selectedNode.configuration || '{}'}
+                entityType={workflow?.entityType || 'Customer'}
+                onChange={(property, value) => updateNodeProperty(property as keyof UpdateNodeDto, value)}
+                onDelete={() => deleteNode(selectedNode)}
+                readonly={version?.status === 'Active'}
+              />
+            ) : selectedNode.nodeType === 'Action' ? (
+              // Action node - use specialized Action Properties Panel
+              <ActionPropertiesPanel
+                nodeId={selectedNode.id}
+                nodeKey={selectedNode.nodeKey}
+                nodeName={selectedNode.name}
+                configuration={selectedNode.configuration || '{}'}
+                entityType={workflow?.entityType || 'Customer'}
+                onChange={(property, value) => updateNodeProperty(property as keyof UpdateNodeDto, value)}
+                onDelete={() => deleteNode(selectedNode)}
+                readonly={version?.status === 'Active'}
+              />
             ) : (
-              // Standard node properties panel for non-AI nodes
+              // Standard node properties panel for other node types
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <TextField
                   fullWidth

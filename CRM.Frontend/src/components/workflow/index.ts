@@ -46,5 +46,17 @@ export {
 // AI Properties Panel - AI-enhanced workflow node configurations
 export { AIPropertiesPanel } from './AIPropertiesPanel';
 
+// Trigger Properties Panel - Trigger node configuration with field conditions
+export { 
+  TriggerPropertiesPanel,
+  type TriggerConfiguration,
+} from './TriggerPropertiesPanel';
+
+// Action Properties Panel - Action node configuration with field updates
+export { 
+  ActionPropertiesPanel,
+  type ActionConfiguration,
+} from './ActionPropertiesPanel';
+
 // AI Analytics Dashboard - Cost tracking and performance monitoring
 export { AIAnalyticsDashboard } from './AIAnalyticsDashboard';

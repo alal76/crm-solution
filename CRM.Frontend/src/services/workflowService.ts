@@ -517,6 +517,23 @@ export interface EventTypeOption {
   category: string;
 }
 
+export interface EntityFieldConfig {
+  name: string;
+  label: string;
+  type: 'string' | 'number' | 'boolean' | 'date' | 'enum' | 'reference';
+  required: boolean;
+  enumValues?: string[];
+  referenceEntity?: string;
+  group?: string;
+}
+
+export interface RelatedEntityConfig {
+  name: string;
+  label: string;
+  entityType: string;
+  relationType: 'parent' | 'child' | 'related';
+}
+
 export interface WorkflowConfig {
   entityTypes: EntityTypeOption[];
   nodeTypes: NodeTypeOption[];
@@ -532,6 +549,8 @@ export interface WorkflowConfig {
   colorOptions: string[];
   fallbackActions: EntityTypeOption[];
   eventTypes: EventTypeOption[];
+  entityFields: Record<string, EntityFieldConfig[]>;
+  relatedEntities: Record<string, RelatedEntityConfig[]>;
 }
 
 // ============================================================================
