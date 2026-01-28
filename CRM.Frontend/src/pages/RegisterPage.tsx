@@ -33,6 +33,8 @@ function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState(false);
+  const [approvalMessage, setApprovalMessage] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -86,17 +88,61 @@ function RegisterPage() {
     setLoading(true);
 
     try {
-      await register({ email, firstName, lastName, password });
-      setRegistrationSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      const response = await register({ email, firstName, lastName, password });
+      
+      // Check if registration requires approval
+      if (response?.requiresApproval) {
+        setPendingApproval(true);
+        setApprovalMessage(response.message || 'Your registration is pending approval. You will be notified when your account is activated.');
+      } else {
+        setRegistrationSuccess(true);
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
+
+  if (pendingApproval) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #6750A4 0%, #A085D3 100%)',
+          py: 3,
+          px: 2,
+        }}
+      >
+        <Card sx={{ borderRadius: 3, boxShadow: '0px 12px 24px rgba(0, 0, 0, 0.15)', maxWidth: 450 }}>
+          <CardContent sx={{ textAlign: 'center', py: 4, px: 3 }}>
+            <Box sx={{ mb: 2 }}>
+              <CheckIcon sx={{ fontSize: 64, color: '#FFB020' }} />
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+              Registration Submitted!
+            </Typography>
+            <Typography variant="body1" color="textSecondary" sx={{ mb: 3 }}>
+              {approvalMessage}
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/login')}
+              sx={{ mt: 2 }}
+            >
+              Back to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
 
   if (registrationSuccess) {
     return (

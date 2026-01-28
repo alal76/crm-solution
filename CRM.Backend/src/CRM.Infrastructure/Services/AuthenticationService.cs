@@ -77,11 +77,50 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             throw new ArgumentException("Passwords do not match");
 
         // Check if user already exists
-        var existingUser = await _userRepository.GetAllAsync();
-        if (existingUser.Any(u => u.Email == request.Email))
+        var existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        if (existingUser != null)
             throw new InvalidOperationException("User with this email already exists");
 
-        // Create new user
+        // Check if there's already a pending approval request for this email
+        var existingRequest = await _dbContext.UserApprovalRequests
+            .FirstOrDefaultAsync(r => r.Email == request.Email && r.Status == 0); // Status 0 = Pending
+        if (existingRequest != null)
+            throw new InvalidOperationException("A registration request for this email is already pending approval");
+
+        // Check system settings for approval requirement
+        var systemSettings = await _dbContext.SystemSettings.FirstOrDefaultAsync();
+        var requireApproval = systemSettings?.RequireApprovalForNewUsers ?? true;
+
+        if (requireApproval)
+        {
+            // Create approval request instead of user directly
+            var approvalRequest = new UserApprovalRequest
+            {
+                Email = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                PasswordHash = HashPassword(request.Password), // Store password hash for later use when approved
+                Status = 0, // Pending
+                RequestedAt = DateTime.UtcNow
+            };
+
+            _dbContext.UserApprovalRequests.Add(approvalRequest);
+            await _dbContext.SaveChangesAsync();
+
+            _logger.LogInformation("Registration request created for {Email}, pending approval", request.Email);
+
+            // Return a response indicating pending approval
+            return new AuthResponse
+            {
+                Email = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Message = "Your registration is pending approval. You will be notified when your account is activated.",
+                RequiresApproval = true
+            };
+        }
+
+        // If approval not required, create user directly (existing behavior)
         var user = new User
         {
             Username = request.Username ?? request.Email,

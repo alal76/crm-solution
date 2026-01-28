@@ -132,8 +132,18 @@ public class UserApprovalService : IUserApprovalService
             if (approvalRequest.Status != (int)ApprovalStatus.Pending)
                 throw new InvalidOperationException("This approval request has already been reviewed");
 
-            // Generate a temporary password
-            var tempPassword = GenerateTemporaryPassword();
+            // Use stored password hash if available, otherwise generate a temporary password
+            string passwordHash;
+            if (!string.IsNullOrEmpty(approvalRequest.PasswordHash))
+            {
+                passwordHash = approvalRequest.PasswordHash;
+            }
+            else
+            {
+                var tempPassword = GenerateTemporaryPassword();
+                passwordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+                _logger.LogWarning("No password hash found for approval request {Id}, generated temporary password", approvalRequestId);
+            }
 
             // Create the user
             var user = new User
@@ -142,7 +152,7 @@ public class UserApprovalService : IUserApprovalService
                 Username = approvalRequest.Email,
                 FirstName = approvalRequest.FirstName,
                 LastName = approvalRequest.LastName,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword),
+                PasswordHash = passwordHash,
                 Role = ParseRole(request.AssignedRole ?? "Sales"),
                 IsActive = true,
                 EmailVerified = false,

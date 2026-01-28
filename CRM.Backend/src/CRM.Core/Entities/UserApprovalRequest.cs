@@ -20,6 +20,7 @@ public class UserApprovalRequest : BaseEntity
     public string LastName { get; set; } = string.Empty;
     public string? Company { get; set; }
     public string? Phone { get; set; }
+    public string? PasswordHash { get; set; } // Store password hash for use when approved
     public int Status { get; set; } = (int)ApprovalStatus.Pending;
     public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ReviewedAt { get; set; }

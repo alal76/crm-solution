@@ -474,6 +474,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (data: any) => {
     try {
       const response = await axiosInstance.post('/auth/register', data);
+      
+      // Check if registration requires approval
+      if (response.data.requiresApproval) {
+        // Don't set tokens or log user in - return the response for the UI to handle
+        return response.data;
+      }
+      
       const accessToken = response.data.accessToken;
       const refreshToken = response.data.refreshToken;
       
@@ -502,6 +509,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(response.data);
       setIsAuthenticated(true);
+      
+      return response.data;
     } catch (error) {
       debugError('[AuthContext] Registration failed', error);
       throw error;

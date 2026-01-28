@@ -50,6 +50,16 @@ public class AuthResponse
     /// Temporary token for 2FA verification (only set when RequiresTwoFactor is true)
     /// </summary>
     public string? TwoFactorToken { get; set; }
+    
+    /// <summary>
+    /// Whether the registration requires admin approval
+    /// </summary>
+    public bool RequiresApproval { get; set; } = false;
+    
+    /// <summary>
+    /// General message for the response (e.g., pending approval message)
+    /// </summary>
+    public string? Message { get; set; }
 }
 
 /// <summary>
