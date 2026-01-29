@@ -378,6 +378,10 @@ builder.Services.AddHttpClient<ILLMService, LLMService>();
 builder.Services.AddSingleton<IResilienceService, ResilienceService>();
 builder.Services.AddScoped<ILLMSettingsService, LLMSettingsService>();
 
+// News and Social Media Feed service (NewsAPI, Twitter, LinkedIn integration)
+builder.Services.Configure<NewsSocialOptions>(builder.Configuration.GetSection("NewsSocial"));
+builder.Services.AddHttpClient<INewsSocialService, NewsSocialService>();
+
 // Workflow background worker
 var workflowWorkerOptions = new WorkflowWorkerOptions
 {

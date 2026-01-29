@@ -2,29 +2,9 @@ version: '3.8'
 
 # CRM Microservices Docker Compose
 # Use this for local development with microservices architecture
+# Assumes crm-mariadb and crm-redis are already running on crm-network
 
 services:
-  # Database (shared)
-  crm-db:
-    image: mariadb:10.11
-    container_name: crm-db
-    environment:
-      MARIADB_ROOT_PASSWORD: RootPass@Dev2024
-      MARIADB_DATABASE: crm_db
-      MARIADB_USER: crm_user
-      MARIADB_PASSWORD: CrmPass@Dev2024
-    ports:
-      - "3306:3306"
-    volumes:
-      - crm_db_data:/var/lib/mysql
-    networks:
-      - crm-network
-    healthcheck:
-      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-pRootPass@Dev2024"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # API Gateway
   crm-gateway:
     build:
@@ -36,6 +16,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
+      - Frontend__Url=http://localhost
+      - Monitoring__DeploymentType=docker
+      - Monitoring__BuildServerFQDN=crm.local
+      - Redis__ConnectionString=crm-redis:6379
+      - Redis__Enabled=true
     depends_on:
       - crm-identity
       - crm-customer
@@ -45,6 +30,11 @@ services:
       - crm-core
     networks:
       - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   # Identity Service
   crm-identity:
@@ -56,11 +46,9 @@ services:
       - "5001:5001"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-    depends_on:
-      crm-db:
-        condition: service_healthy
+      - Redis__ConnectionString=crm-redis:6379
     networks:
       - crm-network
 
@@ -74,11 +62,9 @@ services:
       - "5002:5002"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-    depends_on:
-      crm-db:
-        condition: service_healthy
+      - Redis__ConnectionString=crm-redis:6379
     networks:
       - crm-network
 
@@ -92,11 +78,9 @@ services:
       - "5003:5003"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-    depends_on:
-      crm-db:
-        condition: service_healthy
+      - Redis__ConnectionString=crm-redis:6379
     networks:
       - crm-network
 
@@ -110,11 +94,9 @@ services:
       - "5004:5004"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-    depends_on:
-      crm-db:
-        condition: service_healthy
+      - Redis__ConnectionString=crm-redis:6379
     networks:
       - crm-network
 
@@ -128,11 +110,9 @@ services:
       - "5005:5005"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-    depends_on:
-      crm-db:
-        condition: service_healthy
+      - Redis__ConnectionString=crm-redis:6379
     networks:
       - crm-network
 
@@ -146,11 +126,9 @@ services:
       - "5006:5006"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-    depends_on:
-      crm-db:
-        condition: service_healthy
+      - Redis__ConnectionString=crm-redis:6379
     networks:
       - crm-network
 
@@ -161,7 +139,7 @@ services:
       dockerfile: docker/Dockerfile.frontend.prebuilt
     container_name: crm-frontend
     ports:
-      - "3000:80"
+      - "80:80"
     depends_on:
       - crm-gateway
     networks:
@@ -169,7 +147,4 @@ services:
 
 networks:
   crm-network:
-    driver: bridge
-
-volumes:
-  crm_db_data:
+    external: true

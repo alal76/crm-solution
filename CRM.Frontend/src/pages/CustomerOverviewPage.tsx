@@ -18,9 +18,11 @@ import {
   Twitter as TwitterIcon, Language as WebIcon, LocationOn as LocationIcon,
   AttachMoney as MoneyIcon, CalendarToday as CalendarIcon,
   Article as NewsIcon, Public as SocialIcon, Refresh as RefreshIcon,
-  AccountCircle as AccountManagerIcon, OpenInNew as OpenInNewIcon
+  AccountCircle as AccountManagerIcon, OpenInNew as OpenInNewIcon,
+  Facebook as FacebookIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { getNewsSocialFeeds, refreshNewsSocialFeeds, getNewsSocialStatus, NewsItem, SocialFeed, NewsSocialStatus } from '../services/newsSocialService';
 import logo from '../assets/logo.png';
 
 interface Customer {
@@ -64,83 +66,11 @@ interface Contact {
   twitterHandle?: string;
 }
 
-interface NewsItem {
-  id: string;
-  title: string;
-  source: string;
-  url: string;
-  publishedAt: string;
-  summary?: string;
-  sentiment?: 'positive' | 'neutral' | 'negative';
-}
-
-interface SocialFeed {
-  id: string;
-  platform: 'linkedin' | 'twitter' | 'facebook';
-  content: string;
-  author: string;
-  publishedAt: string;
-  url?: string;
-  engagementCount?: number;
-}
-
 interface User {
   id: number;
   firstName: string;
   lastName: string;
 }
-
-// Mock data for news and social feeds (in production, these would come from external APIs)
-const generateMockNews = (customerName: string): NewsItem[] => [
-  {
-    id: '1',
-    title: `${customerName} announces Q4 earnings exceeding expectations`,
-    source: 'Business Wire',
-    url: 'https://example.com/news/1',
-    publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    summary: 'Company reports strong growth in key markets...',
-    sentiment: 'positive'
-  },
-  {
-    id: '2',
-    title: `${customerName} expands operations to new markets`,
-    source: 'Reuters',
-    url: 'https://example.com/news/2',
-    publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    summary: 'Strategic expansion aims to capture emerging market opportunities...',
-    sentiment: 'positive'
-  },
-  {
-    id: '3',
-    title: `Industry analysis: ${customerName} maintains market position`,
-    source: 'Industry Today',
-    url: 'https://example.com/news/3',
-    publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    summary: 'Competitive landscape analysis shows steady performance...',
-    sentiment: 'neutral'
-  },
-];
-
-const generateMockSocialFeeds = (customerName: string): SocialFeed[] => [
-  {
-    id: '1',
-    platform: 'linkedin',
-    content: `Excited to announce our new partnership initiative! ${customerName} continues to innovate...`,
-    author: 'Company Official',
-    publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    url: 'https://linkedin.com/post/1',
-    engagementCount: 245
-  },
-  {
-    id: '2',
-    platform: 'twitter',
-    content: `Great Q4 results! Thank you to our amazing team and customers. #Growth #Innovation`,
-    author: '@CompanyHandle',
-    publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    url: 'https://twitter.com/post/1',
-    engagementCount: 892
-  },
-];
 
 // Use shared constants - aliased for backward compatibility in this file
 const LIFECYCLE_STAGES = LIFECYCLE_STAGE_OPTIONS;
@@ -162,11 +92,22 @@ function CustomerOverviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [loadingNews, setLoadingNews] = useState(false);
+  const [apiStatus, setApiStatus] = useState<NewsSocialStatus | null>(null);
 
   useEffect(() => {
     fetchCustomers();
     fetchAccountManagers();
+    fetchApiStatus();
   }, []);
+
+  const fetchApiStatus = async () => {
+    try {
+      const status = await getNewsSocialStatus();
+      setApiStatus(status);
+    } catch (err) {
+      console.error('Error fetching API status:', err);
+    }
+  };
 
   useEffect(() => {
     filterCustomers();
@@ -245,10 +186,17 @@ function CustomerOverviewPage() {
       const contactsResponse = await apiClient.get(`/customers/${customerId}/contacts`);
       setContacts(contactsResponse.data || []);
 
-      // Generate mock news and social feeds (in production, call external APIs)
-      const customerName = selectedCustomer?.company || 'Company';
-      setNewsItems(generateMockNews(customerName));
-      setSocialFeeds(generateMockSocialFeeds(customerName));
+      // Fetch news and social feeds from real API
+      try {
+        const feedsResponse = await getNewsSocialFeeds(customerId, 10, 10);
+        setNewsItems(feedsResponse.newsItems || []);
+        setSocialFeeds(feedsResponse.socialFeeds || []);
+      } catch (feedError) {
+        console.error('Error fetching news/social feeds:', feedError);
+        // Set empty arrays if API fails - no fallback to mock data
+        setNewsItems([]);
+        setSocialFeeds([]);
+      }
 
     } catch (err: any) {
       console.error('Error fetching customer details:', err);
@@ -260,11 +208,16 @@ function CustomerOverviewPage() {
   const refreshNewsFeed = async () => {
     if (!selectedCustomer) return;
     setLoadingNews(true);
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setNewsItems(generateMockNews(selectedCustomer.company || 'Company'));
-    setSocialFeeds(generateMockSocialFeeds(selectedCustomer.company || 'Company'));
-    setLoadingNews(false);
+    try {
+      // Call refresh endpoint to bypass cache
+      const feedsResponse = await refreshNewsSocialFeeds(selectedCustomer.id, 10, 10);
+      setNewsItems(feedsResponse.newsItems || []);
+      setSocialFeeds(feedsResponse.socialFeeds || []);
+    } catch (err) {
+      console.error('Error refreshing feeds:', err);
+    } finally {
+      setLoadingNews(false);
+    }
   };
 
   const getLifecycleStage = (value?: number) => LIFECYCLE_STAGES.find(s => s.value === value);
@@ -282,6 +235,7 @@ function CustomerOverviewPage() {
     switch (platform) {
       case 'linkedin': return <LinkedInIcon sx={{ color: '#0077b5' }} />;
       case 'twitter': return <TwitterIcon sx={{ color: '#1da1f2' }} />;
+      case 'facebook': return <FacebookIcon sx={{ color: '#1877f2' }} />;
       default: return <SocialIcon />;
     }
   };
@@ -688,7 +642,12 @@ function CustomerOverviewPage() {
 
                       {/* News & Social Tab */}
                       <TabPanel value={tabValue} index={2}>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                          {apiStatus && !apiStatus.newsApiConfigured && !apiStatus.socialApiConfigured && (
+                            <Alert severity="info" sx={{ flex: 1, mr: 2 }}>
+                              External APIs not configured. Configure NewsAPI and Twitter/LinkedIn API keys in settings to fetch real data.
+                            </Alert>
+                          )}
                           <Button
                             startIcon={loadingNews ? <CircularProgress size={16} /> : <RefreshIcon />}
                             onClick={refreshNewsFeed}
@@ -704,7 +663,20 @@ function CustomerOverviewPage() {
                           <Grid item xs={12} md={6}>
                             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                               <NewsIcon color="primary" /> Latest News
+                              {apiStatus?.newsApiConfigured && (
+                                <Chip label="Live" size="small" color="success" sx={{ ml: 1 }} />
+                              )}
                             </Typography>
+                            {newsItems.length === 0 ? (
+                              <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
+                                <NewsIcon sx={{ fontSize: 48, color: '#E8DEF8', mb: 1 }} />
+                                <Typography variant="body2" color="textSecondary">
+                                  {apiStatus?.newsApiConfigured 
+                                    ? 'No news found for this company'
+                                    : 'Configure NewsAPI key to fetch company news'}
+                                </Typography>
+                              </Paper>
+                            ) : (
                             <List>
                               {newsItems.map((news) => (
                                 <Paper key={news.id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
@@ -740,13 +712,27 @@ function CustomerOverviewPage() {
                                 </Paper>
                               ))}
                             </List>
+                            )}
                           </Grid>
 
                           {/* Social Feeds */}
                           <Grid item xs={12} md={6}>
                             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                               <SocialIcon color="primary" /> Social Media
+                              {apiStatus?.socialApiConfigured && (
+                                <Chip label="Live" size="small" color="success" sx={{ ml: 1 }} />
+                              )}
                             </Typography>
+                            {socialFeeds.length === 0 ? (
+                              <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
+                                <SocialIcon sx={{ fontSize: 48, color: '#E8DEF8', mb: 1 }} />
+                                <Typography variant="body2" color="textSecondary">
+                                  {apiStatus?.socialApiConfigured 
+                                    ? 'No social posts found'
+                                    : 'Configure Twitter/LinkedIn API keys to fetch social feeds'}
+                                </Typography>
+                              </Paper>
+                            ) : (
                             <List>
                               {socialFeeds.map((feed) => (
                                 <Paper key={feed.id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
@@ -754,7 +740,7 @@ function CustomerOverviewPage() {
                                     {getPlatformIcon(feed.platform)}
                                     <Box sx={{ flex: 1 }}>
                                       <Typography variant="body2" fontWeight={500}>
-                                        {feed.author}
+                                        {feed.authorHandle ? `${feed.author} (${feed.authorHandle})` : feed.author}
                                       </Typography>
                                       <Typography variant="body2" sx={{ mt: 0.5 }}>
                                         {feed.content}
@@ -774,6 +760,7 @@ function CustomerOverviewPage() {
                                 </Paper>
                               ))}
                             </List>
+                            )}
                           </Grid>
                         </Grid>
                       </TabPanel>
