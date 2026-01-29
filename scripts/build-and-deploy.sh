@@ -1,19 +1,24 @@
 #!/bin/bash
 # =============================================================================
-# CRM Solution - Unified Build & Deploy Script
-# Default target: 192.168.0.9 (Docker Compose deployment)
+# CRM Solution - Build & Deploy Script v2.0
+# Target: 192.168.0.9 (Docker Compose deployment)
+# Updated: January 2025
 # =============================================================================
 
 set -e
 
-# Configuration - Default to 192.168.0.9
+# Configuration
 BUILD_HOST="${BUILD_HOST:-192.168.0.9}"
 BUILD_USER="${BUILD_USER:-root}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 VERSION_FILE="${PROJECT_DIR}/version.json"
-KUBE_NAMESPACE="crm-app"
 DEBUG_MODE="${DEBUG:-false}"
+
+# Database configuration
+DB_USER="crm_user"
+DB_PASS="CrmPass@Dev2024!"
+DB_NAME="crm_db"
 
 # Colors for output
 RED='\033[0;31m'
@@ -21,155 +26,108 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
 NC='\033[0m'
 
 # Helper functions
-log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-log_step() { echo -e "${CYAN}[STEP]${NC} $1"; }
-log_debug() { 
-    if [ "$DEBUG_MODE" = "true" ]; then 
-        echo -e "${YELLOW}[DEBUG]${NC} $1"; 
-    fi
-}
+log_info() { echo -e "${BLUE}ℹ${NC} $1"; }
+log_success() { echo -e "${GREEN}✓${NC} $1"; }
+log_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
+log_error() { echo -e "${RED}✗${NC} $1"; }
+log_step() { echo -e "${CYAN}→${NC} $1"; }
+log_debug() { [[ "$DEBUG_MODE" == "true" ]] && echo -e "${MAGENTA}[DEBUG]${NC} $1"; }
 
 print_banner() {
+    local version=$(get_version)
     echo ""
-    echo "╔══════════════════════════════════════════════════════════════════╗"
-    echo "║         CRM Solution - Build & Deploy Pipeline                   ║"
-    echo "║              Build Server: ${BUILD_HOST}                          ║"
-    echo "║              Debug Mode: ${DEBUG_MODE}                                   ║"
-    echo "╚══════════════════════════════════════════════════════════════════╝"
+    echo -e "${CYAN}╔══════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║${NC}         ${GREEN}CRM Solution - Build & Deploy Pipeline${NC}                   ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}              Version: ${YELLOW}${version}${NC}                                   ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}              Target:  ${YELLOW}${BUILD_HOST}${NC}                             ${CYAN}║${NC}"
+    echo -e "${CYAN}╚══════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }
 
 # Get current version from version.json
 get_version() {
-    if [ -f "$VERSION_FILE" ]; then
-        MAJOR=$(grep -o '"major": *[0-9]*' "$VERSION_FILE" | grep -o '[0-9]*')
-        MINOR=$(grep -o '"minor": *[0-9]*' "$VERSION_FILE" | grep -o '[0-9]*')
-        PATCH=$(grep -o '"patch": *[0-9]*' "$VERSION_FILE" | grep -o '[0-9]*')
-        echo "${MAJOR}.${MINOR}.${PATCH}"
+    if [[ -f "$VERSION_FILE" ]]; then
+        local major=$(grep -o '"major": *[0-9]*' "$VERSION_FILE" | grep -o '[0-9]*')
+        local minor=$(grep -o '"minor": *[0-9]*' "$VERSION_FILE" | grep -o '[0-9]*')
+        local patch=$(grep -o '"patch": *[0-9]*' "$VERSION_FILE" | grep -o '[0-9]*')
+        echo "${major}.${minor}.${patch}"
     else
-        echo "1.0.0"
+        echo "0.0.1"
     fi
 }
 
-# Increment version (patch by default, or major/minor if specified)
+# Increment version
 increment_version() {
     local type="${1:-patch}"
     local current=$(get_version)
     
-    MAJOR=$(echo "$current" | cut -d. -f1)
-    MINOR=$(echo "$current" | cut -d. -f2)
-    PATCH=$(echo "$current" | cut -d. -f3)
+    local major=$(echo "$current" | cut -d. -f1)
+    local minor=$(echo "$current" | cut -d. -f2)
+    local patch=$(echo "$current" | cut -d. -f3)
     
     case "$type" in
-        major)
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-            ;;
-        minor)
-            MINOR=$((MINOR + 1))
-            PATCH=0
-            ;;
-        patch)
-            PATCH=$((PATCH + 1))
-            ;;
+        major) major=$((major + 1)); minor=0; patch=0 ;;
+        minor) minor=$((minor + 1)); patch=0 ;;
+        patch) patch=$((patch + 1)) ;;
     esac
     
-    echo "${MAJOR}.${MINOR}.${PATCH}"
+    echo "${major}.${minor}.${patch}"
 }
 
-# Update version.json with new version and build info
+# Update version.json
 update_version_json() {
-    local new_version="${1:-$(increment_version patch)}"
+    local new_version="$1"
     local build_date=$(date +%Y-%m-%d)
     local build_time=$(date +%H:%M:%S)
     local git_hash=$(git -C "$PROJECT_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
     local git_branch=$(git -C "$PROJECT_DIR" branch --show-current 2>/dev/null || echo "unknown")
     
-    # Get current image tags from K8s if available
-    local api_build=$(ssh ${BUILD_USER}@${BUILD_HOST} "kubectl get deployment crm-api -n ${KUBE_NAMESPACE} -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null" | grep -o 'v[0-9]*$' || echo "v1")
-    local frontend_build=$(ssh ${BUILD_USER}@${BUILD_HOST} "kubectl get deployment crm-frontend -n ${KUBE_NAMESPACE} -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null" | grep -o 'v[0-9]*$' || echo "v1")
-    
-    # Increment build numbers
-    local api_build_num=$(echo "$api_build" | tr -d 'v')
-    local frontend_build_num=$(echo "$frontend_build" | tr -d 'v')
-    api_build_num=$((api_build_num + 1))
-    frontend_build_num=$((frontend_build_num + 1))
-    
-    # Get ZIP code stats from DB if available
-    local zip_count=$(ssh ${BUILD_USER}@${BUILD_HOST} "kubectl exec deployment/crm-db -n ${KUBE_NAMESPACE} -- mariadb -u root -pRootPass@Dev2024 crm_db -sN -e 'SELECT COUNT(*) FROM ZipCodes' 2>/dev/null" || echo "0")
-    local country_count=$(ssh ${BUILD_USER}@${BUILD_HOST} "kubectl exec deployment/crm-db -n ${KUBE_NAMESPACE} -- mariadb -u root -pRootPass@Dev2024 crm_db -sN -e 'SELECT COUNT(DISTINCT CountryCode) FROM ZipCodes' 2>/dev/null" || echo "0")
-    
-    MAJOR=$(echo "$new_version" | cut -d. -f1)
-    MINOR=$(echo "$new_version" | cut -d. -f2)
-    PATCH=$(echo "$new_version" | cut -d. -f3)
+    local major=$(echo "$new_version" | cut -d. -f1)
+    local minor=$(echo "$new_version" | cut -d. -f2)
+    local patch=$(echo "$new_version" | cut -d. -f3)
     
     cat > "$VERSION_FILE" << EOF
 {
-  "major": ${MAJOR},
-  "minor": ${MINOR},
-  "patch": ${PATCH},
+  "major": ${major},
+  "minor": ${minor},
+  "patch": ${patch},
   "lastUpdate": "${build_date}",
-  "description": "Auto-generated by build-and-deploy.sh",
+  "description": "CRM Solution v${new_version}",
   "git": {
     "branch": "${git_branch}",
     "commit": "${git_hash}"
   },
-  "components": {
-    "api": {
-      "version": "${new_version}",
-      "build": "v${api_build_num}",
-      "lastDeployed": "${build_date}T${build_time}"
-    },
-    "frontend": {
-      "version": "${new_version}",
-      "build": "v${frontend_build_num}",
-      "lastDeployed": "${build_date}T${build_time}"
-    },
-    "database": {
-      "version": "${new_version}",
-      "schema": "EF Core Migrations",
-      "zipCodes": ${zip_count:-0},
-      "countries": ${country_count:-0}
-    }
-  },
+  "environment": "production",
+  "architecture": "monolith",
   "buildServer": "${BUILD_HOST}",
   "buildTime": "${build_date}T${build_time}"
 }
 EOF
     
-    log_success "Updated version.json to ${new_version}"
+    # Copy to frontend for runtime access
+    cp "$VERSION_FILE" "${PROJECT_DIR}/CRM.Frontend/public/version.json" 2>/dev/null || true
     
-    # Export for use in build
-    export API_BUILD_TAG="v${api_build_num}"
-    export FRONTEND_BUILD_TAG="v${frontend_build_num}"
-    export APP_VERSION="${new_version}"
+    log_success "Version updated to ${new_version}"
 }
 
 # Check SSH connectivity
 check_ssh() {
     log_step "Checking SSH connectivity to ${BUILD_HOST}..."
     if ! ssh -o ConnectTimeout=5 -o BatchMode=yes ${BUILD_USER}@${BUILD_HOST} "echo 'SSH OK'" &>/dev/null; then
-        log_error "Cannot connect to ${BUILD_HOST}. Please check SSH configuration."
-        log_info "Hint: Run 'ssh-copy-id ${BUILD_USER}@${BUILD_HOST}' to setup SSH keys"
+        log_error "Cannot connect to ${BUILD_HOST}"
+        log_info "Run: ssh-copy-id ${BUILD_USER}@${BUILD_HOST}"
         exit 1
     fi
-    log_success "SSH connectivity verified"
+    log_success "SSH connection verified"
 }
 
 # Sync source code to build server
 sync_source() {
     log_step "Syncing source code to ${BUILD_HOST}..."
-    
-    # Copy version.json to frontend public folder so it can be served
-    log_info "Copying version.json to frontend public folder..."
-    cp "${VERSION_FILE}" "${PROJECT_DIR}/CRM.Frontend/public/version.json"
     
     ssh ${BUILD_USER}@${BUILD_HOST} "mkdir -p /opt/crm/source"
     
@@ -180,288 +138,292 @@ sync_source() {
         --exclude '.git' \
         --exclude 'coverage' \
         --exclude 'build' \
-        "${PROJECT_DIR}/" ${BUILD_USER}@${BUILD_HOST}:/opt/crm/source/
+        --exclude 'test-results' \
+        --exclude '*.log' \
+        --exclude '.auth' \
+        "${PROJECT_DIR}/" ${BUILD_USER}@${BUILD_HOST}:/opt/crm/source/ 2>&1 | tail -5
     
-    log_success "Source code synced"
+    log_success "Source synced to /opt/crm/source"
 }
 
-# Build Docker images on remote server
+# Build Docker images
 build_images() {
-    log_step "Building Docker images on ${BUILD_HOST}..."
+    local version="$1"
+    log_step "Building Docker images (v${version})..."
     
-    local api_tag="${API_BUILD_TAG:-v2}"
-    local frontend_tag="${FRONTEND_BUILD_TAG:-v2}"
-    local app_version="${APP_VERSION:-1.0.0}"
-    
-    log_info "Building API: crm-backend:${api_tag}"
-    log_info "Building Frontend: crm-frontend:${frontend_tag}"
-    
-    ssh ${BUILD_USER}@${BUILD_HOST} << BUILD_SCRIPT
+    ssh ${BUILD_USER}@${BUILD_HOST} << BUILDSCRIPT
         set -e
         cd /opt/crm/source
         
-        echo "=== Building Backend API (crm-backend:${api_tag}) ==="
-        docker build -f docker/Dockerfile.backend -t crm-backend:${api_tag} . 2>&1
+        echo "Building API image..."
+        docker build -f docker/Dockerfile.backend -t crm-backend:v${version} -t crm-backend:latest . 2>&1 | tail -10
         
-        echo "=== Building Frontend (crm-frontend:${frontend_tag}) ==="
-        docker build -f docker/Dockerfile.frontend -t crm-frontend:${frontend_tag} \\
-            --build-arg REACT_APP_VERSION=${app_version} \\
-            --build-arg REACT_APP_BUILD_DATE=\$(date +%Y-%m-%d) . 2>&1
+        echo "Building Frontend image..."
+        docker build -f docker/Dockerfile.frontend -t crm-frontend:v${version} -t crm-frontend:latest \
+            --build-arg REACT_APP_VERSION=${version} . 2>&1 | tail -10
         
-        echo "=== Images built successfully ==="
-        docker images | grep -E "crm-backend|crm-frontend" | head -10
-BUILD_SCRIPT
+        echo "Images built:"
+        docker images | grep -E "crm-backend|crm-frontend" | head -6
+BUILDSCRIPT
     
     log_success "Docker images built"
 }
 
-# Deploy using Docker Compose
-deploy_docker_compose() {
-    log_step "Deploying with Docker Compose on ${BUILD_HOST}..."
+# Deploy with Docker Compose
+deploy_containers() {
+    local version="$1"
+    log_step "Deploying containers (v${version})..."
     
-    local api_tag="${API_BUILD_TAG:-v2}"
-    local frontend_tag="${FRONTEND_BUILD_TAG:-v2}"
-    
-    log_debug "API Tag: ${api_tag}, Frontend Tag: ${frontend_tag}"
-    
-    ssh ${BUILD_USER}@${BUILD_HOST} << DEPLOY_SCRIPT
+    ssh ${BUILD_USER}@${BUILD_HOST} << 'DEPLOYSCRIPT'
         set -e
         cd /opt/crm/source
         
-        echo "=== Stopping existing containers ==="
-        docker stop crm-api crm-frontend 2>/dev/null || true
-        docker rm crm-api crm-frontend 2>/dev/null || true
+        # Stop ALL existing CRM containers (including microservices)
+        echo "Stopping existing containers..."
+        for container in crm-api crm-frontend crm-gateway crm-identity crm-customer crm-sales crm-marketing crm-servicedesk crm-core; do
+            docker stop $container 2>/dev/null || true
+            docker rm $container 2>/dev/null || true
+        done
         
-        echo "=== Starting API container (crm-backend:${api_tag}) ==="
-        docker run -d --name crm-api \\
-            --restart unless-stopped \\
-            --network crm-database-network \\
-            -p 5000:5000 \\
-            -v /opt/crm/data:/app/data \\
-            -v /opt/crm/ssl:/app/ssl:ro \\
-            -e ASPNETCORE_ENVIRONMENT=Development \\
-            -e "ASPNETCORE_URLS=http://+:5000" \\
-            -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024!;AllowUserVariables=true" \\
-            -e "DatabaseProvider=MariaDb" \\
-            -e "Jwt__Secret=CrmSuperSecretKey2024ForJwtTokenGenerationMinimum32Chars" \\
-            -e "Jwt__Issuer=CrmApi" \\
-            -e "Jwt__Audience=CrmClient" \\
-            -e "Jwt__ExpirationMinutes=1440" \\
-            -e "Cors__AllowedOrigins=http://192.168.0.9,http://localhost:3000,http://localhost" \\
-            -e "AllowedHosts=*" \\
-            -e "LLMProviders__LocalLLM__Enabled=true" \\
-            -e "LLMProviders__LocalLLM__BaseUrl=http://192.168.0.9:11434" \\
-            -e "LLMProviders__LocalLLM__DefaultModel=qwen2.5:0.5b" \\
-            -e "LLMProviders__LocalLLM__ApiFormat=ollama" \\
-            --health-cmd="curl -f http://localhost:5000/health || exit 1" \\
-            --health-interval=30s \\
-            --health-timeout=10s \\
-            --health-retries=3 \\
-            crm-backend:${api_tag}
+        # Ensure database is running
+        if ! docker ps | grep -q crm-mariadb; then
+            echo "Starting MariaDB..."
+            docker rm -f crm-mariadb 2>/dev/null || true
+            docker network create crm-database-network 2>/dev/null || true
+            docker run -d --name crm-mariadb \
+                --restart unless-stopped \
+                --network crm-database-network \
+                -p 3306:3306 \
+                -v /opt/crm/data/mysql:/var/lib/mysql \
+                -e MYSQL_ROOT_PASSWORD=RootPass@Dev2024 \
+                -e MYSQL_DATABASE=crm_db \
+                -e MYSQL_USER=crm_user \
+                -e 'MYSQL_PASSWORD=CrmPass@Dev2024!' \
+                mariadb:10.11
+            sleep 10
+        fi
         
-        echo "=== Starting Frontend container (crm-frontend:${frontend_tag}) ==="
-        docker run -d --name crm-frontend \\
-            --restart unless-stopped \\
-            --network crm-database-network \\
-            -p 80:80 \\
-            --health-cmd="curl -f http://localhost/ || exit 1" \\
-            --health-interval=30s \\
-            --health-timeout=10s \\
-            --health-retries=3 \\
-            crm-frontend:${frontend_tag}
+        # Start API container
+        echo "Starting API container..."
+        docker run -d --name crm-api \
+            --restart unless-stopped \
+            --network crm-database-network \
+            -p 5000:5000 \
+            -v /opt/crm/data:/app/data \
+            -e ASPNETCORE_ENVIRONMENT=Development \
+            -e "ASPNETCORE_URLS=http://+:5000" \
+            -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024!;AllowUserVariables=true" \
+            -e "DatabaseProvider=MariaDb" \
+            -e "Jwt__Secret=CrmSuperSecretKey2024ForJwtTokenGenerationMinimum32Chars" \
+            -e "Jwt__Issuer=CrmApi" \
+            -e "Jwt__Audience=CrmClient" \
+            -e "Jwt__ExpirationMinutes=1440" \
+            -e "Cors__AllowedOrigins=http://192.168.0.9,http://localhost:3000,http://localhost" \
+            -e "AllowedHosts=*" \
+            -e "LLMProviders__LocalLLM__Enabled=true" \
+            -e "LLMProviders__LocalLLM__BaseUrl=http://192.168.0.9:11434" \
+            -e "LLMProviders__LocalLLM__DefaultModel=qwen2.5:0.5b" \
+            -e "LLMProviders__LocalLLM__ApiFormat=ollama" \
+            crm-backend:latest
         
-        echo "=== Waiting for containers to be healthy ==="
+        # Start Frontend container
+        echo "Starting Frontend container..."
+        docker run -d --name crm-frontend \
+            --restart unless-stopped \
+            --network crm-database-network \
+            -p 80:80 \
+            crm-frontend:latest
+        
+        # Wait for startup
         sleep 5
         
-        echo "=== Container Status ==="
-        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "crm-api|crm-frontend|NAMES"
-        
-        echo "=== Container Logs (last 10 lines each) ==="
-        echo "--- API Logs ---"
-        docker logs crm-api --tail 10 2>&1 || true
-        echo "--- Frontend Logs ---"
-        docker logs crm-frontend --tail 10 2>&1 || true
-DEPLOY_SCRIPT
+        # Show status
+        echo ""
+        echo "Container Status:"
+        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "crm-|NAMES"
+DEPLOYSCRIPT
     
-    log_success "Docker Compose deployment complete"
-}
-
-# Deploy to Kubernetes (if available)
-deploy_kubernetes() {
-    log_step "Deploying to Kubernetes on ${BUILD_HOST}..."
-    
-    ssh ${BUILD_USER}@${BUILD_HOST} << DEPLOY_SCRIPT
-        set -e
-        
-        echo "=== Updating API deployment ==="
-        kubectl set image deployment/crm-api crm-api=crm-backend:${API_BUILD_TAG} -n ${KUBE_NAMESPACE}
-        kubectl rollout status deployment/crm-api -n ${KUBE_NAMESPACE} --timeout=120s
-        
-        echo "=== Updating Frontend deployment ==="
-        kubectl set image deployment/crm-frontend crm-frontend=crm-frontend:${FRONTEND_BUILD_TAG} -n ${KUBE_NAMESPACE}
-        kubectl rollout status deployment/crm-frontend -n ${KUBE_NAMESPACE} --timeout=120s
-        
-        echo "=== Deployment Status ==="
-        kubectl get pods -n ${KUBE_NAMESPACE}
-DEPLOY_SCRIPT
-    
-    log_success "Kubernetes deployment complete"
-}
-
-# Reset UI settings to defaults
-reset_ui_settings() {
-    log_step "Resetting UI settings to defaults..."
-    
-    ssh ${BUILD_USER}@${BUILD_HOST} << RESET_SCRIPT
-        kubectl exec deployment/crm-db -n ${KUBE_NAMESPACE} -- mariadb -u root -pRootPass@Dev2024 crm_db << 'SQL'
--- Reset Navigation Settings to Default (all visible, proper order)
-UPDATE NavigationSettings SET 
-    IsVisible = 1,
-    IsEnabled = 1
-WHERE 1=1;
-
--- Reset Module Configurations (all enabled)
-UPDATE ModuleConfigurations SET 
-    IsEnabled = 1,
-    IsVisible = 1
-WHERE 1=1;
-
--- Reset Feature Flags (all enabled)
-UPDATE FeatureFlags SET 
-    IsEnabled = 1
-WHERE 1=1;
-
--- Reset User Preferences to defaults (clear custom nav orders)
-UPDATE UserPreferences SET 
-    PreferenceValue = NULL
-WHERE PreferenceKey LIKE '%nav%order%' OR PreferenceKey LIKE '%navigation%';
-
-SELECT 'UI Settings Reset Complete' as Status;
-SQL
-RESET_SCRIPT
-    
-    log_success "UI settings reset to defaults"
-}
-
-# Run database migrations
-run_migrations() {
-    log_step "Running database migrations..."
-    
-    ssh ${BUILD_USER}@${BUILD_HOST} << MIGRATE
-        kubectl exec deployment/crm-api -n ${KUBE_NAMESPACE} -- dotnet ef database update --context CrmDbContext 2>/dev/null || echo "Migrations applied or not needed"
-MIGRATE
-    
-    log_success "Database migrations complete"
+    log_success "Containers deployed"
 }
 
 # Verify deployment
 verify_deployment() {
     log_step "Verifying deployment..."
     
-    ssh ${BUILD_USER}@${BUILD_HOST} << VERIFY
-        echo "=== Container Status ==="
-        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "crm-|NAMES"
-        
-        echo ""
-        echo "=== Health Check ==="
-        sleep 3
-        curl -s http://localhost:5000/api/health 2>/dev/null && echo "" || echo "API health check pending..."
-        curl -s -o /dev/null -w "Frontend: HTTP %{http_code}\n" http://localhost/ 2>/dev/null || echo "Frontend check pending..."
-        
-        echo ""
-        echo "=== Access URLs ==="
-        echo "  API:      http://192.168.0.9:5000"
-        echo "  Frontend: http://192.168.0.9"
-        echo "  Adminer:  http://192.168.0.9:8080"
-VERIFY
+    # Wait for containers to be ready
+    sleep 3
     
-    log_success "Deployment verification complete"
+    # Check API health
+    local api_status=$(ssh ${BUILD_USER}@${BUILD_HOST} "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/health 2>/dev/null" || echo "000")
+    local frontend_status=$(ssh ${BUILD_USER}@${BUILD_HOST} "curl -s -o /dev/null -w '%{http_code}' http://localhost/ 2>/dev/null" || echo "000")
+    
+    echo ""
+    if [[ "$api_status" == "200" ]]; then
+        log_success "API:      http://${BUILD_HOST}:5000 (HTTP ${api_status})"
+    else
+        log_warning "API:      http://${BUILD_HOST}:5000 (HTTP ${api_status} - starting...)"
+    fi
+    
+    if [[ "$frontend_status" == "200" ]]; then
+        log_success "Frontend: http://${BUILD_HOST} (HTTP ${frontend_status})"
+    else
+        log_warning "Frontend: http://${BUILD_HOST} (HTTP ${frontend_status} - starting...)"
+    fi
+    
+    # Get database stats
+    echo ""
+    log_info "Database Statistics:"
+    ssh ${BUILD_USER}@${BUILD_HOST} "docker exec crm-mariadb mariadb -u${DB_USER} -p'${DB_PASS}' ${DB_NAME} -sN -e \"
+        SELECT CONCAT('  Tables: ', COUNT(*)) FROM information_schema.tables WHERE table_schema='${DB_NAME}';
+        SELECT CONCAT('  Customers: ', COUNT(*)) FROM Customers;
+        SELECT CONCAT('  Contacts: ', COUNT(*)) FROM Contacts;
+        SELECT CONCAT('  Accounts: ', COUNT(*)) FROM Accounts;
+        SELECT CONCAT('  Opportunities: ', COUNT(*)) FROM Opportunities;
+    \"" 2>/dev/null || log_warning "Could not get database stats"
+}
+
+# Clean old images
+clean_images() {
+    log_step "Cleaning old Docker images..."
+    ssh ${BUILD_USER}@${BUILD_HOST} << 'CLEANSCRIPT'
+        # Remove dangling images
+        docker image prune -f 2>/dev/null || true
+        
+        # Keep only last 3 versions of each image
+        for img in crm-backend crm-frontend; do
+            docker images $img --format "{{.ID}} {{.Tag}}" | sort -t'v' -k2 -nr | tail -n +4 | awk '{print $1}' | xargs -r docker rmi 2>/dev/null || true
+        done
+        
+        echo "Current images:"
+        docker images | grep -E "crm-backend|crm-frontend" | head -6
+CLEANSCRIPT
+    log_success "Old images cleaned"
+}
+
+# Show status
+show_status() {
+    log_step "Current deployment status:"
+    ssh ${BUILD_USER}@${BUILD_HOST} << 'STATUSSCRIPT'
+        echo ""
+        echo "=== Containers ==="
+        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "crm-|NAMES" || echo "No CRM containers running"
+        
+        echo ""
+        echo "=== Images ==="
+        docker images | grep -E "crm-backend|crm-frontend|REPOSITORY" | head -7
+        
+        echo ""
+        echo "=== Health ==="
+        curl -s http://localhost:5000/health 2>/dev/null || echo "API not responding"
+STATUSSCRIPT
+}
+
+# Print help
+print_help() {
+    echo "CRM Solution - Build & Deploy Script v2.0"
+    echo ""
+    echo "Usage: $0 [command] [options]"
+    echo ""
+    echo "Commands:"
+    echo "  patch       Increment patch version and deploy (default)"
+    echo "  minor       Increment minor version and deploy"
+    echo "  major       Increment major version and deploy"
+    echo "  status      Show current deployment status"
+    echo "  clean       Clean old Docker images"
+    echo "  version     Show current version"
+    echo "  help        Show this help message"
+    echo ""
+    echo "Options:"
+    echo "  --debug     Enable debug output"
+    echo "  --host      Specify target host (default: 192.168.0.9)"
+    echo ""
+    echo "Examples:"
+    echo "  $0              # Deploy with patch version bump"
+    echo "  $0 minor        # Deploy with minor version bump"
+    echo "  $0 status       # Show status only"
+    echo "  $0 --debug      # Deploy with debug output"
+    echo ""
 }
 
 # Main execution
 main() {
-    print_banner
+    local command="${1:-patch}"
     
-    local version_type="${1:-patch}"
-    
-    log_info "Build Type: ${version_type}"
-    log_info "Current Version: $(get_version)"
-    log_info "Target Host: ${BUILD_HOST}"
-    log_info "Debug Mode: ${DEBUG_MODE}"
-    
-    check_ssh
-    
-    # Update version before build
-    update_version_json "$(increment_version $version_type)"
-    log_info "New Version: $(get_version)"
-    log_info "API Build: ${API_BUILD_TAG}"
-    log_info "Frontend Build: ${FRONTEND_BUILD_TAG}"
-    
-    sync_source
-    build_images
-    deploy_docker_compose
-    # run_migrations  # Disabled - migrations handled separately
-    # reset_ui_settings  # Disabled - not needed for Docker Compose
-    verify_deployment
-    
-    echo ""
-    log_success "╔══════════════════════════════════════════════════════════════════╗"
-    log_success "║                    Build & Deploy Complete!                      ║"
-    log_success "║  Version: $(get_version)  |  API: ${API_BUILD_TAG}  |  Frontend: ${FRONTEND_BUILD_TAG}  ║"
-    log_success "╚══════════════════════════════════════════════════════════════════╝"
-}
-
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --debug|-d)
-            DEBUG_MODE="true"
-            shift
-            ;;
-        --host|-h)
-            BUILD_HOST="$2"
-            shift 2
-            ;;
-        major|minor|patch)
-            VERSION_TYPE="$1"
-            shift
-            ;;
-        reset-ui)
-            check_ssh
-            reset_ui_settings
+    case "$command" in
+        help|--help|-h)
+            print_help
             exit 0
             ;;
         version)
             echo "Current version: $(get_version)"
             exit 0
             ;;
-        help|--help)
-            echo "Usage: $0 [options] [command]"
-            echo ""
-            echo "Commands:"
-            echo "  patch      - Increment patch version and deploy (default)"
-            echo "  minor      - Increment minor version and deploy"
-            echo "  major      - Increment major version and deploy"
-            echo "  reset-ui   - Reset UI settings to defaults only"
-            echo "  version    - Show current version"
-            echo ""
-            echo "Options:"
-            echo "  --debug, -d    - Enable debug mode with full logs"
-            echo "  --host, -h     - Specify target host (default: 192.168.0.9)"
-            echo ""
-            echo "Environment Variables:"
-            echo "  BUILD_HOST     - Target deployment host (default: 192.168.0.9)"
-            echo "  BUILD_USER     - SSH user (default: root)"
-            echo "  DEBUG          - Enable debug mode (true/false)"
+        status)
+            check_ssh
+            show_status
             exit 0
             ;;
+        clean)
+            check_ssh
+            clean_images
+            exit 0
+            ;;
+        major|minor|patch)
+            ;;
         *)
-            log_error "Unknown option: $1"
-            echo "Run '$0 help' for usage information"
+            log_error "Unknown command: $command"
+            print_help
             exit 1
+            ;;
+    esac
+    
+    # Build and deploy
+    print_banner
+    
+    local current_version=$(get_version)
+    local new_version=$(increment_version "$command")
+    
+    log_info "Current Version: ${current_version}"
+    log_info "New Version:     ${new_version}"
+    log_info "Target Host:     ${BUILD_HOST}"
+    echo ""
+    
+    check_ssh
+    update_version_json "$new_version"
+    sync_source
+    build_images "$new_version"
+    deploy_containers "$new_version"
+    clean_images
+    verify_deployment
+    
+    echo ""
+    echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}║${NC}                    ${GREEN}✓ Build & Deploy Complete${NC}                      ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}                                                                  ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   Version:  ${YELLOW}${new_version}${NC}                                             ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   API:      ${CYAN}http://${BUILD_HOST}:5000${NC}                          ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   Frontend: ${CYAN}http://${BUILD_HOST}${NC}                               ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   Swagger:  ${CYAN}http://${BUILD_HOST}:5000/swagger${NC}                   ${GREEN}║${NC}"
+    echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --debug|-d)
+            DEBUG_MODE="true"
+            shift
+            ;;
+        --host)
+            BUILD_HOST="$2"
+            shift 2
+            ;;
+        *)
+            COMMAND="$1"
+            shift
             ;;
     esac
 done
 
-# Execute main with version type
-main "${VERSION_TYPE:-patch}"
+main "${COMMAND:-patch}"
