@@ -1,14 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { 
   FormControl, InputLabel, Select, MenuItem, TextField, FormControlLabel, Checkbox,
-  Switch, Box, Typography, Paper, InputAdornment, Slider, FormHelperText,
+  Box, Typography, InputAdornment, Slider, FormHelperText,
   Autocomplete
 } from '@mui/material';
 import {
   LinkedIn as LinkedInIcon,
   Twitter as TwitterIcon,
-  Person as PersonIcon,
-  Business as BusinessIcon
 } from '@mui/icons-material';
 import lookupService, { LookupItem } from '../services/lookupService';
 
@@ -79,33 +77,10 @@ const FieldRenderer: React.FC<Props> = ({ config, formData, onChange, onSelectCh
     size: 'small' as const,
   } as any;
 
-  // Special handling for category field with switch
+  // Hide category field completely - Individual/Organization toggle is no longer needed
+  // All accounts are treated as organizations by default
   if (config.fieldName === 'category') {
-    return (
-      <Paper elevation={0} sx={{ p: 2, backgroundColor: '#F5EFF7', borderRadius: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: formData.category === 0 ? 1 : 0.5 }}>
-            <PersonIcon color={formData.category === 0 ? 'primary' : 'disabled'} />
-            <Typography fontWeight={formData.category === 0 ? 600 : 400}>Individual</Typography>
-          </Box>
-          <Switch
-            checked={formData.category === 1}
-            onChange={(e) => setFormData && setFormData((prev: any) => ({ ...prev, category: e.target.checked ? 1 : 0 }))}
-            disabled={disabled}
-            color="primary"
-          />
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: formData.category === 1 ? 1 : 0.5 }}>
-            <BusinessIcon color={formData.category === 1 ? 'primary' : 'disabled'} />
-            <Typography fontWeight={formData.category === 1 ? 600 : 400}>Organization</Typography>
-          </Box>
-        </Box>
-        {disabled && (
-          <Typography variant="caption" color="textSecondary" sx={{ display: 'block', textAlign: 'center', mt: 1 }}>
-            Category cannot be changed after creation
-          </Typography>
-        )}
-      </Paper>
-    );
+    return null;
   }
 
   // Special handling for social media fields

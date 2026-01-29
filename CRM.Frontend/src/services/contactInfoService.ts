@@ -8,7 +8,7 @@ export type EntityType = 'Customer' | 'Contact' | 'Lead' | 'Account';
 export type AddressType = 'Primary' | 'Billing' | 'Shipping' | 'Mailing' | 'Headquarters' | 'Branch' | 'Warehouse' | 'Other';
 export type PhoneType = 'Mobile' | 'Home' | 'Office' | 'Direct' | 'Fax' | 'Toll-Free' | 'Pager' | 'Other';
 export type EmailType = 'Personal' | 'Work' | 'Invoicing' | 'Support' | 'Marketing' | 'General' | 'Other';
-export type SocialMediaPlatform = 'LinkedIn' | 'Twitter' | 'Facebook' | 'Instagram' | 'YouTube' | 'TikTok' | 'Pinterest' | 'WhatsApp' | 'Telegram' | 'WeChat' | 'Slack' | 'Discord' | 'GitHub' | 'Other';
+export type SocialMediaPlatform = 'LinkedIn' | 'Twitter' | 'Facebook' | 'Instagram' | 'YouTube' | 'TikTok' | 'Pinterest' | 'WhatsApp' | 'Telegram' | 'WeChat' | 'Slack' | 'Discord' | 'GitHub' | 'Website' | 'Other';
 export type SocialMediaAccountType = 'Personal' | 'Business' | 'Official' | 'Support';
 export type EngagementLevel = 'VeryLow' | 'Low' | 'Medium' | 'High' | 'VeryHigh';
 

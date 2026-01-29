@@ -15,6 +15,7 @@ import {
   Phone as PhoneIcon,
   Email as EmailIcon,
   Share as SocialIcon,
+  Language as WebIcon,
 } from '@mui/icons-material';
 import AddressManager from './AddressManager';
 import PhoneManager from './PhoneManager';
@@ -121,9 +122,9 @@ const ContactInfoPanel: React.FC<ContactInfoPanelProps> = ({
             label={getTabLabel('Emails', contactInfo?.emailAddresses?.length || 0)}
           />
           <Tab
-            icon={<SocialIcon />}
+            icon={<WebIcon />}
             iconPosition="start"
-            label={getTabLabel('Social', contactInfo?.socialMediaAccounts?.length || 0)}
+            label={getTabLabel('Social & Web', contactInfo?.socialMediaAccounts?.length || 0)}
           />
         </Tabs>
 

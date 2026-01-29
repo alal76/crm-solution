@@ -64,7 +64,7 @@ interface SocialMediaManagerProps {
 }
 
 const PLATFORMS: SocialMediaPlatform[] = [
-  'LinkedIn', 'Twitter', 'Facebook', 'Instagram', 'YouTube', 
+  'Website', 'LinkedIn', 'Twitter', 'Facebook', 'Instagram', 'YouTube', 
   'TikTok', 'Pinterest', 'WhatsApp', 'Telegram', 'WeChat', 
   'Slack', 'Discord', 'GitHub', 'Other'
 ];
@@ -83,7 +83,7 @@ const SocialMediaManager: React.FC<SocialMediaManagerProps> = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<LinkedSocialMediaDto | null>(null);
   const [formData, setFormData] = useState<CreateSocialMediaAccountDto & { isPrimary: boolean; preferredForContact: boolean }>({
-    platform: 'LinkedIn',
+    platform: 'Website',
     platformOther: '',
     accountType: 'Business',
     handleOrUsername: '',
@@ -137,7 +137,7 @@ const SocialMediaManager: React.FC<SocialMediaManagerProps> = ({
     } else {
       setEditingAccount(null);
       setFormData({
-        platform: 'LinkedIn',
+        platform: 'Website',
         platformOther: '',
         accountType: 'Business',
         handleOrUsername: '',
@@ -213,6 +213,8 @@ const SocialMediaManager: React.FC<SocialMediaManagerProps> = ({
 
   const getPlatformIcon = (platform: SocialMediaPlatform) => {
     switch (platform) {
+      case 'Website':
+        return <WebIcon fontSize="small" sx={{ color: '#4CAF50' }} />;
       case 'LinkedIn':
         return <LinkedInIcon fontSize="small" sx={{ color: '#0077B5' }} />;
       case 'Twitter':
