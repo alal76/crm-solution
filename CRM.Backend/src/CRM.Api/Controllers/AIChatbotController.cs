@@ -174,7 +174,7 @@ public class AIChatbotController : ControllerBase
     /// Get quick suggestions based on context
     /// </summary>
     [HttpGet("suggestions")]
-    public async Task<IActionResult> GetSuggestions([FromQuery] string? context = null)
+    public IActionResult GetSuggestions([FromQuery] string? context = null)
     {
         var suggestions = new List<string>
         {

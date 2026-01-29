@@ -32,12 +32,15 @@ import {
   Stack,
   IconButton,
   SelectChangeEvent,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Close as CloseIcon,
+  Note as NoteIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
@@ -45,6 +48,7 @@ import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
+import NotesTab from '../components/NotesTab';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
@@ -157,6 +161,7 @@ function OpportunitiesPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogTab, setDialogTab] = useState(0);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<OpportunityForm>({
     name: '',
@@ -312,6 +317,7 @@ function OpportunitiesPage() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingId(null);
+    setDialogTab(0);
   };
 
   const handleSelectChange = (e: any) => {
@@ -650,8 +656,16 @@ function OpportunitiesPage() {
 
       {/* Add/Edit Opportunity Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{editingId ? 'Edit Opportunity' : 'Create New Opportunity'}</DialogTitle>
+        <DialogTitle sx={{ pb: 0 }}>{editingId ? 'Edit Opportunity' : 'Create New Opportunity'}</DialogTitle>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
+            <Tab label="Opportunity Info" />
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
+          </Tabs>
+        </Box>
         <DialogContent sx={{ pt: 2 }}>
+          {/* Opportunity Info Tab */}
+          {dialogTab === 0 && (
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
             <TextField
               autoFocus
@@ -825,6 +839,25 @@ function OpportunitiesPage() {
               sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
             />
           </Box>
+          )}
+
+          {/* Notes Tab */}
+          {dialogTab === 1 && (
+            <Box>
+              {editingId ? (
+                <NotesTab
+                  entityType="Opportunity"
+                  entityId={editingId}
+                  entityName={formData.name || 'Opportunity'}
+                />
+              ) : (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  Please save the opportunity first to add notes.
+                </Alert>
+              )}
+            </Box>
+          )}
+
           <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
         </DialogContent>
         <DialogActions>

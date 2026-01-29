@@ -10,7 +10,8 @@ import {
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Campaign as CampaignIcon, TrendingUp as TrendingUpIcon,
-  Email as EmailIcon, Share as ShareIcon, Close as CloseIcon
+  Email as EmailIcon, Share as ShareIcon, Close as CloseIcon,
+  Note as NoteIcon
 } from '@mui/icons-material';
 import { DialogError, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
@@ -20,6 +21,7 @@ import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
+import NotesTab from '../components/NotesTab';
 import {
   CAMPAIGN_STATUS_OPTIONS,
   CAMPAIGN_TYPE_OPTIONS,
@@ -492,6 +494,7 @@ function CampaignsPage() {
             <Tab label="Email Metrics" />
             <Tab label="Social & A/B" />
             <Tab label="Tracking" />
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
@@ -654,6 +657,20 @@ function CampaignsPage() {
                 <TextField fullWidth label="Tags (comma-separated)" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="seasonal, promotion, q1" />
               </Grid>
             </Grid>
+          </TabPanel>
+
+          <TabPanel value={dialogTab} index={5}>
+            {editingId ? (
+              <NotesTab
+                entityType="Campaign"
+                entityId={editingId}
+                entityName={formData.name || 'Campaign'}
+              />
+            ) : (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                Please save the campaign first to add notes.
+              </Alert>
+            )}
           </TabPanel>
           <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
         </DialogContent>

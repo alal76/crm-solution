@@ -393,7 +393,7 @@ public class WorkflowWorkerService : BackgroundService
     /// <summary>
     /// Evaluate outgoing transitions to determine the next node
     /// </summary>
-    private async Task<WorkflowTransition?> EvaluateTransitionsAsync(
+    private Task<WorkflowTransition?> EvaluateTransitionsAsync(
         CrmDbContext dbContext,
         WorkflowNode currentNode,
         WorkflowInstance instance,
@@ -405,7 +405,7 @@ public class WorkflowWorkerService : BackgroundService
             .OrderBy(t => t.Priority)
             .ToList();
 
-        if (!transitions.Any()) return null;
+        if (!transitions.Any()) return Task.FromResult<WorkflowTransition?>(null);
 
         // Parse current state data
         var stateData = new Dictionary<string, object>();
@@ -450,12 +450,12 @@ public class WorkflowWorkerService : BackgroundService
 
             if (conditionMet)
             {
-                return transition;
+                return Task.FromResult<WorkflowTransition?>(transition);
             }
         }
 
         // Return default transition if no condition matched
-        return transitions.FirstOrDefault(t => t.IsDefault);
+        return Task.FromResult(transitions.FirstOrDefault(t => t.IsDefault));
     }
 
     private bool EvaluateExpression(string? expression, Dictionary<string, object> data)

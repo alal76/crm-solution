@@ -8,7 +8,7 @@ import {
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Description as QuoteIcon, Send as SendIcon, CheckCircle as AcceptIcon,
-  Cancel as RejectIcon, Refresh as ReviseIcon
+  Cancel as RejectIcon, Refresh as ReviseIcon, Note as NoteIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { TabPanel, DialogError } from '../components/common';
@@ -17,6 +17,7 @@ import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
+import NotesTab from '../components/NotesTab';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 
 // Search fields for Advanced Search
@@ -466,6 +467,7 @@ function QuotesPage() {
             <Tab label="Pricing" />
             <Tab label="Addresses" />
             <Tab label="Terms" />
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
@@ -565,6 +567,20 @@ function QuotesPage() {
                 <TextField fullWidth label="Notes" name="notes" value={formData.notes} onChange={handleInputChange} multiline rows={3} />
               </Grid>
             </Grid>
+          </TabPanel>
+
+          <TabPanel value={dialogTab} index={4}>
+            {editingId ? (
+              <NotesTab
+                entityType="Quote"
+                entityId={editingId}
+                entityName={formData.title || 'Quote'}
+              />
+            ) : (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                Please save the quote first to add notes.
+              </Alert>
+            )}
           </TabPanel>
         </DialogContent>
         <DialogActions>

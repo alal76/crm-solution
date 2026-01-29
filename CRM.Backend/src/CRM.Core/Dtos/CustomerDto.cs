@@ -133,6 +133,12 @@ public class CustomerDto
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     
+    /// <summary>
+    /// Row version for optimistic concurrency control.
+    /// Used to detect concurrent updates - clients should send this in If-Match header.
+    /// </summary>
+    public byte[]? RowVersion { get; set; }
+    
     // Display
     public string DisplayName { get; set; } = string.Empty;
     

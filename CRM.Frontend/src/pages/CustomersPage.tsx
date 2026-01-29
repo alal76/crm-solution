@@ -19,7 +19,7 @@ import {
   Business as BusinessIcon, Person as PersonIcon, Email as EmailIcon,
   Phone as PhoneIcon, PersonAdd as PersonAddIcon, Group as GroupIcon,
   ContactPhone as ContactPhoneIcon, Refresh as RefreshIcon,
-  FilterAlt as FilterIcon, Close as CloseIcon
+  FilterAlt as FilterIcon, Close as CloseIcon, Note as NoteIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
@@ -27,6 +27,7 @@ import FieldRenderer from '../components/FieldRenderer';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { ContactInfoPanel } from '../components/ContactInfo';
+import NotesTab from '../components/NotesTab';
 import { useFieldConfig, ModuleFieldConfiguration, dispatchFieldConfigUpdate } from '../hooks/useFieldConfig';
 import { usePagination } from '../hooks/usePagination';
 import { useAccountContext } from '../contexts/AccountContextProvider';
@@ -147,7 +148,7 @@ interface CustomerForm {
 }
 
 const INITIAL_FORM_DATA: CustomerForm = {
-  category: 0,
+  category: 1,
   firstName: '',
   lastName: '',
   salutation: '',
@@ -614,6 +615,11 @@ function CustomersPage() {
       baseTabs.push({ index: 101, name: 'Linked Contacts' });
     }
 
+    // Add Notes tab when editing
+    if (editingId) {
+      baseTabs.push({ index: 102, name: 'Notes' });
+    }
+
     return baseTabs;
   };
 
@@ -858,7 +864,7 @@ function CustomersPage() {
                 icon={
                   tab.index === 100 ? <ContactPhoneIcon fontSize="small" /> : 
                   tab.index === 101 ? <GroupIcon fontSize="small" /> : 
-                  tab.index === 102 ? <PersonIcon fontSize="small" /> : 
+                  tab.index === 102 ? <NoteIcon fontSize="small" /> : 
                   undefined
                 }
                 iconPosition="start"
@@ -965,6 +971,17 @@ function CustomersPage() {
                       ))}
                     </List>
                   )}
+                </TabPanel>
+              )}
+
+              {/* Notes Tab */}
+              {editingId && (
+                <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 102)}>
+                  <NotesTab
+                    entityType="Customer"
+                    entityId={editingId}
+                    entityName={formData.company || `${formData.firstName} ${formData.lastName}`}
+                  />
                 </TabPanel>
               )}
             </>

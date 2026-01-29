@@ -1,0 +1,368 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CRM SOLUTION - E2E TEST EXECUTION LOG                       
+═══════════════════════════════════════════════════════════════════════════════
+
+Test Run Started:  2026-01-29T00:37:33.790Z
+Test Run Ended:    2026-01-29T00:37:48.206Z
+Total Duration:    14s
+
+───────────────────────────────────────────────────────────────────────────────
+                              EXECUTION SUMMARY                                 
+───────────────────────────────────────────────────────────────────────────────
+  Total Tests:     42
+  Passed:          28 (67%)
+  Failed:          14 (33%)
+  Skipped:         0 (0%)
+
+───────────────────────────────────────────────────────────────────────────────
+                              MODULE BREAKDOWN                                  
+───────────────────────────────────────────────────────────────────────────────
+
+  AUTH.SETUP.TS
+  ├─ Total:   1
+  ├─ Passed:  1
+  ├─ Failed:  0
+  ├─ Skipped: 0
+  └─ Pass Rate: 100%
+
+  BVT
+  ├─ Total:   41
+  ├─ Passed:  27
+  ├─ Failed:  14
+  ├─ Skipped: 0
+  └─ Pass Rate: 66%
+
+───────────────────────────────────────────────────────────────────────────────
+                              DETAILED TEST LOG                                 
+───────────────────────────────────────────────────────────────────────────────
+
+[2026-01-29T00:37:38.982Z] [✓ PASS] TC-UNKNOWN
+   Test: authenticate
+   Module: auth.setup.ts
+   Duration: 4361ms
+
+[2026-01-29T00:37:40.170Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-01-001: Health check endpoint responds
+   Module: bvt
+   Duration: 18ms
+
+[2026-01-29T00:37:40.207Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-10-002: List user groups
+   Module: bvt
+   Duration: 22ms
+
+[2026-01-29T00:37:40.235Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-03-003: List contacts
+   Module: bvt
+   Duration: 51ms
+
+[2026-01-29T00:37:40.238Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-10-003: Get current user profile
+   Module: bvt
+   Duration: 23ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:40.256Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-03-004: Delete contact
+   Module: bvt
+   Duration: 15ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:40.265Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-06-003: List service requests
+   Module: bvt
+   Duration: 69ms
+
+[2026-01-29T00:37:40.284Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-07-001: Create campaign
+   Module: bvt
+   Duration: 13ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:40.344Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-01-002: Login with valid credentials succeeds
+   Module: bvt
+   Duration: 161ms
+
+[2026-01-29T00:37:40.363Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-01-003: Login with invalid credentials fails
+   Module: bvt
+   Duration: 12ms
+
+[2026-01-29T00:37:40.378Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-01-004: Protected endpoint requires auth
+   Module: bvt
+   Duration: 10ms
+
+[2026-01-29T00:37:40.438Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-02-001: Create customer
+   Module: bvt
+   Duration: 48ms
+
+[2026-01-29T00:37:40.475Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-02-002: Read customer
+   Module: bvt
+   Duration: 29ms
+
+[2026-01-29T00:37:40.517Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-02-003: Update customer
+   Module: bvt
+   Duration: 34ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:41.256Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-07-002: Read campaign
+   Module: bvt
+   Duration: 42ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:41.256Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-11-001: Get dashboard data
+   Module: bvt
+   Duration: 28ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:41.262Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-04-001: Create lead
+   Module: bvt
+   Duration: 43ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:41.689Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-02-004: List customers
+   Module: bvt
+   Duration: 150ms
+
+[2026-01-29T00:37:41.732Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-02-005: Delete customer
+   Module: bvt
+   Duration: 25ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:43.109Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-11-002: Get dashboard configuration
+   Module: bvt
+   Duration: 93ms
+
+[2026-01-29T00:37:43.170Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-04-002: Read lead
+   Module: bvt
+   Duration: 18ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:43.180Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-12-001: List notes
+   Module: bvt
+   Duration: 45ms
+
+[2026-01-29T00:37:43.192Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-07-003: List campaigns
+   Module: bvt
+   Duration: 21ms
+
+[2026-01-29T00:37:43.218Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-12-002: Create note
+   Module: bvt
+   Duration: 30ms
+
+[2026-01-29T00:37:43.229Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-08-001: Create product
+   Module: bvt
+   Duration: 31ms
+
+[2026-01-29T00:37:43.242Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-13-001: Get system settings
+   Module: bvt
+   Duration: 17ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:43.255Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-08-002: Read product
+   Module: bvt
+   Duration: 17ms
+
+[2026-01-29T00:37:43.300Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-08-003: List products
+   Module: bvt
+   Duration: 32ms
+
+[2026-01-29T00:37:43.677Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-09-001: Create quote
+   Module: bvt
+   Duration: 76ms
+
+[2026-01-29T00:37:43.711Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-09-002: Read quote
+   Module: bvt
+   Duration: 25ms
+
+[2026-01-29T00:37:43.749Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-09-003: List quotes
+   Module: bvt
+   Duration: 24ms
+
+[2026-01-29T00:37:43.832Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-10-001: List users
+   Module: bvt
+   Duration: 69ms
+
+[2026-01-29T00:37:44.123Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-03-001: Create contact
+   Module: bvt
+   Duration: 21ms
+
+[2026-01-29T00:37:44.152Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-03-002: Read contact
+   Module: bvt
+   Duration: 22ms
+
+[2026-01-29T00:37:44.505Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-04-003: List leads
+   Module: bvt
+   Duration: 15ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:44.518Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-13-002: Get lookups
+   Module: bvt
+   Duration: 14ms
+
+[2026-01-29T00:37:45.333Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-04-004: Delete lead
+   Module: bvt
+   Duration: 17ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:46.225Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-05-001: Create opportunity
+   Module: bvt
+   Duration: 17ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:47.124Z] [✗ FAIL] TC-UNKNOWN
+   Test: BVT-05-002: Read opportunity
+   Module: bvt
+   Duration: 18ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+[2026-01-29T00:37:48.101Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-05-003: List opportunities
+   Module: bvt
+   Duration: 11ms
+
+[2026-01-29T00:37:48.172Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-06-001: Create service request
+   Module: bvt
+   Duration: 19ms
+
+[2026-01-29T00:37:48.195Z] [✓ PASS] TC-UNKNOWN
+   Test: BVT-06-002: Read service request
+   Module: bvt
+   Duration: 19ms
+
+───────────────────────────────────────────────────────────────────────────────
+                              FAILED TESTS                                     
+───────────────────────────────────────────────────────────────────────────────
+
+1. TC-UNKNOWN - BVT-10-003: Get current user profile
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+2. TC-UNKNOWN - BVT-03-004: Delete contact
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+3. TC-UNKNOWN - BVT-07-001: Create campaign
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+4. TC-UNKNOWN - BVT-02-003: Update customer
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+5. TC-UNKNOWN - BVT-07-002: Read campaign
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+6. TC-UNKNOWN - BVT-11-001: Get dashboard data
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+7. TC-UNKNOWN - BVT-04-001: Create lead
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+8. TC-UNKNOWN - BVT-02-005: Delete customer
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+9. TC-UNKNOWN - BVT-04-002: Read lead
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+10. TC-UNKNOWN - BVT-13-001: Get system settings
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+11. TC-UNKNOWN - BVT-04-003: List leads
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+12. TC-UNKNOWN - BVT-04-004: Delete lead
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+13. TC-UNKNOWN - BVT-05-001: Create opportunity
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+14. TC-UNKNOWN - BVT-05-002: Read opportunity
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+Received: [31mfalse[39m
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              END OF LOG                                        
+═══════════════════════════════════════════════════════════════════════════════

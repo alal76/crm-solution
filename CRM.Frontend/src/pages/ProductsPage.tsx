@@ -8,12 +8,13 @@ import {
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Inventory as InventoryIcon, ShoppingCart as CartIcon,
-  Subscriptions as SubscriptionIcon
+  Subscriptions as SubscriptionIcon, Note as NoteIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { TabPanel, DialogError } from '../components/common';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
+import NotesTab from '../components/NotesTab';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { usePagination } from '../hooks/usePagination';
 import logo from '../assets/logo.png';
@@ -450,6 +451,7 @@ function ProductsPage() {
             <Tab label="Subscription" />
             <Tab label="Inventory" />
             <Tab label="SEO & Media" />
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
@@ -641,6 +643,20 @@ function ProductsPage() {
                 <TextField fullWidth label="Tags (comma-separated)" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="tag1, tag2, tag3" />
               </Grid>
             </Grid>
+          </TabPanel>
+
+          <TabPanel value={dialogTab} index={5}>
+            {editingId ? (
+              <NotesTab
+                entityType="Product"
+                entityId={editingId}
+                entityName={formData.name || 'Product'}
+              />
+            ) : (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                Please save the product first to add notes.
+              </Alert>
+            )}
           </TabPanel>
         </DialogContent>
         <DialogActions>

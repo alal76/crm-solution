@@ -41,11 +41,13 @@ import {
   PersonAdd as PersonAddIcon,
   ContactPhone as ContactPhoneIcon,
   Close as CloseIcon,
+  Note as NoteIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import { ContactInfoPanel } from '../components/ContactInfo';
+import NotesTab from '../components/NotesTab';
 import { BaseEntity } from '../types';
 import { useProfile } from '../contexts/ProfileContext';
 import { DialogError, DialogSuccess, ActionButton } from '../components/common';
@@ -681,6 +683,7 @@ function LeadsPage() {
           <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
             <Tab label="Lead Info" />
             {editingId && <Tab label="Contact Info" icon={<ContactPhoneIcon fontSize="small" />} iconPosition="start" />}
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 350 }}>
@@ -788,6 +791,23 @@ function LeadsPage() {
                 layout="tabs"
                 showCounts={true}
               />
+            </Box>
+          )}
+
+          {/* Notes Tab */}
+          {((editingId && dialogTab === 2) || (!editingId && dialogTab === 1)) && (
+            <Box>
+              {editingId ? (
+                <NotesTab
+                  entityType="Lead"
+                  entityId={editingId}
+                  entityName={`${formData.firstName} ${formData.lastName}`.trim() || 'Lead'}
+                />
+              ) : (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  Please save the lead first to add notes.
+                </Alert>
+              )}
             </Box>
           )}
         </DialogContent>

@@ -1021,6 +1021,7 @@ public class CustomerService : ICustomerService, ICustomerInputPort
             CustomFields = customFieldsValue,
             CreatedAt = customer.CreatedAt,
             UpdatedAt = customer.UpdatedAt,
+            RowVersion = customer.RowVersion,
             DisplayName = customer.DisplayName,
             Contacts = contactDtos,
             ContactCount = contactCount,

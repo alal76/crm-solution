@@ -120,26 +120,36 @@ public class DbCacheService : IDbCacheService
 
     public async Task<Department?> GetDepartmentByIdAsync(int id, CancellationToken ct = default)
     {
-        return await _cache.GetOrSetAsync(
+        var wrapper = await _cache.GetOrSetAsync(
             $"{DbCacheKeys.DepartmentById}{id}",
-            async () => await _context.Departments
-                .Where(d => d.Id == id && !d.IsDeleted)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(ct),
+            async () =>
+            {
+                var dept = await _context.Departments
+                    .Where(d => d.Id == id && !d.IsDeleted)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(ct);
+                return new CacheWrapper<Department> { Items = dept != null ? new List<Department> { dept } : new List<Department>() };
+            },
             MediumDuration,
             ct);
+        return wrapper?.Items?.FirstOrDefault();
     }
 
     public async Task<Department?> GetDepartmentByCodeAsync(string code, CancellationToken ct = default)
     {
-        return await _cache.GetOrSetAsync(
+        var wrapper = await _cache.GetOrSetAsync(
             $"{DbCacheKeys.DepartmentByCode}{code.ToUpperInvariant()}",
-            async () => await _context.Departments
-                .Where(d => d.DepartmentCode == code && !d.IsDeleted)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(ct),
+            async () =>
+            {
+                var dept = await _context.Departments
+                    .Where(d => d.DepartmentCode == code && !d.IsDeleted)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(ct);
+                return new CacheWrapper<Department> { Items = dept != null ? new List<Department> { dept } : new List<Department>() };
+            },
             MediumDuration,
             ct);
+        return wrapper?.Items?.FirstOrDefault();
     }
 
     public async Task InvalidateDepartmentsAsync(CancellationToken ct = default)
@@ -174,14 +184,19 @@ public class DbCacheService : IDbCacheService
 
     public async Task<UserGroup?> GetUserGroupByIdAsync(int id, CancellationToken ct = default)
     {
-        return await _cache.GetOrSetAsync(
+        var wrapper = await _cache.GetOrSetAsync(
             $"{DbCacheKeys.UserGroupById}{id}",
-            async () => await _context.UserGroups
-                .Where(g => g.Id == id && !g.IsDeleted)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(ct),
+            async () =>
+            {
+                var group = await _context.UserGroups
+                    .Where(g => g.Id == id && !g.IsDeleted)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(ct);
+                return new CacheWrapper<UserGroup> { Items = group != null ? new List<UserGroup> { group } : new List<UserGroup>() };
+            },
             MediumDuration,
             ct);
+        return wrapper?.Items?.FirstOrDefault();
     }
 
     public async Task InvalidateUserGroupsAsync(CancellationToken ct = default)

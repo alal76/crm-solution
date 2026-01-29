@@ -74,6 +74,19 @@
   margin-right: 0.5rem;
 }
 
+.context-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6750A4;
+  padding: 0.125rem 0.5rem;
+  background: rgba(103, 80, 164, 0.1);
+  border-radius: 4px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .db-mode {
   font-size: 0.7rem;
   font-weight: 600;

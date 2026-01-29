@@ -16,6 +16,12 @@ services:
       - MARIADB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024}
     volumes:
       - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-RootPass@Dev2024}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - crm-network
 
@@ -82,8 +88,10 @@ services:
     volumes:
       - api-data:/app/data
     depends_on:
-      - mariadb
-      - redis
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s

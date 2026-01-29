@@ -4,6 +4,7 @@ import axios from 'axios';
 import { debugLog, debugError } from '../utils/debug';
 import { getHealthCheckUrl, getServicePorts, getApiEndpoint } from '../config/ports';
 import { useBranding } from '../contexts/BrandingContext';
+import { useEntityContext } from '../contexts/EntityContext';
 import '../styles/Footer.css';
 
 interface HealthStatus {
@@ -30,6 +31,7 @@ function Footer() {
   const [dbStatus, setDbStatus] = useState<HealthStatus>({ status: 'down' });
   const [ports, setPorts] = useState(getServicePorts());
   const { branding } = useBranding();
+  const { effectiveContext } = useEntityContext();
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [buildInfo, setBuildInfo] = useState({
     version: process.env.REACT_APP_VERSION || '1.5.0',
@@ -127,9 +129,19 @@ function Footer() {
 
         <div className="footer-center">
           <div className="status-compact">
+            {effectiveContext.entityType && (
+              <>
+                <span className="context-label">
+                  {effectiveContext.entityType}
+                  {effectiveContext.entityId && ` #${effectiveContext.entityId}`}
+                  {effectiveContext.entityName && `: ${effectiveContext.entityName}`}
+                </span>
+                <span className="separator">|</span>
+              </>
+            )}
             <span className={`status-dot ${getStatusClass(apiStatus.status)}`}>{getStatusText(apiStatus.status)}</span>
             <span className="status-text" title={versionInfo?.components?.api?.build ? `Build: ${versionInfo.components.api.build}` : ''}>
-              API {versionInfo?.components?.api?.build ? `(${versionInfo.components.api.build})` : ''}
+              API
             </span>
             <span className={`status-dot ${getStatusClass(dbStatus.status)}`}>{getStatusText(dbStatus.status)}</span>
             <span className="status-text" title={versionInfo?.components?.database ? `${versionInfo.components.database.zipCodes} ZIPs, ${versionInfo.components.database.countries} Countries` : ''}>

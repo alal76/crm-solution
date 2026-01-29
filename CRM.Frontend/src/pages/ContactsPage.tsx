@@ -51,12 +51,14 @@ import BusinessIcon from '@mui/icons-material/Business';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CloseIcon from '@mui/icons-material/Close';
+import NoteIcon from '@mui/icons-material/Note';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { ContactInfoPanel } from '../components/ContactInfo';
+import NotesTab from '../components/NotesTab';
 import { contactInfoService, EntityContactInfoDto, LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from '../services/contactInfoService';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
@@ -782,6 +784,11 @@ function ContactsPage() {
               iconPosition="start"
               disabled={!selectedContact}
             />
+            <Tab 
+              label="Notes" 
+              icon={<NoteIcon fontSize="small" />} 
+              iconPosition="start"
+            />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
@@ -918,6 +925,23 @@ function ContactsPage() {
                 showCounts={true}
                 onContactInfoChange={() => fetchContactInfoSummaries(contacts)}
               />
+            </Box>
+          )}
+
+          {/* Notes Tab */}
+          {dialogTab === 2 && (
+            <Box>
+              {selectedContact ? (
+                <NotesTab
+                  entityType="Contact"
+                  entityId={selectedContact.id}
+                  entityName={`${selectedContact.firstName} ${selectedContact.lastName}`}
+                />
+              ) : (
+                <Alert severity="info">
+                  Save the contact first to add notes.
+                </Alert>
+              )}
             </Box>
           )}
         </DialogContent>

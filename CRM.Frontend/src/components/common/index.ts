@@ -29,3 +29,8 @@ export type {
   EmptyStateProps,
   InlineErrorProps,
 } from './StatusComponents';
+
+export { ConcurrencyConflictDialog } from './ConcurrencyConflictDialog';
+export type { ConflictData } from './ConcurrencyConflictDialog';
+
+export { UserEditingIndicator, UserEditingAvatars } from './UserEditingIndicator';

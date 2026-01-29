@@ -222,6 +222,36 @@ public class CrmDbContext : DbContext, ICrmDbContext
         var longTextType = isSqlServer ? "nvarchar(max)" : "LONGTEXT";
         var textType = isSqlServer ? "nvarchar(max)" : "TEXT";
 
+        // Configure RowVersion for all entities that inherit from BaseEntity
+        // This enables optimistic concurrency control
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
+            {
+                var rowVersionProperty = entityType.FindProperty("RowVersion");
+                if (rowVersionProperty != null)
+                {
+                    if (isSqlServer)
+                    {
+                        // SQL Server uses native rowversion
+                        modelBuilder.Entity(entityType.ClrType)
+                            .Property("RowVersion")
+                            .IsRowVersion();
+                    }
+                    else
+                    {
+                        // MariaDB/MySQL: Use TIMESTAMP with ON UPDATE for optimistic concurrency
+                        // Store as binary(8) for compatibility
+                        modelBuilder.Entity(entityType.ClrType)
+                            .Property("RowVersion")
+                            .HasColumnType("BINARY(8)")
+                            .IsConcurrencyToken()
+                            .ValueGeneratedOnAddOrUpdate();
+                    }
+                }
+            }
+        }
+
         // Configure Customer
         modelBuilder.Entity<Customer>(entity =>
         {

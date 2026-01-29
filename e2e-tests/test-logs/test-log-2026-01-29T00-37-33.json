@@ -1,0 +1,377 @@
+{
+  "summary": {
+    "startTime": "2026-01-29T00:37:33.790Z",
+    "totalTests": 42,
+    "passed": 28,
+    "failed": 14,
+    "skipped": 0,
+    "duration": 14416,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "bvt": {
+        "total": 41,
+        "passed": 27,
+        "failed": 14,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-01-29T00:37:48.206Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-01-29T00:37:38.982Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 4361
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.170Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-01-001: Health check endpoint responds",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 18
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.207Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-10-002: List user groups",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 22
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.235Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-03-003: List contacts",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 51
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.238Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-10-003: Get current user profile",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 23,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.256Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-03-004: Delete contact",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 15,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.265Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-06-003: List service requests",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 69
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.284Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-07-001: Create campaign",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 13,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.344Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-01-002: Login with valid credentials succeeds",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 161
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.363Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-01-003: Login with invalid credentials fails",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 12
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.378Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-01-004: Protected endpoint requires auth",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 10
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.438Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-02-001: Create customer",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 48
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.475Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-02-002: Read customer",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 29
+    },
+    {
+      "timestamp": "2026-01-29T00:37:40.517Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-02-003: Update customer",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 34,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:41.256Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-07-002: Read campaign",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 42,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:41.256Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-11-001: Get dashboard data",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 28,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:41.262Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-04-001: Create lead",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 43,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:41.689Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-02-004: List customers",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 150
+    },
+    {
+      "timestamp": "2026-01-29T00:37:41.732Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-02-005: Delete customer",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 25,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.109Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-11-002: Get dashboard configuration",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 93
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.170Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-04-002: Read lead",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 18,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.180Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-12-001: List notes",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 45
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.192Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-07-003: List campaigns",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 21
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.218Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-12-002: Create note",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 30
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.229Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-08-001: Create product",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 31
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.242Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-13-001: Get system settings",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 17,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.255Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-08-002: Read product",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 17
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.300Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-08-003: List products",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 32
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.677Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-09-001: Create quote",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 76
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.711Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-09-002: Read quote",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 25
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.749Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-09-003: List quotes",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 24
+    },
+    {
+      "timestamp": "2026-01-29T00:37:43.832Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-10-001: List users",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 69
+    },
+    {
+      "timestamp": "2026-01-29T00:37:44.123Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-03-001: Create contact",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 21
+    },
+    {
+      "timestamp": "2026-01-29T00:37:44.152Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-03-002: Read contact",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 22
+    },
+    {
+      "timestamp": "2026-01-29T00:37:44.505Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-04-003: List leads",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 15,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:44.518Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-13-002: Get lookups",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 14
+    },
+    {
+      "timestamp": "2026-01-29T00:37:45.333Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-04-004: Delete lead",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 17,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:46.225Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-05-001: Create opportunity",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 17,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:47.124Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-05-002: Read opportunity",
+      "module": "bvt",
+      "status": "FAIL",
+      "duration": 18,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-01-29T00:37:48.101Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-05-003: List opportunities",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 11
+    },
+    {
+      "timestamp": "2026-01-29T00:37:48.172Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-06-001: Create service request",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 19
+    },
+    {
+      "timestamp": "2026-01-29T00:37:48.195Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BVT-06-002: Read service request",
+      "module": "bvt",
+      "status": "PASS",
+      "duration": 19
+    }
+  ]
+}

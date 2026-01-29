@@ -17,6 +17,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Api.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -103,22 +104,38 @@ public class CustomersController : ControllerBase
     /// 
     /// FUNCTIONAL: Returns detailed customer information for viewing/editing.
     /// TECHNICAL: Returns 404 if customer not found or deleted.
+    ///            Returns ETag header for optimistic concurrency control.
+    ///            Supports If-None-Match header for cache validation.
     /// </summary>
     /// <param name="id">The unique customer identifier</param>
     /// <returns>CustomerDto if found</returns>
-    /// <response code="200">Returns the customer</response>
+    /// <response code="200">Returns the customer with ETag header</response>
+    /// <response code="304">Not Modified - if If-None-Match matches current ETag</response>
     /// <response code="404">If customer not found</response>
     /// <response code="500">If there was an internal error</response>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status304NotModified)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(int id, [FromHeader(Name = "If-None-Match")] string? ifNoneMatch = null)
     {
         try
         {
             var customer = await _customerService.GetCustomerByIdAsync(id);
             if (customer == null)
                 return NotFound(new { message = "Customer not found" });
+            
+            // Generate ETag from RowVersion
+            var etag = ETagHelper.GenerateETag(customer.RowVersion);
+            
+            // Check If-None-Match for cache validation
+            if (!string.IsNullOrEmpty(ifNoneMatch) && !ETagHelper.IsNoneMatch(ifNoneMatch, customer.RowVersion))
+            {
+                Response.Headers.ETag = etag;
+                return StatusCode(StatusCodes.Status304NotModified);
+            }
+            
+            Response.Headers.ETag = etag;
             return Ok(customer);
         }
         catch (Exception ex)
@@ -285,18 +302,56 @@ public class CustomersController : ControllerBase
     }
 
     /// <summary>
-    /// Update a customer
+    /// Update a customer.
+    /// 
+    /// FUNCTIONAL: Updates customer information with conflict detection.
+    /// TECHNICAL: Supports If-Match header for optimistic concurrency control.
+    ///            Returns 409 Conflict if the record was modified by another user.
+    ///            Returns updated ETag in response header.
     /// </summary>
+    /// <param name="id">The customer ID to update</param>
+    /// <param name="dto">Updated customer data</param>
+    /// <param name="ifMatch">Optional ETag for optimistic concurrency check</param>
+    /// <returns>Updated CustomerDto with new ETag</returns>
+    /// <response code="200">Returns the updated customer with new ETag</response>
+    /// <response code="404">If customer not found</response>
+    /// <response code="409">Conflict - record was modified by another user</response>
+    /// <response code="412">Precondition Failed - If-Match ETag doesn't match</response>
+    /// <response code="500">If there was an internal error</response>
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateCustomerDto dto)
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateCustomerDto dto, 
+        [FromHeader(Name = "If-Match")] string? ifMatch = null)
     {
         try
         {
+            // If If-Match header provided, validate it first
+            if (!string.IsNullOrEmpty(ifMatch))
+            {
+                var currentCustomer = await _customerService.GetCustomerByIdAsync(id);
+                if (currentCustomer == null)
+                    return NotFound(new { message = "Customer not found" });
+                    
+                if (!ETagHelper.IsMatch(ifMatch, currentCustomer.RowVersion))
+                {
+                    return StatusCode(StatusCodes.Status412PreconditionFailed, new 
+                    { 
+                        message = "The record has been modified by another user. Please refresh and try again.",
+                        conflictType = "ETagMismatch",
+                        currentETag = ETagHelper.GenerateETag(currentCustomer.RowVersion)
+                    });
+                }
+            }
+            
             var customer = await _customerService.UpdateCustomerAsync(id, dto);
             if (customer == null)
                 return NotFound(new { message = "Customer not found" });
+            
+            // Return new ETag in response
+            Response.Headers.ETag = ETagHelper.GenerateETag(customer.RowVersion);
             return Ok(customer);
         }
         catch (Exception ex)

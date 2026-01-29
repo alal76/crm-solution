@@ -27,6 +27,7 @@ import { BrandingProvider } from './contexts/BrandingContext';
 import { AccountContextProvider } from './contexts/AccountContextProvider';
 import { EntityContextProvider } from './contexts/EntityContext';
 import { AppThemeProvider, useTheme } from './contexts/ThemeContext';
+import { SignalRProvider } from './contexts/SignalRContext';
 import Navigation from './components/Navigation';
 import ContextFlyout from './components/ContextFlyout';
 import BreadcrumbsComponent from './components/Breadcrumbs';
@@ -118,6 +119,7 @@ function ThemedApp() {
       <ErrorBoundary>
         <Router>
           <AuthProvider>
+            <SignalRProvider>
             <ProfileProvider>
               <BrandingProvider>
                 <LayoutProvider>
@@ -646,6 +648,7 @@ function ThemedApp() {
                 </LayoutProvider>
               </BrandingProvider>
             </ProfileProvider>
+            </SignalRProvider>
           </AuthProvider>
         </Router>
       </ErrorBoundary>

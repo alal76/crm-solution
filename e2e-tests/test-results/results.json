@@ -179,7 +179,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14856,
+                  "duration": 4361,
                   "errors": [],
                   "stdout": [
                     {
@@ -197,7 +197,7 @@
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-01-28T04:28:40.722Z",
+                  "startTime": "2026-01-29T00:37:34.415Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -213,751 +213,1852 @@
       ]
     },
     {
-      "title": "account-contact-linking.spec.ts",
-      "file": "account-contact-linking.spec.ts",
+      "title": "bvt/api-bvt.spec.ts",
+      "file": "bvt/api-bvt.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Account-Contact Linking via Mapping Table",
-          "file": "account-contact-linking.spec.ts",
-          "line": 27,
+          "title": "BVT - Build Verification Tests",
+          "file": "bvt/api-bvt.spec.ts",
+          "line": 13,
           "column": 6,
-          "specs": [
+          "specs": [],
+          "suites": [
             {
-              "title": "create 10 accounts and link random contacts via API",
-              "ok": true,
-              "tags": [],
-              "tests": [
+              "title": "BVT-01: Authentication Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 24,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
+                  "title": "BVT-01-001: Health check endpoint responds",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 20204,
-                      "errors": [],
-                      "stdout": [
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "text": "\n[1/10] Quantum Dynamics Labs - Creating account with 21 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 42\n"
-                        },
-                        {
-                          "text": "  ✓ Created 21 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 21/21 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[2/10] Horizon Pharmaceuticals - Creating account with 11 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 44\n"
-                        },
-                        {
-                          "text": "  ✓ Created 11 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 11/11 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[3/10] Nexus Logistics Group - Creating account with 16 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 45\n"
-                        },
-                        {
-                          "text": "  ✓ Created 16 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 16/16 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[4/10] Evergreen Sustainable - Creating account with 21 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 47\n"
-                        },
-                        {
-                          "text": "  ✓ Created 21 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 21/21 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[5/10] Atlas Capital Partners - Creating account with 13 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 50\n"
-                        },
-                        {
-                          "text": "  ✓ Created 13 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 13/13 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[6/10] Coastal Hospitality - Creating account with 24 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 52\n"
-                        },
-                        {
-                          "text": "  ✓ Created 24 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 24/24 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[7/10] Apex Aerospace - Creating account with 14 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 54\n"
-                        },
-                        {
-                          "text": "  ✓ Created 14 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 14/14 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[8/10] Digital Frontier - Creating account with 23 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 57\n"
-                        },
-                        {
-                          "text": "  ✓ Created 23 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 23/23 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[9/10] TerraForm Build - Creating account with 24 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 59\n"
-                        },
-                        {
-                          "text": "  ✓ Created 24 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 24/24 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[10/10] Nova EdTech - Creating account with 9 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 61\n"
-                        },
-                        {
-                          "text": "  ✓ Created 9 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 9/9 contacts to account\n"
-                        },
-                        {
-                          "text": "\n=== SUMMARY ===\n"
-                        },
-                        {
-                          "text": "✓ Quantum Dynamics Labs: 21 contacts, 21 linked\n"
-                        },
-                        {
-                          "text": "✓ Horizon Pharmaceuticals: 11 contacts, 11 linked\n"
-                        },
-                        {
-                          "text": "✓ Nexus Logistics Group: 16 contacts, 16 linked\n"
-                        },
-                        {
-                          "text": "✓ Evergreen Sustainable: 21 contacts, 21 linked\n"
-                        },
-                        {
-                          "text": "✓ Atlas Capital Partners: 13 contacts, 13 linked\n"
-                        },
-                        {
-                          "text": "✓ Coastal Hospitality: 24 contacts, 24 linked\n"
-                        },
-                        {
-                          "text": "✓ Apex Aerospace: 14 contacts, 14 linked\n"
-                        },
-                        {
-                          "text": "✓ Digital Frontier: 23 contacts, 23 linked\n"
-                        },
-                        {
-                          "text": "✓ TerraForm Build: 24 contacts, 24 linked\n"
-                        },
-                        {
-                          "text": "✓ Nova EdTech: 9 contacts, 9 linked\n"
-                        },
-                        {
-                          "text": "\nTotal: 10/10 accounts\n"
-                        },
-                        {
-                          "text": "Total contacts created: 176\n"
-                        },
-                        {
-                          "text": "Total links created: 176\n"
-                        },
-                        {
-                          "text": "\n=== VERIFYING IN UI ===\n"
-                        },
-                        {
-                          "text": "Found 3 rows in accounts table\n"
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 18,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:39.891Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-28T04:28:58.683Z",
-                      "annotations": [],
-                      "attachments": []
+                      "status": "expected"
                     }
                   ],
-                  "status": "expected"
+                  "id": "5dcff1839754ec318a0d-f23569753d348b8eb101",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 25,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-01-002: Login with valid credentials succeeds",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 161,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.166Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-4778faabd8ed1b2c57cd",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 32,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-01-003: Login with invalid credentials fails",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 12,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.344Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-72183a43e0c17190f33f",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 41,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-01-004: Protected endpoint requires auth",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 10,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.363Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-9ed3176b72ab51e72429",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 48,
+                  "column": 9
                 }
-              ],
-              "id": "0606e6dc14c8ed0d5c6d-9d2bdd29a5ff98a631da",
-              "file": "account-contact-linking.spec.ts",
-              "line": 30,
-              "column": 7
+              ]
             },
             {
-              "title": "verify linked contacts appear in UI",
-              "ok": true,
-              "tags": [],
-              "tests": [
+              "title": "BVT-02: Customer CRUD Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 54,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
+                  "title": "BVT-02-001: Create customer",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 10498,
-                      "errors": [],
-                      "stdout": [
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "text": "Found 2 customer rows\n"
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 48,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.378Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-28T04:28:58.662Z",
-                      "annotations": [],
-                      "attachments": []
+                      "status": "expected"
                     }
                   ],
-                  "status": "expected"
+                  "id": "5dcff1839754ec318a0d-4dc964cbff33ba9cbb7f",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 57,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-02-002: Read customer",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 29,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.431Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-a152e75a74b824b3f6d2",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 74,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-02-003: Update customer",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 34,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:95:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 95
+                            },
+                            "snippet": "  93 |         }\n  94 |       });\n> 95 |       expect(response.ok()).toBeTruthy();\n     |                             ^\n  96 |     });\n  97 |\n  98 |     test('BVT-02-004: List customers', async ({ request }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 95
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  93 |         }\n  94 |       });\n> 95 |       expect(response.ok()).toBeTruthy();\n     |                             ^\n  96 |     });\n  97 |\n  98 |     test('BVT-02-004: List customers', async ({ request }) => {\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:95:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.474Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 95
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-203cae7069801f7a7c0d",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 83,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-02-004: List customers",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 150,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:41.327Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-21e7b05d9f5bbcf278f5",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 98,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-02-005: Delete customer",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 25,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:111:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 111
+                            },
+                            "snippet": "  109 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  110 |       });\n> 111 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  112 |     });\n  113 |   });\n  114 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 111
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  109 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  110 |       });\n> 111 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  112 |     });\n  113 |   });\n  114 |\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:111:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:41.688Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 111
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-69fdedf968773d7591a0",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 107,
+                  "column": 9
                 }
-              ],
-              "id": "0606e6dc14c8ed0d5c6d-4d525a2b58a9e23c4ca1",
-              "file": "account-contact-linking.spec.ts",
-              "line": 169,
-              "column": 7
+              ]
             },
             {
-              "title": "create 10 accounts and link random contacts via API",
-              "ok": false,
-              "tags": [],
-              "tests": [
+              "title": "BVT-03: Contact CRUD Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 115,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
+                  "title": "BVT-03-001: Create contact",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 3,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                          "workerIndex": 12,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 21,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.897Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-28T04:28:58.658Z",
-                      "annotations": [],
-                      "attachments": []
+                      "status": "expected"
                     }
                   ],
-                  "status": "unexpected"
+                  "id": "5dcff1839754ec318a0d-95ed0bef9953397c3102",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 118,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-03-002: Read contact",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 12,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 22,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:44.123Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-d781e5e5c87761b8c330",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 134,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-03-003: List contacts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 51,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:39.877Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-4b8fa4aae122260abeb4",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 141,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-03-004: Delete contact",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 15,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:154:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 154
+                            },
+                            "snippet": "  152 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  153 |       });\n> 154 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  155 |     });\n  156 |   });\n  157 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 154
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  152 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  153 |       });\n> 154 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  155 |     });\n  156 |   });\n  157 |\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:154:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.235Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 154
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-2902dddbfee14d3442c3",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 150,
+                  "column": 9
                 }
-              ],
-              "id": "0606e6dc14c8ed0d5c6d-b2256f6b0b053d08b210",
-              "file": "account-contact-linking.spec.ts",
-              "line": 30,
-              "column": 7
+              ]
             },
             {
-              "title": "verify linked contacts appear in UI",
-              "ok": false,
-              "tags": [],
-              "tests": [
+              "title": "BVT-04: Lead CRUD Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 158,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
+                  "title": "BVT-04-001: Create lead",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "failed",
-                      "duration": 5,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/firefox-1509/firefox/Nightly.app/Contents/MacOS/firefox\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                          "workerIndex": 6,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 43,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:173:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 173
+                            },
+                            "snippet": "  171 |         }\n  172 |       });\n> 173 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  174 |       const lead = await response.json();\n  175 |       leadId = lead.id;\n  176 |       expect(leadId).toBeGreaterThan(0);"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 173
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  171 |         }\n  172 |       });\n> 173 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  174 |       const lead = await response.json();\n  175 |       leadId = lead.id;\n  176 |       expect(leadId).toBeGreaterThan(0);\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:173:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.974Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 173
+                          }
                         }
                       ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-28T04:28:58.665Z",
-                      "annotations": [],
-                      "attachments": []
+                      "status": "unexpected"
                     }
                   ],
-                  "status": "unexpected"
+                  "id": "5dcff1839754ec318a0d-a5684c16ddd903823e23",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 161,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-04-002: Read lead",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 11,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 18,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:183:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 183
+                            },
+                            "snippet": "  181 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  182 |       });\n> 183 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  184 |     });\n  185 |\n  186 |     test('BVT-04-003: List leads', async ({ request }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 183
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  181 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  182 |       });\n> 183 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  184 |     });\n  185 |\n  186 |     test('BVT-04-003: List leads', async ({ request }) => {\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:183:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:42.873Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 183
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-75045ec8779ba1ebd57b",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 179,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-04-003: List leads",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 13,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 15,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:190:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 190
+                            },
+                            "snippet": "  188 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  189 |       });\n> 190 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  191 |     });\n  192 |\n  193 |     test('BVT-04-004: Delete lead', async ({ request }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 190
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  188 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  189 |       });\n> 190 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  191 |     });\n  192 |\n  193 |     test('BVT-04-004: Delete lead', async ({ request }) => {\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:190:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:44.296Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 190
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-82564945fea4ac03b71b",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 186,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-04-004: Delete lead",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 15,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 17,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:197:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 197
+                            },
+                            "snippet": "  195 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  196 |       });\n> 197 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  198 |     });\n  199 |   });\n  200 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 197
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  195 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  196 |       });\n> 197 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  198 |     });\n  199 |   });\n  200 |\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:197:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:45.109Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 197
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-cdde6c933146aa5e7dcc",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 193,
+                  "column": 9
                 }
-              ],
-              "id": "0606e6dc14c8ed0d5c6d-aaf648422bf9e9b02fd0",
-              "file": "account-contact-linking.spec.ts",
-              "line": 169,
-              "column": 7
+              ]
             },
             {
-              "title": "create 10 accounts and link random contacts via API",
-              "ok": false,
-              "tags": [],
-              "tests": [
+              "title": "BVT-05: Opportunity CRUD Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 201,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
+                  "title": "BVT-05-001: Create opportunity",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 5,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                          "workerIndex": 16,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 17,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:233:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 233
+                            },
+                            "snippet": "  231 |         }\n  232 |       });\n> 233 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  234 |       const opportunity = await response.json();\n  235 |       opportunityId = opportunity.id;\n  236 |       expect(opportunityId).toBeGreaterThan(0);"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 233
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  231 |         }\n  232 |       });\n> 233 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  234 |       const opportunity = await response.json();\n  235 |       opportunityId = opportunity.id;\n  236 |       expect(opportunityId).toBeGreaterThan(0);\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:233:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:45.956Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 233
+                          }
                         }
                       ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-28T04:29:00.741Z",
-                      "annotations": [],
-                      "attachments": []
+                      "status": "unexpected"
                     }
                   ],
-                  "status": "unexpected"
+                  "id": "5dcff1839754ec318a0d-82d6bc5197d9ddc59411",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 221,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-05-002: Read opportunity",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 17,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 18,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:243:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 243
+                            },
+                            "snippet": "  241 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  242 |       });\n> 243 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  244 |     });\n  245 |\n  246 |     test('BVT-05-003: List opportunities', async ({ request }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 243
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  241 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  242 |       });\n> 243 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  244 |     });\n  245 |\n  246 |     test('BVT-05-003: List opportunities', async ({ request }) => {\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:243:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:46.834Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 243
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-1d7ded0a52199fd89642",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 239,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-05-003: List opportunities",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 18,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 11,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:47.864Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-93c3390bf74356def4c6",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 246,
+                  "column": 9
                 }
-              ],
-              "id": "0606e6dc14c8ed0d5c6d-95858f1b56e1174f1f1a",
-              "file": "account-contact-linking.spec.ts",
-              "line": 30,
-              "column": 7
+              ]
             },
             {
-              "title": "verify linked contacts appear in UI",
-              "ok": false,
-              "tags": [],
-              "tests": [
+              "title": "BVT-06: Service Request CRUD Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 254,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
+                  "title": "BVT-06-001: Create service request",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 6,
-                      "parallelIndex": 3,
-                      "status": "failed",
-                      "duration": 6,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                          "workerIndex": 18,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 19,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:48.101Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-28T04:29:00.815Z",
-                      "annotations": [],
-                      "attachments": []
+                      "status": "expected"
                     }
                   ],
-                  "status": "unexpected"
+                  "id": "5dcff1839754ec318a0d-50682fe0f4b6a3b59e51",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 274,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-06-002: Read service request",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 18,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 19,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:48.172Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-118fbbadf2d088c6b0af",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 291,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-06-003: List service requests",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 69,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:39.882Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-4190159b56565dc0138c",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 298,
+                  "column": 9
                 }
-              ],
-              "id": "0606e6dc14c8ed0d5c6d-c7ad15255a62be2f857a",
-              "file": "account-contact-linking.spec.ts",
-              "line": 169,
-              "column": 7
+              ]
             },
             {
-              "title": "create 10 accounts and link random contacts via API",
-              "ok": true,
-              "tags": [],
-              "tests": [
+              "title": "BVT-07: Campaign CRUD Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 306,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
+                  "title": "BVT-07-001: Create campaign",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 7,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 16825,
-                      "errors": [],
-                      "stdout": [
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "text": "\n[1/10] Quantum Dynamics Labs - Creating account with 16 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 43\n"
-                        },
-                        {
-                          "text": "  ✓ Created 16 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 16/16 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[2/10] Horizon Pharmaceuticals - Creating account with 19 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 46\n"
-                        },
-                        {
-                          "text": "  ✓ Created 19 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 19/19 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[3/10] Nexus Logistics Group - Creating account with 10 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 48\n"
-                        },
-                        {
-                          "text": "  ✓ Created 10 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 10/10 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[4/10] Evergreen Sustainable - Creating account with 5 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 49\n"
-                        },
-                        {
-                          "text": "  ✓ Created 5 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 5/5 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[5/10] Atlas Capital Partners - Creating account with 15 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 51\n"
-                        },
-                        {
-                          "text": "  ✓ Created 15 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 15/15 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[6/10] Coastal Hospitality - Creating account with 25 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 53\n"
-                        },
-                        {
-                          "text": "  ✓ Created 25 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 25/25 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[7/10] Apex Aerospace - Creating account with 4 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 55\n"
-                        },
-                        {
-                          "text": "  ✓ Created 4 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 4/4 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[8/10] Digital Frontier - Creating account with 20 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 56\n"
-                        },
-                        {
-                          "text": "  ✓ Created 20 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 20/20 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[9/10] TerraForm Build - Creating account with 16 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 58\n"
-                        },
-                        {
-                          "text": "  ✓ Created 16 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 16/16 contacts to account\n"
-                        },
-                        {
-                          "text": "\n[10/10] Nova EdTech - Creating account with 15 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Created account ID: 60\n"
-                        },
-                        {
-                          "text": "  ✓ Created 15 contacts\n"
-                        },
-                        {
-                          "text": "  ✓ Linked 15/15 contacts to account\n"
-                        },
-                        {
-                          "text": "\n=== SUMMARY ===\n"
-                        },
-                        {
-                          "text": "✓ Quantum Dynamics Labs: 16 contacts, 16 linked\n"
-                        },
-                        {
-                          "text": "✓ Horizon Pharmaceuticals: 19 contacts, 19 linked\n"
-                        },
-                        {
-                          "text": "✓ Nexus Logistics Group: 10 contacts, 10 linked\n"
-                        },
-                        {
-                          "text": "✓ Evergreen Sustainable: 5 contacts, 5 linked\n"
-                        },
-                        {
-                          "text": "✓ Atlas Capital Partners: 15 contacts, 15 linked\n"
-                        },
-                        {
-                          "text": "✓ Coastal Hospitality: 25 contacts, 25 linked\n"
-                        },
-                        {
-                          "text": "✓ Apex Aerospace: 4 contacts, 4 linked\n"
-                        },
-                        {
-                          "text": "✓ Digital Frontier: 20 contacts, 20 linked\n"
-                        },
-                        {
-                          "text": "✓ TerraForm Build: 16 contacts, 16 linked\n"
-                        },
-                        {
-                          "text": "✓ Nova EdTech: 15 contacts, 15 linked\n"
-                        },
-                        {
-                          "text": "\nTotal: 10/10 accounts\n"
-                        },
-                        {
-                          "text": "Total contacts created: 145\n"
-                        },
-                        {
-                          "text": "Total links created: 145\n"
-                        },
-                        {
-                          "text": "\n=== VERIFYING IN UI ===\n"
-                        },
-                        {
-                          "text": "Found 3 rows in accounts table\n"
+                          "workerIndex": 3,
+                          "parallelIndex": 2,
+                          "status": "failed",
+                          "duration": 13,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:322:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 322
+                            },
+                            "snippet": "  320 |         }\n  321 |       });\n> 322 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  323 |       const campaign = await response.json();\n  324 |       campaignId = campaign.id;\n  325 |       expect(campaignId).toBeGreaterThan(0);"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 322
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  320 |         }\n  321 |       });\n> 322 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  323 |       const campaign = await response.json();\n  324 |       campaignId = campaign.id;\n  325 |       expect(campaignId).toBeGreaterThan(0);\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:322:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.265Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 322
+                          }
                         }
                       ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-28T04:29:01.702Z",
-                      "annotations": [],
-                      "attachments": []
+                      "status": "unexpected"
                     }
                   ],
-                  "status": "expected"
+                  "id": "5dcff1839754ec318a0d-809d61530b80016a7d06",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 309,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-07-002: Read campaign",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 2,
+                          "status": "failed",
+                          "duration": 42,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:332:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 332
+                            },
+                            "snippet": "  330 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  331 |       });\n> 332 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  333 |     });\n  334 |\n  335 |     test('BVT-07-003: List campaigns', async ({ request }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 332
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  330 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  331 |       });\n> 332 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  333 |     });\n  334 |\n  335 |     test('BVT-07-003: List campaigns', async ({ request }) => {\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:332:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:41.001Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 332
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-7b1711478ab6e53a8fd1",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 328,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-07-003: List campaigns",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 10,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 21,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:42.873Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-44213e86405d11332bc6",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 335,
+                  "column": 9
                 }
-              ],
-              "id": "0606e6dc14c8ed0d5c6d-0618cb9859e588ceccea",
-              "file": "account-contact-linking.spec.ts",
-              "line": 30,
-              "column": 7
+              ]
             },
             {
-              "title": "verify linked contacts appear in UI",
-              "ok": true,
-              "tags": [],
-              "tests": [
+              "title": "BVT-08: Product CRUD Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 343,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
+                  "title": "BVT-08-001: Create product",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 8,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 10731,
-                      "errors": [],
-                      "stdout": [
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "text": "Found 2 customer rows\n"
+                          "workerIndex": 10,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 31,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.192Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-28T04:29:01.705Z",
-                      "annotations": [],
-                      "attachments": []
+                      "status": "expected"
                     }
                   ],
-                  "status": "expected"
+                  "id": "5dcff1839754ec318a0d-f9ad632c0a369a7dd10b",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 346,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-08-002: Read product",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 10,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 17,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.229Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-d0b1ef68463c5854c58e",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 364,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-08-003: List products",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 10,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 32,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.253Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-e6af5c170c3352bb2224",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 371,
+                  "column": 9
                 }
-              ],
-              "id": "0606e6dc14c8ed0d5c6d-5793651c26a541da301f",
-              "file": "account-contact-linking.spec.ts",
-              "line": 169,
-              "column": 7
+              ]
             },
             {
-              "title": "create 10 accounts and link random contacts via API",
-              "ok": false,
-              "tags": [],
-              "tests": [
+              "title": "BVT-09: Quote CRUD Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 379,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
+                  "title": "BVT-09-001: Create quote",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 9,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 1,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                          "workerIndex": 10,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 76,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.299Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-28T04:29:11.359Z",
-                      "annotations": [],
-                      "attachments": []
+                      "status": "expected"
                     }
                   ],
-                  "status": "unexpected"
+                  "id": "5dcff1839754ec318a0d-2ee190f9b1b207a761eb",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 399,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-09-002: Read quote",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 10,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 25,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.676Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-0ab82bf47a0b51d5911e",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 417,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-09-003: List quotes",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 10,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 24,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.711Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-e4233b6de4bc4ab2d0e7",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 424,
+                  "column": 9
                 }
-              ],
-              "id": "0606e6dc14c8ed0d5c6d-039bca46e1c50e21ed50",
-              "file": "account-contact-linking.spec.ts",
-              "line": 30,
-              "column": 7
+              ]
             },
             {
-              "title": "verify linked contacts appear in UI",
-              "ok": false,
-              "tags": [],
-              "tests": [
+              "title": "BVT-10: User & Groups Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 432,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 180000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
+                  "title": "BVT-10-001: List users",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 10,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 2,
-                      "error": {
-                        "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
-                        "stack": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
-                      },
-                      "errors": [
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "message": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/webkit-2248/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+                          "workerIndex": 10,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 69,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.748Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-01-28T04:29:12.314Z",
-                      "annotations": [],
-                      "attachments": []
+                      "status": "expected"
                     }
                   ],
-                  "status": "unexpected"
+                  "id": "5dcff1839754ec318a0d-a176307c74806ba8b83f",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 433,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-10-002: List user groups",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 22,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:39.883Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-bf8f66e7f41535b0ff43",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 440,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-10-003: Get current user profile",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 3,
+                          "status": "failed",
+                          "duration": 23,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:451:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 451
+                            },
+                            "snippet": "  449 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  450 |       });\n> 451 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  452 |     });\n  453 |   });\n  454 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 451
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  449 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  450 |       });\n> 451 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  452 |     });\n  453 |   });\n  454 |\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:451:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.207Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 451
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-b98e386eb6d491eff456",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 447,
+                  "column": 9
                 }
-              ],
-              "id": "0606e6dc14c8ed0d5c6d-eb7cbb0927ef60b110c2",
-              "file": "account-contact-linking.spec.ts",
-              "line": 169,
-              "column": 7
+              ]
+            },
+            {
+              "title": "BVT-11: Dashboard Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 455,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "BVT-11-001: Get dashboard data",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 3,
+                          "status": "failed",
+                          "duration": 28,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:460:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 460
+                            },
+                            "snippet": "  458 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  459 |       });\n> 460 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  461 |     });\n  462 |\n  463 |     test('BVT-11-002: Get dashboard configuration', async ({ request }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 460
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  458 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  459 |       });\n> 460 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  461 |     });\n  462 |\n  463 |     test('BVT-11-002: Get dashboard configuration', async ({ request }) => {\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:460:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:40.966Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 460
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-0e8aa1be517c7f8616ce",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 456,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-11-002: Get dashboard configuration",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 93,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:42.759Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-fe0f6117eb823ea8242d",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 463,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "BVT-12: Notes Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 472,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "BVT-12-001: List notes",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 45,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.108Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-068f962b8ccaac135e3e",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 473,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-12-002: Create note",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 30,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.180Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-654bf58caccc7960ab64",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 480,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "BVT-13: System Settings Critical Path",
+              "file": "bvt/api-bvt.spec.ts",
+              "line": 494,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "BVT-13-001: Get system settings",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 3,
+                          "status": "failed",
+                          "duration": 17,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:499:29",
+                            "location": {
+                              "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                              "column": 29,
+                              "line": 499
+                            },
+                            "snippet": "  497 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  498 |       });\n> 499 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  500 |     });\n  501 |\n  502 |     test('BVT-13-002: Get lookups', async ({ request }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                                "column": 29,
+                                "line": 499
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  497 |         headers: { 'Authorization': `Bearer ${authToken}` }\n  498 |       });\n> 499 |       expect(response.ok()).toBeTruthy();\n      |                             ^\n  500 |     });\n  501 |\n  502 |     test('BVT-13-002: Get lookups', async ({ request }) => {\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts:499:29"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:43.218Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/bvt/api-bvt.spec.ts",
+                            "column": 29,
+                            "line": 499
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-5c459dd1efbd51a40e7e",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 495,
+                  "column": 9
+                },
+                {
+                  "title": "BVT-13-002: Get lookups",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 14,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 14,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-29T00:37:44.318Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "5dcff1839754ec318a0d-4ecfb14577322703d932",
+                  "file": "bvt/api-bvt.spec.ts",
+                  "line": 502,
+                  "column": 9
+                }
+              ]
             }
           ]
         }
@@ -966,11 +2067,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-01-28T04:28:40.023Z",
-    "duration": 39505.018,
-    "expected": 5,
+    "startTime": "2026-01-29T00:37:33.791Z",
+    "duration": 14415.238,
+    "expected": 28,
     "skipped": 0,
-    "unexpected": 6,
+    "unexpected": 14,
     "flaky": 0
   }
 }

@@ -38,6 +38,8 @@ import {
   Collapse,
   SelectChangeEvent,
   Checkbox,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { DialogError, DialogSuccess, ActionButton } from '../components/common';
@@ -57,8 +59,10 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EscalateIcon from '@mui/icons-material/TrendingUp';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import NoteIcon from '@mui/icons-material/Note';
 import logo from '../assets/logo.png';
 import ImportExportButtons from '../components/ImportExportButtons';
+import NotesTab from '../components/NotesTab';
 import {
   ServiceRequest,
   CreateServiceRequest,
@@ -217,6 +221,7 @@ function ServiceRequestsPage() {
   
   // Dialog state
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogTab, setDialogTab] = useState(0);
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null);
   const [viewMode, setViewMode] = useState(false);
   
@@ -1055,15 +1060,23 @@ function ServiceRequestsPage() {
       </Card>
 
       {/* Create/Edit/View Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
+      <Dialog open={openDialog} onClose={() => { setOpenDialog(false); setDialogTab(0); }} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ pb: 0 }}>
           {viewMode
             ? `View Service Request - ${selectedRequest?.ticketNumber}`
             : selectedRequest
             ? 'Edit Service Request'
             : 'New Service Request'}
         </DialogTitle>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
+            <Tab label="Request Info" />
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
+          </Tabs>
+        </Box>
         <DialogContent dividers>
+          {/* Request Info Tab */}
+          {dialogTab === 0 && (
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
@@ -1330,6 +1343,25 @@ function ServiceRequestsPage() {
               </>
             )}
           </Grid>
+          )}
+
+          {/* Notes Tab */}
+          {dialogTab === 1 && (
+            <Box>
+              {selectedRequest?.id ? (
+                <NotesTab
+                  entityType="ServiceRequest"
+                  entityId={selectedRequest.id}
+                  entityName={selectedRequest.ticketNumber || 'Service Request'}
+                />
+              ) : (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  Please save the service request first to add notes.
+                </Alert>
+              )}
+            </Box>
+          )}
+
           <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
         </DialogContent>
         <DialogActions>
