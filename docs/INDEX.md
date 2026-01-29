@@ -1,395 +1,195 @@
 # CRM Solution - Documentation Index
 
-## 📖 Documentation Navigation
-
-Welcome to the CRM Solution documentation. Use this index to quickly find what you need.
-
----
-
-## 🚀 Getting Started
-
-1. **[QUICK_START.md](QUICK_START.md)** ⭐ **START HERE**
-   - 5-minute quick start guide
-   - Installation steps
-   - How to run the application
-   - Troubleshooting quick fixes
-
-2. **[README.md](README.md)**
-   - Comprehensive project documentation
-   - Full feature list
-   - Architecture overview
-   - All API endpoints documented
-   - Complete setup instructions
-
-3. **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)**
-   - Complete file structure
-   - All created files listed
-   - Module descriptions
-   - Technology stack details
-   - Quality checklist
-
-4. **[HOWTO.md](HOWTO.md)** 📚 **NEW**
-   - Comprehensive user guide
-   - Step-by-step tutorials
-   - All system features explained
-   - Keyboard shortcuts
-   - API integration guide
+**Version:** 0.0.25  
+**Last Updated:** January 2025
 
 ---
 
-## 📚 Detailed Documentation
+## 🚀 Quick Navigation
 
-### For Backend Developers
-- **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)**
-  - Architecture patterns (Clean Architecture)
-  - How to add new features
-  - Service layer explanation
-  - Database operations
-  - Testing guidelines
-  - Code standards
-
-- **[docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md)**
-  - Setup for SQL Server, PostgreSQL, Oracle, MariaDB
-  - Connection string examples
-  - Migration commands
-  - Backup and restore procedures
-  - Performance tuning tips
-
-### For Frontend Developers
-- See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for:
-  - Component structure
-  - Adding new pages
-  - API service usage
-  - Testing React components
-  - Performance optimization
-
-### For DevOps/Deployment
-- **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)**
-  - Build instructions
-  - Deployment steps
-  - Environment configuration
+### Start Here
+| Priority | Document | Description |
+|----------|----------|-------------|
+| ⭐ 1st | [guides/QUICK_START.md](guides/QUICK_START.md) | 5-minute setup guide |
+| ⭐ 2nd | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide |
+| ⭐ 3rd | [DATABASE_SETUP.md](DATABASE_SETUP.md) | Database configuration |
 
 ---
 
-## 🗂️ Project Structure Guide
+## 📚 All Documentation
+
+### Architecture (`architecture/`)
+
+| File | Description |
+|------|-------------|
+| [CLOUD_DEPLOYMENT_ARCHITECTURE.md](architecture/CLOUD_DEPLOYMENT_ARCHITECTURE.md) | Cloud deployment patterns |
+| [DATABASE_CONFIGURATION.md](architecture/DATABASE_CONFIGURATION.md) | Database design and configuration |
+| [HEXAGONAL_ARCHITECTURE.md](architecture/HEXAGONAL_ARCHITECTURE.md) | Clean/Hexagonal architecture patterns |
+| [KUBERNETES_ARCHITECTURE.md](architecture/KUBERNETES_ARCHITECTURE.md) | Kubernetes cluster design |
+| [PORT_CONFIGURATION.md](architecture/PORT_CONFIGURATION.md) | Service port mappings |
+
+### Deployment (`deployment/`)
+
+| File | Description |
+|------|-------------|
+| [DEPLOYMENT_COMPLETE.md](deployment/DEPLOYMENT_COMPLETE.md) | Deployment completion checklist |
+| [DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) | General deployment instructions |
+| [DOCKER_ARCHITECTURE.md](deployment/DOCKER_ARCHITECTURE.md) | Docker container architecture |
+| [DOCKER_COMMANDS.md](deployment/DOCKER_COMMANDS.md) | Docker command reference |
+| [DOCKER_IMAGE_UPDATE.md](deployment/DOCKER_IMAGE_UPDATE.md) | Updating Docker images |
+| [DOCKER_SETUP.md](deployment/DOCKER_SETUP.md) | Docker environment setup |
+| [KUBERNETES_DEPLOYMENT_GUIDE.md](deployment/KUBERNETES_DEPLOYMENT_GUIDE.md) | K8s deployment guide |
+| [KUBERNETES_SETUP_COMPLETE.md](deployment/KUBERNETES_SETUP_COMPLETE.md) | K8s setup checklist |
+| [LOCAL_DEVELOPMENT_PORTS.md](deployment/LOCAL_DEVELOPMENT_PORTS.md) | Local dev port configuration |
+| [PRODUCTION_SERVER_SETUP.md](deployment/PRODUCTION_SERVER_SETUP.md) | Production server configuration |
+| [REMOTE_DOCKER_DEPLOYMENT.md](deployment/REMOTE_DOCKER_DEPLOYMENT.md) | Remote Docker deployment |
+| [SSH_AUTHENTICATION_SETUP.md](deployment/SSH_AUTHENTICATION_SETUP.md) | SSH key authentication |
+
+### Features (`features/`)
+
+| File | Description |
+|------|-------------|
+| [ADMIN_SETTINGS_GUIDE.md](features/ADMIN_SETTINGS_GUIDE.md) | Admin settings usage |
+| [ADMIN_SETTINGS_REFACTORING.md](features/ADMIN_SETTINGS_REFACTORING.md) | Settings refactoring notes |
+| [CONTACTS_IMPLEMENTATION.md](features/CONTACTS_IMPLEMENTATION.md) | Contact system implementation |
+| [MARKETING_CAMPAIGNS.md](features/MARKETING_CAMPAIGNS.md) | Marketing campaign features |
+| [MARKETING_CAMPAIGNS_REFACTORING.md](features/MARKETING_CAMPAIGNS_REFACTORING.md) | Campaign refactoring |
+| [OAUTH_IMPLEMENTATION.md](features/OAUTH_IMPLEMENTATION.md) | OAuth2 integration |
+| [OAUTH_REFACTORING.md](features/OAUTH_REFACTORING.md) | OAuth refactoring notes |
+| [RESPONSIVE_DESIGN.md](features/RESPONSIVE_DESIGN.md) | Responsive UI implementation |
+| [RESPONSIVE_DESIGN_PATTERNS.md](features/RESPONSIVE_DESIGN_PATTERNS.md) | Responsive design patterns |
+| [SIGNALR_IMPLEMENTATION.md](features/SIGNALR_IMPLEMENTATION.md) | SignalR real-time features |
+| [SIGNALR_REFACTORING.md](features/SIGNALR_REFACTORING.md) | SignalR refactoring notes |
+| [USER_MANAGEMENT_README.md](features/USER_MANAGEMENT_README.md) | User management guide |
+| [USER_MANAGEMENT_REFACTORING.md](features/USER_MANAGEMENT_REFACTORING.md) | User management refactoring |
+
+### Guides (`guides/`)
+
+| File | Description |
+|------|-------------|
+| [FRONTEND_UPDATES.md](guides/FRONTEND_UPDATES.md) | Frontend update procedures |
+| [LOGIN_DEBUG_FIX.md](guides/LOGIN_DEBUG_FIX.md) | Login debugging |
+| [LOGIN_DEBUG_SUMMARY.md](guides/LOGIN_DEBUG_SUMMARY.md) | Login issue summary |
+| [QUICK_START.md](guides/QUICK_START.md) | Quick start guide |
+
+### Testing (`testing/`)
+
+| File | Description |
+|------|-------------|
+| [TEST_EXECUTION_GUIDE.md](testing/TEST_EXECUTION_GUIDE.md) | How to run tests |
+| [TESTING_GUIDE.md](testing/TESTING_GUIDE.md) | Testing overview |
+| [TESTING_SUMMARY.md](testing/TESTING_SUMMARY.md) | Test summary |
+
+### Root-Level Docs
+
+| File | Description |
+|------|-------------|
+| [BUILD_SYSTEM.md](BUILD_SYSTEM.md) | Build system documentation |
+| [DATABASE_SETUP.md](DATABASE_SETUP.md) | Database setup instructions |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Development guide |
+| [FEATURE_CHECKLIST.md](FEATURE_CHECKLIST.md) | Feature status tracking |
+| [FILE_LISTING.md](FILE_LISTING.md) | Project file listing |
+| [HOWTO.md](HOWTO.md) | How-to tutorials |
+| [IMPLEMENTATION_COMPLETE.md](IMPLEMENTATION_COMPLETE.md) | Implementation status |
+| [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | Implementation details |
+| [INFRASTRUCTURE_GUIDE.md](INFRASTRUCTURE_GUIDE.md) | Infrastructure setup |
+| [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | Project overview |
+| [SESSION_12_COMPLETION.md](SESSION_12_COMPLETION.md) | Session notes |
+| [TECHNOLOGY_ACKNOWLEDGEMENTS.md](TECHNOLOGY_ACKNOWLEDGEMENTS.md) | Technology credits |
+| [TEST_REPORT.md](TEST_REPORT.md) | Test results |
+| [VERSIONING.md](VERSIONING.md) | Version management |
+| [WORKFLOW_EXAMPLES.md](WORKFLOW_EXAMPLES.md) | Workflow engine examples |
+| [ZIPCODE_IMPORT.md](ZIPCODE_IMPORT.md) | Zip code data import |
+| [ADDRESS_UI_FEATURE.md](ADDRESS_UI_FEATURE.md) | Address UI features |
+
+---
+
+## 🏗️ System Architecture
 
 ```
-CRM/
-├── README.md                          ← Full documentation
-├── QUICK_START.md                     ← Fast setup guide
-├── PROJECT_SUMMARY.md                 ← File inventory & overview
-├── INDEX.md                           ← This file
-│
-├── CRM.Backend/                       ← .NET Backend
-│   ├── src/
-│   │   ├── CRM.Api/                   # API Layer
-│   │   ├── CRM.Core/                  # Business Logic
-│   │   └── CRM.Infrastructure/        # Data Access
-│   ├── tests/                         # Unit Tests
-│   └── CRM.sln                        # Solution File
-│
-├── CRM.Frontend/                      ← React Frontend
-│   ├── src/
-│   │   ├── components/                # Reusable Components
-│   │   ├── pages/                     # Page Components
-│   │   ├── services/                  # API Client
-│   │   └── styles/                    # CSS Files
-│   ├── public/                        # Static Files
-│   └── package.json                   # Dependencies
-│
-├── docs/                              ← Additional Documentation
-│   ├── DATABASE_SETUP.md              # Database configuration
-│   └── DEVELOPMENT.md                 # Development guide
-│
-├── .vscode/                           ← VS Code Configuration
-│   ├── launch.json                    # Debug config
-│   ├── tasks.json                     # Build tasks
-│   ├── settings.json                  # Editor settings
-│   └── extensions.json                # Recommended extensions
-│
-├── .github/                           ← GitHub/Documentation
-│   └── SETUP_PROGRESS.md              # Setup checklist
-│
-└── .gitignore                         ← Git ignore rules
+┌─────────────────────────────────────────────────────────────────┐
+│                         FRONTEND                                 │
+│                React 18 + TypeScript + MUI                       │
+│                     (Port 80/3000)                               │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                          BACKEND                                 │
+│               ASP.NET Core 8.0 Web API                          │
+│                    (Port 5000)                                   │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐               │
+│  │ Controllers │ │  Services   │ │   SignalR   │               │
+│  └─────────────┘ └─────────────┘ └─────────────┘               │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        DATABASE                                  │
+│                MariaDB (89 Tables)                              │
+│                    (Port 3306)                                   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🎯 Common Tasks
+## 🔧 Common Tasks
 
-### I want to...
+### Start Development Environment
+```bash
+docker-compose -f docker/docker-compose.yml up -d
+```
 
-#### Start the application
-→ Follow [QUICK_START.md](QUICK_START.md) steps 1-5
-
-#### Add a new database provider
-→ Edit `appsettings.json` and see [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md)
-
-#### Create a new API endpoint
-→ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) → "Add a New Entity (Backend)"
-
-#### Create a new page
-→ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) → "Add a New Page (Frontend)"
-
-#### Understand the architecture
-→ See [README.md](README.md) → "Project Structure" section
-
-#### Deploy to production
-→ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) → "Deployment" section
-
-#### Configure a specific database
-→ See [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md) for your database type
-
-#### Debug the backend
-→ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) → "Debugging" section
-
-#### Debug the frontend
-→ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) → "Debugging" section
-
-#### Run tests
-→ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) → "Testing" section
-
----
-
-## 🔑 Key Concepts
-
-### Clean Architecture
-The backend follows Clean Architecture principles with clear separation:
-- **CRM.Api**: Controllers & HTTP concerns
-- **CRM.Core**: Business logic & domain models
-- **CRM.Infrastructure**: Data access & external services
-
-Learn more: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
-
-### Repository Pattern
-Data access is abstracted through repositories for easy testing and switching implementations.
-
-### Service Layer
-Business logic is in services, controllers just handle HTTP.
-
-### Multi-Database Support
-Switch databases by changing `appsettings.json` without code changes.
-
-Learn more: [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md)
-
-### Responsive Design
-Mobile-first approach ensures the app works on all devices.
-
----
-
-## 📱 Features by Module
-
-### Sales Management
-- Track opportunities
-- Pipeline visualization
-- Stage management
-- Probability tracking
-
-### Customer Management
-- Customer profiles
-- Lifecycle tracking
-- Interaction history
-- Search capabilities
-
-### Product Management
-- Product catalog
-- SKU management
-- Pricing
-- Categories
-
-### Marketing Campaigns
-- Campaign creation
-- Performance metrics
-- Budget tracking
-- ROI analysis
-
-### Interaction Tracking
-- Communication logging
-- Activity timeline
-- Team collaboration
-
-### Dashboard
-- KPI cards
-- Sales charts
-- Campaign metrics
-- Real-time updates
-
----
-
-## 🛠️ Technology Quick Reference
-
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| **API Framework** | ASP.NET Core | 8.0 |
-| **ORM** | Entity Framework Core | 8.0 |
-| **Database** | Multi (SQL Server/PostgreSQL/Oracle/MySQL) | Latest |
-| **Logging** | Serilog | 8.0 |
-| **API Docs** | Swagger/OpenAPI | Built-in |
-| **Frontend** | React | 18.2 |
-| **Styling** | React Bootstrap | 5.3 |
-| **Language** | TypeScript | 5.2 |
-| **HTTP Client** | Axios | 1.6 |
-| **Routing** | React Router | 6.18 |
-| **Charts** | Recharts | 2.10 |
-
----
-
-## 🔗 API Reference
-
-All API endpoints documented in [README.md](README.md) under "API Documentation" section.
-
-**Endpoint Categories:**
-- Customers: `/api/customers`
-- Opportunities: `/api/opportunities`
-- Products: `/api/products`
-- Campaigns: `/api/campaigns`
-
-API Documentation also available at: `http://localhost:5000/swagger` (when running)
-
----
-
-## 📋 Database Schema
-
-8 main entities:
-- Customer
-- Opportunity  
-- Product
-- User
-- Interaction
-- MarketingCampaign
-- CampaignMetric
-- (Additional entities can be added)
-
-Full schema details: [README.md](README.md)
-
----
-
-## ⚡ Quick Commands
-
+### Run Tests
 ```bash
 # Backend
-cd CRM.Backend
-dotnet restore          # Install packages
-dotnet build            # Build solution
-dotnet run              # Run API
-dotnet test             # Run tests
-dotnet ef database update  # Run migrations
+cd CRM.Backend/tests && dotnet test
 
 # Frontend
-cd CRM.Frontend
-npm install             # Install packages
-npm start               # Run dev server
-npm run build           # Build for production
-npm test                # Run tests
+cd CRM.Frontend && npm test
+
+# E2E
+cd e2e-tests && npx playwright test
+```
+
+### Build for Production
+```bash
+./build.sh
+```
+
+### Deploy to Production
+```bash
+./scripts/deploy-production.sh
 ```
 
 ---
 
-## 🐛 Troubleshooting
+## 📊 Current Statistics
 
-Most common issues and solutions:
-→ See [QUICK_START.md](QUICK_START.md) → "Troubleshooting" section
-
-More detailed troubleshooting:
-→ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) → "Troubleshooting" section
-
----
-
-## 📞 Support Resources
-
-1. **Quick Help**: Check [QUICK_START.md](QUICK_START.md)
-2. **Detailed Guide**: Check [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
-3. **Database Help**: Check [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md)
-4. **API Help**: Check [README.md](README.md)
-5. **Code Comments**: Check inline code documentation
-6. **Swagger Docs**: Check `http://localhost:5000/swagger` when running
+| Metric | Value |
+|--------|-------|
+| **Version** | 0.0.25 |
+| **Database Tables** | 89 |
+| **Backend Tests** | 700+ |
+| **API Endpoints** | 50+ |
+| **Frontend Components** | 100+ |
 
 ---
 
-## 📈 Enhancement Roadmap
+## 🔗 External Links
 
-Suggested enhancements (in order of priority):
-1. Add authentication/authorization
-2. Implement user roles and permissions
-3. Add email notifications
-4. Create advanced reporting & export
-5. Implement data validation rules
-6. Add file attachment support
-7. Create mobile app (React Native)
-8. Add real-time updates (SignalR)
-9. Implement data sync for offline
-10. Deploy to cloud (Azure/AWS)
+- **Production Server:** `http://192.168.0.9`
+- **API Documentation:** `http://192.168.0.9:5000/swagger`
 
 ---
 
-## 🎓 Learning Path
+## 📝 Document Updates
 
-Recommended learning path for new developers:
-
-1. Read [QUICK_START.md](QUICK_START.md) - 10 minutes
-2. Run the application - 5 minutes
-3. Explore the UI - 10 minutes
-4. Read [README.md](README.md) - 20 minutes
-5. Check [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - 20 minutes
-6. Add a simple feature - 30 minutes
-7. Run tests - 10 minutes
-
-**Total time: ~2 hours to be productive**
+To update documentation:
+1. Edit Markdown files directly
+2. Run verification: `npm run docs:verify` (if available)
+3. Commit with message: `docs: description of change`
 
 ---
 
-## ✅ Checklist Before Starting Development
-
-- [ ] Read QUICK_START.md
-- [ ] Install .NET 8.0 SDK
-- [ ] Install Node.js 18+
-- [ ] Clone/download the project
-- [ ] Install dependencies (dotnet restore, npm install)
-- [ ] Configure database connection
-- [ ] Run migrations
-- [ ] Start backend: `dotnet run`
-- [ ] Start frontend: `npm start`
-- [ ] Access http://localhost:3000
-- [ ] Check backend at http://localhost:5000/swagger
-- [ ] Read relevant docs for your role (backend/frontend)
-
----
-
-## 📚 Files Summary
-
-| File | Purpose | When to Read |
-|------|---------|--------------|
-| README.md | Comprehensive documentation | Before development |
-| QUICK_START.md | Fast setup | First thing |
-| PROJECT_SUMMARY.md | File inventory | For understanding structure |
-| docs/DATABASE_SETUP.md | Database configuration | When setting up DB |
-| docs/DEVELOPMENT.md | Development guide | During development |
-| SETUP_PROGRESS.md | Progress checklist | For tracking setup |
-
----
-
-## 🎯 Success Criteria
-
-You'll know everything is set up correctly when:
-- ✅ Backend runs without errors on `dotnet run`
-- ✅ Frontend runs without errors on `npm start`
-- ✅ Both connect (API responds to frontend requests)
-- ✅ Database has tables (check with database tool)
-- ✅ Swagger shows all endpoints: http://localhost:5000/swagger
-- ✅ Frontend loads at http://localhost:3000
-- ✅ Dashboard shows some data
-
----
-
-## 🚀 You're Ready!
-
-Everything is documented and ready to use. Pick your task from "I want to..." section above and get started!
-
-**Next Step**: Go to [QUICK_START.md](QUICK_START.md) and follow the quick start guide.
-
----
-
-**Happy Coding! 🎉**
-
-*Last Updated: January 2026*  
-*Version: 1.0.0*
+*Last generated: January 2025*

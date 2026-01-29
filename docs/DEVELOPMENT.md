@@ -1,272 +1,592 @@
 # CRM Development Guide
 
-## Getting Started
+**Version:** 0.0.25  
+**Last Updated:** January 2025
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- .NET 8.0 SDK
-- Node.js 18+ and npm
-- Git
-- Your choice of database (SQL Server, PostgreSQL, Oracle, or MariaDB)
 
-### Initial Setup
+| Tool | Version | Purpose |
+|------|---------|---------|
+| .NET SDK | 8.0+ | Backend development |
+| Node.js | 20+ | Frontend development |
+| npm | 10+ | Package management |
+| Docker | 24+ | Containerization |
+| Git | 2.40+ | Version control |
+| MariaDB | 10.11+ | Database (or Docker) |
 
-1. **Clone and navigate**
+### Quick Setup
+
 ```bash
-git clone <repo-url>
-cd CRM
-```
+# Clone repository
+git clone <repository-url>
+cd crm-solution
 
-2. **Install dependencies**
+# Option 1: Docker Compose (Recommended)
+docker-compose -f docker/docker-compose.yml up -d
 
-**Backend:**
-```bash
-cd CRM.Backend
-dotnet restore
-```
+# Option 2: Local Development
+# Terminal 1 - Database
+docker run -d --name crm-db -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=crm_db -p 3306:3306 mariadb:10.11
 
-**Frontend:**
-```bash
-cd CRM.Frontend
-npm install
-```
-
-3. **Configure database**
-   - Edit `CRM.Backend/src/CRM.Api/appsettings.json`
-   - Set `DatabaseProvider` and `ConnectionString`
-
-4. **Run migrations**
-```bash
-cd CRM.Backend
-dotnet ef database update --project src/CRM.Infrastructure --startup-project src/CRM.Api
-```
-
-5. **Start both applications**
-
-**Terminal 1 - Backend:**
-```bash
+# Terminal 2 - Backend
 cd CRM.Backend/src/CRM.Api
 dotnet run
-```
 
-**Terminal 2 - Frontend:**
-```bash
+# Terminal 3 - Frontend
 cd CRM.Frontend
+npm install
 npm start
 ```
 
-Application will be available at:
-- Frontend: http://localhost:3000
-- API: http://localhost:5000
-- Swagger: http://localhost:5000/swagger
+### Access Points
 
-## Project Structure Guide
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| API | http://localhost:5000 |
+| Swagger | http://localhost:5000/swagger |
 
-### Backend Architecture
+---
 
-```
-CRM.Core/               # Business logic layer
-├── Entities/           # Database models
-├── Interfaces/         # Service contracts
-└── Services/           # Business logic
+## 📁 Project Structure
 
-CRM.Infrastructure/     # Data access layer
-├── Data/               # DbContext
-├── Repositories/       # Data access
-└── Services/           # Infrastructure services
-
-CRM.Api/                # API layer
-├── Controllers/        # API endpoints
-├── Middleware/         # Custom middleware
-└── Program.cs          # Startup configuration
-```
-
-### Frontend Structure
+### Backend Architecture (Clean Architecture)
 
 ```
-src/
-├── components/         # Reusable components
-├── pages/              # Page components
-├── services/           # API client
-├── styles/             # CSS files
-└── App.tsx             # Root component
+CRM.Backend/
+├── CRM.sln                    # Monolith solution
+├── CRM.Microservices.sln      # Microservices solution
+└── src/
+    ├── CRM.Api/               # API Layer (Controllers, Middleware)
+    │   ├── Controllers/       # REST API endpoints
+    │   ├── Hubs/              # SignalR hubs
+    │   └── Middleware/        # Custom middleware
+    │
+    ├── CRM.Core/              # Domain Layer (Entities, Interfaces)
+    │   ├── Entities/          # Domain models
+    │   ├── Enums/             # Enumerations
+    │   ├── Interfaces/        # Service contracts
+    │   └── DTOs/              # Data transfer objects
+    │
+    ├── CRM.Infrastructure/    # Infrastructure Layer
+    │   ├── Data/              # DbContext, configurations
+    │   ├── Repositories/      # Data access
+    │   └── Services/          # Service implementations
+    │
+    └── Services/              # Microservices
+        ├── CRM.ServiceDefaults/  # Shared configuration
+        ├── CRM.Gateway/          # API Gateway
+        ├── CRM.Identity/         # Auth service
+        ├── CRM.CustomerService/  # Customer service
+        ├── CRM.SalesService/     # Sales service
+        ├── CRM.MarketingService/ # Marketing service
+        ├── CRM.ServiceDeskService/ # Service desk
+        └── CRM.CoreService/      # Core service
 ```
 
-## Adding New Features
+### Frontend Architecture (Component-Based)
 
-### Add a New Entity (Backend)
+```
+CRM.Frontend/src/
+├── components/          # Reusable UI components
+│   ├── common/          # Shared components
+│   ├── customers/       # Customer components
+│   ├── contacts/        # Contact components
+│   ├── opportunities/   # Opportunity components
+│   └── ...
+│
+├── pages/               # Route-level components
+│   ├── Dashboard/
+│   ├── Customers/
+│   ├── Contacts/
+│   ├── Opportunities/
+│   └── ...
+│
+├── services/            # API client services
+│   ├── api.ts           # Axios configuration
+│   ├── customerService.ts
+│   ├── contactService.ts
+│   └── ...
+│
+├── contexts/            # React contexts
+│   ├── AuthContext.tsx
+│   ├── ThemeContext.tsx
+│   └── SignalRContext.tsx
+│
+├── hooks/               # Custom React hooks
+│   ├── usePagination.ts
+│   ├── useConcurrency.ts
+│   └── ...
+│
+├── types/               # TypeScript types
+│   ├── customer.ts
+│   ├── contact.ts
+│   └── ...
+│
+└── utils/               # Utility functions
+```
 
-1. Create entity in `CRM.Core/Entities/YourEntity.cs`
+---
+
+## 🔧 Development Workflow
+
+### Creating a New Entity
+
+#### 1. Create Entity (CRM.Core)
+
 ```csharp
+// CRM.Core/Entities/YourEntity.cs
 public class YourEntity : BaseEntity
 {
-    public string Name { get; set; }
-    // Add properties
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsActive { get; set; } = true;
+    
+    // Relationships
+    public int CustomerId { get; set; }
+    public Customer? Customer { get; set; }
 }
 ```
 
-2. Add DbSet in `CRM.Infrastructure/Data/CrmDbContext.cs`
+#### 2. Add DbSet (CRM.Infrastructure)
+
 ```csharp
-public DbSet<YourEntity> YourEntities { get; set; }
+// CRM.Infrastructure/Data/CrmDbContext.cs
+public DbSet<YourEntity> YourEntities => Set<YourEntity>();
 ```
 
-3. Create interface in `CRM.Core/Interfaces/IYourService.cs`
-4. Implement service in `CRM.Infrastructure/Services/YourService.cs`
-5. Create controller in `CRM.Api/Controllers/YourController.cs`
-6. Register in `Program.cs`
+#### 3. Create Service Interface (CRM.Core)
+
 ```csharp
-builder.Services.AddScoped<IYourService, YourService>();
+// CRM.Core/Interfaces/IYourEntityService.cs
+public interface IYourEntityService
+{
+    Task<IEnumerable<YourEntity>> GetAllAsync();
+    Task<YourEntity?> GetByIdAsync(int id);
+    Task<YourEntity> CreateAsync(YourEntity entity);
+    Task<YourEntity> UpdateAsync(YourEntity entity);
+    Task DeleteAsync(int id);
+}
 ```
 
-7. Create database migration
+#### 4. Implement Service (CRM.Infrastructure)
+
+```csharp
+// CRM.Infrastructure/Services/YourEntityService.cs
+public class YourEntityService : IYourEntityService
+{
+    private readonly CrmDbContext _context;
+    
+    public YourEntityService(CrmDbContext context)
+    {
+        _context = context;
+    }
+    
+    public async Task<IEnumerable<YourEntity>> GetAllAsync()
+    {
+        return await _context.YourEntities
+            .Include(e => e.Customer)
+            .ToListAsync();
+    }
+    
+    // ... implement other methods
+}
+```
+
+#### 5. Register Service (Program.cs)
+
+```csharp
+builder.Services.AddScoped<IYourEntityService, YourEntityService>();
+```
+
+#### 6. Create Controller (CRM.Api)
+
+```csharp
+// CRM.Api/Controllers/YourEntitiesController.cs
+[ApiController]
+[Route("api/[controller]")]
+public class YourEntitiesController : ControllerBase
+{
+    private readonly IYourEntityService _service;
+    
+    public YourEntitiesController(IYourEntityService service)
+    {
+        _service = service;
+    }
+    
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<YourEntity>>> GetAll()
+    {
+        var entities = await _service.GetAllAsync();
+        return Ok(entities);
+    }
+    
+    [HttpGet("{id}")]
+    public async Task<ActionResult<YourEntity>> GetById(int id)
+    {
+        var entity = await _service.GetByIdAsync(id);
+        return entity == null ? NotFound() : Ok(entity);
+    }
+    
+    [HttpPost]
+    public async Task<ActionResult<YourEntity>> Create(YourEntity entity)
+    {
+        var created = await _service.CreateAsync(entity);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+    }
+    
+    [HttpPut("{id}")]
+    public async Task<ActionResult<YourEntity>> Update(int id, YourEntity entity)
+    {
+        if (id != entity.Id) return BadRequest();
+        var updated = await _service.UpdateAsync(entity);
+        return Ok(updated);
+    }
+    
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _service.DeleteAsync(id);
+        return NoContent();
+    }
+}
+```
+
+#### 7. Create Migration
+
 ```bash
+cd CRM.Backend
 dotnet ef migrations add AddYourEntity --project src/CRM.Infrastructure --startup-project src/CRM.Api
 dotnet ef database update --project src/CRM.Infrastructure --startup-project src/CRM.Api
 ```
 
-### Add a New Page (Frontend)
+---
 
-1. Create component in `src/pages/YourPage.tsx`
-```tsx
-function YourPage() {
-  return <div>Your content</div>;
+### Creating a Frontend Component
+
+#### 1. Create Type Definition
+
+```typescript
+// src/types/yourEntity.ts
+export interface YourEntity {
+  id: number;
+  name: string;
+  description: string;
+  createdAt: string;
+  isActive: boolean;
+  customerId: number;
 }
-export default YourPage;
 ```
 
-2. Add route in `src/App.tsx`
+#### 2. Create API Service
+
+```typescript
+// src/services/yourEntityService.ts
+import api from './api';
+import { YourEntity } from '../types/yourEntity';
+
+export const yourEntityService = {
+  getAll: async (): Promise<YourEntity[]> => {
+    const response = await api.get('/yourentities');
+    return response.data;
+  },
+  
+  getById: async (id: number): Promise<YourEntity> => {
+    const response = await api.get(`/yourentities/${id}`);
+    return response.data;
+  },
+  
+  create: async (entity: Omit<YourEntity, 'id'>): Promise<YourEntity> => {
+    const response = await api.post('/yourentities', entity);
+    return response.data;
+  },
+  
+  update: async (id: number, entity: YourEntity): Promise<YourEntity> => {
+    const response = await api.put(`/yourentities/${id}`, entity);
+    return response.data;
+  },
+  
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/yourentities/${id}`);
+  }
+};
+```
+
+#### 3. Create List Component
+
 ```tsx
-<Route path="/yourpage" element={<YourPage />} />
+// src/pages/YourEntities/YourEntityList.tsx
+import React, { useState, useEffect } from 'react';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { yourEntityService } from '../../services/yourEntityService';
+import { YourEntity } from '../../types/yourEntity';
+
+const YourEntityList: React.FC = () => {
+  const [entities, setEntities] = useState<YourEntity[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadEntities();
+  }, []);
+
+  const loadEntities = async () => {
+    try {
+      const data = await yourEntityService.getAll();
+      setEntities(data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const columns: GridColDef[] = [
+    { field: 'id', headerName: 'ID', width: 70 },
+    { field: 'name', headerName: 'Name', flex: 1 },
+    { field: 'description', headerName: 'Description', flex: 2 },
+    { field: 'isActive', headerName: 'Active', width: 100, type: 'boolean' },
+  ];
+
+  return (
+    <DataGrid
+      rows={entities}
+      columns={columns}
+      loading={loading}
+      autoHeight
+    />
+  );
+};
+
+export default YourEntityList;
 ```
 
-3. Add navigation in `src/components/Navigation.tsx`
+#### 4. Add Route
 
-## API Usage Examples
+```tsx
+// src/App.tsx
+import YourEntityList from './pages/YourEntities/YourEntityList';
 
-### GET Request
-```typescript
-const response = await apiClient.get('/customers');
+// Add to routes
+<Route path="/your-entities" element={<YourEntityList />} />
 ```
 
-### POST Request
-```typescript
-const response = await apiClient.post('/customers', {
-  firstName: 'John',
-  lastName: 'Doe',
-  email: 'john@example.com'
-});
-```
+---
 
-### PUT Request
-```typescript
-const response = await apiClient.put('/customers/1', updatedData);
-```
+## 🧪 Testing
 
-### DELETE Request
-```typescript
-const response = await apiClient.delete('/customers/1');
-```
+### Backend Tests
 
-## Database Operations
-
-### Raw SQL Query
-```csharp
-var customers = await _context.Customers
-    .FromSqlRaw("SELECT * FROM Customers WHERE IsDeleted = 0")
-    .ToListAsync();
-```
-
-### LINQ Query
-```csharp
-var customers = await _context.Customers
-    .Where(c => !c.IsDeleted)
-    .OrderBy(c => c.LastName)
-    .ToListAsync();
-```
-
-## Testing
-
-### Backend Unit Tests
 ```bash
-cd CRM.Backend
+# Run all tests
+cd CRM.Backend/tests
 dotnet test
+
+# Run with coverage
+dotnet test --collect:"XPlat Code Coverage"
+
+# Run specific category
+dotnet test --filter "FullyQualifiedName~BVT"
 ```
 
 ### Frontend Tests
+
 ```bash
 cd CRM.Frontend
+
+# Run all tests
 npm test
+
+# Run with coverage
+npm test -- --coverage
+
+# Run specific file
+npm test -- CustomerForm.test.tsx
 ```
 
-## Debugging
+### E2E Tests
+
+```bash
+cd e2e-tests
+
+# Install Playwright
+npm install
+npx playwright install
+
+# Run tests
+npx playwright test
+
+# Run with UI
+npx playwright test --ui
+
+# Run headed
+npx playwright test --headed
+```
+
+---
+
+## 🔄 SignalR Real-Time Updates
+
+### Backend Hub
+
+```csharp
+// Already implemented in CRM.Api/Hubs/CrmNotificationHub.cs
+public class CrmNotificationHub : Hub
+{
+    public async Task JoinEntityGroup(string entityType, int entityId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"{entityType}:{entityId}");
+    }
+    
+    public async Task LeaveEntityGroup(string entityType, int entityId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"{entityType}:{entityId}");
+    }
+}
+```
+
+### Frontend Context
+
+```tsx
+// Use SignalR context for real-time updates
+import { useSignalR } from '../contexts/SignalRContext';
+
+const MyComponent = () => {
+  const { connection } = useSignalR();
+  
+  useEffect(() => {
+    connection?.on('EntityUpdated', (entityType, entityId, data) => {
+      // Handle update
+    });
+  }, [connection]);
+};
+```
+
+---
+
+## 📝 Code Standards
+
+### C# Conventions
+- Use PascalCase for public members
+- Use camelCase for private fields with `_` prefix
+- Async methods end with `Async`
+- Use nullable reference types
+- Use records for DTOs when appropriate
+
+### TypeScript Conventions
+- Use camelCase for variables and functions
+- Use PascalCase for types and components
+- Use interfaces over type aliases
+- Use functional components with hooks
+- Destructure props
+
+### Git Workflow
+```bash
+# Create feature branch
+git checkout -b feature/your-feature
+
+# Make changes and commit
+git add .
+git commit -m "feat: add your feature"
+
+# Push and create PR
+git push origin feature/your-feature
+```
+
+### Commit Message Format
+```
+type: description
+
+Types:
+- feat: New feature
+- fix: Bug fix
+- docs: Documentation
+- style: Formatting
+- refactor: Code restructure
+- test: Tests
+- chore: Maintenance
+```
+
+---
+
+## 🐛 Debugging
 
 ### Backend Debugging
-- Set breakpoints in Visual Studio or VS Code
-- Debug with `dotnet run` in debug configuration
-- Check logs in `logs/` directory
+
+```bash
+# Run with detailed logging
+cd CRM.Backend/src/CRM.Api
+dotnet run --verbosity detailed
+
+# Attach debugger in VS Code
+# Use "Debug .NET Core" launch configuration
+```
 
 ### Frontend Debugging
-- Use React Developer Tools extension
-- Check browser console (F12)
-- Use VS Code debugger
 
-## Code Standards
-
-### C# Naming
-- Classes: `PascalCase`
-- Methods: `PascalCase`
-- Properties: `PascalCase`
-- Private fields: `_camelCase`
-- Local variables: `camelCase`
-
-### TypeScript/React
-- Components: `PascalCase` (files and exports)
-- Functions: `camelCase`
-- Constants: `UPPER_CASE`
-- Interfaces: `IPascalCase` or `PascalCase`
-
-## Performance Tips
-
-1. Use pagination for large datasets
-2. Implement caching for frequently accessed data
-3. Optimize database queries with indexes
-4. Use async/await for non-blocking operations
-5. Implement lazy loading for components
-6. Minimize bundle size with tree-shaking
-
-## Deployment
-
-### Backend
 ```bash
-dotnet publish -c Release
-# Deploy to IIS, Azure App Service, or Docker
+# Run in development mode
+cd CRM.Frontend
+npm start
+
+# Open browser DevTools
+# React DevTools extension recommended
 ```
 
-### Frontend
+### Database Debugging
+
 ```bash
-npm run build
-# Deploy build/ folder to web server
+# Connect to MariaDB
+docker exec -it crm-mariadb mariadb -u crm_user -pcrm_password crm_db
+
+# Show tables
+SHOW TABLES;
+
+# Query data
+SELECT * FROM Customers LIMIT 10;
 ```
 
-## Troubleshooting
+---
 
-### Database Connection Issues
-- Verify connection string in appsettings.json
-- Check database is running
-- Verify credentials and permissions
+## 🔧 Environment Configuration
 
-### API Not Responding
-- Check if backend is running on port 5000
-- Verify CORS settings in Program.cs
-- Check firewall settings
+### Backend (appsettings.json)
 
-### Frontend Not Loading
-- Verify npm packages installed
-- Check API URL in .env file
-- Clear browser cache and cookies
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=crm_db;User=crm_user;Password=crm_password;"
+  },
+  "Jwt": {
+    "Secret": "your-secret-key-here",
+    "Issuer": "CRMSolution",
+    "ExpiryMinutes": 60
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information"
+    }
+  }
+}
+```
 
-## Additional Resources
+### Frontend (.env)
 
-- [.NET Documentation](https://docs.microsoft.com/dotnet)
-- [React Documentation](https://react.dev)
-- [Entity Framework Core](https://docs.microsoft.com/ef/core)
-- [Bootstrap Documentation](https://getbootstrap.com)
+```env
+REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_SIGNALR_URL=http://localhost:5000/hub
+```
+
+---
+
+## 📚 Related Documentation
+
+| Document | Description |
+|----------|-------------|
+| [DATABASE_SETUP.md](DATABASE_SETUP.md) | Database configuration |
+| [../ARCHITECTURE_OVERVIEW.md](../ARCHITECTURE_OVERVIEW.md) | System architecture |
+| [../MICROSERVICES_ARCHITECTURE.md](../MICROSERVICES_ARCHITECTURE.md) | Microservices |
+| [../TESTING_SUMMARY.md](../TESTING_SUMMARY.md) | Testing guide |
+| [deployment/](deployment/) | Deployment guides |

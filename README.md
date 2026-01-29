@@ -1,547 +1,627 @@
-# CRM Solution - Comprehensive Customer Relationship Management System
+# CRM Solution
 
-A full-stack, enterprise-grade CRM solution built with **.NET Core** backend and **React** frontend with responsive UI supporting mobile and web platforms.
+<div align="center">
 
-## 📋 Table of Contents
+![Version](https://img.shields.io/badge/version-0.0.25-blue)
+![.NET](https://img.shields.io/badge/.NET-8.0-purple)
+![React](https://img.shields.io/badge/React-18-61DAFB)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Installation & Setup](#installation--setup)
-- [Configuration](#configuration)
-- [Running the Application](#running-the-application)
-- [API Documentation](#api-documentation)
-- [Database Setup](#database-setup)
-- [Development](#development)
-- [License](#license)
+**Enterprise-Grade Customer Relationship Management System**
+
+[Features](#-features) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [Documentation](#-documentation) • [API Reference](#-api-reference)
+
+</div>
+
+---
+
+## 📋 Overview
+
+CRM Solution is a comprehensive, full-stack Customer Relationship Management platform built with modern technologies. It supports both **monolithic** and **microservices** deployment architectures, offering flexibility for organizations of any size.
+
+### Key Highlights
+
+- 🏢 **Multi-tenant Ready** - Support for multiple organizations and user groups
+- 🔄 **Dual Architecture** - Deploy as monolith or microservices
+- 📱 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
+- 🔐 **Enterprise Security** - JWT authentication, role-based access control
+- 🌐 **Multi-Database** - Supports MariaDB, MySQL, PostgreSQL, SQL Server
+- 🚀 **Cloud Native** - Docker and Kubernetes ready
+- 🤖 **AI Integration** - LLM provider support for intelligent features
+- ⚡ **Real-time Updates** - SignalR for live notifications and concurrent editing
+
+---
 
 ## 🎯 Features
 
-### Core Modules
+### Core CRM Modules
 
-#### 1. **Sales Management**
-- Track and manage sales opportunities
-- Pipeline visualization and forecasting
-- Opportunity stage tracking (Prospecting → Closed)
-- Probability and amount tracking
-- Win/loss analysis
+| Module | Description |
+|--------|-------------|
+| **Customer Management** | Complete customer profiles, lifecycle tracking, organization/individual types |
+| **Contact Management** | Multi-channel contact info (email, phone, social), relationship mapping |
+| **Opportunity Management** | Sales pipeline, stage tracking, probability forecasting, win/loss analysis |
+| **Account Management** | Business accounts, territory management, health scoring |
+| **Lead Management** | Lead capture, scoring (fit/engagement), qualification workflow |
+| **Quote Management** | Quote generation, line items, pricing, approval workflow |
+| **Product Catalog** | Products, categories, pricing, SKU tracking |
 
-#### 2. **Customer Management**
-- Complete customer profiles
-- Lifecycle stage tracking (Lead, Customer, Inactive)
-- Contact information and preferences
-- Customer interaction history
-- Search and filtering capabilities
+### Marketing & Campaigns
 
-#### 3. **Product Management**
-- Product catalog with categories
-- Pricing and cost tracking
-- Inventory management
-- SKU tracking
-- Product associations with opportunities
+| Feature | Description |
+|---------|-------------|
+| **Campaign Management** | Multi-channel campaigns (Email, Social, Event, Webinar) |
+| **Campaign Execution** | A/B testing, recipient management, conversion tracking |
+| **Marketing Analytics** | ROI, engagement metrics, conversion funnels |
+| **Lead Scoring** | Automatic lead qualification based on engagement |
 
-#### 4. **Marketing Campaigns**
-- Campaign creation and management
-- Campaign type support (Email, Social, Event, etc.)
-- Budget tracking
-- Performance metrics and conversion tracking
-- Active campaign dashboard
+### Service & Support
 
-#### 5. **Interaction Tracking**
-- Log customer interactions (Email, Phone, Meeting, Notes)
-- Track interaction history
-- Assignment to team members
-- Interaction timeline
+| Feature | Description |
+|---------|-------------|
+| **Service Requests** | Ticketing system with SLA tracking |
+| **Case Categories** | Hierarchical categorization and routing |
+| **Priority Management** | Escalation levels, VIP customer handling |
+| **Resolution Tracking** | Resolution codes, root cause analysis |
 
-#### 6. **Analytics & Reporting**
-- Sales pipeline visualization
-- Campaign performance metrics
-- Dashboard with key metrics
-- Customizable reports
+### Automation & Workflow
+
+| Feature | Description |
+|---------|-------------|
+| **Workflow Engine** | Visual workflow designer with conditional logic |
+| **Task Automation** | Automated task creation and assignment |
+| **Approval Workflows** | Multi-level approval processes |
+| **Notifications** | Real-time alerts via SignalR |
+
+### Relationships & Mapping
+
+| Feature | Description |
+|---------|-------------|
+| **Relationship Types** | Parent/child, partner, competitor relationships |
+| **Account Relationships** | Complex B2B relationship mapping |
+| **Territory Management** | Geographic and account-based territories |
+| **Interaction Tracking** | Communication history across relationships |
+
+### Analytics & Reporting
+
+| Feature | Description |
+|---------|-------------|
+| **Dashboards** | Customizable widgets and KPIs |
+| **Sales Analytics** | Pipeline analysis, forecasting, win/loss |
+| **Marketing Reports** | Campaign performance, ROI analysis |
+| **Activity Tracking** | User activity logs and audit trails |
+
+### System Administration
+
+| Feature | Description |
+|---------|-------------|
+| **User Management** | Users, groups, roles, permissions |
+| **Field Configuration** | Custom fields per module |
+| **System Settings** | Global configuration options |
+| **LLM Integration** | AI provider configuration (OpenAI, Anthropic, etc.) |
+| **Monitoring** | Health checks, performance metrics |
+| **Theme Customization** | Light/dark modes, color palettes |
+
+---
 
 ## 🛠 Tech Stack
 
-### Backend
-- **Framework**: ASP.NET Core 8.0
-- **Database Support**: SQL Server, PostgreSQL, Oracle, MariaDB/MySQL
-- **ORM**: Entity Framework Core 8.0
-- **Logging**: Serilog
-- **API**: RESTful API with Swagger/OpenAPI
-- **Architecture**: Clean Architecture with Repository Pattern
+### Backend (.NET 8.0)
 
-### Frontend
-- **Framework**: React 18
-- **Language**: TypeScript
-- **UI Library**: React Bootstrap 5
-- **Routing**: React Router v6
-- **HTTP Client**: Axios
-- **Visualization**: Recharts
-- **Form Handling**: Formik + Yup
-- **Icons**: React Icons
+| Component | Technology |
+|-----------|------------|
+| **Framework** | ASP.NET Core 8.0 |
+| **ORM** | Entity Framework Core 8.0 |
+| **Real-time** | SignalR |
+| **Logging** | Serilog (structured logging) |
+| **Validation** | FluentValidation |
+| **Mapping** | AutoMapper |
+| **API Docs** | Swagger / OpenAPI 3.0 |
+| **Caching** | In-Memory / Redis |
 
-### DevOps & Tools
-- **Package Manager**: npm
-- **Build Tools**: React Scripts, .NET CLI
-- **Version Control**: Git
-- **API Documentation**: Swagger UI
+### Frontend (React 18)
+
+| Component | Technology |
+|-----------|------------|
+| **Framework** | React 18 + TypeScript |
+| **UI Library** | Material-UI (MUI) v5 |
+| **Routing** | React Router v6 |
+| **HTTP Client** | Axios |
+| **Charts** | Recharts |
+| **Forms** | Formik + Yup |
+| **Real-time** | @microsoft/signalr |
+| **State** | React Context + Hooks |
+
+### Infrastructure
+
+| Component | Technology |
+|-----------|------------|
+| **Containerization** | Docker 24+ |
+| **Orchestration** | Docker Compose / Kubernetes |
+| **Reverse Proxy** | Nginx |
+| **Databases** | MariaDB, PostgreSQL, SQL Server |
+| **Caching** | Redis (optional) |
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Docker** 24.0+ and Docker Compose 2.0+
+- **Node.js** 18+ (for local frontend development)
+- **.NET SDK** 8.0+ (for local backend development)
+
+### Option 1: Docker Compose (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/alal76/crm-solution.git
+cd crm-solution
+
+# Start all services
+docker compose -f docker/docker-compose.yml up -d
+
+# Wait for services to be healthy (about 30 seconds)
+docker compose -f docker/docker-compose.yml ps
+
+# Access the application
+# Frontend: http://localhost
+# API:      http://localhost:5000
+# Swagger:  http://localhost:5000/swagger
+```
+
+### Option 2: Local Development
+
+```bash
+# Terminal 1: Start Database
+docker compose -f docker/docker-compose.databases.yml up -d
+
+# Terminal 2: Start Backend
+cd CRM.Backend/src/CRM.Api
+dotnet run
+
+# Terminal 3: Start Frontend
+cd CRM.Frontend
+npm install
+npm start
+```
+
+### Option 3: Microservices Mode
+
+```bash
+# Start microservices architecture
+docker compose -f docker/docker-compose.microservices.unified.yml up -d
+
+# Services will be available:
+# Gateway:    http://localhost:5000
+# Identity:   http://localhost:5001
+# Customer:   http://localhost:5002
+# Sales:      http://localhost:5003
+# Marketing:  http://localhost:5004
+# ServiceDesk: http://localhost:5005
+# Core:       http://localhost:5006
+```
+
+### Default Login Credentials
+
+| Email | Password | Role |
+|-------|----------|------|
+| abhi.lal@gmail.com | Admin@123 | Administrator |
+
+---
+
+## 🏗 Architecture
+
+### Monolithic Architecture (Default)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Frontend (React)                     │
+│                   http://localhost:80                    │
+└────────────────────────────┬────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────┐
+│                      CRM.Api                             │
+│                http://localhost:5000                     │
+│  ┌─────────────────────────────────────────────────────┐│
+│  │  Controllers │ Services │ SignalR Hub │ Middleware  ││
+│  └─────────────────────────────────────────────────────┘│
+│  ┌─────────────────────────────────────────────────────┐│
+│  │              Entity Framework Core                   ││
+│  └─────────────────────────────────────────────────────┘│
+└────────────────────────────┬────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────┐
+│                   MariaDB Database                       │
+│                   (89 Tables)                            │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Microservices Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Frontend (React)                     │
+│                       Port: 80                           │
+└────────────────────────────┬────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────┐
+│                    API Gateway                           │
+│                (CRM.Gateway:5000)                        │
+└──────┬──────┬──────┬──────┬──────┬──────┬───────────────┘
+       │      │      │      │      │      │
+       ▼      ▼      ▼      ▼      ▼      ▼
+┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐
+│Ident.│ │Custom│ │Sales │ │Market│ │Serv. │ │Core  │
+│:5001 │ │:5002 │ │:5003 │ │:5004 │ │:5005 │ │:5006 │
+└──────┘ └──────┘ └──────┘ └──────┘ └──────┘ └──────┘
+       │      │      │      │      │      │
+       └──────┴──────┴──────┴──────┴──────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────┐
+│                   Shared Database                        │
+│                     MariaDB                              │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Database Schema (89 Tables)
+
+| Domain | Count | Key Tables |
+|--------|-------|------------|
+| **Customer/Contact** | 12 | Customers, Contacts, CustomerContacts, Addresses |
+| **Sales** | 10 | Opportunities, Quotes, QuoteLineItems, Leads, Products |
+| **Marketing** | 12 | MarketingCampaigns, CampaignRecipients, CampaignABTests |
+| **Service Desk** | 8 | ServiceRequests, Categories, Subcategories |
+| **Relationships** | 6 | AccountRelationships, RelationshipMaps, RelationshipTypes |
+| **Workflow** | 8 | WorkflowDefinitions, WorkflowInstances, WorkflowTasks |
+| **Contact Info** | 8 | EmailAddresses, PhoneNumbers, SocialMediaLinks |
+| **System** | 15 | Users, UserGroups, SystemSettings, ModuleConfigs |
+| **Other** | 10 | Notes, Tags, Dashboards, LLMProviderSettings |
+
+---
 
 ## 📁 Project Structure
 
 ```
 crm-solution/
-├── CRM.Backend/                        # .NET 8 Backend Application
+├── CRM.Backend/                    # .NET Backend
 │   ├── src/
-│   │   ├── CRM.Api/                    # ASP.NET Core Web API
-│   │   ├── CRM.Core/                   # Business logic & entities
-│   │   └── CRM.Infrastructure/         # Data access layer
-│   └── tests/                          # Unit & integration tests
+│   │   ├── CRM.Api/               # Main API (Monolith)
+│   │   │   ├── Controllers/       # REST API Controllers
+│   │   │   ├── Hubs/              # SignalR Hubs
+│   │   │   ├── Middleware/        # Custom Middleware
+│   │   │   └── Helpers/           # Utility Classes
+│   │   ├── CRM.Core/              # Domain Layer
+│   │   │   ├── Entities/          # Domain Entities
+│   │   │   ├── Dtos/              # Data Transfer Objects
+│   │   │   └── Interfaces/        # Service Interfaces
+│   │   ├── CRM.Infrastructure/    # Data Access Layer
+│   │   │   ├── Data/              # DbContext & Configurations
+│   │   │   └── Services/          # Service Implementations
+│   │   └── Services/              # Microservices
+│   │       ├── CRM.Gateway/       # API Gateway (Ocelot)
+│   │       ├── CRM.Identity/      # Auth Service
+│   │       ├── CRM.CustomerService/
+│   │       ├── CRM.SalesService/
+│   │       ├── CRM.MarketingService/
+│   │       ├── CRM.ServiceDeskService/
+│   │       └── CRM.CoreService/
+│   ├── tests/                     # Test Projects
+│   └── migrations/                # SQL Migration Scripts
 │
-├── CRM.Frontend/                       # React Frontend Application
+├── CRM.Frontend/                   # React Frontend
 │   ├── src/
-│   │   ├── components/                 # Reusable React components
-│   │   ├── pages/                      # Page components
-│   │   ├── services/                   # API service layer
-│   │   └── styles/                     # Global styles
-│   └── public/                         # Static assets
+│   │   ├── components/            # Reusable Components
+│   │   │   ├── common/            # Shared UI Components
+│   │   │   ├── ContactInfo/       # Contact Info Components
+│   │   │   └── settings/          # Settings Components
+│   │   ├── pages/                 # Page Components
+│   │   ├── services/              # API Service Clients
+│   │   ├── contexts/              # React Context Providers
+│   │   ├── hooks/                 # Custom Hooks
+│   │   ├── config/                # Configuration
+│   │   └── theme/                 # MUI Theme Config
+│   └── public/                    # Static Assets
 │
-├── database/                           # Database management
-│   ├── schema/                         # SQL schema files
-│   ├── seed/                           # Seed data scripts
-│   └── master_data/                    # Master data imports
+├── docker/                         # Docker Configuration
+│   ├── docker-compose.yml         # Main (Monolith)
+│   ├── docker-compose.databases.yml
+│   ├── docker-compose.microservices.unified.yml
+│   ├── docker-compose.unified.yml
+│   └── Dockerfile.*               # Service Dockerfiles
 │
-├── docker/                             # Docker configuration
-│   ├── Dockerfile.backend              # Backend Docker image
-│   ├── Dockerfile.frontend             # Frontend Docker image
-│   └── docker-compose.yml              # Local development
+├── kubernetes/                     # K8s Manifests
+│   ├── 00-namespace-config.yaml
+│   ├── 01-database-tier.yaml
+│   ├── 02-application-tier.yaml
+│   ├── 03-presentation-tier.yaml
+│   ├── 04-ingress-network.yaml
+│   ├── local/                     # Local K8s configs
+│   ├── microservices/             # Microservices K8s
+│   └── production/                # Production K8s
 │
-├── kubernetes/                         # Kubernetes manifests
-│   ├── local/                          # Local/Minikube config
-│   └── *.yaml                          # Production manifests
+├── e2e-tests/                      # E2E Tests (Playwright)
+│   ├── playwright.config.ts
+│   └── tests/
+│       ├── auth.setup.ts
+│       ├── customers/
+│       ├── contacts/
+│       ├── data/
+│       ├── bvt/
+│       └── functional/
 │
-├── scripts/                            # Automation scripts
-│   ├── build/                          # Build scripts
-│   ├── deploy/                         # Deployment scripts
-│   ├── database/                       # Database scripts
-│   └── utils/                          # Utility scripts
+├── scripts/                        # Automation Scripts
+│   ├── deploy.sh                  # Main deploy script
+│   ├── deploy-192.168.0.9.sh      # Production deploy
+│   ├── build-and-deploy.sh        # Build + deploy
+│   └── seed-test-data.sh          # Data seeding
 │
-├── artifacts/                          # Build outputs
-│   ├── amd64/                          # AMD64 architecture
-│   ├── arm64/                          # ARM64 architecture
-│   └── x86_64/                         # x86_64 architecture
+├── docs/                           # Documentation
+│   ├── architecture/
+│   ├── deployment/
+│   ├── features/
+│   ├── guides/
+│   └── testing/
 │
-├── docs/                               # Documentation
-│   ├── architecture/                   # Architecture docs
-│   ├── deployment/                     # Deployment guides
-│   ├── features/                       # Feature docs
-│   ├── testing/                        # Testing docs
-│   └── guides/                         # User guides
-│
-└── .github/                            # GitHub configuration
-    └── workflows/                      # CI/CD pipelines
+├── config/                         # Configuration Files
+├── ARCHITECTURE_OVERVIEW.md
+├── MICROSERVICES_ARCHITECTURE.md
+├── TESTING_SUMMARY.md
+├── CHANGELOG.md
+└── version.json
 ```
 
-## 📦 Prerequisites
+---
 
-### System Requirements
-- **Windows 10+** or **Linux** or **macOS**
-- **.NET 8.0 SDK** or higher
-- **Node.js 18+** and **npm 9+**
-- One of supported databases: SQL Server, PostgreSQL, Oracle, MariaDB
+## 📚 Documentation
 
-### Database Setup
-- SQL Server 2019+ (LocalDB for development)
-- PostgreSQL 12+
-- Oracle 21c+
-- MariaDB 10.5+
+### Architecture
 
-## 🚀 Installation & Setup
+| Document | Description |
+|----------|-------------|
+| [Architecture Overview](ARCHITECTURE_OVERVIEW.md) | High-level system design |
+| [Microservices Architecture](MICROSERVICES_ARCHITECTURE.md) | Service decomposition |
+| [Database Configuration](docs/architecture/DATABASE_CONFIGURATION.md) | Multi-database support |
 
-### 1. Clone the Repository
+### Deployment
+
+| Document | Description |
+|----------|-------------|
+| [Docker Setup](docs/deployment/DOCKER_SETUP.md) | Docker Compose guide |
+| [Kubernetes Guide](docs/deployment/KUBERNETES_DEPLOYMENT_GUIDE.md) | K8s deployment |
+| [Production Deploy](docs/deployment/DEPLOY_192.168.0.9.md) | Server deployment |
+| [Infrastructure Guide](docs/INFRASTRUCTURE_GUIDE.md) | Infrastructure overview |
+
+### Features
+
+| Document | Description |
+|----------|-------------|
+| [User Management](docs/features/USER_MANAGEMENT_README.md) | Users & permissions |
+| [Multi-User Capability](docs/features/MULTI_USER_CAPABILITY.md) | Concurrent editing |
+| [Workflow Engine](docs/WORKFLOW_EXAMPLES.md) | Automation examples |
+| [Contact Info System](docs/features/CONSOLIDATED_CONTACT_INFO.md) | Contact management |
+| [Navigation Config](docs/guides/NAVIGATION_CONFIGURATION.md) | Menu customization |
+
+### Development
+
+| Document | Description |
+|----------|-------------|
+| [Development Guide](docs/DEVELOPMENT.md) | Local setup |
+| [How-To Guide](docs/HOWTO.md) | Common tasks |
+| [Testing Summary](TESTING_SUMMARY.md) | Test strategies |
+
+---
+
+## 🔌 API Reference
+
+### Base URLs
+
+| Environment | URL |
+|-------------|-----|
+| Development | http://localhost:5000/api |
+| Production | http://192.168.0.9:5000/api |
+| Swagger UI | http://localhost:5000/swagger |
+
+### Authentication
+
 ```bash
-git clone <repository-url>
-cd CRM
-```
-
-### 2. Backend Setup
-
-```bash
-cd CRM.Backend
-
-# Restore NuGet packages
-dotnet restore
-
-# Build the solution
-dotnet build
-
-# Install EF Core CLI (if not installed)
-dotnet tool install --global dotnet-ef
-```
-
-### 3. Frontend Setup
-
-```bash
-cd CRM.Frontend
-
-# Install npm packages
-npm install
-
-# Build (optional for production)
-npm run build
-```
-
-## ⚙️ Configuration
-
-### Backend Configuration (appsettings.json)
-
-Edit `CRM.Backend/src/CRM.Api/appsettings.json`:
-
-```json
+# Login
+POST /api/auth/login
+Content-Type: application/json
 {
-  "DatabaseProvider": "sqlserver",  // Options: sqlserver, postgresql, oracle, mysql
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=CrmDatabase;Integrated Security=true;"
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information"
-    }
-  }
+  "email": "abhi.lal@gmail.com",
+  "password": "Admin@123"
+}
+
+# Response
+{
+  "accessToken": "eyJhbG...",
+  "refreshToken": "...",
+  "expiresIn": 3600
 }
 ```
 
-### Database Provider Examples
+### Using the Token
 
-#### SQL Server (LocalDB)
+```bash
+curl -H "Authorization: Bearer <token>" \
+     http://localhost:5000/api/customers
+```
+
+### Core Endpoints
+
+| Resource | GET | POST | PUT | DELETE |
+|----------|-----|------|-----|--------|
+| `/api/customers` | ✅ | ✅ | ✅ | ✅ |
+| `/api/contacts` | ✅ | ✅ | ✅ | ✅ |
+| `/api/opportunities` | ✅ | ✅ | ✅ | ✅ |
+| `/api/products` | ✅ | ✅ | ✅ | ✅ |
+| `/api/leads` | ✅ | ✅ | ✅ | ✅ |
+| `/api/quotes` | ✅ | ✅ | ✅ | ✅ |
+| `/api/campaigns` | ✅ | ✅ | ✅ | ✅ |
+| `/api/servicerequests` | ✅ | ✅ | ✅ | ✅ |
+
+### Pagination
+
+```
+GET /api/customers?page=1&pageSize=25&sortBy=company&sortOrder=asc
+```
+
+### Response Format
+
 ```json
 {
-  "DatabaseProvider": "sqlserver",
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=CrmDatabase;Trusted_Connection=true;"
-  }
+  "items": [...],
+  "totalCount": 100,
+  "page": 1,
+  "pageSize": 25,
+  "totalPages": 4
 }
 ```
 
-#### PostgreSQL
-```json
-{
-  "DatabaseProvider": "postgresql",
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=crm_db;Username=postgres;Password=password"
-  }
-}
-```
-
-#### Oracle
-```json
-{
-  "DatabaseProvider": "oracle",
-  "ConnectionStrings": {
-    "DefaultConnection": "Data Source=localhost:1521/XE;User Id=system;Password=password"
-  }
-}
-```
-
-#### MariaDB/MySQL
-```json
-{
-  "DatabaseProvider": "mysql",
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Port=3306;Database=crm_db;Uid=root;Pwd=password"
-  }
-}
-```
-
-### Frontend Configuration
-
-Edit `CRM.Frontend/.env` (create if not exists):
-```
-REACT_APP_API_URL=http://localhost:5000/api
-```
-
-## 🏃 Running the Application
-
-### 1. Database Migration
-
-```bash
-cd CRM.Backend
-
-# Create database and apply migrations
-dotnet ef database update --project src/CRM.Infrastructure --startup-project src/CRM.Api
-```
-
-### 2. Start Backend API
-
-```bash
-cd CRM.Backend/src/CRM.Api
-
-# Development
-dotnet run
-
-# Production
-dotnet run --configuration Release
-```
-
-The API will be available at `https://localhost:5000` and Swagger UI at `https://localhost:5000/swagger`
-
-### 3. Start Frontend
-
-```bash
-cd CRM.Frontend
-
-# Development with hot reload
-npm start
-
-# Production build
-npm run build
-npm install -g serve
-serve -s build
-```
-
-The frontend will be available at `http://localhost:3000`
-
-## 📚 API Documentation
-
-### Available Endpoints
-
-#### Customers
-- `GET /api/customers` - List all customers
-- `GET /api/customers/{id}` - Get customer by ID
-- `GET /api/customers/search/{term}` - Search customers
-- `POST /api/customers` - Create customer
-- `PUT /api/customers/{id}` - Update customer
-- `DELETE /api/customers/{id}` - Delete customer
-
-#### Opportunities
-- `GET /api/opportunities` - List open opportunities
-- `GET /api/opportunities/{id}` - Get opportunity by ID
-- `GET /api/opportunities/customer/{customerId}` - Get customer opportunities
-- `GET /api/opportunities/pipeline/total` - Get total pipeline value
-- `POST /api/opportunities` - Create opportunity
-- `PUT /api/opportunities/{id}` - Update opportunity
-- `DELETE /api/opportunities/{id}` - Delete opportunity
-
-#### Products
-- `GET /api/products` - List all products
-- `GET /api/products/{id}` - Get product by ID
-- `GET /api/products/category/{category}` - Get products by category
-- `POST /api/products` - Create product
-- `PUT /api/products/{id}` - Update product
-- `DELETE /api/products/{id}` - Delete product
-
-#### Campaigns
-- `GET /api/campaigns` - List all campaigns
-- `GET /api/campaigns/active` - List active campaigns
-- `GET /api/campaigns/{id}` - Get campaign by ID
-- `POST /api/campaigns` - Create campaign
-- `PUT /api/campaigns/{id}` - Update campaign
-- `DELETE /api/campaigns/{id}` - Delete campaign
-- `POST /api/campaigns/{id}/metrics` - Add campaign metric
-
-## 🗄️ Database Setup
-
-### Creating Database
-
-#### SQL Server (LocalDB)
-```sql
-CREATE DATABASE CrmDatabase;
-USE CrmDatabase;
-```
-
-#### PostgreSQL
-```sql
-CREATE DATABASE crm_db;
-```
-
-#### Oracle
-```sql
-CREATE USER crm IDENTIFIED BY password;
-GRANT CREATE SESSION, RESOURCE, UNLIMITED TABLESPACE TO crm;
-```
-
-#### MariaDB/MySQL
-```sql
-CREATE DATABASE crm_db;
-USE crm_db;
-```
-
-## 🔨 Development
-
-### Adding New Features
-
-1. **Backend Feature**:
-   - Create entity in `CRM.Core/Entities`
-   - Define interface in `CRM.Core/Interfaces`
-   - Implement service in `CRM.Infrastructure/Services`
-   - Create controller in `CRM.Api/Controllers`
-
-2. **Frontend Feature**:
-   - Create component in `src/components` or page in `src/pages`
-   - Add service method in `src/services/apiService.ts`
-   - Add styling in respective CSS files
-
-### Running Tests
-
-```bash
-cd CRM.Backend
-
-# Run all tests
-dotnet test
-
-# Run specific test project
-dotnet test tests/CRM.Tests
-```
-
-### Code Style
-
-- **Backend**: Follow C# coding standards (PascalCase for public members)
-- **Frontend**: ESLint configured (run `npm run lint`)
-
-## 📱 Responsive Design
-
-The frontend is fully responsive with breakpoints for:
-- **Mobile**: < 576px
-- **Tablet**: 576px - 991px
-- **Desktop**: > 992px
-
-Bootstrap 5 grid system ensures mobile-first approach.
+---
 
 ## 🧪 Testing
 
-### Test Structure
-
-The solution includes comprehensive unit tests and Build Verification Tests (BVT):
-
-```
-CRM.Backend/tests/
-├── CRM.Tests.csproj                    # Test project configuration
-├── CRM.Tests/
-│   ├── EntityTests.cs                  # Entity creation tests
-│   └── UserEntityTests.cs              # User entity tests
-├── Controllers/
-│   ├── CustomersControllerTests.cs     # Customer API endpoint tests
-│   └── DepartmentsControllerTests.cs   # Department API tests
-├── Services/
-│   └── CustomerServiceTests.cs         # CustomerService business logic tests
-└── BVT/
-    └── CriticalPathTests.cs            # Build Verification Tests
-```
-
-### Running Tests
+### E2E Tests (Playwright)
 
 ```bash
+cd e2e-tests
+npm install
+npx playwright install
+
 # Run all tests
+BASE_URL=http://localhost npx playwright test
+
+# Run specific suite
+BASE_URL=http://localhost npx playwright test tests/customers
+
+# Run with UI
+BASE_URL=http://localhost npx playwright test --ui
+
+# Run against production
+BASE_URL=http://192.168.0.9 npx playwright test
+```
+
+### Backend Tests
+
+```bash
 cd CRM.Backend/tests
 dotnet test
 
-# Run with verbose output
-dotnet test --logger "console;verbosity=detailed"
-
-# Run specific test category
-dotnet test --filter "FullyQualifiedName~BVT"
+# With coverage
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
 ### Test Categories
 
-| Category | Description | Count |
-|----------|-------------|-------|
-| Entity Tests | Verify entity creation and defaults | 15 |
-| Controller Tests | Test API endpoint responses | 22 |
-| Service Tests | Test business logic | 12 |
-| BVT Tests | Critical path verification | 12 |
-
-### Build Verification Tests (BVT)
-
-BVT tests should be run before every deployment:
-- BVT-001: Customer Entity Creation
-- BVT-002: Organization Customer with Company
-- BVT-003: User Entity Creation
-- BVT-004: CustomerDto Mapping
-- BVT-005: Category Enum Values
-- BVT-006: UserRole Enum Values
-- BVT-007: Lifecycle Stage Defaults
-- BVT-008: Product Entity
-- BVT-009: Opportunity Entity
-- BVT-010: Department Entity
-- BVT-011: AuthResponse DTO
-- BVT-012: CustomerContact Junction
-
-## 📖 Code Documentation
-
-### Documentation Standards
-
-All code includes XML documentation with two perspectives:
-
-1. **Functional View**: Business context - what the feature does from a user's perspective
-2. **Technical View**: Implementation details - how it works for developers
-
-### Example Documentation
-
-```csharp
-/// <summary>
-/// Customer service implementation providing CRUD operations.
-/// 
-/// FUNCTIONAL VIEW:
-/// This service handles all customer-related business operations including:
-/// - Creating Individual and Organization customers
-/// - Managing customer lifecycle
-/// 
-/// TECHNICAL VIEW:
-/// - Implements ICustomerService interface
-/// - Uses IRepository pattern for data access
-/// </summary>
-public class CustomerService : ICustomerService
-```
-
-### Key Documented Components
-
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| User Entity | `CRM.Core/Entities/User.cs` | User management with roles |
-| Customer Entity | `CRM.Core/Entities/Customer.cs` | Individual/Organization customers |
-| CustomerService | `CRM.Infrastructure/Services/CustomerService.cs` | Customer business logic |
-| CustomersController | `CRM.Api/Controllers/CustomersController.cs` | REST API endpoints |
-
-## 🔐 Security Considerations
-
-- CORS enabled (configure as needed)
-- Input validation on both backend and frontend
-- Database connection strings in configuration
-- Recommend using Azure KeyVault or similar for production secrets
-- JWT Bearer authentication with refresh tokens
-- Password hashing using BCrypt
-- Two-factor authentication support
-
-## 📄 License
-
-**CRM Solution** is free software licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
-
-Copyright (C) 2024-2026 Abhishek Lal
-
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-### Copyleft Notice
-
-This software is copyleft. Any derivative works must be distributed under the same license terms. If you modify this software and make it available to users over a network, you must provide them with access to the source code of your modified version under the terms of the AGPL-3.0.
-
-### No Liability
-
-In no event shall Abhishek Lal or any contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages arising out of the use of this software.
-
-### Free Use
-
-This software is provided free of charge for any use, including commercial use, subject to the terms of the AGPL-3.0 license.
-
-## 🤝 Support
-
-For issues and questions, contact the development team.
+| Category | Location | Description |
+|----------|----------|-------------|
+| **BVT** | `e2e-tests/tests/bvt/` | Build Verification Tests |
+| **Functional** | `e2e-tests/tests/functional/` | UI Functional Tests |
+| **Data** | `e2e-tests/tests/data/` | Data Creation Tests |
+| **Unit** | `CRM.Backend/tests/` | Backend Unit Tests |
 
 ---
 
-**Version**: 1.3.0  
-**Last Updated**: January 2026  
-**Author**: Abhishek Lal
+## 🚢 Production Deployment
+
+### Deploy Script
+
+```bash
+# Deploy to 192.168.0.9
+./scripts/deploy-192.168.0.9.sh
+
+# Build with version bump and deploy
+./scripts/build-and-deploy.sh patch
+```
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `ConnectionStrings__DefaultConnection` | Database connection |
+| `Jwt__Secret` | JWT signing key (min 32 chars) |
+| `Jwt__Issuer` | JWT issuer name |
+| `ASPNETCORE_ENVIRONMENT` | `Development` / `Production` |
+| `AllowedOrigins` | CORS allowed origins |
+
+### Docker Images
+
+| Service | Image | Port |
+|---------|-------|------|
+| Frontend | crm-frontend | 80 |
+| API | crm-api | 5000 |
+| Gateway | crm-gateway | 5000 |
+| Identity | crm-identity | 5001 |
+| Customer | crm-customer | 5002 |
+| Sales | crm-sales | 5003 |
+| Marketing | crm-marketing | 5004 |
+| ServiceDesk | crm-servicedesk | 5005 |
+| Core | crm-core | 5006 |
+
+---
+
+## 📈 Current Statistics
+
+| Metric | Value |
+|--------|-------|
+| **Version** | 0.0.25 |
+| **Database Tables** | 89 |
+| **API Controllers** | 25+ |
+| **React Components** | 50+ |
+| **Microservices** | 8 |
+| **E2E Test Files** | 25+ |
+| **Lines of Code** | 50,000+ |
+
+---
+
+## 🔄 Recent Updates (v0.0.25)
+
+- ✅ Microservices architecture with 8 services
+- ✅ SignalR real-time notifications
+- ✅ Multi-user concurrent editing support
+- ✅ Campaign execution with A/B testing
+- ✅ Relationship management module
+- ✅ Notes system with rich text
+- ✅ Theme customization (light/dark)
+- ✅ LLM provider integration
+- ✅ Production deployment scripts
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+## 👥 Authors
+
+- **Abhi Lal** - *Lead Developer* - [@alal76](https://github.com/alal76)
+
+---
+
+<div align="center">
+
+**Built with ❤️ using .NET Core 8 and React 18**
+
+[Report Bug](https://github.com/alal76/crm-solution/issues) • [Request Feature](https://github.com/alal76/crm-solution/issues)
+
+</div>
