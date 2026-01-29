@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
@@ -13,7 +13,8 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
-import { TabPanel, DialogError } from '../components/common';
+import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
+import { useApiState } from '../hooks/useApiState';
 import { BaseEntity } from '../types';
 import {
   TASK_STATUS_OPTIONS,
@@ -249,7 +250,9 @@ function TasksPage() {
     setOpenDialog(true);
   };
 
-  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); setDialogError(null); };
+  const dialogApi = useApiState();
+
+  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); setDialogError(null); dialogApi.reset(); };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -269,13 +272,13 @@ function TasksPage() {
       setDialogError('Please enter a task title');
       return;
     }
-    try {
-      const payload = {
-        ...formData,
-        assignedToUserId: formData.assignedToUserId || null,
-        customerId: formData.customerId || null,
-        opportunityId: formData.opportunityId || null,
-      };
+    const payload = {
+      ...formData,
+      assignedToUserId: formData.assignedToUserId || null,
+      customerId: formData.customerId || null,
+      opportunityId: formData.opportunityId || null,
+    };
+    await dialogApi.execute(async () => {
       if (editingId) {
         await apiClient.put(`/tasks/${editingId}`, payload);
         setSuccessMessage('Task updated successfully');
@@ -286,9 +289,7 @@ function TasksPage() {
       handleCloseDialog();
       fetchMyQueue();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setDialogError(err.response?.data?.message || 'Failed to save task');
-    }
+    });
   };
 
   const handleCompleteTask = async (id: number) => {
@@ -324,20 +325,25 @@ function TasksPage() {
     setSearchText(text);
   };
 
-  // Filter queue items based on status
-  const statusFilteredItems = queueData?.tasks?.filter(item => {
-    if (statusFilter === 'pending') {
-      return item.status !== 'Completed' && item.status !== 'Cancelled';
-    } else if (statusFilter === 'completed') {
-      return item.status === 'Completed';
-    } else if (statusFilter === 'overdue') {
-      return item.isOverdue;
-    }
-    return true;
-  }) || [];
+  // Filter queue items based on status (memoized)
+  const statusFilteredItems = useMemo(() => {
+    return queueData?.tasks?.filter(item => {
+      if (statusFilter === 'pending') {
+        return item.status !== 'Completed' && item.status !== 'Cancelled';
+      } else if (statusFilter === 'completed') {
+        return item.status === 'Completed';
+      } else if (statusFilter === 'overdue') {
+        return item.isOverdue;
+      }
+      return true;
+    }) || [];
+  }, [queueData, statusFilter]);
 
-  // Apply advanced search filters
-  const filteredQueueItems = filterData(statusFilteredItems, searchFilters, searchText, SEARCHABLE_FIELDS);
+  // Apply advanced search filters (memoized)
+  const filteredQueueItems = useMemo(
+    () => filterData(statusFilteredItems, searchFilters, searchText, SEARCHABLE_FIELDS),
+    [statusFilteredItems, searchFilters, searchText]
+  );
 
   if (loading) {
     return (
@@ -722,10 +728,12 @@ function TasksPage() {
           </TabPanel>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSaveTask} variant="contained" sx={{ backgroundColor: '#6750A4' }}>
+          <DialogError error={dialogApi.error} />
+          <DialogSuccess message={dialogApi.success} />
+          <Button onClick={handleCloseDialog} disabled={dialogApi.loading}>Cancel</Button>
+          <ActionButton onClick={handleSaveTask} loading={dialogApi.loading} variant="contained" sx={{ backgroundColor: '#6750A4' }}>
             {editingId ? 'Update' : 'Create'}
-          </Button>
+          </ActionButton>
         </DialogActions>
       </Dialog>
     </Box>

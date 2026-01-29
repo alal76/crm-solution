@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
@@ -11,12 +11,13 @@ import {
   Subscriptions as SubscriptionIcon, Note as NoteIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
-import { TabPanel, DialogError } from '../components/common';
+import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { usePagination } from '../hooks/usePagination';
+import { useApiState } from '../hooks/useApiState';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
@@ -173,18 +174,23 @@ function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [dialogError, setDialogError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
+  
+  // API state for dialog operations
+  const dialogApi = useApiState({ successTimeout: 3000 });
 
   const handleSearch = (filters: SearchFilter[], text: string) => {
     setSearchFilters(filters);
     setSearchText(text);
   };
 
-  const filteredProducts = filterData(products, searchFilters, searchText, SEARCHABLE_FIELDS);
+  // Memoize filtered products for performance
+  const filteredProducts = useMemo(() => {
+    return filterData(products, searchFilters, searchText, SEARCHABLE_FIELDS);
+  }, [products, searchFilters, searchText]);
 
   const {
     page,
@@ -268,7 +274,7 @@ function ProductsPage() {
     setOpenDialog(true);
   };
 
-  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); setDialogError(null); };
+  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); dialogApi.reset(); };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -286,34 +292,35 @@ function ProductsPage() {
 
   const handleSaveProduct = async () => {
     if (!formData.name.trim() || !formData.sku.trim()) {
-      setDialogError('Please fill in required fields (Name, SKU)');
+      dialogApi.setError('Please fill in required fields (Name, SKU)');
       return;
     }
-    try {
+    
+    const result = await dialogApi.execute(async () => {
       if (editingId) {
         await apiClient.put(`/products/${editingId}`, formData);
-        setSuccessMessage('Product updated successfully');
+        return 'Product updated successfully';
       } else {
         await apiClient.post('/products', formData);
-        setSuccessMessage('Product created successfully');
+        return 'Product created successfully';
       }
+    }, editingId ? 'Product updated successfully' : 'Product created successfully');
+    
+    if (result) {
       handleCloseDialog();
       fetchProducts();
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setDialogError(err.response?.data?.message || 'Failed to save product');
     }
   };
 
   const handleDeleteProduct = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
+      const result = await dialogApi.execute(async () => {
         await apiClient.delete(`/products/${id}`);
-        setSuccessMessage('Product deleted successfully');
+        return true;
+      }, 'Product deleted successfully');
+      
+      if (result) {
         fetchProducts();
-        setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete product');
       }
     }
   };
@@ -473,7 +480,7 @@ function ProductsPage() {
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
-          <DialogError error={dialogError} onClose={() => setDialogError(null)} />
+          <DialogError error={dialogApi.error} onClose={() => dialogApi.reset()} />
           <TabPanel value={dialogTab} index={0}>
             <Grid container spacing={2}>
               <Grid item xs={8}>
@@ -678,10 +685,15 @@ function ProductsPage() {
           </TabPanel>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSaveProduct} variant="contained" sx={{ backgroundColor: '#6750A4' }}>
-            {editingId ? 'Update' : 'Create'}
-          </Button>
+          <DialogError error={dialogApi.error} />
+          <DialogSuccess message={dialogApi.success} />
+          <Button onClick={handleCloseDialog} disabled={dialogApi.loading}>Cancel</Button>
+          <ActionButton
+            label={editingId ? 'Update' : 'Create'}
+            loading={dialogApi.loading}
+            onClick={handleSaveProduct}
+            color="primary"
+          />
         </DialogActions>
       </Dialog>
     </Box>

@@ -1006,10 +1006,15 @@ function CustomersPage() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSaveCustomer} variant="contained" sx={{ backgroundColor: '#6750A4' }}>
-            {editingId ? 'Update' : 'Create'}
-          </Button>
+          <DialogError error={dialogApi.error} />
+          <DialogSuccess message={dialogApi.success} />
+          <Button onClick={handleCloseDialog} disabled={dialogApi.loading}>Cancel</Button>
+          <ActionButton
+            label={editingId ? 'Update' : 'Create'}
+            loading={dialogApi.loading}
+            onClick={handleSaveCustomer}
+            color="primary"
+          />
         </DialogActions>
       </Dialog>
 

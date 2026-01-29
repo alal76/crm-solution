@@ -184,6 +184,10 @@ function OpportunitiesPage() {
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
   
+  // Account contacts for the selected account (for Primary Contact dropdown)
+  const [accountContacts, setAccountContacts] = useState<Array<{ id: number; firstName: string; lastName: string; role?: string }>>([]);
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  
   // Multi-select and bulk update state
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
@@ -243,6 +247,29 @@ function OpportunitiesPage() {
     setSearchFilters(filters);
     setSearchText(text);
   };
+
+  // Fetch contacts when account is selected
+  const fetchAccountContacts = useCallback(async (accountId: number) => {
+    if (!accountId) {
+      setAccountContacts([]);
+      return;
+    }
+    try {
+      setLoadingContacts(true);
+      const response = await apiClient.get(`/customers/${accountId}/contacts`);
+      setAccountContacts(response.data.map((c: any) => ({
+        id: c.contactId,
+        firstName: c.contactName?.split(' ')[0] || 'Contact',
+        lastName: c.contactName?.split(' ').slice(1).join(' ') || '',
+        role: c.role,
+      })));
+    } catch (err) {
+      console.error('Error fetching account contacts:', err);
+      setAccountContacts([]);
+    } finally {
+      setLoadingContacts(false);
+    }
+  }, []);
 
   // Filter opportunities based on search AND account context
   const filteredOpportunities = useMemo(() => {
@@ -309,8 +336,13 @@ function OpportunitiesPage() {
         primaryContactId: opp.primaryContactId || null,
         salesOwnerId: opp.salesOwnerId || null,
       });
+      // Fetch contacts for the opportunity's account
+      if (opp.accountId) {
+        fetchAccountContacts(opp.accountId);
+      }
     } else {
       setEditingId(null);
+      setAccountContacts([]);
       setFormData({
         name: '',
         stage: 0,
@@ -328,6 +360,10 @@ function OpportunitiesPage() {
         primaryContactId: null,
         salesOwnerId: null,
       });
+      // Fetch contacts for default account if any
+      if (accounts[0]?.id) {
+        fetchAccountContacts(accounts[0].id);
+      }
     }
     setOpenDialog(true);
   };
@@ -343,7 +379,14 @@ function OpportunitiesPage() {
     setFormData(prev => ({
       ...prev,
       [name]: value === '' ? null : value,
+      // Clear primary contact when account changes
+      ...(name === 'accountId' ? { primaryContactId: null } : {}),
     }));
+    
+    // Fetch contacts for the selected account
+    if (name === 'accountId' && value) {
+      fetchAccountContacts(Number(value));
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -707,6 +750,30 @@ function OpportunitiesPage() {
                 showAddNew={true}
               />
             </Box>
+
+            {/* Primary Contact - filtered by selected account */}
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Primary Contact</InputLabel>
+              <Select
+                name="primaryContactId"
+                value={formData.primaryContactId ?? ''}
+                onChange={handleSelectChange}
+                label="Primary Contact"
+                disabled={!formData.accountId || loadingContacts}
+              >
+                <MenuItem value="">
+                  {loadingContacts ? 'Loading contacts...' : 'None'}
+                </MenuItem>
+                {accountContacts.map(c => (
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.firstName} {c.lastName}{c.role ? ` (${c.role})` : ''}
+                  </MenuItem>
+                ))}
+                {formData.accountId && !loadingContacts && accountContacts.length === 0 && (
+                  <MenuItem disabled>No contacts linked to this account</MenuItem>
+                )}
+              </Select>
+            </FormControl>
 
             <TextField
               fullWidth

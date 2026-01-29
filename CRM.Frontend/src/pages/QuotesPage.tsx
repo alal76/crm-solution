@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
@@ -11,7 +11,8 @@ import {
   Cancel as RejectIcon, Refresh as ReviseIcon, Note as NoteIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
-import { TabPanel, DialogError } from '../components/common';
+import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
+import { useApiState } from '../hooks/useApiState';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
@@ -120,7 +121,12 @@ function QuotesPage() {
     setSearchText(text);
   };
 
-  const filteredQuotes = filterData(quotes, searchFilters, searchText, SEARCHABLE_FIELDS);
+  const dialogApi = useApiState();
+
+  const filteredQuotes = useMemo(
+    () => filterData(quotes, searchFilters, searchText, SEARCHABLE_FIELDS),
+    [quotes, searchFilters, searchText]
+  );
 
   const emptyForm: QuoteForm = {
     title: '', description: '', customerId: '', opportunityId: '', status: 0,
@@ -176,7 +182,7 @@ function QuotesPage() {
     setOpenDialog(true);
   };
 
-  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); setDialogError(null); };
+  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); setDialogError(null); dialogApi.reset(); };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -204,16 +210,16 @@ function QuotesPage() {
       setDialogError('Please enter a quote title');
       return;
     }
-    try {
-      const totals = calculateTotals();
-      const payload = {
-        ...formData,
-        customerId: formData.customerId || null,
-        opportunityId: formData.opportunityId || null,
-        discountAmount: totals.discount,
-        taxAmount: totals.tax,
-        totalAmount: totals.total,
-      };
+    const totals = calculateTotals();
+    const payload = {
+      ...formData,
+      customerId: formData.customerId || null,
+      opportunityId: formData.opportunityId || null,
+      discountAmount: totals.discount,
+      taxAmount: totals.tax,
+      totalAmount: totals.total,
+    };
+    await dialogApi.execute(async () => {
       if (editingId) {
         await apiClient.put(`/quotes/${editingId}`, payload);
         setSuccessMessage('Quote updated successfully');
@@ -224,9 +230,7 @@ function QuotesPage() {
       handleCloseDialog();
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setDialogError(err.response?.data?.message || 'Failed to save quote');
-    }
+    });
   };
 
   const handleSendQuote = async (id: number) => {
@@ -584,10 +588,12 @@ function QuotesPage() {
           </TabPanel>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSaveQuote} variant="contained" sx={{ backgroundColor: '#6750A4' }}>
+          <DialogError error={dialogApi.error} />
+          <DialogSuccess message={dialogApi.success} />
+          <Button onClick={handleCloseDialog} disabled={dialogApi.loading}>Cancel</Button>
+          <ActionButton onClick={handleSaveQuote} loading={dialogApi.loading} variant="contained" sx={{ backgroundColor: '#6750A4' }}>
             {editingId ? 'Update' : 'Create'}
-          </Button>
+          </ActionButton>
         </DialogActions>
       </Dialog>
     </Box>

@@ -795,7 +795,7 @@ function LeadsPage() {
           )}
 
           {/* Contact Info Tab - Only when editing */}
-          {dialogTab === 1 && editingId && (
+          {editingId && dialogTab === 1 && (
             <Box>
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
                 Manage Contact Information
@@ -812,7 +812,7 @@ function LeadsPage() {
             </Box>
           )}
 
-          {/* Notes Tab */}
+          {/* Notes Tab - Index depends on whether we're editing (has Contact Info tab) or adding */}
           {((editingId && dialogTab === 2) || (!editingId && dialogTab === 1)) && (
             <Box>
               {editingId ? (
@@ -822,9 +822,17 @@ function LeadsPage() {
                   entityName={`${formData.firstName} ${formData.lastName}`.trim() || 'Lead'}
                 />
               ) : (
-                <Alert severity="info" sx={{ mt: 2 }}>
-                  Please save the lead first to add notes.
-                </Alert>
+                <TextField
+                  fullWidth
+                  label="Initial Notes"
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  multiline
+                  rows={4}
+                  placeholder="Add any initial notes about this lead..."
+                  sx={{ mt: 2 }}
+                />
               )}
             </Box>
           )}

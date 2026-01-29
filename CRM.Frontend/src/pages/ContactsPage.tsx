@@ -198,32 +198,40 @@ function ContactsPage() {
   });
   const [lookupItems, setLookupItems] = useState<Record<string, LookupItem[]>>({});
 
-  // Fetch contact info summaries for all contacts
+  // Fetch contact info summaries for contacts in batches (limit to first 50 for performance)
   const fetchContactInfoSummaries = useCallback(async (contactList: Contact[]) => {
     const cache: Record<number, ContactInfoSummary> = {};
-    await Promise.all(
-      contactList.map(async (contact) => {
-        try {
-          const response = await contactInfoService.getEntityContactInfo('Contact', contact.id);
-          const data = response.data;
-          const primaryEmail = data.emailAddresses?.find((e) => e.isPrimary) || data.emailAddresses?.[0];
-          const primaryPhone = data.phoneNumbers?.find((p) => p.isPrimary) || data.phoneNumbers?.[0];
-          const primaryAddress = data.addresses?.find((a) => a.isPrimary) || data.addresses?.[0];
-          cache[contact.id] = {
-            primaryEmail: primaryEmail?.email,
-            primaryPhone: primaryPhone?.formattedNumber || primaryPhone?.number,
-            primaryAddress: primaryAddress?.formattedAddress || 
-                           (primaryAddress ? `${primaryAddress.city}, ${primaryAddress.state}` : undefined),
-            emailCount: data.emailAddresses?.length || 0,
-            phoneCount: data.phoneNumbers?.length || 0,
-            addressCount: data.addresses?.length || 0,
-            socialCount: data.socialMediaAccounts?.length || 0,
-          };
-        } catch {
-          cache[contact.id] = { emailCount: 0, phoneCount: 0, addressCount: 0, socialCount: 0 };
-        }
-      })
-    );
+    // Limit to first 50 contacts to avoid too many parallel requests
+    const contactsToFetch = contactList.slice(0, 50);
+    
+    // Process in batches of 10
+    const batchSize = 10;
+    for (let i = 0; i < contactsToFetch.length; i += batchSize) {
+      const batch = contactsToFetch.slice(i, i + batchSize);
+      await Promise.all(
+        batch.map(async (contact) => {
+          try {
+            const response = await contactInfoService.getEntityContactInfo('Contact', contact.id);
+            const data = response.data;
+            const primaryEmail = data.emailAddresses?.find((e) => e.isPrimary) || data.emailAddresses?.[0];
+            const primaryPhone = data.phoneNumbers?.find((p) => p.isPrimary) || data.phoneNumbers?.[0];
+            const primaryAddress = data.addresses?.find((a) => a.isPrimary) || data.addresses?.[0];
+            cache[contact.id] = {
+              primaryEmail: primaryEmail?.email,
+              primaryPhone: primaryPhone?.formattedNumber || primaryPhone?.number,
+              primaryAddress: primaryAddress?.formattedAddress || 
+                             (primaryAddress ? `${primaryAddress.city}, ${primaryAddress.state}` : undefined),
+              emailCount: data.emailAddresses?.length || 0,
+              phoneCount: data.phoneNumbers?.length || 0,
+              addressCount: data.addresses?.length || 0,
+              socialCount: data.socialMediaAccounts?.length || 0,
+            };
+          } catch {
+            cache[contact.id] = { emailCount: 0, phoneCount: 0, addressCount: 0, socialCount: 0 };
+          }
+        })
+      );
+    }
     setContactInfoCache(cache);
   }, []);
 
