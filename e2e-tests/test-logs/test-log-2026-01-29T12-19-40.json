@@ -1,0 +1,67 @@
+{
+  "summary": {
+    "startTime": "2026-01-29T12:19:40.048Z",
+    "totalTests": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 9216,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "data": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-01-29T12:19:49.264Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-01-29T12:19:45.631Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 4492
+    },
+    {
+      "timestamp": "2026-01-29T12:19:48.530Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "Check individual contact details",
+      "module": "data",
+      "status": "PASS",
+      "duration": 1731
+    },
+    {
+      "timestamp": "2026-01-29T12:19:48.546Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "Check Microsoft Account Overview Page",
+      "module": "data",
+      "status": "PASS",
+      "duration": 1752
+    },
+    {
+      "timestamp": "2026-01-29T12:19:48.889Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "Navigate to Customers page and find Microsoft",
+      "module": "data",
+      "status": "PASS",
+      "duration": 2116
+    },
+    {
+      "timestamp": "2026-01-29T12:19:49.228Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "Collect all visible issues",
+      "module": "data",
+      "status": "PASS",
+      "duration": 2456
+    }
+  ]
+}

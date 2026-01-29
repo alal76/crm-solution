@@ -21,6 +21,10 @@ builder.Services.AddMariaDbContext<CrmDbContext>(builder.Configuration);
 // Register generic repository
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
+// Register shared/utility services required by service desk services
+builder.Services.AddScoped<NormalizationService>();
+builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
+
 // Register service desk related services
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 builder.Services.AddScoped<IServiceRequestCategoryService, ServiceRequestCategoryService>();

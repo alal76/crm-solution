@@ -21,10 +21,13 @@ builder.Services.AddMariaDbContext<CrmDbContext>(builder.Configuration);
 // Register generic repository
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
+// Register shared/utility services
+builder.Services.AddScoped<NormalizationService>();
+builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
+
 // Register customer-related services
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
-builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 
 // Register input ports (Hexagonal Architecture)

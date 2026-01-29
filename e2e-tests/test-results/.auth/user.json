@@ -2,30 +2,30 @@
   "cookies": [
     {
       "name": "crm_auth_token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhYmhpLmxhbEBnbWFpbC5jb20iLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IkFiaGlzaGVrIiwiZmFtaWx5X25hbWUiOiJMYWwiLCJyb2xlIjoiQWRtaW4iLCJuYmYiOjE3Njk2NzEwMjQsImV4cCI6MTc2OTY5OTgyNCwiaWF0IjoxNzY5NjcxMDI0LCJpc3MiOiJDUk1BcHAtRGV2IiwiYXVkIjoiQ1JNVXNlcnMtRGV2In0.krUf96BSWm8pHfsNGg689zyQtkgIHdgKjlgduSqOIRw",
-      "domain": "localhost",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhYmhpLmxhbEBnbWFpbC5jb20iLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IkFiaGlzaGVrIiwiZmFtaWx5X25hbWUiOiJMYWwiLCJyb2xlIjoiQWRtaW4iLCJuYmYiOjE3Njk2OTQwOTEsImV4cCI6MTc2OTY5NzY5MSwiaWF0IjoxNzY5Njk0MDkxLCJpc3MiOiJDUk0uQXBpIiwiYXVkIjoiQ1JNLkNsaWVudCJ9.CcqRRK8lvSLbtaxjM_O1bz0Uat8y2caKYoOEstQbDnc",
+      "domain": "192.168.0.9",
       "path": "/",
-      "expires": 1772263024,
+      "expires": 1772286092,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Strict"
     },
     {
       "name": "crm_refresh_token",
-      "value": "Q7AyPbaYWKgV0Q31zCD%2FKHvHr%2FYXhNh2b8A5%2B%2BfODVRJVoFavlWDCCcAzKY6ebC3mgyJJS0j%2F3VtXXJ5WSw6mQ%3D%3D",
-      "domain": "localhost",
+      "value": "qhcFPrpy1eCnvZkwy91APQsm9%2BBrnMbLE8poLXy5CBwdj7N2WGC5Ek3CDpVV%2BWlK3KV8Ga8c%2FiRMHMUZhxecug%3D%3D",
+      "domain": "192.168.0.9",
       "path": "/",
-      "expires": 1772263024,
+      "expires": 1772286092,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Strict"
     },
     {
       "name": "crm_user_data",
-      "value": "%7B%22userId%22%3A1%2C%22username%22%3A%22admin%22%2C%22email%22%3A%22abhi.lal%40gmail.com%22%2C%22firstName%22%3A%22Abhishek%22%2C%22lastName%22%3A%22Lal%22%2C%22role%22%3A%22Admin%22%2C%22accessToken%22%3A%22eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhYmhpLmxhbEBnbWFpbC5jb20iLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IkFiaGlzaGVrIiwiZmFtaWx5X25hbWUiOiJMYWwiLCJyb2xlIjoiQWRtaW4iLCJuYmYiOjE3Njk2NzEwMjQsImV4cCI6MTc2OTY5OTgyNCwiaWF0IjoxNzY5NjcxMDI0LCJpc3MiOiJDUk1BcHAtRGV2IiwiYXVkIjoiQ1JNVXNlcnMtRGV2In0.krUf96BSWm8pHfsNGg689zyQtkgIHdgKjlgduSqOIRw%22%2C%22refreshToken%22%3A%22Q7AyPbaYWKgV0Q31zCD%2FKHvHr%2FYXhNh2b8A5%2B%2BfODVRJVoFavlWDCCcAzKY6ebC3mgyJJS0j%2F3VtXXJ5WSw6mQ%3D%3D%22%2C%22expiresAt%22%3A%222026-01-29T08%3A17%3A04.9443734Z%22%2C%22departmentId%22%3Anull%2C%22departmentName%22%3Anull%2C%22userProfileId%22%3Anull%2C%22userProfileName%22%3Anull%2C%22primaryGroupId%22%3A1%2C%22primaryGroupName%22%3A%22SysAdmin%22%2C%22accessiblePages%22%3A%5B%5D%2C%22permissions%22%3A%7B%22canCreateCustomers%22%3Afalse%2C%22canEditCustomers%22%3Afalse%2C%22canDeleteCustomers%22%3Afalse%2C%22canCreateOpportunities%22%3Afalse%2C%22canEditOpportunities%22%3Afalse%2C%22canDeleteOpportunities%22%3Afalse%2C%22canCreateProducts%22%3Afalse%2C%22canEditProducts%22%3Afalse%2C%22canDeleteProducts%22%3Afalse%2C%22canManageCampaigns%22%3Afalse%2C%22canViewReports%22%3Afalse%2C%22canManageUsers%22%3Afalse%7D%2C%22groupPermissions%22%3A%7B%22isSystemAdmin%22%3Atrue%2C%22canAccessDashboard%22%3Atrue%2C%22canAccessCustomers%22%3Atrue%2C%22canAccessContacts%22%3Atrue%2C%22canAccessLeads%22%3Atrue%2C%22canAccessOpportunities%22%3Atrue%2C%22canAccessProducts%22%3Atrue%2C%22canAccessServices%22%3Atrue%2C%22canAccessCampaigns%22%3Atrue%2C%22canAccessQuotes%22%3Atrue%2C%22canAccessTasks%22%3Atrue%2C%22canAccessActivities%22%3Atrue%2C%22canAccessNotes%22%3Atrue%2C%22canAccessWorkflows%22%3Atrue%2C%22canAccessServiceRequests%22%3Atrue%2C%22canAccessReports%22%3Atrue%2C%22canAccessSettings%22%3Atrue%2C%22canAccessUserManagement%22%3Atrue%2C%22canCreateCustomers%22%3Atrue%2C%22canEditCustomers%22%3Atrue%2C%22canDeleteCustomers%22%3Atrue%2C%22canViewAllCustomers%22%3Atrue%2C%22canCreateContacts%22%3Atrue%2C%22canEditContacts%22%3Atrue%2C%22canDeleteContacts%22%3Atrue%2C%22canCreateLeads%22%3Atrue%2C%22canEditLeads%22%3Atrue%2C%22canDeleteLeads%22%3Atrue%2C%22canConvertLeads%22%3Atrue%2C%22canCreateOpportunities%22%3Atrue%2C%22canEditOpportunities%22%3Atrue%2C%22canDeleteOpportunities%22%3Atrue%2C%22canCloseOpportunities%22%3Atrue%2C%22canCreateProducts%22%3Atrue%2C%22canEditProducts%22%3Atrue%2C%22canDeleteProducts%22%3Atrue%2C%22canManagePricing%22%3Atrue%2C%22canCreateCampaigns%22%3Atrue%2C%22canEditCampaigns%22%3Atrue%2C%22canDeleteCampaigns%22%3Atrue%2C%22canLaunchCampaigns%22%3Atrue%2C%22canCreateQuotes%22%3Atrue%2C%22canEditQuotes%22%3Atrue%2C%22canDeleteQuotes%22%3Atrue%2C%22canApproveQuotes%22%3Atrue%2C%22canCreateTasks%22%3Atrue%2C%22canEditTasks%22%3Atrue%2C%22canDeleteTasks%22%3Atrue%2C%22canAssignTasks%22%3Atrue%2C%22canCreateWorkflows%22%3Atrue%2C%22canEditWorkflows%22%3Atrue%2C%22canDeleteWorkflows%22%3Atrue%2C%22canActivateWorkflows%22%3Atrue%2C%22dataAccessScope%22%3A%22all%22%2C%22canExportData%22%3Atrue%2C%22canImportData%22%3Atrue%2C%22canBulkEdit%22%3Atrue%2C%22canBulkDelete%22%3Atrue%7D%2C%22headerColor%22%3A%22%23C62828%22%2C%22photoUrl%22%3Anull%2C%22requiresTwoFactor%22%3Afalse%2C%22twoFactorEnabled%22%3Afalse%2C%22twoFactorToken%22%3Anull%2C%22requiresApproval%22%3Afalse%2C%22message%22%3Anull%7D",
-      "domain": "localhost",
+      "value": "%7B%22userId%22%3A1%2C%22username%22%3A%22admin%22%2C%22email%22%3A%22abhi.lal%40gmail.com%22%2C%22firstName%22%3A%22Abhishek%22%2C%22lastName%22%3A%22Lal%22%2C%22role%22%3A%22Admin%22%2C%22accessToken%22%3A%22eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhYmhpLmxhbEBnbWFpbC5jb20iLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IkFiaGlzaGVrIiwiZmFtaWx5X25hbWUiOiJMYWwiLCJyb2xlIjoiQWRtaW4iLCJuYmYiOjE3Njk2OTQwOTEsImV4cCI6MTc2OTY5NzY5MSwiaWF0IjoxNzY5Njk0MDkxLCJpc3MiOiJDUk0uQXBpIiwiYXVkIjoiQ1JNLkNsaWVudCJ9.CcqRRK8lvSLbtaxjM_O1bz0Uat8y2caKYoOEstQbDnc%22%2C%22refreshToken%22%3A%22qhcFPrpy1eCnvZkwy91APQsm9%2BBrnMbLE8poLXy5CBwdj7N2WGC5Ek3CDpVV%2BWlK3KV8Ga8c%2FiRMHMUZhxecug%3D%3D%22%2C%22expiresAt%22%3A%222026-01-29T14%3A41%3A31.9828032Z%22%2C%22departmentId%22%3Anull%2C%22departmentName%22%3Anull%2C%22userProfileId%22%3Anull%2C%22userProfileName%22%3Anull%2C%22primaryGroupId%22%3A1%2C%22primaryGroupName%22%3A%22SysAdmin%22%2C%22accessiblePages%22%3A%5B%5D%2C%22permissions%22%3A%7B%22canCreateCustomers%22%3Afalse%2C%22canEditCustomers%22%3Afalse%2C%22canDeleteCustomers%22%3Afalse%2C%22canCreateOpportunities%22%3Afalse%2C%22canEditOpportunities%22%3Afalse%2C%22canDeleteOpportunities%22%3Afalse%2C%22canCreateProducts%22%3Afalse%2C%22canEditProducts%22%3Afalse%2C%22canDeleteProducts%22%3Afalse%2C%22canManageCampaigns%22%3Afalse%2C%22canViewReports%22%3Afalse%2C%22canManageUsers%22%3Afalse%7D%2C%22groupPermissions%22%3A%7B%22isSystemAdmin%22%3Atrue%2C%22canAccessDashboard%22%3Atrue%2C%22canAccessCustomers%22%3Atrue%2C%22canAccessContacts%22%3Atrue%2C%22canAccessLeads%22%3Atrue%2C%22canAccessOpportunities%22%3Atrue%2C%22canAccessProducts%22%3Atrue%2C%22canAccessServices%22%3Atrue%2C%22canAccessCampaigns%22%3Atrue%2C%22canAccessQuotes%22%3Atrue%2C%22canAccessTasks%22%3Atrue%2C%22canAccessActivities%22%3Atrue%2C%22canAccessNotes%22%3Atrue%2C%22canAccessWorkflows%22%3Atrue%2C%22canAccessServiceRequests%22%3Atrue%2C%22canAccessReports%22%3Atrue%2C%22canAccessSettings%22%3Atrue%2C%22canAccessUserManagement%22%3Atrue%2C%22canCreateCustomers%22%3Atrue%2C%22canEditCustomers%22%3Atrue%2C%22canDeleteCustomers%22%3Atrue%2C%22canViewAllCustomers%22%3Atrue%2C%22canCreateContacts%22%3Atrue%2C%22canEditContacts%22%3Atrue%2C%22canDeleteContacts%22%3Atrue%2C%22canCreateLeads%22%3Atrue%2C%22canEditLeads%22%3Atrue%2C%22canDeleteLeads%22%3Atrue%2C%22canConvertLeads%22%3Atrue%2C%22canCreateOpportunities%22%3Atrue%2C%22canEditOpportunities%22%3Atrue%2C%22canDeleteOpportunities%22%3Atrue%2C%22canCloseOpportunities%22%3Atrue%2C%22canCreateProducts%22%3Atrue%2C%22canEditProducts%22%3Atrue%2C%22canDeleteProducts%22%3Atrue%2C%22canManagePricing%22%3Atrue%2C%22canCreateCampaigns%22%3Atrue%2C%22canEditCampaigns%22%3Atrue%2C%22canDeleteCampaigns%22%3Atrue%2C%22canLaunchCampaigns%22%3Atrue%2C%22canCreateQuotes%22%3Atrue%2C%22canEditQuotes%22%3Atrue%2C%22canDeleteQuotes%22%3Atrue%2C%22canApproveQuotes%22%3Atrue%2C%22canCreateTasks%22%3Atrue%2C%22canEditTasks%22%3Atrue%2C%22canDeleteTasks%22%3Atrue%2C%22canAssignTasks%22%3Atrue%2C%22canCreateWorkflows%22%3Atrue%2C%22canEditWorkflows%22%3Atrue%2C%22canDeleteWorkflows%22%3Atrue%2C%22canActivateWorkflows%22%3Atrue%2C%22dataAccessScope%22%3A%22all%22%2C%22canExportData%22%3Atrue%2C%22canImportData%22%3Atrue%2C%22canBulkEdit%22%3Atrue%2C%22canBulkDelete%22%3Atrue%7D%2C%22headerColor%22%3A%22%23C62828%22%2C%22photoUrl%22%3Anull%2C%22themePreference%22%3A%22system%22%2C%22requiresTwoFactor%22%3Afalse%2C%22twoFactorEnabled%22%3Afalse%2C%22twoFactorToken%22%3Anull%2C%22requiresApproval%22%3Afalse%2C%22message%22%3Anull%7D",
+      "domain": "192.168.0.9",
       "path": "/",
-      "expires": 1772263024,
+      "expires": 1772286092,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Strict"
@@ -33,9 +33,9 @@
     {
       "name": "crm_user_profile",
       "value": "%7B%22departmentId%22%3Anull%2C%22departmentName%22%3Anull%2C%22userProfileId%22%3Anull%2C%22userProfileName%22%3Anull%2C%22primaryGroupId%22%3A1%2C%22primaryGroupName%22%3A%22SysAdmin%22%2C%22accessiblePages%22%3A%5B%5D%2C%22permissions%22%3A%7B%22canCreateCustomers%22%3Afalse%2C%22canEditCustomers%22%3Afalse%2C%22canDeleteCustomers%22%3Afalse%2C%22canCreateOpportunities%22%3Afalse%2C%22canEditOpportunities%22%3Afalse%2C%22canDeleteOpportunities%22%3Afalse%2C%22canCreateProducts%22%3Afalse%2C%22canEditProducts%22%3Afalse%2C%22canDeleteProducts%22%3Afalse%2C%22canManageCampaigns%22%3Afalse%2C%22canViewReports%22%3Afalse%2C%22canManageUsers%22%3Afalse%7D%2C%22groupPermissions%22%3A%7B%22isSystemAdmin%22%3Atrue%2C%22canAccessDashboard%22%3Atrue%2C%22canAccessCustomers%22%3Atrue%2C%22canAccessContacts%22%3Atrue%2C%22canAccessLeads%22%3Atrue%2C%22canAccessOpportunities%22%3Atrue%2C%22canAccessProducts%22%3Atrue%2C%22canAccessServices%22%3Atrue%2C%22canAccessCampaigns%22%3Atrue%2C%22canAccessQuotes%22%3Atrue%2C%22canAccessTasks%22%3Atrue%2C%22canAccessActivities%22%3Atrue%2C%22canAccessNotes%22%3Atrue%2C%22canAccessWorkflows%22%3Atrue%2C%22canAccessServiceRequests%22%3Atrue%2C%22canAccessReports%22%3Atrue%2C%22canAccessSettings%22%3Atrue%2C%22canAccessUserManagement%22%3Atrue%2C%22canCreateCustomers%22%3Atrue%2C%22canEditCustomers%22%3Atrue%2C%22canDeleteCustomers%22%3Atrue%2C%22canViewAllCustomers%22%3Atrue%2C%22canCreateContacts%22%3Atrue%2C%22canEditContacts%22%3Atrue%2C%22canDeleteContacts%22%3Atrue%2C%22canCreateLeads%22%3Atrue%2C%22canEditLeads%22%3Atrue%2C%22canDeleteLeads%22%3Atrue%2C%22canConvertLeads%22%3Atrue%2C%22canCreateOpportunities%22%3Atrue%2C%22canEditOpportunities%22%3Atrue%2C%22canDeleteOpportunities%22%3Atrue%2C%22canCloseOpportunities%22%3Atrue%2C%22canCreateProducts%22%3Atrue%2C%22canEditProducts%22%3Atrue%2C%22canDeleteProducts%22%3Atrue%2C%22canManagePricing%22%3Atrue%2C%22canCreateCampaigns%22%3Atrue%2C%22canEditCampaigns%22%3Atrue%2C%22canDeleteCampaigns%22%3Atrue%2C%22canLaunchCampaigns%22%3Atrue%2C%22canCreateQuotes%22%3Atrue%2C%22canEditQuotes%22%3Atrue%2C%22canDeleteQuotes%22%3Atrue%2C%22canApproveQuotes%22%3Atrue%2C%22canCreateTasks%22%3Atrue%2C%22canEditTasks%22%3Atrue%2C%22canDeleteTasks%22%3Atrue%2C%22canAssignTasks%22%3Atrue%2C%22canCreateWorkflows%22%3Atrue%2C%22canEditWorkflows%22%3Atrue%2C%22canDeleteWorkflows%22%3Atrue%2C%22canActivateWorkflows%22%3Atrue%2C%22dataAccessScope%22%3A%22all%22%2C%22canExportData%22%3Atrue%2C%22canImportData%22%3Atrue%2C%22canBulkEdit%22%3Atrue%2C%22canBulkDelete%22%3Atrue%7D%7D",
-      "domain": "localhost",
+      "domain": "192.168.0.9",
       "path": "/",
-      "expires": 1772263024,
+      "expires": 1772286092,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Strict"
@@ -43,11 +43,11 @@
   ],
   "origins": [
     {
-      "origin": "http://localhost",
+      "origin": "http://192.168.0.9",
       "localStorage": [
         {
           "name": "accessToken",
-          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhYmhpLmxhbEBnbWFpbC5jb20iLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IkFiaGlzaGVrIiwiZmFtaWx5X25hbWUiOiJMYWwiLCJyb2xlIjoiQWRtaW4iLCJuYmYiOjE3Njk2NzEwMjQsImV4cCI6MTc2OTY5OTgyNCwiaWF0IjoxNzY5NjcxMDI0LCJpc3MiOiJDUk1BcHAtRGV2IiwiYXVkIjoiQ1JNVXNlcnMtRGV2In0.krUf96BSWm8pHfsNGg689zyQtkgIHdgKjlgduSqOIRw"
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhYmhpLmxhbEBnbWFpbC5jb20iLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IkFiaGlzaGVrIiwiZmFtaWx5X25hbWUiOiJMYWwiLCJyb2xlIjoiQWRtaW4iLCJuYmYiOjE3Njk2OTQwOTEsImV4cCI6MTc2OTY5NzY5MSwiaWF0IjoxNzY5Njk0MDkxLCJpc3MiOiJDUk0uQXBpIiwiYXVkIjoiQ1JNLkNsaWVudCJ9.CcqRRK8lvSLbtaxjM_O1bz0Uat8y2caKYoOEstQbDnc"
         },
         {
           "name": "userProfile",
@@ -55,15 +55,19 @@
         },
         {
           "name": "refreshToken",
-          "value": "Q7AyPbaYWKgV0Q31zCD/KHvHr/YXhNh2b8A5++fODVRJVoFavlWDCCcAzKY6ebC3mgyJJS0j/3VtXXJ5WSw6mQ=="
+          "value": "qhcFPrpy1eCnvZkwy91APQsm9+BrnMbLE8poLXy5CBwdj7N2WGC5Ek3CDpVV+WlK3KV8Ga8c/iRMHMUZhxecug=="
         },
         {
           "name": "moduleStatus",
           "value": "{\"customersEnabled\":true,\"contactsEnabled\":true,\"leadsEnabled\":true,\"opportunitiesEnabled\":true,\"productsEnabled\":true,\"servicesEnabled\":true,\"campaignsEnabled\":true,\"quotesEnabled\":true,\"tasksEnabled\":true,\"activitiesEnabled\":true,\"notesEnabled\":true,\"workflowsEnabled\":true,\"reportsEnabled\":true,\"dashboardEnabled\":true,\"communicationsEnabled\":true,\"interactionsEnabled\":true}"
         },
         {
+          "name": "crm_debug_logs",
+          "value": "[{\"id\":\"err_1769694092110_sm6eq3m0s\",\"timestamp\":\"2026-01-29T13:41:32.110Z\",\"type\":\"console.error\",\"message\":\"[CRM ERROR] API Response Error: [object Object]\",\"url\":\"http://192.168.0.9/\",\"additionalInfo\":{\"args\":[\"[CRM ERROR] API Response Error:\",{\"status\":404,\"url\":\"/dashboard-config/dashboards\",\"data\":\"\"}]}},{\"id\":\"err_1769694092112_7og7x1b5l\",\"timestamp\":\"2026-01-29T13:41:32.112Z\",\"type\":\"console.error\",\"message\":\"[CRM ERROR] API Response Error: [object Object]\",\"url\":\"http://192.168.0.9/\",\"additionalInfo\":{\"args\":[\"[CRM ERROR] API Response Error:\",{\"status\":404,\"url\":\"/accounts?limit=500\",\"data\":\"\"}]}},{\"id\":\"err_1769694092113_h99bx7zhn\",\"timestamp\":\"2026-01-29T13:41:32.113Z\",\"type\":\"console.error\",\"message\":\"Failed to load accounts: AxiosError: Request failed with status code 404\",\"url\":\"http://192.168.0.9/\",\"additionalInfo\":{\"args\":[\"Failed to load accounts:\",\"AxiosError: Request failed with status code 404\\n    at Ce (http://192.168.0.9/static/js/vendor.axios.b9aad63d.js:1:17920)\\n    at XMLHttpRequest.y (http://192.168.0.9/static/js/vendor.axios.b9aad63d.js:1:22686)\\n    at pt.request (http://192.168.0.9/static/js/vendor.axios.b9aad63d.js:1:32006)\\n    at async http://192.168.0.9/static/js/main.03e0bf6f.js:1:54677\"]}},{\"id\":\"err_1769694093801_8onhmcp2s\",\"timestamp\":\"2026-01-29T13:41:33.801Z\",\"type\":\"console.error\",\"message\":\"[CRM ERROR] API Response Error: [object Object]\",\"url\":\"http://192.168.0.9/\",\"additionalInfo\":{\"args\":[\"[CRM ERROR] API Response Error:\",{\"status\":404,\"url\":\"/campaigns/active\",\"data\":\"\"}]}}]"
+        },
+        {
           "name": "crm_last_activity",
-          "value": "1769671025049"
+          "value": "1769694092132"
         },
         {
           "name": "crm_selected_accounts",

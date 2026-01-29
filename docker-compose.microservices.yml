@@ -14,11 +14,11 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-      - Frontend__Url=http://localhost
+      - Frontend__Url=http://192.168.0.9
       - Monitoring__DeploymentType=docker
-      - Monitoring__BuildServerFQDN=crm.local
+      - Monitoring__BuildServerFQDN=192.168.0.9
       - Redis__ConnectionString=crm-redis:6379
       - Redis__Enabled=true
     depends_on:
