@@ -1,6 +1,10 @@
 # CRM Solution - Comprehensive Customer Relationship Management System
 
 A full-stack, enterprise-grade CRM solution built with **.NET Core** backend and **React** frontend with responsive UI supporting mobile and web platforms.
+This is still very much a work in progress - totally unested and an experiment to see how far vibe coding can be used to build an enterprise grade solution .
+Comments feedback and enhacement requests along with experianes using this welcome .
+This is a hobby side project not related to my day job - and built on weekends - no commitment on any time or effort will be put into this going forward - this is an experiment .
+Feel free to clone , extend enhance or change this as you feel free to.
 
 ## 📋 Table of Contents
 
