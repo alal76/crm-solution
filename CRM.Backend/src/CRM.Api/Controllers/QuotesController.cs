@@ -52,7 +52,7 @@ public class QuotesController : ControllerBase
             query = query.Where(q => q.Status == status);
         
         if (expired == true)
-            query = query.Where(q => q.ExpirationDate < DateTime.UtcNow && q.Status == QuoteStatus.Sent);
+            query = query.Where(q => q.ExpirationDate < DateTime.UtcNow && q.Status == QuoteStatus.Shared);
 
         var quotes = await query.OrderByDescending(q => q.CreatedAt).ToListAsync();
         foreach (var q in quotes)
@@ -206,7 +206,7 @@ public class QuotesController : ControllerBase
         if (quote == null)
             return NotFound();
 
-        quote.Status = QuoteStatus.Sent;
+        quote.Status = QuoteStatus.Shared;
         quote.SentDate = DateTime.UtcNow;
         quote.UpdatedAt = DateTime.UtcNow;
 
@@ -226,7 +226,7 @@ public class QuotesController : ControllerBase
         if (quote == null)
             return NotFound();
 
-        if (quote.Status == QuoteStatus.Sent)
+        if (quote.Status == QuoteStatus.Shared)
         {
             quote.Status = QuoteStatus.Viewed;
             quote.ViewedDate = DateTime.UtcNow;

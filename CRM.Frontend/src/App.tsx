@@ -25,6 +25,7 @@ import { LayoutProvider } from './contexts/LayoutContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { BrandingProvider } from './contexts/BrandingContext';
 import { AccountContextProvider } from './contexts/AccountContextProvider';
+import { EntityContextProvider } from './contexts/EntityContext';
 import { AppThemeProvider, useTheme } from './contexts/ThemeContext';
 import Navigation from './components/Navigation';
 import ContextFlyout from './components/ContextFlyout';
@@ -121,11 +122,12 @@ function ThemedApp() {
               <BrandingProvider>
                 <LayoutProvider>
                   <AccountContextProvider>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                      <Navigation />
-                      <BreadcrumbsComponent />
-                      <Box sx={{ flex: 1, py: 4, px: 2 }}>
-                        <Container maxWidth="lg">
+                    <EntityContextProvider>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                        <Navigation />
+                        <BreadcrumbsComponent />
+                        <Box sx={{ flex: 1, py: 4, px: 2 }}>
+                          <Container maxWidth="lg">
                     <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
@@ -639,6 +641,7 @@ function ThemedApp() {
                       <Footer />
                       <ContextFlyout />
                     </Box>
+                  </EntityContextProvider>
                   </AccountContextProvider>
                 </LayoutProvider>
               </BrandingProvider>

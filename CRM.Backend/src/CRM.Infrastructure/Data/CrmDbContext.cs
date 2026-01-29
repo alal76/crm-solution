@@ -68,6 +68,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<CrmTask> CrmTasks { get; set; }
     public DbSet<Note> Notes { get; set; }
     public DbSet<Quote> Quotes { get; set; }
+    public DbSet<QuoteLineItem> QuoteLineItems { get; set; }
     public DbSet<Activity> Activities { get; set; }
     
     // Contact info entities
@@ -796,6 +797,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.CustomerId)
                 .OnDelete(DeleteBehavior.SetNull);
             
+            entity.HasOne(e => e.Contact)
+                .WithMany()
+                .HasForeignKey(e => e.ContactId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
             entity.HasOne(e => e.Opportunity)
                 .WithMany()
                 .HasForeignKey(e => e.OpportunityId)
@@ -806,6 +812,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.AssignedToUserId)
                 .OnDelete(DeleteBehavior.SetNull);
             
+            entity.HasOne(e => e.RelationshipManager)
+                .WithMany()
+                .HasForeignKey(e => e.RelationshipManagerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
             entity.HasOne(e => e.ParentQuote)
                 .WithMany(q => q.Revisions)
                 .HasForeignKey(e => e.ParentQuoteId)
@@ -813,6 +824,57 @@ public class CrmDbContext : DbContext, ICrmDbContext
             
             entity.HasIndex(e => e.QuoteNumber).IsUnique();
             entity.HasIndex(e => e.Status);
+        });
+
+        // Configure QuoteLineItem
+        modelBuilder.Entity<QuoteLineItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.SKU).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.UnitOfMeasure).HasMaxLength(50);
+            entity.Property(e => e.DiscountReason).HasMaxLength(500);
+            entity.Property(e => e.TaxCode).HasMaxLength(50);
+            entity.Property(e => e.BillingPeriod).HasMaxLength(50);
+            entity.Property(e => e.InternalNotes).HasMaxLength(2000);
+            entity.Property(e => e.QuoteNotes).HasMaxLength(2000);
+            
+            // Precision for decimal fields
+            entity.Property(e => e.Quantity).HasPrecision(18, 4);
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.ListPrice).HasPrecision(18, 2);
+            entity.Property(e => e.CostPrice).HasPrecision(18, 2);
+            entity.Property(e => e.DiscountPercent).HasPrecision(5, 2);
+            entity.Property(e => e.DiscountAmount).HasPrecision(18, 2);
+            entity.Property(e => e.TaxRate).HasPrecision(5, 2);
+            entity.Property(e => e.Subtotal).HasPrecision(18, 2);
+            entity.Property(e => e.TotalDiscount).HasPrecision(18, 2);
+            entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
+            entity.Property(e => e.Total).HasPrecision(18, 2);
+            entity.Property(e => e.Margin).HasPrecision(18, 2);
+            
+            // Quote relationship
+            entity.HasOne(e => e.Quote)
+                .WithMany(q => q.QuoteLineItems)
+                .HasForeignKey(e => e.QuoteId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Product relationship
+            entity.HasOne(e => e.Product)
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Self-referencing for bundle items
+            entity.HasOne(e => e.ParentLineItem)
+                .WithMany(e => e.BundleItems)
+                .HasForeignKey(e => e.ParentLineItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasIndex(e => new { e.QuoteId, e.LineNumber });
+            entity.HasIndex(e => e.SKU);
         });
 
         // Configure Activity

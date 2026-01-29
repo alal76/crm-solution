@@ -197,6 +197,79 @@ public class SystemSettings : BaseEntity
     public string? CompanyPhone { get; set; }
     
     /// <summary>
+    /// Company full legal name
+    /// </summary>
+    public string? CompanyFullName { get; set; }
+    
+    /// <summary>
+    /// Company legal/registered name
+    /// </summary>
+    public string? CompanyLegalName { get; set; }
+    
+    /// <summary>
+    /// Company tax identification number
+    /// </summary>
+    public string? CompanyTaxId { get; set; }
+    
+    /// <summary>
+    /// Company registration number
+    /// </summary>
+    public string? CompanyRegistrationNumber { get; set; }
+    
+    /// <summary>
+    /// Company industry/sector
+    /// </summary>
+    public string? CompanyIndustry { get; set; }
+    
+    /// <summary>
+    /// Company description for quotes and documents
+    /// </summary>
+    public string? CompanyDescription { get; set; }
+    
+    /// <summary>
+    /// JSON array of company addresses with type labels
+    /// Format: [{"type": "Headquarters", "line1": "...", "line2": "", "city": "...", "state": "...", "zipCode": "...", "country": "...", "isPrimary": true}]
+    /// </summary>
+    public string? CompanyAddresses { get; set; }
+    
+    /// <summary>
+    /// JSON array of company phone numbers with type labels
+    /// Format: [{"type": "Main", "number": "+1-555-123-4567", "isPrimary": true}, {"type": "Sales", "number": "+1-555-123-4568"}]
+    /// </summary>
+    public string? CompanyPhones { get; set; }
+    
+    /// <summary>
+    /// JSON array of company email addresses with type labels
+    /// Format: [{"type": "General", "email": "info@company.com", "isPrimary": true}, {"type": "Sales", "email": "sales@company.com"}]
+    /// </summary>
+    public string? CompanyEmails { get; set; }
+    
+    /// <summary>
+    /// Default terms and conditions for quotes
+    /// </summary>
+    public string? QuoteTermsAndConditions { get; set; }
+    
+    /// <summary>
+    /// Default quote validity in days
+    /// </summary>
+    public int QuoteValidityDays { get; set; } = 30;
+    
+    /// <summary>
+    /// Quote number prefix (e.g., "QT-", "QUOTE-")
+    /// </summary>
+    public string QuoteNumberPrefix { get; set; } = "QT-";
+    
+    /// <summary>
+    /// Current quote number sequence (auto-increment)
+    /// </summary>
+    public int QuoteNumberSequence { get; set; } = 1000;
+    
+    /// <summary>
+    /// Default tax rate percentage for quotes
+    /// </summary>
+    public decimal DefaultTaxRate { get; set; } = 0;
+    
+    /// <summary>
     /// Selected color palette ID from cached palettes
     /// </summary>
     public int? SelectedPaletteId { get; set; }
