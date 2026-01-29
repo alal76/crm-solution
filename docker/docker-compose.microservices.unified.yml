@@ -1,0 +1,383 @@
+# =============================================================================
+# CRM Solution - Unified Docker Compose (Microservices Architecture)
+# =============================================================================
+# This file uses the master naming convention from config/infrastructure.env
+#
+# Usage:
+#   export ARCHITECTURE_MODE=microservices
+#   export $(cat config/infrastructure.env | grep -v '^#' | grep -v '^$' | xargs)
+#   docker compose -f docker/docker-compose.microservices.unified.yml up -d
+#
+# Services:
+#   Tier 0: crm-db, crm-redis
+#   Tier 1: crm-gateway, crm-identity, crm-customer, crm-sales, crm-marketing, crm-servicedesk, crm-core
+#   Tier 2: crm-frontend
+# =============================================================================
+
+volumes:
+  crm_db_data:
+    driver: local
+    name: crm_db_data
+  crm_redis_data:
+    driver: local
+    name: crm_redis_data
+  crm_api_data:
+    driver: local
+    name: crm_api_data
+
+networks:
+  crm-network:
+    driver: bridge
+    name: crm-network
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+services:
+  # ===========================================================================
+  # TIER 0: SHARED INFRASTRUCTURE
+  # ===========================================================================
+
+  crm-db:
+    image: ${IMAGE_MARIADB:-mariadb:10.11}
+    container_name: crm-db
+    hostname: crm-db
+    restart: unless-stopped
+    ports:
+      - "${PORT_MARIADB_EXTERNAL:-3306}:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-RootPass@Dev2024}
+      MARIADB_DATABASE: ${DB_NAME:-crm_db}
+      MARIADB_USER: ${DB_USER:-crm_user}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-CrmPass@Dev2024}
+    volumes:
+      - crm_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-RootPass@Dev2024}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      crm-network:
+        aliases:
+          - crm-db
+          - db
+          - mariadb
+    labels:
+      - "com.crm.tier=database"
+      - "com.crm.service=mariadb"
+
+  crm-redis:
+    image: ${IMAGE_REDIS:-redis:7-alpine}
+    container_name: crm-redis
+    hostname: crm-redis
+    restart: unless-stopped
+    ports:
+      - "${PORT_REDIS_EXTERNAL:-6379}:6379"
+    volumes:
+      - crm_redis_data:/data
+    command: redis-server --appendonly yes --maxmemory ${REDIS_MAX_MEMORY:-256mb} --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      crm-network:
+        aliases:
+          - crm-redis
+          - redis
+          - cache
+    labels:
+      - "com.crm.tier=cache"
+      - "com.crm.service=redis"
+
+  # ===========================================================================
+  # TIER 1: MICROSERVICES
+  # ===========================================================================
+
+  crm-gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.gateway
+    image: crm-gateway:${MS_VERSION:-latest}
+    container_name: crm-gateway
+    hostname: crm-gateway
+    restart: unless-stopped
+    ports:
+      - "${PORT_GATEWAY:-5000}:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:5000
+      AllowedHosts: "*"
+      JwtSettings__Key: ${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}
+      # Service discovery via container hostnames
+      Services__Identity: http://crm-identity:5001
+      Services__Customer: http://crm-customer:5002
+      Services__Sales: http://crm-sales:5003
+      Services__Marketing: http://crm-marketing:5004
+      Services__ServiceDesk: http://crm-servicedesk:5005
+      Services__Core: http://crm-core:5006
+    depends_on:
+      crm-identity:
+        condition: service_healthy
+      crm-customer:
+        condition: service_healthy
+      crm-sales:
+        condition: service_healthy
+      crm-marketing:
+        condition: service_healthy
+      crm-servicedesk:
+        condition: service_healthy
+      crm-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      crm-network:
+        aliases:
+          - crm-gateway
+          - gateway
+          - api
+    labels:
+      - "com.crm.tier=gateway"
+      - "com.crm.service=gateway"
+
+  crm-identity:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.identity
+    image: crm-identity:${MS_VERSION:-latest}
+    container_name: crm-identity
+    hostname: crm-identity
+    restart: unless-stopped
+    ports:
+      - "${PORT_IDENTITY:-5001}:5001"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:5001
+      ConnectionStrings__DefaultConnection: Server=crm-db;Port=3306;Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};CharSet=utf8mb4;
+      JwtSettings__Key: ${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      crm-network:
+        aliases:
+          - crm-identity
+          - identity
+    labels:
+      - "com.crm.tier=microservice"
+      - "com.crm.service=identity"
+
+  crm-customer:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.customer
+    image: crm-customer:${MS_VERSION:-latest}
+    container_name: crm-customer
+    hostname: crm-customer
+    restart: unless-stopped
+    ports:
+      - "${PORT_CUSTOMER:-5002}:5002"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:5002
+      ConnectionStrings__DefaultConnection: Server=crm-db;Port=3306;Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};CharSet=utf8mb4;
+      JwtSettings__Key: ${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      crm-network:
+        aliases:
+          - crm-customer
+          - customer
+    labels:
+      - "com.crm.tier=microservice"
+      - "com.crm.service=customer"
+
+  crm-sales:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.sales
+    image: crm-sales:${MS_VERSION:-latest}
+    container_name: crm-sales
+    hostname: crm-sales
+    restart: unless-stopped
+    ports:
+      - "${PORT_SALES:-5003}:5003"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:5003
+      ConnectionStrings__DefaultConnection: Server=crm-db;Port=3306;Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};CharSet=utf8mb4;
+      JwtSettings__Key: ${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      crm-network:
+        aliases:
+          - crm-sales
+          - sales
+    labels:
+      - "com.crm.tier=microservice"
+      - "com.crm.service=sales"
+
+  crm-marketing:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.marketing
+    image: crm-marketing:${MS_VERSION:-latest}
+    container_name: crm-marketing
+    hostname: crm-marketing
+    restart: unless-stopped
+    ports:
+      - "${PORT_MARKETING:-5004}:5004"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:5004
+      ConnectionStrings__DefaultConnection: Server=crm-db;Port=3306;Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};CharSet=utf8mb4;
+      JwtSettings__Key: ${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      crm-network:
+        aliases:
+          - crm-marketing
+          - marketing
+    labels:
+      - "com.crm.tier=microservice"
+      - "com.crm.service=marketing"
+
+  crm-servicedesk:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.servicedesk
+    image: crm-servicedesk:${MS_VERSION:-latest}
+    container_name: crm-servicedesk
+    hostname: crm-servicedesk
+    restart: unless-stopped
+    ports:
+      - "${PORT_SERVICEDESK:-5005}:5005"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:5005
+      ConnectionStrings__DefaultConnection: Server=crm-db;Port=3306;Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};CharSet=utf8mb4;
+      JwtSettings__Key: ${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      crm-network:
+        aliases:
+          - crm-servicedesk
+          - servicedesk
+    labels:
+      - "com.crm.tier=microservice"
+      - "com.crm.service=servicedesk"
+
+  crm-core:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.core
+    image: crm-core:${MS_VERSION:-latest}
+    container_name: crm-core
+    hostname: crm-core
+    restart: unless-stopped
+    ports:
+      - "${PORT_CORE:-5006}:5006"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:5006
+      ConnectionStrings__DefaultConnection: Server=crm-db;Port=3306;Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};CharSet=utf8mb4;
+      JwtSettings__Key: ${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      crm-network:
+        aliases:
+          - crm-core
+          - core
+    labels:
+      - "com.crm.tier=microservice"
+      - "com.crm.service=core"
+
+  # ===========================================================================
+  # TIER 2: FRONTEND
+  # ===========================================================================
+
+  crm-frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    image: crm-frontend:${MS_VERSION:-latest}
+    container_name: crm-frontend
+    hostname: crm-frontend
+    restart: unless-stopped
+    ports:
+      - "${PORT_FRONTEND_EXTERNAL:-80}:80"
+    environment:
+      API_URL: http://crm-gateway:5000
+    depends_on:
+      crm-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      crm-network:
+        aliases:
+          - crm-frontend
+          - frontend
+          - web
+    labels:
+      - "com.crm.tier=presentation"
+      - "com.crm.service=frontend"

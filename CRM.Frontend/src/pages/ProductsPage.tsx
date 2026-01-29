@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
@@ -17,6 +17,7 @@ import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { usePagination } from '../hooks/usePagination';
+import { useEntityTypeSubscription } from '../hooks/useSignalR';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
 
@@ -206,9 +207,8 @@ function ProductsPage() {
   };
   const [formData, setFormData] = useState<ProductForm>(emptyForm);
 
-  useEffect(() => { fetchProducts(); }, []);
-
-  const fetchProducts = async () => {
+  // Fetch products function (defined early for SignalR callbacks)
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiClient.get('/products');
@@ -219,7 +219,25 @@ function ProductsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // SignalR subscription for real-time updates
+  useEntityTypeSubscription('Product', {
+    onCreated: useCallback(() => {
+      console.log('[SignalR] Product created - refreshing list');
+      fetchProducts();
+    }, [fetchProducts]),
+    onUpdated: useCallback(() => {
+      console.log('[SignalR] Product updated - refreshing list');
+      fetchProducts();
+    }, [fetchProducts]),
+    onDeleted: useCallback(() => {
+      console.log('[SignalR] Product deleted - refreshing list');
+      fetchProducts();
+    }, [fetchProducts]),
+  });
+
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   const handleOpenDialog = (product?: Product) => {
     setDialogTab(0);

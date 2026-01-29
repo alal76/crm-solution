@@ -66,6 +66,7 @@ import { BaseEntity } from '../types';
 import { DialogError, DialogSuccess, ActionButton, StatusSnackbar } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
+import { useEntityTypeSubscription } from '../hooks/useSignalR';
 
 interface SocialMediaLink {
   id: number;
@@ -226,12 +227,45 @@ function ContactsPage() {
     setContactInfoCache(cache);
   }, []);
 
+  // Fetch contacts (defined early for SignalR callbacks)
+  const fetchContacts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const endpoint = filterType ? `/contacts/type/${filterType}` : '/contacts';
+      const response = await apiClient.get(endpoint);
+      setContacts(response.data);
+      // Fetch contact info summaries
+      fetchContactInfoSummaries(response.data);
+      setError(null);
+    } catch (err: any) {
+      setError(getApiErrorMessage(err, 'Failed to fetch contacts'));
+      console.error('Error fetching contacts:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [filterType, fetchContactInfoSummaries]);
+
+  // SignalR subscription for real-time updates
+  useEntityTypeSubscription('Contact', {
+    onCreated: useCallback(() => {
+      console.log('[SignalR] Contact created - refreshing list');
+      fetchContacts();
+    }, [fetchContacts]),
+    onUpdated: useCallback(() => {
+      console.log('[SignalR] Contact updated - refreshing list');
+      fetchContacts();
+    }, [fetchContacts]),
+    onDeleted: useCallback(() => {
+      console.log('[SignalR] Contact deleted - refreshing list');
+      fetchContacts();
+    }, [fetchContacts]),
+  });
+
   // Fetch contacts
   useEffect(() => {
     fetchContacts();
     fetchCustomers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterType]);
+  }, [fetchContacts]);
 
   useEffect(() => {
     // preload contact-related lookups if available
@@ -261,23 +295,6 @@ function ContactsPage() {
     if (!customerId) return null;
     const customer = customers.find(c => c.id === customerId);
     return customer ? (customer.displayName || `${customer.firstName} ${customer.lastName}`.trim() || customer.company) : null;
-  };
-
-  const fetchContacts = async () => {
-    try {
-      setLoading(true);
-      const endpoint = filterType ? `/contacts/type/${filterType}` : '/contacts';
-      const response = await apiClient.get(endpoint);
-      setContacts(response.data);
-      // Fetch contact info summaries
-      fetchContactInfoSummaries(response.data);
-      setError(null);
-    } catch (err: any) {
-      setError(getApiErrorMessage(err, 'Failed to fetch contacts'));
-      console.error('Error fetching contacts:', err);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleAddContact = () => {

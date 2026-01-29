@@ -33,6 +33,7 @@ import { usePagination } from '../hooks/usePagination';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
 import { useApiState } from '../hooks/useApiState';
+import { useEntityTypeSubscription } from '../hooks/useSignalR';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
 
@@ -251,6 +252,45 @@ function CustomersPage() {
   const { selectedAccounts, isContextActive, getAccountIds } = useAccountContext();
   const { hasPermission } = useProfile();
 
+  // Fetch functions (defined early for SignalR callbacks)
+  const fetchCustomers = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/customers');
+      setCustomers(response.data);
+      setError(null);
+    } catch (err: any) {
+      setError(getApiErrorMessage(err, 'Failed to fetch accounts'));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchContacts = useCallback(async () => {
+    try {
+      const response = await apiClient.get('/contacts');
+      setContacts(response.data);
+    } catch (err) {
+      console.error('Error fetching contacts:', err);
+    }
+  }, []);
+
+  // SignalR subscription for real-time updates
+  useEntityTypeSubscription('Customer', {
+    onCreated: useCallback(() => {
+      console.log('[SignalR] Customer created - refreshing list');
+      fetchCustomers();
+    }, [fetchCustomers]),
+    onUpdated: useCallback(() => {
+      console.log('[SignalR] Customer updated - refreshing list');
+      fetchCustomers();
+    }, [fetchCustomers]),
+    onDeleted: useCallback(() => {
+      console.log('[SignalR] Customer deleted - refreshing list');
+      fetchCustomers();
+    }, [fetchCustomers]),
+  });
+
   // Filter customers based on search AND account context
   const filteredCustomers = useMemo(() => {
     let result = customers;
@@ -279,29 +319,7 @@ function CustomersPage() {
   useEffect(() => {
     fetchCustomers();
     fetchContacts();
-  }, []);
-
-  const fetchCustomers = async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.get('/customers');
-      setCustomers(response.data);
-      setError(null);
-    } catch (err: any) {
-      setError(getApiErrorMessage(err, 'Failed to fetch accounts'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchContacts = async () => {
-    try {
-      const response = await apiClient.get('/contacts');
-      setContacts(response.data);
-    } catch (err) {
-      console.error('Error fetching contacts:', err);
-    }
-  };
+  }, [fetchCustomers, fetchContacts]);
 
   const fetchCustomerContacts = async (customerId: number) => {
     try {

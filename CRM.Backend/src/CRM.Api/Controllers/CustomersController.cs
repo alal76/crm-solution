@@ -18,6 +18,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Api.Helpers;
+using CRM.Api.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -62,16 +63,22 @@ public class CustomersController : ControllerBase
 {
     private readonly ICustomerService _customerService;
     private readonly ILogger<CustomersController> _logger;
+    private readonly ICrmNotificationService _notificationService;
 
     /// <summary>
     /// Initializes the controller with required services.
     /// </summary>
     /// <param name="customerService">Service for customer business logic</param>
     /// <param name="logger">Logger for error and audit logging</param>
-    public CustomersController(ICustomerService customerService, ILogger<CustomersController> logger)
+    /// <param name="notificationService">Service for SignalR real-time notifications</param>
+    public CustomersController(
+        ICustomerService customerService, 
+        ILogger<CustomersController> logger,
+        ICrmNotificationService notificationService)
     {
         _customerService = customerService;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     /// <summary>
@@ -292,6 +299,11 @@ public class CustomersController : ControllerBase
             }
 
             var customer = await _customerService.CreateCustomerAsync(dto);
+            
+            // Notify connected clients about the new customer
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordCreatedAsync("Customer", customer.Id, customer, userId);
+            
             return CreatedAtAction(nameof(GetById), new { id = customer.Id }, customer);
         }
         catch (Exception ex)
@@ -350,6 +362,10 @@ public class CustomersController : ControllerBase
             if (customer == null)
                 return NotFound(new { message = "Customer not found" });
             
+            // Notify connected clients about the update
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordUpdatedAsync("Customer", id, customer, userId);
+            
             // Return new ETag in response
             Response.Headers.ETag = ETagHelper.GenerateETag(customer.RowVersion);
             return Ok(customer);
@@ -374,6 +390,11 @@ public class CustomersController : ControllerBase
             var result = await _customerService.DeleteCustomerAsync(id);
             if (!result)
                 return NotFound(new { message = "Customer not found" });
+            
+            // Notify connected clients about the deletion
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordDeletedAsync("Customer", id, userId);
+            
             return Ok(new { message = "Customer deleted successfully" });
         }
         catch (Exception ex)

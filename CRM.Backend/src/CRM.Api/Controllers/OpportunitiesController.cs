@@ -1,5 +1,6 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Api.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,11 +13,16 @@ public class OpportunitiesController : ControllerBase
 {
     private readonly IOpportunityService _opportunityService;
     private readonly ILogger<OpportunitiesController> _logger;
+    private readonly ICrmNotificationService _notificationService;
 
-    public OpportunitiesController(IOpportunityService opportunityService, ILogger<OpportunitiesController> logger)
+    public OpportunitiesController(
+        IOpportunityService opportunityService, 
+        ILogger<OpportunitiesController> logger,
+        ICrmNotificationService notificationService)
     {
         _opportunityService = opportunityService;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     [HttpGet]
@@ -87,6 +93,12 @@ public class OpportunitiesController : ControllerBase
         try
         {
             var id = await _opportunityService.CreateOpportunityAsync(opportunity);
+            opportunity.Id = id;
+            
+            // Notify connected clients about the new opportunity
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordCreatedAsync("Opportunity", id, opportunity, userId);
+            
             return CreatedAtAction(nameof(GetById), new { id }, opportunity);
         }
         catch (Exception ex)
@@ -103,6 +115,11 @@ public class OpportunitiesController : ControllerBase
         {
             opportunity.Id = id;
             await _opportunityService.UpdateOpportunityAsync(opportunity);
+            
+            // Notify connected clients about the update
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordUpdatedAsync("Opportunity", id, opportunity, userId);
+            
             return NoContent();
         }
         catch (Exception ex)
@@ -118,6 +135,11 @@ public class OpportunitiesController : ControllerBase
         try
         {
             await _opportunityService.DeleteOpportunityAsync(id);
+            
+            // Notify connected clients about the deletion
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordDeletedAsync("Opportunity", id, userId);
+            
             return NoContent();
         }
         catch (Exception ex)

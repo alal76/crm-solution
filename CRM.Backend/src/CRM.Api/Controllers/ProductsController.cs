@@ -1,5 +1,6 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Api.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,11 +13,16 @@ public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
     private readonly ILogger<ProductsController> _logger;
+    private readonly ICrmNotificationService _notificationService;
 
-    public ProductsController(IProductService productService, ILogger<ProductsController> logger)
+    public ProductsController(
+        IProductService productService, 
+        ILogger<ProductsController> logger,
+        ICrmNotificationService notificationService)
     {
         _productService = productService;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     [HttpGet]
@@ -114,6 +120,12 @@ public class ProductsController : ControllerBase
         try
         {
             var id = await _productService.CreateProductAsync(product);
+            product.Id = id;
+            
+            // Notify connected clients about the new product
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordCreatedAsync("Product", id, product, userId);
+            
             return CreatedAtAction(nameof(GetById), new { id }, product);
         }
         catch (Exception ex)
@@ -130,6 +142,11 @@ public class ProductsController : ControllerBase
         {
             product.Id = id;
             await _productService.UpdateProductAsync(product);
+            
+            // Notify connected clients about the update
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordUpdatedAsync("Product", id, product, userId);
+            
             return NoContent();
         }
         catch (Exception ex)
@@ -145,6 +162,11 @@ public class ProductsController : ControllerBase
         try
         {
             await _productService.DeleteProductAsync(id);
+            
+            // Notify connected clients about the deletion
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordDeletedAsync("Product", id, userId);
+            
             return NoContent();
         }
         catch (Exception ex)

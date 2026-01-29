@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -56,6 +56,7 @@ import { BaseEntity } from '../types';
 import { DialogError, DialogSuccess, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
+import { useEntityTypeSubscription } from '../hooks/useSignalR';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
@@ -201,6 +202,43 @@ function OpportunitiesPage() {
   const { selectedAccounts, isContextActive, getAccountIds } = useAccountContext();
   const { hasPermission } = useProfile();
 
+  // Fetch function (defined early for SignalR callbacks)
+  const fetchAllData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [oppRes, acctRes, userRes] = await Promise.all([
+        apiClient.get('/opportunities'),
+        apiClient.get('/accounts'),
+        apiClient.get('/users').catch(() => ({ data: [] })),
+      ]);
+      setOpportunities(oppRes.data);
+      setAccounts(acctRes.data);
+      setUsers(userRes.data);
+      setError(null);
+    } catch (err: any) {
+      setError(getApiErrorMessage(err, 'Failed to fetch data'));
+      console.error('Error fetching data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // SignalR subscription for real-time updates
+  useEntityTypeSubscription('Opportunity', {
+    onCreated: useCallback(() => {
+      console.log('[SignalR] Opportunity created - refreshing list');
+      fetchAllData();
+    }, [fetchAllData]),
+    onUpdated: useCallback(() => {
+      console.log('[SignalR] Opportunity updated - refreshing list');
+      fetchAllData();
+    }, [fetchAllData]),
+    onDeleted: useCallback(() => {
+      console.log('[SignalR] Opportunity deleted - refreshing list');
+      fetchAllData();
+    }, [fetchAllData]),
+  });
+
   const handleSearch = (filters: SearchFilter[], text: string) => {
     setSearchFilters(filters);
     setSearchText(text);
@@ -231,27 +269,7 @@ function OpportunitiesPage() {
 
   useEffect(() => {
     fetchAllData();
-  }, []);
-
-  const fetchAllData = async () => {
-    try {
-      setLoading(true);
-      const [oppRes, acctRes, userRes] = await Promise.all([
-        apiClient.get('/opportunities'),
-        apiClient.get('/accounts'),
-        apiClient.get('/users').catch(() => ({ data: [] })),
-      ]);
-      setOpportunities(oppRes.data);
-      setAccounts(acctRes.data);
-      setUsers(userRes.data);
-      setError(null);
-    } catch (err: any) {
-      setError(getApiErrorMessage(err, 'Failed to fetch data'));
-      console.error('Error fetching data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchAllData]);
 
   const getAccountName = (accountId: number) => {
     const account = accounts.find(a => a.id === accountId);

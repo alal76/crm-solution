@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -53,6 +53,7 @@ import { useProfile } from '../contexts/ProfileContext';
 import { DialogError, DialogSuccess, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
+import { useEntityTypeSubscription } from '../hooks/useSignalR';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 
 // Lead sources for the dropdown
@@ -149,30 +150,8 @@ function LeadsPage() {
   const bulkApi = useApiState({ successTimeout: 3000 });
   const { hasPermission } = useProfile();
   
-  // Filter leads based on search
-  const filteredLeads = useMemo(() => {
-    return filterData(leads, searchFilters, searchText, SEARCHABLE_FIELDS);
-  }, [leads, searchFilters, searchText]);
-
-  const {
-    page,
-    pageSize,
-    paginatedData: paginatedLeads,
-    handlePageChange,
-    handlePageSizeChange,
-    pageSizeOptions,
-  } = usePagination(filteredLeads, { defaultPageSize: 25 });
-
-  const handleSearch = (filters: SearchFilter[], text: string) => {
-    setSearchFilters(filters);
-    setSearchText(text);
-  };
-
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
-  const fetchLeads = async () => {
+  // Fetch leads function (defined early for SignalR callbacks)
+  const fetchLeads = useCallback(async () => {
     try {
       setLoading(true);
       // Leads are Contacts with ContactType = Lead (value 2)
@@ -210,7 +189,46 @@ function LeadsPage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // SignalR subscription for real-time updates (Leads are stored as Contacts)
+  useEntityTypeSubscription('Contact', {
+    onCreated: useCallback(() => {
+      console.log('[SignalR] Contact/Lead created - refreshing list');
+      fetchLeads();
+    }, [fetchLeads]),
+    onUpdated: useCallback(() => {
+      console.log('[SignalR] Contact/Lead updated - refreshing list');
+      fetchLeads();
+    }, [fetchLeads]),
+    onDeleted: useCallback(() => {
+      console.log('[SignalR] Contact/Lead deleted - refreshing list');
+      fetchLeads();
+    }, [fetchLeads]),
+  });
+  
+  // Filter leads based on search
+  const filteredLeads = useMemo(() => {
+    return filterData(leads, searchFilters, searchText, SEARCHABLE_FIELDS);
+  }, [leads, searchFilters, searchText]);
+
+  const {
+    page,
+    pageSize,
+    paginatedData: paginatedLeads,
+    handlePageChange,
+    handlePageSizeChange,
+    pageSizeOptions,
+  } = usePagination(filteredLeads, { defaultPageSize: 25 });
+
+  const handleSearch = (filters: SearchFilter[], text: string) => {
+    setSearchFilters(filters);
+    setSearchText(text);
   };
+
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
 
   const handleOpenDialog = (lead?: Lead) => {
     if (lead) {

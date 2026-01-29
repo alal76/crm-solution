@@ -1,5 +1,6 @@
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
+using CRM.Api.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,11 +13,16 @@ public class ContactsController : ControllerBase
 {
     private readonly IContactsService _contactsService;
     private readonly ILogger<ContactsController> _logger;
+    private readonly ICrmNotificationService _notificationService;
 
-    public ContactsController(IContactsService contactsService, ILogger<ContactsController> logger)
+    public ContactsController(
+        IContactsService contactsService, 
+        ILogger<ContactsController> logger,
+        ICrmNotificationService notificationService)
     {
         _contactsService = contactsService;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     /// <summary>
@@ -101,6 +107,10 @@ public class ContactsController : ControllerBase
 
             var currentUser = User.FindFirst("sub")?.Value ?? "System";
             var contact = await _contactsService.CreateAsync(request, currentUser);
+            
+            // Notify connected clients about the new contact
+            await _notificationService.NotifyRecordCreatedAsync("Contact", contact.Id, contact, currentUser);
+            
             return CreatedAtAction(nameof(GetContactById), new { id = contact.Id }, contact);
         }
         catch (ArgumentException ex)
@@ -132,6 +142,10 @@ public class ContactsController : ControllerBase
 
             var currentUser = User.FindFirst("sub")?.Value ?? "System";
             var contact = await _contactsService.UpdateAsync(id, request, currentUser);
+            
+            // Notify connected clients about the update
+            await _notificationService.NotifyRecordUpdatedAsync("Contact", id, contact, currentUser);
+            
             return Ok(contact);
         }
         catch (InvalidOperationException ex)
@@ -158,6 +172,11 @@ public class ContactsController : ControllerBase
         try
         {
             await _contactsService.DeleteAsync(id);
+            
+            // Notify connected clients about the deletion
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordDeletedAsync("Contact", id, userId);
+            
             return Ok(new { message = $"Contact with ID {id} deleted successfully" });
         }
         catch (InvalidOperationException ex)
