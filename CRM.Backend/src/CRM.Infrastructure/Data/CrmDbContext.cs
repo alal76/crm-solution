@@ -167,6 +167,90 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<CampaignConversion> CampaignConversions { get; set; }
     public DbSet<CampaignWorkflow> CampaignWorkflows { get; set; }
 
+    // =============================================================================
+    // Quote-to-Cash Entities (Order, Invoice, Payment, Subscription, Credit)
+    // =============================================================================
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderLineItem> OrderLineItems { get; set; }
+    public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<InvoiceLineItem> InvoiceLineItems { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+    public DbSet<Subscription> Subscriptions { get; set; }
+    public DbSet<SubscriptionItem> SubscriptionItems { get; set; }
+    public DbSet<SubscriptionUsage> SubscriptionUsages { get; set; }
+    public DbSet<CreditMemo> CreditMemos { get; set; }
+    public DbSet<CreditMemoLineItem> CreditMemoLineItems { get; set; }
+    public DbSet<CreditApplication> CreditApplications { get; set; }
+
+    // =============================================================================
+    // Lead Management Entities (Routing, Duplicate Detection)
+    // =============================================================================
+    public DbSet<LeadRoutingRule> LeadRoutingRules { get; set; }
+    public DbSet<LeadRoutingCriteria> LeadRoutingCriteria { get; set; }
+    public DbSet<LeadRoutingTarget> LeadRoutingTargets { get; set; }
+    public DbSet<LeadRoutingLog> LeadRoutingLogs { get; set; }
+    public DbSet<DuplicateRule> DuplicateRules { get; set; }
+    public DbSet<DuplicateMatchField> DuplicateMatchFields { get; set; }
+    public DbSet<DuplicateCandidate> DuplicateCandidates { get; set; }
+    public DbSet<DuplicateMergeHistory> DuplicateMergeHistories { get; set; }
+
+    // =============================================================================
+    // Marketing Automation Entities (Email Sequences, Web Tracking, Forms)
+    // =============================================================================
+    public DbSet<EmailSequence> EmailSequences { get; set; }
+    public DbSet<EmailSequenceStep> EmailSequenceSteps { get; set; }
+    public DbSet<EmailSequenceEnrollment> EmailSequenceEnrollments { get; set; }
+    public DbSet<EmailSequenceStepExecution> EmailSequenceStepExecutions { get; set; }
+    public DbSet<WebVisitor> WebVisitors { get; set; }
+    public DbSet<WebSession> WebSessions { get; set; }
+    public DbSet<WebPageView> WebPageViews { get; set; }
+    public DbSet<FormDefinition> FormDefinitions { get; set; }
+    public DbSet<FormField> FormFields { get; set; }
+    public DbSet<FormSubmission> FormSubmissions { get; set; }
+    public DbSet<AttributionSetting> AttributionSettings { get; set; }
+    public DbSet<CampaignTouchpoint> CampaignTouchpoints { get; set; }
+    public DbSet<CampaignAttributionSummary> CampaignAttributionSummaries { get; set; }
+
+    // =============================================================================
+    // CPQ Entities (Product Bundles, Pricing Rules, Discounts)
+    // =============================================================================
+    public DbSet<ProductBundle> ProductBundles { get; set; }
+    public DbSet<ProductBundleItem> ProductBundleItems { get; set; }
+    public DbSet<ProductBundleRule> ProductBundleRules { get; set; }
+    public DbSet<PriceBook> PriceBooks { get; set; }
+    public DbSet<PriceBookEntry> PriceBookEntries { get; set; }
+    public DbSet<PricingRule> PricingRules { get; set; }
+    public DbSet<PricingRuleUsage> PricingRuleUsages { get; set; }
+    public DbSet<DiscountApprovalMatrix> DiscountApprovalMatrices { get; set; }
+    public DbSet<ApprovalLevel> ApprovalLevels { get; set; }
+    public DbSet<ApprovalGroup> ApprovalGroups { get; set; }
+    public DbSet<ApprovalGroupMember> ApprovalGroupMembers { get; set; }
+    public DbSet<ApprovalRequest> ApprovalRequests { get; set; }
+    public DbSet<ApprovalStep> ApprovalSteps { get; set; }
+
+    // =============================================================================
+    // E-Signature Entities
+    // =============================================================================
+    public DbSet<ESignatureRequest> ESignatureRequests { get; set; }
+    public DbSet<ESignatureSigner> ESignatureSigners { get; set; }
+    public DbSet<ESignatureDocument> ESignatureDocuments { get; set; }
+    public DbSet<ESignatureAuditEvent> ESignatureAuditEvents { get; set; }
+
+    // =============================================================================
+    // Sales Performance Entities (Commission, Quota, Forecast)
+    // =============================================================================
+    public DbSet<CommissionPlan> CommissionPlans { get; set; }
+    public DbSet<CommissionTier> CommissionTiers { get; set; }
+    public DbSet<CommissionPlanAssignment> CommissionPlanAssignments { get; set; }
+    public DbSet<Commission> Commissions { get; set; }
+    public DbSet<CommissionStatement> CommissionStatements { get; set; }
+    public DbSet<SalesQuota> SalesQuotas { get; set; }
+    public DbSet<SalesForecast> SalesForecasts { get; set; }
+    public DbSet<ForecastLineItem> ForecastLineItems { get; set; }
+    public DbSet<ForecastHistory> ForecastHistories { get; set; }
+    public DbSet<Team> Teams { get; set; }
+    public DbSet<TeamMember> TeamMembers { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
             if (!optionsBuilder.IsConfigured && _configuration != null)
