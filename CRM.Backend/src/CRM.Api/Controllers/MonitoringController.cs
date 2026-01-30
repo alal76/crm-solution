@@ -298,6 +298,155 @@ public class MonitoringController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Get detailed monitor status from Uptime Kuma
+    /// </summary>
+    [HttpGet("uptime-kuma/monitors")]
+    [AllowAnonymous]
+    public async Task<ActionResult> GetUptimeKumaMonitors(CancellationToken ct)
+    {
+        try
+        {
+            var uptimeKumaHost = _configuration.GetValue<string>("Monitoring:UptimeKumaHost", "uptime-kuma");
+            var uptimeKumaPort = _configuration.GetValue<int>("Monitoring:UptimeKumaPort", 3001);
+            var statusPageSlug = _configuration.GetValue<string>("Monitoring:StatusPageSlug", "crm-status");
+            
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(10);
+            
+            // Get heartbeat data from status page (public endpoint)
+            var heartbeatUrl = $"http://{uptimeKumaHost}:{uptimeKumaPort}/api/status-page/heartbeat/{statusPageSlug}";
+            
+            try
+            {
+                var response = await client.GetAsync(heartbeatUrl, ct);
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync(ct);
+                    var data = JsonSerializer.Deserialize<JsonElement>(content);
+                    
+                    var monitors = new List<object>();
+                    
+                    // Parse heartbeatList from response
+                    if (data.TryGetProperty("heartbeatList", out var heartbeatList))
+                    {
+                        foreach (var monitorProp in heartbeatList.EnumerateObject())
+                        {
+                            var monitorId = monitorProp.Name;
+                            var heartbeats = monitorProp.Value;
+                            
+                            // Get latest heartbeat
+                            if (heartbeats.GetArrayLength() > 0)
+                            {
+                                var latest = heartbeats[heartbeats.GetArrayLength() - 1];
+                                monitors.Add(new
+                                {
+                                    id = monitorId,
+                                    status = latest.TryGetProperty("status", out var s) ? s.GetInt32() : 0,
+                                    ping = latest.TryGetProperty("ping", out var p) ? p.GetInt32() : 0,
+                                    time = latest.TryGetProperty("time", out var t) ? t.GetString() : null,
+                                    msg = latest.TryGetProperty("msg", out var m) ? m.GetString() : null,
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Get uptime data
+                    var uptimeData = new Dictionary<string, object>();
+                    if (data.TryGetProperty("uptimeList", out var uptimeList))
+                    {
+                        foreach (var prop in uptimeList.EnumerateObject())
+                        {
+                            uptimeData[prop.Name] = prop.Value.GetDouble();
+                        }
+                    }
+                    
+                    return Ok(new
+                    {
+                        connected = true,
+                        monitors = monitors,
+                        uptimeList = uptimeData,
+                        monitorCount = monitors.Count,
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Could not fetch Uptime Kuma monitors");
+            }
+            
+            return Ok(new
+            {
+                connected = false,
+                monitors = Array.Empty<object>(),
+                monitorCount = 0,
+                message = "Status page not accessible",
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            return Ok(new
+            {
+                connected = false,
+                error = ex.Message,
+                timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get container status from Portainer
+    /// </summary>
+    [HttpGet("portainer/containers")]
+    [AllowAnonymous]
+    public async Task<ActionResult> GetPortainerContainers(CancellationToken ct)
+    {
+        try
+        {
+            var portainerHost = _configuration.GetValue<string>("Monitoring:PortainerHost", "portainer");
+            var portainerPort = _configuration.GetValue<int>("Monitoring:PortainerPort", 9000);
+            
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(5);
+            
+            // Get basic Portainer status (version info is public)
+            var response = await client.GetAsync($"http://{portainerHost}:{portainerPort}/api/status", ct);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync(ct);
+                var statusData = JsonSerializer.Deserialize<JsonElement>(content);
+                
+                return Ok(new
+                {
+                    connected = true,
+                    version = statusData.TryGetProperty("Version", out var v) ? v.GetString() : "unknown",
+                    instanceId = statusData.TryGetProperty("InstanceID", out var i) ? i.GetString() : null,
+                    message = "Portainer is running. Login to view containers.",
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            
+            return Ok(new
+            {
+                connected = false,
+                message = "Portainer not accessible",
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            return Ok(new
+            {
+                connected = false,
+                error = ex.Message,
+                timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
     private async Task<object> GetUptimeKumaStatusInternal(CancellationToken ct)
     {
         try

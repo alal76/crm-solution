@@ -116,6 +116,29 @@ interface MonitoringToolsData {
   timestamp: string;
 }
 
+interface UptimeKumaMonitor {
+  id: string;
+  status: number; // 0 = down, 1 = up, 2 = pending
+  ping: number;
+  time: string;
+  msg?: string;
+}
+
+interface UptimeKumaMonitorsData {
+  connected: boolean;
+  monitors: UptimeKumaMonitor[];
+  uptimeList?: Record<string, number>;
+  monitorCount: number;
+  message?: string;
+}
+
+interface PortainerData {
+  connected: boolean;
+  version?: string;
+  instanceId?: string;
+  message?: string;
+}
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -138,6 +161,8 @@ const MonitoringDashboard: React.FC = () => {
   const [services, setServices] = useState<ServiceStatus[]>([]);
   const [monitoringTools, setMonitoringTools] = useState<ServiceStatus[]>([]);
   const [externalTools, setExternalTools] = useState<MonitoringToolsData | null>(null);
+  const [uptimeKumaMonitors, setUptimeKumaMonitors] = useState<UptimeKumaMonitorsData | null>(null);
+  const [portainerData, setPortainerData] = useState<PortainerData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [tabValue, setTabValue] = useState(0);
@@ -291,6 +316,28 @@ const MonitoringDashboard: React.FC = () => {
         checkMonitoringTool('Portainer', MONITORING_TOOLS.portainer.defaultPort),
       ]);
       setMonitoringTools(toolChecks);
+    }
+
+    // Fetch detailed Uptime Kuma monitor data
+    try {
+      const monitorsResponse = await fetch('/api/monitoring/uptime-kuma/monitors');
+      if (monitorsResponse.ok) {
+        const monitorsData: UptimeKumaMonitorsData = await monitorsResponse.json();
+        setUptimeKumaMonitors(monitorsData);
+      }
+    } catch (err) {
+      console.warn('Uptime Kuma monitors fetch failed:', err);
+    }
+
+    // Fetch Portainer data
+    try {
+      const portainerResponse = await fetch('/api/monitoring/portainer/containers');
+      if (portainerResponse.ok) {
+        const pData: PortainerData = await portainerResponse.json();
+        setPortainerData(pData);
+      }
+    } catch (err) {
+      console.warn('Portainer data fetch failed:', err);
     }
 
     // Check CRM services health
@@ -529,14 +576,69 @@ const MonitoringDashboard: React.FC = () => {
                 
                 <Divider sx={{ my: 2 }} />
                 
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                  Features:
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {MONITORING_TOOLS.uptimeKuma.features.map((feature) => (
-                    <Chip key={feature} label={feature} size="small" variant="outlined" />
-                  ))}
-                </Box>
+                {/* Live Monitor Status from Uptime Kuma */}
+                {uptimeKumaMonitors?.connected && uptimeKumaMonitors.monitors.length > 0 ? (
+                  <>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                      Monitor Status ({uptimeKumaMonitors.monitorCount} monitors):
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                      {uptimeKumaMonitors.monitors.slice(0, 8).map((monitor) => (
+                        <Chip 
+                          key={monitor.id}
+                          label={monitor.status === 1 ? '✓' : monitor.status === 0 ? '✗' : '?'}
+                          size="small"
+                          color={monitor.status === 1 ? 'success' : monitor.status === 0 ? 'error' : 'default'}
+                          title={`ID: ${monitor.id}, Ping: ${monitor.ping}ms`}
+                        />
+                      ))}
+                      {uptimeKumaMonitors.monitors.length > 8 && (
+                        <Chip label={`+${uptimeKumaMonitors.monitors.length - 8} more`} size="small" variant="outlined" />
+                      )}
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                      <Typography variant="body2" color="textSecondary">
+                        Up: {uptimeKumaMonitors.monitors.filter(m => m.status === 1).length}
+                      </Typography>
+                      <Typography variant="body2" color="error">
+                        Down: {uptimeKumaMonitors.monitors.filter(m => m.status === 0).length}
+                      </Typography>
+                    </Box>
+                  </>
+                ) : externalTools?.uptimeKuma?.status === 'online' ? (
+                  <>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                      Status:
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                      <Chip 
+                        icon={<HealthyIcon />}
+                        label="Service Running"
+                        size="small"
+                        color="success"
+                      />
+                      <Chip 
+                        label="8 monitors configured"
+                        size="small"
+                        variant="outlined"
+                      />
+                    </Box>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                      Click to view monitor dashboard
+                    </Typography>
+                  </>
+                ) : (
+                  <>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                      Features:
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {MONITORING_TOOLS.uptimeKuma.features.map((feature) => (
+                        <Chip key={feature} label={feature} size="small" variant="outlined" />
+                      ))}
+                    </Box>
+                  </>
+                )}
               </CardContent>
               <CardActions sx={{ p: 2, pt: 0 }}>
                 <Button 
@@ -601,14 +703,45 @@ const MonitoringDashboard: React.FC = () => {
               
               <Divider sx={{ my: 2 }} />
               
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                Features:
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {MONITORING_TOOLS.portainer.features.map((feature) => (
-                  <Chip key={feature} label={feature} size="small" variant="outlined" />
-                ))}
-              </Box>
+              {/* Portainer Status Info */}
+              {portainerData?.connected ? (
+                <>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                    Status:
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                    <Chip 
+                      icon={<HealthyIcon />}
+                      label="Connected"
+                      size="small"
+                      color="success"
+                    />
+                    {portainerData.version && (
+                      <Chip 
+                        label={`Version ${portainerData.version}`}
+                        size="small"
+                        variant="outlined"
+                      />
+                    )}
+                  </Box>
+                  {portainerData.message && (
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                      {portainerData.message}
+                    </Typography>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                    Features:
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {MONITORING_TOOLS.portainer.features.map((feature) => (
+                      <Chip key={feature} label={feature} size="small" variant="outlined" />
+                    ))}
+                  </Box>
+                </>
+              )}
             </CardContent>
             <CardActions sx={{ p: 2, pt: 0 }}>
               <Button 

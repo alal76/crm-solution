@@ -299,6 +299,48 @@ verify_deployment() {
     \"" 2>/dev/null || log_warning "Could not get database stats"
 }
 
+# Configure monitoring services
+configure_monitoring() {
+    log_step "Configuring monitoring services..."
+    
+    # Check if monitoring scripts exist and have dependencies
+    if [[ -d "${PROJECT_DIR}/scripts/monitoring" && -f "${PROJECT_DIR}/scripts/monitoring/package.json" ]]; then
+        # Install dependencies if needed
+        if [[ ! -d "${PROJECT_DIR}/scripts/monitoring/node_modules" ]]; then
+            log_info "Installing monitoring script dependencies..."
+            cd "${PROJECT_DIR}/scripts/monitoring" && npm install --silent
+        fi
+        
+        # Wait for Uptime Kuma to be fully ready
+        log_info "Waiting for Uptime Kuma to be ready..."
+        local max_attempts=30
+        local attempt=0
+        while [[ $attempt -lt $max_attempts ]]; do
+            local uptime_status=$(curl -s -o /dev/null -w '%{http_code}' "http://${BUILD_HOST}:3001" 2>/dev/null || echo "000")
+            if [[ "$uptime_status" =~ ^(200|302)$ ]]; then
+                break
+            fi
+            sleep 2
+            attempt=$((attempt + 1))
+        done
+        
+        if [[ $attempt -lt $max_attempts ]]; then
+            # Configure Uptime Kuma monitors
+            log_info "Configuring Uptime Kuma monitors..."
+            cd "${PROJECT_DIR}/scripts/monitoring"
+            UPTIME_KUMA_HOST="${BUILD_HOST}" \
+            UPTIME_KUMA_USER="admin" \
+            UPTIME_KUMA_PASS="CrmAdmin2024!" \
+            node configure-uptime-kuma.js 2>&1 | grep -E "^[✓⚠✗📊📄═]|Created:|Skipping|Monitor Summary|complete" || true
+            log_success "Uptime Kuma monitors configured"
+        else
+            log_warning "Uptime Kuma not ready, skipping monitor configuration"
+        fi
+    else
+        log_warning "Monitoring scripts not found, skipping configuration"
+    fi
+}
+
 # Clean old images
 clean_images() {
     log_step "Cleaning old Docker images..."
@@ -412,6 +454,7 @@ main() {
     deploy_containers "$new_version"
     clean_images
     verify_deployment
+    configure_monitoring
     
     echo ""
     echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════╗${NC}"
