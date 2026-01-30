@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Paper } from '@mui/material';
 import { Monitor as MonitorIcon } from '@mui/icons-material';
-import MonitoringSettingsTab from '../../components/settings/MonitoringSettingsTab';
+import MonitoringDashboard from './MonitoringDashboard';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
 
 const MonitoringSettingsPage: React.FC = () => {
@@ -9,12 +9,12 @@ const MonitoringSettingsPage: React.FC = () => {
     <Box sx={{ py: 2 }}>
       <AdminPageHeader
         title="Monitoring"
-        subtitle="System health, logs, and performance monitoring"
+        subtitle="Infrastructure monitoring with Uptime Kuma and Portainer"
         icon={MonitorIcon}
       />
 
-      <Paper sx={{ p: 3 }}>
-        <MonitoringSettingsTab />
+      <Paper sx={{ p: 0 }}>
+        <MonitoringDashboard />
       </Paper>
     </Box>
   );

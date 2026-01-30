@@ -439,6 +439,9 @@ deploy_services() {
                 deploy_cmd="docker compose -f ${compose_file} up -d crm-mariadb crm-redis"
             fi
             ;;
+        monitoring)
+            deploy_cmd="docker compose -f ${compose_file} up -d uptime-kuma portainer"
+            ;;
     esac
     
     # Execute deployment
@@ -518,12 +521,59 @@ wait_for_health() {
 show_status() {
     log_step "Current container status:"
     
-    local status_cmd="docker ps --filter 'name=crm-' --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+    local status_cmd="docker ps --filter 'name=crm-' --filter 'name=uptime-kuma' --filter 'name=portainer' --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
     
     if [ "$BUILD_SERVER" = "localhost" ]; then
         eval "$status_cmd"
     else
         ssh ${BUILD_USER}@${BUILD_SERVER} "$status_cmd"
+    fi
+}
+
+# =============================================================================
+# MONITORING SERVICES
+# =============================================================================
+
+deploy_monitoring() {
+    log_step "Deploying monitoring services..."
+    
+    local compose_file=$(get_compose_file)
+    local deploy_cmd="docker compose -f ${compose_file} up -d uptime-kuma portainer"
+    
+    if [ "$BUILD_SERVER" = "localhost" ]; then
+        cd "$PROJECT_DIR"
+        eval "$deploy_cmd"
+    else
+        ssh ${BUILD_USER}@${BUILD_SERVER} "cd ${REMOTE_SOURCE_PATH:-/opt/crm/source} && $deploy_cmd"
+    fi
+    
+    log_success "Monitoring services deployed"
+}
+
+check_monitoring_status() {
+    log_step "Checking monitoring services..."
+    
+    local uptime_status=""
+    local portainer_status=""
+    
+    if [ "$BUILD_SERVER" = "localhost" ]; then
+        uptime_status=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:${PORT_UPTIME_KUMA:-3001} 2>/dev/null || echo "000")
+        portainer_status=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:${PORT_PORTAINER:-9000} 2>/dev/null || echo "000")
+    else
+        uptime_status=$(ssh ${BUILD_USER}@${BUILD_SERVER} "curl -s -o /dev/null -w '%{http_code}' http://localhost:${PORT_UPTIME_KUMA:-3001} 2>/dev/null" || echo "000")
+        portainer_status=$(ssh ${BUILD_USER}@${BUILD_SERVER} "curl -s -o /dev/null -w '%{http_code}' http://localhost:${PORT_PORTAINER:-9000} 2>/dev/null" || echo "000")
+    fi
+    
+    if [[ "$uptime_status" =~ ^(200|302|307)$ ]]; then
+        log_success "Uptime Kuma: http://${BUILD_SERVER}:${PORT_UPTIME_KUMA:-3001} (HTTP ${uptime_status})"
+    else
+        log_warning "Uptime Kuma: http://${BUILD_SERVER}:${PORT_UPTIME_KUMA:-3001} (HTTP ${uptime_status} - not running)"
+    fi
+    
+    if [[ "$portainer_status" =~ ^(200|302|307)$ ]]; then
+        log_success "Portainer:   http://${BUILD_SERVER}:${PORT_PORTAINER:-9000} (HTTP ${portainer_status})"
+    else
+        log_warning "Portainer:   http://${BUILD_SERVER}:${PORT_PORTAINER:-9000} (HTTP ${portainer_status} - not running)"
     fi
 }
 
@@ -573,9 +623,14 @@ main() {
     if [ "$BUILD_ONLY" != "true" ]; then
         echo ""
         log_info "Access URLs:"
-        log_info "  Frontend:  http://${BUILD_SERVER}/"
-        log_info "  API:       http://${BUILD_SERVER}:5000/"
-        log_info "  API Health: http://${BUILD_SERVER}:5000/health"
+        log_info "  Frontend:    http://${BUILD_SERVER}/"
+        log_info "  API:         http://${BUILD_SERVER}:5000/"
+        log_info "  API Health:  http://${BUILD_SERVER}:5000/health"
+        log_info "  Swagger:     http://${BUILD_SERVER}:5000/swagger"
+        echo ""
+        log_info "Monitoring:"
+        log_info "  Uptime Kuma: http://${BUILD_SERVER}:${PORT_UPTIME_KUMA:-3001}/"
+        log_info "  Portainer:   http://${BUILD_SERVER}:${PORT_PORTAINER:-9000}/"
     fi
 }
 

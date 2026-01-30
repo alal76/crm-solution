@@ -68,7 +68,6 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import UserApprovalTab from '../components/settings/UserApprovalTab';
 import GroupManagementTab from '../components/settings/GroupManagementTab';
-import DatabaseSettingsTab from '../components/settings/DatabaseSettingsTab';
 import ModuleFieldSettingsTab from '../components/settings/ModuleFieldSettingsTabNew';
 import UserManagementTab from '../components/settings/UserManagementTab';
 import SocialLoginSettingsTab from '../components/settings/SocialLoginSettingsTab';
@@ -76,7 +75,7 @@ import SecuritySettingsTab from '../components/settings/SecuritySettingsTab';
 import NavigationSettingsTab from '../components/settings/NavigationSettingsTab';
 import ServiceRequestSettingsTab from '../components/settings/ServiceRequestSettingsTab';
 import DeploymentSettingsTab from '../components/settings/DeploymentSettingsTab';
-import MonitoringSettingsTab from '../components/settings/MonitoringSettingsTab';
+import MonitoringDashboard from './admin/MonitoringDashboard';
 import MasterDataSettingsTab from '../components/settings/MasterDataSettingsTab';
 import FeatureManagementTab from '../components/settings/FeatureManagementTab';
 import logo from '../assets/logo.png';
@@ -1499,27 +1498,21 @@ function SettingsPage() {
     {
       id: 'systemadmin',
       title: 'System Administration',
-      description: 'Core technical settings, database, deployment, monitoring, and security',
+      description: 'Core technical settings, deployment, monitoring, and security',
       icon: <AdminPanelSettingsIcon />,
       color: '#1976d2',
       items: [
         {
-          id: 'database',
-          label: 'Database Settings',
-          icon: <StorageIcon sx={{ fontSize: 20 }} />,
-          component: <DatabaseSettingsTab />,
+          id: 'monitoring',
+          label: 'Monitoring',
+          icon: <MonitorIcon sx={{ fontSize: 20 }} />,
+          component: <MonitoringDashboard />,
         },
         {
           id: 'deployment',
           label: 'Deployment & Hosting',
           icon: <CloudIcon sx={{ fontSize: 20 }} />,
           component: <DeploymentSettingsTab />,
-        },
-        {
-          id: 'monitoring',
-          label: 'Monitoring',
-          icon: <MonitorIcon sx={{ fontSize: 20 }} />,
-          component: <MonitoringSettingsTab />,
         },
         {
           id: 'security',

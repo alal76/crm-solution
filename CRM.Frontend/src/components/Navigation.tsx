@@ -223,9 +223,8 @@ function NavigationContent() {
 
   const adminItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
     // System Administration
-    'database-settings': { label: 'Database', icon: StorageIcon, path: '/admin/database', menuName: 'DatabaseSettings' },
-    'deployment-settings': { label: 'Deployment', icon: CloudIcon, path: '/admin/deployment', menuName: 'DeploymentSettings' },
     'monitoring-settings': { label: 'Monitoring', icon: MonitorIcon, path: '/admin/monitoring', menuName: 'MonitoringSettings' },
+    'deployment-settings': { label: 'Deployment', icon: CloudIcon, path: '/admin/deployment', menuName: 'DeploymentSettings' },
     'security-settings': { label: 'Security', icon: SecurityIcon, path: '/admin/security', menuName: 'SecuritySettings' },
     'feature-management': { label: 'Features', icon: FeatureToggleIcon, path: '/admin/features', menuName: 'FeatureManagement' },
     // User Administration
@@ -254,7 +253,7 @@ function NavigationContent() {
     'my-queue', 'activities', 'notes', 'communications', 'interactions'
   ], []);
   const defaultAdminOrder = useMemo(() => [
-    'database-settings', 'deployment-settings', 'monitoring-settings', 'security-settings', 'feature-management',
+    'monitoring-settings', 'deployment-settings', 'security-settings', 'feature-management',
     'user-management', 'user-approvals', 'group-management', 'social-login',
     'branding-settings', 'navigation-settings', 'module-fields', 'sr-definitions', 'master-data', 'dashboard-settings', 'workflow-settings',
     'channel-settings', 'settings'
@@ -321,9 +320,8 @@ function NavigationContent() {
     { id: 'help', order: 51, visible: true, category: 'info' },
     { id: 'licenses', order: 52, visible: true, category: 'info' },
     // System Administration
-    { id: 'database-settings', order: 60, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
+    { id: 'monitoring-settings', order: 60, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     { id: 'deployment-settings', order: 61, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
-    { id: 'monitoring-settings', order: 62, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     { id: 'security-settings', order: 63, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     { id: 'feature-management', order: 64, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     // User Administration

@@ -23,7 +23,7 @@ CRM Solution is a comprehensive, full-stack Customer Relationship Management pla
 This is still very much a work in progress - totally unested and an experiment to see how far vibe coding can be used to build an enterprise grade solution . 
 
 Comments feedback and enhacement requests along with your how it worked in your situation are welcome. 
-I plan to use this the learning to do a writeup regarding this , and will incorporate the feedback into that writeup. 
+I plan to use this  learning to do a writeup regarding this , and will incorporate the feedback into that writeup. 
 
 This is a hobby side project not related to my day job - and built on weekends - no commitment on any time or effort will be put into this going forward - this is an experiment . Feel free to clone , extend enhance or change this as you feel free to.
 

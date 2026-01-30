@@ -256,18 +256,35 @@ verify_deployment() {
     # Check API health
     local api_status=$(ssh ${BUILD_USER}@${BUILD_HOST} "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/health 2>/dev/null" || echo "000")
     local frontend_status=$(ssh ${BUILD_USER}@${BUILD_HOST} "curl -s -o /dev/null -w '%{http_code}' http://localhost/ 2>/dev/null" || echo "000")
+    local uptime_status=$(ssh ${BUILD_USER}@${BUILD_HOST} "curl -s -o /dev/null -w '%{http_code}' http://localhost:3001 2>/dev/null" || echo "000")
+    local portainer_status=$(ssh ${BUILD_USER}@${BUILD_HOST} "curl -s -o /dev/null -w '%{http_code}' http://localhost:9000 2>/dev/null" || echo "000")
     
     echo ""
+    log_info "Application Services:"
     if [[ "$api_status" == "200" ]]; then
-        log_success "API:      http://${BUILD_HOST}:5000 (HTTP ${api_status})"
+        log_success "API:        http://${BUILD_HOST}:5000 (HTTP ${api_status})"
     else
-        log_warning "API:      http://${BUILD_HOST}:5000 (HTTP ${api_status} - starting...)"
+        log_warning "API:        http://${BUILD_HOST}:5000 (HTTP ${api_status} - starting...)"
     fi
     
     if [[ "$frontend_status" == "200" ]]; then
-        log_success "Frontend: http://${BUILD_HOST} (HTTP ${frontend_status})"
+        log_success "Frontend:   http://${BUILD_HOST} (HTTP ${frontend_status})"
     else
-        log_warning "Frontend: http://${BUILD_HOST} (HTTP ${frontend_status} - starting...)"
+        log_warning "Frontend:   http://${BUILD_HOST} (HTTP ${frontend_status} - starting...)"
+    fi
+    
+    echo ""
+    log_info "Monitoring Services:"
+    if [[ "$uptime_status" =~ ^(200|302)$ ]]; then
+        log_success "Uptime Kuma: http://${BUILD_HOST}:3001 (HTTP ${uptime_status})"
+    else
+        log_warning "Uptime Kuma: http://${BUILD_HOST}:3001 (HTTP ${uptime_status} - not running)"
+    fi
+    
+    if [[ "$portainer_status" =~ ^(200|307)$ ]]; then
+        log_success "Portainer:   http://${BUILD_HOST}:9000 (HTTP ${portainer_status})"
+    else
+        log_warning "Portainer:   http://${BUILD_HOST}:9000 (HTTP ${portainer_status} - not running)"
     fi
     
     # Get database stats
@@ -400,10 +417,14 @@ main() {
     echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${GREEN}║${NC}                    ${GREEN}✓ Build & Deploy Complete${NC}                      ${GREEN}║${NC}"
     echo -e "${GREEN}║${NC}                                                                  ${GREEN}║${NC}"
-    echo -e "${GREEN}║${NC}   Version:  ${YELLOW}${new_version}${NC}                                             ${GREEN}║${NC}"
-    echo -e "${GREEN}║${NC}   API:      ${CYAN}http://${BUILD_HOST}:5000${NC}                          ${GREEN}║${NC}"
-    echo -e "${GREEN}║${NC}   Frontend: ${CYAN}http://${BUILD_HOST}${NC}                               ${GREEN}║${NC}"
-    echo -e "${GREEN}║${NC}   Swagger:  ${CYAN}http://${BUILD_HOST}:5000/swagger${NC}                   ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   Version:    ${YELLOW}${new_version}${NC}                                             ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   API:        ${CYAN}http://${BUILD_HOST}:5000${NC}                          ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   Frontend:   ${CYAN}http://${BUILD_HOST}${NC}                               ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   Swagger:    ${CYAN}http://${BUILD_HOST}:5000/swagger${NC}                   ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}                                                                  ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   ${MAGENTA}Monitoring:${NC}                                                    ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   Uptime Kuma: ${CYAN}http://${BUILD_HOST}:3001${NC}                          ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}   Portainer:   ${CYAN}http://${BUILD_HOST}:9000${NC}                          ${GREEN}║${NC}"
     echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }

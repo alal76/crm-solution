@@ -17,7 +17,7 @@
  */
 
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { Container, CssBaseline, Box } from '@mui/material';
 import { AuthProvider } from './contexts/AuthContext';
@@ -69,7 +69,6 @@ import ChannelSettingsPage from './pages/ChannelSettingsPage';
 import RelationshipsPage from './pages/RelationshipsPage';
 import CampaignExecutionPage from './pages/CampaignExecutionPage';
 import {
-  DatabaseSettingsPage,
   DeploymentSettingsPage,
   MonitoringSettingsPage,
   SecuritySettingsPage,
@@ -413,13 +412,7 @@ function ThemedApp() {
               {/* Admin Settings Routes */}
               <Route
                 path="/admin/database"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute>
-                      <DatabaseSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
+                element={<Navigate to="/admin/monitoring" replace />}
               />
               <Route
                 path="/admin/deployment"

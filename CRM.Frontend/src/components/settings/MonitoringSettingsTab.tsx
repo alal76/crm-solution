@@ -2,11 +2,11 @@
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
  *
- * Comprehensive Monitoring Dashboard Component
- * Displays infrastructure, system, database, and service metrics
+ * Comprehensive Monitoring Dashboard - Environment & Infrastructure Aware
+ * Automatically adapts display based on detected deployment type (Docker/K8s/VM)
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -26,14 +26,15 @@ import {
   TableHead,
   TableRow,
   Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Avatar,
   CircularProgress,
-  Tabs,
-  Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Skeleton,
+  Badge,
+  Avatar,
+  Stack,
+  useTheme,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -43,122 +44,76 @@ import {
   Storage as DatabaseIcon,
   Memory as MemoryIcon,
   Speed as CpuIcon,
-  Dns as DnsIcon,
   Cloud as CloudIcon,
   Person as PersonIcon,
   Computer as ServerIcon,
-  Language as WebIcon,
   Api as ApiIcon,
+  ExpandMore as ExpandMoreIcon,
+  Schedule as ScheduleIcon,
+  DataUsage as DataUsageIcon,
+  Circle as CircleIcon,
+  Hub as HubIcon,
+  ViewInAr as ContainerIcon,
+  AccountTree as KubernetesIcon,
   NetworkCheck as NetworkIcon,
-  Inventory as ContainerIcon,
-  Apps as KubernetesIcon,
+  FolderOpen as DiskIcon,
+  Settings as SettingsIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 
-// Status colors
-const STATUS_COLORS = {
-  healthy: '#4caf50',
-  degraded: '#ff9800',
-  error: '#f44336',
-  unknown: '#9e9e9e',
-  running: '#4caf50',
-  stopped: '#f44336',
-};
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
 
-// Interfaces matching backend DTOs
+interface EnvironmentInfo {
+  deploymentType: string;
+  isDocker: boolean;
+  isKubernetes: boolean;
+  databaseProvider: string;
+  databaseConnected: boolean;
+  hostname: string;
+  version: string;
+  dotNetVersion: string;
+  enabledMonitors: string[];
+  timestamp: string;
+}
+
 interface InfrastructureInfo {
   timestamp: string;
   deploymentType: number;
   deploymentTypeName: string;
-  database: DatabaseInfo;
-  host: HostInfo;
+  database: {
+    provider: number;
+    providerName: string;
+    version: string;
+    host: string;
+    port: number;
+    isConnected: boolean;
+    edition: string;
+    collation: string;
+  };
+  host: {
+    hostname: string;
+    fqdn: string;
+    osDescription: string;
+    architecture: string;
+    processorCount: number;
+    totalMemoryMB: number;
+    dotNetVersion: string;
+    isDocker: boolean;
+    isKubernetes: boolean;
+  };
   activeMonitors: string[];
   availableMonitors: string[];
 }
 
-interface DatabaseInfo {
-  provider: number;
-  providerName: string;
-  version: string;
-  host: string;
-  port: number;
-  isConnected: boolean;
-  edition: string;
-  collation: string;
-}
-
-interface HostInfo {
-  hostname: string;
-  fqdn: string;
-  osDescription: string;
-  architecture: string;
-  processorCount: number;
-  totalMemoryMB: number;
-  dotNetVersion: string;
-  isDocker: boolean;
-  isKubernetes: boolean;
-}
-
 interface SystemMetrics {
   timestamp: string;
-  cpu: CpuMetrics;
-  memory: MemoryMetrics;
-  disk: DiskMetrics;
-  network: NetworkMetrics;
-  process: ProcessMetrics;
-}
-
-interface CpuMetrics {
-  usagePercent: number;
-  processorCount: number;
-  processCpuPercent: number;
-}
-
-interface MemoryMetrics {
-  totalMB: number;
-  usedMB: number;
-  freeMB: number;
-  usagePercent: number;
-  processWorkingSetMB: number;
-}
-
-interface DiskMetrics {
-  drives: DiskInfo[];
-  totalSpaceGB: number;
-  usedSpaceGB: number;
-  freeSpaceGB: number;
-  usagePercent: number;
-}
-
-interface DiskInfo {
-  name: string;
-  mountPoint: string;
-  totalGB: number;
-  usedGB: number;
-  freeGB: number;
-  usagePercent: number;
-}
-
-interface NetworkMetrics {
-  bytesReceived: number;
-  bytesSent: number;
-  interfaces: NetworkInterfaceInfo[];
-}
-
-interface NetworkInterfaceInfo {
-  name: string;
-  ipAddress: string;
-  isUp: boolean;
-  bytesReceived: number;
-  bytesSent: number;
-}
-
-interface ProcessMetrics {
-  threadCount: number;
-  handleCount: number;
-  workingSetMB: number;
-  privateMemoryMB: number;
-  cpuTimeMs: number;
-  uptimeFormatted: string;
+  cpu: { usagePercent: number; processorCount: number; processCpuPercent: number };
+  memory: { totalMB: number; usedMB: number; freeMB: number; usagePercent: number; processWorkingSetMB: number };
+  disk: { drives: Array<{ name: string; mountPoint: string; totalGB: number; usedGB: number; freeGB: number; usagePercent: number }>; totalSpaceGB: number; usedSpaceGB: number; freeSpaceGB: number; usagePercent: number };
+  network: { bytesReceived: number; bytesSent: number; interfaces: Array<{ name: string; ipAddress: string; isUp: boolean; bytesReceived: number; bytesSent: number }> };
+  process: { threadCount: number; handleCount: number; workingSetMB: number; privateMemoryMB: number; cpuTimeMs: number; uptimeFormatted: string };
 }
 
 interface DatabaseMetrics {
@@ -170,7 +125,7 @@ interface DatabaseMetrics {
   activeConnections: number;
   databaseSizeMB: number;
   version: string;
-  providerSpecificMetrics: Record<string, any>;
+  providerSpecificMetrics: Record<string, unknown>;
 }
 
 interface ServiceHealth {
@@ -182,7 +137,7 @@ interface ServiceHealth {
   version: string;
   lastCheck: string;
   uptime: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 interface ContainerHealth {
@@ -234,50 +189,172 @@ interface MonitoringData {
   activeSessions: UserSession[];
 }
 
-// Tab panel component
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const STATUS_COLORS = {
+  healthy: '#4caf50',
+  running: '#4caf50',
+  degraded: '#ff9800',
+  warning: '#ff9800',
+  error: '#f44336',
+  stopped: '#f44336',
+  unknown: '#9e9e9e',
+} as const;
+
+const DEPLOYMENT_ICONS: Record<string, React.ReactNode> = {
+  docker: <ContainerIcon />,
+  kubernetes: <KubernetesIcon />,
+  vm: <ServerIcon />,
+  hybrid: <HubIcon />,
+};
+
+const DATABASE_ICONS: Record<string, string> = {
+  mariadb: '🐬',
+  mysql: '🐬',
+  sqlserver: '🗄️',
+  postgresql: '🐘',
+  mongodb: '🍃',
+  oracle: '🔴',
+};
+
+// ============================================================================
+// HELPER COMPONENTS
+// ============================================================================
+
+interface StatusCardProps {
+  icon: React.ReactNode;
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  color: string;
+  bgColor: string;
 }
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ py: 2 }}>{children}</Box>}
-    </div>
-  );
+const StatusCard: React.FC<StatusCardProps> = ({ icon, title, value, subtitle, color, bgColor }) => (
+  <Card sx={{ borderRadius: 2, bgcolor: bgColor, height: '100%', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-2px)' } }}>
+    <CardContent sx={{ textAlign: 'center', py: 2 }}>
+      <Box sx={{ color, mb: 1, '& svg': { fontSize: 32 } }}>{icon}</Box>
+      <Typography variant="h4" fontWeight={700} color={color}>{value}</Typography>
+      <Typography variant="body2" fontWeight={600} color="textSecondary">{title}</Typography>
+      {subtitle && <Typography variant="caption" color="textSecondary">{subtitle}</Typography>}
+    </CardContent>
+  </Card>
+);
+
+interface MetricProgressProps {
+  label: string;
+  value: number;
+  total?: number;
+  unit?: string;
+  showPercent?: boolean;
 }
+
+const MetricProgress: React.FC<MetricProgressProps> = ({ label, value, total, unit = '', showPercent = true }) => {
+  const percent = total ? Math.min(100, (value / total) * 100) : value;
+  const getColor = (p: number) => p < 50 ? '#4caf50' : p < 75 ? '#ff9800' : '#f44336';
+
+  return (
+    <Box sx={{ mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+        <Typography variant="body2" fontWeight={500}>{label}</Typography>
+        <Typography variant="body2" fontWeight={600}>
+          {total ? `${value.toFixed(1)}${unit} / ${total.toFixed(1)}${unit}` : showPercent ? `${value.toFixed(1)}%` : `${value}${unit}`}
+        </Typography>
+      </Box>
+      <LinearProgress
+        variant="determinate"
+        value={Math.min(100, percent)}
+        sx={{
+          height: 8,
+          borderRadius: 4,
+          bgcolor: '#e0e0e0',
+          '& .MuiLinearProgress-bar': { bgcolor: getColor(percent), borderRadius: 4 },
+        }}
+      />
+    </Box>
+  );
+};
+
+const StatusChip: React.FC<{ status: string }> = ({ status }) => {
+  const color = STATUS_COLORS[status.toLowerCase() as keyof typeof STATUS_COLORS] || STATUS_COLORS.unknown;
+  const icon = status.toLowerCase() === 'healthy' || status.toLowerCase() === 'running' 
+    ? <HealthyIcon sx={{ fontSize: 14 }} /> 
+    : status.toLowerCase() === 'error' || status.toLowerCase() === 'stopped'
+    ? <ErrorIcon sx={{ fontSize: 14 }} />
+    : <WarningIcon sx={{ fontSize: 14 }} />;
+  
+  return (
+    <Chip
+      icon={icon}
+      label={status}
+      size="small"
+      sx={{ bgcolor: `${color}20`, color, fontWeight: 600, '& .MuiChip-icon': { color } }}
+    />
+  );
+};
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 export default function MonitoringSettingsTab() {
+  const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [envInfo, setEnvInfo] = useState<EnvironmentInfo | null>(null);
   const [data, setData] = useState<MonitoringData | null>(null);
   const [lastRefresh, setLastRefresh] = useState(new Date());
-  const [tabValue, setTabValue] = useState(0);
+  const [expandedSection, setExpandedSection] = useState<string | false>('overview');
 
-  const refreshData = useCallback(async () => {
+  // Fetch environment info first (public endpoint, no auth required)
+  const fetchEnvironment = useCallback(async () => {
+    try {
+      const response = await fetch('/api/monitoring/environment');
+      if (response.ok) {
+        const result = await response.json();
+        setEnvInfo(result);
+        return result;
+      }
+    } catch (err) {
+      console.warn('Could not fetch environment info:', err);
+    }
+    return null;
+  }, []);
+
+  // Fetch full monitoring data (requires auth)
+  const fetchMonitoringData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const token = localStorage.getItem('token');
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      
+
       const response = await fetch('/api/monitoring/all', { headers });
       
+      // Check content type
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Access denied. Please ensure you are logged in with Admin privileges.');
+        }
+        throw new Error(`Backend API unavailable. Received non-JSON response (Status: ${response.status}). Please ensure the API is running.`);
+      }
+
       if (response.ok) {
         const result = await response.json();
         setData(result);
         setLastRefresh(new Date());
+      } else if (response.status === 401) {
+        throw new Error('Authentication required. Please log in with an Admin account.');
       } else {
-        throw new Error(`Failed to fetch monitoring data: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to fetch monitoring data: ${response.status}`);
       }
     } catch (err) {
       console.error('Error fetching monitoring data:', err);
@@ -287,92 +364,115 @@ export default function MonitoringSettingsTab() {
     }
   }, []);
 
+  const refreshData = useCallback(async () => {
+    await fetchEnvironment();
+    await fetchMonitoringData();
+  }, [fetchEnvironment, fetchMonitoringData]);
+
   useEffect(() => {
     refreshData();
-    const interval = setInterval(refreshData, 30000); // Refresh every 30 seconds
+    const interval = setInterval(refreshData, 30000);
     return () => clearInterval(interval);
   }, [refreshData]);
 
-  const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'healthy':
-      case 'running':
-        return <HealthyIcon sx={{ color: STATUS_COLORS.healthy }} />;
-      case 'degraded':
-        return <WarningIcon sx={{ color: STATUS_COLORS.degraded }} />;
-      case 'error':
-      case 'stopped':
-        return <ErrorIcon sx={{ color: STATUS_COLORS.error }} />;
-      default:
-        return <WarningIcon sx={{ color: STATUS_COLORS.unknown }} />;
-    }
-  };
+  // Computed values
+  const deploymentType = useMemo(() => {
+    if (envInfo?.isKubernetes || data?.infrastructure?.host?.isKubernetes) return 'kubernetes';
+    if (envInfo?.isDocker || data?.infrastructure?.host?.isDocker) return 'docker';
+    return envInfo?.deploymentType?.toLowerCase() || data?.infrastructure?.deploymentTypeName?.toLowerCase() || 'vm';
+  }, [envInfo, data]);
 
-  const getProgressColor = (percent: number) => {
-    if (percent < 50) return '#4caf50';
-    if (percent < 75) return '#ff9800';
-    return '#f44336';
-  };
+  const databaseProvider = useMemo(() => {
+    return envInfo?.databaseProvider?.toLowerCase() || data?.database?.providerName?.toLowerCase() || 'unknown';
+  }, [envInfo, data]);
 
-  const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  const enabledMonitors = useMemo(() => {
+    return envInfo?.enabledMonitors || data?.infrastructure?.activeMonitors || [];
+  }, [envInfo, data]);
 
-  const formatDuration = (isoString: string) => {
-    if (!isoString) return 'N/A';
-    const diff = Date.now() - new Date(isoString).getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(minutes / 60);
-    if (hours > 0) return `${hours}h ${minutes % 60}m ago`;
-    if (minutes > 0) return `${minutes}m ago`;
-    return 'Just now';
-  };
+  const showDockerSection = useMemo(() => {
+    return deploymentType === 'docker' || enabledMonitors.includes('docker') || (data?.containers?.length ?? 0) > 0;
+  }, [deploymentType, enabledMonitors, data]);
 
-  const getDeploymentTypeName = (type: number) => {
-    switch (type) {
-      case 0: return 'Docker';
-      case 1: return 'Kubernetes';
-      case 2: return 'Virtual Machine';
-      case 3: return 'Hybrid';
-      default: return 'Unknown';
-    }
-  };
+  const showK8sSection = useMemo(() => {
+    return deploymentType === 'kubernetes' || enabledMonitors.includes('kubernetes') || (data?.pods?.length ?? 0) > 0;
+  }, [deploymentType, enabledMonitors, data]);
 
-  const calculateOverallHealth = () => {
-    if (!data?.services) return { status: 'unknown', message: 'Loading...' };
+  // Statistics
+  const serviceCount = data?.services?.length || 0;
+  const healthyServiceCount = data?.services?.filter(s => s.status === 'healthy').length || 0;
+  const containerCount = data?.containers?.length || 0;
+  const runningContainerCount = data?.containers?.filter(c => c.status === 'running').length || 0;
+  const podCount = data?.pods?.length || 0;
+  const readyPodCount = data?.pods?.filter(p => p.ready).length || 0;
+  const sessionCount = data?.activeSessions?.length || 0;
+
+  const overallHealth = useMemo(() => {
+    if (!data) return { status: 'unknown', message: 'Loading...', color: '#9e9e9e' };
     
-    const errorCount = data.services.filter(s => s.status === 'error').length;
-    const degradedCount = data.services.filter(s => s.status === 'degraded').length;
-    
-    if (errorCount > 0) return { status: 'error', message: `${errorCount} service(s) have errors` };
-    if (degradedCount > 0) return { status: 'degraded', message: `${degradedCount} service(s) degraded` };
-    return { status: 'healthy', message: 'All systems operational' };
+    const issues: string[] = [];
+    if (!data.database?.isHealthy) issues.push('Database unhealthy');
+    const errorServices = data.services?.filter(s => s.status === 'error').length || 0;
+    if (errorServices > 0) issues.push(`${errorServices} service(s) with errors`);
+    const stoppedContainers = data.containers?.filter(c => c.status !== 'running').length || 0;
+    if (stoppedContainers > 0) issues.push(`${stoppedContainers} container(s) stopped`);
+    const unhealthyPods = data.pods?.filter(p => !p.ready).length || 0;
+    if (unhealthyPods > 0) issues.push(`${unhealthyPods} pod(s) not ready`);
+
+    if (issues.length === 0) return { status: 'healthy', message: 'All systems operational', color: '#4caf50' };
+    if (issues.some(i => i.includes('error') || i.includes('unhealthy'))) return { status: 'error', message: issues.join(' • '), color: '#f44336' };
+    return { status: 'degraded', message: issues.join(' • '), color: '#ff9800' };
+  }, [data]);
+
+  const handleAccordionChange = (panel: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpandedSection(isExpanded ? panel : false);
   };
 
-  const overallHealth = calculateOverallHealth();
+  // Loading skeleton
+  if (loading && !data) {
+    return (
+      <Box>
+        <Skeleton variant="rectangular" height={60} sx={{ borderRadius: 2, mb: 3 }} />
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <Grid item xs={6} sm={4} md={2} key={i}>
+              <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
+            </Grid>
+          ))}
+        </Grid>
+        {[1, 2, 3].map(i => (
+          <Skeleton key={i} variant="rectangular" height={80} sx={{ borderRadius: 2, mb: 2 }} />
+        ))}
+      </Box>
+    );
+  }
 
   return (
     <Box>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+            {DEPLOYMENT_ICONS[deploymentType] || <ServerIcon />}
             System Monitoring
+            <Chip 
+              label={deploymentType.toUpperCase()} 
+              size="small" 
+              sx={{ ml: 1, fontWeight: 600, bgcolor: theme.palette.primary.main, color: 'white' }}
+            />
           </Typography>
-          <Typography color="textSecondary">
-            Real-time infrastructure and resource monitoring
+          <Typography color="textSecondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <span>{DATABASE_ICONS[databaseProvider] || '🗄️'}</span>
+            {envInfo?.databaseProvider || data?.database?.providerName || 'Database'} • 
+            Host: {envInfo?.hostname || data?.infrastructure?.host?.hostname || 'Unknown'}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <Typography variant="body2" color="textSecondary">
-            Last updated: {lastRefresh.toLocaleTimeString()}
+            Updated: {lastRefresh.toLocaleTimeString()}
           </Typography>
           <Tooltip title="Refresh Now">
-            <IconButton onClick={refreshData} disabled={loading}>
+            <IconButton onClick={refreshData} disabled={loading} color="primary">
               {loading ? <CircularProgress size={20} /> : <RefreshIcon />}
             </IconButton>
           </Tooltip>
@@ -382,639 +482,303 @@ export default function MonitoringSettingsTab() {
       {/* Error Alert */}
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>
-          {error}
+          <Typography fontWeight={600}>Monitoring Error</Typography>
+          <Typography variant="body2">{error}</Typography>
         </Alert>
       )}
 
       {/* Overall Health Banner */}
       <Alert
         severity={overallHealth.status === 'healthy' ? 'success' : overallHealth.status === 'degraded' ? 'warning' : 'error'}
-        icon={getStatusIcon(overallHealth.status)}
+        icon={overallHealth.status === 'healthy' ? <HealthyIcon /> : overallHealth.status === 'degraded' ? <WarningIcon /> : <ErrorIcon />}
         sx={{ mb: 3, borderRadius: 2 }}
       >
-        <Typography variant="subtitle1" fontWeight={600}>
-          {overallHealth.message}
-        </Typography>
+        <Typography variant="subtitle1" fontWeight={600}>{overallHealth.message}</Typography>
       </Alert>
 
       {/* Summary Cards */}
-      {data && (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6} md={3}>
-            <Card sx={{ borderRadius: 2, bgcolor: '#E8F5E9' }}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <PersonIcon sx={{ fontSize: 40, color: '#4caf50', mb: 1 }} />
-                <Typography variant="h4" fontWeight={700} color="#4caf50">
-                  {data.activeSessions?.length || 0}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Active Sessions
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <Card sx={{ borderRadius: 2, bgcolor: '#E3F2FD' }}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <MemoryIcon sx={{ fontSize: 40, color: '#2196f3', mb: 1 }} />
-                <Typography variant="h4" fontWeight={700} color="#2196f3">
-                  {data.system?.process?.threadCount || 0}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Active Threads
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <Card sx={{ borderRadius: 2, bgcolor: '#FFF3E0' }}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <DnsIcon sx={{ fontSize: 40, color: '#ff9800', mb: 1 }} />
-                <Typography variant="h4" fontWeight={700} color="#ff9800">
-                  {data.database?.activeConnections || 0}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  DB Connections
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <Card sx={{ borderRadius: 2, bgcolor: '#F3E5F5' }}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <CloudIcon sx={{ fontSize: 40, color: '#9c27b0', mb: 1 }} />
-                <Typography variant="h4" fontWeight={700} color="#9c27b0">
-                  {data.services?.length || 0}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Services
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={6} sm={4} md={2}>
+          <StatusCard
+            icon={<ApiIcon />}
+            title="API Services"
+            value={`${healthyServiceCount}/${serviceCount}`}
+            color="#1976d2"
+            bgColor="#E3F2FD"
+          />
         </Grid>
-      )}
-
-      {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
-          <Tab label="Infrastructure" />
-          <Tab label="System Resources" />
-          <Tab label="Services" />
-          {data?.containers && data.containers.length > 0 && <Tab label="Containers" />}
-          {data?.pods && data.pods.length > 0 && <Tab label="Kubernetes" />}
-          <Tab label="Sessions" />
-        </Tabs>
-      </Box>
-
-      {/* Tab 0: Infrastructure */}
-      <TabPanel value={tabValue} index={0}>
-        {data?.infrastructure && (
-          <Grid container spacing={3}>
-            {/* Deployment Info */}
-            <Grid item xs={12} md={6}>
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    <ServerIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Deployment
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Deployment Type
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {getDeploymentTypeName(data.infrastructure.deploymentType)}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Hostname
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {data.infrastructure.host?.hostname || 'N/A'}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Operating System
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {data.infrastructure.host?.osDescription || 'N/A'}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Architecture
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {data.infrastructure.host?.architecture || 'N/A'}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          CPU Cores
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {data.infrastructure.host?.processorCount || 'N/A'}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          .NET Runtime
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {data.infrastructure.host?.dotNetVersion || 'N/A'}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Database Info */}
-            <Grid item xs={12} md={6}>
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    <DatabaseIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Database
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Provider
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {data.database?.providerName || data.infrastructure.database?.providerName || 'N/A'}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Status
-                        </Typography>
-                        <Chip
-                          icon={getStatusIcon(data.database?.isHealthy ? 'healthy' : 'error')}
-                          label={data.database?.isHealthy ? 'Connected' : 'Disconnected'}
-                          size="small"
-                          sx={{
-                            bgcolor: data.database?.isHealthy ? '#E8F5E9' : '#FFEBEE',
-                            color: data.database?.isHealthy ? '#4caf50' : '#f44336',
-                          }}
-                        />
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Version
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {data.database?.version || data.infrastructure.database?.version || 'N/A'}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Host
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {data.infrastructure.database?.host || 'N/A'}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Response Time
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {data.database?.responseTimeMs || 0}ms
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Database Size
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {(data.database?.databaseSizeMB || 0).toFixed(2)} MB
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
-                        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                          Active Connections
-                        </Typography>
-                        <Typography variant="body1" fontWeight={600}>
-                          {data.database?.activeConnections || 0}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Active Monitors */}
-            <Grid item xs={12}>
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    Active Monitors
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {data.infrastructure.activeMonitors?.map((monitor) => (
-                      <Chip
-                        key={monitor}
-                        label={monitor}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                      />
-                    ))}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
+        {showDockerSection && (
+          <Grid item xs={6} sm={4} md={2}>
+            <StatusCard
+              icon={<ContainerIcon />}
+              title="Containers"
+              value={`${runningContainerCount}/${containerCount}`}
+              color="#7b1fa2"
+              bgColor="#F3E5F5"
+            />
           </Grid>
         )}
-      </TabPanel>
+        {showK8sSection && (
+          <Grid item xs={6} sm={4} md={2}>
+            <StatusCard
+              icon={<KubernetesIcon />}
+              title="K8s Pods"
+              value={`${readyPodCount}/${podCount}`}
+              color="#00796b"
+              bgColor="#E0F2F1"
+            />
+          </Grid>
+        )}
+        <Grid item xs={6} sm={4} md={2}>
+          <StatusCard
+            icon={<DatabaseIcon />}
+            title="Database"
+            value={data?.database?.isHealthy ? 'Online' : 'Offline'}
+            subtitle={data?.database?.responseTimeMs ? `${data.database.responseTimeMs}ms` : undefined}
+            color={data?.database?.isHealthy ? '#388e3c' : '#d32f2f'}
+            bgColor={data?.database?.isHealthy ? '#E8F5E9' : '#FFEBEE'}
+          />
+        </Grid>
+        <Grid item xs={6} sm={4} md={2}>
+          <StatusCard
+            icon={<MemoryIcon />}
+            title="Memory"
+            value={`${data?.system?.memory?.processWorkingSetMB || 0}`}
+            subtitle="MB Used"
+            color="#f57c00"
+            bgColor="#FFF3E0"
+          />
+        </Grid>
+        <Grid item xs={6} sm={4} md={2}>
+          <StatusCard
+            icon={<PersonIcon />}
+            title="Sessions"
+            value={sessionCount}
+            subtitle="Active Users"
+            color="#5d4037"
+            bgColor="#EFEBE9"
+          />
+        </Grid>
+      </Grid>
 
-      {/* Tab 1: System Resources */}
-      <TabPanel value={tabValue} index={1}>
-        {data?.system && (
+      {/* Infrastructure Info */}
+      <Accordion
+        expanded={expandedSection === 'infrastructure'}
+        onChange={handleAccordionChange('infrastructure')}
+        sx={{ borderRadius: 2, mb: 2, '&:before': { display: 'none' } }}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <InfoIcon color="info" />
+            <Typography variant="h6" fontWeight={600}>Infrastructure Details</Typography>
+            <Chip label={deploymentType.toUpperCase()} size="small" color="primary" variant="outlined" />
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails>
           <Grid container spacing={3}>
-            {/* CPU */}
             <Grid item xs={12} md={6}>
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    <CpuIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    CPU
-                  </Typography>
-                  <Box sx={{ mb: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2">Process CPU Usage</Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        {data.system.cpu?.processCpuPercent?.toFixed(1) || 0}%
-                      </Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={Math.min(100, data.system.cpu?.processCpuPercent || 0)}
-                      sx={{
-                        height: 10,
-                        borderRadius: 5,
-                        bgcolor: '#e0e0e0',
-                        '& .MuiLinearProgress-bar': {
-                          bgcolor: getProgressColor(data.system.cpu?.processCpuPercent || 0),
-                        },
-                      }}
-                    />
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2" color="primary" fontWeight={600} sx={{ mb: 2 }}>Host Information</Typography>
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">Hostname</Typography>
+                    <Typography variant="body2" fontWeight={500}>{data?.infrastructure?.host?.hostname || 'N/A'}</Typography>
                   </Box>
-                  <Typography variant="body2" color="textSecondary">
-                    Processor Count: {data.system.cpu?.processorCount || 0}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Memory */}
-            <Grid item xs={12} md={6}>
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    <MemoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Memory
-                  </Typography>
-                  <Box sx={{ mb: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2">Process Memory</Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        {data.system.memory?.processWorkingSetMB || 0} MB
-                      </Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={Math.min(100, data.system.memory?.usagePercent || 0)}
-                      sx={{
-                        height: 10,
-                        borderRadius: 5,
-                        bgcolor: '#e0e0e0',
-                        '& .MuiLinearProgress-bar': {
-                          bgcolor: getProgressColor(data.system.memory?.usagePercent || 0),
-                        },
-                      }}
-                    />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">OS</Typography>
+                    <Typography variant="body2" fontWeight={500} sx={{ maxWidth: 200, textAlign: 'right' }}>{data?.infrastructure?.host?.osDescription || 'N/A'}</Typography>
                   </Box>
-                  <Typography variant="body2" color="textSecondary">
-                    Total Available: {(data.system.memory?.totalMB || 0).toLocaleString()} MB
-                  </Typography>
-                </CardContent>
-              </Card>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">Architecture</Typography>
+                    <Typography variant="body2" fontWeight={500}>{data?.infrastructure?.host?.architecture || 'N/A'}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">CPUs</Typography>
+                    <Typography variant="body2" fontWeight={500}>{data?.infrastructure?.host?.processorCount || 'N/A'}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">Total Memory</Typography>
+                    <Typography variant="body2" fontWeight={500}>{data?.infrastructure?.host?.totalMemoryMB ? `${(data.infrastructure.host.totalMemoryMB / 1024).toFixed(1)} GB` : 'N/A'}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">.NET Version</Typography>
+                    <Typography variant="body2" fontWeight={500}>{data?.infrastructure?.host?.dotNetVersion || 'N/A'}</Typography>
+                  </Box>
+                </Stack>
+              </Paper>
             </Grid>
-
-            {/* Disk */}
             <Grid item xs={12} md={6}>
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    <DatabaseIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Disk
-                  </Typography>
-                  {data.system.disk?.drives?.map((drive, index) => (
-                    <Box key={index} sx={{ mb: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2">{drive.name || drive.mountPoint}</Typography>
-                        <Typography variant="body2" fontWeight={600}>
-                          {drive.usedGB} / {drive.totalGB} GB
-                        </Typography>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2" color="primary" fontWeight={600} sx={{ mb: 2 }}>Database Information</Typography>
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">Provider</Typography>
+                    <Typography variant="body2" fontWeight={500}>{data?.infrastructure?.database?.providerName || 'N/A'}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">Version</Typography>
+                    <Typography variant="body2" fontWeight={500}>{data?.infrastructure?.database?.version || data?.database?.version || 'N/A'}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">Host</Typography>
+                    <Typography variant="body2" fontWeight={500}>{data?.infrastructure?.database?.host || 'N/A'}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">Status</Typography>
+                    <StatusChip status={data?.infrastructure?.database?.isConnected ? 'healthy' : 'error'} />
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">Size</Typography>
+                    <Typography variant="body2" fontWeight={500}>{data?.database?.databaseSizeMB ? `${data.database.databaseSizeMB.toFixed(1)} MB` : 'N/A'}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="textSecondary">Active Connections</Typography>
+                    <Typography variant="body2" fontWeight={500}>{data?.database?.activeConnections ?? 'N/A'}</Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            </Grid>
+          </Grid>
+        </AccordionDetails>
+      </Accordion>
+
+      {/* API Services */}
+      <Accordion
+        expanded={expandedSection === 'overview'}
+        onChange={handleAccordionChange('overview')}
+        sx={{ borderRadius: 2, mb: 2, '&:before': { display: 'none' } }}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <ApiIcon color="primary" />
+            <Typography variant="h6" fontWeight={600}>API Services</Typography>
+            <Chip label={`${healthyServiceCount}/${serviceCount} Healthy`} size="small" color={healthyServiceCount === serviceCount ? 'success' : 'warning'} />
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails>
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Service</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Endpoint</TableCell>
+                  <TableCell>Response</TableCell>
+                  <TableCell>Uptime</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data?.services?.map((service) => (
+                  <TableRow key={service.name} hover>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {service.type === 'api' && <ApiIcon fontSize="small" color="primary" />}
+                        {service.type === 'database' && <DatabaseIcon fontSize="small" color="secondary" />}
+                        {service.type === 'frontend' && <CloudIcon fontSize="small" />}
+                        <Typography fontWeight={500}>{service.name}</Typography>
                       </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={Math.min(100, drive.usagePercent || 0)}
-                        sx={{
-                          height: 10,
-                          borderRadius: 5,
-                          bgcolor: '#e0e0e0',
-                          '& .MuiLinearProgress-bar': {
-                            bgcolor: getProgressColor(drive.usagePercent || 0),
-                          },
-                        }}
-                      />
-                    </Box>
-                  ))}
-                  {(!data.system.disk?.drives || data.system.disk.drives.length === 0) && (
-                    <Typography variant="body2" color="textSecondary">
-                      No disk information available
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Network */}
-            <Grid item xs={12} md={6}>
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    <NetworkIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Network
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#E3F2FD', borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="subtitle2" color="textSecondary">
-                          Bytes Received
-                        </Typography>
-                        <Typography variant="h6" fontWeight={600} color="#2196f3">
-                          {formatBytes(data.system.network?.bytesReceived || 0)}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper sx={{ p: 2, bgcolor: '#E8F5E9', borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="subtitle2" color="textSecondary">
-                          Bytes Sent
-                        </Typography>
-                        <Typography variant="h6" fontWeight={600} color="#4caf50">
-                          {formatBytes(data.system.network?.bytesSent || 0)}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                    Active Interfaces
-                  </Typography>
-                  {data.system.network?.interfaces?.slice(0, 3).map((iface, index) => (
-                    <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2">{iface.name}</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        {iface.ipAddress || 'N/A'}
+                    </TableCell>
+                    <TableCell><StatusChip status={service.status} /></TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="textSecondary" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {service.endpoint}
                       </Typography>
-                    </Box>
-                  ))}
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Process Info */}
-            <Grid item xs={12}>
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    Process Information
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6} md={2}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="subtitle2" color="textSecondary">Threads</Typography>
-                        <Typography variant="h5" fontWeight={600}>
-                          {data.system.process?.threadCount || 0}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6} md={2}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="subtitle2" color="textSecondary">Handles</Typography>
-                        <Typography variant="h5" fontWeight={600}>
-                          {data.system.process?.handleCount || 0}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6} md={2}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="subtitle2" color="textSecondary">Working Set</Typography>
-                        <Typography variant="h5" fontWeight={600}>
-                          {data.system.process?.workingSetMB || 0} MB
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6} md={2}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="subtitle2" color="textSecondary">Private Memory</Typography>
-                        <Typography variant="h5" fontWeight={600}>
-                          {data.system.process?.privateMemoryMB || 0} MB
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6} md={2}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="subtitle2" color="textSecondary">CPU Time</Typography>
-                        <Typography variant="h5" fontWeight={600}>
-                          {((data.system.process?.cpuTimeMs || 0) / 1000).toFixed(1)}s
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6} md={2}>
-                      <Paper sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2, textAlign: 'center' }}>
-                        <Typography variant="subtitle2" color="textSecondary">Uptime</Typography>
-                        <Typography variant="h5" fontWeight={600}>
-                          {data.system.process?.uptimeFormatted || 'N/A'}
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        )}
-      </TabPanel>
-
-      {/* Tab 2: Services */}
-      <TabPanel value={tabValue} index={2}>
-        <Card sx={{ borderRadius: 2 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              Service Status
-            </Typography>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Service</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Endpoint</TableCell>
-                    <TableCell>Response Time</TableCell>
-                    <TableCell>Version</TableCell>
-                    <TableCell>Uptime</TableCell>
-                    <TableCell>Last Check</TableCell>
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={`${service.responseTimeMs}ms`} size="small" variant="outlined" 
+                        color={service.responseTimeMs < 100 ? 'success' : service.responseTimeMs < 500 ? 'warning' : 'error'} />
+                    </TableCell>
+                    <TableCell>{service.uptime || 'N/A'}</TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {data?.services?.map((service) => (
-                    <TableRow key={service.name}>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {service.type === 'api' && <ApiIcon color="primary" />}
-                          {service.type === 'database' && <DatabaseIcon color="secondary" />}
-                          {service.type === 'frontend' && <WebIcon color="action" />}
-                          <Typography fontWeight={500}>{service.name}</Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          icon={getStatusIcon(service.status)}
-                          label={service.status}
-                          size="small"
-                          sx={{
-                            bgcolor: `${STATUS_COLORS[service.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.unknown}20`,
-                            color: STATUS_COLORS[service.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.unknown,
-                            fontWeight: 600,
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="textSecondary">
-                          {service.endpoint}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>{service.responseTimeMs}ms</TableCell>
-                      <TableCell>{service.version}</TableCell>
-                      <TableCell>{service.uptime}</TableCell>
-                      <TableCell>{formatDuration(service.lastCheck)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </CardContent>
-        </Card>
-      </TabPanel>
+                ))}
+                {(!data?.services || data.services.length === 0) && (
+                  <TableRow><TableCell colSpan={5} align="center"><Typography color="textSecondary">No services detected</Typography></TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </AccordionDetails>
+      </Accordion>
 
-      {/* Tab 3: Containers (conditional) */}
-      {data?.containers && data.containers.length > 0 && (
-        <TabPanel value={tabValue} index={3}>
-          <Card sx={{ borderRadius: 2 }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                <ContainerIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Docker Containers
-              </Typography>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Container</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Health</TableCell>
-                      <TableCell>Uptime</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {data.containers.map((container) => (
-                      <TableRow key={container.containerId}>
-                        <TableCell>
-                          <Typography fontWeight={500}>{container.containerName}</Typography>
+      {/* Docker Containers - Only show if Docker deployment or containers exist */}
+      {showDockerSection && (
+        <Accordion
+          expanded={expandedSection === 'containers'}
+          onChange={handleAccordionChange('containers')}
+          sx={{ borderRadius: 2, mb: 2, '&:before': { display: 'none' } }}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <ContainerIcon sx={{ color: '#7b1fa2' }} />
+              <Typography variant="h6" fontWeight={600}>Docker Containers</Typography>
+              <Chip label={containerCount > 0 ? `${runningContainerCount}/${containerCount} Running` : 'No containers'} size="small" 
+                color={runningContainerCount === containerCount && containerCount > 0 ? 'success' : 'default'} />
+            </Box>
+          </AccordionSummary>
+          <AccordionDetails>
+            {data?.containers && data.containers.length > 0 ? (
+              <Grid container spacing={2}>
+                {data.containers.map((container) => (
+                  <Grid item xs={12} md={6} lg={4} key={container.containerId}>
+                    <Card variant="outlined" sx={{ borderRadius: 2, borderColor: container.status === 'running' ? '#4caf5040' : '#f4433640' }}>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                          <Box>
+                            <Typography variant="subtitle1" fontWeight={600}>{container.containerName}</Typography>
+                            <Typography variant="caption" color="textSecondary">{container.containerId.substring(0, 12)}</Typography>
+                          </Box>
+                          <StatusChip status={container.status} />
+                        </Box>
+                        <Typography variant="body2" color="textSecondary" sx={{ mb: 2, wordBreak: 'break-all' }}>{container.image}</Typography>
+                        {container.status === 'running' && (
+                          <>
+                            <MetricProgress label="CPU" value={container.cpuPercent || 0} />
+                            <MetricProgress label="Memory" value={container.memoryMB || 0} total={container.memoryLimitMB || 512} unit=" MB" />
+                          </>
+                        )}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Typography variant="caption" color="textSecondary">
-                            {container.containerId.substring(0, 12)}
+                            <ScheduleIcon sx={{ fontSize: 12, mr: 0.5, verticalAlign: 'middle' }} />
+                            {container.uptime || 'N/A'}
                           </Typography>
-                        </TableCell>
-                        <TableCell>{container.image}</TableCell>
-                        <TableCell>
-                          <Chip
-                            icon={getStatusIcon(container.status)}
-                            label={container.status}
-                            size="small"
-                            sx={{
-                              bgcolor: container.status === 'running' ? '#E8F5E9' : '#FFEBEE',
-                              color: container.status === 'running' ? '#4caf50' : '#f44336',
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            icon={getStatusIcon(container.health)}
-                            label={container.health || 'none'}
-                            size="small"
-                            variant="outlined"
-                          />
-                        </TableCell>
-                        <TableCell>{container.uptime}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </TabPanel>
+                          {container.health && <Chip label={container.health} size="small" variant="outlined" 
+                            color={container.health === 'healthy' ? 'success' : 'warning'} />}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <ContainerIcon sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
+                <Typography color="textSecondary">No Docker containers detected</Typography>
+                <Typography variant="body2" color="textSecondary">Docker monitoring may need additional configuration</Typography>
+              </Box>
+            )}
+          </AccordionDetails>
+        </Accordion>
       )}
 
-      {/* Tab 4: Kubernetes (conditional) */}
-      {data?.pods && data.pods.length > 0 && (
-        <TabPanel value={tabValue} index={data?.containers && data.containers.length > 0 ? 4 : 3}>
-          <Card sx={{ borderRadius: 2 }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                <KubernetesIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Kubernetes Pods
-              </Typography>
+      {/* Kubernetes Pods - Only show if K8s deployment or pods exist */}
+      {showK8sSection && (
+        <Accordion
+          expanded={expandedSection === 'kubernetes'}
+          onChange={handleAccordionChange('kubernetes')}
+          sx={{ borderRadius: 2, mb: 2, '&:before': { display: 'none' } }}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <KubernetesIcon sx={{ color: '#00796b' }} />
+              <Typography variant="h6" fontWeight={600}>Kubernetes Pods</Typography>
+              <Chip label={podCount > 0 ? `${readyPodCount}/${podCount} Ready` : 'No pods'} size="small" 
+                color={readyPodCount === podCount && podCount > 0 ? 'success' : 'default'} />
+            </Box>
+          </AccordionSummary>
+          <AccordionDetails>
+            {data?.pods && data.pods.length > 0 ? (
               <TableContainer>
-                <Table>
+                <Table size="small">
                   <TableHead>
                     <TableRow>
                       <TableCell>Pod Name</TableCell>
@@ -1028,93 +792,185 @@ export default function MonitoringSettingsTab() {
                   </TableHead>
                   <TableBody>
                     {data.pods.map((pod) => (
-                      <TableRow key={pod.podName}>
-                        <TableCell>
-                          <Typography fontWeight={500}>{pod.podName}</Typography>
-                        </TableCell>
-                        <TableCell>{pod.namespace}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={pod.phase}
-                            size="small"
-                            sx={{
-                              bgcolor: pod.phase === 'Running' ? '#E8F5E9' : '#FFF3E0',
-                              color: pod.phase === 'Running' ? '#4caf50' : '#ff9800',
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {pod.ready ? (
-                            <HealthyIcon sx={{ color: '#4caf50' }} />
-                          ) : (
-                            <WarningIcon sx={{ color: '#ff9800' }} />
-                          )}
-                        </TableCell>
-                        <TableCell>{pod.restartCount}</TableCell>
-                        <TableCell>{pod.nodeName}</TableCell>
-                        <TableCell>{pod.podIP}</TableCell>
+                      <TableRow key={pod.podName} hover>
+                        <TableCell><Typography fontWeight={500}>{pod.podName}</Typography></TableCell>
+                        <TableCell><Chip label={pod.namespace} size="small" variant="outlined" /></TableCell>
+                        <TableCell><StatusChip status={pod.phase === 'Running' ? 'healthy' : pod.phase.toLowerCase()} /></TableCell>
+                        <TableCell>{pod.ready ? <HealthyIcon color="success" fontSize="small" /> : <ErrorIcon color="error" fontSize="small" />}</TableCell>
+                        <TableCell><Chip label={pod.restartCount} size="small" color={pod.restartCount > 5 ? 'error' : pod.restartCount > 0 ? 'warning' : 'default'} /></TableCell>
+                        <TableCell>{pod.nodeName || 'N/A'}</TableCell>
+                        <TableCell><Typography variant="body2" color="textSecondary">{pod.podIP || 'N/A'}</Typography></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </TableContainer>
-            </CardContent>
-          </Card>
-        </TabPanel>
+            ) : (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <KubernetesIcon sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
+                <Typography color="textSecondary">No Kubernetes pods detected</Typography>
+                <Typography variant="body2" color="textSecondary">Kubernetes monitoring may need additional configuration</Typography>
+              </Box>
+            )}
+          </AccordionDetails>
+        </Accordion>
       )}
 
-      {/* Tab 5: Sessions */}
-      <TabPanel value={tabValue} index={
-        (data?.containers && data.containers.length > 0 ? 1 : 0) +
-        (data?.pods && data.pods.length > 0 ? 1 : 0) + 3
-      }>
-        <Card sx={{ borderRadius: 2 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              <PersonIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-              Active Sessions ({data?.activeSessions?.length || 0})
-            </Typography>
-            {data?.activeSessions && data.activeSessions.length > 0 ? (
-              <List>
-                {data.activeSessions.map((session, index) => (
-                  <React.Fragment key={session.userId}>
-                    {index > 0 && <Divider />}
-                    <ListItem>
-                      <ListItemIcon>
-                        <Avatar sx={{ bgcolor: '#6750A4' }}>
-                          {session.userName?.charAt(0) || '?'}
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography fontWeight={500}>{session.userName}</Typography>
-                            <Chip label={session.role} size="small" variant="outlined" />
-                          </Box>
-                        }
-                        secondary={
-                          <Box>
-                            <Typography variant="caption" color="textSecondary" display="block">
-                              {session.email}
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                              Last activity: {formatDuration(session.lastActivity)}
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </ListItem>
-                  </React.Fragment>
-                ))}
-              </List>
-            ) : (
-              <Typography color="textSecondary" sx={{ textAlign: 'center', py: 4 }}>
-                No active sessions in the last 24 hours
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
-      </TabPanel>
+      {/* System Resources */}
+      <Accordion
+        expanded={expandedSection === 'system'}
+        onChange={handleAccordionChange('system')}
+        sx={{ borderRadius: 2, mb: 2, '&:before': { display: 'none' } }}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <CpuIcon sx={{ color: '#f57c00' }} />
+            <Typography variant="h6" fontWeight={600}>System Resources</Typography>
+            <Chip label={`${data?.system?.cpu?.usagePercent?.toFixed(1) || 0}% CPU`} size="small" color="default" />
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2" color="primary" fontWeight={600} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CpuIcon fontSize="small" /> CPU
+                </Typography>
+                <MetricProgress label="Usage" value={data?.system?.cpu?.usagePercent || 0} />
+                <Typography variant="body2" color="textSecondary">
+                  {data?.system?.cpu?.processorCount || 0} Processor(s)
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2" color="primary" fontWeight={600} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <MemoryIcon fontSize="small" /> Memory
+                </Typography>
+                <MetricProgress 
+                  label="Process Memory" 
+                  value={data?.system?.memory?.processWorkingSetMB || 0} 
+                  total={data?.system?.memory?.totalMB ? data.system.memory.totalMB / 1024 : 8192} 
+                  unit=" MB" 
+                />
+                <Typography variant="body2" color="textSecondary">
+                  Total: {data?.system?.memory?.totalMB ? `${(data.system.memory.totalMB / 1024).toFixed(1)} GB` : 'N/A'}
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2" color="primary" fontWeight={600} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <DiskIcon fontSize="small" /> Disk
+                </Typography>
+                <MetricProgress 
+                  label="Usage" 
+                  value={data?.system?.disk?.usagePercent || 0} 
+                />
+                <Typography variant="body2" color="textSecondary">
+                  {data?.system?.disk?.freeSpaceGB || 0} GB free of {data?.system?.disk?.totalSpaceGB || 0} GB
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2" color="primary" fontWeight={600} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <SettingsIcon fontSize="small" /> Process Info
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6} sm={3}>
+                    <Typography variant="body2" color="textSecondary">Uptime</Typography>
+                    <Typography fontWeight={500}>{data?.system?.process?.uptimeFormatted || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Typography variant="body2" color="textSecondary">Threads</Typography>
+                    <Typography fontWeight={500}>{data?.system?.process?.threadCount || 0}</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Typography variant="body2" color="textSecondary">Working Set</Typography>
+                    <Typography fontWeight={500}>{data?.system?.process?.workingSetMB || 0} MB</Typography>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Typography variant="body2" color="textSecondary">Handles</Typography>
+                    <Typography fontWeight={500}>{data?.system?.process?.handleCount || 0}</Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Grid>
+          </Grid>
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Active Sessions */}
+      <Accordion
+        expanded={expandedSection === 'sessions'}
+        onChange={handleAccordionChange('sessions')}
+        sx={{ borderRadius: 2, mb: 2, '&:before': { display: 'none' } }}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <PersonIcon sx={{ color: '#5d4037' }} />
+            <Typography variant="h6" fontWeight={600}>Active Sessions</Typography>
+            <Chip label={`${sessionCount} Active`} size="small" color="default" />
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails>
+          {data?.activeSessions && data.activeSessions.length > 0 ? (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>User</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Role</TableCell>
+                    <TableCell>Last Activity</TableCell>
+                    <TableCell>Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {data.activeSessions.map((session) => (
+                    <TableRow key={session.userId} hover>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Avatar sx={{ width: 28, height: 28, fontSize: 12, bgcolor: '#5d4037' }}>
+                            {session.userName.split(' ').map(n => n[0]).join('')}
+                          </Avatar>
+                          <Typography fontWeight={500}>{session.userName}</Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell><Typography variant="body2" color="textSecondary">{session.email}</Typography></TableCell>
+                      <TableCell><Chip label={session.role} size="small" variant="outlined" /></TableCell>
+                      <TableCell><Typography variant="body2" color="textSecondary">{new Date(session.lastActivity).toLocaleString()}</Typography></TableCell>
+                      <TableCell>
+                        <Badge color={session.isActive ? 'success' : 'default'} variant="dot" sx={{ '& .MuiBadge-badge': { right: -8 } }}>
+                          <Typography variant="body2">{session.isActive ? 'Active' : 'Inactive'}</Typography>
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <PersonIcon sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
+              <Typography color="textSecondary">No active sessions in the last 24 hours</Typography>
+            </Box>
+          )}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Enabled Monitors Footer */}
+      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mt: 2 }}>
+        <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1 }}>Active Monitors</Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          {enabledMonitors.length > 0 ? enabledMonitors.map(monitor => (
+            <Chip key={monitor} label={monitor} size="small" variant="outlined" color="primary" />
+          )) : (
+            <Typography variant="body2" color="textSecondary">No monitors configured</Typography>
+          )}
+        </Box>
+      </Paper>
     </Box>
   );
 }

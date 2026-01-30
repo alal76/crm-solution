@@ -6,9 +6,9 @@
  * accessible as individual routes in the Administration navigation.
  */
 
-export { default as DatabaseSettingsPage } from './DatabaseSettingsPage';
 export { default as DeploymentSettingsPage } from './DeploymentSettingsPage';
 export { default as MonitoringSettingsPage } from './MonitoringSettingsPage';
+export { default as MonitoringDashboard } from './MonitoringDashboard';
 export { default as SecuritySettingsPage } from './SecuritySettingsPage';
 export { default as FeatureManagementPage } from './FeatureManagementPage';
 export { default as UserManagementSettingsPage } from './UserManagementSettingsPage';

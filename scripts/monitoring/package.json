@@ -1,0 +1,15 @@
+{
+  "name": "crm-monitoring-setup",
+  "version": "1.0.0",
+  "description": "Automatic setup scripts for CRM monitoring tools",
+  "main": "setup-uptime-kuma.js",
+  "scripts": {
+    "setup": "node setup-uptime-kuma.js",
+    "setup:docker": "docker run --rm --network crm-network -v $(pwd):/app -w /app node:18-alpine sh -c 'npm install && npm run setup'"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.7.0"
+  },
+  "author": "CRM Solution",
+  "license": "MIT"
+}

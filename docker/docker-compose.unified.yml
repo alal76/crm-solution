@@ -29,6 +29,12 @@ volumes:
   crm_redis_data:
     driver: local
     name: crm_redis_data
+  uptime_kuma_data:
+    driver: local
+    name: uptime_kuma_data
+  portainer_data:
+    driver: local
+    name: portainer_data
 
 # Networks - using explicit name for DNS consistency
 networks:
@@ -233,3 +239,68 @@ services:
       - "com.crm.tier=presentation"
       - "com.crm.service=frontend"
       - "com.crm.port=80"
+
+  # ===========================================================================
+  # TIER 3: MONITORING SERVICES (Independent)
+  # ===========================================================================
+
+  # Uptime Kuma - Service Health Monitoring (Docker + Kubernetes compatible)
+  # Access at: http://localhost:3001
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    hostname: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "${PORT_UPTIME_KUMA:-3001}:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - UPTIME_KUMA_DISABLE_FRAME_SAMEORIGIN=true
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/entry', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      crm-network:
+        aliases:
+          - uptime-kuma
+          - monitoring
+    labels:
+      - "com.crm.tier=monitoring"
+      - "com.crm.service=uptime-kuma"
+      - "com.crm.port=3001"
+
+  # Portainer - Container Management (Docker + Kubernetes)
+  # Access at: http://localhost:9000
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    hostname: portainer
+    restart: unless-stopped
+    ports:
+      - "${PORT_PORTAINER:-9000}:9000"
+      - "${PORT_PORTAINER_AGENT:-9443}:9443"
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - PORTAINER_HIDE_SAMPLE_STACKS=true
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      crm-network:
+        aliases:
+          - portainer
+          - containers
+    labels:
+      - "com.crm.tier=monitoring"
+      - "com.crm.service=portainer"
+      - "com.crm.port=9000"
