@@ -16,10 +16,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
-import { Container, CssBaseline, Box } from '@mui/material';
+import { Container, CssBaseline, Box, CircularProgress, Typography } from '@mui/material';
 import { AuthProvider } from './contexts/AuthContext';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { ProfileProvider } from './contexts/ProfileContext';
@@ -36,64 +36,122 @@ import ProtectedRoute from './components/ProtectedRoute';
 import RoleBasedRoute from './components/RoleBasedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initializeErrorHandler } from './utils/errorHandler';
+// Core/Auth Pages (loaded immediately for fast initial load)
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PasswordResetPage from './pages/PasswordResetPage';
-import DashboardPage from './pages/DashboardPage';
-import CustomersPage from './pages/CustomersPage';
-import ContactsPage from './pages/ContactsPage';
-import OpportunitiesPage from './pages/OpportunitiesPage';
-import ProductsPage from './pages/ProductsPage';
-import CampaignsPage from './pages/CampaignsPage';
-import LeadsPage from './pages/LeadsPage';
-import ServicesPage from './pages/ServicesPage';
-import TwoFactorPage from './pages/TwoFactorPage';
-import UserManagementPage from './pages/UserManagementPage';
-import DepartmentManagementPage from './pages/DepartmentManagementPage';
-import ProfileManagementPage from './pages/ProfileManagementPage';
-import SettingsPage from './pages/SettingsPage';
-import TasksPage from './pages/TasksPage';
-import QuotesPage from './pages/QuotesPage';
-import NotesPage from './pages/NotesPage';
-import ActivitiesPage from './pages/ActivitiesPage';
-import AccountPage from './pages/AccountPage';
-import AboutPage from './pages/AboutPage';
-import HelpPage from './pages/HelpPage';
-import LicensesPage from './pages/LicensesPage';
-import ServiceRequestsPage from './pages/ServiceRequestsPage';
-import ServiceRequestSettingsPage from './pages/ServiceRequestSettingsPage';
-import CustomerOverviewPage from './pages/CustomerOverviewPage';
-import CommunicationsPage from './pages/CommunicationsPage';
-import InteractionsPage from './pages/InteractionsPage';
-import ChannelSettingsPage from './pages/ChannelSettingsPage';
-import RelationshipsPage from './pages/RelationshipsPage';
-import CampaignExecutionPage from './pages/CampaignExecutionPage';
-import ContractsPage from './pages/ContractsPage';
-import FormBuilderPage from './pages/FormBuilderPage';
-import KnowledgeBasePage from './pages/KnowledgeBasePage';
-import {
-  DeploymentSettingsPage,
-  MonitoringSettingsPage,
-  SecuritySettingsPage,
-  FeatureManagementPage,
-  UserManagementSettingsPage,
-  UserApprovalPage,
-  GroupManagementPage,
-  SocialLoginSettingsPage,
-  BrandingSettingsPage,
-  NavigationSettingsPage,
-  ModuleFieldSettingsPage,
-  ServiceRequestDefinitionsPage,
-  MasterDataSettingsPage,
-  DashboardSettingsPage,
-  WorkflowListPage,
-  WorkflowDesignerPage,
-  WorkflowMonitorPage,
-  TestResultsPage,
-  LLMSettingsPage,
-  ApiDocumentationPage,
-} from './pages/admin';
 import './App.css';
+
+// ============================================================================
+// LAZY LOADED MODULES - Code Splitting for Performance
+// ============================================================================
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '200px',
+      gap: 2,
+    }}
+  >
+    <CircularProgress size={40} />
+    <Typography variant="body2" color="text.secondary">
+      Loading module...
+    </Typography>
+  </Box>
+);
+
+// ----------------------------------------------------------------------------
+// Sales Module - Lazy Loaded
+// ----------------------------------------------------------------------------
+const OpportunitiesPage = lazy(() => import('./pages/OpportunitiesPage'));
+const QuotesPage = lazy(() => import('./pages/QuotesPage'));
+const ProductsPage = lazy(() => import('./pages/ProductsPage'));
+const ContractsPage = lazy(() => import('./pages/ContractsPage'));
+
+// ----------------------------------------------------------------------------
+// Marketing Module - Lazy Loaded
+// ----------------------------------------------------------------------------
+const LeadsPage = lazy(() => import('./pages/LeadsPage'));
+const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
+const CampaignExecutionPage = lazy(() => import('./pages/CampaignExecutionPage'));
+
+// ----------------------------------------------------------------------------
+// Service Module - Lazy Loaded
+// ----------------------------------------------------------------------------
+const ServiceRequestsPage = lazy(() => import('./pages/ServiceRequestsPage'));
+const ServiceRequestSettingsPage = lazy(() => import('./pages/ServiceRequestSettingsPage'));
+const KnowledgeBasePage = lazy(() => import('./pages/KnowledgeBasePage'));
+const ServicesPage = lazy(() => import('./pages/ServicesPage'));
+
+// ----------------------------------------------------------------------------
+// Customer Module - Lazy Loaded
+// ----------------------------------------------------------------------------
+const CustomersPage = lazy(() => import('./pages/CustomersPage'));
+const ContactsPage = lazy(() => import('./pages/ContactsPage'));
+const CustomerOverviewPage = lazy(() => import('./pages/CustomerOverviewPage'));
+const RelationshipsPage = lazy(() => import('./pages/RelationshipsPage'));
+
+// ----------------------------------------------------------------------------
+// Communication Module - Lazy Loaded
+// ----------------------------------------------------------------------------
+const CommunicationsPage = lazy(() => import('./pages/CommunicationsPage'));
+const InteractionsPage = lazy(() => import('./pages/InteractionsPage'));
+const ChannelSettingsPage = lazy(() => import('./pages/ChannelSettingsPage'));
+
+// ----------------------------------------------------------------------------
+// Productivity Module - Lazy Loaded
+// ----------------------------------------------------------------------------
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const TasksPage = lazy(() => import('./pages/TasksPage'));
+const NotesPage = lazy(() => import('./pages/NotesPage'));
+const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'));
+
+// ----------------------------------------------------------------------------
+// Account & Profile Pages - Lazy Loaded
+// ----------------------------------------------------------------------------
+const AccountPage = lazy(() => import('./pages/AccountPage'));
+const TwoFactorPage = lazy(() => import('./pages/TwoFactorPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const UserManagementPage = lazy(() => import('./pages/UserManagementPage'));
+const DepartmentManagementPage = lazy(() => import('./pages/DepartmentManagementPage'));
+const ProfileManagementPage = lazy(() => import('./pages/ProfileManagementPage'));
+
+// ----------------------------------------------------------------------------
+// Info/Help Pages - Lazy Loaded
+// ----------------------------------------------------------------------------
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const HelpPage = lazy(() => import('./pages/HelpPage'));
+const LicensesPage = lazy(() => import('./pages/LicensesPage'));
+const FormBuilderPage = lazy(() => import('./pages/FormBuilderPage'));
+
+// ----------------------------------------------------------------------------
+// Admin Module - Lazy Loaded (heavy components)
+// ----------------------------------------------------------------------------
+const DeploymentSettingsPage = lazy(() => import('./pages/admin/DeploymentSettingsPage'));
+const MonitoringSettingsPage = lazy(() => import('./pages/admin/MonitoringSettingsPage'));
+const SecuritySettingsPage = lazy(() => import('./pages/admin/SecuritySettingsPage'));
+const FeatureManagementPage = lazy(() => import('./pages/admin/FeatureManagementPage'));
+const UserManagementSettingsPage = lazy(() => import('./pages/admin/UserManagementSettingsPage'));
+const UserApprovalPage = lazy(() => import('./pages/admin/UserApprovalPage'));
+const GroupManagementPage = lazy(() => import('./pages/admin/GroupManagementPage'));
+const SocialLoginSettingsPage = lazy(() => import('./pages/admin/SocialLoginSettingsPage'));
+const BrandingSettingsPage = lazy(() => import('./pages/admin/BrandingSettingsPage'));
+const NavigationSettingsPage = lazy(() => import('./pages/admin/NavigationSettingsPage'));
+const ModuleFieldSettingsPage = lazy(() => import('./pages/admin/ModuleFieldSettingsPage'));
+const ServiceRequestDefinitionsPage = lazy(() => import('./pages/admin/ServiceRequestDefinitionsPage'));
+const MasterDataSettingsPage = lazy(() => import('./pages/admin/MasterDataSettingsPage'));
+const DashboardSettingsPage = lazy(() => import('./pages/admin/DashboardSettingsPage'));
+const WorkflowListPage = lazy(() => import('./pages/admin/WorkflowListPage'));
+const WorkflowDesignerPage = lazy(() => import('./pages/admin/WorkflowDesignerPage'));
+const WorkflowMonitorPage = lazy(() => import('./pages/admin/WorkflowMonitorPage'));
+const TestResultsPage = lazy(() => import('./pages/admin/TestResultsPage'));
+const LLMSettingsPage = lazy(() => import('./pages/admin/LLMSettingsPage'));
+const ApiDocumentationPage = lazy(() => import('./pages/admin/ApiDocumentationPage'));
 
 // Inner component that can access the theme context
 function ThemedApp() {
@@ -132,6 +190,7 @@ function ThemedApp() {
                         <BreadcrumbsComponent />
                         <Box sx={{ flex: 1, py: 4, px: 2 }}>
                           <Container maxWidth="lg">
+                    <Suspense fallback={<LoadingFallback />}>
                     <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
@@ -664,6 +723,7 @@ function ThemedApp() {
               <Route path="/help/api" element={<ApiDocumentationPage />} />
               <Route path="/licenses" element={<LicensesPage />} />
                         </Routes>
+                        </Suspense>
                         </Container>
                       </Box>
                       <Footer />
