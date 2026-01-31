@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using CRM.Core.Models;
 
 namespace CRM.Core.Entities;
@@ -79,19 +81,39 @@ public enum CustomerPriority
 /// </summary>
 public class Customer : BaseEntity
 {
-    // === Category & Type ===
+    #region Category & Type
+    
     /// <summary>
     /// Whether this is an Individual or Organization customer
     /// </summary>
     public CustomerCategory Category { get; set; } = CustomerCategory.Individual;
     
-    // === Individual Customer Fields ===
+    #endregion
+    
+    #region Individual Customer Fields
     // (Used when Category = Individual)
+    
+    /// <summary>First name (for Individual customers)</summary>
+    [MaxLength(100)]
     public string FirstName { get; set; } = string.Empty;
+    
+    /// <summary>Last name (for Individual customers)</summary>
+    [MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
-    public string? Salutation { get; set; } // Mr., Mrs., Dr., etc.
-    public string? Suffix { get; set; } // Jr., Sr., III, etc.
+    
+    /// <summary>Salutation (Mr., Mrs., Dr., etc.)</summary>
+    [MaxLength(20)]
+    public string? Salutation { get; set; }
+    
+    /// <summary>Suffix (Jr., Sr., III, etc.)</summary>
+    [MaxLength(20)]
+    public string? Suffix { get; set; }
+    
+    /// <summary>Date of birth</summary>
     public DateTime? DateOfBirth { get; set; }
+    
+    /// <summary>Gender</summary>
+    [MaxLength(20)]
     public string? Gender { get; set; }
     
     /// <summary>
@@ -99,31 +121,39 @@ public class Customer : BaseEntity
     /// </summary>
     public int? LinkedContactId { get; set; }
     
-    // === Organization Customer Fields ===
+    #endregion
+    
+    #region Organization Customer Fields
     // (Used when Category = Organization)
+    
     /// <summary>
     /// Organization/Company name (primary name for Organization customers)
     /// </summary>
+    [MaxLength(255)]
     public string Company { get; set; } = string.Empty;
     
     /// <summary>
     /// Legal/registered name of the organization
     /// </summary>
+    [MaxLength(255)]
     public string? LegalName { get; set; }
     
     /// <summary>
     /// Doing Business As (DBA) name
     /// </summary>
+    [MaxLength(255)]
     public string? DbaName { get; set; }
     
     /// <summary>
     /// Tax ID / EIN / VAT number
     /// </summary>
+    [MaxLength(50)]
     public string? TaxId { get; set; }
     
     /// <summary>
     /// Organization registration number
     /// </summary>
+    [MaxLength(50)]
     public string? RegistrationNumber { get; set; }
     
     /// <summary>
@@ -136,148 +166,402 @@ public class Customer : BaseEntity
     /// </summary>
     public int? PrimaryContactId { get; set; }
     
-    // === Contact Information ===
+    #endregion
+    
+    #region Contact Information
+    
+    /// <summary>Primary email address</summary>
+    [Required]
+    [MaxLength(255)]
+    [EmailAddress]
     public string Email { get; set; } = string.Empty;
+    
+    /// <summary>Secondary email</summary>
+    [MaxLength(255)]
+    [EmailAddress]
     public string? SecondaryEmail { get; set; }
+    
+    /// <summary>Primary phone number</summary>
+    [Required]
+    [MaxLength(30)]
+    [Phone]
     public string Phone { get; set; } = string.Empty;
+    
+    /// <summary>Mobile phone</summary>
+    [MaxLength(30)]
+    [Phone]
     public string? MobilePhone { get; set; }
+    
+    /// <summary>Fax number</summary>
+    [MaxLength(30)]
     public string? FaxNumber { get; set; }
-    public string? JobTitle { get; set; } // For individual customers
+    
+    /// <summary>Job title (for individual customers)</summary>
+    [MaxLength(100)]
+    public string? JobTitle { get; set; }
+    
+    /// <summary>Website URL</summary>
+    [MaxLength(500)]
+    [Url]
     public string? Website { get; set; }
     
-    // === Address Information - Primary/Billing ===
+    #endregion
+    
+    #region Address - Primary/Billing
+    
+    /// <summary>Street address</summary>
+    [Required]
+    [MaxLength(255)]
     public string Address { get; set; } = string.Empty;
+    
+    /// <summary>Address line 2</summary>
+    [MaxLength(255)]
     public string? Address2 { get; set; }
+    
+    /// <summary>City</summary>
+    [Required]
+    [MaxLength(100)]
     public string City { get; set; } = string.Empty;
+    
+    /// <summary>State/Province</summary>
+    [Required]
+    [MaxLength(100)]
     public string State { get; set; } = string.Empty;
+    
+    /// <summary>Postal/ZIP code</summary>
+    [Required]
+    [MaxLength(20)]
     public string ZipCode { get; set; } = string.Empty;
+    
+    /// <summary>Country</summary>
+    [Required]
+    [MaxLength(100)]
     public string Country { get; set; } = string.Empty;
     
-    // === Address Information - Shipping ===
+    #endregion
+    
+    #region Address - Shipping
+    
+    /// <summary>Shipping street address</summary>
+    [MaxLength(255)]
     public string? ShippingAddress { get; set; }
+    
+    /// <summary>Shipping address line 2</summary>
+    [MaxLength(255)]
     public string? ShippingAddress2 { get; set; }
+    
+    /// <summary>Shipping city</summary>
+    [MaxLength(100)]
     public string? ShippingCity { get; set; }
+    
+    /// <summary>Shipping state</summary>
+    [MaxLength(100)]
     public string? ShippingState { get; set; }
+    
+    /// <summary>Shipping postal/ZIP code</summary>
+    [MaxLength(20)]
     public string? ShippingZipCode { get; set; }
+    
+    /// <summary>Shipping country</summary>
+    [MaxLength(100)]
     public string? ShippingCountry { get; set; }
+    
+    /// <summary>Whether shipping address is same as billing</summary>
     public bool ShippingSameAsBilling { get; set; } = true;
     
-    // === Business Information ===
-    public string? Industry { get; set; }
-    public string? SubIndustry { get; set; }
-    public int? NumberOfEmployees { get; set; }
-    public string? EmployeeRange { get; set; } // 1-10, 11-50, 51-200, etc.
-    public decimal AnnualRevenue { get; set; } = 0;
-    public string? RevenueRange { get; set; } // <1M, 1-10M, 10-50M, etc.
-    public CustomerType CustomerType { get; set; } = CustomerType.Individual;
-    public CustomerPriority Priority { get; set; } = CustomerPriority.Medium;
-    public string? StockSymbol { get; set; } // For public companies
-    public string? Ownership { get; set; } // Public, Private, Subsidiary, etc.
+    #endregion
     
-    // === Lifecycle & Status ===
+#region Business Information
+    
+    /// <summary>Industry classification</summary>
+    [MaxLength(100)]
+    public string? Industry { get; set; }
+    
+    /// <summary>Sub-industry classification</summary>
+    [MaxLength(100)]
+    public string? SubIndustry { get; set; }
+    
+    /// <summary>Number of employees</summary>
+    public int? NumberOfEmployees { get; set; }
+    
+    /// <summary>Employee range (1-10, 11-50, 51-200, etc.)</summary>
+    [MaxLength(50)]
+    public string? EmployeeRange { get; set; }
+    
+    /// <summary>Annual revenue</summary>
+    [Range(0, double.MaxValue)]
+    public decimal AnnualRevenue { get; set; } = 0;
+    
+    /// <summary>Revenue range (&lt;1M, 1-10M, 10-50M, etc.)</summary>
+    [MaxLength(50)]
+    public string? RevenueRange { get; set; }
+    
+    /// <summary>Customer type (Individual, Business, etc.)</summary>
+    public CustomerType CustomerType { get; set; } = CustomerType.Individual;
+    
+    /// <summary>Priority level</summary>
+    public CustomerPriority Priority { get; set; } = CustomerPriority.Medium;
+    
+    /// <summary>Stock ticker symbol (for public companies)</summary>
+    [MaxLength(20)]
+    public string? StockSymbol { get; set; }
+    
+    /// <summary>Ownership type (Public, Private, Subsidiary, etc.)</summary>
+    [MaxLength(50)]
+    public string? Ownership { get; set; }
+    
+    #endregion
+    
+    #region Lifecycle & Status
+    
+    /// <summary>Customer lifecycle stage</summary>
     public CustomerLifecycleStage LifecycleStage { get; set; } = CustomerLifecycleStage.Other;
+    
+    /// <summary>How the lead was sourced</summary>
+    [MaxLength(100)]
     public string? LeadSource { get; set; }
+    
+    /// <summary>Date of first contact</summary>
     public DateTime? FirstContactDate { get; set; }
+    
+    /// <summary>Date converted from lead to customer</summary>
     public DateTime? ConversionDate { get; set; }
+    
+    /// <summary>Last activity date</summary>
     public DateTime? LastActivityDate { get; set; }
+    
+    /// <summary>Next scheduled follow-up</summary>
     public DateTime? NextFollowUpDate { get; set; }
     
-    // === Financial ===
+    #endregion
+    
+    #region Financial
+    
+    /// <summary>Total purchases amount</summary>
+    [Range(0, double.MaxValue)]
     public decimal TotalPurchases { get; set; } = 0;
+    
+    /// <summary>Current account balance</summary>
     public decimal AccountBalance { get; set; } = 0;
+    
+    /// <summary>Credit limit</summary>
+    [Range(0, double.MaxValue)]
     public decimal CreditLimit { get; set; } = 0;
+    
+    /// <summary>Payment terms (Net 30, Net 60, etc.)</summary>
+    [MaxLength(50)]
     public string? PaymentTerms { get; set; }
+    
+    /// <summary>Preferred payment method</summary>
+    [MaxLength(50)]
     public string? PreferredPaymentMethod { get; set; }
-    public string? Currency { get; set; } // Preferred currency
+    
+    /// <summary>Preferred currency (3-letter ISO code)</summary>
+    [MaxLength(3)]
+    public string? Currency { get; set; }
+    
+    /// <summary>Currency lookup ID</summary>
     public int? CurrencyLookupId { get; set; }
-    public string? BillingCycle { get; set; } // Monthly, Quarterly, Annual
+    
+    /// <summary>Billing cycle (Monthly, Quarterly, Annual)</summary>
+    [MaxLength(50)]
+    public string? BillingCycle { get; set; }
+    
+    /// <summary>Billing cycle lookup ID</summary>
     public int? BillingCycleLookupId { get; set; }
     
-    // === Scoring & Rating ===
+    #endregion
+    
+    #region Scoring & Rating
+    
+    /// <summary>Lead score (0-100)</summary>
+    [Range(0, 100)]
     public int LeadScore { get; set; } = 0;
+    
+    /// <summary>Customer health score (0-100)</summary>
+    [Range(0, 100)]
     public int CustomerHealthScore { get; set; } = 50;
+    
+    /// <summary>Net Promoter Score (-100 to 100)</summary>
+    [Range(-100, 100)]
     public int NpsScore { get; set; } = 0;
+    
+    /// <summary>Satisfaction rating (0-5)</summary>
+    [Range(0, 5)]
     public double SatisfactionRating { get; set; } = 0;
     
-    // === Social & Communication ===
+    #endregion
+    
+    #region Social & Communication Preferences
+    
+    /// <summary>LinkedIn profile URL</summary>
+    [MaxLength(500)]
+    [Url]
     public string? LinkedInUrl { get; set; }
+    
+    /// <summary>Twitter/X handle</summary>
+    [MaxLength(100)]
     public string? TwitterHandle { get; set; }
+    
+    /// <summary>Facebook profile URL</summary>
+    [MaxLength(500)]
+    [Url]
     public string? FacebookUrl { get; set; }
+    
+    /// <summary>Email marketing opt-in</summary>
     public bool OptInEmail { get; set; } = true;
+    
+    /// <summary>SMS marketing opt-in</summary>
     public bool OptInSms { get; set; } = false;
+    
+    /// <summary>Phone marketing opt-in</summary>
     public bool OptInPhone { get; set; } = true;
+    
+    /// <summary>Preferred contact method</summary>
+    [MaxLength(50)]
     public string? PreferredContactMethod { get; set; }
+    
+    /// <summary>Preferred contact time</summary>
+    [MaxLength(50)]
     public string? PreferredContactTime { get; set; }
+    
+    /// <summary>Timezone</summary>
+    [MaxLength(100)]
     public string? Timezone { get; set; }
+    
+    /// <summary>Preferred language</summary>
+    [MaxLength(50)]
     public string? PreferredLanguage { get; set; }
     
-    // === Assignment & Ownership ===
+    #endregion
+    
+    #region Assignment & Ownership
+    
+    /// <summary>Assigned sales rep user ID</summary>
+    [ForeignKey("AssignedToUser")]
     public int? AssignedToUserId { get; set; }
+    
+    /// <summary>Account manager user ID</summary>
+    [ForeignKey("AccountManager")]
     public int? AccountManagerId { get; set; }
+    
+    /// <summary>Sales territory</summary>
+    [MaxLength(100)]
     public string? Territory { get; set; }
+    
+    /// <summary>Geographic region</summary>
+    [MaxLength(100)]
     public string? Region { get; set; }
     
-    // === Classification ===
-    public string? Tags { get; set; }
-    public string? Segment { get; set; }
-    public string? ReferralSource { get; set; }
-    public int? ReferredByCustomerId { get; set; }
-    public int? ParentCustomerId { get; set; } // For subsidiary relationships
+    #endregion
     
-    // === Lead Conversion ===
-    /// <summary>
-    /// The lead that was converted to create this customer
-    /// </summary>
+    #region Classification
+    
+    /// <summary>Tags (comma-separated)</summary>
+    [MaxLength(500)]
+    public string? Tags { get; set; }
+    
+    /// <summary>Customer segment</summary>
+    [MaxLength(100)]
+    public string? Segment { get; set; }
+    
+    /// <summary>Referral source</summary>
+    [MaxLength(255)]
+    public string? ReferralSource { get; set; }
+    
+    /// <summary>Referring customer ID</summary>
+    public int? ReferredByCustomerId { get; set; }
+    
+    /// <summary>Parent customer ID (for subsidiary relationships)</summary>
+    public int? ParentCustomerId { get; set; }
+    
+    #endregion
+    
+    #region Lead Conversion
+    
+    /// <summary>The lead that was converted to create this customer</summary>
     public int? ConvertedFromLeadId { get; set; }
     
-    /// <summary>
-    /// The campaign that generated the original lead
-    /// </summary>
+    /// <summary>The campaign that generated the original lead</summary>
     public int? SourceCampaignId { get; set; }
     
-    // === Documentation ===
+    #endregion
+    
+    #region Documentation
+    
+    /// <summary>General notes</summary>
     public string Notes { get; set; } = string.Empty;
+    
+    /// <summary>Internal notes (not visible to customer)</summary>
     public string? InternalNotes { get; set; }
+    
+    /// <summary>Description</summary>
     public string? Description { get; set; }
     
-    // === Branding ===
-    /// <summary>
-    /// URL to customer's company logo
-    /// </summary>
+    #endregion
+    
+    #region Branding
+    
+    /// <summary>URL to customer's company logo</summary>
+    [MaxLength(500)]
+    [Url]
     public string? LogoUrl { get; set; }
     
-    // === Custom Fields ===
+    #endregion
+    
+    #region Custom Fields
+    
+    /// <summary>JSON-serialized custom fields</summary>
     public string? CustomFields { get; set; }
+    
+    #endregion
 
-    // === Navigation Properties ===
+    #region Navigation Properties
+    
     public ICollection<Opportunity>? Opportunities { get; set; }
     public ICollection<Interaction>? Interactions { get; set; }
-    public ICollection<CustomerContact>? CustomerContacts { get; set; } // Linked contacts for organizations
+    public ICollection<CustomerContact>? CustomerContacts { get; set; }
     public ICollection<Account>? Accounts { get; set; }
     
-    /// <summary>
-    /// Contacts directly owned by this customer (one-to-many relationship)
-    /// </summary>
+    /// <summary>Contacts directly owned by this customer</summary>
     public ICollection<Contact>? Contacts { get; set; }
     
-    // Contact information links (addresses, phones/emails, social accounts)
+    /// <summary>Contact information links (addresses, phones/emails, social accounts)</summary>
     public ICollection<ContactInfoLink>? ContactInfoLinks { get; set; }
-    // Lookup navigation
+    
+    /// <summary>Currency lookup navigation</summary>
     public LookupItem? CurrencyLookup { get; set; }
+    
+    /// <summary>Billing cycle lookup navigation</summary>
     public LookupItem? BillingCycleLookup { get; set; }
+    
+    /// <summary>Assigned user navigation</summary>
     public User? AssignedToUser { get; set; }
+    
+    /// <summary>Account manager navigation</summary>
     public User? AccountManager { get; set; }
+    
+    /// <summary>Referring customer navigation</summary>
     public Customer? ReferredByCustomer { get; set; }
+    
+    /// <summary>Parent customer navigation</summary>
     public Customer? ParentCustomer { get; set; }
+    
+    /// <summary>Converted lead navigation</summary>
     public Lead? ConvertedFromLead { get; set; }
+    
+    /// <summary>Source campaign navigation</summary>
     public MarketingCampaign? SourceCampaign { get; set; }
     
-    // === Computed Properties ===
-    /// <summary>
-    /// Display name - returns full name for individuals, company name for organizations
-    /// </summary>
+    #endregion
+    
+    #region Computed Properties
+    
+    /// <summary>Display name - returns full name for individuals, company name for organizations</summary>
     public string DisplayName => Category == CustomerCategory.Organization 
         ? Company 
         : $"{FirstName} {LastName}".Trim();
+    
+    #endregion
 }
 

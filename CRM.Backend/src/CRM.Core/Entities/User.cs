@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -58,35 +61,38 @@ public enum UserRole
 /// </summary>
 public class User : BaseEntity
 {
-    /// <summary>
-    /// Unique login identifier for the user
-    /// </summary>
+    #region Authentication
+    
+    /// <summary>Unique login identifier for the user</summary>
+    [Required]
+    [MaxLength(100)]
     public string Username { get; set; } = string.Empty;
     
-    /// <summary>
-    /// User's email address - used for notifications and password reset
-    /// </summary>
+    /// <summary>User's email address - used for notifications and password reset</summary>
+    [Required]
+    [MaxLength(255)]
+    [EmailAddress]
     public string Email { get; set; } = string.Empty;
     
-    /// <summary>
-    /// User's first/given name
-    /// </summary>
+    /// <summary>User's first/given name</summary>
+    [Required]
+    [MaxLength(100)]
     public string FirstName { get; set; } = string.Empty;
     
-    /// <summary>
-    /// User's last/family name
-    /// </summary>
+    /// <summary>User's last/family name</summary>
+    [Required]
+    [MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
     
-    /// <summary>
-    /// BCrypt hashed password - never store plain text passwords
-    /// </summary>
+    /// <summary>BCrypt hashed password - never store plain text passwords</summary>
+    [Required]
     public string PasswordHash { get; set; } = string.Empty;
     
-    /// <summary>
-    /// User's role level (0=Admin, 1=Manager, 2=Sales, 3=Support, 4=Guest)
-    /// </summary>
+    /// <summary>User's role level (0=Admin, 1=Manager, 2=Sales, 3=Support, 4=Guest)</summary>
+    [Range(0, 4)]
     public int Role { get; set; } = 0;
+    
+    #endregion
     
     /// <summary>
     /// Whether the user can currently log in

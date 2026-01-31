@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace CRM.Core.Entities;
 
 #region Product & Service Enumerations
@@ -367,6 +370,8 @@ public class Product : BaseEntity
     /// FUNCTIONAL: Display name for the product/service
     /// TECHNICAL: Required, used in search and display
     /// </summary>
+    [Required]
+    [MaxLength(255)]
     public string Name { get; set; } = string.Empty;
     
     /// <summary>
@@ -379,36 +384,43 @@ public class Product : BaseEntity
     /// FUNCTIONAL: Brief description for lists and summaries
     /// TECHNICAL: Max 200 characters recommended
     /// </summary>
+    [MaxLength(200)]
     public string? ShortDescription { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: Stock keeping unit identifier
     /// TECHNICAL: Unique business key
     /// </summary>
+    [Required]
+    [MaxLength(50)]
     public string SKU { get; set; } = string.Empty;
     
     /// <summary>
     /// FUNCTIONAL: Product identifier (different from SKU for variants)
     /// TECHNICAL: Groups all variants together
     /// </summary>
+    [MaxLength(50)]
     public string? ProductCode { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: Universal barcode (UPC, EAN, ISBN)
     /// TECHNICAL: For inventory scanning integration
     /// </summary>
+    [MaxLength(50)]
     public string? Barcode { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: External system identifier
     /// TECHNICAL: For ERP/PIM integration
     /// </summary>
+    [MaxLength(100)]
     public string? ExternalId { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: Internal reference number
     /// TECHNICAL: Auto-generated format: PRD-XXXXXX or SVC-XXXXXX
     /// </summary>
+    [MaxLength(50)]
     public string? InternalReference { get; set; }
     
     #endregion
@@ -431,36 +443,43 @@ public class Product : BaseEntity
     /// FUNCTIONAL: Primary category
     /// TECHNICAL: Used for catalog organization
     /// </summary>
+    [Required]
+    [MaxLength(100)]
     public string Category { get; set; } = string.Empty;
     
     /// <summary>
     /// FUNCTIONAL: Secondary category
     /// TECHNICAL: For deeper categorization
     /// </summary>
+    [MaxLength(100)]
     public string? SubCategory { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: Product family for grouping
     /// TECHNICAL: Links related products
     /// </summary>
+    [MaxLength(100)]
     public string? ProductFamily { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: Brand name
     /// TECHNICAL: For brand-based filtering
     /// </summary>
+    [MaxLength(100)]
     public string? Brand { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: Manufacturer name
     /// TECHNICAL: For supplier tracking
     /// </summary>
+    [MaxLength(255)]
     public string? Manufacturer { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: Searchable tags
     /// TECHNICAL: Comma-separated or JSON array
     /// </summary>
+    [MaxLength(500)]
     public string? Tags { get; set; }
     
     /// <summary>
@@ -489,12 +508,14 @@ public class Product : BaseEntity
     /// FUNCTIONAL: Standard unit price
     /// TECHNICAL: Base price before discounts
     /// </summary>
+    [Range(0, double.MaxValue)]
     public decimal Price { get; set; } = 0;
     
     /// <summary>
     /// FUNCTIONAL: Manufacturer's suggested retail price
     /// TECHNICAL: For comparison/savings display
     /// </summary>
+    [Range(0, double.MaxValue)]
     public decimal? ListPrice { get; set; }
     
     /// <summary>

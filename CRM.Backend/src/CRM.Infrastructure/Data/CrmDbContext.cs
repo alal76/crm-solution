@@ -56,7 +56,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<DatabaseBackup> DatabaseBackups { get; set; }
     public DbSet<BackupSchedule> BackupSchedules { get; set; }
     
-    // Contact entities
+    // Contact entities (using Models.Contact - legacy)
     public DbSet<Contact> Contacts { get; set; }
     public DbSet<SocialMediaLink> SocialMediaLinks { get; set; }
     
