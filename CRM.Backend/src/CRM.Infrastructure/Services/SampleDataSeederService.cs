@@ -1580,8 +1580,8 @@ public class SampleDataSeederService
     }
 
     /// <summary>
-    /// Seed 100 opportunities linked to accounts
-    /// Uses new 3NF Opportunity entity with OpportunityStage and Account relationships
+    /// Seed 100 opportunities linked to customers
+    /// Uses new 3NF Opportunity entity with OpportunityStage and Customer relationships
     /// </summary>
     private async Task SeedOpportunitiesToContextAsync(CrmDbContext context)
     {
@@ -1594,10 +1594,10 @@ public class SampleDataSeederService
             return;
         }
 
-        var accounts = await context.Accounts.Take(100).ToListAsync();
-        if (!accounts.Any())
+        var customers = await context.Customers.Take(100).ToListAsync();
+        if (!customers.Any())
         {
-            _logger.LogWarning("No accounts found. Skipping opportunities seeding.");
+            _logger.LogWarning("No customers found. Skipping opportunities seeding.");
             return;
         }
 
@@ -1611,7 +1611,7 @@ public class SampleDataSeederService
 
         for (int i = 1; i <= 100; i++)
         {
-            var account = accounts[_random.Next(accounts.Count)];
+            var customer = customers[_random.Next(customers.Count)];
             var stage = stages[_random.Next(stages.Length)];
             var amount = _random.Next(1, 50) * 1000m;
             var probability = stage switch
@@ -1625,8 +1625,8 @@ public class SampleDataSeederService
 
             opportunities.Add(new Opportunity
             {
-                Name = $"{account.AccountNumber} - {opportunityNames[_random.Next(opportunityNames.Length)]}",
-                AccountId = account.Id,
+                Name = $"{customer.DisplayName} - {opportunityNames[_random.Next(opportunityNames.Length)]}",
+                CustomerId = customer.Id,
                 SolutionNotes = "Demo opportunity for testing the CRM system",
                 Amount = amount,
                 Stage = stage,

@@ -61,7 +61,7 @@ public class LLMSettingsDto
 {
     public string DefaultProvider { get; set; } = "openai";
     public bool EnableFallback { get; set; } = true;
-    public List<string> FallbackOrder { get; set; } = new() { "openai", "azure", "anthropic", "google", "deepseek", "local" };
+    public List<string> FallbackOrder { get; set; } = new() { "openai", "azure", "anthropic", "google", "deepseek", "allenai", "local" };
     public int DefaultMaxTokens { get; set; } = 1000;
     public double DefaultTemperature { get; set; } = 0.7;
     public int TimeoutSeconds { get; set; } = 60;
@@ -73,6 +73,7 @@ public class LLMSettingsDto
     public LLMProviderSettingsDto Google { get; set; } = new();
     public LLMProviderSettingsDto Bedrock { get; set; } = new();
     public LLMProviderSettingsDto DeepSeek { get; set; } = new();
+    public LLMProviderSettingsDto AllenAI { get; set; } = new();
     public LLMProviderSettingsDto Local { get; set; } = new();
 }
 

@@ -998,7 +998,7 @@ class Program
                 Region = faker.PickRandom(regions),
                 
                 // Foreign Keys
-                AccountId = faker.PickRandom(accounts).Id,
+                CustomerId = faker.PickRandom(accounts).CustomerId,
                 SalesOwnerId = faker.PickRandom(salesUsers).Id,
                 
                 CreatedAt = faker.Date.Past(1)

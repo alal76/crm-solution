@@ -68,6 +68,9 @@ import InteractionsPage from './pages/InteractionsPage';
 import ChannelSettingsPage from './pages/ChannelSettingsPage';
 import RelationshipsPage from './pages/RelationshipsPage';
 import CampaignExecutionPage from './pages/CampaignExecutionPage';
+import ContractsPage from './pages/ContractsPage';
+import FormBuilderPage from './pages/FormBuilderPage';
+import KnowledgeBasePage from './pages/KnowledgeBasePage';
 import {
   DeploymentSettingsPage,
   MonitoringSettingsPage,
@@ -354,6 +357,36 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <QuotesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/contracts"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ContractsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/forms"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <FormBuilderPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/knowledge-base"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <KnowledgeBasePage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

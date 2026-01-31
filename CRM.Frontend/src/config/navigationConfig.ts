@@ -39,6 +39,9 @@ import {
   AccountTree as WorkflowsIcon,
   Settings as SettingsIcon,
   ChatBubbleOutline as ChannelSettingsIcon,
+  Description as ContractsIcon,
+  DynamicForm as FormsIcon,
+  MenuBook as KnowledgeBaseIcon,
 } from '@mui/icons-material';
 import { SvgIconComponent } from '@mui/icons-material';
 import React from 'react';
@@ -187,6 +190,24 @@ export const NAV_ITEMS_CONFIG: NavItemConfig[] = [
     category: 'sales',
     description: 'Sales quotes and proposals',
   },
+  {
+    id: 'contracts',
+    label: 'Contracts',
+    path: '/contracts',
+    icon: ContractsIcon,
+    order: 13,
+    category: 'sales',
+    description: 'Contract management',
+  },
+  {
+    id: 'forms',
+    label: 'Form Builder',
+    path: '/forms',
+    icon: FormsIcon,
+    order: 14,
+    category: 'sales',
+    description: 'Web form builder for lead capture',
+  },
 
   // Customer Support category
   {
@@ -206,6 +227,15 @@ export const NAV_ITEMS_CONFIG: NavItemConfig[] = [
     order: 9,
     category: 'support',
     description: 'Customer service tickets',
+  },
+  {
+    id: 'knowledge-base',
+    label: 'Knowledge Base',
+    path: '/knowledge-base',
+    icon: KnowledgeBaseIcon,
+    order: 10,
+    category: 'support',
+    description: 'Help articles and documentation',
   },
 
   // Productivity category
@@ -375,6 +405,9 @@ export const createIconMap = (): Record<string, React.ReactElement> => {
   iconMap['WorkflowsIcon'] = React.createElement(WorkflowsIcon);
   iconMap['ChannelSettingsIcon'] = React.createElement(ChannelSettingsIcon);
   iconMap['SettingsIcon'] = React.createElement(SettingsIcon);
+  iconMap['ContractsIcon'] = React.createElement(ContractsIcon);
+  iconMap['FormsIcon'] = React.createElement(FormsIcon);
+  iconMap['KnowledgeBaseIcon'] = React.createElement(KnowledgeBaseIcon);
   
   return iconMap;
 };

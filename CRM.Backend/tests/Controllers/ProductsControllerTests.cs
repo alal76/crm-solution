@@ -1,4 +1,5 @@
 using CRM.Api.Controllers;
+using CRM.Api.Hubs;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using FluentAssertions;
@@ -16,13 +17,15 @@ public class ProductsControllerTests
 {
     private readonly Mock<IProductService> _mockProductService;
     private readonly Mock<ILogger<ProductsController>> _mockLogger;
+    private readonly Mock<ICrmNotificationService> _mockNotificationService;
     private readonly ProductsController _controller;
 
     public ProductsControllerTests()
     {
         _mockProductService = new Mock<IProductService>();
         _mockLogger = new Mock<ILogger<ProductsController>>();
-        _controller = new ProductsController(_mockProductService.Object, _mockLogger.Object);
+        _mockNotificationService = new Mock<ICrmNotificationService>();
+        _controller = new ProductsController(_mockProductService.Object, _mockLogger.Object, _mockNotificationService.Object);
     }
 
     #region GetAll Tests

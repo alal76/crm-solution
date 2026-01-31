@@ -26,6 +26,7 @@ public class LLMProviderOptions
     public GoogleCloudOptions GoogleCloud { get; set; } = new();
     public AWSBedrockOptions AWSBedrock { get; set; } = new();
     public DeepSeekOptions DeepSeek { get; set; } = new();
+    public AllenAIOptions AllenAI { get; set; } = new();
     public LocalLLMOptions LocalLLM { get; set; } = new();
     public CustomEndpointOptions CustomEndpoint { get; set; } = new();
     public int DefaultMaxTokens { get; set; } = 1000;
@@ -33,7 +34,7 @@ public class LLMProviderOptions
     public int TimeoutSeconds { get; set; } = 60;
     public int MaxRetries { get; set; } = 3;
     public bool EnableFallback { get; set; } = true;
-    public string[] FallbackOrder { get; set; } = { "openai", "anthropic", "azure", "google", "local" };
+    public string[] FallbackOrder { get; set; } = { "openai", "anthropic", "azure", "google", "allenai", "local" };
 }
 
 public class OpenAIOptions
@@ -98,6 +99,20 @@ public class DeepSeekOptions
     public string ApiKey { get; set; } = "";
     public string BaseUrl { get; set; } = "https://api.deepseek.com";
     public string DefaultModel { get; set; } = "deepseek-chat";  // or deepseek-coder, deepseek-reasoner
+}
+
+/// <summary>
+/// Allen AI (AI2) configuration - Free open-source models via Hugging Face
+/// Models: OLMo-7B, Tulu-2-7B, and other open research models
+/// </summary>
+public class AllenAIOptions
+{
+    public string ApiKey { get; set; } = "";  // Hugging Face API token
+    public string BaseUrl { get; set; } = "https://api-inference.huggingface.co/models";
+    public string DefaultModel { get; set; } = "allenai/OLMo-7B-Instruct";  // or allenai/tulu-2-7b
+    public bool Enabled { get; set; } = true;
+    public int MaxNewTokens { get; set; } = 1000;
+    public double Temperature { get; set; } = 0.7;
 }
 
 /// <summary>
@@ -231,6 +246,8 @@ public class LLMService : ILLMService
                                   (!string.IsNullOrEmpty(_options.AWSBedrock.AccessKeyId) && 
                                    !string.IsNullOrEmpty(_options.AWSBedrock.SecretAccessKey)),
             "deepseek" => !string.IsNullOrEmpty(_options.DeepSeek.ApiKey),
+            "allenai" or "huggingface" or "ai2" => _options.AllenAI.Enabled && 
+                                                    !string.IsNullOrEmpty(_options.AllenAI.ApiKey),
             "local" or "ollama" or "lmstudio" or "vllm" => _options.LocalLLM.Enabled && 
                                                            !string.IsNullOrEmpty(_options.LocalLLM.BaseUrl),
             "custom" => !string.IsNullOrEmpty(_options.CustomEndpoint.Url),
@@ -248,6 +265,7 @@ public class LLMService : ILLMService
             new() { Value = "google", Label = "Google Cloud (Gemini)", IsConfigured = IsConfigured("google"), Models = GetModelsForProvider("google") },
             new() { Value = "bedrock", Label = "AWS Bedrock", IsConfigured = IsConfigured("bedrock"), Models = GetModelsForProvider("bedrock") },
             new() { Value = "deepseek", Label = "DeepSeek", IsConfigured = IsConfigured("deepseek"), Models = GetModelsForProvider("deepseek") },
+            new() { Value = "allenai", Label = "Allen AI (Open Research)", IsConfigured = IsConfigured("allenai"), Models = GetModelsForProvider("allenai") },
             new() { Value = "local", Label = "Local LLM (Ollama/LM Studio)", IsConfigured = IsConfigured("local"), Models = GetModelsForProvider("local") },
             new() { Value = "custom", Label = "Custom Endpoint", IsConfigured = IsConfigured("custom"), Models = GetModelsForProvider("custom") }
         };
@@ -306,6 +324,15 @@ public class LLMService : ILLMService
                 new() { Value = "deepseek-chat", Label = "DeepSeek Chat", Provider = "deepseek", IsDefault = _options.DeepSeek.DefaultModel == "deepseek-chat" },
                 new() { Value = "deepseek-coder", Label = "DeepSeek Coder", Provider = "deepseek", IsDefault = _options.DeepSeek.DefaultModel == "deepseek-coder" },
                 new() { Value = "deepseek-reasoner", Label = "DeepSeek Reasoner", Provider = "deepseek", IsDefault = _options.DeepSeek.DefaultModel == "deepseek-reasoner" }
+            },
+            "allenai" or "huggingface" or "ai2" => new List<LLMModelInfo>
+            {
+                new() { Value = "allenai/OLMo-7B-Instruct", Label = "OLMo 7B Instruct", Provider = "allenai", IsDefault = _options.AllenAI.DefaultModel?.Contains("OLMo") == true },
+                new() { Value = "allenai/OLMo-7B", Label = "OLMo 7B Base", Provider = "allenai", IsDefault = false },
+                new() { Value = "allenai/tulu-2-7b", Label = "Tulu 2 7B", Provider = "allenai", IsDefault = _options.AllenAI.DefaultModel?.Contains("tulu") == true },
+                new() { Value = "allenai/tulu-2-dpo-7b", Label = "Tulu 2 DPO 7B", Provider = "allenai", IsDefault = false },
+                new() { Value = "allenai/tulu-2-13b", Label = "Tulu 2 13B", Provider = "allenai", IsDefault = false },
+                new() { Value = "allenai/OLMo-1B", Label = "OLMo 1B (Fast)", Provider = "allenai", IsDefault = false }
             },
             "local" => new List<LLMModelInfo>
             {
@@ -383,6 +410,7 @@ public class LLMService : ILLMService
                     "google" or "gemini" or "vertexai" => await CallGoogleCloudAsync(request, cancellationToken),
                     "aws" or "bedrock" => await CallAWSBedrockAsync(request, cancellationToken),
                     "deepseek" => await CallDeepSeekAsync(request, cancellationToken),
+                    "allenai" or "huggingface" or "ai2" => await CallAllenAIAsync(request, cancellationToken),
                     "local" or "ollama" or "lmstudio" or "vllm" => await CallLocalLLMAsync(request, cancellationToken),
                     "custom" => await CallCustomEndpointAsync(request, cancellationToken),
                     _ => throw new NotSupportedException($"Provider {provider} is not supported")
@@ -965,6 +993,128 @@ public class LLMService : ILLMService
             CompletionTokens = usage.GetProperty("completion_tokens").GetInt32(),
             Success = true
         };
+    }
+
+    #endregion
+
+    #region Allen AI (Hugging Face Inference API)
+
+    private async Task<LLMResponse> CallAllenAIAsync(LLMRequest request, CancellationToken cancellationToken)
+    {
+        // Allen AI models are hosted on Hugging Face
+        var model = !string.IsNullOrEmpty(request.Model) ? request.Model : _options.AllenAI.DefaultModel;
+        
+        // Build the prompt from messages (Hugging Face text-generation expects a single prompt)
+        var prompt = BuildPromptFromMessages(request.Messages);
+
+        var requestBody = new
+        {
+            inputs = prompt,
+            parameters = new
+            {
+                max_new_tokens = request.MaxTokens > 0 ? request.MaxTokens : _options.AllenAI.MaxNewTokens,
+                temperature = request.Temperature > 0 ? request.Temperature : _options.AllenAI.Temperature,
+                return_full_text = false,
+                do_sample = true
+            }
+        };
+
+        var modelUrl = model.StartsWith("http") ? model : $"{_options.AllenAI.BaseUrl}/{model}";
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, modelUrl);
+        httpRequest.Headers.Add("Authorization", $"Bearer {_options.AllenAI.ApiKey}");
+        httpRequest.Content = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("Allen AI/Hugging Face API error: {StatusCode} - {Content}", response.StatusCode, content);
+            
+            // Handle model loading (503 when model is cold)
+            if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+            {
+                var errorDoc = JsonDocument.Parse(content);
+                if (errorDoc.RootElement.TryGetProperty("error", out var error) && 
+                    error.GetString()?.Contains("loading") == true)
+                {
+                    return new LLMResponse
+                    {
+                        Success = false,
+                        Error = "Model is loading. Please try again in a few seconds.",
+                        Provider = "allenai",
+                        Model = model
+                    };
+                }
+            }
+            
+            throw new Exception($"Allen AI API error: {response.StatusCode}");
+        }
+
+        // Hugging Face returns an array of generated texts
+        var jsonResponse = JsonDocument.Parse(content);
+        string responseContent;
+        
+        if (jsonResponse.RootElement.ValueKind == JsonValueKind.Array)
+        {
+            responseContent = jsonResponse.RootElement[0]
+                .GetProperty("generated_text")
+                .GetString() ?? "";
+        }
+        else
+        {
+            responseContent = jsonResponse.RootElement
+                .GetProperty("generated_text")
+                .GetString() ?? "";
+        }
+
+        // Estimate tokens (Hugging Face doesn't return token counts for free inference)
+        var estimatedPromptTokens = prompt.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+        var estimatedCompletionTokens = responseContent.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+
+        return new LLMResponse
+        {
+            Content = responseContent.Trim(),
+            Model = model,
+            Provider = "allenai",
+            TotalTokens = estimatedPromptTokens + estimatedCompletionTokens,
+            PromptTokens = estimatedPromptTokens,
+            CompletionTokens = estimatedCompletionTokens,
+            Success = true
+        };
+    }
+
+    private string BuildPromptFromMessages(List<LLMMessage>? messages)
+    {
+        if (messages == null || messages.Count == 0)
+            return "";
+
+        var promptBuilder = new StringBuilder();
+        
+        foreach (var message in messages)
+        {
+            switch (message.Role.ToLower())
+            {
+                case "system":
+                    promptBuilder.AppendLine($"<|system|>\n{message.Content}</s>");
+                    break;
+                case "user":
+                    promptBuilder.AppendLine($"<|user|>\n{message.Content}</s>");
+                    break;
+                case "assistant":
+                    promptBuilder.AppendLine($"<|assistant|>\n{message.Content}</s>");
+                    break;
+                default:
+                    promptBuilder.AppendLine(message.Content);
+                    break;
+            }
+        }
+        
+        promptBuilder.AppendLine("<|assistant|>");
+        return promptBuilder.ToString();
     }
 
     #endregion

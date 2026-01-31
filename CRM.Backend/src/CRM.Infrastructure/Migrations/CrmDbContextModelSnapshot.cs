@@ -2750,14 +2750,15 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<int>("CommentCount")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CommunicationChannelId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("ContactId")
                         .HasColumnType("int");
 
                     b.Property<string>("ConversationId")
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("ConversationId1")
-                        .HasColumnType("int");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -2781,13 +2782,16 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("ExternalMessageId")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("FromAddress")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("FromName")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("HtmlBody")
                         .HasColumnType("longtext");
@@ -2873,16 +2877,19 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Subject")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("TagsJson")
                         .HasColumnType("longtext");
 
                     b.Property<string>("ToAddress")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("ToName")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<bool>("TrackClicks")
                         .HasColumnType("tinyint(1)");
@@ -2903,11 +2910,19 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasIndex("ChannelId");
 
-                    b.HasIndex("ConversationId1");
+                    b.HasIndex("CommunicationChannelId");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("Direction");
 
                     b.HasIndex("EmailTemplateId");
 
                     b.HasIndex("ParentMessageId");
+
+                    b.HasIndex("SentAt");
+
+                    b.HasIndex("Status");
 
                     b.ToTable("CommunicationMessages");
                 });
@@ -3045,7 +3060,8 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Property<string>("ConversationId")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -3078,7 +3094,8 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("LastMessagePreview")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<DateTime?>("LastOutboundAt")
                         .HasColumnType("datetime(6)");
@@ -3099,10 +3116,12 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ParticipantAddress")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("ParticipantName")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<int>("PrimaryChannelType")
                         .HasColumnType("int");
@@ -3122,7 +3141,8 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Subject")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("TagsJson")
                         .HasColumnType("longtext");
@@ -3134,6 +3154,11 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ConversationId")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
 
                     b.ToTable("Conversations");
                 });
@@ -7194,15 +7219,6 @@ namespace CRM.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<int?>("MarketingCampaignId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MarketingCampaignId1")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MarketingCampaignId2")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("MqlDate")
                         .HasColumnType("datetime(6)");
 
@@ -7262,12 +7278,6 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("ContactId");
 
                     b.HasIndex("Email");
-
-                    b.HasIndex("MarketingCampaignId");
-
-                    b.HasIndex("MarketingCampaignId1");
-
-                    b.HasIndex("MarketingCampaignId2");
 
                     b.HasIndex("OwnerId");
 
@@ -8675,9 +8685,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AccountId1")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -8757,8 +8764,6 @@ namespace CRM.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
-
-                    b.HasIndex("AccountId1");
 
                     b.HasIndex("CustomerId");
 
@@ -15662,14 +15667,14 @@ namespace CRM.Infrastructure.Migrations
             modelBuilder.Entity("CRM.Core.Entities.CommunicationMessage", b =>
                 {
                     b.HasOne("CRM.Core.Entities.CommunicationChannel", "Channel")
-                        .WithMany("Messages")
+                        .WithMany()
                         .HasForeignKey("ChannelId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("CRM.Core.Entities.Conversation", null)
+                    b.HasOne("CRM.Core.Entities.CommunicationChannel", null)
                         .WithMany("Messages")
-                        .HasForeignKey("ConversationId1");
+                        .HasForeignKey("CommunicationChannelId");
 
                     b.HasOne("CRM.Core.Entities.EmailTemplate", "EmailTemplate")
                         .WithMany("Messages")
@@ -15677,7 +15682,8 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasOne("CRM.Core.Entities.CommunicationMessage", "ParentMessage")
                         .WithMany("Replies")
-                        .HasForeignKey("ParentMessageId");
+                        .HasForeignKey("ParentMessageId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Channel");
 
@@ -16483,7 +16489,7 @@ namespace CRM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CRM.Core.Entities.MarketingCampaign", "Campaign")
-                        .WithMany()
+                        .WithMany("GeneratedLeads")
                         .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -16491,18 +16497,6 @@ namespace CRM.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("ContactId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("CRM.Core.Entities.MarketingCampaign", null)
-                        .WithMany("ConvertedLeads")
-                        .HasForeignKey("MarketingCampaignId");
-
-                    b.HasOne("CRM.Core.Entities.MarketingCampaign", null)
-                        .WithMany("GeneratedLeads")
-                        .HasForeignKey("MarketingCampaignId1");
-
-                    b.HasOne("CRM.Core.Entities.MarketingCampaign", null)
-                        .WithMany("TouchedLeads")
-                        .HasForeignKey("MarketingCampaignId2");
 
                     b.HasOne("CRM.Core.Entities.User", "Owner")
                         .WithMany()
@@ -16734,14 +16728,10 @@ namespace CRM.Infrastructure.Migrations
             modelBuilder.Entity("CRM.Core.Entities.Opportunity", b =>
                 {
                     b.HasOne("CRM.Core.Entities.Account", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CRM.Core.Entities.Account", null)
                         .WithMany("Opportunities")
-                        .HasForeignKey("AccountId1");
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("CRM.Core.Entities.Customer", null)
                         .WithMany("Opportunities")
@@ -17876,11 +17866,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Replies");
                 });
 
-            modelBuilder.Entity("CRM.Core.Entities.Conversation", b =>
-                {
-                    b.Navigation("Messages");
-                });
-
             modelBuilder.Entity("CRM.Core.Entities.CreditMemo", b =>
                 {
                     b.Navigation("Applications");
@@ -18004,15 +17989,11 @@ namespace CRM.Infrastructure.Migrations
                 {
                     b.Navigation("ChildCampaigns");
 
-                    b.Navigation("ConvertedLeads");
-
                     b.Navigation("GeneratedLeads");
 
                     b.Navigation("Metrics");
 
                     b.Navigation("Opportunities");
-
-                    b.Navigation("TouchedLeads");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.Opportunity", b =>

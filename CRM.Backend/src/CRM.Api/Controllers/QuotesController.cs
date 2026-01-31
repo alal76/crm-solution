@@ -76,6 +76,8 @@ public class QuotesController : ControllerBase
             .Include(q => q.Opportunity)
             .Include(q => q.AssignedToUser)
             .Include(q => q.Revisions)
+            .Include(q => q.QuoteLineItems!.Where(li => !li.IsDeleted))
+                .ThenInclude(li => li.Product)
             .FirstOrDefaultAsync(q => q.Id == id);
 
         if (quote == null)
@@ -374,6 +376,212 @@ public class QuotesController : ControllerBase
 
         quote.Total = afterDiscount + quote.Tax + quote.ShippingCost;
     }
+
+    #region Quote Line Items
+
+    /// <summary>
+    /// Get all line items for a quote
+    /// </summary>
+    [HttpGet("{quoteId}/lineitems")]
+    public async Task<ActionResult<IEnumerable<QuoteLineItem>>> GetLineItems(int quoteId)
+    {
+        var quote = await _context.Quotes.FindAsync(quoteId);
+        if (quote == null)
+            return NotFound("Quote not found");
+
+        var lineItems = await _context.Set<QuoteLineItem>()
+            .Where(li => li.QuoteId == quoteId && !li.IsDeleted)
+            .Include(li => li.Product)
+            .OrderBy(li => li.LineNumber)
+            .ToListAsync();
+
+        return Ok(lineItems);
+    }
+
+    /// <summary>
+    /// Get a specific line item
+    /// </summary>
+    [HttpGet("{quoteId}/lineitems/{lineItemId}")]
+    public async Task<ActionResult<QuoteLineItem>> GetLineItem(int quoteId, int lineItemId)
+    {
+        var lineItem = await _context.Set<QuoteLineItem>()
+            .Include(li => li.Product)
+            .FirstOrDefaultAsync(li => li.Id == lineItemId && li.QuoteId == quoteId && !li.IsDeleted);
+
+        if (lineItem == null)
+            return NotFound();
+
+        return Ok(lineItem);
+    }
+
+    /// <summary>
+    /// Add a line item to a quote
+    /// </summary>
+    [HttpPost("{quoteId}/lineitems")]
+    public async Task<ActionResult<QuoteLineItem>> AddLineItem(int quoteId, [FromBody] QuoteLineItem lineItem)
+    {
+        var quote = await _context.Quotes
+            .Include(q => q.QuoteLineItems)
+            .FirstOrDefaultAsync(q => q.Id == quoteId);
+            
+        if (quote == null)
+            return NotFound("Quote not found");
+
+        // Auto-assign line number
+        var maxLineNumber = quote.QuoteLineItems?.Where(li => !li.IsDeleted).Max(li => (int?)li.LineNumber) ?? 0;
+        lineItem.LineNumber = maxLineNumber + 1;
+        lineItem.QuoteId = quoteId;
+        lineItem.CreatedAt = DateTime.UtcNow;
+        lineItem.UpdatedAt = DateTime.UtcNow;
+
+        // If product is selected, populate from product
+        if (lineItem.ProductId.HasValue)
+        {
+            var product = await _context.Products.FindAsync(lineItem.ProductId.Value);
+            if (product != null)
+            {
+                lineItem.Name = string.IsNullOrEmpty(lineItem.Name) ? product.Name : lineItem.Name;
+                lineItem.SKU = product.SKU;
+                lineItem.UnitPrice = lineItem.UnitPrice == 0 ? product.Price : lineItem.UnitPrice;
+                lineItem.ListPrice = product.ListPrice ?? product.Price;
+                lineItem.CostPrice = product.Cost;
+                lineItem.Category = product.Category;
+            }
+        }
+
+        // Calculate line item totals
+        lineItem.RecalculateTotals();
+
+        _context.Set<QuoteLineItem>().Add(lineItem);
+        await _context.SaveChangesAsync();
+
+        // Recalculate quote totals
+        quote.QuoteLineItems = await _context.Set<QuoteLineItem>()
+            .Where(li => li.QuoteId == quoteId && !li.IsDeleted)
+            .ToListAsync();
+        quote.RecalculateFromLineItems();
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Line item {LineItemId} added to quote {QuoteId}", lineItem.Id, quoteId);
+        return CreatedAtAction(nameof(GetLineItem), new { quoteId, lineItemId = lineItem.Id }, lineItem);
+    }
+
+    /// <summary>
+    /// Update a line item
+    /// </summary>
+    [HttpPut("{quoteId}/lineitems/{lineItemId}")]
+    public async Task<IActionResult> UpdateLineItem(int quoteId, int lineItemId, [FromBody] QuoteLineItem lineItem)
+    {
+        if (lineItemId != lineItem.Id)
+            return BadRequest("Line item ID mismatch");
+
+        var existingItem = await _context.Set<QuoteLineItem>()
+            .FirstOrDefaultAsync(li => li.Id == lineItemId && li.QuoteId == quoteId);
+
+        if (existingItem == null)
+            return NotFound();
+
+        // Update fields
+        existingItem.ProductId = lineItem.ProductId;
+        existingItem.SKU = lineItem.SKU;
+        existingItem.Name = lineItem.Name;
+        existingItem.Description = lineItem.Description;
+        existingItem.Category = lineItem.Category;
+        existingItem.Quantity = lineItem.Quantity;
+        existingItem.UnitOfMeasure = lineItem.UnitOfMeasure;
+        existingItem.UnitPrice = lineItem.UnitPrice;
+        existingItem.ListPrice = lineItem.ListPrice;
+        existingItem.CostPrice = lineItem.CostPrice;
+        existingItem.DiscountType = lineItem.DiscountType;
+        existingItem.DiscountPercent = lineItem.DiscountPercent;
+        existingItem.DiscountAmount = lineItem.DiscountAmount;
+        existingItem.DiscountReason = lineItem.DiscountReason;
+        existingItem.TaxRate = lineItem.TaxRate;
+        existingItem.IsTaxable = lineItem.IsTaxable;
+        existingItem.IsIncluded = lineItem.IsIncluded;
+        existingItem.IsOptional = lineItem.IsOptional;
+        existingItem.InternalNotes = lineItem.InternalNotes;
+        existingItem.UpdatedAt = DateTime.UtcNow;
+
+        // Recalculate line item totals
+        existingItem.RecalculateTotals();
+
+        await _context.SaveChangesAsync();
+
+        // Recalculate quote totals
+        var quote = await _context.Quotes
+            .Include(q => q.QuoteLineItems)
+            .FirstOrDefaultAsync(q => q.Id == quoteId);
+        if (quote != null)
+        {
+            quote.RecalculateFromLineItems();
+            await _context.SaveChangesAsync();
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Delete a line item
+    /// </summary>
+    [HttpDelete("{quoteId}/lineitems/{lineItemId}")]
+    public async Task<IActionResult> DeleteLineItem(int quoteId, int lineItemId)
+    {
+        var lineItem = await _context.Set<QuoteLineItem>()
+            .FirstOrDefaultAsync(li => li.Id == lineItemId && li.QuoteId == quoteId);
+
+        if (lineItem == null)
+            return NotFound();
+
+        // Soft delete
+        lineItem.IsDeleted = true;
+        lineItem.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        // Recalculate quote totals
+        var quote = await _context.Quotes
+            .Include(q => q.QuoteLineItems)
+            .FirstOrDefaultAsync(q => q.Id == quoteId);
+        if (quote != null)
+        {
+            quote.RecalculateFromLineItems();
+            await _context.SaveChangesAsync();
+        }
+
+        _logger.LogInformation("Line item {LineItemId} deleted from quote {QuoteId}", lineItemId, quoteId);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Reorder line items
+    /// </summary>
+    [HttpPost("{quoteId}/lineitems/reorder")]
+    public async Task<IActionResult> ReorderLineItems(int quoteId, [FromBody] List<int> lineItemIds)
+    {
+        var quote = await _context.Quotes.FindAsync(quoteId);
+        if (quote == null)
+            return NotFound("Quote not found");
+
+        var lineItems = await _context.Set<QuoteLineItem>()
+            .Where(li => li.QuoteId == quoteId && !li.IsDeleted)
+            .ToListAsync();
+
+        for (int i = 0; i < lineItemIds.Count; i++)
+        {
+            var item = lineItems.FirstOrDefault(li => li.Id == lineItemIds[i]);
+            if (item != null)
+            {
+                item.LineNumber = i + 1;
+                item.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    #endregion
 }
 
 public class AcceptQuoteRequest

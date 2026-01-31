@@ -1,11 +1,15 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace CRM.ServiceDefaults;
 
@@ -41,9 +45,16 @@ public static class ServiceExtensions
         });
 
         // Add JWT Authentication
-        var jwtKey = builder.Configuration["JwtSettings:Key"] ?? "YourSuperSecretKeyThatIsAtLeast32CharactersLong!";
-        var jwtIssuer = builder.Configuration["JwtSettings:Issuer"] ?? "CRM.Api";
-        var jwtAudience = builder.Configuration["JwtSettings:Audience"] ?? "CRM.Client";
+        // JWT_KEY environment variable is REQUIRED - no hardcoded fallback for security
+        var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") 
+            ?? builder.Configuration["JwtSettings:Key"] 
+            ?? throw new InvalidOperationException("JWT_KEY environment variable or JwtSettings:Key configuration is required");
+        var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
+            ?? builder.Configuration["JwtSettings:Issuer"] 
+            ?? "CRM.Api";
+        var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
+            ?? builder.Configuration["JwtSettings:Audience"] 
+            ?? "CRM.Client";
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -62,8 +73,21 @@ public static class ServiceExtensions
 
         builder.Services.AddAuthorization();
 
-        // Add memory cache - required by AuthenticationService
+        // Add memory cache - required by AuthenticationService and response caching
         builder.Services.AddMemoryCache();
+
+        // Add response caching
+        builder.Services.AddResponseCaching();
+
+        // Add output caching for better performance
+        builder.Services.AddOutputCache(options =>
+        {
+            options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromMinutes(5)));
+            options.AddPolicy("NoCache", builder => builder.NoCache());
+            options.AddPolicy("ShortCache", builder => builder.Expire(TimeSpan.FromSeconds(30)));
+            options.AddPolicy("MediumCache", builder => builder.Expire(TimeSpan.FromMinutes(5)));
+            options.AddPolicy("LongCache", builder => builder.Expire(TimeSpan.FromMinutes(30)));
+        });
 
         // Add health checks
         builder.Services.AddHealthChecks();
@@ -83,6 +107,36 @@ public static class ServiceExtensions
     /// </summary>
     public static WebApplication UseServiceDefaults(this WebApplication app)
     {
+        // Global exception handler - must be first
+        app.UseExceptionHandler(errorApp =>
+        {
+            errorApp.Run(async context =>
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.ContentType = "application/json";
+
+                var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+                if (exceptionFeature != null)
+                {
+                    var exception = exceptionFeature.Error;
+                    Log.Error(exception, "Unhandled exception occurred: {Message}", exception.Message);
+
+                    var error = new
+                    {
+                        error = app.Environment.IsDevelopment() 
+                            ? exception.Message 
+                            : "An internal server error occurred",
+                        traceId = context.TraceIdentifier,
+                        timestamp = DateTime.UtcNow
+                    };
+
+                    await context.Response.WriteAsync(
+                        JsonSerializer.Serialize(error, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
+                    );
+                }
+            });
+        });
+
         app.UseSerilogRequestLogging();
 
         if (app.Environment.IsDevelopment())
@@ -92,6 +146,10 @@ public static class ServiceExtensions
         }
 
         app.UseCors("AllowAll");
+
+        // Response caching for GET requests
+        app.UseResponseCaching();
+        app.UseOutputCache();
 
         app.UseAuthentication();
         app.UseAuthorization();

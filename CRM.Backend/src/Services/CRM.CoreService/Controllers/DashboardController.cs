@@ -28,6 +28,12 @@ public class DashboardController : ControllerBase
     }
 
     /// <summary>
+    /// Get overall dashboard summary (same as stats)
+    /// </summary>
+    [HttpGet]
+    public Task<IActionResult> GetDashboard() => GetStats();
+
+    /// <summary>
     /// Get dashboard statistics
     /// </summary>
     [HttpGet("stats")]

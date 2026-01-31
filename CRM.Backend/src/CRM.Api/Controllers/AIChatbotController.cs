@@ -6,6 +6,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using CRM.Infrastructure.Services.AI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -294,6 +295,68 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine("- Actions: Send email, create task, update record, etc.");
         documentation.AppendLine();
 
+        // AI Features Documentation - Training Context for Allen AI
+        documentation.AppendLine("## AI-Powered Features");
+        documentation.AppendLine();
+        
+        documentation.AppendLine("### Lead Scoring (AI-Driven)");
+        documentation.AppendLine("- Automatic lead scoring using AI models (Allen AI OLMo/Tulu)");
+        documentation.AppendLine("- Score range: 0-100 based on multiple factors");
+        documentation.AppendLine("- Factors analyzed: engagement level, company size, industry match, budget indicators");
+        documentation.AppendLine("- Confidence levels: High (>80%), Medium (50-80%), Low (<50%)");
+        documentation.AppendLine("- Recommendations provided for follow-up actions");
+        documentation.AppendLine("- Historical scoring data tracked for trend analysis");
+        documentation.AppendLine("- Usage: Navigate to Leads > Select lead > View AI Score tab");
+        documentation.AppendLine();
+        
+        documentation.AppendLine("### Opportunity Insights");
+        documentation.AppendLine("- AI-generated insights for sales opportunities");
+        documentation.AppendLine("- Win probability predictions with confidence intervals");
+        documentation.AppendLine("- Risk analysis: identifies potential blockers and concerns");
+        documentation.AppendLine("- Recommended actions: next best steps to progress the deal");
+        documentation.AppendLine("- Competitor analysis mentions when detected");
+        documentation.AppendLine("- Optimal timing suggestions for follow-ups");
+        documentation.AppendLine("- Usage: Navigate to Opportunities > Select opportunity > View Insights panel");
+        documentation.AppendLine();
+        
+        documentation.AppendLine("### Churn Risk Prediction");
+        documentation.AppendLine("- Proactive customer churn risk assessment");
+        documentation.AppendLine("- Risk levels: Critical (>80%), High (60-80%), Medium (40-60%), Low (<40%)");
+        documentation.AppendLine("- Contributing factors identified: support tickets, engagement decline, payment issues");
+        documentation.AppendLine("- AI-recommended retention strategies");
+        documentation.AppendLine("- Churn probability percentage with confidence score");
+        documentation.AppendLine("- Early warning indicators and alerts");
+        documentation.AppendLine("- Usage: Navigate to Customers > Select customer > Risk Assessment tab");
+        documentation.AppendLine();
+        
+        documentation.AppendLine("### Next Best Action Recommendations");
+        documentation.AppendLine("- AI suggests optimal next actions for each customer/lead");
+        documentation.AppendLine("- Action types: Call, Email, Meeting, Send proposal, Offer discount");
+        documentation.AppendLine("- Priority ranking based on impact and urgency");
+        documentation.AppendLine("- Expected outcomes and success probability");
+        documentation.AppendLine("- Timing recommendations (best day/time to reach out)");
+        documentation.AppendLine("- Channel preferences based on historical response rates");
+        documentation.AppendLine("- Usage: Dashboard > Today's Recommended Actions widget");
+        documentation.AppendLine();
+        
+        documentation.AppendLine("### Email Intelligence");
+        documentation.AppendLine("- AI-powered email analysis and optimization");
+        documentation.AppendLine("- Sentiment analysis of incoming emails");
+        documentation.AppendLine("- Response suggestions with tone matching");
+        documentation.AppendLine("- Key entity extraction: dates, amounts, action items");
+        documentation.AppendLine("- Email classification: Inquiry, Complaint, Follow-up, Urgent");
+        documentation.AppendLine("- Subject line optimization for outgoing emails");
+        documentation.AppendLine("- Usage: Email composer > AI Assist button");
+        documentation.AppendLine();
+        
+        documentation.AppendLine("### AI Model Configuration");
+        documentation.AppendLine("- Supports multiple AI providers: OpenAI, Azure, Anthropic, Google, DeepSeek, Allen AI");
+        documentation.AppendLine("- Allen AI models (free, open-source): OLMo-7B-Instruct, Tulu-2-7B, OLMo-1B");
+        documentation.AppendLine("- Configure default provider in Settings > AI Configuration");
+        documentation.AppendLine("- Fallback providers for reliability");
+        documentation.AppendLine("- Model-specific settings: temperature, max tokens, timeout");
+        documentation.AppendLine();
+
         // Get dynamic data about the system
         try
         {
@@ -327,6 +390,10 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine("- Select accounts in the Context Panel to filter data across pages");
         documentation.AppendLine("- Use workflows to automate repetitive tasks");
         documentation.AppendLine("- Set up email templates for consistent communication");
+        documentation.AppendLine("- Review AI lead scores daily to prioritize high-value prospects");
+        documentation.AppendLine("- Check churn risk predictions weekly to proactively retain at-risk customers");
+        documentation.AppendLine("- Use AI-suggested next best actions to optimize your sales approach");
+        documentation.AppendLine("- Configure Allen AI models for cost-effective AI features (free tier available)");
 
         var result = documentation.ToString();
 
@@ -420,20 +487,8 @@ public class AIChatbotController : ControllerBase
         return context.ToString();
     }
 
-    private string GetDefaultModelForProvider(LLMSettingsDto settings, string provider)
-    {
-        return provider.ToLower() switch
-        {
-            "openai" => settings.OpenAI?.DefaultModel ?? "gpt-4",
-            "azure" or "azureopenai" => settings.Azure?.DefaultModel ?? "gpt-4",
-            "anthropic" => settings.Anthropic?.DefaultModel ?? "claude-3-sonnet-20240229",
-            "google" or "gemini" => settings.Google?.DefaultModel ?? "gemini-1.5-pro",
-            "bedrock" or "aws" => settings.Bedrock?.DefaultModel ?? "anthropic.claude-3-sonnet-20240229-v1:0",
-            "deepseek" => settings.DeepSeek?.DefaultModel ?? "deepseek-chat",
-            "local" or "ollama" => settings.Local?.DefaultModel ?? "llama3",
-            _ => "gpt-4"
-        };
-    }
+    private static string GetDefaultModelForProvider(LLMSettingsDto settings, string provider)
+        => AIServiceHelper.GetDefaultModelForProvider(settings, provider);
 }
 
 /// <summary>

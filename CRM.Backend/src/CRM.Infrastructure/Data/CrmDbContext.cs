@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
+using CRM.Core.Entities.AI;
+using CRM.Core.Entities.KnowledgeBase;
+using CRM.Core.Entities.Reports;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
@@ -178,6 +181,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Subscription> Subscriptions { get; set; }
     public DbSet<SubscriptionItem> SubscriptionItems { get; set; }
     public DbSet<SubscriptionUsage> SubscriptionUsages { get; set; }
+    public DbSet<Contract> Contracts { get; set; }
     public DbSet<CreditMemo> CreditMemos { get; set; }
     public DbSet<CreditMemoLineItem> CreditMemoLineItems { get; set; }
     public DbSet<CreditApplication> CreditApplications { get; set; }
@@ -250,6 +254,39 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ForecastHistory> ForecastHistories { get; set; }
     public DbSet<Team> Teams { get; set; }
     public DbSet<TeamMember> TeamMembers { get; set; }
+
+    // =============================================================================
+    // AI Entities (Lead Scoring, Predictions, Insights)
+    // =============================================================================
+    public DbSet<AIModel> AIModels { get; set; }
+    public DbSet<Prediction> Predictions { get; set; }
+    public DbSet<LeadScore> LeadScores { get; set; }
+    public DbSet<OpportunityInsight> OpportunityInsights { get; set; }
+    public DbSet<ChurnRisk> ChurnRisks { get; set; }
+    public DbSet<ActionRecommendation> ActionRecommendations { get; set; }
+    public DbSet<EmailIntelligence> EmailIntelligences { get; set; }
+
+    // =============================================================================
+    // Report Entities (Report Builder, Schedules)
+    // =============================================================================
+    public DbSet<ReportDefinition> ReportDefinitions { get; set; }
+    public DbSet<ReportFolder> ReportFolders { get; set; }
+    public DbSet<ReportSchedule> ReportSchedules { get; set; }
+    public DbSet<ReportExecution> ReportExecutions { get; set; }
+    public DbSet<ReportWidgetConfig> ReportWidgetConfigs { get; set; }
+
+    // =============================================================================
+    // Knowledge Base Entities (Articles, SLA)
+    // =============================================================================
+    public DbSet<KnowledgeArticle> KnowledgeArticles { get; set; }
+    public DbSet<KnowledgeCategory> KnowledgeCategories { get; set; }
+    public DbSet<ServiceRequestArticle> ServiceRequestArticles { get; set; }
+    public DbSet<ArticleFeedback> ArticleFeedbacks { get; set; }
+    public DbSet<SLAPolicy> SLAPolicies { get; set; }
+    public DbSet<SLATarget> SLATargets { get; set; }
+    public DbSet<SLAInstance> SLAInstances { get; set; }
+    public DbSet<BusinessHours> BusinessHoursConfigs { get; set; }
+    public DbSet<EscalationRule> EscalationRules { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -394,10 +431,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
             entity.Property(e => e.Amount).HasPrecision(18, 2);
             
-            // Link Opportunity -> Account (required)
-            entity.HasOne(e => e.Account)
-                .WithMany(a => a.Opportunities)
-                .HasForeignKey(e => e.AccountId)
+            // Link Opportunity -> Customer (required)
+            entity.HasOne(e => e.Customer)
+                .WithMany(c => c.Opportunities)
+                .HasForeignKey(e => e.CustomerId)
                 .OnDelete(DeleteBehavior.Cascade);
             
             // Link Opportunity -> Lead (optional, source lead)
@@ -1044,16 +1081,17 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.OwnerId)
                 .OnDelete(DeleteBehavior.SetNull);
             
-            // Lead -> Campaign
+            // Lead -> Campaign (EXPLICIT: only GeneratedLeads inverse)
+            // This fixes the warning about multiple Lead-Campaign relationships
             entity.HasOne(e => e.Campaign)
-                .WithMany()
+                .WithMany(c => c.GeneratedLeads)
                 .HasForeignKey(e => e.CampaignId)
                 .OnDelete(DeleteBehavior.SetNull);
             
-            // Lead -> Account
-            entity.HasOne(e => e.Account)
+            // Lead -> Customer
+            entity.HasOne(e => e.Customer)
                 .WithMany()
-                .HasForeignKey(e => e.AccountId)
+                .HasForeignKey(e => e.CustomerId)
                 .OnDelete(DeleteBehavior.SetNull);
             
             // Lead -> Contact
@@ -1065,6 +1103,16 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Email);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Score);
+        });
+        
+        // Configure MarketingCampaign Lead collections (without inverse navigation)
+        // ConvertedLeads and TouchedLeads don't have FK in Lead, so they need junction tables or explicit ignore
+        modelBuilder.Entity<MarketingCampaign>(entity =>
+        {
+            // Ignore collections that don't have proper FK relationships in Lead entity
+            // These would need junction tables for proper many-to-many relationships
+            entity.Ignore(e => e.ConvertedLeads);
+            entity.Ignore(e => e.TouchedLeads);
         });
         
         // Configure LeadProductInterest (junction table)
@@ -1084,22 +1132,14 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
         
-        // Configure Opportunity (3NF)
+        // Configure Opportunity (3NF) - Additional property configurations
+        // NOTE: Main relationship configurations are earlier in the file
         modelBuilder.Entity<Opportunity>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
-            entity.Property(e => e.Amount).HasPrecision(18, 2);
             entity.Property(e => e.Currency).HasMaxLength(3);
             entity.Property(e => e.Region).HasMaxLength(100);
             entity.Property(e => e.SolutionNotes).HasMaxLength(4000);
             entity.Property(e => e.QualificationNotes).HasMaxLength(4000);
-            
-            // Opportunity -> Account (required)
-            entity.HasOne(e => e.Account)
-                .WithMany()
-                .HasForeignKey(e => e.AccountId)
-                .OnDelete(DeleteBehavior.Restrict);
             
             // Opportunity -> Contact (Primary)
             entity.HasOne(e => e.PrimaryContact)
@@ -1107,21 +1147,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.PrimaryContactId)
                 .OnDelete(DeleteBehavior.SetNull);
             
-            // Opportunity -> User (Sales Owner)
-            entity.HasOne(e => e.SalesOwner)
-                .WithMany()
-                .HasForeignKey(e => e.SalesOwnerId)
-                .OnDelete(DeleteBehavior.SetNull);
-            
-            // Opportunity -> Lead
-            entity.HasOne(e => e.Lead)
-                .WithMany(l => l.Opportunities)
-                .HasForeignKey(e => e.LeadId)
-                .OnDelete(DeleteBehavior.SetNull);
-            
             entity.HasIndex(e => e.Stage);
             entity.HasIndex(e => e.ExpectedCloseDate);
-            entity.HasIndex(e => e.AccountId);
         });
         
         // Configure OpportunityProduct (junction table)
@@ -1319,6 +1346,56 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Key).HasMaxLength(200);
             entity.Property(e => e.Value).HasColumnType("TEXT");
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
+        });
+        
+        // Configure Conversation
+        modelBuilder.Entity<Conversation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ConversationId).HasMaxLength(100);
+            entity.Property(e => e.Subject).HasMaxLength(500);
+            entity.Property(e => e.LastMessagePreview).HasMaxLength(500);
+            entity.Property(e => e.ParticipantAddress).HasMaxLength(500);
+            entity.Property(e => e.ParticipantName).HasMaxLength(200);
+            entity.HasIndex(e => e.ConversationId).IsUnique();
+            entity.HasIndex(e => e.Status);
+            
+            // Ignore Messages navigation - relationship is via string ConversationId, not FK
+            // This prevents EF from creating shadow FK ConversationId1 on CommunicationMessage
+            entity.Ignore(e => e.Messages);
+        });
+        
+        // Configure CommunicationMessage
+        modelBuilder.Entity<CommunicationMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Subject).HasMaxLength(1000);
+            entity.Property(e => e.FromAddress).HasMaxLength(500);
+            entity.Property(e => e.FromName).HasMaxLength(200);
+            entity.Property(e => e.ToAddress).HasMaxLength(500);
+            entity.Property(e => e.ToName).HasMaxLength(200);
+            entity.Property(e => e.ConversationId).HasMaxLength(100);
+            entity.Property(e => e.ExternalMessageId).HasMaxLength(500);
+            
+            // CommunicationMessage -> Channel
+            entity.HasOne(e => e.Channel)
+                .WithMany()
+                .HasForeignKey(e => e.ChannelId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            // CommunicationMessage -> ParentMessage (self-referencing for threading)
+            entity.HasOne(e => e.ParentMessage)
+                .WithMany(m => m.Replies)
+                .HasForeignKey(e => e.ParentMessageId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Ignore navigation to Conversation by string ID - handled via ConversationId string field
+            // This prevents EF from creating shadow FK ConversationId1
+            
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.Direction);
+            entity.HasIndex(e => e.SentAt);
+            entity.HasIndex(e => e.ConversationId);
         });
         
         // Configure ZipCodes (Master Data)
@@ -2111,6 +2188,654 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.WorkflowDefinitionId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // =============================================================================
+        // AI Entity Configurations
+        // =============================================================================
+        
+        // AIModel configuration
+        modelBuilder.Entity<AIModel>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Version).HasMaxLength(50);
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.ModelIdentifier).HasMaxLength(500);
+            entity.Property(e => e.ConfigurationJson).HasColumnType(longTextType);
+            entity.Property(e => e.FeatureColumnsJson).HasColumnType(longTextType);
+            entity.Property(e => e.TargetColumn).HasMaxLength(200);
+            entity.Property(e => e.HyperparametersJson).HasColumnType(longTextType);
+            entity.Property(e => e.TrainingAccuracy).HasPrecision(10, 6);
+            entity.Property(e => e.ValidationAccuracy).HasPrecision(10, 6);
+            entity.Property(e => e.TestAccuracy).HasPrecision(10, 6);
+            entity.Property(e => e.AucRoc).HasPrecision(10, 6);
+            entity.Property(e => e.F1Score).HasPrecision(10, 6);
+            entity.Property(e => e.MeanAbsoluteError).HasPrecision(18, 6);
+            entity.Property(e => e.AvgInferenceTimeMs).HasPrecision(10, 3);
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.ModelType);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.Provider);
+        });
+        
+        // Prediction configuration
+        modelBuilder.Entity<Prediction>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PredictionId).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.PredictedValue).HasPrecision(18, 6);
+            entity.Property(e => e.PredictedLabel).HasMaxLength(500);
+            entity.Property(e => e.Confidence).HasPrecision(10, 6);
+            entity.Property(e => e.ProbabilitiesJson).HasColumnType(longTextType);
+            entity.Property(e => e.FeatureImportanceJson).HasColumnType(longTextType);
+            entity.Property(e => e.Explanation).HasColumnType(textType);
+            entity.Property(e => e.InferenceTimeMs).HasPrecision(10, 3);
+            entity.Property(e => e.ActualValue).HasPrecision(18, 6);
+            entity.Property(e => e.ActualLabel).HasMaxLength(500);
+            entity.HasIndex(e => e.PredictionId).IsUnique();
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => e.AIModelId);
+            entity.HasIndex(e => e.PredictedAt);
+            
+            entity.HasOne(e => e.AIModel)
+                .WithMany(m => m.Predictions)
+                .HasForeignKey(e => e.AIModelId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // LeadScore configuration
+        modelBuilder.Entity<LeadScore>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.OverallScore).HasPrecision(10, 2);
+            entity.Property(e => e.Confidence).HasPrecision(10, 4);
+            entity.Property(e => e.ScoreTrend).HasPrecision(10, 4);
+            entity.Property(e => e.DemographicScore).HasPrecision(10, 2);
+            entity.Property(e => e.FirmographicScore).HasPrecision(10, 2);
+            entity.Property(e => e.BehavioralScore).HasPrecision(10, 2);
+            entity.Property(e => e.EngagementScore).HasPrecision(10, 2);
+            entity.Property(e => e.IntentScore).HasPrecision(10, 2);
+            entity.Property(e => e.EmailOpenRate).HasPrecision(10, 4);
+            entity.Property(e => e.EmailClickRate).HasPrecision(10, 4);
+            entity.Property(e => e.ConversionProbability).HasPrecision(10, 4);
+            entity.Property(e => e.EstimatedDealValue).HasPrecision(18, 2);
+            entity.Property(e => e.BestProductFit).HasMaxLength(200);
+            entity.Property(e => e.TopFactorsJson).HasColumnType(longTextType);
+            entity.Property(e => e.RiskFactorsJson).HasColumnType(longTextType);
+            entity.Property(e => e.AIInsights).HasColumnType(textType);
+            entity.Property(e => e.ICPMatchScore).HasPrecision(10, 2);
+            entity.Property(e => e.MatchingSegment).HasMaxLength(200);
+            entity.Property(e => e.ModelVersion).HasMaxLength(50);
+            entity.Property(e => e.PreviousScore).HasPrecision(10, 2);
+            entity.HasIndex(e => e.LeadId);
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.OverallScore);
+            entity.HasIndex(e => e.ScoredAt);
+            
+            entity.HasOne(e => e.Lead)
+                .WithMany()
+                .HasForeignKey(e => e.LeadId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.AIModel)
+                .WithMany()
+                .HasForeignKey(e => e.AIModelId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // OpportunityInsight configuration
+        modelBuilder.Entity<OpportunityInsight>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.WinProbability).HasPrecision(10, 4);
+            entity.Property(e => e.Confidence).HasPrecision(10, 4);
+            entity.Property(e => e.ProbabilityTrend).HasPrecision(10, 4);
+            entity.Property(e => e.PreviousProbability).HasPrecision(10, 4);
+            entity.Property(e => e.HealthScore).HasPrecision(10, 2);
+            entity.Property(e => e.VelocityScore).HasPrecision(10, 2);
+            entity.Property(e => e.EngagementScore).HasPrecision(10, 2);
+            entity.Property(e => e.StakeholderScore).HasPrecision(10, 2);
+            entity.Property(e => e.PredictedValue).HasPrecision(18, 2);
+            entity.Property(e => e.WeightedValue).HasPrecision(18, 2);
+            entity.Property(e => e.UpsidePotential).HasPrecision(18, 2);
+            entity.Property(e => e.RiskAdjustedValue).HasPrecision(18, 2);
+            entity.Property(e => e.RiskLevel).HasPrecision(10, 2);
+            entity.Property(e => e.RisksJson).HasColumnType(longTextType);
+            entity.Property(e => e.RiskMitigationSuggestions).HasColumnType(textType);
+            entity.Property(e => e.CompetitorsJson).HasColumnType(longTextType);
+            entity.Property(e => e.PrimaryCompetitor).HasMaxLength(200);
+            entity.Property(e => e.CompetitivePositionScore).HasPrecision(10, 2);
+            entity.Property(e => e.DifferentiationSuggestions).HasColumnType(textType);
+            entity.Property(e => e.ActionRecommendationsJson).HasColumnType(longTextType);
+            entity.Property(e => e.TalkingPoints).HasColumnType(textType);
+            entity.Property(e => e.ObjectionHandling).HasColumnType(textType);
+            entity.Property(e => e.AIInsights).HasColumnType(textType);
+            entity.Property(e => e.SimilarDealsWinRate).HasPrecision(10, 4);
+            entity.Property(e => e.SuccessPatternsJson).HasColumnType(longTextType);
+            entity.Property(e => e.ModelVersion).HasMaxLength(50);
+            entity.HasIndex(e => e.OpportunityId);
+            entity.HasIndex(e => e.WinCategory);
+            entity.HasIndex(e => e.HealthStatus);
+            entity.HasIndex(e => e.GeneratedAt);
+            
+            entity.HasOne(e => e.Opportunity)
+                .WithMany()
+                .HasForeignKey(e => e.OpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.AIModel)
+                .WithMany()
+                .HasForeignKey(e => e.AIModelId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // ChurnRisk configuration
+        modelBuilder.Entity<ChurnRisk>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ChurnProbability).HasPrecision(10, 4);
+            entity.Property(e => e.Confidence).HasPrecision(10, 4);
+            entity.Property(e => e.RiskTrend).HasPrecision(10, 4);
+            entity.Property(e => e.PreviousProbability).HasPrecision(10, 4);
+            entity.Property(e => e.HealthScore).HasPrecision(10, 2);
+            entity.Property(e => e.CSATScore).HasPrecision(5, 2);
+            entity.Property(e => e.CESScore).HasPrecision(5, 2);
+            entity.Property(e => e.UsageScore).HasPrecision(10, 2);
+            entity.Property(e => e.FeatureAdoption).HasPrecision(10, 2);
+            entity.Property(e => e.MonthlyLogins).HasPrecision(10, 2);
+            entity.Property(e => e.UsageTrend).HasPrecision(10, 4);
+            entity.Property(e => e.AvgResolutionTimeHours).HasPrecision(10, 2);
+            entity.Property(e => e.SupportSatisfaction).HasPrecision(5, 2);
+            entity.Property(e => e.ARRAtRisk).HasPrecision(18, 2);
+            entity.Property(e => e.LifetimeValue).HasPrecision(18, 2);
+            entity.Property(e => e.ExpansionPotential).HasPrecision(18, 2);
+            entity.Property(e => e.ChurnDriversJson).HasColumnType(longTextType);
+            entity.Property(e => e.RiskIndicatorsJson).HasColumnType(longTextType);
+            entity.Property(e => e.NegativeSentimentJson).HasColumnType(longTextType);
+            entity.Property(e => e.ActionRecommendationsJson).HasColumnType(longTextType);
+            entity.Property(e => e.RetentionPlaybook).HasMaxLength(200);
+            entity.Property(e => e.SaveProbability).HasPrecision(10, 4);
+            entity.Property(e => e.AIInsights).HasColumnType(textType);
+            entity.Property(e => e.ChurnPatternsJson).HasColumnType(longTextType);
+            entity.Property(e => e.SavePatternsJson).HasColumnType(longTextType);
+            entity.Property(e => e.ModelVersion).HasMaxLength(50);
+            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.RiskLevel);
+            entity.HasIndex(e => e.HealthSegment);
+            entity.HasIndex(e => e.AssessedAt);
+            
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.AIModel)
+                .WithMany()
+                .HasForeignKey(e => e.AIModelId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // ActionRecommendation configuration
+        modelBuilder.Entity<ActionRecommendation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TargetEntityName).HasMaxLength(500);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.Description).HasColumnType(textType);
+            entity.Property(e => e.Rationale).HasColumnType(textType);
+            entity.Property(e => e.SuggestedContent).HasColumnType(longTextType);
+            entity.Property(e => e.TalkingPointsJson).HasColumnType(longTextType);
+            entity.Property(e => e.ImpactScore).HasPrecision(10, 2);
+            entity.Property(e => e.ExpectedOutcome).HasColumnType(textType);
+            entity.Property(e => e.SuccessProbability).HasPrecision(10, 4);
+            entity.Property(e => e.EstimatedValueImpact).HasPrecision(18, 2);
+            entity.Property(e => e.RiskIfNotTaken).HasColumnType(textType);
+            entity.Property(e => e.Confidence).HasPrecision(10, 4);
+            entity.Property(e => e.RelevanceScore).HasPrecision(10, 2);
+            entity.Property(e => e.DrivingFactorsJson).HasColumnType(longTextType);
+            entity.Property(e => e.StatusReason).HasMaxLength(500);
+            entity.Property(e => e.UserFeedback).HasColumnType(textType);
+            entity.Property(e => e.ActualOutcome).HasColumnType(textType);
+            entity.Property(e => e.AlternativeActionsJson).HasColumnType(longTextType);
+            entity.Property(e => e.FollowUpActionIdsJson).HasColumnType(longTextType);
+            entity.Property(e => e.ModelVersion).HasMaxLength(50);
+            entity.HasIndex(e => new { e.TargetType, e.TargetEntityId });
+            entity.HasIndex(e => e.AssignedUserId);
+            entity.HasIndex(e => e.ActionType);
+            entity.HasIndex(e => e.Priority);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.GeneratedAt);
+            
+            entity.HasOne(e => e.AssignedUser)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.AIModel)
+                .WithMany()
+                .HasForeignKey(e => e.AIModelId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // EmailIntelligence configuration
+        modelBuilder.Entity<EmailIntelligence>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EmailMessageId).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.SentimentScore).HasPrecision(10, 4);
+            entity.Property(e => e.SentimentConfidence).HasPrecision(10, 4);
+            entity.Property(e => e.EmotionsJson).HasColumnType(longTextType);
+            entity.Property(e => e.IntentConfidence).HasPrecision(10, 4);
+            entity.Property(e => e.SecondaryIntentsJson).HasColumnType(longTextType);
+            entity.Property(e => e.UrgencyScore).HasPrecision(10, 2);
+            entity.Property(e => e.ExtractedEntitiesJson).HasColumnType(longTextType);
+            entity.Property(e => e.MentionedProductsJson).HasColumnType(longTextType);
+            entity.Property(e => e.MentionedCompetitorsJson).HasColumnType(longTextType);
+            entity.Property(e => e.TopicsJson).HasColumnType(longTextType);
+            entity.Property(e => e.ActionItemsJson).HasColumnType(longTextType);
+            entity.Property(e => e.QuestionsJson).HasColumnType(longTextType);
+            entity.Property(e => e.Summary).HasColumnType(textType);
+            entity.Property(e => e.KeyPointsJson).HasColumnType(longTextType);
+            entity.Property(e => e.SuggestedResponse).HasColumnType(longTextType);
+            entity.Property(e => e.ResponseTalkingPointsJson).HasColumnType(longTextType);
+            entity.Property(e => e.RecommendedTone).HasMaxLength(100);
+            entity.Property(e => e.ThreadId).HasMaxLength(255);
+            entity.Property(e => e.ThreadSentimentTrend).HasMaxLength(100);
+            entity.Property(e => e.UnresolvedItemsJson).HasColumnType(longTextType);
+            entity.Property(e => e.OpportunityImpact).HasMaxLength(50);
+            entity.Property(e => e.ProcessingTimeMs).HasPrecision(10, 3);
+            entity.Property(e => e.ModelVersion).HasMaxLength(50);
+            entity.HasIndex(e => e.EmailMessageId);
+            entity.HasIndex(e => e.CommunicationMessageId);
+            entity.HasIndex(e => e.Sentiment);
+            entity.HasIndex(e => e.PrimaryIntent);
+            entity.HasIndex(e => e.Urgency);
+            entity.HasIndex(e => e.AnalyzedAt);
+            
+            entity.HasOne(e => e.CommunicationMessage)
+                .WithMany()
+                .HasForeignKey(e => e.CommunicationMessageId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.AIModel)
+                .WithMany()
+                .HasForeignKey(e => e.AIModelId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // =============================================================================
+        // Report Entity Configurations
+        // =============================================================================
+        
+        // ReportDefinition configuration
+        modelBuilder.Entity<ReportDefinition>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.ReportCode).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.TagsJson).HasColumnType(longTextType);
+            entity.Property(e => e.ColumnsJson).HasColumnType(longTextType);
+            entity.Property(e => e.FiltersJson).HasColumnType(longTextType);
+            entity.Property(e => e.GroupByJson).HasColumnType(longTextType);
+            entity.Property(e => e.SortByJson).HasColumnType(longTextType);
+            entity.Property(e => e.AggregationsJson).HasColumnType(longTextType);
+            entity.Property(e => e.CustomQuery).HasColumnType(longTextType);
+            entity.Property(e => e.DateField).HasMaxLength(200);
+            entity.Property(e => e.ChartConfigJson).HasColumnType(longTextType);
+            entity.Property(e => e.ConditionalFormattingJson).HasColumnType(longTextType);
+            entity.HasIndex(e => e.ReportCode).IsUnique();
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.DataSource);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedByUserId);
+            
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.Folder)
+                .WithMany(f => f.Reports)
+                .HasForeignKey(e => e.FolderId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // ReportFolder configuration
+        modelBuilder.Entity<ReportFolder>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.OwnerUserId);
+            
+            entity.HasOne(e => e.ParentFolder)
+                .WithMany(f => f.ChildFolders)
+                .HasForeignKey(e => e.ParentFolderId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.Owner)
+                .WithMany()
+                .HasForeignKey(e => e.OwnerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        // ReportSchedule configuration
+        modelBuilder.Entity<ReportSchedule>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.CronExpression).HasMaxLength(100);
+            entity.Property(e => e.Timezone).HasMaxLength(100);
+            entity.Property(e => e.FileNamePattern).HasMaxLength(255);
+            entity.Property(e => e.EmailRecipientsJson).HasColumnType(longTextType);
+            entity.Property(e => e.EmailCcJson).HasColumnType(longTextType);
+            entity.Property(e => e.EmailSubject).HasMaxLength(500);
+            entity.Property(e => e.EmailBody).HasColumnType(textType);
+            entity.Property(e => e.StoragePath).HasMaxLength(500);
+            entity.Property(e => e.WebhookUrl).HasMaxLength(1000);
+            entity.Property(e => e.LastDataHash).HasMaxLength(64);
+            entity.Property(e => e.LastError).HasColumnType(textType);
+            entity.Property(e => e.AvgExecutionTimeSeconds).HasPrecision(10, 2);
+            entity.HasIndex(e => e.ReportDefinitionId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.NextRunAt);
+            entity.HasIndex(e => e.CreatedByUserId);
+            
+            entity.HasOne(e => e.ReportDefinition)
+                .WithMany(r => r.Schedules)
+                .HasForeignKey(e => e.ReportDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        // ReportExecution configuration
+        modelBuilder.Entity<ReportExecution>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ParametersJson).HasColumnType(longTextType);
+            entity.Property(e => e.ExecutionTimeSeconds).HasPrecision(10, 2);
+            entity.Property(e => e.OutputFilePath).HasMaxLength(500);
+            entity.Property(e => e.DataHash).HasMaxLength(64);
+            entity.Property(e => e.DeliveredToJson).HasColumnType(longTextType);
+            entity.Property(e => e.ErrorMessage).HasColumnType(textType);
+            entity.Property(e => e.ErrorStackTrace).HasColumnType(longTextType);
+            entity.HasIndex(e => e.ReportScheduleId);
+            entity.HasIndex(e => e.ReportDefinitionId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.StartedAt);
+            
+            entity.HasOne(e => e.ReportSchedule)
+                .WithMany(s => s.Executions)
+                .HasForeignKey(e => e.ReportScheduleId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.ReportDefinition)
+                .WithMany()
+                .HasForeignKey(e => e.ReportDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.TriggeredByUser)
+                .WithMany()
+                .HasForeignKey(e => e.TriggeredByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // ReportWidgetConfig configuration
+        modelBuilder.Entity<ReportWidgetConfig>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.FiltersOverrideJson).HasColumnType(longTextType);
+            entity.HasIndex(e => e.DashboardWidgetId);
+            entity.HasIndex(e => e.ReportDefinitionId);
+            
+            entity.HasOne(e => e.DashboardWidget)
+                .WithMany()
+                .HasForeignKey(e => e.DashboardWidgetId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.ReportDefinition)
+                .WithMany(r => r.WidgetConfigs)
+                .HasForeignKey(e => e.ReportDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // =============================================================================
+        // Knowledge Base Entity Configurations
+        // =============================================================================
+        
+        // KnowledgeArticle configuration
+        modelBuilder.Entity<KnowledgeArticle>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ArticleNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.Summary).HasMaxLength(1000);
+            entity.Property(e => e.Slug).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Content).HasColumnType(longTextType);
+            entity.Property(e => e.ContentFormat).HasMaxLength(20);
+            entity.Property(e => e.PlainTextContent).HasColumnType(longTextType);
+            entity.Property(e => e.TableOfContentsJson).HasColumnType(longTextType);
+            entity.Property(e => e.AttachmentsJson).HasColumnType(longTextType);
+            entity.Property(e => e.VideoUrl).HasMaxLength(1000);
+            entity.Property(e => e.ProductsJson).HasColumnType(longTextType);
+            entity.Property(e => e.TagsJson).HasColumnType(longTextType);
+            entity.Property(e => e.Keywords).HasMaxLength(1000);
+            entity.Property(e => e.MetaTitle).HasMaxLength(200);
+            entity.Property(e => e.MetaDescription).HasMaxLength(500);
+            entity.Property(e => e.CanonicalUrl).HasMaxLength(500);
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.EmbeddingVectorJson).HasColumnType(longTextType);
+            entity.Property(e => e.AISummary).HasColumnType(textType);
+            entity.Property(e => e.RelatedArticleIdsJson).HasColumnType(longTextType);
+            entity.Property(e => e.AISuggestionsJson).HasColumnType(longTextType);
+            entity.Property(e => e.AverageRating).HasPrecision(3, 2);
+            entity.Property(e => e.AvgTimeOnPageSeconds).HasPrecision(10, 2);
+            entity.HasIndex(e => e.ArticleNumber).IsUnique();
+            entity.HasIndex(e => e.Slug);
+            entity.HasIndex(e => e.Title);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.Visibility);
+            entity.HasIndex(e => e.ArticleType);
+            entity.HasIndex(e => e.CategoryId);
+            entity.HasIndex(e => e.AuthorUserId);
+            entity.HasIndex(e => e.PublishedAt);
+            
+            entity.HasOne(e => e.Category)
+                .WithMany(c => c.Articles)
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.Author)
+                .WithMany()
+                .HasForeignKey(e => e.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.LastUpdatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.LastUpdatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.ApprovedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ApprovedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.ParentArticle)
+                .WithMany(a => a.Translations)
+                .HasForeignKey(e => e.ParentArticleId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // KnowledgeCategory configuration
+        modelBuilder.Entity<KnowledgeCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.Slug).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Icon).HasMaxLength(100);
+            entity.HasIndex(e => e.Slug);
+            entity.HasIndex(e => e.Name);
+            
+            entity.HasOne(e => e.ParentCategory)
+                .WithMany(c => c.ChildCategories)
+                .HasForeignKey(e => e.ParentCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        // ServiceRequestArticle configuration
+        modelBuilder.Entity<ServiceRequestArticle>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.ServiceRequestId);
+            entity.HasIndex(e => e.KnowledgeArticleId);
+            
+            entity.HasOne(e => e.ServiceRequest)
+                .WithMany()
+                .HasForeignKey(e => e.ServiceRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.KnowledgeArticle)
+                .WithMany(a => a.ServiceRequests)
+                .HasForeignKey(e => e.KnowledgeArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.LinkedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.LinkedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // ArticleFeedback configuration
+        modelBuilder.Entity<ArticleFeedback>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Comment).HasColumnType(textType);
+            entity.Property(e => e.SessionId).HasMaxLength(100);
+            entity.HasIndex(e => e.KnowledgeArticleId);
+            entity.HasIndex(e => e.SubmittedAt);
+            
+            entity.HasOne(e => e.KnowledgeArticle)
+                .WithMany(a => a.Feedback)
+                .HasForeignKey(e => e.KnowledgeArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // SLAPolicy configuration
+        modelBuilder.Entity<SLAPolicy>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.CustomerSegmentsJson).HasColumnType(longTextType);
+            entity.Property(e => e.ProductsJson).HasColumnType(longTextType);
+            entity.Property(e => e.CaseTypesJson).HasColumnType(longTextType);
+            entity.Property(e => e.CustomerTiersJson).HasColumnType(longTextType);
+            entity.Property(e => e.MatchConditionsJson).HasColumnType(longTextType);
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.Priority);
+            
+            entity.HasOne(e => e.BusinessHours)
+                .WithMany(b => b.Policies)
+                .HasForeignKey(e => e.BusinessHoursId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // SLATarget configuration
+        modelBuilder.Entity<SLATarget>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.SLAPolicyId);
+            entity.HasIndex(e => e.MetricType);
+            
+            entity.HasOne(e => e.SLAPolicy)
+                .WithMany(p => p.Targets)
+                .HasForeignKey(e => e.SLAPolicyId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // BusinessHours configuration
+        modelBuilder.Entity<BusinessHours>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Timezone).HasMaxLength(100);
+            entity.Property(e => e.ScheduleJson).HasColumnType(longTextType);
+            entity.Property(e => e.HolidaysJson).HasColumnType(longTextType);
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.IsActive);
+        });
+        
+        // EscalationRule configuration
+        modelBuilder.Entity<EscalationRule>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.EmailRecipientsJson).HasColumnType(longTextType);
+            entity.Property(e => e.WebhookUrl).HasMaxLength(1000);
+            entity.Property(e => e.ActionConfigJson).HasColumnType(longTextType);
+            entity.HasIndex(e => e.SLAPolicyId);
+            entity.HasIndex(e => e.TriggerMetric);
+            entity.HasIndex(e => e.IsActive);
+            
+            entity.HasOne(e => e.SLAPolicy)
+                .WithMany(p => p.EscalationRules)
+                .HasForeignKey(e => e.SLAPolicyId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.ReassignToUser)
+                .WithMany()
+                .HasForeignKey(e => e.ReassignToUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // SLAInstance configuration
+        modelBuilder.Entity<SLAInstance>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PauseReason).HasMaxLength(500);
+            entity.Property(e => e.EscalationsTriggeredJson).HasColumnType(longTextType);
+            entity.HasIndex(e => e.ServiceRequestId);
+            entity.HasIndex(e => e.SLAPolicyId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.DueAt);
+            
+            entity.HasOne(e => e.ServiceRequest)
+                .WithMany()
+                .HasForeignKey(e => e.ServiceRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.SLAPolicy)
+                .WithMany()
+                .HasForeignKey(e => e.SLAPolicyId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.SLATarget)
+                .WithMany()
+                .HasForeignKey(e => e.SLATargetId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
         
         // SQL Server specific: disable cascade deletes to avoid "multiple cascade paths" errors

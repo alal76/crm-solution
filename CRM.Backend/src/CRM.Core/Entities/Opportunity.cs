@@ -150,8 +150,8 @@ public class Opportunity : BaseEntity
     
     #region Foreign Keys
     
-    /// <summary>Customer account (required)</summary>
-    public int AccountId { get; set; }
+    /// <summary>Customer/company for this opportunity (required)</summary>
+    public int CustomerId { get; set; }
     
     /// <summary>Primary contact person</summary>
     public int? PrimaryContactId { get; set; }
@@ -166,9 +166,9 @@ public class Opportunity : BaseEntity
     
     #region Navigation Properties
     
-    /// <summary>Customer account</summary>
-    [ForeignKey("AccountId")]
-    public virtual Account Account { get; set; } = null!;
+    /// <summary>Customer/company</summary>
+    [ForeignKey("CustomerId")]
+    public virtual Customer Customer { get; set; } = null!;
     
     /// <summary>Primary contact</summary>
     [ForeignKey("PrimaryContactId")]

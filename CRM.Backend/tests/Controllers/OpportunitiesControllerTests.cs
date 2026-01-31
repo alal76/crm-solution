@@ -1,4 +1,5 @@
 using CRM.Api.Controllers;
+using CRM.Api.Hubs;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using FluentAssertions;
@@ -16,13 +17,15 @@ public class OpportunitiesControllerTests
 {
     private readonly Mock<IOpportunityService> _mockOpportunityService;
     private readonly Mock<ILogger<OpportunitiesController>> _mockLogger;
+    private readonly Mock<ICrmNotificationService> _mockNotificationService;
     private readonly OpportunitiesController _controller;
 
     public OpportunitiesControllerTests()
     {
         _mockOpportunityService = new Mock<IOpportunityService>();
         _mockLogger = new Mock<ILogger<OpportunitiesController>>();
-        _controller = new OpportunitiesController(_mockOpportunityService.Object, _mockLogger.Object);
+        _mockNotificationService = new Mock<ICrmNotificationService>();
+        _controller = new OpportunitiesController(_mockOpportunityService.Object, _mockLogger.Object, _mockNotificationService.Object);
     }
 
     #region GetOpen Tests

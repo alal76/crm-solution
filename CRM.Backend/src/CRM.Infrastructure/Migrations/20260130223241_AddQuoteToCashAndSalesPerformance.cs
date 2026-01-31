@@ -7,11 +7,85 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CRM.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddQuoteToCashAndSalesPerformanceEntities : Migration
+    public partial class AddQuoteToCashAndSalesPerformance : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_CommunicationMessages_CommunicationChannels_ChannelId",
+                table: "CommunicationMessages");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_CommunicationMessages_CommunicationMessages_ParentMessageId",
+                table: "CommunicationMessages");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_CommunicationMessages_Conversations_ConversationId1",
+                table: "CommunicationMessages");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Leads_MarketingCampaigns_MarketingCampaignId",
+                table: "Leads");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Leads_MarketingCampaigns_MarketingCampaignId1",
+                table: "Leads");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Leads_MarketingCampaigns_MarketingCampaignId2",
+                table: "Leads");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Opportunities_Accounts_AccountId",
+                table: "Opportunities");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Opportunities_Accounts_AccountId1",
+                table: "Opportunities");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Opportunities_AccountId1",
+                table: "Opportunities");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Leads_MarketingCampaignId",
+                table: "Leads");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Leads_MarketingCampaignId1",
+                table: "Leads");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Leads_MarketingCampaignId2",
+                table: "Leads");
+
+            migrationBuilder.DropColumn(
+                name: "AccountId1",
+                table: "Opportunities");
+
+            migrationBuilder.DropColumn(
+                name: "MarketingCampaignId",
+                table: "Leads");
+
+            migrationBuilder.DropColumn(
+                name: "MarketingCampaignId1",
+                table: "Leads");
+
+            migrationBuilder.DropColumn(
+                name: "MarketingCampaignId2",
+                table: "Leads");
+
+            migrationBuilder.RenameColumn(
+                name: "ConversationId1",
+                table: "CommunicationMessages",
+                newName: "CommunicationChannelId");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_CommunicationMessages_ConversationId1",
+                table: "CommunicationMessages",
+                newName: "IX_CommunicationMessages_CommunicationChannelId");
+
             migrationBuilder.AddColumn<byte[]>(
                 name: "RowVersion",
                 table: "WorkflowVersions",
@@ -745,6 +819,65 @@ namespace CRM.Infrastructure.Migrations
                 nullable: true)
                 .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.ComputedColumn);
 
+            migrationBuilder.AlterColumn<string>(
+                name: "Subject",
+                table: "Conversations",
+                type: "varchar(500)",
+                maxLength: 500,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ParticipantName",
+                table: "Conversations",
+                type: "varchar(200)",
+                maxLength: 200,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ParticipantAddress",
+                table: "Conversations",
+                type: "varchar(500)",
+                maxLength: 500,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "LastMessagePreview",
+                table: "Conversations",
+                type: "varchar(500)",
+                maxLength: 500,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ConversationId",
+                table: "Conversations",
+                type: "varchar(100)",
+                maxLength: 100,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "longtext")
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.AddColumn<byte[]>(
                 name: "RowVersion",
                 table: "Conversations",
@@ -768,6 +901,90 @@ namespace CRM.Infrastructure.Migrations
                 rowVersion: true,
                 nullable: true)
                 .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.ComputedColumn);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ToName",
+                table: "CommunicationMessages",
+                type: "varchar(200)",
+                maxLength: 200,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ToAddress",
+                table: "CommunicationMessages",
+                type: "varchar(500)",
+                maxLength: 500,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "Subject",
+                table: "CommunicationMessages",
+                type: "varchar(1000)",
+                maxLength: 1000,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "FromName",
+                table: "CommunicationMessages",
+                type: "varchar(200)",
+                maxLength: 200,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "FromAddress",
+                table: "CommunicationMessages",
+                type: "varchar(500)",
+                maxLength: 500,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ExternalMessageId",
+                table: "CommunicationMessages",
+                type: "varchar(500)",
+                maxLength: 500,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ConversationId",
+                table: "CommunicationMessages",
+                type: "varchar(100)",
+                maxLength: 100,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "longtext",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.AddColumn<byte[]>(
                 name: "RowVersion",
@@ -5131,6 +5348,37 @@ namespace CRM.Infrastructure.Migrations
                 column: "QuoteId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Conversations_ConversationId",
+                table: "Conversations",
+                column: "ConversationId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Conversations_Status",
+                table: "Conversations",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CommunicationMessages_ConversationId",
+                table: "CommunicationMessages",
+                column: "ConversationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CommunicationMessages_Direction",
+                table: "CommunicationMessages",
+                column: "Direction");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CommunicationMessages_SentAt",
+                table: "CommunicationMessages",
+                column: "SentAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CommunicationMessages_Status",
+                table: "CommunicationMessages",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Accounts_PriceBookId",
                 table: "Accounts",
                 column: "PriceBookId");
@@ -6158,6 +6406,29 @@ namespace CRM.Infrastructure.Migrations
                 principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
+                name: "FK_CommunicationMessages_CommunicationChannels_ChannelId",
+                table: "CommunicationMessages",
+                column: "ChannelId",
+                principalTable: "CommunicationChannels",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_CommunicationMessages_CommunicationChannels_CommunicationCha~",
+                table: "CommunicationMessages",
+                column: "CommunicationChannelId",
+                principalTable: "CommunicationChannels",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_CommunicationMessages_CommunicationMessages_ParentMessageId",
+                table: "CommunicationMessages",
+                column: "ParentMessageId",
+                principalTable: "CommunicationMessages",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.SetNull);
+
+            migrationBuilder.AddForeignKey(
                 name: "FK_Notes_Contacts_ContactId",
                 table: "Notes",
                 column: "ContactId",
@@ -6177,6 +6448,14 @@ namespace CRM.Infrastructure.Migrations
                 column: "QuoteId",
                 principalTable: "Quotes",
                 principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Opportunities_Accounts_AccountId",
+                table: "Opportunities",
+                column: "AccountId",
+                principalTable: "Accounts",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Quotes_Contacts_ContactId",
@@ -6203,6 +6482,18 @@ namespace CRM.Infrastructure.Migrations
                 table: "Accounts");
 
             migrationBuilder.DropForeignKey(
+                name: "FK_CommunicationMessages_CommunicationChannels_ChannelId",
+                table: "CommunicationMessages");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_CommunicationMessages_CommunicationChannels_CommunicationCha~",
+                table: "CommunicationMessages");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_CommunicationMessages_CommunicationMessages_ParentMessageId",
+                table: "CommunicationMessages");
+
+            migrationBuilder.DropForeignKey(
                 name: "FK_Notes_Contacts_ContactId",
                 table: "Notes");
 
@@ -6213,6 +6504,10 @@ namespace CRM.Infrastructure.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_Notes_Quotes_QuoteId",
                 table: "Notes");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Opportunities_Accounts_AccountId",
+                table: "Opportunities");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Quotes_Contacts_ContactId",
@@ -6463,6 +6758,30 @@ namespace CRM.Infrastructure.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_Notes_QuoteId",
                 table: "Notes");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Conversations_ConversationId",
+                table: "Conversations");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Conversations_Status",
+                table: "Conversations");
+
+            migrationBuilder.DropIndex(
+                name: "IX_CommunicationMessages_ConversationId",
+                table: "CommunicationMessages");
+
+            migrationBuilder.DropIndex(
+                name: "IX_CommunicationMessages_Direction",
+                table: "CommunicationMessages");
+
+            migrationBuilder.DropIndex(
+                name: "IX_CommunicationMessages_SentAt",
+                table: "CommunicationMessages");
+
+            migrationBuilder.DropIndex(
+                name: "IX_CommunicationMessages_Status",
+                table: "CommunicationMessages");
 
             migrationBuilder.DropIndex(
                 name: "IX_Accounts_PriceBookId",
@@ -6919,6 +7238,261 @@ namespace CRM.Infrastructure.Migrations
             migrationBuilder.DropColumn(
                 name: "RowVersion",
                 table: "Accounts");
+
+            migrationBuilder.RenameColumn(
+                name: "CommunicationChannelId",
+                table: "CommunicationMessages",
+                newName: "ConversationId1");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_CommunicationMessages_CommunicationChannelId",
+                table: "CommunicationMessages",
+                newName: "IX_CommunicationMessages_ConversationId1");
+
+            migrationBuilder.AddColumn<int>(
+                name: "AccountId1",
+                table: "Opportunities",
+                type: "int",
+                nullable: true);
+
+            migrationBuilder.AddColumn<int>(
+                name: "MarketingCampaignId",
+                table: "Leads",
+                type: "int",
+                nullable: true);
+
+            migrationBuilder.AddColumn<int>(
+                name: "MarketingCampaignId1",
+                table: "Leads",
+                type: "int",
+                nullable: true);
+
+            migrationBuilder.AddColumn<int>(
+                name: "MarketingCampaignId2",
+                table: "Leads",
+                type: "int",
+                nullable: true);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "Subject",
+                table: "Conversations",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(500)",
+                oldMaxLength: 500,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ParticipantName",
+                table: "Conversations",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(200)",
+                oldMaxLength: 200,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ParticipantAddress",
+                table: "Conversations",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(500)",
+                oldMaxLength: 500,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "LastMessagePreview",
+                table: "Conversations",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(500)",
+                oldMaxLength: 500,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ConversationId",
+                table: "Conversations",
+                type: "longtext",
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "varchar(100)",
+                oldMaxLength: 100)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ToName",
+                table: "CommunicationMessages",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(200)",
+                oldMaxLength: 200,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ToAddress",
+                table: "CommunicationMessages",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(500)",
+                oldMaxLength: 500,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "Subject",
+                table: "CommunicationMessages",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(1000)",
+                oldMaxLength: 1000,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "FromName",
+                table: "CommunicationMessages",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(200)",
+                oldMaxLength: 200,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "FromAddress",
+                table: "CommunicationMessages",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(500)",
+                oldMaxLength: 500,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ExternalMessageId",
+                table: "CommunicationMessages",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(500)",
+                oldMaxLength: 500,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ConversationId",
+                table: "CommunicationMessages",
+                type: "longtext",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "varchar(100)",
+                oldMaxLength: 100,
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Opportunities_AccountId1",
+                table: "Opportunities",
+                column: "AccountId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Leads_MarketingCampaignId",
+                table: "Leads",
+                column: "MarketingCampaignId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Leads_MarketingCampaignId1",
+                table: "Leads",
+                column: "MarketingCampaignId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Leads_MarketingCampaignId2",
+                table: "Leads",
+                column: "MarketingCampaignId2");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_CommunicationMessages_CommunicationChannels_ChannelId",
+                table: "CommunicationMessages",
+                column: "ChannelId",
+                principalTable: "CommunicationChannels",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_CommunicationMessages_CommunicationMessages_ParentMessageId",
+                table: "CommunicationMessages",
+                column: "ParentMessageId",
+                principalTable: "CommunicationMessages",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_CommunicationMessages_Conversations_ConversationId1",
+                table: "CommunicationMessages",
+                column: "ConversationId1",
+                principalTable: "Conversations",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Leads_MarketingCampaigns_MarketingCampaignId",
+                table: "Leads",
+                column: "MarketingCampaignId",
+                principalTable: "MarketingCampaigns",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Leads_MarketingCampaigns_MarketingCampaignId1",
+                table: "Leads",
+                column: "MarketingCampaignId1",
+                principalTable: "MarketingCampaigns",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Leads_MarketingCampaigns_MarketingCampaignId2",
+                table: "Leads",
+                column: "MarketingCampaignId2",
+                principalTable: "MarketingCampaigns",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Opportunities_Accounts_AccountId",
+                table: "Opportunities",
+                column: "AccountId",
+                principalTable: "Accounts",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Opportunities_Accounts_AccountId1",
+                table: "Opportunities",
+                column: "AccountId1",
+                principalTable: "Accounts",
+                principalColumn: "Id");
         }
     }
 }
