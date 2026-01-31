@@ -185,12 +185,13 @@ deploy_containers() {
             docker rm $container 2>/dev/null || true
         done
         
-        # Ensure database is running
-        if ! docker ps | grep -q crm-mariadb; then
+        # Ensure database is running (use crm-db as the standard name)
+        if ! docker ps | grep -q crm-db; then
             echo "Starting MariaDB..."
+            docker rm -f crm-db 2>/dev/null || true
             docker rm -f crm-mariadb 2>/dev/null || true
             docker network create crm-database-network 2>/dev/null || true
-            docker run -d --name crm-mariadb \
+            docker run -d --name crm-db \
                 --restart unless-stopped \
                 --network crm-database-network \
                 -p 3306:3306 \
@@ -212,7 +213,7 @@ deploy_containers() {
             -v /opt/crm/data:/app/data \
             -e ASPNETCORE_ENVIRONMENT=Development \
             -e "ASPNETCORE_URLS=http://+:5000" \
-            -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024!;AllowUserVariables=true" \
+            -e "ConnectionStrings__DefaultConnection=Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024!;AllowUserVariables=true" \
             -e "DatabaseProvider=MariaDb" \
             -e "Jwt__Secret=CrmSuperSecretKey2024ForJwtTokenGenerationMinimum32Chars" \
             -e "Jwt__Issuer=CrmApi" \
