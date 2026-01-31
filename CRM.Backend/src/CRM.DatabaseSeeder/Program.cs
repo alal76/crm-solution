@@ -240,7 +240,7 @@ class Program
 
         // Create Accounts (linked to customers)
         Console.WriteLine($"💼 Creating accounts for customers...");
-        var accounts = await SeedAccounts(context, customers, products);
+        var subscriptions = await SeedSubscriptions(context, customers, products);
 
         // Create Contacts
         var contactCount = int.Parse(seedingConfig["Contacts"] ?? "100");
@@ -260,7 +260,7 @@ class Program
         // Create Opportunities
         var opportunityCount = int.Parse(seedingConfig["Opportunities"] ?? "30");
         Console.WriteLine($"💰 Creating {opportunityCount} opportunities...");
-        var opportunities = await SeedOpportunities(context, accounts, products, users, campaigns, opportunityCount);
+        var opportunities = await SeedOpportunities(context, subscriptions, products, users, campaigns, opportunityCount);
 
         // Create Tasks
         var taskCount = int.Parse(seedingConfig["Tasks"] ?? "50");
@@ -332,7 +332,7 @@ class Program
         return await context.Users.ToListAsync();
     }
 
-    static async Task<List<Customer>> SeedCustomers(CrmDbContext context, List<User> users, int count)
+    static async Task<List<Account>> SeedCustomers(CrmDbContext context, List<User> users, int count)
     {
         if (await context.Customers.AnyAsync())
         {
@@ -340,12 +340,12 @@ class Program
         }
 
         var faker = new Bogus.Faker();
-        var customers = new List<Customer>();
+        var customers = new List<Account>();
         var salesUsers = users.Where(u => u.Role == (int)UserRole.Sales || u.Role == (int)UserRole.Manager).ToList();
 
         for (int i = 0; i < count; i++)
         {
-            var customer = new Customer
+            var customer = new Account
             {
                 FirstName = faker.Name.FirstName(),
                 LastName = faker.Name.LastName(),
@@ -363,13 +363,13 @@ class Program
                 Industry = faker.Commerce.Categories(1)[0],
                 NumberOfEmployees = faker.Random.Int(10, 5000),
                 AnnualRevenue = faker.Random.Decimal(100000, 10000000),
-                CustomerType = (CustomerType)faker.Random.Int(0, 5),
-                Priority = (CustomerPriority)faker.Random.Int(0, 3),
-                LifecycleStage = (CustomerLifecycleStage)faker.Random.Int(0, 5),
+                AccountType = (AccountType)faker.Random.Int(0, 5),
+                Priority = (AccountPriority)faker.Random.Int(0, 3),
+                LifecycleStage = (AccountLifecycleStage)faker.Random.Int(0, 5),
                 LeadSource = faker.PickRandom(new[] { "Website", "Referral", "LinkedIn", "Trade Show", "Cold Call", "Advertisement" }),
                 FirstContactDate = faker.Date.Past(2),
                 LeadScore = faker.Random.Int(0, 100),
-                CustomerHealthScore = faker.Random.Int(30, 100),
+                AccountHealthScore = faker.Random.Int(30, 100),
                 OptInEmail = faker.Random.Bool(0.8f),
                 OptInPhone = faker.Random.Bool(0.6f),
                 AssignedToUserId = faker.PickRandom(salesUsers).Id,
@@ -587,16 +587,16 @@ class Program
         return products;
     }
 
-    static async Task<List<Account>> SeedAccounts(CrmDbContext context, List<Customer> customers, List<Product> products)
+    static async Task<List<Subscription>> SeedSubscriptions(CrmDbContext context, List<Account> customers, List<Product> products)
     {
-        if (await context.Accounts.AnyAsync())
+        if (await context.Subscriptions.AnyAsync())
         {
-            return await context.Accounts.ToListAsync();
+            return await context.Subscriptions.ToListAsync();
         }
 
         var faker = new Bogus.Faker();
-        var accounts = new List<Account>();
-        var accountStatuses = Enum.GetValues<AccountStatus>();
+        var subscriptions = new List<Subscription>();
+        var subscriptionStatuses = Enum.GetValues<SubscriptionStatus>();
         var serviceTiers = new[] { ServiceTier.Basic, ServiceTier.Standard, ServiceTier.Professional, ServiceTier.Enterprise };
         var termCategories = new[] { ContractTermCategory.Monthly, ContractTermCategory.Annual, ContractTermCategory.TwoYear };
         var currencies = new[] { "USD", "EUR", "GBP", "CAD" };
@@ -613,12 +613,12 @@ class Program
                 var contractStart = faker.Date.Past(2);
                 var contractLength = faker.PickRandom(new[] { 12, 24, 36 });
                 
-                var account = new Account
+                var subscription = new Subscription
                 {
-                    AccountNumber = $"ACC-{accountNumber:D6}",
-                    CustomerId = customer.Id,
+                    SubscriptionNumber = $"SUB-{accountNumber:D6}",
+                    AccountId = customer.Id,
                     ProductId = product?.Id,
-                    Status = faker.PickRandom(accountStatuses),
+                    SubscriptionStatus = faker.PickRandom(subscriptionStatuses),
                     
                     // Financial
                     MRR = mrr,
@@ -651,23 +651,23 @@ class Program
                     IsAutoRenew = faker.Random.Bool(0.7f),
                     RenewalDate = contractStart.AddMonths(contractLength),
                     IsActive = true,
-                    AccountOwner = faker.Name.FullName(),
+                    SubscriptionOwner = faker.Name.FullName(),
                     Tags = faker.Random.Bool(0.3f) ? string.Join(",", faker.Commerce.Categories(2)) : null,
                     
                     CreatedAt = contractStart
                 };
-                accounts.Add(account);
+                subscriptions.Add(subscription);
                 accountNumber++;
             }
         }
 
-        context.Accounts.AddRange(accounts);
+        context.Subscriptions.AddRange(subscriptions);
         await context.SaveChangesAsync();
-        Console.WriteLine($"   Created {accounts.Count} accounts");
-        return accounts;
+        Console.WriteLine($"   Created {subscriptions.Count} subscriptions");
+        return subscriptions;
     }
 
-    static async Task<List<Contact>> SeedContacts(CrmDbContext context, List<Customer> customers, int count)
+    static async Task<List<Contact>> SeedContacts(CrmDbContext context, List<Account> customers, int count)
     {
         if (await context.Contacts.AnyAsync())
         {
@@ -944,7 +944,7 @@ class Program
         return leads;
     }
 
-    static async Task<List<Opportunity>> SeedOpportunities(CrmDbContext context, List<Account> accounts, List<Product> products, List<User> users, List<MarketingCampaign> campaigns, int count)
+    static async Task<List<Opportunity>> SeedOpportunities(CrmDbContext context, List<Subscription> subscriptions, List<Product> products, List<User> users, List<MarketingCampaign> campaigns, int count)
     {
         if (await context.Opportunities.AnyAsync())
         {
@@ -998,7 +998,7 @@ class Program
                 Region = faker.PickRandom(regions),
                 
                 // Foreign Keys
-                CustomerId = faker.PickRandom(accounts).CustomerId,
+                AccountId = faker.PickRandom(subscriptions).AccountId,
                 SalesOwnerId = faker.PickRandom(salesUsers).Id,
                 
                 CreatedAt = faker.Date.Past(1)
@@ -1012,7 +1012,7 @@ class Program
         return opportunities;
     }
 
-    static async Task SeedTasks(CrmDbContext context, List<Customer> customers, List<Opportunity> opportunities, List<User> users, int count)
+    static async Task SeedTasks(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
     {
         if (await context.CrmTasks.AnyAsync())
         {
@@ -1036,7 +1036,7 @@ class Program
                 StartDate = faker.Date.Past(1),
                 PercentComplete = faker.Random.Int(0, 100),
                 EstimatedMinutes = faker.Random.Int(15, 120),
-                CustomerId = faker.Random.Bool(0.5f) ? faker.PickRandom(customers).Id : null,
+                AccountId = faker.Random.Bool(0.5f) ? faker.PickRandom(customers).Id : null,
                 OpportunityId = faker.Random.Bool(0.3f) ? faker.PickRandom(opportunities).Id : null,
                 AssignedToUserId = faker.PickRandom(salesUsers).Id,
                 CreatedByUserId = faker.PickRandom(salesUsers).Id,
@@ -1051,7 +1051,7 @@ class Program
         Console.WriteLine($"   Created {count} tasks");
     }
 
-    static async Task SeedNotes(CrmDbContext context, List<Customer> customers, List<Opportunity> opportunities, List<User> users, int count)
+    static async Task SeedNotes(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
     {
         if (await context.Notes.AnyAsync())
         {
@@ -1072,7 +1072,7 @@ class Program
                 Visibility = (NoteVisibility)faker.Random.Int(0, 2),
                 IsPinned = faker.Random.Bool(0.1f),
                 IsImportant = faker.Random.Bool(0.15f),
-                CustomerId = faker.Random.Bool(0.4f) ? faker.PickRandom(customers).Id : null,
+                AccountId = faker.Random.Bool(0.4f) ? faker.PickRandom(customers).Id : null,
                 OpportunityId = faker.Random.Bool(0.3f) ? faker.PickRandom(opportunities).Id : null,
                 CreatedByUserId = faker.PickRandom(users).Id,
                 Tags = faker.Random.Bool(0.3f) ? string.Join(",", faker.Commerce.Categories(2)) : null,
@@ -1086,7 +1086,7 @@ class Program
         Console.WriteLine($"   Created {count} notes");
     }
 
-    static async Task SeedQuotes(CrmDbContext context, List<Customer> customers, List<Opportunity> opportunities, List<User> users, int count)
+    static async Task SeedQuotes(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
     {
         if (await context.Quotes.AnyAsync())
         {
@@ -1128,7 +1128,7 @@ class Program
                 BillingState = customer.State,
                 BillingZipCode = customer.ZipCode,
                 BillingCountry = customer.Country,
-                CustomerId = customer.Id,
+                AccountId = customer.Id,
                 OpportunityId = faker.Random.Bool(0.5f) ? faker.PickRandom(opportunities).Id : null,
                 AssignedToUserId = faker.PickRandom(salesUsers).Id,
                 CreatedByUserId = faker.PickRandom(salesUsers).Id,
@@ -1142,7 +1142,7 @@ class Program
         Console.WriteLine($"   Created {count} quotes");
     }
 
-    static async Task SeedInteractions(CrmDbContext context, List<Customer> customers, List<Contact> contacts, List<User> users, int count)
+    static async Task SeedInteractions(CrmDbContext context, List<Account> customers, List<Contact> contacts, List<User> users, int count)
     {
         if (await context.Interactions.AnyAsync())
         {
@@ -1167,7 +1167,7 @@ class Program
                 Outcome = (InteractionOutcome)faker.Random.Int(0, 7),
                 Sentiment = (InteractionSentiment)faker.Random.Int(0, 4),
                 IsCompleted = faker.Random.Bool(0.8f),
-                CustomerId = customer.Id,
+                AccountId = customer.Id,
                 ContactId = faker.Random.Bool(0.3f) ? faker.PickRandom(contacts).Id : null,
                 AssignedToUserId = faker.PickRandom(users).Id,
                 CreatedByUserId = faker.PickRandom(users).Id,
@@ -1183,7 +1183,7 @@ class Program
         Console.WriteLine($"   Created {count} interactions");
     }
 
-    static async Task SeedActivities(CrmDbContext context, List<User> users, List<Customer> customers, List<Opportunity> opportunities, int count)
+    static async Task SeedActivities(CrmDbContext context, List<User> users, List<Account> customers, List<Opportunity> opportunities, int count)
     {
         if (await context.Activities.AnyAsync())
         {
@@ -1209,7 +1209,7 @@ class Program
                 UserEmail = user.Email,
                 EntityType = faker.PickRandom(new[] { "Customer", "Opportunity", "Contact", "Product" }),
                 EntityId = faker.Random.Int(1, 50),
-                CustomerId = faker.Random.Bool(0.4f) ? faker.PickRandom(customers).Id : null,
+                AccountId = faker.Random.Bool(0.4f) ? faker.PickRandom(customers).Id : null,
                 OpportunityId = faker.Random.Bool(0.3f) ? faker.PickRandom(opportunities).Id : null,
                 IsSystem = faker.Random.Bool(0.2f),
                 IsPrivate = false,

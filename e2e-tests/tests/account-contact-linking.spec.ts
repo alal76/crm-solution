@@ -47,7 +47,7 @@ test.describe('Account-Contact Linking via Mapping Table', () => {
       
       try {
         // === CREATE ACCOUNT VIA API ===
-        const acctResp = await apiContext.post('/api/customers', {
+        const acctResp = await apiContext.post('/api/accounts', {
           headers,
           data: {
             category: 0, // Individual - now supports contact linking!
@@ -113,7 +113,7 @@ test.describe('Account-Contact Linking via Mapping Table', () => {
         // === LINK CONTACTS VIA MAPPING TABLE API ===
         let linkedCount = 0;
         for (let k = 0; k < contactIds.length; k++) {
-          const linkResp = await apiContext.post(`/api/customers/${acctId}/contacts`, {
+          const linkResp = await apiContext.post(`/api/accounts/${acctId}/contacts`, {
             headers,
             data: { 
               contactId: contactIds[k], 

@@ -64,7 +64,7 @@ test.describe.serial('Create 10 Accounts with 1-10 Contacts Each', () => {
       // Step 1: Create the account
       console.log(`\n📦 Creating account: ${account.company}`);
       
-      const customerResponse = await request.post(`${API_URL}/api/customers`, {
+      const customerResponse = await request.post(`${API_URL}/api/accounts`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           category: 1, // Organization
@@ -90,8 +90,8 @@ test.describe.serial('Create 10 Accounts with 1-10 Contacts Each', () => {
       }
       expect(customerResponse.ok()).toBeTruthy();
       const customerData = await customerResponse.json();
-      const customerId = customerData.id;
-      console.log(`   ✅ Created customer ID: ${customerId}`);
+      const accountId = customerData.id;
+      console.log(`   ✅ Created customer ID: ${accountId}`);
 
       // Step 2: Create contacts and link them
       const contactIds: number[] = [];
@@ -136,9 +136,9 @@ test.describe.serial('Create 10 Accounts with 1-10 Contacts Each', () => {
         const isPrimary = j === 0; // First contact is primary
         const isDecisionMaker = j < 2; // First two are decision makers
         
-        console.log(`   🔗 Linking contact ${contactId} to customer ${customerId}`);
+        console.log(`   🔗 Linking contact ${contactId} to customer ${accountId}`);
         
-        const linkResponse = await request.post(`${API_URL}/api/customers/${customerId}/contacts`, {
+        const linkResponse = await request.post(`${API_URL}/api/accounts/${accountId}/contacts`, {
           headers: { 'Authorization': `Bearer ${authToken}` },
           data: {
             contactId: contactId,
@@ -167,7 +167,7 @@ test.describe.serial('Create 10 Accounts with 1-10 Contacts Each', () => {
     const authToken = await getAuthToken(request);
     
     // Verify customers
-    const customersResponse = await request.get(`${API_URL}/api/customers?pageSize=100`, {
+    const customersResponse = await request.get(`${API_URL}/api/accounts?pageSize=100`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     expect(customersResponse.ok()).toBeTruthy();
@@ -198,7 +198,7 @@ test.describe.serial('Create 10 Accounts with 1-10 Contacts Each', () => {
     
     // List each account with its contact count
     for (const acc of ourAccounts) {
-      const customerContactsResponse = await request.get(`${API_URL}/api/customers/${acc.id}/contacts`, {
+      const customerContactsResponse = await request.get(`${API_URL}/api/accounts/${acc.id}/contacts`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       if (customerContactsResponse.ok()) {

@@ -17,13 +17,13 @@ namespace CRM.Tests.Dtos;
 /// </summary>
 public class DtoMappingTests
 {
-    #region CustomerDto Tests
+    #region AccountDto Tests
 
     [Fact]
-    public void CustomerDto_CreateFromEntity_MapsCorrectly()
+    public void AccountDto_CreateFromEntity_MapsCorrectly()
     {
         // Arrange
-        var entity = new Customer
+        var entity = new Account
         {
             Id = 1,
             FirstName = "John",
@@ -31,11 +31,11 @@ public class DtoMappingTests
             Email = "john@example.com",
             Phone = "555-1234",
             Company = "Doe Inc",
-            Category = CustomerCategory.Individual
+            Category = AccountCategory.Individual
         };
 
         // Act
-        var dto = new CustomerDto
+        var dto = new AccountDto
         {
             Id = entity.Id,
             FirstName = entity.FirstName,
@@ -52,20 +52,20 @@ public class DtoMappingTests
     }
 
     [Fact]
-    public void CustomerDto_DefaultValues_AreCorrect()
+    public void AccountDto_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var dto = new CustomerDto();
+        var dto = new AccountDto();
 
         // Assert
         dto.Id.Should().Be(0);
     }
 
     [Fact]
-    public void CustomerDto_WithAllFields_SetsCorrectly()
+    public void AccountDto_WithAllFields_SetsCorrectly()
     {
         // Arrange & Act
-        var dto = new CustomerDto
+        var dto = new AccountDto
         {
             Id = 1,
             FirstName = "John",
@@ -311,7 +311,7 @@ public class DtoMappingTests
         };
 
         // Act
-        var dtos = entities.Select(e => new CustomerDto
+        var dtos = entities.Select(e => new AccountDto
         {
             Id = e.Id,
             FirstName = e.FirstName,
@@ -326,33 +326,33 @@ public class DtoMappingTests
 
     #endregion
 
-    #region CreateAccountRequest Tests
+    #region CreateAccountDto Tests
 
     [Fact]
-    public void CreateAccountRequest_Creation()
+    public void CreateAccountDto_Creation()
     {
         // Arrange & Act
-        var request = new CreateAccountRequest
+        var request = new CreateAccountDto
         {
-            Name = "Acme Corp",
+            Company = "Acme Corp",
             Email = "info@acme.com",
             Phone = "555-1234",
             Website = "https://acme.com"
         };
 
         // Assert
-        request.Name.Should().Be("Acme Corp");
+        request.Company.Should().Be("Acme Corp");
         request.Email.Should().Be("info@acme.com");
         request.Website.Should().Be("https://acme.com");
     }
 
     [Fact]
-    public void CreateAccountRequest_WithAddress()
+    public void CreateAccountDto_WithAddress()
     {
         // Arrange & Act
-        var request = new CreateAccountRequest
+        var request = new CreateAccountDto
         {
-            Name = "Test Corp",
+            Company = "Test Corp",
             Address = "123 Main St",
             City = "New York",
             State = "NY",
@@ -368,20 +368,20 @@ public class DtoMappingTests
 
     #endregion
 
-    #region UpdateAccountRequest Tests
+    #region UpdateAccountDto Tests
 
     [Fact]
-    public void UpdateAccountRequest_Creation()
+    public void UpdateAccountDto_Creation()
     {
         // Arrange & Act
-        var request = new UpdateAccountRequest
+        var request = new UpdateAccountDto
         {
-            Name = "Updated Corp",
+            Company = "Updated Corp",
             Email = "new@company.com"
         };
 
         // Assert
-        request.Name.Should().Be("Updated Corp");
+        request.Company.Should().Be("Updated Corp");
         request.Email.Should().Be("new@company.com");
     }
 

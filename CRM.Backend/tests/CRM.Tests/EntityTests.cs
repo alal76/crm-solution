@@ -9,7 +9,7 @@ namespace CRM.Tests
         public void Customer_ShouldHaveValidEmail()
         {
             // Arrange
-            var customer = new Customer
+            var account = new Account
             {
                 FirstName = "John",
                 LastName = "Doe",
@@ -18,47 +18,47 @@ namespace CRM.Tests
             };
 
             // Act & Assert
-            Assert.Equal("john@example.com", customer.Email);
-            Assert.NotEmpty(customer.FirstName);
-            Assert.NotEmpty(customer.LastName);
+            Assert.Equal("john@example.com", account.Email);
+            Assert.NotEmpty(account.FirstName);
+            Assert.NotEmpty(account.LastName);
         }
 
         [Fact]
         public void Customer_ShouldHaveValidPhoneNumber()
         {
             // Arrange
-            var customer = new Customer
+            var account = new Account
             {
                 Phone = "+1-555-0001"
             };
 
             // Act & Assert
-            Assert.Equal("+1-555-0001", customer.Phone);
+            Assert.Equal("+1-555-0001", account.Phone);
         }
 
         [Fact]
-        public void Customer_LifecycleStageShouldDefaultToOther()
+        public void Account_LifecycleStageShouldDefaultToOther()
         {
             // Arrange
-            var customer = new Customer();
+            var account = new Account();
 
             // Act & Assert
-            Assert.Equal(CustomerLifecycleStage.Other, customer.LifecycleStage);
+            Assert.Equal(AccountLifecycleStage.Other, account.LifecycleStage);
         }
 
         [Fact]
         public void Customer_ShouldCalculateFullName()
         {
             // Arrange
-            var customer = new Customer
+            var account = new Account
             {
                 FirstName = "John",
                 LastName = "Doe"
             };
 
             // Act & Assert
-            Assert.Equal("John", customer.FirstName);
-            Assert.Equal("Doe", customer.LastName);
+            Assert.Equal("John", account.FirstName);
+            Assert.Equal("Doe", account.LastName);
         }
     }
 

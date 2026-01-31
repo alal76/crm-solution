@@ -117,8 +117,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             CategoryName = entity.Category?.Name,
             SubcategoryId = entity.SubcategoryId,
             SubcategoryName = entity.Subcategory?.Name,
-            CustomerId = entity.CustomerId,
-            CustomerName = entity.Customer != null ? $"{entity.Customer.FirstName} {entity.Customer.LastName}".Trim() : null,
+            CustomerId = entity.AccountId,
+            CustomerName = entity.Account != null ? $"{entity.Account.FirstName} {entity.Account.LastName}".Trim() : null,
             ContactId = entity.ContactId,
             ContactName = entity.Contact != null ? $"{entity.Contact.FirstName} {entity.Contact.LastName}".Trim() : null,
             RequesterName = entity.RequesterName,
@@ -189,7 +189,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         PriorityName = GetPriorityName(entity.Priority),
         CategoryName = entity.Category?.Name,
         SubcategoryName = entity.Subcategory?.Name,
-        CustomerName = entity.Customer != null ? $"{entity.Customer.FirstName} {entity.Customer.LastName}".Trim() : entity.RequesterName,
+        CustomerName = entity.Account != null ? $"{entity.Account.FirstName} {entity.Account.LastName}".Trim() : entity.RequesterName,
         AssignedToUserName = entity.AssignedToUser != null ? $"{entity.AssignedToUser.FirstName} {entity.AssignedToUser.LastName}".Trim() : null,
         ResponseDueDate = entity.ResponseDueDate,
         ResolutionDueDate = entity.ResolutionDueDate,
@@ -250,7 +250,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var query = _context.ServiceRequests
             .Include(sr => sr.Category)
             .Include(sr => sr.Subcategory)
-            .Include(sr => sr.Customer)
+            .Include(sr => sr.Account)
             .Include(sr => sr.Contact)
             .Include(sr => sr.AssignedToUser)
             .Include(sr => sr.AssignedToGroup)
@@ -285,7 +285,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             query = query.Where(sr => sr.SubcategoryId.HasValue && filter.SubcategoryIds.Contains(sr.SubcategoryId.Value));
 
         if (filter.CustomerId.HasValue)
-            query = query.Where(sr => sr.CustomerId == filter.CustomerId);
+            query = query.Where(sr => sr.AccountId == filter.CustomerId);
 
         if (filter.ContactId.HasValue)
             query = query.Where(sr => sr.ContactId == filter.ContactId);
@@ -372,7 +372,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var entity = await _context.ServiceRequests
             .Include(sr => sr.Category)
             .Include(sr => sr.Subcategory)
-            .Include(sr => sr.Customer)
+            .Include(sr => sr.Account)
             .Include(sr => sr.Contact)
             .Include(sr => sr.AssignedToUser)
             .Include(sr => sr.AssignedToGroup)
@@ -391,7 +391,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var entity = await _context.ServiceRequests
             .Include(sr => sr.Category)
             .Include(sr => sr.Subcategory)
-            .Include(sr => sr.Customer)
+            .Include(sr => sr.Account)
             .Include(sr => sr.Contact)
             .Include(sr => sr.AssignedToUser)
             .Include(sr => sr.AssignedToGroup)
@@ -413,7 +413,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             Priority = dto.Priority,
             CategoryId = dto.CategoryId,
             SubcategoryId = dto.SubcategoryId,
-            CustomerId = dto.CustomerId,
+            AccountId = dto.CustomerId,
             ContactId = dto.ContactId,
             RequesterName = dto.RequesterName,
             RequesterEmail = dto.RequesterEmail,
@@ -483,7 +483,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.Priority = dto.Priority;
         entity.CategoryId = dto.CategoryId;
         entity.SubcategoryId = dto.SubcategoryId;
-        entity.CustomerId = dto.CustomerId;
+        entity.AccountId = dto.CustomerId;
         entity.ContactId = dto.ContactId;
         entity.RequesterName = dto.RequesterName;
         entity.RequesterEmail = dto.RequesterEmail;
@@ -548,7 +548,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             .Include(sr => sr.Category)
             .Include(sr => sr.Subcategory)
             .Include(sr => sr.AssignedToUser)
-            .Where(sr => sr.CustomerId == customerId && !sr.IsDeleted)
+            .Where(sr => sr.AccountId == customerId && !sr.IsDeleted)
             .OrderByDescending(sr => sr.CreatedAt)
             .ToListAsync();
 
@@ -561,7 +561,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             .Include(sr => sr.Category)
             .Include(sr => sr.Subcategory)
             .Include(sr => sr.AssignedToUser)
-            .Include(sr => sr.Customer)
+            .Include(sr => sr.Account)
             .Where(sr => sr.ContactId == contactId && !sr.IsDeleted)
             .OrderByDescending(sr => sr.CreatedAt)
             .ToListAsync();
@@ -574,7 +574,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var entities = await _context.ServiceRequests
             .Include(sr => sr.Category)
             .Include(sr => sr.Subcategory)
-            .Include(sr => sr.Customer)
+            .Include(sr => sr.Account)
             .Where(sr => sr.AssignedToUserId == userId && !sr.IsDeleted && sr.Status != ServiceRequestStatus.Closed)
             .OrderByDescending(sr => sr.Priority)
             .ThenBy(sr => sr.ResolutionDueDate)
@@ -588,7 +588,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var entities = await _context.ServiceRequests
             .Include(sr => sr.Category)
             .Include(sr => sr.Subcategory)
-            .Include(sr => sr.Customer)
+            .Include(sr => sr.Account)
             .Include(sr => sr.AssignedToUser)
             .Where(sr => sr.AssignedToGroupId == groupId && !sr.IsDeleted && sr.Status != ServiceRequestStatus.Closed)
             .OrderByDescending(sr => sr.Priority)

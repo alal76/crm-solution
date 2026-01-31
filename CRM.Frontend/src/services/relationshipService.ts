@@ -84,10 +84,10 @@ export interface RelationshipType {
 
 export interface AccountRelationship {
   id: number;
-  sourceCustomerId: number;
-  sourceCustomerName?: string;
-  targetCustomerId: number;
-  targetCustomerName?: string;
+  sourceAccountId: number;
+  sourceAccountName?: string;
+  targetAccountId: number;
+  targetAccountName?: string;
   relationshipTypeId: number;
   relationshipTypeName?: string;
   status: RelationshipStatus;
@@ -124,8 +124,8 @@ export interface RelationshipInteraction {
 
 export interface AccountHealthSnapshot {
   id: number;
-  customerId: number;
-  customerName?: string;
+  accountId: number;
+  accountName?: string;
   snapshotDate: string;
   overallHealthScore: number;
   engagementScore: number;
@@ -149,13 +149,13 @@ export interface AccountHealthSnapshot {
 export interface RelationshipMapVisualization {
   nodes: RelationshipNode[];
   edges: RelationshipEdge[];
-  centralCustomerId?: number;
+  centralAccountId?: number;
   generatedAt: string;
 }
 
 export interface RelationshipNode {
   id: number;
-  customerId: number;
+  accountId: number;
   name: string;
   company?: string;
   category: string;
@@ -188,8 +188,8 @@ export interface CreateRelationshipTypeRequest {
 }
 
 export interface CreateAccountRelationshipRequest {
-  sourceCustomerId: number;
-  targetCustomerId: number;
+  sourceAccountId: number;
+  targetAccountId: number;
   relationshipTypeId: number;
   status?: RelationshipStatus;
   strategicImportance?: StrategicImportance;
@@ -251,10 +251,10 @@ export const deleteRelationshipType = async (id: number): Promise<void> => {
 
 // Account Relationships
 export const getAccountRelationships = async (
-  customerId?: number
+  accountId?: number
 ): Promise<AccountRelationship[]> => {
-  const url = customerId
-    ? `${BASE_URL}?customerId=${customerId}`
+  const url = accountId
+    ? `${BASE_URL}?accountId=${accountId}`
     : BASE_URL;
   const response = await apiClient.get(url);
   return response.data;
@@ -304,28 +304,28 @@ export const createRelationshipInteraction = async (
 
 // Relationship Map Visualization
 export const getRelationshipMap = async (
-  customerId: number,
+  accountId: number,
   depth: number = 2,
   includeInactive: boolean = false
 ): Promise<RelationshipMapVisualization> => {
   const response = await apiClient.get(
-    `${BASE_URL}/map/${customerId}?depth=${depth}&includeInactive=${includeInactive}`
+    `${BASE_URL}/map/${accountId}?depth=${depth}&includeInactive=${includeInactive}`
   );
   return response.data;
 };
 
 // Health Snapshots
 export const getHealthSnapshots = async (
-  customerId: number
+  accountId: number
 ): Promise<AccountHealthSnapshot[]> => {
-  const response = await apiClient.get(`${BASE_URL}/health/${customerId}`);
+  const response = await apiClient.get(`${BASE_URL}/health/${accountId}`);
   return response.data;
 };
 
 export const createHealthSnapshot = async (
-  customerId: number
+  accountId: number
 ): Promise<AccountHealthSnapshot> => {
-  const response = await apiClient.post(`${BASE_URL}/health/${customerId}`);
+  const response = await apiClient.post(`${BASE_URL}/health/${accountId}`);
   return response.data;
 };
 

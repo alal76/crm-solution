@@ -416,11 +416,11 @@ public class UtilityTests
     }
 
     [Fact]
-    public void Account_CanTransition_CurrentToChurned()
+    public void Account_CanTransition_LeadToActive()
     {
-        var account = new Account { Status = AccountStatus.Current };
-        account.Status = AccountStatus.Churned;
-        account.Status.Should().Be(AccountStatus.Churned);
+        var account = new Account { LifecycleStage = AccountLifecycleStage.Lead };
+        account.LifecycleStage = AccountLifecycleStage.Active;
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Active);
     }
 
     #endregion

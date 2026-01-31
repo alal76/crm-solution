@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -64,7 +65,8 @@ public class Conversation : BaseEntity
     /// <summary>
     /// Linked Customer ID
     /// </summary>
-    public int? CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int? AccountId { get; set; }
     
     /// <summary>
     /// Linked Contact ID

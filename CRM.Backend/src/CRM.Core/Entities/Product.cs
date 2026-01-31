@@ -1556,8 +1556,8 @@ public class Product : BaseEntity
     /// <summary>Related opportunities</summary>
     public ICollection<Opportunity>? Opportunities { get; set; }
     
-    /// <summary>Accounts associated with this product/service</summary>
-    public ICollection<Account>? Accounts { get; set; }
+    /// <summary>Subscriptions associated with this product/service</summary>
+    public ICollection<Subscription>? Subscriptions { get; set; }
     
     /// <summary>Associated marketing campaigns</summary>
     public ICollection<MarketingCampaign>? MarketingCampaigns { get; set; }

@@ -483,7 +483,7 @@ public class ContactsService : IContactsService, IContactInputPort
             LastModified = contact.LastModified,
             ModifiedBy = contact.ModifiedBy,
             Status = contact.Status.ToString(),
-            CustomerId = contact.CustomerId,
+            AccountId = contact.AccountId,
             SocialMediaLinks = contact.SocialMediaLinks
                 .Select(l => new SocialMediaLinkDto
                 {
@@ -504,11 +504,11 @@ public class ContactsService : IContactsService, IContactInputPort
 
     // === Customer Assignment Methods ===
 
-    public async Task<List<ContactDto>> GetByCustomerIdAsync(int customerId)
+    public async Task<List<ContactDto>> GetByAccountIdAsync(int customerId)
     {
         var contacts = await _context.Contacts
             .Include(c => c.SocialMediaLinks)
-            .Where(c => c.CustomerId == customerId)
+            .Where(c => c.AccountId == customerId)
             .OrderBy(c => c.LastName)
             .ThenBy(c => c.FirstName)
             .ToListAsync();
@@ -521,24 +521,24 @@ public class ContactsService : IContactsService, IContactInputPort
         return dtos;
     }
 
-    public async Task AssignToCustomerAsync(int contactId, int customerId)
+    public async Task AssignToAccountAsync(int contactId, int customerId)
     {
         var contact = await _context.Contacts.FindAsync(contactId);
         if (contact == null)
             throw new InvalidOperationException($"Contact with ID {contactId} not found");
 
-        contact.CustomerId = customerId;
+        contact.AccountId = customerId;
         contact.LastModified = DateTime.UtcNow;
         await _context.SaveChangesAsync();
     }
 
-    public async Task UnassignFromCustomerAsync(int contactId)
+    public async Task UnassignFromAccountAsync(int contactId)
     {
         var contact = await _context.Contacts.FindAsync(contactId);
         if (contact == null)
             throw new InvalidOperationException($"Contact with ID {contactId} not found");
 
-        contact.CustomerId = null;
+        contact.AccountId = null;
         contact.LastModified = DateTime.UtcNow;
         await _context.SaveChangesAsync();
     }

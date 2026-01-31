@@ -40,11 +40,11 @@ export const TEST_USERS = {
   },
   // Use existing admin for quick login (from QuickLogin button)
   existingAdmin: {
-    email: 'abhi.lal@gmail.com',
-    username: 'abhi.lal',
-    password: 'Admin@123',
-    firstName: 'Abhishek',
-    lastName: 'Lal',
+    email: 'admin@crm.local',
+    username: 'admin',
+    password: 'Admin123!',
+    firstName: 'Admin',
+    lastName: 'User',
     role: 'Administrator',
   },
 };

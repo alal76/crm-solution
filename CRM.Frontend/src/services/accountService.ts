@@ -144,7 +144,7 @@ const accountService = {
     apiClient.delete(`/accounts/${accountId}/contacts/${contactId}`),
   
   /**
-   * Get direct contacts (one-to-many via CustomerId FK)
+   * Get direct contacts (one-to-many via AccountId FK)
    */
   getDirectContacts: (accountId: number) =>
     apiClient.get(`/accounts/${accountId}/direct-contacts`),

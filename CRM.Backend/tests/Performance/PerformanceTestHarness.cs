@@ -377,7 +377,7 @@ public class PerformanceTestHarness
         // Get Customers List
         results.Add(await RunLoadTestAsync(
             "Get Customers",
-            client => client.GetAsync("/api/customers"),
+            client => client.GetAsync("/api/accounts"),
             20, 50));
 
         // Get Dashboard
@@ -405,7 +405,7 @@ public class PerformanceTestHarness
             {
                 var endpoints = new[]
                 {
-                    "/api/customers",
+                    "/api/accounts",
                     "/api/contacts",
                     "/api/opportunities",
                     "/api/leads",

@@ -38,7 +38,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
 
     public async Task<IEnumerable<Opportunity>> GetOpportunitiesByCustomerAsync(int customerId)
     {
-        var items = await _repository.FindAsync(o => !o.IsDeleted && o.CustomerId == customerId);
+        var items = await _repository.FindAsync(o => !o.IsDeleted && o.AccountId == customerId);
         return items;
     }
 

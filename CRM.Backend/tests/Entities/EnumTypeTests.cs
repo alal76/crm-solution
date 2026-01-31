@@ -15,50 +15,50 @@ namespace CRM.Tests.Entities;
 /// </summary>
 public class EnumTypeTests
 {
-    #region CustomerCategory Tests
+    #region AccountCategory Tests
 
     [Theory]
-    [InlineData(CustomerCategory.Individual, 0)]
-    [InlineData(CustomerCategory.Organization, 1)]
-    public void CustomerCategory_HasCorrectValues(CustomerCategory category, int expected)
+    [InlineData(AccountCategory.Individual, 0)]
+    [InlineData(AccountCategory.Organization, 1)]
+    public void AccountCategory_HasCorrectValues(AccountCategory category, int expected)
     {
         ((int)category).Should().Be(expected);
     }
 
     [Fact]
-    public void CustomerCategory_HasExpectedCount()
+    public void AccountCategory_HasExpectedCount()
     {
-        var values = Enum.GetValues<CustomerCategory>();
+        var values = Enum.GetValues<AccountCategory>();
         values.Should().HaveCount(2);
     }
 
     [Fact]
-    public void CustomerCategory_AllValuesAreDefined()
+    public void AccountCategory_AllValuesAreDefined()
     {
-        Enum.IsDefined(typeof(CustomerCategory), 0).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerCategory), 1).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountCategory), 0).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountCategory), 1).Should().BeTrue();
     }
 
     #endregion
 
-    #region CustomerType Tests
+    #region AccountType Tests
 
     [Fact]
-    public void CustomerType_ContainsAllExpectedValues()
+    public void AccountType_ContainsAllExpectedValues()
     {
-        var values = Enum.GetValues<CustomerType>();
-        values.Should().Contain(CustomerType.Individual);
-        values.Should().Contain(CustomerType.SmallBusiness);
-        values.Should().Contain(CustomerType.MidMarket);
-        values.Should().Contain(CustomerType.Enterprise);
-        values.Should().Contain(CustomerType.Government);
-        values.Should().Contain(CustomerType.NonProfit);
+        var values = Enum.GetValues<AccountType>();
+        values.Should().Contain(AccountType.Individual);
+        values.Should().Contain(AccountType.SmallBusiness);
+        values.Should().Contain(AccountType.MidMarket);
+        values.Should().Contain(AccountType.Enterprise);
+        values.Should().Contain(AccountType.Government);
+        values.Should().Contain(AccountType.NonProfit);
     }
 
     [Fact]
-    public void CustomerType_HasExpectedCount()
+    public void AccountType_HasExpectedCount()
     {
-        Enum.GetValues<CustomerType>().Should().HaveCount(6);
+        Enum.GetValues<AccountType>().Should().HaveCount(6);
     }
 
     [Theory]
@@ -68,64 +68,64 @@ public class EnumTypeTests
     [InlineData("Enterprise")]
     [InlineData("Government")]
     [InlineData("NonProfit")]
-    public void CustomerType_ParseFromString(string value)
+    public void AccountType_ParseFromString(string value)
     {
-        var parsed = Enum.Parse<CustomerType>(value);
+        var parsed = Enum.Parse<AccountType>(value);
         parsed.ToString().Should().Be(value);
     }
 
     #endregion
 
-    #region CustomerPriority Tests
+    #region AccountPriority Tests
 
     [Fact]
-    public void CustomerPriority_ContainsAllExpectedValues()
+    public void AccountPriority_ContainsAllExpectedValues()
     {
-        var values = Enum.GetValues<CustomerPriority>();
-        values.Should().Contain(CustomerPriority.Low);
-        values.Should().Contain(CustomerPriority.Medium);
-        values.Should().Contain(CustomerPriority.High);
-        values.Should().Contain(CustomerPriority.Critical);
+        var values = Enum.GetValues<AccountPriority>();
+        values.Should().Contain(AccountPriority.Low);
+        values.Should().Contain(AccountPriority.Medium);
+        values.Should().Contain(AccountPriority.High);
+        values.Should().Contain(AccountPriority.Critical);
     }
 
     [Fact]
-    public void CustomerPriority_HasExpectedCount()
+    public void AccountPriority_HasExpectedCount()
     {
-        Enum.GetValues<CustomerPriority>().Should().HaveCount(4);
+        Enum.GetValues<AccountPriority>().Should().HaveCount(4);
     }
 
     [Theory]
-    [InlineData(CustomerPriority.Low)]
-    [InlineData(CustomerPriority.Medium)]
-    [InlineData(CustomerPriority.High)]
-    [InlineData(CustomerPriority.Critical)]
-    public void CustomerPriority_CanBeCompared(CustomerPriority priority)
+    [InlineData(AccountPriority.Low)]
+    [InlineData(AccountPriority.Medium)]
+    [InlineData(AccountPriority.High)]
+    [InlineData(AccountPriority.Critical)]
+    public void AccountPriority_CanBeCompared(AccountPriority priority)
     {
-        var all = Enum.GetValues<CustomerPriority>().ToList();
+        var all = Enum.GetValues<AccountPriority>().ToList();
         all.Should().Contain(priority);
     }
 
     #endregion
 
-    #region CustomerLifecycleStage Tests
+    #region AccountLifecycleStage Tests
 
     [Fact]
-    public void CustomerLifecycleStage_ContainsAllExpectedValues()
+    public void AccountLifecycleStage_ContainsAllExpectedValues()
     {
-        var values = Enum.GetValues<CustomerLifecycleStage>();
-        values.Should().Contain(CustomerLifecycleStage.Other);
-        values.Should().Contain(CustomerLifecycleStage.Lead);
-        values.Should().Contain(CustomerLifecycleStage.Opportunity);
-        values.Should().Contain(CustomerLifecycleStage.Customer);
-        values.Should().Contain(CustomerLifecycleStage.CustomerAtRisk);
-        values.Should().Contain(CustomerLifecycleStage.Churned);
-        values.Should().Contain(CustomerLifecycleStage.WinBack);
+        var values = Enum.GetValues<AccountLifecycleStage>();
+        values.Should().Contain(AccountLifecycleStage.Other);
+        values.Should().Contain(AccountLifecycleStage.Lead);
+        values.Should().Contain(AccountLifecycleStage.Opportunity);
+        values.Should().Contain(AccountLifecycleStage.Active);
+        values.Should().Contain(AccountLifecycleStage.AtRisk);
+        values.Should().Contain(AccountLifecycleStage.Churned);
+        values.Should().Contain(AccountLifecycleStage.WinBack);
     }
 
     [Fact]
-    public void CustomerLifecycleStage_HasExpectedCount()
+    public void AccountLifecycleStage_HasExpectedCount()
     {
-        Enum.GetValues<CustomerLifecycleStage>().Should().HaveCount(7);
+        Enum.GetValues<AccountLifecycleStage>().Should().HaveCount(7);
     }
 
     #endregion
@@ -321,16 +321,16 @@ public class EnumTypeTests
     [Fact]
     public void Enum_TryParse_ReturnsFalseForInvalid()
     {
-        var result = Enum.TryParse<CustomerType>("InvalidType", out _);
+        var result = Enum.TryParse<AccountType>("InvalidType", out _);
         result.Should().BeFalse();
     }
 
     [Fact]
     public void Enum_TryParse_ReturnsTrueForValid()
     {
-        var result = Enum.TryParse<CustomerType>("Enterprise", out var value);
+        var result = Enum.TryParse<AccountType>("Enterprise", out var value);
         result.Should().BeTrue();
-        value.Should().Be(CustomerType.Enterprise);
+        value.Should().Be(AccountType.Enterprise);
     }
 
     #endregion
@@ -350,13 +350,13 @@ public class EnumTypeTests
     }
 
     [Theory]
-    [InlineData(CustomerLifecycleStage.Other, "Other")]
-    [InlineData(CustomerLifecycleStage.Lead, "Lead")]
-    [InlineData(CustomerLifecycleStage.Customer, "Customer")]
-    [InlineData(CustomerLifecycleStage.CustomerAtRisk, "CustomerAtRisk")]
-    [InlineData(CustomerLifecycleStage.Churned, "Churned")]
-    [InlineData(CustomerLifecycleStage.WinBack, "WinBack")]
-    public void CustomerLifecycleStage_ToString_ReturnsCorrectValue(CustomerLifecycleStage stage, string expected)
+    [InlineData(AccountLifecycleStage.Other, "Other")]
+    [InlineData(AccountLifecycleStage.Lead, "Lead")]
+    [InlineData(AccountLifecycleStage.Active, "Active")]
+    [InlineData(AccountLifecycleStage.AtRisk, "AtRisk")]
+    [InlineData(AccountLifecycleStage.Churned, "Churned")]
+    [InlineData(AccountLifecycleStage.WinBack, "WinBack")]
+    public void AccountLifecycleStage_ToString_ReturnsCorrectValue(AccountLifecycleStage stage, string expected)
     {
         stage.ToString().Should().Be(expected);
     }

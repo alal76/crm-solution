@@ -404,7 +404,7 @@ function ServiceRequestsPage() {
       priority: request.priority,
       categoryId: request.categoryId,
       subcategoryId: request.subcategoryId,
-      customerId: request.customerId,
+      accountId: request.accountId,
       contactId: request.contactId,
       assignedToUserId: request.assignedToUserId,
       assignedToGroupId: request.assignedToGroupId,
@@ -949,7 +949,7 @@ function ServiceRequestsPage() {
                             color={PRIORITY_COLORS[request.priority]}
                           />
                         </TableCell>
-                        <TableCell>{request.customerName || '-'}</TableCell>
+                        <TableCell>{request.accountName || '-'}</TableCell>
                         <TableCell>
                           {request.assignedToUserName || request.assignedToGroupName || '-'}
                         </TableCell>
@@ -1181,9 +1181,9 @@ function ServiceRequestsPage() {
             <Grid item xs={12} sm={6}>
               <EntitySelect
                 entityType="customer"
-                name="customerId"
-                value={formData.customerId || ''}
-                onChange={(e: any) => handleFormChange('customerId', e.target.value ? Number(e.target.value) : undefined)}
+                name="accountId"
+                value={formData.accountId || ''}
+                onChange={(e: any) => handleFormChange('accountId', e.target.value ? Number(e.target.value) : undefined)}
                 label="Customer"
                 disabled={viewMode}
                 showAddNew={!viewMode}

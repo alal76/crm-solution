@@ -440,19 +440,19 @@ public class LeadServiceTests
         // Act - Convert to customer
         lead.Status = LeadLifecycleStatus.Converted;
 
-        var customer = new Customer
+        var account = new Account
         {
             FirstName = lead.FirstName,
             LastName = lead.LastName,
             Email = lead.Email,
             Company = lead.CompanyName,
-            Category = CustomerCategory.Organization
+            Category = AccountCategory.Organization
         };
 
         // Assert
         lead.IsOpen.Should().BeFalse();
-        customer.FirstName.Should().Be(lead.FirstName);
-        customer.Company.Should().Be(lead.CompanyName);
+        account.FirstName.Should().Be(lead.FirstName);
+        account.Company.Should().Be(lead.CompanyName);
     }
 
     [Fact]

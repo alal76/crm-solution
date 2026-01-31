@@ -28,8 +28,8 @@ const mockOpportunities = [
     amount: 50000,
     stage: 2, // Proposal
     probability: 60,
-    customerId: 1,
-    customerName: 'Acme Corporation',
+    accountId: 1,
+    accountName: 'Acme Corporation',
     expectedCloseDate: '2024-06-30',
     actualCloseDate: null,
     description: 'Large enterprise software implementation',
@@ -48,8 +48,8 @@ const mockOpportunities = [
     amount: 15000,
     stage: 1, // Qualification
     probability: 40,
-    customerId: 2,
-    customerName: 'TechStart Inc',
+    accountId: 2,
+    accountName: 'TechStart Inc',
     expectedCloseDate: '2024-05-15',
     actualCloseDate: null,
     description: 'Startup package for new company',
@@ -68,8 +68,8 @@ const mockOpportunities = [
     amount: 25000,
     stage: 3, // Negotiation
     probability: 80,
-    customerId: 3,
-    customerName: 'Global Industries',
+    accountId: 3,
+    accountName: 'Global Industries',
     expectedCloseDate: '2024-04-30',
     actualCloseDate: null,
     description: 'Annual service contract renewal',
@@ -88,8 +88,8 @@ const mockOpportunities = [
     amount: 30000,
     stage: 5, // Closed Lost
     probability: 0,
-    customerId: 4,
-    customerName: 'Failed Corp',
+    accountId: 4,
+    accountName: 'Failed Corp',
     expectedCloseDate: '2024-02-28',
     actualCloseDate: '2024-02-28',
     description: 'Budget constraints',
@@ -108,8 +108,8 @@ const mockOpportunities = [
     amount: 45000,
     stage: 4, // Closed Won
     probability: 100,
-    customerId: 5,
-    customerName: 'Success Inc',
+    accountId: 5,
+    accountName: 'Success Inc',
     expectedCloseDate: '2024-02-15',
     actualCloseDate: '2024-02-10',
     description: 'Closed ahead of schedule',
@@ -159,7 +159,7 @@ describe('OpportunitiesPage - List Display', () => {
   });
 
   it('should display customer name', () => {
-    expect(mockOpportunities[0].customerName).toBe('Acme Corporation');
+    expect(mockOpportunities[0].accountName).toBe('Acme Corporation');
   });
 
   it('should display expected close date', () => {
@@ -378,7 +378,7 @@ describe('OpportunitiesPage - Create Opportunity', () => {
   });
 
   it('should have required form fields', () => {
-    const requiredFields = ['name', 'amount', 'stage', 'customerId', 'expectedCloseDate'];
+    const requiredFields = ['name', 'amount', 'stage', 'accountId', 'expectedCloseDate'];
     expect(requiredFields).toContain('name');
     expect(requiredFields).toContain('amount');
   });
@@ -402,7 +402,7 @@ describe('OpportunitiesPage - Create Opportunity', () => {
       name: 'New Deal',
       amount: 75000,
       stage: 0,
-      customerId: 1,
+      accountId: 1,
       expectedCloseDate: '2024-08-15',
     };
     
@@ -538,7 +538,7 @@ describe('OpportunitiesPage - Search and Filter', () => {
   it('should search by customer name', () => {
     const searchTerm = 'Acme';
     const filtered = mockOpportunities.filter(o => 
-      o.customerName.toLowerCase().includes(searchTerm.toLowerCase())
+      o.accountName.toLowerCase().includes(searchTerm.toLowerCase())
     );
     expect(filtered.length).toBe(1);
   });
@@ -718,11 +718,11 @@ describe('OpportunitiesPage - Error Handling', () => {
       const errors: string[] = [];
       if (!data.name) errors.push('Name is required');
       if (!data.amount || data.amount <= 0) errors.push('Valid amount is required');
-      if (!data.customerId) errors.push('Customer is required');
+      if (!data.accountId) errors.push('Customer is required');
       return errors;
     };
     
-    expect(validateForm({ name: 'Test', amount: 1000, customerId: 1 })).toHaveLength(0);
+    expect(validateForm({ name: 'Test', amount: 1000, accountId: 1 })).toHaveLength(0);
     expect(validateForm({})).toHaveLength(3);
   });
 });

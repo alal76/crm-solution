@@ -39,7 +39,7 @@ public class ContactDto
     public string? ModifiedBy { get; set; }
     
     // Customer relationship
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public string Status { get; set; } = "Active";
     
     public List<SocialMediaLinkDto> SocialMediaLinks { get; set; } = new();

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities.AI;
 
 #region Email Intelligence Enumerations
@@ -220,7 +221,8 @@ public class EmailIntelligence : BaseEntity
     public int? OpportunityId { get; set; }
     
     /// <summary>Related customer ID if identified</summary>
-    public int? CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int? AccountId { get; set; }
     
     /// <summary>Related support case ID if identified</summary>
     public int? SupportCaseId { get; set; }

@@ -12,7 +12,7 @@ export interface EmailAnalysisRequest {
   emailContent: string;
   subject?: string;
   senderEmail?: string;
-  customerId?: number;
+  accountId?: number;
 }
 
 export interface ResponseSuggestionRequest {
@@ -20,7 +20,7 @@ export interface ResponseSuggestionRequest {
   subject?: string;
   tone?: 'formal' | 'friendly' | 'casual' | 'apologetic' | 'enthusiastic';
   numSuggestions?: number;
-  customerId?: number;
+  accountId?: number;
 }
 
 export interface SubjectOptimizationRequest {

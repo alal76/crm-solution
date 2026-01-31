@@ -1,10 +1,11 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-// Account Entity Unit Tests
+// Customer Entity Unit Tests
 
 using Xunit;
 using FluentAssertions;
 using CRM.Core.Entities;
+using CRM.Core.Dtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,314 +13,113 @@ using System.Linq;
 namespace CRM.Tests.Services;
 
 /// <summary>
-/// Comprehensive unit tests for Account entity functionality
+/// Comprehensive unit tests for Customer entity functionality
 /// </summary>
-public class AccountServiceTests
+public class CustomerServiceTests
 {
-    #region Create Account Tests
+    #region Create Customer Tests
 
     [Fact]
-    public void CreateAccount_Valid_CreatesCorrectly()
+    public void CreateCustomer_ValidIndividual_CreatesCorrectly()
     {
         // Arrange & Act
         var account = new Account
         {
-            AccountNumber = "ACC-NEW",
-            CustomerId = 1,
-            Status = AccountStatus.Current,
-            MRR = 500m,
-            ARR = 6000m
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john@example.com",
+            Category = AccountCategory.Individual
         };
 
         // Assert
         account.Should().NotBeNull();
-        account.AccountNumber.Should().Be("ACC-NEW");
+        account.Category.Should().Be(AccountCategory.Individual);
+        account.FirstName.Should().Be("John");
     }
 
     [Fact]
-    public void CreateAccount_WithAllFields_SetsCorrectly()
+    public void CreateCustomer_ValidOrganization_CreatesCorrectly()
     {
         // Arrange & Act
-        var startDate = DateTime.UtcNow;
-        var endDate = startDate.AddYears(1);
-
         var account = new Account
         {
-            AccountNumber = "ACC-FULL",
-            CustomerId = 1,
-            Status = AccountStatus.Current,
-            MRR = 1000m,
-            ARR = 12000m,
-            ContractStartDate = startDate,
-            ContractEndDate = endDate,
-            IsAutoRenew = true,
-            BillingCycle = "Monthly"
+            Category = AccountCategory.Organization,
+            Company = "Acme Corporation",
+            Industry = "Technology",
+            Email = "info@acme.com"
         };
 
         // Assert
-        account.AccountNumber.Should().Be("ACC-FULL");
-        account.MRR.Should().Be(1000m);
-        account.ARR.Should().Be(12000m);
-        account.IsAutoRenew.Should().BeTrue();
+        account.Should().NotBeNull();
+        account.Category.Should().Be(AccountCategory.Organization);
+        account.Company.Should().Be("Acme Corporation");
+    }
+
+    [Fact]
+    public void CreateCustomer_WithAllFields_SetsCorrectly()
+    {
+        // Arrange & Act
+        var account = new Account
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john@example.com",
+            Phone = "555-1234",
+            Category = AccountCategory.Individual,
+            AccountType = AccountType.Enterprise,
+            Priority = AccountPriority.High,
+            LifecycleStage = AccountLifecycleStage.Active,
+            Website = "https://example.com",
+            Address = "123 Main St",
+            City = "New York",
+            Country = "USA",
+            ZipCode = "10001"
+        };
+
+        // Assert
+        account.FirstName.Should().Be("John");
+        account.AccountType.Should().Be(AccountType.Enterprise);
+        account.Priority.Should().Be(AccountPriority.High);
+        account.Website.Should().Be("https://example.com");
     }
 
     #endregion
 
-    #region Account Status Tests
+    #region Update Customer Tests
 
     [Fact]
-    public void Account_StatusTransition_CurrentToChurned()
-    {
-        // Arrange
-        var account = new Account { Status = AccountStatus.Current };
-
-        // Act
-        account.Status = AccountStatus.Churned;
-
-        // Assert
-        account.Status.Should().Be(AccountStatus.Churned);
-    }
-
-    [Theory]
-    [InlineData(AccountStatus.Current)]
-    [InlineData(AccountStatus.Churned)]
-    public void AccountStatus_AllStatusesValid(AccountStatus status)
-    {
-        // Arrange
-        var account = new Account();
-
-        // Act
-        account.Status = status;
-
-        // Assert
-        account.Status.Should().Be(status);
-    }
-
-    #endregion
-
-    #region Revenue Metrics Tests
-
-    [Fact]
-    public void Account_MRR_SetCorrectly()
-    {
-        // Arrange
-        var account = new Account { MRR = 1000m };
-
-        // Assert
-        account.MRR.Should().Be(1000m);
-    }
-
-    [Fact]
-    public void Account_ARR_SetCorrectly()
-    {
-        // Arrange
-        var account = new Account { ARR = 12000m };
-
-        // Assert
-        account.ARR.Should().Be(12000m);
-    }
-
-    [Fact]
-    public void Account_TotalRevenue_CanBeTracked()
-    {
-        // Arrange
-        var accounts = new List<Account>
-        {
-            new() { Id = 1, MRR = 500m, ARR = 6000m },
-            new() { Id = 2, MRR = 1000m, ARR = 12000m },
-            new() { Id = 3, MRR = 2500m, ARR = 30000m }
-        };
-
-        // Act
-        var totalMRR = accounts.Sum(a => a.MRR ?? 0);
-        var totalARR = accounts.Sum(a => a.ARR ?? 0);
-
-        // Assert
-        totalMRR.Should().Be(4000m);
-        totalARR.Should().Be(48000m);
-    }
-
-    [Fact]
-    public void Account_OneTimeFee_Tracked()
+    public void UpdateCustomer_ChangeCategory_UpdatesCorrectly()
     {
         // Arrange
         var account = new Account
         {
-            MRR = 1000m,
-            OneTimeFee = 500m
-        };
-
-        // Assert
-        account.OneTimeFee.Should().Be(500m);
-    }
-
-    #endregion
-
-    #region Contract Management Tests
-
-    [Fact]
-    public void Account_ContractDates_SetCorrectly()
-    {
-        // Arrange
-        var startDate = DateTime.UtcNow;
-        var endDate = startDate.AddYears(1);
-
-        var account = new Account
-        {
-            ContractStartDate = startDate,
-            ContractEndDate = endDate
-        };
-
-        // Assert
-        account.ContractStartDate.Should().Be(startDate);
-        account.ContractEndDate.Should().Be(endDate);
-    }
-
-    [Fact]
-    public void Account_ContractDuration_Calculated()
-    {
-        // Arrange
-        var startDate = new DateTime(2024, 1, 1);
-        var endDate = new DateTime(2025, 1, 1);
-
-        var account = new Account
-        {
-            ContractStartDate = startDate,
-            ContractEndDate = endDate
+            Category = AccountCategory.Individual,
+            FirstName = "John"
         };
 
         // Act
-        var duration = (account.ContractEndDate - account.ContractStartDate)?.Days;
+        account.Category = AccountCategory.Organization;
+        account.Company = "John Doe Inc";
 
         // Assert
-        duration.Should().Be(366); // 2024 is a leap year
+        account.Category.Should().Be(AccountCategory.Organization);
+        account.Company.Should().Be("John Doe Inc");
     }
 
     [Fact]
-    public void Account_RenewalDate_Tracking()
-    {
-        // Arrange
-        var renewalDate = DateTime.UtcNow.AddMonths(1);
-
-        var account = new Account
-        {
-            ContractEndDate = renewalDate,
-            IsAutoRenew = true
-        };
-
-        // Assert
-        account.ContractEndDate.Should().BeCloseTo(renewalDate, TimeSpan.FromSeconds(1));
-        account.IsAutoRenew.Should().BeTrue();
-    }
-
-    [Fact]
-    public void Account_AutoRenewal_CanBeToggled()
-    {
-        // Arrange
-        var account = new Account { IsAutoRenew = false };
-
-        // Act
-        account.IsAutoRenew = true;
-
-        // Assert
-        account.IsAutoRenew.Should().BeTrue();
-    }
-
-    #endregion
-
-    #region Search and Filter Tests
-
-    [Fact]
-    public void FilterAccounts_ByStatus_ReturnsMatching()
-    {
-        // Arrange
-        var accounts = new List<Account>
-        {
-            new() { Id = 1, Status = AccountStatus.Current },
-            new() { Id = 2, Status = AccountStatus.Churned },
-            new() { Id = 3, Status = AccountStatus.Current }
-        };
-
-        // Act
-        var currentAccounts = accounts.Where(a => a.Status == AccountStatus.Current);
-
-        // Assert
-        currentAccounts.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public void FilterAccounts_ByMinMRR_ReturnsMatching()
-    {
-        // Arrange
-        var accounts = new List<Account>
-        {
-            new() { Id = 1, MRR = 500m },
-            new() { Id = 2, MRR = 1500m },
-            new() { Id = 3, MRR = 2500m }
-        };
-
-        // Act
-        var highValueAccounts = accounts.Where(a => a.MRR >= 1000m);
-
-        // Assert
-        highValueAccounts.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public void FilterAccounts_RenewingSoon_ReturnsMatching()
-    {
-        // Arrange
-        var now = DateTime.UtcNow;
-        var accounts = new List<Account>
-        {
-            new() { Id = 1, ContractEndDate = now.AddDays(15) },
-            new() { Id = 2, ContractEndDate = now.AddDays(45) },
-            new() { Id = 3, ContractEndDate = now.AddDays(100) }
-        };
-
-        // Act
-        var renewingSoon = accounts.Where(a => 
-            a.ContractEndDate <= now.AddDays(30));
-
-        // Assert
-        renewingSoon.Should().HaveCount(1);
-    }
-
-    #endregion
-
-    #region Update Account Tests
-
-    [Fact]
-    public void UpdateAccount_ChangeStatus_UpdatesCorrectly()
+    public void UpdateCustomer_ChangeLifecycleStage_UpdatesCorrectly()
     {
         // Arrange
         var account = new Account
         {
-            Id = 1,
-            AccountNumber = "ACC-001",
-            Status = AccountStatus.Current
+            LifecycleStage = AccountLifecycleStage.Lead
         };
 
         // Act
-        account.Status = AccountStatus.Churned;
+        account.LifecycleStage = AccountLifecycleStage.Opportunity;
 
         // Assert
-        account.Status.Should().Be(AccountStatus.Churned);
-    }
-
-    [Fact]
-    public void UpdateAccount_ChangeMRR_UpdatesCorrectly()
-    {
-        // Arrange
-        var account = new Account { Id = 1, MRR = 1000m };
-
-        // Act
-        account.MRR = 1500m;
-        account.ARR = 18000m;
-
-        // Assert
-        account.MRR.Should().Be(1500m);
-        account.ARR.Should().Be(18000m);
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Opportunity);
     }
 
     #endregion
@@ -327,10 +127,14 @@ public class AccountServiceTests
     #region Soft Delete Tests
 
     [Fact]
-    public void SoftDelete_SetsIsDeletedFlag()
+    public void SoftDeleteCustomer_SetsIsDeletedFlag()
     {
         // Arrange
-        var account = new Account { Id = 1, IsDeleted = false };
+        var account = new Account
+        {
+            Id = 1,
+            IsDeleted = false
+        };
 
         // Act
         account.IsDeleted = true;
@@ -341,110 +145,175 @@ public class AccountServiceTests
 
     #endregion
 
-    #region Account Health and Metrics Tests
+    #region Search and Filter Tests
 
     [Fact]
-    public void Account_HealthScore_CanBeTracked()
-    {
-        // Arrange
-        var account = new Account
-        {
-            Status = AccountStatus.Current,
-            MRR = 1000m
-        };
-
-        // Assert - Account is healthy if Current with positive MRR
-        account.Status.Should().Be(AccountStatus.Current);
-        account.MRR.Should().BeGreaterThan(0);
-    }
-
-    [Fact]
-    public void Account_ChurnRisk_Identified()
+    public void SearchCustomers_ByName_ReturnsMatching()
     {
         // Arrange
         var accounts = new List<Account>
         {
-            new() { Id = 1, Status = AccountStatus.Current },
-            new() { Id = 2, Status = AccountStatus.Churned },
-            new() { Id = 3, Status = AccountStatus.Current }
+            new() { Id = 1, FirstName = "John", LastName = "Doe" },
+            new() { Id = 2, FirstName = "Jane", LastName = "Doe" },
+            new() { Id = 3, FirstName = "Bob", LastName = "Smith" }
         };
 
         // Act
-        var churned = accounts.Where(a => 
-            a.Status == AccountStatus.Churned);
+        var searchResult = accounts.Where(c => 
+            c.LastName?.Contains("Doe", StringComparison.OrdinalIgnoreCase) ?? false);
 
         // Assert
-        churned.Should().HaveCount(1);
+        searchResult.Should().HaveCount(2);
     }
 
     [Fact]
-    public void Account_ChurnedAnalysis_Works()
+    public void FilterCustomers_ByCategory_ReturnsMatching()
     {
         // Arrange
         var accounts = new List<Account>
         {
-            new() { Id = 1, Status = AccountStatus.Current, MRR = 1000m },
-            new() { Id = 2, Status = AccountStatus.Churned, MRR = 500m },
-            new() { Id = 3, Status = AccountStatus.Churned, MRR = 750m }
+            new() { Id = 1, Category = AccountCategory.Individual },
+            new() { Id = 2, Category = AccountCategory.Organization },
+            new() { Id = 3, Category = AccountCategory.Individual }
         };
 
         // Act
-        var churned = accounts.Where(a => a.Status == AccountStatus.Churned);
-        var churnedMRR = churned.Sum(a => a.MRR ?? 0);
+        var individuals = accounts.Where(c => c.Category == AccountCategory.Individual);
 
         // Assert
-        churned.Should().HaveCount(2);
-        churnedMRR.Should().Be(1250m);
+        individuals.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void FilterCustomers_ByLifecycleStage_ReturnsMatching()
+    {
+        // Arrange
+        var accounts = new List<Account>
+        {
+            new() { Id = 1, LifecycleStage = AccountLifecycleStage.Lead },
+            new() { Id = 2, LifecycleStage = AccountLifecycleStage.Active },
+            new() { Id = 3, LifecycleStage = AccountLifecycleStage.Active }
+        };
+
+        // Act
+        var activeCustomers = accounts.Where(c => 
+            c.LifecycleStage == AccountLifecycleStage.Active);
+
+        // Assert
+        activeCustomers.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void FilterCustomers_ByIndustry_ReturnsMatching()
+    {
+        // Arrange
+        var accounts = new List<Account>
+        {
+            new() { Id = 1, Industry = "Technology" },
+            new() { Id = 2, Industry = "Healthcare" },
+            new() { Id = 3, Industry = "Technology" }
+        };
+
+        // Act
+        var techCustomers = accounts.Where(c => c.Industry == "Technology");
+
+        // Assert
+        techCustomers.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void FilterCustomers_ByPriority_ReturnsMatching()
+    {
+        // Arrange
+        var accounts = new List<Account>
+        {
+            new() { Id = 1, Priority = AccountPriority.High },
+            new() { Id = 2, Priority = AccountPriority.Medium },
+            new() { Id = 3, Priority = AccountPriority.High }
+        };
+
+        // Act
+        var highPriorityCustomers = accounts.Where(c => 
+            c.Priority == AccountPriority.High);
+
+        // Assert
+        highPriorityCustomers.Should().HaveCount(2);
     }
 
     #endregion
 
-    #region Pagination and Sorting Tests
+    #region Customer Type Tests
 
-    [Fact]
-    public void GetAccounts_WithPagination_ReturnsCorrectPage()
+    [Theory]
+    [InlineData(AccountType.Individual)]
+    [InlineData(AccountType.SmallBusiness)]
+    [InlineData(AccountType.MidMarket)]
+    [InlineData(AccountType.Enterprise)]
+    [InlineData(AccountType.Government)]
+    [InlineData(AccountType.NonProfit)]
+    public void AccountType_AllTypesValid(AccountType type)
     {
         // Arrange
-        var accounts = Enumerable.Range(1, 50)
-            .Select(i => new Account { Id = i, AccountNumber = $"ACC-{i:D3}" })
-            .ToList();
+        var account = new Account();
 
         // Act
-        var page1 = accounts.Skip(0).Take(10).ToList();
-        var page2 = accounts.Skip(10).Take(10).ToList();
+        account.AccountType = type;
 
         // Assert
-        page1.Should().HaveCount(10);
-        page2.Should().HaveCount(10);
-        page2.First().Id.Should().Be(11);
-    }
-
-    [Fact]
-    public void GetAccounts_SortByMRR_ReturnsSorted()
-    {
-        // Arrange
-        var accounts = new List<Account>
-        {
-            new() { Id = 1, MRR = 500m },
-            new() { Id = 2, MRR = 2000m },
-            new() { Id = 3, MRR = 1000m }
-        };
-
-        // Act
-        var sorted = accounts.OrderByDescending(a => a.MRR).ToList();
-
-        // Assert
-        sorted[0].MRR.Should().Be(2000m);
-        sorted[1].MRR.Should().Be(1000m);
-        sorted[2].MRR.Should().Be(500m);
+        account.AccountType.Should().Be(type);
     }
 
     #endregion
 
-    #region Edge Cases
+    #region Customer Priority Tests
+
+    [Theory]
+    [InlineData(AccountPriority.Low)]
+    [InlineData(AccountPriority.Medium)]
+    [InlineData(AccountPriority.High)]
+    [InlineData(AccountPriority.Critical)]
+    public void AccountPriority_AllPrioritiesValid(AccountPriority priority)
+    {
+        // Arrange
+        var account = new Account();
+
+        // Act
+        account.Priority = priority;
+
+        // Assert
+        account.Priority.Should().Be(priority);
+    }
+
+    #endregion
+
+    #region Lifecycle Stage Tests
+
+    [Theory]
+    [InlineData(AccountLifecycleStage.Other)]
+    [InlineData(AccountLifecycleStage.Lead)]
+    [InlineData(AccountLifecycleStage.Opportunity)]
+    [InlineData(AccountLifecycleStage.Active)]
+    [InlineData(AccountLifecycleStage.AtRisk)]
+    [InlineData(AccountLifecycleStage.Churned)]
+    [InlineData(AccountLifecycleStage.WinBack)]
+    public void AccountLifecycleStage_AllStagesValid(AccountLifecycleStage stage)
+    {
+        // Arrange
+        var account = new Account();
+
+        // Act
+        account.LifecycleStage = stage;
+
+        // Assert
+        account.LifecycleStage.Should().Be(stage);
+    }
+
+    #endregion
+
+    #region Edge Cases and Validation
 
     [Fact]
-    public void Account_DefaultValues_AreCorrect()
+    public void Customer_DefaultValues_AreCorrect()
     {
         // Arrange & Act
         var account = new Account();
@@ -452,11 +321,24 @@ public class AccountServiceTests
         // Assert
         account.Id.Should().Be(0);
         account.IsDeleted.Should().BeFalse();
-        account.IsAutoRenew.Should().BeFalse();
     }
 
     [Fact]
-    public void Account_Timestamps_Work()
+    public void Customer_WithNullEmail_Allowed()
+    {
+        // Arrange & Act
+        var account = new Account
+        {
+            FirstName = "Test",
+            Email = null
+        };
+
+        // Assert
+        account.Email.Should().BeNull();
+    }
+
+    [Fact]
+    public void Customer_Timestamps_Work()
     {
         // Arrange
         var now = DateTime.UtcNow;
@@ -474,54 +356,96 @@ public class AccountServiceTests
     }
 
     [Fact]
-    public void Account_Currency_CanBeSet()
+    public void Customer_LongValues_Handled()
     {
-        // Arrange & Act
+        // Arrange
+        var longName = new string('A', 100);
+        var longEmail = $"{new string('a', 50)}@{new string('b', 45)}.com";
+
+        // Act
         var account = new Account
         {
-            Currency = "USD"
+            FirstName = longName,
+            Email = longEmail
         };
 
         // Assert
-        account.Currency.Should().Be("USD");
+        account.FirstName.Should().HaveLength(100);
+        account.Email.Should().Contain("@");
+    }
+
+    #endregion
+
+    #region Pagination Tests
+
+    [Fact]
+    public void GetCustomers_WithPagination_ReturnsCorrectPage()
+    {
+        // Arrange
+        var accounts = Enumerable.Range(1, 100)
+            .Select(i => new Account { Id = i, FirstName = $"Customer{i}" })
+            .ToList();
+
+        // Act
+        var page1 = accounts.Skip(0).Take(10).ToList();
+        var page2 = accounts.Skip(10).Take(10).ToList();
+
+        // Assert
+        page1.Should().HaveCount(10);
+        page1.First().Id.Should().Be(1);
+        page2.Should().HaveCount(10);
+        page2.First().Id.Should().Be(11);
     }
 
     [Fact]
-    public void Account_BillingAddress_CanBeSet()
+    public void GetCustomers_SortByName_ReturnsSorted()
     {
-        // Arrange & Act
-        var account = new Account
+        // Arrange
+        var accounts = new List<Account>
         {
-            BillingAddress = "123 Main St",
-            BillingCity = "New York",
-            BillingState = "NY",
-            BillingZip = "10001",
-            BillingCountry = "USA"
+            new() { Id = 1, FirstName = "Charlie" },
+            new() { Id = 2, FirstName = "Alice" },
+            new() { Id = 3, FirstName = "Bob" }
         };
 
+        // Act
+        var sorted = accounts.OrderBy(c => c.FirstName).ToList();
+
         // Assert
-        account.BillingAddress.Should().Be("123 Main St");
-        account.BillingCity.Should().Be("New York");
-        account.BillingCountry.Should().Be("USA");
+        sorted[0].FirstName.Should().Be("Alice");
+        sorted[1].FirstName.Should().Be("Bob");
+        sorted[2].FirstName.Should().Be("Charlie");
     }
 
+    #endregion
+
+    #region Customer DTO Tests
+
     [Fact]
-    public void Account_ContractDocument_MetadataCanBeSet()
+    public void AccountDto_Mapping_FromEntity()
     {
-        // Arrange & Act
+        // Arrange - Customer entity
         var account = new Account
         {
-            ContractFileName = "contract.pdf",
-            ContractFilePath = "/documents/contracts/contract.pdf",
-            ContractContentType = "application/pdf",
-            ContractFileSize = 1024000
+            Id = 1,
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john@example.com"
+        };
+
+        // Act - Create DTO from entity (simulated)
+        var dto = new AccountDto
+        {
+            Id = account.Id,
+            FirstName = account.FirstName,
+            LastName = account.LastName,
+            Email = account.Email
         };
 
         // Assert
-        account.ContractFileName.Should().Be("contract.pdf");
-        account.ContractFilePath.Should().Contain("contract.pdf");
-        account.ContractContentType.Should().Be("application/pdf");
-        account.ContractFileSize.Should().Be(1024000);
+        dto.Id.Should().Be(1);
+        dto.FirstName.Should().Be("John");
+        dto.LastName.Should().Be("Doe");
     }
 
     #endregion

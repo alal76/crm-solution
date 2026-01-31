@@ -45,13 +45,13 @@ public class RelationshipTypeCreateDto
 public class AccountRelationshipDto
 {
     public int Id { get; set; }
-    public int SourceCustomerId { get; set; }
-    public int TargetCustomerId { get; set; }
+    public int SourceAccountId { get; set; }
+    public int TargetAccountId { get; set; }
     public int RelationshipTypeId { get; set; }
     
     // Expanded data
-    public string? SourceCustomerName { get; set; }
-    public string? TargetCustomerName { get; set; }
+    public string? SourceAccountName { get; set; }
+    public string? TargetAccountName { get; set; }
     public string? RelationshipTypeName { get; set; }
     public string? RelationshipTypeCategory { get; set; }
     public string? RelationshipTypeColor { get; set; }
@@ -87,8 +87,8 @@ public class AccountRelationshipDto
 /// </summary>
 public class AccountRelationshipCreateDto
 {
-    public int SourceCustomerId { get; set; }
-    public int TargetCustomerId { get; set; }
+    public int SourceAccountId { get; set; }
+    public int TargetAccountId { get; set; }
     public int RelationshipTypeId { get; set; }
     
     public string Status { get; set; } = "Active";
@@ -173,7 +173,7 @@ public class RelationshipInteractionCreateDto
 public class AccountHealthSnapshotDto
 {
     public int Id { get; set; }
-    public int CustomerId { get; set; }
+    public int AccountId { get; set; }
     public string? CustomerName { get; set; }
     public DateTime SnapshotDate { get; set; }
     
@@ -207,7 +207,7 @@ public class AccountHealthSnapshotDto
 /// </summary>
 public class AccountHealthSnapshotCreateDto
 {
-    public int CustomerId { get; set; }
+    public int AccountId { get; set; }
     public DateTime? SnapshotDate { get; set; }
     
     public int OverallHealthScore { get; set; }
@@ -239,7 +239,7 @@ public class RelationshipMapDto
     public int Id { get; set; }
     public string MapName { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public int? CentralCustomerId { get; set; }
+    public int? CentralAccountId { get; set; }
     public string? CentralCustomerName { get; set; }
     public int RelationshipDepth { get; set; }
     

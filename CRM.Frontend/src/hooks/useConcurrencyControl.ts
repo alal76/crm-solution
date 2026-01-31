@@ -61,7 +61,7 @@ interface UseConcurrencyControlResult {
  *   await saveCustomer(data);
  * } catch (error) {
  *   if (error.response?.status === 409) {
- *     handleConflictError(error, 'Customer', customerId);
+ *     handleConflictError(error, 'Customer', accountId);
  *   }
  * }
  * ```

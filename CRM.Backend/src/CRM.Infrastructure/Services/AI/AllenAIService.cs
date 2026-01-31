@@ -297,7 +297,7 @@ public class AllenAIService : IAllenAIService
     public async Task<OpportunityInsight> GenerateOpportunityInsightAsync(int opportunityId, CancellationToken cancellationToken = default)
     {
         var opportunity = await _context.Opportunities
-            .Include(o => o.Customer)
+            .Include(o => o.Account)
             .Include(o => o.SalesOwner)
             .FirstOrDefaultAsync(o => o.Id == opportunityId, cancellationToken);
 
@@ -456,7 +456,7 @@ public class AllenAIService : IAllenAIService
     /// <inheritdoc />
     public async Task<ChurnRisk> CalculateChurnRiskAsync(int customerId, CancellationToken cancellationToken = default)
     {
-        var customer = await _context.Customers
+        var customer = await _context.Accounts
             .Include(c => c.Opportunities)
             .FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
 
@@ -470,7 +470,7 @@ public class AllenAIService : IAllenAIService
 
         var churnRisk = new ChurnRisk
         {
-            CustomerId = customerId,
+            AccountId = customerId,
             ChurnProbability = churnProbability,
             RiskLevel = GetChurnRiskLevel(churnProbability),
             Confidence = 0.75m,
@@ -505,11 +505,11 @@ public class AllenAIService : IAllenAIService
             .Where(c => c.ExpiresAt > DateTime.UtcNow)
             .OrderByDescending(c => c.ChurnProbability)
             .Take(count)
-            .Include(c => c.Customer)
+            .Include(c => c.Account)
             .ToListAsync(cancellationToken);
     }
 
-    private decimal CalculateChurnProbability(Customer customer)
+    private decimal CalculateChurnProbability(Account customer)
     {
         var risk = 0.3m; // Base risk
 
@@ -519,9 +519,9 @@ public class AllenAIService : IAllenAIService
         else if (monthsSinceCreation < 6) risk += 0.1m;
 
         // Lifecycle stage factors
-        if (customer.LifecycleStage == CustomerLifecycleStage.Churned) risk = 1.0m;
-        else if (customer.LifecycleStage == CustomerLifecycleStage.CustomerAtRisk) risk += 0.3m;
-        else if (customer.LifecycleStage == CustomerLifecycleStage.Customer) risk -= 0.1m;
+        if (customer.LifecycleStage == AccountLifecycleStage.Churned) risk = 1.0m;
+        else if (customer.LifecycleStage == AccountLifecycleStage.AtRisk) risk += 0.3m;
+        else if (customer.LifecycleStage == AccountLifecycleStage.Active) risk -= 0.1m;
 
         // Opportunities - active opportunities indicate engagement
         var activeOpportunities = customer.Opportunities?.Count(o => 
@@ -531,17 +531,17 @@ public class AllenAIService : IAllenAIService
         return Math.Max(0, Math.Min(1, risk));
     }
 
-    private decimal CalculateCustomerHealth(Customer customer)
+    private decimal CalculateCustomerHealth(Account customer)
     {
-        var score = customer.CustomerHealthScore; // Use the health score from entity
+        var score = customer.AccountHealthScore; // Use the health score from entity
 
         if (score == 0)
         {
             // Calculate if not set
             score = 50;
             
-            if (customer.LifecycleStage == CustomerLifecycleStage.Customer) score += 20;
-            if (customer.LifecycleStage == CustomerLifecycleStage.CustomerAtRisk) score -= 20;
+            if (customer.LifecycleStage == AccountLifecycleStage.Active) score += 20;
+            if (customer.LifecycleStage == AccountLifecycleStage.AtRisk) score -= 20;
 
             var monthsSinceCreation = (DateTime.UtcNow - customer.CreatedAt).Days / 30.0;
             if (monthsSinceCreation >= 12) score += 15; // Loyal customer
@@ -654,7 +654,7 @@ public class AllenAIService : IAllenAIService
                 break;
 
             case ActionTargetType.Customer:
-                var customer = await _context.Customers.FindAsync(new object[] { entityId }, cancellationToken);
+                var customer = await _context.Accounts.FindAsync(new object[] { entityId }, cancellationToken);
                 if (customer != null)
                 {
                     recommendations.Add(CreateCustomerRecommendation(customer));
@@ -730,10 +730,10 @@ public class AllenAIService : IAllenAIService
         };
     }
 
-    private ActionRecommendation CreateCustomerRecommendation(Customer customer)
+    private ActionRecommendation CreateCustomerRecommendation(Account customer)
     {
         // Get customer display name based on category
-        var customerName = customer.Category == CustomerCategory.Organization 
+        var customerName = customer.Category == AccountCategory.Organization 
             ? customer.Company 
             : $"{customer.FirstName} {customer.LastName}".Trim();
         

@@ -182,15 +182,15 @@ Respond ONLY with valid JSON in this exact format:
 
             // Get customer context if available
             string customerContext = "";
-            if (request.CustomerId.HasValue)
+            if (request.AccountId.HasValue)
             {
                 var customer = await _context.Customers
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.Id == request.CustomerId.Value);
+                    .FirstOrDefaultAsync(c => c.Id == request.AccountId.Value);
                 
                 if (customer != null)
                 {
-                    customerContext = $"\n\nCustomer Context:\n- Company: {customer.Company}\n- Account Type: {customer.CustomerType}\n- Industry: {customer.Industry}";
+                    customerContext = $"\n\nCustomer Context:\n- Company: {customer.Company}\n- Account Type: {customer.AccountType}\n- Industry: {customer.Industry}";
                 }
             }
 
@@ -518,7 +518,7 @@ public class EmailAnalysisRequest
     public string EmailContent { get; set; } = "";
     public string? Subject { get; set; }
     public string? SenderEmail { get; set; }
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
 }
 
 public class ResponseSuggestionRequest
@@ -527,7 +527,7 @@ public class ResponseSuggestionRequest
     public string? Subject { get; set; }
     public string? Tone { get; set; } // formal, friendly, casual, apologetic, enthusiastic
     public int? NumSuggestions { get; set; }
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
 }
 
 public class SubjectOptimizationRequest

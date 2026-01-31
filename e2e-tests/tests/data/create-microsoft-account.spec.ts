@@ -440,7 +440,7 @@ test.describe.serial('Create Microsoft Corporation with 5 Top Executives', () =>
     
     console.log('\n🏢 Creating Microsoft Corporation account...');
     
-    const customerResponse = await request.post(`${API_URL}/api/customers`, {
+    const customerResponse = await request.post(`${API_URL}/api/accounts`, {
       headers: { 'Authorization': `Bearer ${authToken}` },
       data: microsoftAccount
     });
@@ -467,7 +467,7 @@ test.describe.serial('Create Microsoft Corporation with 5 Top Executives', () =>
     authToken = await getAuthToken(request);
     
     // First get the Microsoft customer ID
-    const customersResponse = await request.get(`${API_URL}/api/customers?pageSize=100`, {
+    const customersResponse = await request.get(`${API_URL}/api/accounts?pageSize=100`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     const customersData = await customersResponse.json();
@@ -520,7 +520,7 @@ test.describe.serial('Create Microsoft Corporation with 5 Top Executives', () =>
       const isPrimary = i === 0; // Satya Nadella is primary
       const isDecisionMaker = i < 3; // Top 3 are decision makers
       
-      const linkResponse = await request.post(`${API_URL}/api/customers/${microsoftCustomerId}/contacts`, {
+      const linkResponse = await request.post(`${API_URL}/api/accounts/${microsoftCustomerId}/contacts`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           contactId: contactData.id,
@@ -551,7 +551,7 @@ test.describe.serial('Create Microsoft Corporation with 5 Top Executives', () =>
     authToken = await getAuthToken(request);
     
     // Find Microsoft
-    const customersResponse = await request.get(`${API_URL}/api/customers?pageSize=100`, {
+    const customersResponse = await request.get(`${API_URL}/api/accounts?pageSize=100`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     const customersData = await customersResponse.json();
@@ -566,7 +566,7 @@ test.describe.serial('Create Microsoft Corporation with 5 Top Executives', () =>
     console.log(`   🏭 Industry: ${microsoft.industry}`);
     
     // Get linked contacts
-    const contactsResponse = await request.get(`${API_URL}/api/customers/${microsoft.id}/contacts`, {
+    const contactsResponse = await request.get(`${API_URL}/api/accounts/${microsoft.id}/contacts`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     

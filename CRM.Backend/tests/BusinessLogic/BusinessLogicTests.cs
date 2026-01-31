@@ -270,38 +270,38 @@ public class BusinessLogicTests
 
     #endregion
 
-    #region Account Revenue Calculations
+    #region Account Properties
 
     [Fact]
-    public void Account_MRR_CanBeSet()
+    public void Account_AnnualRevenue_CanBeSet()
     {
-        var account = new Account { MRR = 1500m };
-        account.MRR.Should().Be(1500m);
+        var account = new Account { AnnualRevenue = 1500000m };
+        account.AnnualRevenue.Should().Be(1500000m);
     }
 
     [Fact]
-    public void Account_ARR_CanBeSet()
+    public void Account_NumberOfEmployees_CanBeSet()
     {
-        var account = new Account { ARR = 18000m };
-        account.ARR.Should().Be(18000m);
+        var account = new Account { NumberOfEmployees = 500 };
+        account.NumberOfEmployees.Should().Be(500);
     }
 
     [Fact]
-    public void Account_MRRTimesARR_Relationship()
+    public void Account_Industry_CanBeSet()
     {
         var account = new Account
         {
-            MRR = 1000m,
-            ARR = 12000m
+            Industry = "Technology",
+            SubIndustry = "Software"
         };
-        account.ARR.Should().Be(account.MRR * 12);
+        account.Industry.Should().Be("Technology");
     }
 
     [Fact]
-    public void Account_OneTimeFee_CanBeSet()
+    public void Account_Website_CanBeSet()
     {
-        var account = new Account { OneTimeFee = 5000m };
-        account.OneTimeFee.Should().Be(5000m);
+        var account = new Account { Website = "https://example.com" };
+        account.Website.Should().Be("https://example.com");
     }
 
     #endregion
@@ -309,17 +309,17 @@ public class BusinessLogicTests
     #region Customer Lifecycle
 
     [Theory]
-    [InlineData(CustomerLifecycleStage.Lead)]
-    [InlineData(CustomerLifecycleStage.Opportunity)]
-    [InlineData(CustomerLifecycleStage.Customer)]
-    [InlineData(CustomerLifecycleStage.CustomerAtRisk)]
-    [InlineData(CustomerLifecycleStage.Churned)]
-    [InlineData(CustomerLifecycleStage.WinBack)]
-    [InlineData(CustomerLifecycleStage.Other)]
-    public void Customer_Lifecycle_AllStages(CustomerLifecycleStage stage)
+    [InlineData(AccountLifecycleStage.Lead)]
+    [InlineData(AccountLifecycleStage.Opportunity)]
+    [InlineData(AccountLifecycleStage.Active)]
+    [InlineData(AccountLifecycleStage.AtRisk)]
+    [InlineData(AccountLifecycleStage.Churned)]
+    [InlineData(AccountLifecycleStage.WinBack)]
+    [InlineData(AccountLifecycleStage.Other)]
+    public void Customer_Lifecycle_AllStages(AccountLifecycleStage stage)
     {
-        var customer = new Customer { LifecycleStage = stage };
-        customer.LifecycleStage.Should().Be(stage);
+        var account = new Account { LifecycleStage = stage };
+        account.LifecycleStage.Should().Be(stage);
     }
 
     #endregion
@@ -327,14 +327,14 @@ public class BusinessLogicTests
     #region Customer Priority
 
     [Theory]
-    [InlineData(CustomerPriority.Low)]
-    [InlineData(CustomerPriority.Medium)]
-    [InlineData(CustomerPriority.High)]
-    [InlineData(CustomerPriority.Critical)]
-    public void Customer_Priority_AllLevels(CustomerPriority priority)
+    [InlineData(AccountPriority.Low)]
+    [InlineData(AccountPriority.Medium)]
+    [InlineData(AccountPriority.High)]
+    [InlineData(AccountPriority.Critical)]
+    public void Customer_Priority_AllLevels(AccountPriority priority)
     {
-        var customer = new Customer { Priority = priority };
-        customer.Priority.Should().Be(priority);
+        var account = new Account { Priority = priority };
+        account.Priority.Should().Be(priority);
     }
 
     #endregion
@@ -424,46 +424,44 @@ public class BusinessLogicTests
 
     #endregion
 
-    #region Account Status Logic
+    #region Account Lifecycle Logic
 
     [Fact]
-    public void Account_Status_Current()
+    public void Account_Lifecycle_Lead()
     {
-        var account = new Account { Status = AccountStatus.Current };
-        account.Status.Should().Be(AccountStatus.Current);
+        var account = new Account { LifecycleStage = AccountLifecycleStage.Lead };
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Lead);
     }
 
     [Fact]
-    public void Account_Status_Churned()
+    public void Account_Lifecycle_Active()
     {
-        var account = new Account { Status = AccountStatus.Churned };
-        account.Status.Should().Be(AccountStatus.Churned);
+        var account = new Account { LifecycleStage = AccountLifecycleStage.Active };
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Active);
     }
 
     #endregion
 
-    #region Contract Date Logic
+    #region Account Industry Logic
 
     [Fact]
-    public void Account_ContractDates_Valid()
+    public void Account_Industry_Valid()
     {
-        var startDate = DateTime.UtcNow;
-        var endDate = startDate.AddYears(1);
-
         var account = new Account
         {
-            ContractStartDate = startDate,
-            ContractEndDate = endDate
+            Industry = "Technology",
+            SubIndustry = "Software"
         };
 
-        (account.ContractEndDate!.Value - account.ContractStartDate!.Value).TotalDays.Should().BeApproximately(365, 1);
+        account.Industry.Should().Be("Technology");
+        account.SubIndustry.Should().Be("Software");
     }
 
     [Fact]
-    public void Account_IsAutoRenew_CanBeSet()
+    public void Account_Revenue_CanBeSet()
     {
-        var account = new Account { IsAutoRenew = true };
-        account.IsAutoRenew.Should().BeTrue();
+        var account = new Account { AnnualRevenue = 5000000m };
+        account.AnnualRevenue.Should().Be(5000000m);
     }
 
     #endregion

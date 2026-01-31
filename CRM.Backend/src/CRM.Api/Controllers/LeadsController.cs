@@ -103,7 +103,7 @@ public class LeadsController : ControllerBase
                     l.Region,
                     l.Website,
                     l.OwnerId,
-                    l.CustomerId,
+                    l.AccountId,
                     l.ContactId,
                     l.CampaignId,
                     l.MqlDate,
@@ -248,7 +248,7 @@ public class LeadsController : ControllerBase
             var opportunity = new Opportunity
             {
                 Name = request.OpportunityName ?? $"{lead.CompanyName} - Opportunity",
-                CustomerId = request.CustomerId ?? lead.CustomerId ?? 0,
+                AccountId = request.AccountId ?? lead.AccountId ?? 0,
                 PrimaryContactId = lead.ContactId,
                 Amount = request.EstimatedValue ?? 0,
                 Stage = OpportunityStage.Discovery,
@@ -388,7 +388,7 @@ public class UpdateLeadDto
 public class ConvertLeadDto
 {
     public string? OpportunityName { get; set; }
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public decimal? EstimatedValue { get; set; }
     public DateTime? ExpectedCloseDate { get; set; }
 }

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities.KnowledgeBase;
 
 #region Knowledge Article Enumerations
@@ -379,10 +380,11 @@ public class ArticleFeedback : BaseEntity
     public User? User { get; set; }
     
     /// <summary>Customer ID (for portal)</summary>
-    public int? CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int? AccountId { get; set; }
     
     /// <summary>Navigation to customer</summary>
-    public Customer? Customer { get; set; }
+    public Account? Account { get; set; }
     
     /// <summary>Session ID for anonymous</summary>
     public string? SessionId { get; set; }

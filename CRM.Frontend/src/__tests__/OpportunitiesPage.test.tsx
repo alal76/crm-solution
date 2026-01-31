@@ -11,14 +11,14 @@ describe('OpportunitiesPage Component', () => {
     it('should have proper opportunity form structure', () => {
       const mockForm = {
         name: '',
-        customerId: null,
+        accountId: null,
         value: 0,
         stage: 'Lead',
         probability: 0,
         expectedCloseDate: null,
       };
       expect(mockForm).toHaveProperty('name');
-      expect(mockForm).toHaveProperty('customerId');
+      expect(mockForm).toHaveProperty('accountId');
       expect(mockForm).toHaveProperty('value');
       expect(mockForm).toHaveProperty('stage');
       expect(mockForm).toHaveProperty('probability');
@@ -84,8 +84,8 @@ describe('OpportunitiesPage Component', () => {
     });
 
     it('should validate customer selection', () => {
-      const customerId = 1;
-      expect(customerId).toBeGreaterThan(0);
+      const accountId = 1;
+      expect(accountId).toBeGreaterThan(0);
     });
 
     it('should validate expected close date is in future', () => {
@@ -100,7 +100,7 @@ describe('OpportunitiesPage Component', () => {
       const handleCreate = jest.fn();
       const opportunity = {
         name: 'Test Opportunity',
-        customerId: 1,
+        accountId: 1,
         value: 10000,
         stage: 'Lead',
       };

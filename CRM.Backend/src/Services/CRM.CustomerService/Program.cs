@@ -26,7 +26,7 @@ builder.Services.AddScoped<NormalizationService>();
 builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
 
 // Register customer-related services
-builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 

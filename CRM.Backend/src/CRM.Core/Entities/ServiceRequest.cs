@@ -480,7 +480,8 @@ public class ServiceRequest : BaseEntity
     #region Customer & Contact Association
     
     /// <summary>Associated customer/account ID</summary>
-    public int? CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int? AccountId { get; set; }
     
     /// <summary>Associated contact ID</summary>
     public int? ContactId { get; set; }
@@ -651,8 +652,8 @@ public class ServiceRequest : BaseEntity
     [ForeignKey("SubcategoryId")]
     public virtual ServiceRequestSubcategory? Subcategory { get; set; }
     
-    [ForeignKey("CustomerId")]
-    public virtual Customer? Customer { get; set; }
+    [ForeignKey("AccountId")]
+    public virtual Account? Account { get; set; }
     
     [ForeignKey("ContactId")]
     public virtual Models.Contact? Contact { get; set; }

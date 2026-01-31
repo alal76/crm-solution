@@ -65,7 +65,7 @@ public class AIFeaturesBVTTests
         // Arrange & Act
         var churnRisk = new ChurnRisk
         {
-            CustomerId = 1,
+            AccountId = 1,
             ChurnProbability = 0.6m,
             RiskLevel = ChurnRiskLevel.High
         };
@@ -567,24 +567,24 @@ public class AIFeaturesBVTTests
     public void BVT_INT_003_CustomerToChurnRisk_Integration()
     {
         // Arrange
-        var customer = new Customer
+        var account = new Account
         {
             Id = 1,
             Company = "Tech Corp",
-            LifecycleStage = CustomerLifecycleStage.CustomerAtRisk
+            LifecycleStage = AccountLifecycleStage.AtRisk
         };
 
         // Act
         var churnRisk = new ChurnRisk
         {
-            CustomerId = customer.Id,
+            AccountId = account.Id,
             ChurnProbability = 0.7m,
             RiskLevel = ChurnRiskLevel.High,
             RecommendedAction = RetentionActionType.ExecutiveReview
         };
 
         // Assert
-        churnRisk.CustomerId.Should().Be(customer.Id);
+        churnRisk.AccountId.Should().Be(account.Id);
         churnRisk.RiskLevel.Should().Be(ChurnRiskLevel.High);
     }
 

@@ -249,7 +249,7 @@ public class PricingRule : BaseEntity
     public string? ProductCategories { get; set; }
     
     /// <summary>Customer IDs (comma-separated, null = all)</summary>
-    public string? CustomerIds { get; set; }
+    public string? AccountIds { get; set; }
     
     /// <summary>Customer segments (comma-separated)</summary>
     public string? CustomerSegments { get; set; }

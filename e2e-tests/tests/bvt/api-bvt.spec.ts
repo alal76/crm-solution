@@ -15,7 +15,7 @@ test.describe('BVT - Build Verification Tests', () => {
   
   test.beforeAll(async ({ request }) => {
     const response = await request.post(`${API_URL}/api/auth/login`, {
-      data: { email: 'abhi.lal@gmail.com', password: 'Admin@123' }
+      data: { email: 'admin@crm.local', password: 'Admin123!' }
     });
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
@@ -32,7 +32,7 @@ test.describe('BVT - Build Verification Tests', () => {
 
     test('BVT-01-002: Login with valid credentials succeeds', async ({ request }) => {
       const response = await request.post(`${API_URL}/api/auth/login`, {
-        data: { email: 'abhi.lal@gmail.com', password: 'Admin@123' }
+        data: { email: 'admin@crm.local', password: 'Admin123!' }
       });
       expect(response.ok()).toBeTruthy();
       const data = await response.json();
@@ -47,16 +47,16 @@ test.describe('BVT - Build Verification Tests', () => {
     });
 
     test('BVT-01-004: Protected endpoint requires auth', async ({ request }) => {
-      const response = await request.get(`${API_URL}/api/customers`);
+      const response = await request.get(`${API_URL}/api/accounts`);
       expect(response.status()).toBe(401);
     });
   });
 
   test.describe('BVT-02: Customer CRUD Critical Path', () => {
-    let customerId: number;
+    let accountId: number;
 
     test('BVT-02-001: Create customer', async ({ request }) => {
-      const response = await request.post(`${API_URL}/api/customers`, {
+      const response = await request.post(`${API_URL}/api/accounts`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           firstName: 'BVT',
@@ -68,24 +68,24 @@ test.describe('BVT - Build Verification Tests', () => {
       });
       expect(response.ok()).toBeTruthy();
       const customer = await response.json();
-      customerId = customer.id;
-      expect(customerId).toBeGreaterThan(0);
+      accountId = customer.id;
+      expect(accountId).toBeGreaterThan(0);
     });
 
     test('BVT-02-002: Read customer', async ({ request }) => {
-      const response = await request.get(`${API_URL}/api/customers/${customerId}`, {
+      const response = await request.get(`${API_URL}/api/accounts/${accountId}`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       expect(response.ok()).toBeTruthy();
       const customer = await response.json();
-      expect(customer.id).toBe(customerId);
+      expect(customer.id).toBe(accountId);
     });
 
     test('BVT-02-003: Update customer', async ({ request }) => {
-      const response = await request.put(`${API_URL}/api/customers/${customerId}`, {
+      const response = await request.put(`${API_URL}/api/accounts/${accountId}`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
-          id: customerId,
+          id: accountId,
           firstName: 'BVT Updated',
           lastName: 'Customer',
           company: 'BVT Updated Corp',
@@ -97,7 +97,7 @@ test.describe('BVT - Build Verification Tests', () => {
     });
 
     test('BVT-02-004: List customers', async ({ request }) => {
-      const response = await request.get(`${API_URL}/api/customers`, {
+      const response = await request.get(`${API_URL}/api/accounts`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       expect(response.ok()).toBeTruthy();
@@ -106,7 +106,7 @@ test.describe('BVT - Build Verification Tests', () => {
     });
 
     test('BVT-02-005: Delete customer', async ({ request }) => {
-      const response = await request.delete(`${API_URL}/api/customers/${customerId}`, {
+      const response = await request.delete(`${API_URL}/api/accounts/${accountId}`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       expect(response.ok()).toBeTruthy();
@@ -204,7 +204,7 @@ test.describe('BVT - Build Verification Tests', () => {
     let testCustomerId: number;
 
     test.beforeAll(async ({ request }) => {
-      const response = await request.post(`${API_URL}/api/customers`, {
+      const response = await request.post(`${API_URL}/api/accounts`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           firstName: 'Opp',
@@ -225,7 +225,7 @@ test.describe('BVT - Build Verification Tests', () => {
         data: {
           name: 'BVT Opportunity',
           solutionNotes: 'Test opportunity',
-          customerId: testCustomerId,
+          accountId: testCustomerId,
           amount: 10000,
           probability: 50,
           stage: 0, // Discovery
@@ -259,7 +259,7 @@ test.describe('BVT - Build Verification Tests', () => {
     let testCustomerId: number;
 
     test.beforeAll(async ({ request }) => {
-      const response = await request.post(`${API_URL}/api/customers`, {
+      const response = await request.post(`${API_URL}/api/accounts`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           firstName: 'SR',
@@ -280,7 +280,7 @@ test.describe('BVT - Build Verification Tests', () => {
         data: {
           subject: 'BVT Service Request',
           description: 'Test service request',
-          customerId: testCustomerId,
+          accountId: testCustomerId,
           priority: 2,
           status: 0
         }
@@ -399,7 +399,7 @@ test.describe('BVT - Build Verification Tests', () => {
     let testCustomerId: number;
 
     test.beforeAll(async ({ request }) => {
-      const response = await request.post(`${API_URL}/api/customers`, {
+      const response = await request.post(`${API_URL}/api/accounts`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           firstName: 'Quote',
@@ -418,7 +418,7 @@ test.describe('BVT - Build Verification Tests', () => {
       const response = await request.post(`${API_URL}/api/quotes`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
-          customerId: testCustomerId,
+          accountId: testCustomerId,
           name: 'BVT Quote',
           quoteNumber: `Q-BVT-${Date.now()}`,
           status: 1,

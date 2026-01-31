@@ -115,7 +115,7 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         // Arrange - Don't authenticate
         
         // Act
-        var response = await Client.GetAsync("/api/customers");
+        var response = await Client.GetAsync("/api/accounts");
         
         // Assert
         AssertStatusCode(response, HttpStatusCode.Unauthorized);
@@ -133,7 +133,7 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         await AuthenticateAsync();
         
         // Act
-        var response = await Client.GetAsync("/api/customers");
+        var response = await Client.GetAsync("/api/accounts");
         
         // Assert
         AssertSuccess(response);
@@ -155,14 +155,14 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         await AuthenticateAsync();
         
         // Act
-        var response = await Client.GetAsync("/api/customers");
+        var response = await Client.GetAsync("/api/accounts");
         
         // Assert
         AssertSuccess(response);
         var content = await response.Content.ReadAsStringAsync();
         Assert.NotEmpty(content);
         
-        _output.WriteLine($"FT-011 PASSED: GET /api/customers returned customer list");
+        _output.WriteLine($"FT-011 PASSED: GET /api/accounts returned customer list");
     }
     
     [Fact]
@@ -173,7 +173,7 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         
         // Arrange
         await AuthenticateAsync();
-        var customer = new
+        var account = new
         {
             firstName = "Functional",
             lastName = $"Test-{Guid.NewGuid():N}",
@@ -183,14 +183,14 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         };
         
         // Act
-        var response = await Client.PostAsJsonAsync("/api/customers", customer);
+        var response = await Client.PostAsJsonAsync("/api/accounts", account);
         
         // Assert
         Assert.True(response.StatusCode == HttpStatusCode.Created || 
                     response.StatusCode == HttpStatusCode.OK,
             $"Expected Created/OK but got {response.StatusCode}");
         
-        _output.WriteLine($"FT-012 PASSED: POST /api/customers created new customer");
+        _output.WriteLine($"FT-012 PASSED: POST /api/accounts created new customer");
     }
     
     [Fact]
@@ -203,7 +203,7 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         await AuthenticateAsync();
         
         // First get list to find an existing customer ID
-        var listResponse = await Client.GetAsync("/api/customers?pageSize=10");
+        var listResponse = await Client.GetAsync("/api/accounts?pageSize=10");
         AssertSuccess(listResponse);
         var listContent = await listResponse.Content.ReadAsStringAsync();
         
@@ -233,15 +233,15 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
             return;
         }
         
-        var customerId = items[0].GetProperty("id").GetInt32();
+        var accountId = items[0].GetProperty("id").GetInt32();
         
         // Act
-        var response = await Client.GetAsync($"/api/customers/{customerId}");
+        var response = await Client.GetAsync($"/api/accounts/{accountId}");
         
         // Assert
         AssertSuccess(response);
         
-        _output.WriteLine($"FT-013 PASSED: GET /api/customers/{customerId} returned customer");
+        _output.WriteLine($"FT-013 PASSED: GET /api/accounts/{accountId} returned customer");
     }
     
     [Fact]
@@ -254,7 +254,7 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         await AuthenticateAsync();
         
         // Act
-        var response = await Client.GetAsync("/api/customers?search=test");
+        var response = await Client.GetAsync("/api/accounts?search=test");
         
         // Assert
         AssertSuccess(response);
@@ -272,7 +272,7 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         await AuthenticateAsync();
         
         // Act
-        var response = await Client.GetAsync("/api/customers?page=1&pageSize=5");
+        var response = await Client.GetAsync("/api/accounts?page=1&pageSize=5");
         
         // Assert
         AssertSuccess(response);
@@ -656,7 +656,7 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
 
     #region Accounts API Alias Tests (FT-091 to FT-100)
     // Tests for the industry-standard /api/accounts route alias
-    // The /api/accounts endpoint routes to the same controller as /api/customers
+    // The /api/accounts endpoint routes to the same controller as /api/accounts
     
     [Fact]
     [Trait("TestId", "FT-091")]
@@ -667,24 +667,20 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         // Arrange
         await AuthenticateAsync();
         
-        // Act - Get both endpoints
+        // Act - Get accounts endpoint
         var accountsResponse = await Client.GetAsync("/api/accounts");
-        var customersResponse = await Client.GetAsync("/api/customers");
         
-        // Assert - Both should return success
+        // Assert - Should return success
         AssertSuccess(accountsResponse);
-        AssertSuccess(customersResponse);
         
         var accountsContent = await accountsResponse.Content.ReadAsStringAsync();
-        var customersContent = await customersResponse.Content.ReadAsStringAsync();
         
-        // Both should return the same number of records
+        // Should return valid array
         using var accountsDoc = JsonDocument.Parse(accountsContent);
-        using var customersDoc = JsonDocument.Parse(customersContent);
         
-        Assert.Equal(accountsDoc.RootElement.GetArrayLength(), customersDoc.RootElement.GetArrayLength());
+        Assert.True(accountsDoc.RootElement.GetArrayLength() >= 0);
         
-        _output.WriteLine($"FT-091 PASSED: GET /api/accounts returns same data as /api/customers");
+        _output.WriteLine($"FT-091 PASSED: GET /api/accounts returns valid data");
     }
     
     [Fact]
@@ -834,7 +830,7 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         // Arrange
         await AuthenticateAsync();
         
-        // Get specific account via both endpoints
+        // Get specific account via accounts endpoint
         var accountsListResponse = await Client.GetAsync("/api/accounts");
         AssertSuccess(accountsListResponse);
         var listContent = await accountsListResponse.Content.ReadAsStringAsync();
@@ -848,26 +844,20 @@ public class ApiEndpointFunctionalTests : FunctionalTestBase
         
         var id = doc.RootElement[0].GetProperty("id").GetInt32();
         
-        // Act - Get the same record via both endpoints
+        // Act - Get the record via accounts endpoint
         var accountResponse = await Client.GetAsync($"/api/accounts/{id}");
-        var customerResponse = await Client.GetAsync($"/api/customers/{id}");
         
         // Assert
         AssertSuccess(accountResponse);
-        AssertSuccess(customerResponse);
         
         var accountData = await accountResponse.Content.ReadAsStringAsync();
-        var customerData = await customerResponse.Content.ReadAsStringAsync();
         
-        // Parse and compare key fields
+        // Parse and verify key fields
         using var accountDoc = JsonDocument.Parse(accountData);
-        using var customerDoc = JsonDocument.Parse(customerData);
         
-        Assert.Equal(
-            accountDoc.RootElement.GetProperty("id").GetInt32(),
-            customerDoc.RootElement.GetProperty("id").GetInt32());
+        Assert.True(accountDoc.RootElement.GetProperty("id").GetInt32() == id);
         
-        _output.WriteLine($"FT-098 PASSED: /api/accounts/{id} and /api/customers/{id} return identical data");
+        _output.WriteLine($"FT-098 PASSED: /api/accounts/{id} returns valid data");
     }
 
     #endregion

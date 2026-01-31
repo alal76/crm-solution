@@ -251,7 +251,7 @@ public class CampaignExecutionService
             {
                 { "campaignId", campaignId },
                 { "contactId", recipient.ContactId.Value },
-                { "customerId", recipient.CustomerId ?? 0 },
+                { "customerId", recipient.AccountId ?? 0 },
                 { "email", recipient.Email ?? "" },
                 { "triggerEvent", triggerEvent }
             };
@@ -384,7 +384,7 @@ public class CampaignExecutionService
         int take = 50)
     {
         var query = _context.CampaignRecipients
-            .Include(r => r.Customer)
+            .Include(r => r.Account)
             .Where(r => r.CampaignId == campaignId && !r.IsDeleted);
 
         if (!string.IsNullOrEmpty(status))
@@ -533,7 +533,7 @@ public class CampaignExecutionService
             CampaignId = recipient.CampaignId,
             CampaignRecipientId = recipientId,
             ContactId = recipient.ContactId,
-            CustomerId = recipient.CustomerId,
+            AccountId = recipient.AccountId,
             ConversionType = conversionType,
             ConversionValue = conversionValue,
             AttributionModel = attributionModel,

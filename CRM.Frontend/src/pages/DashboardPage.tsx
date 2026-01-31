@@ -603,7 +603,7 @@ function DashboardPage() {
                               }}
                             />
                             <Typography variant="caption" color="textSecondary">
-                              {item.customerName || 'Unknown'}
+                              {item.accountName || 'Unknown'}
                             </Typography>
                           </Box>
                         </Box>

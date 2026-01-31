@@ -358,7 +358,7 @@ public class CommunicationsController : ControllerBase
                 query = query.Where(m => !m.IsRead);
 
             if (customerId.HasValue)
-                query = query.Where(m => m.CustomerId == customerId);
+                query = query.Where(m => m.AccountId == customerId);
 
             if (contactId.HasValue)
                 query = query.Where(m => m.ContactId == contactId);
@@ -385,7 +385,7 @@ public class CommunicationsController : ControllerBase
                     SentAt = m.SentAt,
                     ReceivedAt = m.ReceivedAt,
                     CreatedAt = m.CreatedAt,
-                    CustomerId = m.CustomerId,
+                    AccountId = m.AccountId,
                     ContactId = m.ContactId
                 })
                 .ToListAsync();
@@ -441,7 +441,7 @@ public class CommunicationsController : ControllerBase
                 AttachmentCount = message.AttachmentCount,
                 ConversationId = message.ConversationId,
                 ParentMessageId = message.ParentMessageId,
-                CustomerId = message.CustomerId,
+                AccountId = message.AccountId,
                 ContactId = message.ContactId,
                 LeadId = message.LeadId,
                 OpportunityId = message.OpportunityId,
@@ -510,7 +510,7 @@ public class CommunicationsController : ControllerBase
                 TrackOpens = dto.TrackOpens,
                 TrackClicks = dto.TrackClicks,
                 EmailTemplateId = dto.EmailTemplateId,
-                CustomerId = dto.CustomerId,
+                AccountId = dto.AccountId,
                 ContactId = dto.ContactId,
                 LeadId = dto.LeadId,
                 OpportunityId = dto.OpportunityId,
@@ -537,8 +537,8 @@ public class CommunicationsController : ControllerBase
                 ActivityType = channel.ChannelType == ChannelType.Email ? ActivityType.EmailSent : ActivityType.ChatMessage,
                 Title = $"Message sent via {channel.ChannelType}",
                 Description = dto.Subject ?? dto.Body?.Substring(0, Math.Min(100, dto.Body.Length)),
-                EntityType = dto.CustomerId.HasValue ? "Customer" : (dto.ContactId.HasValue ? "Contact" : (dto.LeadId.HasValue ? "Lead" : null)),
-                EntityId = dto.CustomerId ?? dto.ContactId ?? dto.LeadId,
+                EntityType = dto.AccountId.HasValue ? "Customer" : (dto.ContactId.HasValue ? "Contact" : (dto.LeadId.HasValue ? "Lead" : null)),
+                EntityId = dto.AccountId ?? dto.ContactId ?? dto.LeadId,
                 ActivityDate = DateTime.UtcNow
             };
             _context.Activities.Add(activity);
@@ -682,7 +682,7 @@ public class CommunicationsController : ControllerBase
                 query = query.Where(c => c.Status == st);
 
             if (customerId.HasValue)
-                query = query.Where(c => c.CustomerId == customerId);
+                query = query.Where(c => c.AccountId == customerId);
 
             var conversations = await query
                 .OrderByDescending(c => c.IsPinned)
@@ -704,7 +704,7 @@ public class CommunicationsController : ControllerBase
                     LastMessageAt = c.LastMessageAt,
                     IsStarred = c.IsStarred,
                     IsPinned = c.IsPinned,
-                    CustomerId = c.CustomerId,
+                    AccountId = c.AccountId,
                     ContactId = c.ContactId
                 })
                 .ToListAsync();
@@ -765,7 +765,7 @@ public class CommunicationsController : ControllerBase
                 Priority = conversation.Priority.ToString(),
                 ParticipantAddress = conversation.ParticipantAddress,
                 ParticipantName = conversation.ParticipantName,
-                CustomerId = conversation.CustomerId,
+                AccountId = conversation.AccountId,
                 ContactId = conversation.ContactId,
                 LeadId = conversation.LeadId,
                 AssignedToUserId = conversation.AssignedToUserId,

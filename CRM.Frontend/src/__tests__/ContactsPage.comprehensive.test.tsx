@@ -35,7 +35,7 @@ const mockContacts = [
     jobTitle: 'CEO',
     department: 'Executive',
     company: 'Alpha Inc',
-    customerId: 1,
+    accountId: 1,
     address: '123 Main St',
     city: 'New York',
     state: 'NY',
@@ -61,7 +61,7 @@ const mockContacts = [
     jobTitle: 'CTO',
     department: 'Technology',
     company: 'Beta LLC',
-    customerId: 2,
+    accountId: 2,
     address: '456 Oak Ave',
     city: 'San Francisco',
     state: 'CA',
@@ -87,7 +87,7 @@ const mockContacts = [
     jobTitle: 'Sales Manager',
     department: 'Sales',
     company: 'Vendor Corp',
-    customerId: null,
+    accountId: null,
     address: '789 Pine St',
     city: 'Chicago',
     state: 'IL',
@@ -363,29 +363,29 @@ describe('ContactsPage - Customer Linking', () => {
   });
 
   it('should link contact to customer', () => {
-    let contact = { ...mockContacts[2], customerId: null };
-    const linkToCustomer = (customerId: number) => {
-      contact = { ...contact, customerId };
+    let contact = { ...mockContacts[2], accountId: null };
+    const linkToCustomer = (accountId: number) => {
+      contact = { ...contact, accountId };
     };
     
     linkToCustomer(1);
-    expect(contact.customerId).toBe(1);
+    expect(contact.accountId).toBe(1);
   });
 
   it('should unlink contact from customer', () => {
     let contact = { ...mockContacts[0] };
     const unlinkFromCustomer = () => {
-      contact = { ...contact, customerId: null };
+      contact = { ...contact, accountId: null };
     };
     
     unlinkFromCustomer();
-    expect(contact.customerId).toBeNull();
+    expect(contact.accountId).toBeNull();
   });
 
   it('should display linked customer name', () => {
-    const getLinkedCustomerName = (customerId: number | null) => {
-      if (!customerId) return 'Not linked';
-      const customer = mockCustomers.find(c => c.id === customerId);
+    const getLinkedCustomerName = (accountId: number | null) => {
+      if (!accountId) return 'Not linked';
+      const customer = mockCustomers.find(c => c.id === accountId);
       return customer?.displayName || 'Unknown';
     };
     
@@ -394,15 +394,15 @@ describe('ContactsPage - Customer Linking', () => {
   });
 
   it('should filter contacts by customer', () => {
-    const filterByCustomer = (customerId: number) => 
-      mockContacts.filter(c => c.customerId === customerId);
+    const filterByCustomer = (accountId: number) => 
+      mockContacts.filter(c => c.accountId === accountId);
     
     expect(filterByCustomer(1).length).toBe(1);
     expect(filterByCustomer(1)[0].firstName).toBe('Alice');
   });
 
   it('should show unlinked contacts', () => {
-    const unlinkedContacts = mockContacts.filter(c => !c.customerId);
+    const unlinkedContacts = mockContacts.filter(c => !c.accountId);
     expect(unlinkedContacts.length).toBe(1);
     expect(unlinkedContacts[0].firstName).toBe('Carol');
   });

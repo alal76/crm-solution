@@ -66,7 +66,7 @@ public class NewsSocialService : INewsSocialService
     private readonly HttpClient _httpClient;
     private readonly IDistributedCache? _cache;
     private readonly ILLMService? _llmService;
-    private readonly ICustomerService _customerService;
+    private readonly IAccountService _accountService;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -77,7 +77,7 @@ public class NewsSocialService : INewsSocialService
     public NewsSocialService(
         ILogger<NewsSocialService> logger,
         IOptions<NewsSocialOptions> options,
-        ICustomerService customerService,
+        IAccountService customerService,
         HttpClient? httpClient = null,
         IDistributedCache? cache = null,
         ILLMService? llmService = null)
@@ -88,7 +88,7 @@ public class NewsSocialService : INewsSocialService
         _httpClient.Timeout = TimeSpan.FromSeconds(30);
         _cache = cache;
         _llmService = llmService;
-        _customerService = customerService;
+        _accountService = customerService;
     }
 
     private static bool IsValidApiKey(string? key) =>
@@ -116,7 +116,7 @@ public class NewsSocialService : INewsSocialService
 
             if (request.CustomerId > 0 && string.IsNullOrEmpty(companyName))
             {
-                var customer = await _customerService.GetCustomerByIdAsync(request.CustomerId);
+                var customer = await _accountService.GetAccountByIdAsync(request.CustomerId);
                 if (customer != null)
                 {
                     companyName = customer.Company;

@@ -14,7 +14,7 @@ describe('ServiceRequestsPage Component', () => {
         description: '',
         priority: 'Medium',
         status: 'Open',
-        customerId: null,
+        accountId: null,
         assignedToId: null,
       };
       expect(mockForm).toHaveProperty('title');

@@ -56,7 +56,7 @@ public class PerformanceTests : IAsyncLifetime
         // Act
         var result = await _harness.RunLoadTestAsync(
             "Get Customers Load Test",
-            client => client.GetAsync("/api/customers"),
+            client => client.GetAsync("/api/accounts"),
             concurrentUsers,
             requestsPerUser);
 
@@ -122,7 +122,7 @@ public class PerformanceTests : IAsyncLifetime
     {
         var endpoints = new[]
         {
-            "/api/customers",
+            "/api/accounts",
             "/api/contacts", 
             "/api/opportunities",
             "/api/leads",
@@ -181,7 +181,7 @@ public class PerformanceTests : IAsyncLifetime
     {
         var result = await _harness.RunEnduranceTestAsync(
             "Steady Load Endurance Test",
-            client => client.GetAsync("/api/customers"),
+            client => client.GetAsync("/api/accounts"),
             concurrentUsers: 10,
             durationMinutes: 5);
 
@@ -221,7 +221,7 @@ public class PerformanceTests : IAsyncLifetime
         // This test runs during normal test execution to establish baseline
         var result = await _harness.RunLoadTestAsync(
             "Single Request Baseline",
-            client => client.GetAsync("/api/customers"),
+            client => client.GetAsync("/api/accounts"),
             concurrentUsers: 1,
             requestsPerUser: 10);
 

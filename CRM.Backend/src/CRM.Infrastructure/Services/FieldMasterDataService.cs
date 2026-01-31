@@ -436,7 +436,7 @@ public class FieldMasterDataService : IFieldMasterDataService
         string? searchTerm,
         int limit)
     {
-        var query = _context.Customers.Where(c => !c.IsDeleted);
+        var query = _context.Accounts.Where(c => !c.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
