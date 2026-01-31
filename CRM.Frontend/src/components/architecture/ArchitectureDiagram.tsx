@@ -243,8 +243,8 @@ const entities: Entity[] = [
     hasDbSet: true,
     isJunctionTable: false,
     foreignKeys: [
-      { column: 'ReferredByCustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
-      { column: 'ParentCustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
+      { column: 'ReferredByAccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
+      { column: 'ParentAccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'ConvertedFromLeadId', referencesTable: 'Leads', referencesColumn: 'Id', relationship: 'one-to-one', onDelete: 'SetNull' },
       { column: 'SourceCampaignId', referencesTable: 'MarketingCampaigns', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'CurrencyLookupId', referencesTable: 'LookupItems', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
@@ -260,7 +260,7 @@ const entities: Entity[] = [
     hasDbSet: true,
     isJunctionTable: true,
     foreignKeys: [
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
       { column: 'ContactId', referencesTable: 'Contacts', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
     ],
   },
@@ -273,7 +273,7 @@ const entities: Entity[] = [
     hasDbSet: true,
     isJunctionTable: false,
     foreignKeys: [
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'PreferredContactMethodLookupId', referencesTable: 'LookupItems', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
     ],
   },
@@ -300,7 +300,7 @@ const entities: Entity[] = [
     hasDbSet: true,
     isJunctionTable: false,
     foreignKeys: [
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
       { column: 'ProductId', referencesTable: 'Products', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'CurrencyLookupId', referencesTable: 'LookupItems', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
     ],
@@ -318,7 +318,7 @@ const entities: Entity[] = [
     foreignKeys: [
       { column: 'OwnerId', referencesTable: 'Users', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'CampaignId', referencesTable: 'MarketingCampaigns', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'ContactId', referencesTable: 'Contacts', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
     ],
   },
@@ -344,7 +344,7 @@ const entities: Entity[] = [
     hasDbSet: true,
     isJunctionTable: false,
     foreignKeys: [
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Restrict' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Restrict' },
       { column: 'PrimaryContactId', referencesTable: 'Contacts', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'SalesOwnerId', referencesTable: 'Users', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'LeadId', referencesTable: 'Leads', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
@@ -372,7 +372,7 @@ const entities: Entity[] = [
     hasDbSet: true,
     isJunctionTable: false,
     foreignKeys: [
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'OpportunityId', referencesTable: 'Opportunities', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'AssignedToUserId', referencesTable: 'Users', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'ParentQuoteId', referencesTable: 'Quotes', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Restrict' },
@@ -427,7 +427,7 @@ const entities: Entity[] = [
     foreignKeys: [
       { column: 'CategoryId', referencesTable: 'ServiceRequestCategories', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'SubcategoryId', referencesTable: 'ServiceRequestSubcategories', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'ContactId', referencesTable: 'Contacts', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'AssignedToUserId', referencesTable: 'Users', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'AssignedToGroupId', referencesTable: 'UserGroups', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
@@ -509,7 +509,7 @@ const entities: Entity[] = [
     hasDbSet: true,
     isJunctionTable: false,
     foreignKeys: [
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'OpportunityId', referencesTable: 'Opportunities', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'AssignedToUserId', referencesTable: 'Users', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'ParentTaskId', referencesTable: 'CrmTasks', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Restrict' },
@@ -525,7 +525,7 @@ const entities: Entity[] = [
     hasDbSet: true,
     isJunctionTable: false,
     foreignKeys: [
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
       { column: 'OpportunityId', referencesTable: 'Opportunities', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
       { column: 'CampaignId', referencesTable: 'MarketingCampaigns', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
       { column: 'CreatedByUserId', referencesTable: 'Users', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
@@ -541,7 +541,7 @@ const entities: Entity[] = [
     isJunctionTable: false,
     foreignKeys: [
       { column: 'UserId', referencesTable: 'Users', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
       { column: 'OpportunityId', referencesTable: 'Opportunities', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
       { column: 'CampaignId', referencesTable: 'MarketingCampaigns', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
     ],
@@ -590,7 +590,7 @@ const entities: Entity[] = [
     hasDbSet: true,
     isJunctionTable: false,
     foreignKeys: [
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
     ],
   },
   {
@@ -602,7 +602,7 @@ const entities: Entity[] = [
     hasDbSet: true,
     isJunctionTable: false,
     foreignKeys: [
-      { column: 'CustomerId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
+      { column: 'AccountId', referencesTable: 'Customers', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'Cascade' },
       { column: 'CampaignId', referencesTable: 'MarketingCampaigns', referencesColumn: 'Id', relationship: 'many-to-one', onDelete: 'SetNull' },
     ],
   },

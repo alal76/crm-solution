@@ -1344,7 +1344,7 @@ public class SampleDataSeederService
     {
         _logger.LogInformation("Seeding sample customers...");
         
-        var existingCustomers = await context.Customers.CountAsync();
+        var existingCustomers = await context.Accounts.CountAsync();
         if (existingCustomers >= 50)
         {
             _logger.LogInformation("Customers already exist. Skipping...");
@@ -1363,7 +1363,7 @@ public class SampleDataSeederService
             
             customers.Add(new Customer
             {
-                Category = CustomerCategory.Organization,
+                Category = AccountCategory.Organization,
                 Company = $"{prefix} {suffix}",
                 Email = $"info@{prefix.ToLower()}{suffix.ToLower()}.com",
                 Phone = $"555-{_random.Next(100, 999)}-{_random.Next(1000, 9999)}",
@@ -1373,9 +1373,9 @@ public class SampleDataSeederService
                 ZipCode = $"{_random.Next(10000, 99999)}",
                 Country = "USA",
                 Industry = industries[_random.Next(industries.Length)],
-                CustomerType = (CustomerType)_random.Next(1, 5),
-                Priority = (CustomerPriority)_random.Next(0, 4),
-                LifecycleStage = CustomerLifecycleStage.Customer,
+                AccountType = (AccountType)_random.Next(1, 5),
+                Priority = (AccountPriority)_random.Next(0, 4),
+                LifecycleStage = AccountLifecycleStage.Active,
                 AnnualRevenue = _random.Next(1, 100) * 100000m,
                 NumberOfEmployees = _random.Next(10, 5000),
                 CreatedAt = DateTime.UtcNow.AddDays(-_random.Next(1, 365))
@@ -1391,7 +1391,7 @@ public class SampleDataSeederService
             
             customers.Add(new Customer
             {
-                Category = CustomerCategory.Individual,
+                Category = AccountCategory.Individual,
                 FirstName = firstName,
                 LastName = lastName,
                 Email = $"{firstName.ToLower()}.{lastName.ToLower()}@email.com",
@@ -1401,14 +1401,14 @@ public class SampleDataSeederService
                 State = States[cityIndex],
                 ZipCode = $"{_random.Next(10000, 99999)}",
                 Country = "USA",
-                CustomerType = CustomerType.Individual,
-                Priority = (CustomerPriority)_random.Next(0, 3),
-                LifecycleStage = CustomerLifecycleStage.Customer,
+                AccountType = AccountType.Individual,
+                Priority = (AccountPriority)_random.Next(0, 3),
+                LifecycleStage = AccountLifecycleStage.Active,
                 CreatedAt = DateTime.UtcNow.AddDays(-_random.Next(1, 365))
             });
         }
 
-        context.Customers.AddRange(customers);
+        context.Accounts.AddRange(customers);
         await context.SaveChangesAsync();
         _logger.LogInformation("Seeded {Count} sample customers", customers.Count);
     }
@@ -1436,8 +1436,8 @@ public class SampleDataSeederService
             return;
         }
 
-        var orgCustomers = await context.Customers
-            .Where(c => c.Category == CustomerCategory.Organization)
+        var orgCustomers = await context.Accounts
+            .Where(c => c.Category == AccountCategory.Organization)
             .Take(50)
             .ToListAsync();
 
@@ -1594,7 +1594,7 @@ public class SampleDataSeederService
             return;
         }
 
-        var customers = await context.Customers.Take(100).ToListAsync();
+        var customers = await context.Accounts.Take(100).ToListAsync();
         if (!customers.Any())
         {
             _logger.LogWarning("No customers found. Skipping opportunities seeding.");
@@ -1626,7 +1626,7 @@ public class SampleDataSeederService
             opportunities.Add(new Opportunity
             {
                 Name = $"{customer.DisplayName} - {opportunityNames[_random.Next(opportunityNames.Length)]}",
-                CustomerId = customer.Id,
+                AccountId = customer.Id,
                 SolutionNotes = "Demo opportunity for testing the CRM system",
                 Amount = amount,
                 Stage = stage,
@@ -1681,8 +1681,8 @@ public class SampleDataSeederService
         await dbContext.SaveChangesAsync();
         
         // Customers/Accounts
-        var customers = await dbContext.Customers.ToListAsync();
-        dbContext.Customers.RemoveRange(customers);
+        var customers = await dbContext.Accounts.ToListAsync();
+        dbContext.Accounts.RemoveRange(customers);
         await dbContext.SaveChangesAsync();
         
         // Service Request Types (depends on subcategories and categories)
@@ -1733,7 +1733,7 @@ public class SampleDataSeederService
         return new SampleDataStats
         {
             ProductCount = await dbContext.Products.CountAsync(),
-            CustomerCount = await dbContext.Customers.CountAsync(),
+            CustomerCount = await dbContext.Accounts.CountAsync(),
             ContactCount = await dbContext.Contacts.CountAsync(),
             LeadCount = await dbContext.Leads.CountAsync(),
             OpportunityCount = await dbContext.Opportunities.CountAsync(),

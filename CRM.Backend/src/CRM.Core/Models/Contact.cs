@@ -375,7 +375,7 @@ public class Contact
     /// <summary>
     /// Many-to-many relationships with customers (via CustomerContact junction)
     /// </summary>
-    public ICollection<CustomerContact>? CustomerContacts { get; set; }
+    public ICollection<AccountContact>? AccountContacts { get; set; }
     
     #endregion
 }

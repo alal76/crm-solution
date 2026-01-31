@@ -1,61 +1,91 @@
-using CRM.Infrastructure.Data;
-using CRM.Core.Entities;
+// CRM Solution - Account Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
+using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
 
+/// <summary>
+/// REST API Controller for Account management operations.
+/// 
+/// FUNCTIONAL VIEW:
+/// This controller provides HTTP endpoints for:
+/// - Viewing and searching accounts (individuals and organizations)
+/// - Creating new accounts with category-specific validation
+/// - Updating account information
+/// - Linking contacts to organization accounts
+/// - Soft-deleting accounts
+/// 
+/// TECHNICAL VIEW:
+/// - Uses IAccountService for business logic (dependency injected)
+/// - All endpoints require authentication (JWT Bearer token)
+/// - Returns standardized JSON responses with appropriate HTTP status codes
+/// - Implements proper error handling with logging
+/// 
+/// API ROUTES:
+/// - GET    /api/accounts              - Get all accounts
+/// - GET    /api/accounts/{id}         - Get account by ID
+/// - GET    /api/accounts/individuals  - Get individual accounts only
+/// - GET    /api/accounts/organizations - Get organization accounts only
+/// - GET    /api/accounts/search/{term} - Search accounts
+/// - POST   /api/accounts              - Create new account
+/// - PUT    /api/accounts/{id}         - Update account
+/// - DELETE /api/accounts/{id}         - Delete account
+/// - POST   /api/accounts/{id}/contacts - Link contact to organization
+/// </summary>
 [ApiController]
-[Route("api/accounts")]
+[Route("api/[controller]")]
 [Authorize]
 public class AccountsController : ControllerBase
 {
-    private readonly CrmDbContext _db;
-    private readonly IWebHostEnvironment _env;
-    private readonly ILogger<AccountsController> _logger;
-    private readonly IConfiguration _config;
     private readonly IAccountService _accountService;
-    private readonly ICustomerService _customerService;
-
-    // defaults
-    private const long DefaultMaxFileSize = 10 * 1024 * 1024; // 10 MB
-    private static readonly string[] DefaultAllowedMimeTypes = new[] { "application/pdf", "image/png", "image/jpeg", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" };
-
-    public AccountsController(
-        CrmDbContext db, 
-        IWebHostEnvironment env, 
-        ILogger<AccountsController> logger, 
-        IConfiguration config, 
-        IAccountService accountService,
-        ICustomerService customerService)
-    {
-        _db = db;
-        _env = env;
-        _logger = logger;
-        _config = config;
-        _accountService = accountService;
-        _customerService = customerService;
-    }
-
-    // ============================================================
-    // CRUD Operations for Accounts (delegating to CustomerService)
-    // ============================================================
+    private readonly ILogger<AccountsController> _logger;
 
     /// <summary>
-    /// Get all accounts (customers).
+    /// Initializes the controller with required services.
     /// </summary>
+    /// <param name="accountService">Service for account business logic</param>
+    /// <param name="logger">Logger for error and audit logging</param>
+    public AccountsController(IAccountService accountService, ILogger<AccountsController> logger)
+    {
+        _accountService = accountService;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Get all accounts (both individuals and organizations).
+    /// 
+    /// FUNCTIONAL: Returns list of all active accounts for dashboard views.
+    /// TECHNICAL: Filters out soft-deleted records, returns 200 OK with array.
+    /// </summary>
+    /// <returns>Array of AccountDto objects</returns>
+    /// <response code="200">Returns the list of accounts</response>
+    /// <response code="500">If there was an internal error</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<CustomerDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
         try
         {
-            var customers = await _customerService.GetAllCustomersAsync();
-            return Ok(customers);
+            var accounts = await _accountService.GetAllAccountsAsync();
+            return Ok(accounts);
         }
         catch (Exception ex)
         {
@@ -65,19 +95,27 @@ public class AccountsController : ControllerBase
     }
 
     /// <summary>
-    /// Get account by ID.
+    /// Get a specific account by their unique ID.
+    /// 
+    /// FUNCTIONAL: Returns detailed account information for viewing/editing.
+    /// TECHNICAL: Returns 404 if account not found or deleted.
     /// </summary>
+    /// <param name="id">The unique account identifier</param>
+    /// <returns>AccountDto if found</returns>
+    /// <response code="200">Returns the account</response>
+    /// <response code="404">If account not found</response>
+    /// <response code="500">If there was an internal error</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AccountDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
         try
         {
-            var customer = await _customerService.GetCustomerByIdAsync(id);
-            if (customer == null)
+            var account = await _accountService.GetAccountByIdAsync(id);
+            if (account == null)
                 return NotFound(new { message = "Account not found" });
-            return Ok(customer);
+            return Ok(account);
         }
         catch (Exception ex)
         {
@@ -87,17 +125,153 @@ public class AccountsController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new account.
+    /// Get only individual (non-organization) accounts.
+    /// 
+    /// FUNCTIONAL: Filters to show only person-type accounts.
+    /// TECHNICAL: Filters by AccountCategory.Individual.
     /// </summary>
-    [HttpPost]
-    [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create([FromBody] CreateCustomerDto request)
+    /// <returns>Array of individual AccountDto objects</returns>
+    /// <response code="200">Returns the list of individual accounts</response>
+    [HttpGet("individuals")]
+    [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetIndividuals()
     {
         try
         {
-            var result = await _customerService.CreateCustomerAsync(request);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            var accounts = await _accountService.GetIndividualAccountsAsync();
+            return Ok(accounts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving individual accounts");
+            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get only organization (company) accounts.
+    /// 
+    /// FUNCTIONAL: Filters to show only company-type accounts.
+    /// TECHNICAL: Filters by AccountCategory.Organization.
+    /// </summary>
+    /// <returns>Array of organization AccountDto objects</returns>
+    /// <response code="200">Returns the list of organization accounts</response>
+    [HttpGet("organizations")]
+    [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetOrganizations()
+    {
+        try
+        {
+            var accounts = await _accountService.GetOrganizationAccountsAsync();
+            return Ok(accounts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving organization accounts");
+            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Search accounts
+    /// </summary>
+    [HttpGet("search/{searchTerm}")]
+    [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Search(string searchTerm)
+    {
+        try
+        {
+            var accounts = await _accountService.SearchAccountsAsync(searchTerm);
+            return Ok(accounts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching accounts for {SearchTerm}", searchTerm);
+            return StatusCode(500, new { message = "Error searching accounts", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get accounts by lifecycle stage
+    /// </summary>
+    [HttpGet("by-stage/{stage}")]
+    [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByLifecycleStage(AccountLifecycleStage stage)
+    {
+        try
+        {
+            var accounts = await _accountService.GetAccountsByLifecycleStageAsync(stage);
+            return Ok(accounts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving accounts by stage {Stage}", stage);
+            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get accounts by priority
+    /// </summary>
+    [HttpGet("by-priority/{priority}")]
+    [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByPriority(AccountPriority priority)
+    {
+        try
+        {
+            var accounts = await _accountService.GetAccountsByPriorityAsync(priority);
+            return Ok(accounts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving accounts by priority {Priority}", priority);
+            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get accounts assigned to a user
+    /// </summary>
+    [HttpGet("by-user/{userId}")]
+    [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByAssignedUser(int userId)
+    {
+        try
+        {
+            var accounts = await _accountService.GetAccountsByAssignedUserAsync(userId);
+            return Ok(accounts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving accounts for user {UserId}", userId);
+            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Create a new account
+    /// </summary>
+    [HttpPost]
+    [ProducesResponseType(typeof(AccountDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Create([FromBody] CreateAccountDto dto)
+    {
+        try
+        {
+            // Validate based on category
+            if (dto.Category == AccountCategory.Individual)
+            {
+                if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName))
+                    return BadRequest(new { message = "FirstName and LastName are required for Individual accounts" });
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(dto.Company))
+                    return BadRequest(new { message = "Company name is required for Organization accounts" });
+            }
+
+            var account = await _accountService.CreateAccountAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = account.Id }, account);
         }
         catch (Exception ex)
         {
@@ -107,19 +281,19 @@ public class AccountsController : ControllerBase
     }
 
     /// <summary>
-    /// Update an existing account.
+    /// Update a account
     /// </summary>
     [HttpPut("{id}")]
-    [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AccountDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateCustomerDto request)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateAccountDto dto)
     {
         try
         {
-            var result = await _customerService.UpdateCustomerAsync(id, request);
-            if (result == null)
+            var account = await _accountService.UpdateAccountAsync(id, dto);
+            if (account == null)
                 return NotFound(new { message = "Account not found" });
-            return Ok(result);
+            return Ok(account);
         }
         catch (Exception ex)
         {
@@ -129,19 +303,19 @@ public class AccountsController : ControllerBase
     }
 
     /// <summary>
-    /// Delete an account.
+    /// Delete a account (soft delete)
     /// </summary>
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         try
         {
-            var success = await _customerService.DeleteCustomerAsync(id);
-            if (!success)
+            var result = await _accountService.DeleteAccountAsync(id);
+            if (!result)
                 return NotFound(new { message = "Account not found" });
-            return NoContent();
+            return Ok(new { message = "Account deleted successfully" });
         }
         catch (Exception ex)
         {
@@ -150,161 +324,130 @@ public class AccountsController : ControllerBase
         }
     }
 
-    // ============================================================
-    // Contract Management Operations
-    // ============================================================
+    // === Contact Management for Organization Accounts ===
 
-    private string GetStoragePath()
+    /// <summary>
+    /// Get all contacts linked to a account (organization)
+    /// </summary>
+    [HttpGet("{id}/contacts")]
+    [ProducesResponseType(typeof(IEnumerable<AccountContactDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAccountContacts(int id)
     {
-        var configured = _config["CONTRACT_STORAGE_PATH"];
-        if (!string.IsNullOrWhiteSpace(configured))
-            return configured;
+        try
+        {
+            var account = await _accountService.GetAccountByIdAsync(id);
+            if (account == null)
+                return NotFound(new { message = "Account not found" });
 
-        // default to app data folder
-        return Path.Combine(_env.ContentRootPath, "data", "contracts");
-    }
-
-    private long GetMaxFileSize()
-    {
-        var s = _config["MAX_CONTRACT_FILE_SIZE_BYTES"];
-        if (long.TryParse(s, out var v) && v > 0) return v;
-        return DefaultMaxFileSize;
-    }
-
-    private string[] GetAllowedMimeTypes()
-    {
-        var s = _config["ALLOWED_CONTRACT_MIME_TYPES"];
-        if (string.IsNullOrWhiteSpace(s)) return DefaultAllowedMimeTypes;
-        return s.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var contacts = await _accountService.GetAccountContactsAsync(id);
+            return Ok(contacts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving contacts for account {Id}", id);
+            return StatusCode(500, new { message = "Error retrieving contacts", error = ex.Message });
+        }
     }
 
     /// <summary>
-    /// Upload a contract document for an account. Multipart form file under key `file`.
+    /// Link a contact to a account (organization)
     /// </summary>
-    [HttpPost("{accountId}/upload-contract")]
-    public async Task<IActionResult> UploadContract(int accountId, IFormFile? file)
+    [HttpPost("{id}/contacts")]
+    [ProducesResponseType(typeof(AccountContactDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> LinkContact(int id, [FromBody] LinkContactToAccountDto dto)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest(new { message = "No file provided" });
-
-        var maxSize = GetMaxFileSize();
-        if (file.Length > maxSize)
-            return BadRequest(new { message = $"File too large. Max allowed is {maxSize} bytes" });
-
-        var allowed = GetAllowedMimeTypes();
-        if (!string.IsNullOrWhiteSpace(file.ContentType) && !allowed.Contains(file.ContentType))
-            return BadRequest(new { message = $"File type '{file.ContentType}' is not allowed" });
-
-        var account = await _db.Accounts.FindAsync(accountId);
-        if (account == null)
-            return NotFound(new { message = "Account not found" });
-
-        var contractsDir = GetStoragePath();
-        Directory.CreateDirectory(contractsDir);
-
-        var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var physicalPath = Path.Combine(contractsDir, uniqueFileName);
-
-        await using (var stream = System.IO.File.Create(physicalPath))
+        try
         {
-            await file.CopyToAsync(stream);
+            var account = await _accountService.GetAccountByIdAsync(id);
+            if (account == null)
+                return NotFound(new { message = "Account not found" });
+
+            // Allow linking contacts to any account type (Individual or Organization)
+            var result = await _accountService.LinkContactToAccountAsync(id, dto);
+            if (result == null)
+                return BadRequest(new { message = "Failed to link contact. Contact may not exist or is already linked." });
+
+            _logger.LogInformation("Contact {ContactId} linked to account {AccountId}", dto.ContactId, id);
+            return CreatedAtAction(nameof(GetAccountContacts), new { id }, result);
         }
-
-        account.ContractFileName = file.FileName;
-        // store a relative path where possible; if configured path is inside content root, store relative
-        var contentRoot = _env.ContentRootPath.TrimEnd(Path.DirectorySeparatorChar, '/');
-        if (physicalPath.StartsWith(contentRoot, StringComparison.OrdinalIgnoreCase))
+        catch (Exception ex)
         {
-            account.ContractFilePath = physicalPath.Substring(contentRoot.Length).TrimStart(Path.DirectorySeparatorChar, '/').Replace("\\", "/");
+            _logger.LogError(ex, "Error linking contact to account {Id}", id);
+            return StatusCode(500, new { message = "Error linking contact", error = ex.Message });
         }
-        else
-        {
-            account.ContractFilePath = physicalPath.Replace("\\", "/");
-        }
-
-        account.ContractContentType = file.ContentType;
-        account.ContractFileSize = file.Length;
-        account.UpdatedAt = DateTime.UtcNow;
-
-        _db.Accounts.Update(account);
-        await _db.SaveChangesAsync();
-
-        return Ok(new
-        {
-            account.Id,
-            account.ContractFileName,
-            account.ContractFilePath,
-            account.ContractContentType,
-            account.ContractFileSize
-        });
     }
 
     /// <summary>
-    /// Download the contract file for an account (if present).
+    /// Update a account contact relationship
     /// </summary>
-    [HttpGet("{accountId}/contract")]
-    public async Task<IActionResult> DownloadContract(int accountId)
+    [HttpPut("{id}/contacts/{contactId}")]
+    [ProducesResponseType(typeof(AccountContactDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateAccountContact(int id, int contactId, [FromBody] UpdateAccountContactDto dto)
     {
-        var account = await _db.Accounts.FindAsync(accountId);
-        if (account == null)
-            return NotFound(new { message = "Account not found" });
+        try
+        {
+            var result = await _accountService.UpdateAccountContactAsync(id, contactId, dto);
+            if (result == null)
+                return NotFound(new { message = "Account contact relationship not found" });
 
-        if (string.IsNullOrWhiteSpace(account.ContractFilePath))
-            return NotFound(new { message = "No contract uploaded for this account" });
-
-        string physicalPath;
-        // if stored relative to content root, resolve
-        if (!Path.IsPathRooted(account.ContractFilePath))
-            physicalPath = Path.Combine(_env.ContentRootPath, account.ContractFilePath.Replace('/', Path.DirectorySeparatorChar));
-        else
-            physicalPath = account.ContractFilePath;
-
-        if (!System.IO.File.Exists(physicalPath))
-            return NotFound(new { message = "Contract file not found on server" });
-
-        var contentType = account.ContractContentType ?? "application/octet-stream";
-        var fileName = account.ContractFileName ?? Path.GetFileName(physicalPath);
-        return PhysicalFile(physicalPath, contentType, fileName);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating contact {ContactId} for account {Id}", contactId, id);
+            return StatusCode(500, new { message = "Error updating contact", error = ex.Message });
+        }
     }
 
     /// <summary>
-    /// Delete the uploaded contract file for an account (removes file and clears metadata).
+    /// Unlink a contact from a account
     /// </summary>
-    [HttpDelete("{accountId}/contract")]
-    public async Task<IActionResult> DeleteContract(int accountId)
+    [HttpDelete("{id}/contacts/{contactId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UnlinkContact(int id, int contactId)
     {
-        var account = await _db.Accounts.FindAsync(accountId);
-        if (account == null)
-            return NotFound(new { message = "Account not found" });
-
-        if (!string.IsNullOrWhiteSpace(account.ContractFilePath))
+        try
         {
-            string physicalPath;
-            if (!Path.IsPathRooted(account.ContractFilePath))
-                physicalPath = Path.Combine(_env.ContentRootPath, account.ContractFilePath.Replace('/', Path.DirectorySeparatorChar));
-            else
-                physicalPath = account.ContractFilePath;
+            var result = await _accountService.UnlinkContactFromAccountAsync(id, contactId);
+            if (!result)
+                return NotFound(new { message = "Account contact relationship not found" });
 
-            try
-            {
-                if (System.IO.File.Exists(physicalPath))
-                    System.IO.File.Delete(physicalPath);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed deleting contract file {Path}", physicalPath);
-            }
-
-            account.ContractFileName = null;
-            account.ContractFilePath = null;
-            account.ContractContentType = null;
-            account.ContractFileSize = null;
-            account.UpdatedAt = DateTime.UtcNow;
-
-            _db.Accounts.Update(account);
-            await _db.SaveChangesAsync();
+            _logger.LogInformation("Contact {ContactId} unlinked from account {AccountId}", contactId, id);
+            return Ok(new { message = "Contact unlinked successfully" });
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unlinking contact {ContactId} from account {Id}", contactId, id);
+            return StatusCode(500, new { message = "Error unlinking contact", error = ex.Message });
+        }
+    }
 
-        return Ok(new { message = "Contract removed" });
+    /// <summary>
+    /// Set primary contact for a account
+    /// </summary>
+    [HttpPost("{id}/contacts/{contactId}/set-primary")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetPrimaryContact(int id, int contactId)
+    {
+        try
+        {
+            var result = await _accountService.SetPrimaryContactAsync(id, contactId);
+            if (!result)
+                return NotFound(new { message = "Account contact relationship not found" });
+
+            _logger.LogInformation("Contact {ContactId} set as primary for account {AccountId}", contactId, id);
+            return Ok(new { message = "Primary contact set successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting primary contact {ContactId} for account {Id}", contactId, id);
+            return StatusCode(500, new { message = "Error setting primary contact", error = ex.Message });
+        }
     }
 }

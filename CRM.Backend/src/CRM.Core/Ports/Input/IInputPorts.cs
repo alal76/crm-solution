@@ -14,9 +14,9 @@ namespace CRM.Core.Ports.Input;
 
 /// <summary>
 /// Input port for Customer domain.
-/// Inherits from ICustomerService to maintain backward compatibility.
+/// Inherits from IAccountService to maintain backward compatibility.
 /// </summary>
-public interface ICustomerInputPort : ICustomerService { }
+public interface ICustomerInputPort : IAccountService { }
 
 /// <summary>
 /// Input port for Contact domain.

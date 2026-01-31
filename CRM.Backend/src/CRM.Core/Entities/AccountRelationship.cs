@@ -37,13 +37,13 @@ public class AccountRelationship : BaseEntity
     /// The source (from) customer/account
     /// </summary>
     [Required]
-    public int SourceCustomerId { get; set; }
+    public int SourceAccountId { get; set; }
     
     /// <summary>
     /// The target (to) customer/account
     /// </summary>
     [Required]
-    public int TargetCustomerId { get; set; }
+    public int TargetAccountId { get; set; }
     
     /// <summary>
     /// The type of relationship
@@ -119,8 +119,8 @@ public class AccountRelationship : BaseEntity
     public int? UpdatedBy { get; set; }
     
     // Navigation properties
-    public virtual Customer? SourceCustomer { get; set; }
-    public virtual Customer? TargetCustomer { get; set; }
+    public virtual Account? SourceAccount { get; set; }
+    public virtual Account? TargetAccount { get; set; }
     public virtual RelationshipType? RelationshipType { get; set; }
     public virtual User? UpdatedByUser { get; set; }
     public virtual ICollection<RelationshipInteraction> Interactions { get; set; } = new List<RelationshipInteraction>();

@@ -41,12 +41,12 @@ public class ActivitiesController : ControllerBase
     {
         var query = _context.Activities
             .Include(a => a.User)
-            .Include(a => a.Customer)
+            .Include(a => a.Account)
             .Include(a => a.Opportunity)
             .AsQueryable();
 
         if (customerId.HasValue)
-            query = query.Where(a => a.CustomerId == customerId);
+            query = query.Where(a => a.AccountId == customerId);
         
         if (opportunityId.HasValue)
             query = query.Where(a => a.OpportunityId == opportunityId);
@@ -87,7 +87,7 @@ public class ActivitiesController : ControllerBase
     {
         var activity = await _context.Activities
             .Include(a => a.User)
-            .Include(a => a.Customer)
+            .Include(a => a.Account)
             .Include(a => a.Opportunity)
             .FirstOrDefaultAsync(a => a.Id == id);
 
@@ -173,7 +173,7 @@ public class ActivitiesController : ControllerBase
     {
         var activities = await _context.Activities
             .Include(a => a.User)
-            .Where(a => a.CustomerId == customerId)
+            .Where(a => a.AccountId == customerId)
             .OrderByDescending(a => a.ActivityDate)
             .Take(limit)
             .ToListAsync();
@@ -213,7 +213,7 @@ public class ActivitiesController : ControllerBase
     {
         var activities = await _context.Activities
             .Include(a => a.User)
-            .Include(a => a.Customer)
+            .Include(a => a.Account)
             .OrderByDescending(a => a.ActivityDate)
             .Take(limit)
             .ToListAsync();

@@ -26,7 +26,7 @@ public class RelationshipMap : BaseEntity
     /// <summary>
     /// The central customer/account for the map
     /// </summary>
-    public int? CentralCustomerId { get; set; }
+    public int? CentralAccountId { get; set; }
     
     /// <summary>
     /// How many relationship levels to show (1-5)
@@ -89,5 +89,5 @@ public class RelationshipMap : BaseEntity
     public string? SharedWithGroupIds { get; set; }
     
     // Navigation property
-    public virtual Customer? CentralCustomer { get; set; }
+    public virtual Account? CentralAccount { get; set; }
 }

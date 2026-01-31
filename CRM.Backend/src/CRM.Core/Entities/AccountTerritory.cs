@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 // Licensed under the GNU Affero General Public License v3.0
@@ -102,19 +103,22 @@ public class AccountTerritory : BaseEntity
     
     // Navigation properties
     public virtual User? PrimaryOwner { get; set; }
-    public virtual ICollection<CustomerTerritoryAssignment> CustomerAssignments { get; set; } = new List<CustomerTerritoryAssignment>();
+    public virtual ICollection<AccountTerritoryAssignment> AccountAssignments { get; set; } = new List<AccountTerritoryAssignment>();
 }
 
 /// <summary>
-/// Many-to-many assignment of customers to territories
+/// Many-to-many assignment of accounts to territories.
+/// Note: Renamed from CustomerTerritoryAssignment.
 /// </summary>
-public class CustomerTerritoryAssignment
+[Table("CustomerTerritoryAssignments")] // Keep table name for backward compatibility
+public class AccountTerritoryAssignment
 {
     /// <summary>
-    /// The customer being assigned
+    /// The account being assigned
     /// </summary>
     [Required]
-    public int CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int AccountId { get; set; }
     
     /// <summary>
     /// The territory being assigned to
@@ -128,7 +132,7 @@ public class CustomerTerritoryAssignment
     public DateTime AssignedDate { get; set; } = DateTime.UtcNow;
     
     /// <summary>
-    /// Whether this is the primary territory for the customer
+    /// Whether this is the primary territory for the account
     /// </summary>
     public bool IsPrimary { get; set; } = true;
     
@@ -144,7 +148,13 @@ public class CustomerTerritoryAssignment
     public string? Notes { get; set; }
     
     // Navigation properties
-    public virtual Customer? Customer { get; set; }
+    public virtual Account? Account { get; set; }
     public virtual AccountTerritory? Territory { get; set; }
     public virtual User? AssignedByUser { get; set; }
 }
+
+/// <summary>
+/// Backward compatibility alias for CustomerTerritoryAssignment
+/// </summary>
+[Obsolete("Use AccountTerritoryAssignment instead")]
+public class CustomerTerritoryAssignment : AccountTerritoryAssignment { }

@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 namespace CRM.Tests.Controllers;
 
 /// <summary>
-/// Unit tests for CustomersController
+/// Unit tests for AccountsController
 /// 
 /// FUNCTIONAL VIEW:
 /// - Tests all customer management API endpoints
@@ -38,23 +38,23 @@ namespace CRM.Tests.Controllers;
 /// - Ensures proper error handling for invalid requests
 /// 
 /// TECHNICAL VIEW:
-/// - Uses Moq to mock ICustomerService dependency
+/// - Uses Moq to mock IAccountService dependency
 /// - Tests controller action methods in isolation
 /// - Validates ActionResult types and response bodies
 /// </summary>
-public class CustomersControllerTests
+public class AccountsControllerTests
 {
-    private readonly Mock<ICustomerService> _mockCustomerService;
-    private readonly Mock<ILogger<CustomersController>> _mockLogger;
+    private readonly Mock<IAccountService> _mockCustomerService;
+    private readonly Mock<ILogger<AccountsController>> _mockLogger;
     private readonly Mock<ICrmNotificationService> _mockNotificationService;
-    private readonly CustomersController _controller;
+    private readonly AccountsController _controller;
 
-    public CustomersControllerTests()
+    public AccountsControllerTests()
     {
-        _mockCustomerService = new Mock<ICustomerService>();
-        _mockLogger = new Mock<ILogger<CustomersController>>();
+        _mockCustomerService = new Mock<IAccountService>();
+        _mockLogger = new Mock<ILogger<AccountsController>>();
         _mockNotificationService = new Mock<ICrmNotificationService>();
-        _controller = new CustomersController(_mockCustomerService.Object, _mockLogger.Object, _mockNotificationService.Object);
+        _controller = new AccountsController(_mockCustomerService.Object, _mockLogger.Object, _mockNotificationService.Object);
     }
 
     #region GetAll Tests
@@ -62,21 +62,21 @@ public class CustomersControllerTests
     /// <summary>
     /// Verifies GetAll returns 200 OK with list of customers
     /// 
-    /// FUNCTIONAL: API should return all customers when GET /api/customers is called
-    /// TECHNICAL: Returns OkObjectResult with IEnumerable<CustomerDto>
+    /// FUNCTIONAL: API should return all customers when GET /api/accounts is called
+    /// TECHNICAL: Returns OkObjectResult with IEnumerable<AccountDto>
     /// </summary>
     [Fact]
     public async Task GetAll_ReturnsOkResult_WithCustomers()
     {
         // Arrange
-        var customers = new List<CustomerDto>
+        var accounts = new List<AccountDto>
         {
-            new CustomerDto { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@example.com" },
-            new CustomerDto { Id = 2, FirstName = "Jane", LastName = "Smith", Email = "jane@example.com" }
+            new AccountDto { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@example.com" },
+            new AccountDto { Id = 2, FirstName = "Jane", LastName = "Smith", Email = "jane@example.com" }
         };
 
-        _mockCustomerService.Setup(s => s.GetAllCustomersAsync())
-            .ReturnsAsync(customers);
+        _mockCustomerService.Setup(s => s.GetAllAccountsAsync())
+            .ReturnsAsync(accounts);
 
         // Act
         var result = await _controller.GetAll();
@@ -84,7 +84,7 @@ public class CustomersControllerTests
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
         okResult.StatusCode.Should().Be(200);
-        var returnedCustomers = okResult.Value as IEnumerable<CustomerDto>;
+        var returnedCustomers = okResult.Value as IEnumerable<AccountDto>;
         returnedCustomers.Should().HaveCount(2);
     }
 
@@ -95,15 +95,15 @@ public class CustomersControllerTests
     public async Task GetAll_WhenNoCustomers_ReturnsEmptyList()
     {
         // Arrange
-        _mockCustomerService.Setup(s => s.GetAllCustomersAsync())
-            .ReturnsAsync(new List<CustomerDto>());
+        _mockCustomerService.Setup(s => s.GetAllAccountsAsync())
+            .ReturnsAsync(new List<AccountDto>());
 
         // Act
         var result = await _controller.GetAll();
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
-        var returnedCustomers = okResult.Value as IEnumerable<CustomerDto>;
+        var returnedCustomers = okResult.Value as IEnumerable<AccountDto>;
         returnedCustomers.Should().BeEmpty();
     }
 
@@ -114,15 +114,15 @@ public class CustomersControllerTests
     /// <summary>
     /// Verifies GetById returns 200 OK with customer when found
     /// 
-    /// FUNCTIONAL: API should return specific customer when GET /api/customers/{id} is called
-    /// TECHNICAL: Returns OkObjectResult with CustomerDto
+    /// FUNCTIONAL: API should return specific customer when GET /api/accounts/{id} is called
+    /// TECHNICAL: Returns OkObjectResult with AccountDto
     /// </summary>
     [Fact]
     public async Task GetById_WithValidId_ReturnsOkResult()
     {
         // Arrange
-        var customerId = 1;
-        var customer = new CustomerDto 
+        var accountId = 1;
+        var account = new AccountDto 
         { 
             Id = 1, 
             FirstName = "John", 
@@ -131,16 +131,16 @@ public class CustomersControllerTests
             Category = "Individual"
         };
 
-        _mockCustomerService.Setup(s => s.GetCustomerByIdAsync(customerId))
-            .ReturnsAsync(customer);
+        _mockCustomerService.Setup(s => s.GetAccountByIdAsync(accountId))
+            .ReturnsAsync(account);
 
         // Act
-        var result = await _controller.GetById(customerId);
+        var result = await _controller.GetById(accountId);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
         okResult.StatusCode.Should().Be(200);
-        var returnedCustomer = okResult.Value as CustomerDto;
+        var returnedCustomer = okResult.Value as AccountDto;
         returnedCustomer.Should().NotBeNull();
         returnedCustomer!.Id.Should().Be(1);
     }
@@ -155,12 +155,12 @@ public class CustomersControllerTests
     public async Task GetById_WithInvalidId_ReturnsNotFound()
     {
         // Arrange
-        var customerId = 999;
-        _mockCustomerService.Setup(s => s.GetCustomerByIdAsync(customerId))
-            .ReturnsAsync((CustomerDto?)null);
+        var accountId = 999;
+        _mockCustomerService.Setup(s => s.GetAccountByIdAsync(accountId))
+            .ReturnsAsync((AccountDto?)null);
 
         // Act
-        var result = await _controller.GetById(customerId);
+        var result = await _controller.GetById(accountId);
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -178,12 +178,12 @@ public class CustomersControllerTests
     public async Task GetIndividuals_ReturnsOnlyIndividualCustomers()
     {
         // Arrange
-        var individuals = new List<CustomerDto>
+        var individuals = new List<AccountDto>
         {
-            new CustomerDto { Id = 1, Category = "Individual", FirstName = "John", LastName = "Doe" }
+            new AccountDto { Id = 1, Category = "Individual", FirstName = "John", LastName = "Doe" }
         };
 
-        _mockCustomerService.Setup(s => s.GetIndividualCustomersAsync())
+        _mockCustomerService.Setup(s => s.GetIndividualAccountsAsync())
             .ReturnsAsync(individuals);
 
         // Act
@@ -201,12 +201,12 @@ public class CustomersControllerTests
     public async Task GetOrganizations_ReturnsOnlyOrganizationCustomers()
     {
         // Arrange
-        var organizations = new List<CustomerDto>
+        var organizations = new List<AccountDto>
         {
-            new CustomerDto { Id = 1, Category = "Organization", Company = "Acme Corp" }
+            new AccountDto { Id = 1, Category = "Organization", Company = "Acme Corp" }
         };
 
-        _mockCustomerService.Setup(s => s.GetOrganizationCustomersAsync())
+        _mockCustomerService.Setup(s => s.GetOrganizationAccountsAsync())
             .ReturnsAsync(organizations);
 
         // Act
@@ -225,20 +225,20 @@ public class CustomersControllerTests
     /// Verifies Search returns matching customers
     /// 
     /// FUNCTIONAL: Users can search customers by name, email, or company
-    /// TECHNICAL: GET /api/customers/search/{searchTerm}
+    /// TECHNICAL: GET /api/accounts/search/{searchTerm}
     /// </summary>
     [Fact]
     public async Task Search_ReturnsMatchingCustomers()
     {
         // Arrange
         var searchTerm = "Acme";
-        var customers = new List<CustomerDto>
+        var accounts = new List<AccountDto>
         {
-            new CustomerDto { Id = 1, Company = "Acme Corp", Email = "contact@acme.com" }
+            new AccountDto { Id = 1, Company = "Acme Corp", Email = "contact@acme.com" }
         };
 
-        _mockCustomerService.Setup(s => s.SearchCustomersAsync(searchTerm))
-            .ReturnsAsync(customers);
+        _mockCustomerService.Setup(s => s.SearchAccountsAsync(searchTerm))
+            .ReturnsAsync(accounts);
 
         // Act
         var result = await _controller.Search(searchTerm);
@@ -256,22 +256,22 @@ public class CustomersControllerTests
     /// Verifies Create returns 201 Created with new customer
     /// 
     /// FUNCTIONAL: API should create new customer and return 201
-    /// TECHNICAL: POST /api/customers returns CreatedAtActionResult
+    /// TECHNICAL: POST /api/accounts returns CreatedAtActionResult
     /// </summary>
     [Fact]
     public async Task Create_WithValidIndividual_ReturnsCreatedResult()
     {
         // Arrange
-        var createDto = new CreateCustomerDto
+        var createDto = new CreateAccountDto
         {
-            Category = CustomerCategory.Individual,
+            Category = AccountCategory.Individual,
             FirstName = "John",
             LastName = "Doe",
             Email = "john@example.com",
             Phone = "555-0001"
         };
 
-        var createdCustomer = new CustomerDto
+        var createdCustomer = new AccountDto
         {
             Id = 1,
             FirstName = "John",
@@ -280,7 +280,7 @@ public class CustomersControllerTests
             Category = "Individual"
         };
 
-        _mockCustomerService.Setup(s => s.CreateCustomerAsync(createDto))
+        _mockCustomerService.Setup(s => s.CreateAccountAsync(createDto))
             .ReturnsAsync(createdCustomer);
 
         // Act
@@ -298,9 +298,9 @@ public class CustomersControllerTests
     public async Task Create_WithMissingIndividualName_ReturnsBadRequest()
     {
         // Arrange
-        var createDto = new CreateCustomerDto
+        var createDto = new CreateAccountDto
         {
-            Category = CustomerCategory.Individual,
+            Category = AccountCategory.Individual,
             // Missing FirstName and LastName
             Email = "john@example.com"
         };
@@ -320,9 +320,9 @@ public class CustomersControllerTests
     public async Task Create_WithMissingOrganizationCompany_ReturnsBadRequest()
     {
         // Arrange
-        var createDto = new CreateCustomerDto
+        var createDto = new CreateAccountDto
         {
-            Category = CustomerCategory.Organization,
+            Category = AccountCategory.Organization,
             // Missing Company name
             Email = "contact@example.com"
         };
@@ -346,13 +346,13 @@ public class CustomersControllerTests
     public async Task Update_WithValidData_ReturnsOkResult()
     {
         // Arrange
-        var customerId = 1;
-        var updateDto = new UpdateCustomerDto
+        var accountId = 1;
+        var updateDto = new UpdateAccountDto
         {
             FirstName = "UpdatedName"
         };
 
-        var updatedCustomer = new CustomerDto
+        var updatedCustomer = new AccountDto
         {
             Id = 1,
             FirstName = "UpdatedName",
@@ -360,11 +360,11 @@ public class CustomersControllerTests
             Email = "john@example.com"
         };
 
-        _mockCustomerService.Setup(s => s.UpdateCustomerAsync(customerId, updateDto))
+        _mockCustomerService.Setup(s => s.UpdateAccountAsync(accountId, updateDto))
             .ReturnsAsync(updatedCustomer);
 
         // Act
-        var result = await _controller.Update(customerId, updateDto);
+        var result = await _controller.Update(accountId, updateDto);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -378,14 +378,14 @@ public class CustomersControllerTests
     public async Task Update_WithInvalidId_ReturnsNotFound()
     {
         // Arrange
-        var customerId = 999;
-        var updateDto = new UpdateCustomerDto { FirstName = "Test" };
+        var accountId = 999;
+        var updateDto = new UpdateAccountDto { FirstName = "Test" };
 
-        _mockCustomerService.Setup(s => s.UpdateCustomerAsync(customerId, updateDto))
-            .ReturnsAsync((CustomerDto?)null);
+        _mockCustomerService.Setup(s => s.UpdateAccountAsync(accountId, updateDto))
+            .ReturnsAsync((AccountDto?)null);
 
         // Act
-        var result = await _controller.Update(customerId, updateDto);
+        var result = await _controller.Update(accountId, updateDto);
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -403,12 +403,12 @@ public class CustomersControllerTests
     public async Task Delete_WithValidId_ReturnsOkResult()
     {
         // Arrange
-        var customerId = 1;
-        _mockCustomerService.Setup(s => s.DeleteCustomerAsync(customerId))
+        var accountId = 1;
+        _mockCustomerService.Setup(s => s.DeleteAccountAsync(accountId))
             .ReturnsAsync(true);
 
         // Act
-        var result = await _controller.Delete(customerId);
+        var result = await _controller.Delete(accountId);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -422,12 +422,12 @@ public class CustomersControllerTests
     public async Task Delete_WithInvalidId_ReturnsNotFound()
     {
         // Arrange
-        var customerId = 999;
-        _mockCustomerService.Setup(s => s.DeleteCustomerAsync(customerId))
+        var accountId = 999;
+        _mockCustomerService.Setup(s => s.DeleteAccountAsync(accountId))
             .ReturnsAsync(false);
 
         // Act
-        var result = await _controller.Delete(customerId);
+        var result = await _controller.Delete(accountId);
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -445,24 +445,24 @@ public class CustomersControllerTests
     public async Task LinkContact_WithValidData_ReturnsCreatedResult()
     {
         // Arrange
-        var customerId = 1;
-        var linkDto = new LinkContactToCustomerDto
+        var accountId = 1;
+        var linkDto = new LinkContactToAccountDto
         {
             ContactId = 10,
-            Role = CustomerContactRole.Primary,
+            Role = AccountContactRole.Primary,
             IsPrimaryContact = true
         };
 
-        var customer = new CustomerDto { Id = 1, Category = "Organization", Company = "Test" };
-        var contactLink = new CustomerContactDto { Id = 1, CustomerId = 1, ContactId = 10 };
+        var account = new AccountDto { Id = 1, Category = "Organization", Company = "Test" };
+        var contactLink = new AccountContactDto { Id = 1, AccountId = 1, ContactId = 10 };
 
-        _mockCustomerService.Setup(s => s.GetCustomerByIdAsync(customerId))
-            .ReturnsAsync(customer);
-        _mockCustomerService.Setup(s => s.LinkContactToCustomerAsync(customerId, linkDto))
+        _mockCustomerService.Setup(s => s.GetAccountByIdAsync(accountId))
+            .ReturnsAsync(account);
+        _mockCustomerService.Setup(s => s.LinkContactToAccountAsync(accountId, linkDto))
             .ReturnsAsync(contactLink);
 
         // Act
-        var result = await _controller.LinkContact(customerId, linkDto);
+        var result = await _controller.LinkContact(accountId, linkDto);
 
         // Assert
         var createdResult = Assert.IsType<CreatedAtActionResult>(result);
@@ -476,15 +476,15 @@ public class CustomersControllerTests
     public async Task LinkContact_ForIndividualCustomer_ReturnsBadRequest()
     {
         // Arrange
-        var customerId = 1;
-        var linkDto = new LinkContactToCustomerDto { ContactId = 10 };
-        var customer = new CustomerDto { Id = 1, Category = "Individual" };
+        var accountId = 1;
+        var linkDto = new LinkContactToAccountDto { ContactId = 10 };
+        var account = new AccountDto { Id = 1, Category = "Individual" };
 
-        _mockCustomerService.Setup(s => s.GetCustomerByIdAsync(customerId))
-            .ReturnsAsync(customer);
+        _mockCustomerService.Setup(s => s.GetAccountByIdAsync(accountId))
+            .ReturnsAsync(account);
 
         // Act
-        var result = await _controller.LinkContact(customerId, linkDto);
+        var result = await _controller.LinkContact(accountId, linkDto);
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -499,25 +499,25 @@ public class CustomersControllerTests
     /// Verifies controller authorization attributes
     /// </summary>
     [Fact]
-    public void CustomersController_ShouldHaveAuthorizeAttribute()
+    public void AccountsController_ShouldHaveAuthorizeAttribute()
     {
-        // Note: CustomersController currently doesn't have [Authorize] attribute
+        // Note: AccountsController currently doesn't have [Authorize] attribute
         // This test documents the current state
-        var controllerType = typeof(CustomersController);
+        var controllerType = typeof(AccountsController);
         var attributes = controllerType.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true);
         // This should be updated when Authorize is added:
         // attributes.Should().NotBeEmpty("Controller should require authorization");
     }
 
     /// <summary>
-    /// Verifies controller has both /api/customers and /api/accounts route attributes
+    /// Verifies controller has both /api/accounts and /api/accounts route attributes
     /// for industry-standard naming compatibility
     /// </summary>
     [Fact]
-    public void CustomersController_ShouldHaveAccountsRouteAlias()
+    public void AccountsController_ShouldHaveAccountsRouteAlias()
     {
         // Arrange
-        var controllerType = typeof(CustomersController);
+        var controllerType = typeof(AccountsController);
         var routeAttributes = controllerType.GetCustomAttributes(typeof(Microsoft.AspNetCore.Mvc.RouteAttribute), true)
             .Cast<Microsoft.AspNetCore.Mvc.RouteAttribute>()
             .ToList();
@@ -535,10 +535,10 @@ public class CustomersControllerTests
     /// Verifies controller has ApiController attribute
     /// </summary>
     [Fact]
-    public void CustomersController_ShouldHaveApiControllerAttribute()
+    public void AccountsController_ShouldHaveApiControllerAttribute()
     {
         // Arrange
-        var controllerType = typeof(CustomersController);
+        var controllerType = typeof(AccountsController);
         var attributes = controllerType.GetCustomAttributes(typeof(Microsoft.AspNetCore.Mvc.ApiControllerAttribute), true);
 
         // Assert

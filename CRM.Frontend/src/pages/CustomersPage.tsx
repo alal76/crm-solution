@@ -58,7 +58,7 @@ const PRIORITIES = PRIORITY_OPTIONS;
 const CONTACT_ROLES = CONTACT_ROLE_OPTIONS;
 
 interface CustomerContact extends BaseEntity {
-  customerId: number;
+  accountId: number;
   contactId: number;
   contactName: string;
   contactEmail?: string;
@@ -75,7 +75,7 @@ interface Contact extends BaseEntity {
   emailPrimary?: string;
   phonePrimary?: string;
   company?: string;
-  customerId?: number;
+  accountId?: number;
 }
 
 interface Customer extends BaseEntity {
@@ -321,9 +321,9 @@ function CustomersPage() {
     fetchContacts();
   }, [fetchCustomers, fetchContacts]);
 
-  const fetchCustomerContacts = async (customerId: number) => {
+  const fetchCustomerContacts = async (accountId: number) => {
     try {
-      const response = await apiClient.get(`/customers/${customerId}/contacts`);
+      const response = await apiClient.get(`/customers/${accountId}/contacts`);
       setCustomerContacts(response.data);
     } catch (err) {
       console.error('Error fetching customer contacts:', err);

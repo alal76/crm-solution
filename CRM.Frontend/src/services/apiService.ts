@@ -66,12 +66,12 @@ export interface Opportunity extends BaseEntity {
   qualificationReason?: QualificationReason;
   qualificationNotes?: string;
   region?: string;
-  customerId: number;
+  accountId: number;
   primaryContactId?: number;
   salesOwnerId?: number;
   leadId?: number;
   // Navigation properties from API
-  customerName?: string;
+  accountName?: string;
   primaryContactName?: string;
   salesOwnerName?: string;
 }
@@ -79,8 +79,8 @@ export interface Opportunity extends BaseEntity {
 export const opportunityService = {
   getAll: () => apiClient.get<Opportunity[]>('/opportunities'),
   getById: (id: number) => apiClient.get<Opportunity>(`/opportunities/${id}`),
-  getByCustomer: (customerId: number) => 
-    apiClient.get<Opportunity[]>(`/opportunities/customer/${customerId}`),
+  getByCustomer: (accountId: number) => 
+    apiClient.get<Opportunity[]>(`/opportunities/customer/${accountId}`),
   getTotalPipeline: () => apiClient.get(`/opportunities/pipeline/total`),
   create: (data: Opportunity) => apiClient.post<Opportunity>('/opportunities', data),
   update: (id: number, data: Opportunity) => apiClient.put(`/opportunities/${id}`, data),
@@ -347,8 +347,8 @@ export interface ServiceRequest extends BaseEntity {
   categoryName?: string;
   subcategoryId?: number;
   subcategoryName?: string;
-  customerId?: number;
-  customerName?: string;
+  accountId?: number;
+  accountName?: string;
   contactId?: number;
   contactName?: string;
   assignedToUserId?: number;
@@ -377,7 +377,7 @@ export interface CreateServiceRequest {
   priority?: ServiceRequestPriority;
   categoryId?: number;
   subcategoryId?: number;
-  customerId?: number;
+  accountId?: number;
   contactId?: number;
   assignedToUserId?: number;
   assignedToGroupId?: number;
@@ -391,7 +391,7 @@ export interface UpdateServiceRequest {
   priority?: ServiceRequestPriority;
   categoryId?: number;
   subcategoryId?: number;
-  customerId?: number;
+  accountId?: number;
   contactId?: number;
   assignedToUserId?: number;
   assignedToGroupId?: number;
@@ -406,7 +406,7 @@ export interface ServiceRequestFilter {
   channel?: ServiceRequestChannel[];
   categoryId?: number;
   subcategoryId?: number;
-  customerId?: number;
+  accountId?: number;
   contactId?: number;
   assignedToUserId?: number;
   assignedToGroupId?: number;
@@ -480,8 +480,8 @@ export const serviceRequestService = {
     apiClient.post(`/servicerequests/${id}/feedback`, { rating, feedback }),
   
   // Queries
-  getByCustomer: (customerId: number) => 
-    apiClient.get<ServiceRequest[]>(`/servicerequests/customer/${customerId}`),
+  getByCustomer: (accountId: number) => 
+    apiClient.get<ServiceRequest[]>(`/servicerequests/customer/${accountId}`),
   getByContact: (contactId: number) => 
     apiClient.get<ServiceRequest[]>(`/servicerequests/contact/${contactId}`),
   getByAssignee: (userId: number) => 

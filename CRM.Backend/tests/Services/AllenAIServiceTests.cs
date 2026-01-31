@@ -75,7 +75,7 @@ public class AllenAIServiceTests
         // Arrange & Act
         var churnRisk = new ChurnRisk
         {
-            CustomerId = 1,
+            AccountId = 1,
             ChurnProbability = 0.3m,
             RiskLevel = ChurnRiskLevel.Medium,
             HealthScore = 60m,
@@ -87,7 +87,7 @@ public class AllenAIServiceTests
         };
 
         // Assert
-        churnRisk.CustomerId.Should().Be(1);
+        churnRisk.AccountId.Should().Be(1);
         churnRisk.ChurnProbability.Should().BeLessOrEqualTo(1.0m);
         churnRisk.RiskLevel.Should().Be(ChurnRiskLevel.Medium);
     }
@@ -637,24 +637,24 @@ public class AllenAIServiceTests
     public void ChurnPrediction_EndToEnd_Flow()
     {
         // Arrange - Create a customer
-        var customer = new Customer
+        var account = new Account
         {
             Id = 1,
-            Category = CustomerCategory.Organization,
+            Category = AccountCategory.Organization,
             Company = "Enterprise Inc",
-            LifecycleStage = CustomerLifecycleStage.CustomerAtRisk,
-            CustomerHealthScore = 35
+            LifecycleStage = AccountLifecycleStage.AtRisk,
+            AccountHealthScore = 35
         };
 
         // Act - Calculate churn risk
         var baseRisk = 0.3m;
         baseRisk += 0.3m; // At risk lifecycle stage
         var churnProbability = Math.Min(1.0m, baseRisk);
-        var healthScore = customer.CustomerHealthScore;
+        var healthScore = account.AccountHealthScore;
 
         var churnRisk = new ChurnRisk
         {
-            CustomerId = customer.Id,
+            AccountId = account.Id,
             ChurnProbability = churnProbability,
             RiskLevel = churnProbability >= 0.6m ? ChurnRiskLevel.High : ChurnRiskLevel.Medium,
             HealthScore = healthScore,

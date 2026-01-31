@@ -136,15 +136,15 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         await AuthenticateAsync();
         
         // Get customers first
-        var customersResponse = await Client.GetAsync("/api/customers");
-        if (!customersResponse.IsSuccessStatusCode)
+        var accountsResponse = await Client.GetAsync("/api/accounts");
+        if (!accountsResponse.IsSuccessStatusCode)
         {
             _output.WriteLine("FT-112 SKIPPED: Could not get customers");
             return;
         }
         
-        var customers = await customersResponse.Content.ReadFromJsonAsync<JsonElement>();
-        if (customers.GetArrayLength() < 2)
+        var accounts = await accountsResponse.Content.ReadFromJsonAsync<JsonElement>();
+        if (accounts.GetArrayLength() < 2)
         {
             _output.WriteLine("FT-112 SKIPPED: Need at least 2 customers for relationship");
             return;
@@ -161,8 +161,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         
         var response = await Client.PostAsJsonAsync("/api/relationships", new
         {
-            sourceCustomerId = customers[0].GetProperty("id").GetInt32(),
-            targetCustomerId = customers[1].GetProperty("id").GetInt32(),
+            sourceAccountId = accounts[0].GetProperty("id").GetInt32(),
+            targetAccountId = accounts[1].GetProperty("id").GetInt32(),
             relationshipTypeId = types[0].GetProperty("id").GetInt32(),
             status = "Active",
             strategicImportance = "Medium",
@@ -184,26 +184,26 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
 
     [Fact]
     [Trait("TestId", "FT-113")]
-    public async Task FT113_GetAccountRelationship_ByCustomerId_Should_Filter()
+    public async Task FT113_GetAccountRelationship_ByAccountId_Should_Filter()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-113 SKIPPED: API not available"); return; }
         
         await AuthenticateAsync();
         
-        var customersResponse = await Client.GetAsync("/api/customers");
-        if (!customersResponse.IsSuccessStatusCode || (await customersResponse.Content.ReadFromJsonAsync<JsonElement>()).GetArrayLength() == 0)
+        var accountsResponse = await Client.GetAsync("/api/accounts");
+        if (!accountsResponse.IsSuccessStatusCode || (await accountsResponse.Content.ReadFromJsonAsync<JsonElement>()).GetArrayLength() == 0)
         {
             _output.WriteLine("FT-113 SKIPPED: No customers available");
             return;
         }
         
-        var customers = await customersResponse.Content.ReadFromJsonAsync<JsonElement>();
-        var customerId = customers[0].GetProperty("id").GetInt32();
+        var accounts = await accountsResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var accountId = accounts[0].GetProperty("id").GetInt32();
         
-        var response = await Client.GetAsync($"/api/relationships?customerId={customerId}");
+        var response = await Client.GetAsync($"/api/relationships?accountId={accountId}");
         
         AssertSuccess(response);
-        _output.WriteLine($"FT-113 PASSED: Filtered relationships by customer ID {customerId}");
+        _output.WriteLine($"FT-113 PASSED: Filtered relationships by customer ID {accountId}");
     }
 
     #endregion
@@ -284,23 +284,23 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         
         await AuthenticateAsync();
         
-        var customersResponse = await Client.GetAsync("/api/customers");
-        var customers = await customersResponse.Content.ReadFromJsonAsync<JsonElement>();
-        if (customers.GetArrayLength() == 0)
+        var accountsResponse = await Client.GetAsync("/api/accounts");
+        var accounts = await accountsResponse.Content.ReadFromJsonAsync<JsonElement>();
+        if (accounts.GetArrayLength() == 0)
         {
             _output.WriteLine("FT-131 SKIPPED: No customers available");
             return;
         }
         
-        var customerId = customers[0].GetProperty("id").GetInt32();
-        var response = await Client.GetAsync($"/api/relationships/map/{customerId}?depth=2");
+        var accountId = accounts[0].GetProperty("id").GetInt32();
+        var response = await Client.GetAsync($"/api/relationships/map/{accountId}?depth=2");
         
         if (response.IsSuccessStatusCode)
         {
             var map = await response.Content.ReadFromJsonAsync<JsonElement>();
             Assert.True(map.TryGetProperty("nodes", out _));
             Assert.True(map.TryGetProperty("edges", out _));
-            _output.WriteLine($"FT-131 PASSED: Retrieved relationship map for customer {customerId}");
+            _output.WriteLine($"FT-131 PASSED: Retrieved relationship map for customer {accountId}");
         }
         else
         {
@@ -316,19 +316,19 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         
         await AuthenticateAsync();
         
-        var customersResponse = await Client.GetAsync("/api/customers");
-        var customers = await customersResponse.Content.ReadFromJsonAsync<JsonElement>();
-        if (customers.GetArrayLength() == 0)
+        var accountsResponse = await Client.GetAsync("/api/accounts");
+        var accounts = await accountsResponse.Content.ReadFromJsonAsync<JsonElement>();
+        if (accounts.GetArrayLength() == 0)
         {
             _output.WriteLine("FT-132 SKIPPED: No customers available");
             return;
         }
         
-        var customerId = customers[0].GetProperty("id").GetInt32();
-        var response = await Client.GetAsync($"/api/relationships/health/{customerId}");
+        var accountId = accounts[0].GetProperty("id").GetInt32();
+        var response = await Client.GetAsync($"/api/relationships/health/{accountId}");
         
         AssertSuccess(response);
-        _output.WriteLine($"FT-132 PASSED: Retrieved health snapshots for customer {customerId}");
+        _output.WriteLine($"FT-132 PASSED: Retrieved health snapshots for customer {accountId}");
     }
 
     [Fact]
@@ -339,20 +339,20 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         
         await AuthenticateAsync();
         
-        var customersResponse = await Client.GetAsync("/api/customers");
-        var customers = await customersResponse.Content.ReadFromJsonAsync<JsonElement>();
-        if (customers.GetArrayLength() == 0)
+        var accountsResponse = await Client.GetAsync("/api/accounts");
+        var accounts = await accountsResponse.Content.ReadFromJsonAsync<JsonElement>();
+        if (accounts.GetArrayLength() == 0)
         {
             _output.WriteLine("FT-133 SKIPPED: No customers available");
             return;
         }
         
-        var customerId = customers[0].GetProperty("id").GetInt32();
-        var response = await Client.PostAsync($"/api/relationships/health/{customerId}", null);
+        var accountId = accounts[0].GetProperty("id").GetInt32();
+        var response = await Client.PostAsync($"/api/relationships/health/{accountId}", null);
         
         if (response.IsSuccessStatusCode)
         {
-            _output.WriteLine($"FT-133 PASSED: Created health snapshot for customer {customerId}");
+            _output.WriteLine($"FT-133 PASSED: Created health snapshot for customer {accountId}");
         }
         else
         {

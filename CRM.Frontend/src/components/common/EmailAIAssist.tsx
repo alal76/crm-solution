@@ -69,7 +69,7 @@ interface EmailAIAssistProps {
   onClose: () => void;
   emailContent: string;
   emailSubject?: string;
-  customerId?: number;
+  accountId?: number;
   onApplySuggestion?: (suggestion: { subject?: string; body: string }) => void;
   onApplySubject?: (subject: string) => void;
 }
@@ -154,7 +154,7 @@ const EmailAIAssist: React.FC<EmailAIAssistProps> = ({
   onClose,
   emailContent,
   emailSubject,
-  customerId,
+  accountId,
   onApplySuggestion,
   onApplySubject,
 }) => {
@@ -200,7 +200,7 @@ const EmailAIAssist: React.FC<EmailAIAssistProps> = ({
       }>('/ai/email/analyze', {
         emailContent,
         subject: emailSubject,
-        customerId,
+        accountId,
       });
       
       if (response.data.success) {
@@ -215,7 +215,7 @@ const EmailAIAssist: React.FC<EmailAIAssistProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [emailContent, emailSubject, customerId]);
+  }, [emailContent, emailSubject, accountId]);
 
   const getResponseSuggestions = useCallback(async () => {
     if (!emailContent.trim()) {
@@ -237,7 +237,7 @@ const EmailAIAssist: React.FC<EmailAIAssistProps> = ({
         subject: emailSubject,
         tone: responseTone,
         numSuggestions: 3,
-        customerId,
+        accountId,
       });
       
       if (response.data.success) {
@@ -252,7 +252,7 @@ const EmailAIAssist: React.FC<EmailAIAssistProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [emailContent, emailSubject, responseTone, customerId]);
+  }, [emailContent, emailSubject, responseTone, accountId]);
 
   const optimizeSubject = useCallback(async () => {
     if (!emailSubject?.trim() && !emailContent.trim()) {

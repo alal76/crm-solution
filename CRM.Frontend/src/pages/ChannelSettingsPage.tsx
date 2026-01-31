@@ -1296,7 +1296,7 @@ function ChannelSettingsPage() {
               onChange={(e) => setTemplateForm({ ...templateForm, subject: e.target.value })}
               fullWidth
               required
-              helperText="Use {{variables}} for dynamic content: {{customerName}}, {{ticketNumber}}, etc."
+              helperText="Use {{variables}} for dynamic content: {{accountName}}, {{ticketNumber}}, etc."
             />
             <TextField
               label="Body"

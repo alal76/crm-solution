@@ -31,7 +31,7 @@ test.describe('Notes and Quotes Features', () => {
 
     test.beforeAll(async ({ request }) => {
       // Create a test customer for notes
-      const customerResponse = await request.post(`${API_URL}/api/customers`, {
+      const customerResponse = await request.post(`${API_URL}/api/accounts`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           firstName: 'Notes',
@@ -179,7 +179,7 @@ test.describe('Notes and Quotes Features', () => {
 
     test.beforeAll(async ({ request }) => {
       // Create a test customer for quotes
-      const customerResponse = await request.post(`${API_URL}/api/customers`, {
+      const customerResponse = await request.post(`${API_URL}/api/accounts`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           firstName: 'Quote',
@@ -200,7 +200,7 @@ test.describe('Notes and Quotes Features', () => {
       const response = await request.post(`${API_URL}/api/quotes`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
-          customerId: testCustomerId,
+          accountId: testCustomerId,
           title: 'Test Quote for E2E',
           description: 'E2E test quote with line items',
           status: 1, // Draft
@@ -234,7 +234,7 @@ test.describe('Notes and Quotes Features', () => {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           id: testQuoteId,
-          customerId: testCustomerId,
+          accountId: testCustomerId,
           title: 'Updated Test Quote',
           status: 2, // UnderApproval
           validityDays: 30,
@@ -254,7 +254,7 @@ test.describe('Notes and Quotes Features', () => {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           id: testQuoteId,
-          customerId: testCustomerId,
+          accountId: testCustomerId,
           title: 'Approved Test Quote',
           status: 3, // Approved
           validityDays: 30,
@@ -295,14 +295,14 @@ test.describe('Notes and Quotes Features', () => {
     });
 
     test('QUOTE-007: Get quotes with filters', async ({ request }) => {
-      const response = await request.get(`${API_URL}/api/quotes?customerId=${testCustomerId}`, {
+      const response = await request.get(`${API_URL}/api/quotes?accountId=${testCustomerId}`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       
       expect(response.ok()).toBeTruthy();
       const quotes = await response.json();
       expect(Array.isArray(quotes)).toBeTruthy();
-      expect(quotes.some((q: any) => q.customerId === testCustomerId)).toBeTruthy();
+      expect(quotes.some((q: any) => q.accountId === testCustomerId)).toBeTruthy();
     });
 
     test('QUOTE-008: Quote lifecycle - full path', async ({ request }) => {
@@ -310,7 +310,7 @@ test.describe('Notes and Quotes Features', () => {
       let response = await request.post(`${API_URL}/api/quotes`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
-          customerId: testCustomerId,
+          accountId: testCustomerId,
           title: 'Full Lifecycle Quote',
           status: 0, // New
           validityDays: 30,

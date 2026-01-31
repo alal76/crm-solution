@@ -178,17 +178,17 @@ function CustomerOverviewPage() {
     await fetchCustomerDetails(customer.id);
   };
 
-  const fetchCustomerDetails = async (customerId: number) => {
+  const fetchCustomerDetails = async (accountId: number) => {
     try {
       setLoadingDetails(true);
       
       // Fetch contacts for this customer
-      const contactsResponse = await apiClient.get(`/customers/${customerId}/contacts`);
+      const contactsResponse = await apiClient.get(`/customers/${accountId}/contacts`);
       setContacts(contactsResponse.data || []);
 
       // Fetch news and social feeds from real API
       try {
-        const feedsResponse = await getNewsSocialFeeds(customerId, 10, 10);
+        const feedsResponse = await getNewsSocialFeeds(accountId, 10, 10);
         setNewsItems(feedsResponse.newsItems || []);
         setSocialFeeds(feedsResponse.socialFeeds || []);
       } catch (feedError) {

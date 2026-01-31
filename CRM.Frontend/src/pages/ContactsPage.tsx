@@ -98,7 +98,7 @@ interface Contact extends BaseEntity {
   firstName: string;
   lastName: string;
   middleName?: string;
-  customerId?: number;  // Link to customer (one-to-many)
+  accountId?: number;  // Link to customer (one-to-many)
   // Legacy single fields (kept for backward compatibility)
   emailPrimary?: string;
   emailSecondary?: string;
@@ -140,7 +140,7 @@ interface CreateContactRequest {
   reportsTo?: string;
   notes?: string;
   dateOfBirth?: string;
-  customerId?: number | '';
+  accountId?: number | '';
 }
 
 const CONTACT_TYPES = ['Employee', 'Customer', 'Partner', 'Lead', 'Vendor', 'Other'];
@@ -184,7 +184,7 @@ function ContactsPage() {
     contactType: '' as string,
     company: '' as string,
     department: '' as string,
-    customerId: '' as string | number,
+    accountId: '' as string | number,
   });
   
   // API state for dialog operations
@@ -299,9 +299,9 @@ function ContactsPage() {
     }
   };
 
-  const getCustomerName = (customerId?: number) => {
-    if (!customerId) return null;
-    const customer = customers.find(c => c.id === customerId);
+  const getAccountName = (accountId?: number) => {
+    if (!accountId) return null;
+    const customer = customers.find(c => c.id === accountId);
     return customer ? (customer.displayName || `${customer.firstName} ${customer.lastName}`.trim() || customer.company) : null;
   };
 
@@ -412,7 +412,7 @@ function ContactsPage() {
       contactType: '',
       company: '',
       department: '',
-      customerId: '',
+      accountId: '',
     });
     bulkApi.clearError();
     setBulkDialogOpen(true);
@@ -429,7 +429,7 @@ function ContactsPage() {
     if (bulkFormData.contactType) updatePayload.contactType = bulkFormData.contactType;
     if (bulkFormData.company) updatePayload.company = bulkFormData.company;
     if (bulkFormData.department) updatePayload.department = bulkFormData.department;
-    if (bulkFormData.customerId) updatePayload.customerId = Number(bulkFormData.customerId);
+    if (bulkFormData.accountId) updatePayload.accountId = Number(bulkFormData.accountId);
 
     if (Object.keys(updatePayload).length === 0) {
       bulkApi.setError('Please select at least one field to update');
@@ -566,10 +566,10 @@ function ContactsPage() {
   const filteredContacts = useMemo(() => {
     let result = contacts;
     
-    // Apply account context filter first (filter by customerId)
+    // Apply account context filter first (filter by accountId)
     if (isContextActive) {
       const accountIds = getAccountIds();
-      result = result.filter(contact => contact.customerId && accountIds.includes(contact.customerId));
+      result = result.filter(contact => contact.accountId && accountIds.includes(contact.accountId));
     }
     
     // Then apply search filters
@@ -715,9 +715,9 @@ function ContactsPage() {
                         />
                       </TableCell>
                       <TableCell>
-                        {contact.customerId ? (
+                        {contact.accountId ? (
                           <Chip
-                            label={getCustomerName(contact.customerId) || 'Unknown'}
+                            label={getAccountName(contact.accountId) || 'Unknown'}
                             size="small"
                             color="primary"
                             variant="outlined"
@@ -883,9 +883,9 @@ function ContactsPage() {
 
               <EntitySelect
                 entityType="customer"
-                name="customerId"
-                value={formData.customerId || ''}
-                onChange={(e) => setFormData({ ...formData, customerId: e.target.value ? Number(e.target.value) : '' })}
+                name="accountId"
+                value={formData.accountId || ''}
+                onChange={(e) => setFormData({ ...formData, accountId: e.target.value ? Number(e.target.value) : '' })}
                 label="Owner Customer"
                 showAddNew={true}
               />
@@ -1029,9 +1029,9 @@ function ContactsPage() {
             
             <EntitySelect
               entityType="customer"
-              name="customerId"
-              value={bulkFormData.customerId}
-              onChange={(e) => setBulkFormData(prev => ({ ...prev, customerId: e.target.value }))}
+              name="accountId"
+              value={bulkFormData.accountId}
+              onChange={(e) => setBulkFormData(prev => ({ ...prev, accountId: e.target.value }))}
               label="Owner Customer"
               showAddNew={false}
             />

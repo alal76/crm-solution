@@ -2,13 +2,14 @@ namespace CRM.Core.Entities;
 
 /// <summary>
 /// Polymorphic link table to associate contact-info records (Address, ContactDetail, SocialAccount)
-/// with owner records (Customer, Account, Contact, Lead, Prospect)
+/// with owner records (Account, Subscription, Contact, Lead, Prospect)
 /// This avoids creating many specific junction types while keeping ownership explicit.
+/// Note: Customer was renamed to Account, Account (subscription) was renamed to Subscription.
 /// </summary>
 public enum ContactInfoOwnerType
 {
-    Customer = 0,
-    Account = 1,
+    Account = 0,        // Formerly Customer
+    Subscription = 1,   // Formerly Account (the subscription/contract entity)
     Contact = 2,
     Lead = 3,
     Prospect = 4

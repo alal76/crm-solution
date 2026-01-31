@@ -10,7 +10,7 @@ namespace CRM.Core.Interfaces;
 /// </summary>
 public interface ICrmDbContext
 {
-    DbSet<Customer> Customers { get; }
+    DbSet<Account> Customers { get; }
     DbSet<CRM.Core.Models.Contact> Contacts { get; }
     DbSet<Lead> Leads { get; }
     DbSet<LeadProductInterest> LeadProductInterests { get; }

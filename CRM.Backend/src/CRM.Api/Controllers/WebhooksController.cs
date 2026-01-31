@@ -53,7 +53,7 @@ public class WebhooksController : ControllerBase
                 EmailAddress = dto.Email,
                 PhoneNumber = dto.Phone,
                 Sentiment = InteractionSentiment.Neutral,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 Tags = dto.FormType,
                 CustomFields = dto.CustomFieldsJson,
@@ -76,7 +76,7 @@ public class WebhooksController : ControllerBase
                 FromAddress = dto.Email,
                 FromName = dto.Name,
                 ReceivedAt = DateTime.UtcNow,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 LinkedEntityType = "Interaction",
                 LinkedEntityId = interaction.Id,
@@ -94,7 +94,7 @@ public class WebhooksController : ControllerBase
                 Success = true,
                 InteractionId = interaction.Id,
                 MessageId = message.Id,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 Message = "Web form submission received successfully"
             });
@@ -158,7 +158,7 @@ public class WebhooksController : ControllerBase
                 InReplyToExternalId = dto.InReplyTo,
                 ConversationId = conversationId,
                 ReceivedAt = dto.ReceivedAt ?? DateTime.UtcNow,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 AttachmentCount = dto.Attachments?.Count ?? 0,
                 AttachmentsJson = dto.Attachments != null ? JsonSerializer.Serialize(dto.Attachments) : null,
@@ -187,7 +187,7 @@ public class WebhooksController : ControllerBase
                     Status = ConversationStatus.Open,
                     ParticipantAddress = dto.From,
                     ParticipantName = dto.FromName,
-                    CustomerId = customerId,
+                    AccountId = customerId,
                     ContactId = contactId,
                     MessageCount = 1,
                     UnreadCount = 1,
@@ -210,7 +210,7 @@ public class WebhooksController : ControllerBase
                 EmailAddress = dto.From,
                 IsCompleted = true,
                 CompletedDate = DateTime.UtcNow,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -232,7 +232,7 @@ public class WebhooksController : ControllerBase
                 InteractionId = interaction.Id,
                 MessageId = message.Id,
                 ConversationId = conversationId,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 Message = "Email received successfully"
             });
@@ -320,7 +320,7 @@ public class WebhooksController : ControllerBase
                 ConversationId = dto.ConversationId ?? dto.FromPhone,
                 WhatsAppMessageType = dto.MessageType,
                 ReceivedAt = dto.Timestamp ?? DateTime.UtcNow,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -337,7 +337,7 @@ public class WebhooksController : ControllerBase
                 InteractionDate = dto.Timestamp ?? DateTime.UtcNow,
                 PhoneNumber = dto.FromPhone,
                 IsCompleted = true,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -350,7 +350,7 @@ public class WebhooksController : ControllerBase
                 Success = true,
                 InteractionId = interaction.Id,
                 MessageId = message.Id,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 Message = "WhatsApp message received successfully"
             });
@@ -424,7 +424,7 @@ public class WebhooksController : ControllerBase
                 SocialPostId = dto.PostId,
                 IsPublicPost = dto.IsPublicPost,
                 ReceivedAt = dto.Timestamp ?? DateTime.UtcNow,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 MetadataJson = JsonSerializer.Serialize(new
                 {
@@ -447,7 +447,7 @@ public class WebhooksController : ControllerBase
                 Description = dto.Text ?? "",
                 InteractionDate = dto.Timestamp ?? DateTime.UtcNow,
                 IsCompleted = true,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 Tags = dto.Hashtags != null ? string.Join(",", dto.Hashtags) : null,
                 CreatedAt = DateTime.UtcNow
@@ -461,7 +461,7 @@ public class WebhooksController : ControllerBase
                 Success = true,
                 InteractionId = interaction.Id,
                 MessageId = message.Id,
-                CustomerId = customerId,
+                AccountId = customerId,
                 ContactId = contactId,
                 Message = $"{channelType} message received successfully"
             });
@@ -694,7 +694,7 @@ public class IngestResultDto
     public int? InteractionId { get; set; }
     public int? MessageId { get; set; }
     public string? ConversationId { get; set; }
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public string? Message { get; set; }
 }

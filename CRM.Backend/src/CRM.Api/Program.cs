@@ -306,7 +306,7 @@ builder.Services.AddScoped<ICrmDbContext>(provider =>
 
 // Register Services (backward compatibility)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IOpportunityService, OpportunityService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IMarketingCampaignService, MarketingCampaignService>();
@@ -406,7 +406,7 @@ builder.Services.AddHostedService<WorkflowWorkerService>();
 
 // HEXAGONAL ARCHITECTURE - Register Input Ports (Primary/Driving Ports)
 // These allow controllers to depend on ports instead of concrete services
-builder.Services.AddScoped<ICustomerInputPort, CustomerService>();
+builder.Services.AddScoped<IAccountInputPort, AccountService>();
 builder.Services.AddScoped<IContactInputPort, ContactsService>();
 builder.Services.AddScoped<IOpportunityInputPort, OpportunityService>();
 builder.Services.AddScoped<IProductInputPort, ProductService>();

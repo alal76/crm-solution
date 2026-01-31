@@ -83,7 +83,7 @@ test.describe.serial('Test Data Generation', () => {
 
     for (let i = 0; i < companies.length; i++) {
       const company = companies[i];
-      const response = await request.post(`${API_URL}/api/customers`, {
+      const response = await request.post(`${API_URL}/api/accounts`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           firstName: 'Account',
@@ -205,7 +205,7 @@ test.describe.serial('Test Data Generation', () => {
     const stages = ['Prospecting', 'Qualification', 'Needs Analysis', 'Proposal', 'Negotiation', 'Closed Won'];
     
     for (let i = 0; i < 15; i++) {
-      const customerId = createdData.customers[i % createdData.customers.length];
+      const accountId = createdData.customers[i % createdData.customers.length];
       const closeDate = new Date();
       closeDate.setDate(closeDate.getDate() + Math.floor(Math.random() * 90) + 30);
 
@@ -214,7 +214,7 @@ test.describe.serial('Test Data Generation', () => {
         data: {
           title: `Opportunity ${i + 1} - Enterprise Deal`,
           description: `Enterprise CRM implementation opportunity`,
-          customerId: customerId,
+          accountId: accountId,
           value: Math.floor(Math.random() * 100000) + 10000,
           probability: Math.floor(Math.random() * 60) + 20,
           stage: stages[i % stages.length],
@@ -236,14 +236,14 @@ test.describe.serial('Test Data Generation', () => {
     const priorities = [0, 1, 2, 3]; // Low, Medium, High, Critical
     
     for (let i = 0; i < 20; i++) {
-      const customerId = createdData.customers[i % createdData.customers.length];
+      const accountId = createdData.customers[i % createdData.customers.length];
 
       const response = await request.post(`${API_URL}/api/servicerequests`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
           title: `Ticket ${i + 1}: ${types[i % types.length]}`,
           description: `Customer reported issue requiring attention - ${types[i % types.length]}`,
-          customerId: customerId,
+          accountId: accountId,
           priority: priorities[i % priorities.length],
           status: i % 5,
           category: types[i % types.length]
@@ -260,7 +260,7 @@ test.describe.serial('Test Data Generation', () => {
 
   test('8. Create Quotes (15 quotes)', async ({ request }) => {
     for (let i = 0; i < 15; i++) {
-      const customerId = createdData.customers[i % createdData.customers.length];
+      const accountId = createdData.customers[i % createdData.customers.length];
       const opportunityId = createdData.opportunities.length > 0 
         ? createdData.opportunities[i % createdData.opportunities.length] 
         : undefined;
@@ -272,7 +272,7 @@ test.describe.serial('Test Data Generation', () => {
       const response = await request.post(`${API_URL}/api/quotes`, {
         headers: { 'Authorization': `Bearer ${authToken}` },
         data: {
-          customerId: customerId,
+          accountId: accountId,
           opportunityId: opportunityId,
           title: `Quote ${i + 1} - Enterprise Package`,
           description: `Custom CRM solution quote`,

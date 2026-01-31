@@ -89,12 +89,12 @@ interface Opportunity extends BaseEntity {
   qualificationReason?: number;
   qualificationNotes?: string;
   region?: string;
-  customerId: number;
+  accountId: number;
   primaryContactId?: number;
   salesOwnerId?: number;
   leadId?: number;
   // Navigation properties from API
-  customerName?: string;
+  accountName?: string;
   primaryContactName?: string;
   salesOwnerName?: string;
 }
@@ -125,7 +125,7 @@ interface OpportunityForm {
   qualificationReason: number | null;
   qualificationNotes: string;
   region: string;
-  customerId: number;
+  accountId: number;
   primaryContactId: number | null;
   salesOwnerId: number | null;
 }
@@ -177,7 +177,7 @@ function OpportunitiesPage() {
     qualificationReason: null,
     qualificationNotes: '',
     region: '',
-    customerId: 0,
+    accountId: 0,
     primaryContactId: null,
     salesOwnerId: null,
   });
@@ -249,14 +249,14 @@ function OpportunitiesPage() {
   };
 
   // Fetch contacts when customer is selected
-  const fetchAccountContacts = useCallback(async (customerId: number) => {
-    if (!customerId) {
+  const fetchAccountContacts = useCallback(async (accountId: number) => {
+    if (!accountId) {
       setAccountContacts([]);
       return;
     }
     try {
       setLoadingContacts(true);
-      const response = await apiClient.get(`/customers/${customerId}/contacts`);
+      const response = await apiClient.get(`/customers/${accountId}/contacts`);
       setAccountContacts(response.data.map((c: any) => ({
         id: c.contactId,
         firstName: c.contactName?.split(' ')[0] || 'Contact',
@@ -275,10 +275,10 @@ function OpportunitiesPage() {
   const filteredOpportunities = useMemo(() => {
     let result = opportunities;
     
-    // Apply account context filter first (filter by customerId)
+    // Apply account context filter first (filter by accountId)
     if (isContextActive) {
       const accountIds = getAccountIds();
-      result = result.filter(opp => accountIds.includes(opp.customerId));
+      result = result.filter(opp => accountIds.includes(opp.accountId));
     }
     
     // Then apply search filters
@@ -298,8 +298,8 @@ function OpportunitiesPage() {
     fetchAllData();
   }, [fetchAllData]);
 
-  const getAccountName = (customerId: number) => {
-    const account = accounts.find(a => a.id === customerId);
+  const getAccountName = (accountId: number) => {
+    const account = accounts.find(a => a.id === accountId);
     if (!account) return 'Unknown';
     if (account.company) return account.company;
     if (account.firstName || account.lastName) return `${account.firstName || ''} ${account.lastName || ''}`.trim();
@@ -332,13 +332,13 @@ function OpportunitiesPage() {
         qualificationReason: opp.qualificationReason ?? null,
         qualificationNotes: opp.qualificationNotes || '',
         region: opp.region || '',
-        customerId: opp.customerId,
+        accountId: opp.accountId,
         primaryContactId: opp.primaryContactId || null,
         salesOwnerId: opp.salesOwnerId || null,
       });
       // Fetch contacts for the opportunity's customer
-      if (opp.customerId) {
-        fetchAccountContacts(opp.customerId);
+      if (opp.accountId) {
+        fetchAccountContacts(opp.accountId);
       }
     } else {
       setEditingId(null);
@@ -356,7 +356,7 @@ function OpportunitiesPage() {
         qualificationReason: null,
         qualificationNotes: '',
         region: '',
-        customerId: accounts[0]?.id || 0,
+        accountId: accounts[0]?.id || 0,
         primaryContactId: null,
         salesOwnerId: null,
       });
@@ -380,11 +380,11 @@ function OpportunitiesPage() {
       ...prev,
       [name]: value === '' ? null : value,
       // Clear primary contact when customer changes
-      ...(name === 'customerId' ? { primaryContactId: null } : {}),
+      ...(name === 'accountId' ? { primaryContactId: null } : {}),
     }));
     
     // Fetch contacts for the selected customer
-    if (name === 'customerId' && value) {
+    if (name === 'accountId' && value) {
       fetchAccountContacts(Number(value));
     }
   };
@@ -405,7 +405,7 @@ function OpportunitiesPage() {
   };
 
   const handleSaveOpportunity = async () => {
-    if (!formData.name.trim() || !formData.customerId) {
+    if (!formData.name.trim() || !formData.accountId) {
       dialogApi.setError('Please fill in required fields (Name, Account)');
       return;
     }
@@ -657,7 +657,7 @@ function OpportunitiesPage() {
                         />
                       </TableCell>
                       <TableCell>{opp.name}</TableCell>
-                      <TableCell>{opp.customerName || getAccountName(opp.customerId)}</TableCell>
+                      <TableCell>{opp.accountName || getAccountName(opp.accountId)}</TableCell>
                       <TableCell>{opp.currency || 'USD'} {opp.amount?.toLocaleString() || 0}</TableCell>
                       <TableCell>
                         <Chip 
@@ -742,8 +742,8 @@ function OpportunitiesPage() {
             <Box sx={{ mt: 2 }}>
               <EntitySelect
                 entityType="account"
-                name="customerId"
-                value={formData.customerId}
+                name="accountId"
+                value={formData.accountId}
                 onChange={handleSelectChange}
                 label="Account"
                 required
@@ -759,7 +759,7 @@ function OpportunitiesPage() {
                 value={formData.primaryContactId ?? ''}
                 onChange={handleSelectChange}
                 label="Primary Contact"
-                disabled={!formData.customerId || loadingContacts}
+                disabled={!formData.accountId || loadingContacts}
               >
                 <MenuItem value="">
                   {loadingContacts ? 'Loading contacts...' : 'None'}
@@ -769,7 +769,7 @@ function OpportunitiesPage() {
                     {c.firstName} {c.lastName}{c.role ? ` (${c.role})` : ''}
                   </MenuItem>
                 ))}
-                {formData.customerId && !loadingContacts && accountContacts.length === 0 && (
+                {formData.accountId && !loadingContacts && accountContacts.length === 0 && (
                   <MenuItem disabled>No contacts linked to this account</MenuItem>
                 )}
               </Select>

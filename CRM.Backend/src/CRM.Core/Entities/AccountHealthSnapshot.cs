@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 // Licensed under the GNU Affero General Public License v3.0
@@ -26,7 +27,8 @@ public class AccountHealthSnapshot : BaseEntity
     /// The customer this snapshot is for
     /// </summary>
     [Required]
-    public int CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int AccountId { get; set; }
     
     /// <summary>
     /// Date of the snapshot
@@ -126,5 +128,5 @@ public class AccountHealthSnapshot : BaseEntity
     public string HealthTrend { get; set; } = "Stable";
     
     // Navigation property
-    public virtual Customer? Customer { get; set; }
+    public virtual Account? Account { get; set; }
 }

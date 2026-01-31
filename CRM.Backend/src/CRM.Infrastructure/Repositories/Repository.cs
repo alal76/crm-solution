@@ -50,7 +50,29 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
 
     public virtual async Task UpdateAsync(T entity)
     {
-        _context.Set<T>().Update(entity);
+        var dbContext = _context as DbContext;
+        if (dbContext != null)
+        {
+            // Check if entity is already being tracked
+            var entry = dbContext.ChangeTracker.Entries<T>()
+                .FirstOrDefault(e => e.Entity.Id == entity.Id);
+            
+            if (entry != null)
+            {
+                // Entity is already tracked - update its values
+                entry.CurrentValues.SetValues(entity);
+                entry.State = EntityState.Modified;
+            }
+            else
+            {
+                // Entity is not tracked - attach and mark as modified
+                _context.Set<T>().Update(entity);
+            }
+        }
+        else
+        {
+            _context.Set<T>().Update(entity);
+        }
         await Task.CompletedTask;
     }
 

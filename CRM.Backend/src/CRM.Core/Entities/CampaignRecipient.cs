@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 // Licensed under the GNU Affero General Public License v3.0
@@ -53,7 +54,8 @@ public class CampaignRecipient : BaseEntity
     /// <summary>
     /// Link to Customer if applicable
     /// </summary>
-    public int? CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int? AccountId { get; set; }
     
     /// <summary>
     /// Recipient email (denormalized for performance)
@@ -175,6 +177,6 @@ public class CampaignRecipient : BaseEntity
     // Navigation properties
     public virtual MarketingCampaign? Campaign { get; set; }
     public virtual Contact? Contact { get; set; }
-    public virtual Customer? Customer { get; set; }
+    public virtual Account? Account { get; set; }
     public virtual ICollection<CampaignLinkClick> LinkClicks { get; set; } = new List<CampaignLinkClick>();
 }

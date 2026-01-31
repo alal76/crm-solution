@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -86,7 +87,8 @@ public class Activity : BaseEntity
     public string? SecondaryEntityName { get; set; }
     
     // Specific Relationships (for querying)
-    public int? CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? OpportunityId { get; set; }
     public int? CampaignId { get; set; }
@@ -120,7 +122,7 @@ public class Activity : BaseEntity
 
     // Navigation properties
     public User? User { get; set; }
-    public Customer? Customer { get; set; }
+    public Account? Account { get; set; }
     public Opportunity? Opportunity { get; set; }
     public MarketingCampaign? Campaign { get; set; }
     public Product? Product { get; set; }

@@ -153,11 +153,11 @@ public class OpportunitiesControllerTests
             new() { Id = 1, Name = "Opportunity 1", AccountId = 5 },
             new() { Id = 2, Name = "Opportunity 2", AccountId = 5 }
         };
-        _mockOpportunityService.Setup(s => s.GetOpportunitiesByAccountAsync(5))
+        _mockOpportunityService.Setup(s => s.GetOpportunitiesByCustomerAsync(5))
             .ReturnsAsync(opportunities);
 
         // Act
-        var result = await _controller.GetByAccountId(5);
+        var result = await _controller.GetByCustomerId(5);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -167,14 +167,14 @@ public class OpportunitiesControllerTests
     }
 
     [Fact]
-    public async Task GetByAccountId_ReturnsEmptyList_WhenNoOpportunitiesForAccount()
+    public async Task GetByCustomerId_ReturnsEmptyList_WhenNoOpportunitiesForAccount()
     {
         // Arrange
-        _mockOpportunityService.Setup(s => s.GetOpportunitiesByAccountAsync(999))
+        _mockOpportunityService.Setup(s => s.GetOpportunitiesByCustomerAsync(999))
             .ReturnsAsync(new List<Opportunity>());
 
         // Act
-        var result = await _controller.GetByAccountId(999);
+        var result = await _controller.GetByCustomerId(999);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -183,14 +183,14 @@ public class OpportunitiesControllerTests
     }
 
     [Fact]
-    public async Task GetByAccountId_Returns500_OnException()
+    public async Task GetByCustomerId_Returns500_OnException()
     {
         // Arrange
-        _mockOpportunityService.Setup(s => s.GetOpportunitiesByAccountAsync(It.IsAny<int>()))
+        _mockOpportunityService.Setup(s => s.GetOpportunitiesByCustomerAsync(It.IsAny<int>()))
             .ThrowsAsync(new Exception("Database error"));
 
         // Act
-        var result = await _controller.GetByAccountId(5);
+        var result = await _controller.GetByCustomerId(5);
 
         // Assert
         var statusResult = result.Should().BeOfType<ObjectResult>().Subject;

@@ -14,8 +14,8 @@ public interface IContactsService
     Task<SocialMediaLinkDto> AddSocialMediaLinkAsync(int contactId, AddSocialMediaRequest request);
     Task<bool> RemoveSocialMediaLinkAsync(int linkId);
 
-    // Customer assignment methods
-    Task<List<ContactDto>> GetByCustomerIdAsync(int customerId);
-    Task AssignToCustomerAsync(int contactId, int customerId);
-    Task UnassignFromCustomerAsync(int contactId);
+    // Account assignment methods
+    Task<List<ContactDto>> GetByAccountIdAsync(int accountId);
+    Task AssignToAccountAsync(int contactId, int accountId);
+    Task UnassignFromAccountAsync(int contactId);
 }

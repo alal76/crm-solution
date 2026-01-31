@@ -195,7 +195,7 @@ test.describe('Create 10 Accounts with Contacts via UI', () => {
         
         // Listen for API response
         const responsePromise = page.waitForResponse(resp => 
-          resp.url().includes('/api/customers') && resp.request().method() === 'POST',
+          resp.url().includes('/api/accounts') && resp.request().method() === 'POST',
           { timeout: 10000 }
         ).catch(() => null);
         
@@ -244,7 +244,7 @@ test.describe('Create 10 Accounts with Contacts via UI', () => {
         await page.waitForTimeout(1000);
         
         // Get created account ID via API - search by email since company may be empty for Individual accounts
-        const custResp = await apiContext.get('/api/customers', { headers: { Authorization: `Bearer ${token}` } });
+        const custResp = await apiContext.get('/api/accounts', { headers: { Authorization: `Bearer ${token}` } });
         const customers = await custResp.json();
         const created = customers.find((c: any) => c.email === acct.email || 
           (c.firstName === acct.firstName && c.lastName === acct.lastName));
@@ -290,7 +290,7 @@ test.describe('Create 10 Accounts with Contacts via UI', () => {
         console.log(`  Linking ${contactIds.length} contacts via API...`);
         let linkedCount = 0;
         for (let k = 0; k < contactIds.length; k++) {
-          const resp = await apiContext.post(`/api/customers/${acctId}/contacts`, {
+          const resp = await apiContext.post(`/api/accounts/${acctId}/contacts`, {
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
             data: { 
               contactId: contactIds[k], 

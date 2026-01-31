@@ -161,7 +161,8 @@ public class Lead : BaseEntity
     public int? CampaignId { get; set; }
     
     /// <summary>Matched existing customer/company (if applicable)</summary>
-    public int? CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int? AccountId { get; set; }
     
     /// <summary>Matched existing contact (if applicable)</summary>
     public int? ContactId { get; set; }
@@ -179,8 +180,8 @@ public class Lead : BaseEntity
     public virtual MarketingCampaign? Campaign { get; set; }
     
     /// <summary>Matched customer (company)</summary>
-    [ForeignKey("CustomerId")]
-    public virtual Customer? Customer { get; set; }
+    [ForeignKey("AccountId")]
+    public virtual Account? Account { get; set; }
     
     /// <summary>Matched contact (person)</summary>
     [ForeignKey("ContactId")]

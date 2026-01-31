@@ -22,24 +22,24 @@ public class CoreEntityTests
     public void Customer_CanBeCreated_WithDefaults()
     {
         // Act
-        var customer = new Customer();
+        var account = new Account();
 
         // Assert
-        customer.Id.Should().Be(0);
-        customer.Category.Should().Be(CustomerCategory.Individual);
-        customer.FirstName.Should().BeEmpty();
-        customer.LastName.Should().BeEmpty();
-        customer.IsDeleted.Should().BeFalse();
+        account.Id.Should().Be(0);
+        account.Category.Should().Be(AccountCategory.Individual);
+        account.FirstName.Should().BeEmpty();
+        account.LastName.Should().BeEmpty();
+        account.IsDeleted.Should().BeFalse();
     }
 
     [Fact]
     public void Customer_CanBeCreated_WithIndividualProperties()
     {
         // Act
-        var customer = new Customer
+        var account = new Account
         {
             Id = 1,
-            Category = CustomerCategory.Individual,
+            Category = AccountCategory.Individual,
             FirstName = "John",
             LastName = "Doe",
             Email = "john.doe@example.com",
@@ -51,74 +51,74 @@ public class CoreEntityTests
         };
 
         // Assert
-        customer.Id.Should().Be(1);
-        customer.Category.Should().Be(CustomerCategory.Individual);
-        customer.FirstName.Should().Be("John");
-        customer.LastName.Should().Be("Doe");
-        customer.Email.Should().Be("john.doe@example.com");
-        customer.Phone.Should().Be("555-1234");
-        customer.Salutation.Should().Be("Mr.");
+        account.Id.Should().Be(1);
+        account.Category.Should().Be(AccountCategory.Individual);
+        account.FirstName.Should().Be("John");
+        account.LastName.Should().Be("Doe");
+        account.Email.Should().Be("john.doe@example.com");
+        account.Phone.Should().Be("555-1234");
+        account.Salutation.Should().Be("Mr.");
     }
 
     [Fact]
     public void Customer_CanBeCreated_AsOrganization()
     {
         // Act
-        var customer = new Customer
+        var account = new Account
         {
             Id = 2,
-            Category = CustomerCategory.Organization,
+            Category = AccountCategory.Organization,
             Company = "Acme Corporation",
             Industry = "Technology",
             Website = "https://acme.com",
-            CustomerType = CustomerType.Enterprise,
+            AccountType = AccountType.Enterprise,
             CreatedAt = DateTime.UtcNow
         };
 
         // Assert
-        customer.Category.Should().Be(CustomerCategory.Organization);
-        customer.Company.Should().Be("Acme Corporation");
-        customer.Industry.Should().Be("Technology");
-        customer.CustomerType.Should().Be(CustomerType.Enterprise);
+        account.Category.Should().Be(AccountCategory.Organization);
+        account.Company.Should().Be("Acme Corporation");
+        account.Industry.Should().Be("Technology");
+        account.AccountType.Should().Be(AccountType.Enterprise);
     }
 
     [Fact]
-    public void CustomerCategory_HasExpectedValues()
+    public void AccountCategory_HasExpectedValues()
     {
-        Enum.IsDefined(typeof(CustomerCategory), CustomerCategory.Individual).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerCategory), CustomerCategory.Organization).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountCategory), AccountCategory.Individual).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountCategory), AccountCategory.Organization).Should().BeTrue();
     }
 
     [Fact]
-    public void CustomerLifecycleStage_HasAllExpectedValues()
+    public void AccountLifecycleStage_HasAllExpectedValues()
     {
-        Enum.IsDefined(typeof(CustomerLifecycleStage), CustomerLifecycleStage.Other).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerLifecycleStage), CustomerLifecycleStage.Lead).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerLifecycleStage), CustomerLifecycleStage.Opportunity).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerLifecycleStage), CustomerLifecycleStage.Customer).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerLifecycleStage), CustomerLifecycleStage.CustomerAtRisk).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerLifecycleStage), CustomerLifecycleStage.Churned).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerLifecycleStage), CustomerLifecycleStage.WinBack).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountLifecycleStage), AccountLifecycleStage.Other).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountLifecycleStage), AccountLifecycleStage.Lead).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountLifecycleStage), AccountLifecycleStage.Opportunity).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountLifecycleStage), AccountLifecycleStage.Active).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountLifecycleStage), AccountLifecycleStage.AtRisk).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountLifecycleStage), AccountLifecycleStage.Churned).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountLifecycleStage), AccountLifecycleStage.WinBack).Should().BeTrue();
     }
 
     [Fact]
-    public void CustomerType_HasAllExpectedValues()
+    public void AccountType_HasAllExpectedValues()
     {
-        Enum.IsDefined(typeof(CustomerType), CustomerType.Individual).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerType), CustomerType.SmallBusiness).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerType), CustomerType.MidMarket).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerType), CustomerType.Enterprise).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerType), CustomerType.Government).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerType), CustomerType.NonProfit).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountType), AccountType.Individual).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountType), AccountType.SmallBusiness).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountType), AccountType.MidMarket).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountType), AccountType.Enterprise).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountType), AccountType.Government).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountType), AccountType.NonProfit).Should().BeTrue();
     }
 
     [Fact]
-    public void CustomerPriority_HasAllExpectedValues()
+    public void AccountPriority_HasAllExpectedValues()
     {
-        Enum.IsDefined(typeof(CustomerPriority), CustomerPriority.Low).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerPriority), CustomerPriority.Medium).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerPriority), CustomerPriority.High).Should().BeTrue();
-        Enum.IsDefined(typeof(CustomerPriority), CustomerPriority.Critical).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountPriority), AccountPriority.Low).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountPriority), AccountPriority.Medium).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountPriority), AccountPriority.High).Should().BeTrue();
+        Enum.IsDefined(typeof(AccountPriority), AccountPriority.Critical).Should().BeTrue();
     }
 
     #endregion
@@ -221,10 +221,9 @@ public class CoreEntityTests
 
         // Assert
         account.Id.Should().Be(0);
-        account.AccountNumber.Should().BeEmpty();
-        account.Status.Should().Be(AccountStatus.Current);
-        account.IsActive.Should().BeTrue();
-        account.IsAutoRenew.Should().BeFalse();
+        account.FirstName.Should().BeEmpty();
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Other);
+        account.IsDeleted.Should().BeFalse();
     }
 
     [Fact]
@@ -234,37 +233,26 @@ public class CoreEntityTests
         var account = new Account
         {
             Id = 1,
-            AccountNumber = "ACC-001",
-            CustomerId = 5,
-            ProductId = 10,
-            Status = AccountStatus.Current,
-            MRR = 500m,
-            ARR = 6000m,
-            Currency = "USD",
-            ContractStartDate = DateTime.UtcNow,
-            ContractEndDate = DateTime.UtcNow.AddYears(1),
-            IsActive = true,
-            IsAutoRenew = true,
+            Category = AccountCategory.Organization,
+            Company = "Acme Corp",
+            Industry = "Technology",
+            AnnualRevenue = 5000000m,
+            NumberOfEmployees = 100,
+            LifecycleStage = AccountLifecycleStage.Active,
+            Website = "https://acme.com",
+            Email = "contact@acme.com",
+            Phone = "555-1234",
             CreatedAt = DateTime.UtcNow
         };
 
         // Assert
         account.Id.Should().Be(1);
-        account.AccountNumber.Should().Be("ACC-001");
-        account.CustomerId.Should().Be(5);
-        account.ProductId.Should().Be(10);
-        account.Status.Should().Be(AccountStatus.Current);
-        account.MRR.Should().Be(500m);
-        account.ARR.Should().Be(6000m);
-        account.Currency.Should().Be("USD");
-        account.IsAutoRenew.Should().BeTrue();
-    }
-
-    [Fact]
-    public void AccountStatus_HasAllExpectedValues()
-    {
-        Enum.IsDefined(typeof(AccountStatus), AccountStatus.Current).Should().BeTrue();
-        Enum.IsDefined(typeof(AccountStatus), AccountStatus.Churned).Should().BeTrue();
+        account.Company.Should().Be("Acme Corp");
+        account.Industry.Should().Be("Technology");
+        account.AnnualRevenue.Should().Be(5000000m);
+        account.NumberOfEmployees.Should().Be(100);
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Active);
+        account.Website.Should().Be("https://acme.com");
     }
 
     #endregion
@@ -622,10 +610,10 @@ public class CoreEntityTests
     }
 
     [Fact]
-    public void CustomerDto_CanBeCreated_WithProperties()
+    public void AccountDto_CanBeCreated_WithProperties()
     {
         // Act
-        var dto = new CustomerDto
+        var dto = new AccountDto
         {
             Id = 1,
             FirstName = "John",

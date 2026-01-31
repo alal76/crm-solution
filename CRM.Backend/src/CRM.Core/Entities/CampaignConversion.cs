@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 // Licensed under the GNU Affero General Public License v3.0
@@ -61,7 +62,8 @@ public class CampaignConversion : BaseEntity
     /// <summary>
     /// The customer if applicable
     /// </summary>
-    public int? CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int? AccountId { get; set; }
     
     /// <summary>
     /// Type of conversion
@@ -118,5 +120,5 @@ public class CampaignConversion : BaseEntity
     public virtual MarketingCampaign? Campaign { get; set; }
     public virtual CampaignRecipient? CampaignRecipient { get; set; }
     public virtual Contact? Contact { get; set; }
-    public virtual Customer? Customer { get; set; }
+    public virtual Account? Account { get; set; }
 }

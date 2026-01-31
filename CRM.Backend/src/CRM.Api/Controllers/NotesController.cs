@@ -27,7 +27,7 @@ public class NoteDto
     public int? EntityId { get; set; }
     
     // Legacy FK fields
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? OpportunityId { get; set; }
     public int? CampaignId { get; set; }
@@ -212,7 +212,7 @@ public class NotesController : ControllerBase
             query = query.Where(n => 
                 (n.EntityType == entityType && n.EntityId == entityId) ||
                 // Also check legacy FK fields
-                (entityType.ToLower() == "customer" && n.CustomerId == entityId) ||
+                (entityType.ToLower() == "customer" && n.AccountId == entityId) ||
                 (entityType.ToLower() == "contact" && n.ContactId == entityId) ||
                 (entityType.ToLower() == "opportunity" && n.OpportunityId == entityId) ||
                 (entityType.ToLower() == "lead" && n.LeadId == entityId) ||
@@ -226,7 +226,7 @@ public class NotesController : ControllerBase
         {
             // Legacy filters
             if (customerId.HasValue)
-                query = query.Where(n => n.CustomerId == customerId || (n.EntityType == "Customer" && n.EntityId == customerId));
+                query = query.Where(n => n.AccountId == customerId || (n.EntityType == "Customer" && n.EntityId == customerId));
             if (contactId.HasValue)
                 query = query.Where(n => n.ContactId == contactId || (n.EntityType == "Contact" && n.EntityId == contactId));
             if (opportunityId.HasValue)
@@ -311,7 +311,7 @@ public class NotesController : ControllerBase
             IsImportant = dto.IsImportant,
             EntityType = dto.EntityType,
             EntityId = dto.EntityId,
-            CustomerId = dto.CustomerId,
+            AccountId = dto.AccountId,
             ContactId = dto.ContactId,
             OpportunityId = dto.OpportunityId,
             CampaignId = dto.CampaignId,
@@ -333,7 +333,7 @@ public class NotesController : ControllerBase
         {
             switch (dto.EntityType.ToLower())
             {
-                case "customer": note.CustomerId = dto.EntityId; break;
+                case "customer": note.AccountId = dto.EntityId; break;
                 case "contact": note.ContactId = dto.EntityId; break;
                 case "opportunity": note.OpportunityId = dto.EntityId; break;
                 case "lead": note.LeadId = dto.EntityId; break;
@@ -492,7 +492,7 @@ public class NotesController : ControllerBase
         // Query both polymorphic and legacy FK fields
         query = normalizedType switch
         {
-            "customer" => query.Where(n => n.CustomerId == entityId || (n.EntityType == "Customer" && n.EntityId == entityId)),
+            "customer" => query.Where(n => n.AccountId == entityId || (n.EntityType == "Customer" && n.EntityId == entityId)),
             "contact" => query.Where(n => n.ContactId == entityId || (n.EntityType == "Contact" && n.EntityId == entityId)),
             "opportunity" => query.Where(n => n.OpportunityId == entityId || (n.EntityType == "Opportunity" && n.EntityId == entityId)),
             "lead" => query.Where(n => n.LeadId == entityId || (n.EntityType == "Lead" && n.EntityId == entityId)),
@@ -536,7 +536,7 @@ public class NotesController : ControllerBase
 
         var count = normalizedType switch
         {
-            "customer" => await query.CountAsync(n => n.CustomerId == entityId || (n.EntityType == "Customer" && n.EntityId == entityId)),
+            "customer" => await query.CountAsync(n => n.AccountId == entityId || (n.EntityType == "Customer" && n.EntityId == entityId)),
             "contact" => await query.CountAsync(n => n.ContactId == entityId || (n.EntityType == "Contact" && n.EntityId == entityId)),
             "opportunity" => await query.CountAsync(n => n.OpportunityId == entityId || (n.EntityType == "Opportunity" && n.EntityId == entityId)),
             "lead" => await query.CountAsync(n => n.LeadId == entityId || (n.EntityType == "Lead" && n.EntityId == entityId)),
@@ -577,7 +577,7 @@ public class NotesController : ControllerBase
         {
             switch (dto.EntityType.ToLower())
             {
-                case "customer": note.CustomerId = dto.EntityId; break;
+                case "customer": note.AccountId = dto.EntityId; break;
                 case "contact": note.ContactId = dto.EntityId; break;
                 case "opportunity": note.OpportunityId = dto.EntityId; break;
                 case "lead": note.LeadId = dto.EntityId; break;

@@ -60,8 +60,8 @@ interface Contract {
   description?: string;
   status: ContractStatus;
   contractType: ContractType;
-  customerId: number;
-  customerName?: string;
+  accountId: number;
+  accountName?: string;
   contactId?: number;
   contactName?: string;
   ownerId?: number;
@@ -89,7 +89,7 @@ interface ContractForm {
   description: string;
   status: ContractStatus;
   contractType: ContractType;
-  customerId: number | null;
+  accountId: number | null;
   contactId: number | null;
   startDate: string;
   endDate: string;
@@ -184,7 +184,7 @@ function ContractsPage() {
     description: '',
     status: ContractStatus.Draft,
     contractType: ContractType.Service,
-    customerId: null,
+    accountId: null,
     contactId: null,
     startDate: '',
     endDate: '',
@@ -240,7 +240,7 @@ function ContractsPage() {
         description: contract.description || '',
         status: contract.status,
         contractType: contract.contractType,
-        customerId: contract.customerId,
+        accountId: contract.accountId,
         contactId: contract.contactId || null,
         startDate: contract.startDate?.split('T')[0] || '',
         endDate: contract.endDate?.split('T')[0] || '',
@@ -285,7 +285,7 @@ function ContractsPage() {
   // ==================== SAVE OPERATIONS ====================
 
   const handleSaveContract = async () => {
-    if (!formData.name?.trim() || !formData.customerId) {
+    if (!formData.name?.trim() || !formData.accountId) {
       dialogApi.setError('Contract name and account are required');
       return;
     }
@@ -418,7 +418,7 @@ function ContractsPage() {
         <div class="section">
           <div class="section-title">Contract Details</div>
           <div class="field"><span class="label">Type:</span><span class="value">${getTypeLabel(contract.contractType)}</span></div>
-          <div class="field"><span class="label">Account:</span><span class="value">${contract.customerName || '-'}</span></div>
+          <div class="field"><span class="label">Account:</span><span class="value">${contract.accountName || '-'}</span></div>
           <div class="field"><span class="label">Contact:</span><span class="value">${contract.contactName || '-'}</span></div>
           <div class="field"><span class="label">Value:</span><span class="value">${formatCurrency(contract.value)}</span></div>
           <div class="field"><span class="label">Billing:</span><span class="value">${contract.billingFrequency || '-'}</span></div>
@@ -554,7 +554,7 @@ function ContractsPage() {
                         <TableCell>
                           <Typography fontWeight="medium">{contract.name}</Typography>
                         </TableCell>
-                        <TableCell>{contract.customerName || '-'}</TableCell>
+                        <TableCell>{contract.accountName || '-'}</TableCell>
                         <TableCell>{getTypeLabel(contract.contractType)}</TableCell>
                         <TableCell>
                           <Chip
@@ -693,11 +693,11 @@ function ContractsPage() {
               </Grid>
               <Grid item xs={12} md={6}>
                 <EntitySelect
-                  name="customerId"
+                  name="accountId"
                   label="Account *"
                   entityType="account"
-                  value={formData.customerId}
-                  onChange={(val) => setFormData(prev => ({ ...prev, customerId: val as number | null }))}
+                  value={formData.accountId}
+                  onChange={(val) => setFormData(prev => ({ ...prev, accountId: val as number | null }))}
                 />
               </Grid>
               <Grid item xs={12} md={6}>

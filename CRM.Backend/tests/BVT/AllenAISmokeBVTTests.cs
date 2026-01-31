@@ -118,7 +118,7 @@ public class AllenAISmokeBVTTests
         var types = Enum.GetValues<AIModelType>();
         types.Should().Contain(AIModelType.LeadScoring);
         types.Should().Contain(AIModelType.ChurnPrediction);
-        types.Should().Contain(AIModelType.OpportunityPrediction);
+        types.Should().Contain(AIModelType.OpportunityWinPrediction);
     }
 
     [Fact]
@@ -217,13 +217,13 @@ public class AllenAISmokeBVTTests
             OpportunityId = 1,
             WinProbability = 0.75m,
             HealthScore = 80m,
-            AIRecommendations = "Schedule follow-up meeting. Address technical concerns.",
-            AIGeneratedNextSteps = "1. Demo 2. Proposal 3. Negotiation"
+            ActionRecommendationsJson = "[\"Schedule follow-up meeting\", \"Address technical concerns\"]",
+            TalkingPoints = "1. Demo 2. Proposal 3. Negotiation"
         };
 
         // Assert
         insight.WinProbability.Should().BeInRange(0m, 1m);
-        insight.AIRecommendations.Should().NotBeNullOrEmpty();
+        insight.ActionRecommendationsJson.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
@@ -232,15 +232,15 @@ public class AllenAISmokeBVTTests
         // Arrange & Act
         var risk = new ChurnRisk
         {
-            CustomerId = 1,
+            AccountId = 1,
             ChurnProbability = 0.45m,
             RiskLevel = ChurnRiskLevel.Medium,
-            TopRiskFactors = "Low engagement, No recent purchases, Support tickets increased"
+            RiskIndicatorsJson = "[\"Low engagement\", \"No recent purchases\", \"Support tickets increased\"]"
         };
 
         // Assert
         risk.ChurnProbability.Should().BeInRange(0m, 1m);
-        risk.TopRiskFactors.Should().NotBeNullOrEmpty();
+        risk.RiskIndicatorsJson.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class AllenAISmokeBVTTests
             TargetEntityId = 100,
             ActionType = NextBestActionType.Call,
             Title = "Follow up with high-value lead",
-            Reason = "Lead score increased by 20 points",
+            Rationale = "Lead score increased by 20 points",
             Priority = ActionPriorityLevel.High,
             Confidence = 0.9m
         };
@@ -272,14 +272,14 @@ public class AllenAISmokeBVTTests
             Name = "OLMo-7B-v1",
             Provider = AIProvider.AllenAI_OLMo,
             ModelType = AIModelType.LeadScoring,
-            Endpoint = "https://api-inference.huggingface.co/models/allenai/OLMo-7B",
+            ModelIdentifier = "https://api-inference.huggingface.co/models/allenai/OLMo-7B",
             Status = AIModelStatus.Active,
             Version = "1.0.0"
         };
 
         // Assert
         model.Provider.Should().Be(AIProvider.AllenAI_OLMo);
-        model.Endpoint.Should().Contain("huggingface");
+        model.ModelIdentifier.Should().Contain("huggingface");
     }
 
     #endregion
@@ -410,24 +410,24 @@ public class AllenAISmokeBVTTests
             EntityId = 100,
             PredictedValue = 0.85m,
             Confidence = 0.92m,
-            ModelVersion = "OLMo-7B-v1",
-            ResponseTimeMs = 250
+            Explanation = "OLMo-7B-v1",
+            InferenceTimeMs = 250
         };
 
         // Assert
         prediction.PredictedValue.Should().BeInRange(0m, 1m);
-        prediction.ResponseTimeMs.Should().BePositive();
+        prediction.InferenceTimeMs.Should().BePositive();
     }
 
     [Fact]
     public void SMOKE_AI_054_AIModelStatus_Transitions()
     {
         // Arrange
-        var model = new AIModel { Status = AIModelStatus.Draft };
+        var model = new AIModel { Status = AIModelStatus.Training };
 
         // Act & Assert - Valid status transitions
-        model.Status = AIModelStatus.Training;
-        model.Status.Should().Be(AIModelStatus.Training);
+        model.Status = AIModelStatus.Trained;
+        model.Status.Should().Be(AIModelStatus.Trained);
         
         model.Status = AIModelStatus.Active;
         model.Status.Should().Be(AIModelStatus.Active);

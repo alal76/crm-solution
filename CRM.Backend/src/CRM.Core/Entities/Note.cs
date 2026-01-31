@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using CRM.Core.Models;
 
 namespace CRM.Core.Entities;
@@ -57,7 +58,8 @@ public class Note : BaseEntity
     public int? EntityId { get; set; }
     
     // Legacy relationships (kept for backward compatibility, prefer EntityType+EntityId)
-    public int? CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? OpportunityId { get; set; }
     public int? CampaignId { get; set; }
@@ -90,7 +92,7 @@ public class Note : BaseEntity
     public string? ContextPath { get; set; } // URL path where note was created
 
     // Navigation properties
-    public Customer? Customer { get; set; }
+    public Account? Account { get; set; }
     public Contact? Contact { get; set; }
     public Lead? Lead { get; set; }
     public Opportunity? Opportunity { get; set; }

@@ -22,7 +22,7 @@ let supportToken: string;
 
 // Test data IDs for cross-test references
 const testData = {
-  customerId: 0,
+  accountId: 0,
   contactId: 0,
   leadId: 0,
   opportunityId: 0,
@@ -240,7 +240,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
     test.describe('Journey 2: Customer Management', () => {
       test('SR-005: Create customer (from qualified lead)', async ({ request }) => {
         const api = await authRequest(request, adminToken);
-        const response = await api.post(`${API_URL}/api/customers`, {
+        const response = await api.post(`${API_URL}/api/accounts`, {
           firstName: 'Persona',
           lastName: 'Customer',
           company: 'Persona Customer Corp',
@@ -252,13 +252,13 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
         });
         expect(response.ok()).toBeTruthy();
         const customer = await response.json();
-        testData.customerId = customer.id;
-        expect(testData.customerId).toBeGreaterThan(0);
+        testData.accountId = customer.id;
+        expect(testData.accountId).toBeGreaterThan(0);
       });
 
       test('SR-006: Get customer details', async ({ request }) => {
         const api = await authRequest(request, adminToken);
-        const response = await api.get(`${API_URL}/api/customers/${testData.customerId}`);
+        const response = await api.get(`${API_URL}/api/accounts/${testData.accountId}`);
         expect(response.ok()).toBeTruthy();
       });
 
@@ -269,7 +269,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
           lastName: 'Contact',
           email: `persona-contact-${Date.now()}@example.com`,
           phone: '555-CONT',
-          customerId: testData.customerId,
+          accountId: testData.accountId,
           title: 'Decision Maker',
           department: 'Purchasing',
           isPrimary: true
@@ -282,7 +282,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
       test('SR-008: Log customer interaction', async ({ request }) => {
         const api = await authRequest(request, adminToken);
         const response = await api.post(`${API_URL}/api/interactions`, {
-          customerId: testData.customerId,
+          accountId: testData.accountId,
           contactId: testData.contactId,
           type: 1, // Phone call
           subject: 'Discovery call - persona test',
@@ -296,7 +296,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
 
       test('SR-009: Search customers', async ({ request }) => {
         const api = await authRequest(request, adminToken);
-        const response = await api.get(`${API_URL}/api/customers?search=Persona`);
+        const response = await api.get(`${API_URL}/api/accounts?search=Persona`);
         expect(response.ok()).toBeTruthy();
       });
     });
@@ -307,7 +307,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
         const response = await api.post(`${API_URL}/api/opportunities`, {
           title: 'Persona Opportunity - CRM Implementation',
           description: 'Full CRM implementation project',
-          customerId: testData.customerId,
+          accountId: testData.accountId,
           contactId: testData.contactId,
           value: 50000,
           probability: 60,
@@ -327,7 +327,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
           id: testData.opportunityId,
           title: 'Persona Opportunity - CRM Implementation',
           description: 'Full CRM implementation project',
-          customerId: testData.customerId,
+          accountId: testData.accountId,
           value: 50000,
           probability: 75,
           stage: 2, // Proposal
@@ -365,7 +365,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
       test('SR-014: Create quote', async ({ request }) => {
         const api = await authRequest(request, adminToken);
         const response = await api.post(`${API_URL}/api/quotes`, {
-          customerId: testData.customerId,
+          accountId: testData.accountId,
           opportunityId: testData.opportunityId,
           title: 'Persona Quote - CRM Implementation',
           status: 1, // Draft
@@ -571,7 +571,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
         const response = await api.post(`${API_URL}/api/servicerequests`, {
           subject: 'Persona SR - Product Issue',
           description: 'Customer reporting issues with product configuration',
-          customerId: testData.customerId,
+          accountId: testData.accountId,
           contactId: testData.contactId,
           priority: 2, // High
           channel: 4 // Self Service Portal
@@ -593,7 +593,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
         const response = await api.put(`${API_URL}/api/servicerequests/${testData.serviceRequestId}`, {
           subject: 'Persona SR - Product Issue',
           description: 'Customer reporting issues with product configuration',
-          customerId: testData.customerId,
+          accountId: testData.accountId,
           priority: 2,
           status: 2, // InProgress
           channel: 4
@@ -648,19 +648,19 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
     test.describe('Journey 3: Customer View & History', () => {
       test('SA-009: Get customer 360 view', async ({ request }) => {
         const api = await authRequest(request, adminToken);
-        const response = await api.get(`${API_URL}/api/customers/${testData.customerId}`);
+        const response = await api.get(`${API_URL}/api/accounts/${testData.accountId}`);
         expect(response.ok()).toBeTruthy();
       });
 
       test('SA-010: Get customer interactions', async ({ request }) => {
         const api = await authRequest(request, adminToken);
-        const response = await api.get(`${API_URL}/api/interactions?customerId=${testData.customerId}`);
+        const response = await api.get(`${API_URL}/api/interactions?accountId=${testData.accountId}`);
         expect(response.status()).toBeLessThan(500);
       });
 
       test('SA-011: Get customer service requests', async ({ request }) => {
         const api = await authRequest(request, adminToken);
-        const response = await api.get(`${API_URL}/api/servicerequests?customerId=${testData.customerId}`);
+        const response = await api.get(`${API_URL}/api/servicerequests?accountId=${testData.accountId}`);
         expect(response.status()).toBeLessThan(500);
       });
     });
@@ -684,7 +684,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
         const response = await api.put(`${API_URL}/api/servicerequests/${testData.serviceRequestId}`, {
           subject: 'Persona SR - Product Issue',
           description: 'Issue resolved',
-          customerId: testData.customerId,
+          accountId: testData.accountId,
           priority: 2,
           status: 7, // Closed
           channel: 4,
@@ -734,7 +734,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
         const api = await authRequest(request, adminToken);
         const response = await api.put(`${API_URL}/api/quotes/${testData.quoteId}`, {
           id: testData.quoteId,
-          customerId: testData.customerId,
+          accountId: testData.accountId,
           title: 'Persona Quote - CRM Implementation',
           status: 2, // Approved
           validityDays: 30,
@@ -827,8 +827,8 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
       if (testData.contactId > 0) {
         await api.delete(`${API_URL}/api/contacts/${testData.contactId}`);
       }
-      if (testData.customerId > 0) {
-        await api.delete(`${API_URL}/api/customers/${testData.customerId}`);
+      if (testData.accountId > 0) {
+        await api.delete(`${API_URL}/api/accounts/${testData.accountId}`);
       }
       if (testData.leadId > 0) {
         await api.delete(`${API_URL}/api/leads/${testData.leadId}`);

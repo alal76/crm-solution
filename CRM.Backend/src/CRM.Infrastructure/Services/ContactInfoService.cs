@@ -953,11 +953,10 @@ public class ContactInfoService : IContactInfoService
         // Get entity name
         result.EntityName = entityType switch
         {
-            EntityType.Customer => (await _context.Customers.FindAsync(entityId))?.DisplayName,
+            EntityType.Account => (await _context.Accounts.FindAsync(entityId))?.DisplayName,
             EntityType.Contact => await _context.Contacts.Where(c => c.Id == entityId)
                 .Select(c => c.FirstName + " " + c.LastName).FirstOrDefaultAsync(),
             EntityType.Lead => (await _context.Leads.FindAsync(entityId))?.FullName,
-            EntityType.Account => (await _context.Accounts.FindAsync(entityId))?.AccountNumber,
             _ => null
         };
 
@@ -1084,11 +1083,10 @@ public class ContactInfoService : IContactInfoService
     {
         return entityType switch
         {
-            EntityType.Customer => (await _context.Customers.FindAsync(entityId))?.DisplayName ?? $"Customer #{entityId}",
+            EntityType.Account => (await _context.Accounts.FindAsync(entityId))?.DisplayName ?? $"Account #{entityId}",
             EntityType.Contact => await _context.Contacts.Where(c => c.Id == entityId)
                 .Select(c => c.FirstName + " " + c.LastName).FirstOrDefaultAsync() ?? $"Contact #{entityId}",
             EntityType.Lead => (await _context.Leads.FindAsync(entityId))?.FullName ?? $"Lead #{entityId}",
-            EntityType.Account => (await _context.Accounts.FindAsync(entityId))?.AccountNumber ?? $"Account #{entityId}",
             _ => $"Entity #{entityId}"
         };
     }

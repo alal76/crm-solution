@@ -68,7 +68,7 @@ interface Quote extends BaseEntity {
   quoteNumber: string;
   title: string;
   description?: string;
-  customerId?: number;
+  accountId?: number;
   customer?: { firstName: string; lastName: string; company?: string };
   opportunityId?: number;
   status: number;
@@ -94,7 +94,7 @@ interface Quote extends BaseEntity {
 interface QuoteForm {
   title: string;
   description: string;
-  customerId: number | '';
+  accountId: number | '';
   opportunityId: number | '';
   status: number;
   subtotal: number;
@@ -141,7 +141,7 @@ function QuotesPage() {
   );
 
   const emptyForm: QuoteForm = {
-    title: '', description: '', customerId: '', opportunityId: '', status: 0,
+    title: '', description: '', accountId: '', opportunityId: '', status: 0,
     subtotal: 0, taxPercent: 0, discountPercent: 0, shippingAmount: 0,
     validUntil: '', termsAndConditions: '', notes: '', billingAddress: '', shippingAddress: '',
   };
@@ -180,7 +180,7 @@ function QuotesPage() {
       setEditingId(quote.id);
       setFormData({
         title: quote.title, description: quote.description || '',
-        customerId: quote.customerId || '', opportunityId: quote.opportunityId || '',
+        accountId: quote.accountId || '', opportunityId: quote.opportunityId || '',
         status: quote.status, subtotal: quote.subtotal, taxPercent: quote.taxPercent,
         discountPercent: quote.discountPercent, shippingAmount: quote.shippingAmount,
         validUntil: quote.validUntil?.split('T')[0] || '',
@@ -225,7 +225,7 @@ function QuotesPage() {
     const totals = calculateTotals();
     const payload = {
       ...formData,
-      customerId: formData.customerId || null,
+      accountId: formData.accountId || null,
       opportunityId: formData.opportunityId || null,
       discountAmount: totals.discount,
       taxAmount: totals.tax,
@@ -313,7 +313,7 @@ function QuotesPage() {
     }
 
     const status = getStatus(quote.status);
-    const customerName = quote.customer 
+    const accountName = quote.customer 
       ? `${quote.customer.firstName} ${quote.customer.lastName}${quote.customer.company ? ` (${quote.customer.company})` : ''}`
       : 'N/A';
 
@@ -331,7 +331,7 @@ function QuotesPage() {
             { label: 'Quote Number', value: quote.quoteNumber },
             { label: 'Title', value: quote.title },
             { label: 'Status', value: status?.label || 'Unknown' },
-            { label: 'Customer', value: customerName },
+            { label: 'Customer', value: accountName },
             { label: 'Valid Until', value: formatDate(quote.validUntil) },
             { label: 'Revision', value: `v${quote.revisionNumber}` },
           ],
@@ -572,8 +572,8 @@ function QuotesPage() {
               <Grid item xs={6}>
                 <EntitySelect
                   entityType="customer"
-                  name="customerId"
-                  value={formData.customerId}
+                  name="accountId"
+                  value={formData.accountId}
                   onChange={handleSelectChange}
                   label="Customer"
                   showAddNew={true}

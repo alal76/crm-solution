@@ -99,8 +99,8 @@ public class RelationshipServiceTests
         var relationship = new AccountRelationship
         {
             Id = 1,
-            SourceCustomerId = 100,
-            TargetCustomerId = 200,
+            SourceAccountId = 100,
+            TargetAccountId = 200,
             RelationshipTypeId = 1,
             Status = "Active",
             StrengthScore = 75,
@@ -110,8 +110,8 @@ public class RelationshipServiceTests
 
         // Assert
         relationship.Should().NotBeNull();
-        relationship.SourceCustomerId.Should().Be(100);
-        relationship.TargetCustomerId.Should().Be(200);
+        relationship.SourceAccountId.Should().Be(100);
+        relationship.TargetAccountId.Should().Be(200);
         relationship.Status.Should().Be("Active");
         relationship.StrengthScore.Should().Be(75);
     }
@@ -123,8 +123,8 @@ public class RelationshipServiceTests
         var relationship = new AccountRelationship
         {
             Id = 2,
-            SourceCustomerId = 100,
-            TargetCustomerId = 300,
+            SourceAccountId = 100,
+            TargetAccountId = 300,
             RelationshipTypeId = 2,
             AnnualRevenueImpact = 150000m,
             CostSavings = 75000m,
@@ -280,7 +280,7 @@ public class RelationshipServiceTests
         var snapshot = new AccountHealthSnapshot
         {
             Id = 1,
-            CustomerId = 100,
+            AccountId = 100,
             SnapshotDate = DateTime.UtcNow,
             OverallHealthScore = 78,
             EngagementScore = 85,
@@ -354,7 +354,7 @@ public class RelationshipServiceTests
             Id = 1,
             MapName = "Enterprise Partners Network",
             Description = "All enterprise partner relationships",
-            CentralCustomerId = 100,
+            CentralAccountId = 100,
             RelationshipDepth = 3,
             MinRelationshipStrength = 50,
             IsPublic = false
@@ -471,10 +471,10 @@ public class RelationshipServiceTests
         var dto = new AccountRelationshipDto
         {
             Id = 1,
-            SourceCustomerId = 100,
-            SourceCustomerName = "Acme Corp",
-            TargetCustomerId = 200,
-            TargetCustomerName = "Partner Inc",
+            SourceAccountId = 100,
+            SourceAccountName = "Acme Corp",
+            TargetAccountId = 200,
+            TargetAccountName = "Partner Inc",
             RelationshipTypeName = "Partner",
             Status = "Active",
             StrengthScore = 80,
@@ -482,8 +482,8 @@ public class RelationshipServiceTests
         };
 
         // Assert
-        dto.SourceCustomerName.Should().Be("Acme Corp");
-        dto.TargetCustomerName.Should().Be("Partner Inc");
+        dto.SourceAccountName.Should().Be("Acme Corp");
+        dto.TargetAccountName.Should().Be("Partner Inc");
         dto.StrengthScore.Should().Be(80);
     }
 

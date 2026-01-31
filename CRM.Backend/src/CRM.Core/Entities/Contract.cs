@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -110,10 +111,11 @@ public class Contract : BaseEntity
     #region Relationships
     
     /// <summary>Associated customer ID</summary>
-    public int CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int AccountId { get; set; }
     
     /// <summary>Navigation to customer</summary>
-    public Customer? Customer { get; set; }
+    public Account? Account { get; set; }
     
     /// <summary>Primary contact ID</summary>
     public int? ContactId { get; set; }

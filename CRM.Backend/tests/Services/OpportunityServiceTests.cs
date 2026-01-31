@@ -160,11 +160,11 @@ public class OpportunityServiceTests
             new() { Id = 2, AccountId = 5, Name = "Deal 2" }
         };
 
-        _mockOpportunityService.Setup(s => s.GetOpportunitiesByAccountAsync(5))
+        _mockOpportunityService.Setup(s => s.GetOpportunitiesByCustomerAsync(5))
             .ReturnsAsync(opportunities);
 
         // Act
-        var result = await _mockOpportunityService.Object.GetOpportunitiesByAccountAsync(5);
+        var result = await _mockOpportunityService.Object.GetOpportunitiesByCustomerAsync(5);
 
         // Assert
         result.Should().HaveCount(2);
@@ -175,11 +175,11 @@ public class OpportunityServiceTests
     public async Task GetOpportunitiesByAccount_ReturnsEmpty_WhenNoOpportunities()
     {
         // Arrange
-        _mockOpportunityService.Setup(s => s.GetOpportunitiesByAccountAsync(999))
+        _mockOpportunityService.Setup(s => s.GetOpportunitiesByCustomerAsync(999))
             .ReturnsAsync(new List<Opportunity>());
 
         // Act
-        var result = await _mockOpportunityService.Object.GetOpportunitiesByAccountAsync(999);
+        var result = await _mockOpportunityService.Object.GetOpportunitiesByCustomerAsync(999);
 
         // Assert
         result.Should().BeEmpty();

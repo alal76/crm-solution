@@ -84,8 +84,8 @@ interface Message extends BaseEntity {
   isStarred: boolean;
   sentAt?: string;
   receivedAt?: string;
-  customerId?: number;
-  customerName?: string;
+  accountId?: number;
+  accountName?: string;
   contactId?: number;
   contactName?: string;
 }
@@ -103,8 +103,8 @@ interface Conversation extends BaseEntity {
   lastMessageAt?: string;
   isStarred: boolean;
   isPinned: boolean;
-  customerId?: number;
-  customerName?: string;
+  accountId?: number;
+  accountName?: string;
 }
 
 interface Channel extends BaseEntity {

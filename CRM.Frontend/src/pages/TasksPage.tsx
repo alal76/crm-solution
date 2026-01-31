@@ -50,7 +50,7 @@ const SEARCH_FIELDS: SearchField[] = [
   { name: 'dueDate', label: 'Due Date', type: 'dateRange' },
 ];
 
-const SEARCHABLE_FIELDS = ['subject', 'description', 'assignedToUserName', 'customerName', 'opportunityName', 'tags'];
+const SEARCHABLE_FIELDS = ['subject', 'description', 'assignedToUserName', 'accountName', 'opportunityName', 'tags'];
 
 // Status mapping for display
 const STATUS_COLORS: Record<string, string> = {
@@ -87,8 +87,8 @@ interface QueueItem extends BaseEntity {
   percentComplete: number;
   estimatedMinutes?: number;
   actualMinutes?: number;
-  customerId?: number;
-  customerName?: string;
+  accountId?: number;
+  accountName?: string;
   opportunityId?: number;
   opportunityName?: string;
   assignedToUserId?: number;
@@ -122,7 +122,7 @@ interface CrmTask extends BaseEntity {
   percentComplete: number;
   assignedToUserId?: number;
   assignedToUser?: { firstName: string; lastName: string };
-  customerId?: number;
+  accountId?: number;
   opportunityId?: number;
   location?: string;
   reminderDate?: string;
@@ -141,7 +141,7 @@ interface TaskForm {
   actualHours: number;
   percentComplete: number;
   assignedToUserId: number | '';
-  customerId: number | '';
+  accountId: number | '';
   opportunityId: number | '';
   location: string;
   reminderDate: string;
@@ -173,7 +173,7 @@ function TasksPage() {
   const emptyForm: TaskForm = {
     title: '', description: '', taskType: 10, status: 0, priority: 1,
     dueDate: '', startDate: '', estimatedHours: 0, actualHours: 0,
-    percentComplete: 0, assignedToUserId: '', customerId: '', opportunityId: '',
+    percentComplete: 0, assignedToUserId: '', accountId: '', opportunityId: '',
     location: '', reminderDate: '', tags: '',
   };
   const [formData, setFormData] = useState<TaskForm>(emptyForm);
@@ -239,7 +239,7 @@ function TasksPage() {
         dueDate: task.dueDate?.split('T')[0] || '', startDate: task.startDate?.split('T')[0] || '',
         estimatedHours: task.estimatedHours || 0, actualHours: task.actualHours || 0,
         percentComplete: task.percentComplete, assignedToUserId: task.assignedToUserId || '',
-        customerId: task.customerId || '', opportunityId: task.opportunityId || '',
+        accountId: task.accountId || '', opportunityId: task.opportunityId || '',
         location: task.location || '', reminderDate: task.reminderDate?.split('T')[0] || '',
         tags: task.tags || '',
       });
@@ -275,7 +275,7 @@ function TasksPage() {
     const payload = {
       ...formData,
       assignedToUserId: formData.assignedToUserId || null,
-      customerId: formData.customerId || null,
+      accountId: formData.accountId || null,
       opportunityId: formData.opportunityId || null,
     };
     await dialogApi.execute(async () => {
@@ -562,13 +562,13 @@ function TasksPage() {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      {item.customerName && (
-                        <Chip label={item.customerName} size="small" variant="outlined" sx={{ mr: 0.5, mb: 0.5 }} />
+                      {item.accountName && (
+                        <Chip label={item.accountName} size="small" variant="outlined" sx={{ mr: 0.5, mb: 0.5 }} />
                       )}
                       {item.opportunityName && (
                         <Chip label={item.opportunityName} size="small" variant="outlined" color="secondary" />
                       )}
-                      {!item.customerName && !item.opportunityName && '—'}
+                      {!item.accountName && !item.opportunityName && '—'}
                     </TableCell>
                     <TableCell align="center">
                       {item.status !== 'Completed' && (
@@ -596,7 +596,7 @@ function TasksPage() {
                               actualHours: task.actualMinutes ? task.actualMinutes / 60 : 0,
                               percentComplete: task.percentComplete || 0,
                               assignedToUserId: task.assignedToUserId || '',
-                              customerId: task.customerId || '',
+                              accountId: task.accountId || '',
                               opportunityId: task.opportunityId || '',
                               location: '',
                               reminderDate: task.reminderDate?.split('T')[0] || '',

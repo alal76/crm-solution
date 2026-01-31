@@ -124,7 +124,7 @@ interface Interaction extends BaseEntity {
   followUpNotes?: string;
   tags?: string;
   category?: string;
-  customerId: number;
+  accountId: number;
   customer?: { id: number; firstName?: string; lastName?: string; companyName?: string };
   contactId?: number;
   contact?: { id: number; firstName?: string; lastName?: string };
@@ -145,12 +145,12 @@ interface Contact extends BaseEntity {
   firstName: string;
   lastName: string;
   email?: string;
-  customerId: number;
+  accountId: number;
 }
 
 interface Opportunity extends BaseEntity {
   title: string;
-  customerId: number;
+  accountId: number;
 }
 
 interface InteractionStats {
@@ -239,12 +239,12 @@ function InteractionsPage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
 
   // Form state
-  const [linkForm, setLinkForm] = useState({ customerId: '', contactId: '', opportunityId: '', notes: '' });
+  const [linkForm, setLinkForm] = useState({ accountId: '', contactId: '', opportunityId: '', notes: '' });
   const [noteForm, setNoteForm] = useState({ note: '', isInternal: false });
   const [tagForm, setTagForm] = useState<string[]>([]);
   const [contactForm, setContactForm] = useState({
     firstName: '', lastName: '', email: '', phone: '', title: '',
-    customerId: '', createCustomerIfNeeded: false,
+    accountId: '', createCustomerIfNeeded: false,
   });
   const [serviceRequestForm, setServiceRequestForm] = useState({
     requestType: 'Support', priority: 'Normal', description: '',
@@ -347,7 +347,7 @@ function InteractionsPage() {
   const handleOpenLinkDialog = (interaction: Interaction) => {
     setSelectedInteraction(interaction);
     setLinkForm({
-      customerId: interaction.customerId ? String(interaction.customerId) : '',
+      accountId: interaction.accountId ? String(interaction.accountId) : '',
       contactId: interaction.contactId ? String(interaction.contactId) : '',
       opportunityId: interaction.opportunityId ? String(interaction.opportunityId) : '',
       notes: '',
@@ -375,8 +375,8 @@ function InteractionsPage() {
       email: interaction.emailAddress || '',
       phone: interaction.phoneNumber || '',
       title: '',
-      customerId: interaction.customerId ? String(interaction.customerId) : '',
-      createCustomerIfNeeded: !interaction.customerId,
+      accountId: interaction.accountId ? String(interaction.accountId) : '',
+      createCustomerIfNeeded: !interaction.accountId,
     });
     setCreateContactDialogOpen(true);
   };
@@ -408,7 +408,7 @@ function InteractionsPage() {
     if (!selectedInteraction) return;
     try {
       await apiClient.post(`/interactions/${selectedInteraction.id}/link`, {
-        customerId: linkForm.customerId ? parseInt(linkForm.customerId) : null,
+        accountId: linkForm.accountId ? parseInt(linkForm.accountId) : null,
         contactId: linkForm.contactId ? parseInt(linkForm.contactId) : null,
         opportunityId: linkForm.opportunityId ? parseInt(linkForm.opportunityId) : null,
         notes: linkForm.notes,
@@ -455,7 +455,7 @@ function InteractionsPage() {
         email: contactForm.email,
         phone: contactForm.phone,
         title: contactForm.title,
-        customerId: contactForm.customerId ? parseInt(contactForm.customerId) : null,
+        accountId: contactForm.accountId ? parseInt(contactForm.accountId) : null,
         createCustomerIfNeeded: contactForm.createCustomerIfNeeded,
       });
       setSuccess('Contact created successfully');
@@ -504,7 +504,7 @@ function InteractionsPage() {
     return date.toLocaleDateString();
   };
 
-  const getCustomerName = (interaction: Interaction) => {
+  const getAccountName = (interaction: Interaction) => {
     if (interaction.customer) {
       return interaction.customer.companyName ||
         `${interaction.customer.firstName || ''} ${interaction.customer.lastName || ''}`.trim();
@@ -664,7 +664,7 @@ function InteractionsPage() {
         hover
         sx={{
           cursor: 'pointer',
-          bgcolor: interaction.customerId <= 0 ? 'rgba(255, 152, 0, 0.08)' : 'inherit',
+          bgcolor: interaction.accountId <= 0 ? 'rgba(255, 152, 0, 0.08)' : 'inherit',
         }}
         onClick={() => handleViewDetails(interaction)}
       >
@@ -684,7 +684,7 @@ function InteractionsPage() {
           </Box>
         </TableCell>
         <TableCell>
-          <Typography variant="body2">{getCustomerName(interaction)}</Typography>
+          <Typography variant="body2">{getAccountName(interaction)}</Typography>
           <Typography variant="caption" color="text.secondary">{getContactName(interaction)}</Typography>
         </TableCell>
         <TableCell>
@@ -831,7 +831,7 @@ function InteractionsPage() {
                   <Divider />
                   <Box>
                     <Typography variant="caption" color="text.secondary">Customer</Typography>
-                    <Typography variant="body2">{getCustomerName(selectedInteraction)}</Typography>
+                    <Typography variant="body2">{getAccountName(selectedInteraction)}</Typography>
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary">Contact</Typography>
@@ -920,19 +920,19 @@ function InteractionsPage() {
           <Autocomplete
             options={customers}
             getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}
-            value={customers.find(c => c.id === parseInt(linkForm.customerId)) || null}
-            onChange={(_, v) => setLinkForm({ ...linkForm, customerId: v ? String(v.id) : '' })}
+            value={customers.find(c => c.id === parseInt(linkForm.accountId)) || null}
+            onChange={(_, v) => setLinkForm({ ...linkForm, accountId: v ? String(v.id) : '' })}
             renderInput={(params) => <TextField {...params} label="Account" fullWidth />}
           />
           <Autocomplete
-            options={contacts.filter(c => !linkForm.customerId || c.customerId === parseInt(linkForm.customerId))}
+            options={contacts.filter(c => !linkForm.accountId || c.accountId === parseInt(linkForm.accountId))}
             getOptionLabel={(c) => `${c.firstName} ${c.lastName}` + (c.email ? ` (${c.email})` : '')}
             value={contacts.find(c => c.id === parseInt(linkForm.contactId)) || null}
             onChange={(_, v) => setLinkForm({ ...linkForm, contactId: v ? String(v.id) : '' })}
             renderInput={(params) => <TextField {...params} label="Contact" fullWidth />}
           />
           <Autocomplete
-            options={opportunities.filter(o => !linkForm.customerId || o.customerId === parseInt(linkForm.customerId))}
+            options={opportunities.filter(o => !linkForm.accountId || o.accountId === parseInt(linkForm.accountId))}
             getOptionLabel={(o) => o.title}
             value={opportunities.find(o => o.id === parseInt(linkForm.opportunityId)) || null}
             onChange={(_, v) => setLinkForm({ ...linkForm, opportunityId: v ? String(v.id) : '' })}
@@ -1059,8 +1059,8 @@ function InteractionsPage() {
           <Autocomplete
             options={customers}
             getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}
-            value={customers.find(c => c.id === parseInt(contactForm.customerId)) || null}
-            onChange={(_, v) => setContactForm({ ...contactForm, customerId: v ? String(v.id) : '' })}
+            value={customers.find(c => c.id === parseInt(contactForm.accountId)) || null}
+            onChange={(_, v) => setContactForm({ ...contactForm, accountId: v ? String(v.id) : '' })}
             renderInput={(params) => <TextField {...params} label="Account" fullWidth />}
           />
           <FormControlLabel
@@ -1093,7 +1093,7 @@ function InteractionsPage() {
       <DialogTitle>Create Service Request from Interaction</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          {selectedInteraction && selectedInteraction.customerId <= 0 && (
+          {selectedInteraction && selectedInteraction.accountId <= 0 && (
             <Alert severity="warning">
               This interaction is not linked to a customer. Please link it first before creating a service request.
             </Alert>
@@ -1183,7 +1183,7 @@ function InteractionsPage() {
           variant="contained"
           color={serviceRequestForm.expedite ? 'error' : 'primary'}
           onClick={handleCreateServiceRequest}
-          disabled={selectedInteraction?.customerId! <= 0}
+          disabled={selectedInteraction?.accountId! <= 0}
           startIcon={serviceRequestForm.expedite ? <ExpediteIcon /> : <CreateRequestIcon />}
         >
           {serviceRequestForm.expedite ? 'Create & Expedite' : 'Create Service Request'}

@@ -59,12 +59,12 @@ export const getNewsSocialStatus = async (): Promise<NewsSocialStatus> => {
  * Get news and social feeds for a customer
  */
 export const getNewsSocialFeeds = async (
-  customerId: number,
+  accountId: number,
   maxNewsItems: number = 10,
   maxSocialItems: number = 10
 ): Promise<NewsSocialFeedResponse> => {
   const response = await apiClient.get<NewsSocialFeedResponse>(
-    `/news-social/${customerId}`,
+    `/news-social/${accountId}`,
     {
       params: { maxNewsItems, maxSocialItems }
     }
@@ -76,12 +76,12 @@ export const getNewsSocialFeeds = async (
  * Force refresh feeds for a customer (bypass cache)
  */
 export const refreshNewsSocialFeeds = async (
-  customerId: number,
+  accountId: number,
   maxNewsItems: number = 10,
   maxSocialItems: number = 10
 ): Promise<NewsSocialFeedResponse> => {
   const response = await apiClient.post<NewsSocialFeedResponse>(
-    `/news-social/refresh/${customerId}`,
+    `/news-social/refresh/${accountId}`,
     null,
     {
       params: { maxNewsItems, maxSocialItems }

@@ -23,7 +23,7 @@ public class EntityValidationTests
     public void Customer_RequiredFields_ShouldNotBeNull()
     {
         // Arrange
-        var customer = new Customer
+        var account = new Account
         {
             FirstName = "John",
             LastName = "Doe",
@@ -31,9 +31,9 @@ public class EntityValidationTests
         };
 
         // Assert
-        customer.FirstName.Should().NotBeNullOrEmpty();
-        customer.LastName.Should().NotBeNullOrEmpty();
-        customer.Email.Should().NotBeNullOrEmpty();
+        account.FirstName.Should().NotBeNullOrEmpty();
+        account.LastName.Should().NotBeNullOrEmpty();
+        account.Email.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
@@ -41,10 +41,10 @@ public class EntityValidationTests
     {
         // Arrange
         var validEmail = "test@company.com";
-        var customer = new Customer { Email = validEmail };
+        var account = new Account { Email = validEmail };
 
         // Assert
-        customer.Email.Should().Contain("@");
+        account.Email.Should().Contain("@");
     }
 
     [Theory]
@@ -54,8 +54,8 @@ public class EntityValidationTests
     [InlineData("user.name@domain.org", true)]
     public void Customer_Email_ValidationPatterns(string email, bool isValid)
     {
-        var customer = new Customer { Email = email };
-        var hasAtSign = customer.Email.Contains("@");
+        var account = new Account { Email = email };
+        var hasAtSign = account.Email.Contains("@");
         hasAtSign.Should().Be(isValid);
     }
 
@@ -63,32 +63,32 @@ public class EntityValidationTests
     public void Customer_PhoneFormat_ShouldBeValid()
     {
         // Arrange
-        var customer = new Customer { Phone = "+1-555-123-4567" };
+        var account = new Account { Phone = "+1-555-123-4567" };
 
         // Assert
-        customer.Phone.Should().NotBeNullOrEmpty();
-        customer.Phone.Should().Contain("-");
+        account.Phone.Should().NotBeNullOrEmpty();
+        account.Phone.Should().Contain("-");
     }
 
     [Fact]
     public void Customer_DefaultCategory_ShouldBeIndividual()
     {
         // Arrange
-        var customer = new Customer();
+        var account = new Account();
 
         // Assert - Individual is typically 0 which is default
-        ((int)customer.Category).Should().Be(0);
+        ((int)account.Category).Should().Be(0);
     }
 
     [Fact]
     public void Customer_Relationships_ShouldBeInitialized()
     {
         // Arrange
-        var customer = new Customer();
+        var account = new Account();
 
         // Assert - Check that navigation properties can be set
-        customer.Opportunities = new List<Opportunity>();
-        customer.Opportunities.Should().NotBeNull();
+        account.Opportunities = new List<Opportunity>();
+        account.Opportunities.Should().NotBeNull();
     }
 
     #endregion
@@ -279,85 +279,86 @@ public class EntityValidationTests
     #region Account Validation Tests
 
     [Fact]
-    public void Account_ARR_ShouldEqualMRRTimes12()
+    public void Account_AnnualRevenue_ShouldBePositive()
     {
         // Arrange
         var account = new Account
         {
-            MRR = 1000m,
-            ARR = 12000m
+            AnnualRevenue = 1000000m
         };
 
         // Assert
-        account.ARR.Should().Be(account.MRR * 12);
+        account.AnnualRevenue.Should().BePositive();
     }
 
     [Fact]
-    public void Account_ContractDates_EndAfterStart()
+    public void Account_DateOfBirth_CanBeSet()
     {
         // Arrange
-        var startDate = DateTime.UtcNow;
-        var endDate = startDate.AddYears(1);
+        var birthDate = new DateTime(1990, 1, 15);
 
         var account = new Account
         {
-            ContractStartDate = startDate,
-            ContractEndDate = endDate
+            DateOfBirth = birthDate,
+            Category = AccountCategory.Individual
         };
 
         // Assert
-        account.ContractEndDate!.Value.Should().BeAfter(account.ContractStartDate!.Value);
+        account.DateOfBirth!.Value.Should().Be(birthDate);
     }
 
     [Fact]
-    public void Account_Status_DefaultIsCurrent()
+    public void Account_LifecycleStage_DefaultIsOther()
     {
         // Arrange
-        var account = new Account { Status = AccountStatus.Current };
+        var account = new Account();
 
         // Assert
-        account.Status.Should().Be(AccountStatus.Current);
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Other);
     }
 
     [Theory]
-    [InlineData(AccountStatus.Current)]
-    [InlineData(AccountStatus.Churned)]
-    public void Account_Status_AllValidValues(AccountStatus status)
+    [InlineData(AccountLifecycleStage.Lead)]
+    [InlineData(AccountLifecycleStage.Opportunity)]
+    [InlineData(AccountLifecycleStage.Active)]
+    [InlineData(AccountLifecycleStage.AtRisk)]
+    [InlineData(AccountLifecycleStage.Churned)]
+    public void Account_LifecycleStage_AllValidValues(AccountLifecycleStage stage)
     {
         // Arrange
-        var account = new Account { Status = status };
+        var account = new Account { LifecycleStage = stage };
 
         // Assert
-        account.Status.Should().Be(status);
+        account.LifecycleStage.Should().Be(stage);
     }
 
     [Fact]
-    public void Account_BillingAddress_CanBeSet()
+    public void Account_Address_CanBeSet()
     {
         // Arrange
         var account = new Account
         {
-            BillingAddress = "123 Main St",
-            BillingCity = "New York",
-            BillingState = "NY",
-            BillingZip = "10001",
-            BillingCountry = "USA"
+            Address = "123 Main St",
+            City = "New York",
+            State = "NY",
+            ZipCode = "10001",
+            Country = "USA"
         };
 
         // Assert
-        account.BillingAddress.Should().Be("123 Main St");
-        account.BillingCity.Should().Be("New York");
-        account.BillingZip.Should().Be("10001");
+        account.Address.Should().Be("123 Main St");
+        account.City.Should().Be("New York");
+        account.ZipCode.Should().Be("10001");
     }
 
     [Fact]
-    public void Account_IsAutoRenew_CanBeToggled()
+    public void Account_ShippingSameAsBilling_DefaultTrue()
     {
         // Arrange
-        var account = new Account { IsAutoRenew = true };
+        var account = new Account();
 
         // Assert
-        account.IsAutoRenew.Should().BeTrue();
+        account.ShippingSameAsBilling.Should().BeTrue();
     }
 
     #endregion
@@ -586,7 +587,7 @@ public class EntityValidationTests
     public void Customer_WithMaximumValues()
     {
         // Arrange
-        var customer = new Customer
+        var account = new Account
         {
             FirstName = new string('A', 100),
             LastName = new string('B', 100),
@@ -594,8 +595,8 @@ public class EntityValidationTests
         };
 
         // Assert
-        customer.FirstName.Should().HaveLength(100);
-        customer.LastName.Should().HaveLength(100);
+        account.FirstName.Should().HaveLength(100);
+        account.LastName.Should().HaveLength(100);
     }
 
     [Fact]
@@ -609,13 +610,13 @@ public class EntityValidationTests
     }
 
     [Fact]
-    public void Account_WithZeroMRR()
+    public void Account_WithZeroRevenue()
     {
         // Arrange
-        var account = new Account { MRR = 0m };
+        var account = new Account { AnnualRevenue = 0m };
 
         // Assert
-        account.MRR.Should().Be(0);
+        account.AnnualRevenue.Should().Be(0);
     }
 
     [Fact]

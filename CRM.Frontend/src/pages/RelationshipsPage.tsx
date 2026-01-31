@@ -97,8 +97,8 @@ function RelationshipsPage() {
   };
   
   const emptyRelationshipForm: CreateAccountRelationshipRequest = {
-    sourceCustomerId: 0,
-    targetCustomerId: 0,
+    sourceAccountId: 0,
+    targetAccountId: 0,
     relationshipTypeId: 0,
     status: RelationshipStatus.Active,
     strategicImportance: StrategicImportance.Medium,
@@ -152,9 +152,9 @@ function RelationshipsPage() {
   }, [fetchData]);
 
   // Get customer display name
-  const getCustomerName = (customerId: number) => {
-    const customer = customers.find(c => c.id === customerId);
-    if (!customer) return `Customer #${customerId}`;
+  const getAccountName = (accountId: number) => {
+    const customer = customers.find(c => c.id === accountId);
+    if (!customer) return `Customer #${accountId}`;
     if (customer.company) return customer.company;
     return `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
   };
@@ -216,8 +216,8 @@ function RelationshipsPage() {
     if (relationship) {
       setEditingRelationshipId(relationship.id);
       setRelationshipForm({
-        sourceCustomerId: relationship.sourceCustomerId,
-        targetCustomerId: relationship.targetCustomerId,
+        sourceAccountId: relationship.sourceAccountId,
+        targetAccountId: relationship.targetAccountId,
         relationshipTypeId: relationship.relationshipTypeId,
         status: relationship.status,
         strategicImportance: relationship.strategicImportance,
@@ -306,15 +306,15 @@ function RelationshipsPage() {
   };
 
   // Handle Map Dialog
-  const handleMapDialogOpen = (customerId: number) => {
-    setSelectedCustomerForMap(customerId);
-    fetchMapData(customerId);
+  const handleMapDialogOpen = (accountId: number) => {
+    setSelectedCustomerForMap(accountId);
+    fetchMapData(accountId);
     setMapDialogOpen(true);
   };
 
-  const fetchMapData = async (customerId: number) => {
+  const fetchMapData = async (accountId: number) => {
     try {
-      const data = await relationshipService.getRelationshipMap(customerId, 2, false);
+      const data = await relationshipService.getRelationshipMap(accountId, 2, false);
       setMapData(data);
     } catch (err) {
       console.error('Failed to load map data', err);
@@ -322,15 +322,15 @@ function RelationshipsPage() {
   };
 
   // Handle Health Dialog
-  const handleHealthDialogOpen = (customerId: number) => {
-    setSelectedCustomerForHealth(customerId);
-    fetchHealthData(customerId);
+  const handleHealthDialogOpen = (accountId: number) => {
+    setSelectedCustomerForHealth(accountId);
+    fetchHealthData(accountId);
     setHealthDialogOpen(true);
   };
 
-  const fetchHealthData = async (customerId: number) => {
+  const fetchHealthData = async (accountId: number) => {
     try {
-      const data = await relationshipService.getHealthSnapshots(customerId);
+      const data = await relationshipService.getHealthSnapshots(accountId);
       setHealthSnapshots(data);
     } catch (err) {
       console.error('Failed to load health data', err);
@@ -450,7 +450,7 @@ function RelationshipsPage() {
                 {relationships.map((rel) => (
                   <TableRow key={rel.id}>
                     <TableCell>
-                      {rel.sourceCustomerName || getCustomerName(rel.sourceCustomerId)}
+                      {rel.sourceAccountName || getAccountName(rel.sourceAccountId)}
                     </TableCell>
                     <TableCell>
                       <Chip 
@@ -459,7 +459,7 @@ function RelationshipsPage() {
                       />
                     </TableCell>
                     <TableCell>
-                      {rel.targetCustomerName || getCustomerName(rel.targetCustomerId)}
+                      {rel.targetAccountName || getAccountName(rel.targetAccountId)}
                     </TableCell>
                     <TableCell>
                       <Chip label={rel.status} color={getStatusColor(rel.status)} size="small" />
@@ -493,12 +493,12 @@ function RelationshipsPage() {
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="View Map">
-                        <IconButton size="small" onClick={() => handleMapDialogOpen(rel.sourceCustomerId)}>
+                        <IconButton size="small" onClick={() => handleMapDialogOpen(rel.sourceAccountId)}>
                           <MapIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Health Snapshots">
-                        <IconButton size="small" onClick={() => handleHealthDialogOpen(rel.sourceCustomerId)}>
+                        <IconButton size="small" onClick={() => handleHealthDialogOpen(rel.sourceAccountId)}>
                           <HealthIcon />
                         </IconButton>
                       </Tooltip>
@@ -660,8 +660,8 @@ function RelationshipsPage() {
               <Autocomplete
                 options={customers}
                 getOptionLabel={(c) => c.company || `${c.firstName || ''} ${c.lastName || ''}`.trim()}
-                value={customers.find(c => c.id === relationshipForm.sourceCustomerId) || null}
-                onChange={(_, v) => setRelationshipForm({ ...relationshipForm, sourceCustomerId: v?.id || 0 })}
+                value={customers.find(c => c.id === relationshipForm.sourceAccountId) || null}
+                onChange={(_, v) => setRelationshipForm({ ...relationshipForm, sourceAccountId: v?.id || 0 })}
                 renderInput={(params) => <TextField {...params} label="Source Account" required />}
               />
             </Grid>
@@ -669,8 +669,8 @@ function RelationshipsPage() {
               <Autocomplete
                 options={customers}
                 getOptionLabel={(c) => c.company || `${c.firstName || ''} ${c.lastName || ''}`.trim()}
-                value={customers.find(c => c.id === relationshipForm.targetCustomerId) || null}
-                onChange={(_, v) => setRelationshipForm({ ...relationshipForm, targetCustomerId: v?.id || 0 })}
+                value={customers.find(c => c.id === relationshipForm.targetAccountId) || null}
+                onChange={(_, v) => setRelationshipForm({ ...relationshipForm, targetAccountId: v?.id || 0 })}
                 renderInput={(params) => <TextField {...params} label="Target Account" required />}
               />
             </Grid>
@@ -767,7 +767,7 @@ function RelationshipsPage() {
       {/* Interaction Dialog */}
       <Dialog open={interactionDialogOpen} onClose={() => setInteractionDialogOpen(false)} maxWidth="lg" fullWidth>
         <DialogTitle>
-          Log Interaction - {selectedRelationship?.sourceCustomerName} ↔ {selectedRelationship?.targetCustomerName}
+          Log Interaction - {selectedRelationship?.sourceAccountName} ↔ {selectedRelationship?.targetAccountName}
           <IconButton sx={{ position: 'absolute', right: 8, top: 8 }} onClick={() => setInteractionDialogOpen(false)}>
             <CloseIcon />
           </IconButton>
@@ -892,7 +892,7 @@ function RelationshipsPage() {
       {/* Map Dialog */}
       <Dialog open={mapDialogOpen} onClose={() => setMapDialogOpen(false)} maxWidth="lg" fullWidth>
         <DialogTitle>
-          Relationship Map - {getCustomerName(selectedCustomerForMap || 0)}
+          Relationship Map - {getAccountName(selectedCustomerForMap || 0)}
           <IconButton sx={{ position: 'absolute', right: 8, top: 8 }} onClick={() => setMapDialogOpen(false)}>
             <CloseIcon />
           </IconButton>
@@ -944,8 +944,8 @@ function RelationshipsPage() {
                         {mapData.edges.map((edge) => (
                           <TableRow key={edge.id}>
                             <TableCell>
-                              {mapData.nodes.find(n => n.customerId === edge.sourceId)?.name} → 
-                              {mapData.nodes.find(n => n.customerId === edge.targetId)?.name}
+                              {mapData.nodes.find(n => n.accountId === edge.sourceId)?.name} → 
+                              {mapData.nodes.find(n => n.accountId === edge.targetId)?.name}
                             </TableCell>
                             <TableCell>{edge.relationshipTypeName}</TableCell>
                             <TableCell>{edge.strengthScore}%</TableCell>
@@ -971,7 +971,7 @@ function RelationshipsPage() {
       {/* Health Dialog */}
       <Dialog open={healthDialogOpen} onClose={() => setHealthDialogOpen(false)} maxWidth="lg" fullWidth>
         <DialogTitle>
-          Health Snapshots - {getCustomerName(selectedCustomerForHealth || 0)}
+          Health Snapshots - {getAccountName(selectedCustomerForHealth || 0)}
           <IconButton sx={{ position: 'absolute', right: 8, top: 8 }} onClick={() => setHealthDialogOpen(false)}>
             <CloseIcon />
           </IconButton>

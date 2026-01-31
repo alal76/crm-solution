@@ -24,10 +24,10 @@ public class CriticalPathBVTTests
     public void BVT001_Customer_Creation_Individual()
     {
         // Arrange & Act
-        var customer = new Customer
+        var account = new Account
         {
             Id = 1,
-            Category = CustomerCategory.Individual,
+            Category = AccountCategory.Individual,
             FirstName = "John",
             LastName = "Doe",
             Email = "john@example.com",
@@ -35,47 +35,47 @@ public class CriticalPathBVTTests
         };
 
         // Assert
-        customer.Should().NotBeNull();
-        customer.Category.Should().Be(CustomerCategory.Individual);
-        customer.FirstName.Should().Be("John");
+        account.Should().NotBeNull();
+        account.Category.Should().Be(AccountCategory.Individual);
+        account.FirstName.Should().Be("John");
     }
 
     [Fact]
     public void BVT002_Customer_Creation_Organization()
     {
         // Arrange & Act
-        var customer = new Customer
+        var account = new Account
         {
             Id = 2,
-            Category = CustomerCategory.Organization,
+            Category = AccountCategory.Organization,
             Company = "Acme Corp",
             Industry = "Technology"
         };
 
         // Assert
-        customer.Category.Should().Be(CustomerCategory.Organization);
-        customer.Company.Should().Be("Acme Corp");
+        account.Category.Should().Be(AccountCategory.Organization);
+        account.Company.Should().Be("Acme Corp");
     }
 
     [Fact]
     public void BVT003_Customer_LifecycleStage_Progression()
     {
         // Arrange
-        var customer = new Customer { LifecycleStage = CustomerLifecycleStage.Lead };
+        var account = new Account { LifecycleStage = AccountLifecycleStage.Lead };
 
         // Act & Assert - Simulate lifecycle progression
-        customer.LifecycleStage = CustomerLifecycleStage.Opportunity;
-        customer.LifecycleStage.Should().Be(CustomerLifecycleStage.Opportunity);
+        account.LifecycleStage = AccountLifecycleStage.Opportunity;
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Opportunity);
 
-        customer.LifecycleStage = CustomerLifecycleStage.Customer;
-        customer.LifecycleStage.Should().Be(CustomerLifecycleStage.Customer);
+        account.LifecycleStage = AccountLifecycleStage.Active;
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Active);
     }
 
     [Fact]
     public void BVT004_Customer_SoftDelete_Works()
     {
         // Arrange
-        var customer = new Customer
+        var account = new Account
         {
             Id = 1,
             FirstName = "Test",
@@ -83,19 +83,19 @@ public class CriticalPathBVTTests
         };
 
         // Act
-        customer.IsDeleted = true;
+        account.IsDeleted = true;
 
         // Assert
-        customer.IsDeleted.Should().BeTrue();
+        account.IsDeleted.Should().BeTrue();
     }
 
     [Fact]
     public void BVT005_Customer_AllTypes_Valid()
     {
         // Assert all customer types are valid
-        var types = Enum.GetValues<CustomerType>();
+        var types = Enum.GetValues<AccountType>();
         types.Should().HaveCountGreaterOrEqualTo(6);
-        types.Should().Contain(CustomerType.Enterprise);
+        types.Should().Contain(AccountType.Enterprise);
     }
 
     #endregion
@@ -447,62 +447,64 @@ public class CriticalPathBVTTests
         var account = new Account
         {
             Id = 1,
-            AccountNumber = "ACC-001",
-            CustomerId = 1,
-            Status = AccountStatus.Current,
-            MRR = 500m,
-            ARR = 6000m
+            Category = AccountCategory.Organization,
+            Company = "Acme Corp",
+            Industry = "Technology",
+            AnnualRevenue = 5000000m,
+            NumberOfEmployees = 100
         };
 
         // Assert
         account.Should().NotBeNull();
-        account.AccountNumber.Should().Be("ACC-001");
-        account.Status.Should().Be(AccountStatus.Current);
+        account.Company.Should().Be("Acme Corp");
+        account.Industry.Should().Be("Technology");
     }
 
     [Fact]
-    public void BVT052_Account_ChurnTransition()
+    public void BVT052_Account_LifecycleTransition()
     {
         // Arrange
-        var account = new Account { Status = AccountStatus.Current };
+        var account = new Account { LifecycleStage = AccountLifecycleStage.Lead };
 
         // Act
-        account.Status = AccountStatus.Churned;
+        account.LifecycleStage = AccountLifecycleStage.Active;
 
         // Assert
-        account.Status.Should().Be(AccountStatus.Churned);
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Active);
     }
 
     [Fact]
-    public void BVT053_Account_ContractDates()
+    public void BVT053_Account_IndustryAndRevenue()
     {
         // Arrange & Act
-        var startDate = DateTime.UtcNow;
-        var endDate = startDate.AddYears(1);
-
         var account = new Account
         {
-            ContractStartDate = startDate,
-            ContractEndDate = endDate
+            Industry = "Healthcare",
+            SubIndustry = "Medical Devices",
+            AnnualRevenue = 10000000m,
+            NumberOfEmployees = 500
         };
 
         // Assert
-        account.ContractStartDate.Should().Be(startDate);
-        account.ContractEndDate.Should().Be(endDate);
-        (account.ContractEndDate - account.ContractStartDate)?.Days.Should().BeCloseTo(365, 1);
+        account.Industry.Should().Be("Healthcare");
+        account.SubIndustry.Should().Be("Medical Devices");
+        account.AnnualRevenue.Should().Be(10000000m);
+        account.NumberOfEmployees.Should().Be(500);
     }
 
     [Fact]
-    public void BVT054_Account_AutoRenewal()
+    public void BVT054_Account_WebsiteAndContact()
     {
         // Arrange
-        var account = new Account { IsAutoRenew = false };
+        var account = new Account { Website = null };
 
         // Act
-        account.IsAutoRenew = true;
+        account.Website = "https://example.com";
+        account.Email = "contact@example.com";
 
         // Assert
-        account.IsAutoRenew.Should().BeTrue();
+        account.Website.Should().Be("https://example.com");
+        account.Email.Should().Be("contact@example.com");
     }
 
     #endregion
@@ -525,10 +527,10 @@ public class CriticalPathBVTTests
     }
 
     [Fact]
-    public void BVT062_CustomerDto_Mapping()
+    public void BVT062_AccountDto_Mapping()
     {
         // Arrange - Customer entity
-        var customer = new Customer
+        var account = new Account
         {
             Id = 1,
             FirstName = "John",
@@ -537,12 +539,12 @@ public class CriticalPathBVTTests
         };
 
         // Act - Create DTO from entity (simulated)
-        var dto = new CustomerDto
+        var dto = new AccountDto
         {
-            Id = customer.Id,
-            FirstName = customer.FirstName,
-            LastName = customer.LastName,
-            Email = customer.Email
+            Id = account.Id,
+            FirstName = account.FirstName,
+            LastName = account.LastName,
+            Email = account.Email
         };
 
         // Assert
@@ -580,13 +582,13 @@ public class CriticalPathBVTTests
     public void BVT071_Email_Format_Required()
     {
         // Arrange
-        var customer = new Customer();
+        var account = new Account();
 
         // Act
-        customer.Email = "valid@email.com";
+        account.Email = "valid@email.com";
 
         // Assert
-        customer.Email.Should().Contain("@");
+        account.Email.Should().Contain("@");
     }
 
     [Fact]
@@ -620,21 +622,21 @@ public class CriticalPathBVTTests
     public void BVT074_DateTime_Defaults()
     {
         // Arrange & Act
-        var customer = new Customer();
+        var account = new Account();
 
         // Assert - CreatedAt should be set
-        customer.CreatedAt = DateTime.UtcNow;
-        customer.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        account.CreatedAt = DateTime.UtcNow;
+        account.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
     public void BVT075_SoftDelete_Default_False()
     {
         // Arrange & Act
-        var customer = new Customer();
+        var account = new Account();
 
         // Assert
-        customer.IsDeleted.Should().BeFalse();
+        account.IsDeleted.Should().BeFalse();
     }
 
     #endregion
@@ -645,7 +647,7 @@ public class CriticalPathBVTTests
     public void BVT081_Customer_Collection_Operations()
     {
         // Arrange
-        var customers = new List<Customer>
+        var accounts = new List<Account>
         {
             new() { Id = 1, FirstName = "John" },
             new() { Id = 2, FirstName = "Jane" },
@@ -653,8 +655,8 @@ public class CriticalPathBVTTests
         };
 
         // Assert
-        customers.Should().HaveCount(3);
-        customers.Select(c => c.FirstName).Should().Contain("John");
+        accounts.Should().HaveCount(3);
+        accounts.Select(c => c.FirstName).Should().Contain("John");
     }
 
     [Fact]
@@ -744,26 +746,23 @@ public class CriticalPathBVTTests
     [Fact]
     public void BVT091_Customer_To_Account_Flow()
     {
-        // Arrange - Create customer
-        var customer = new Customer
-        {
-            Id = 1,
-            FirstName = "John",
-            LastName = "Doe"
-        };
-
-        // Act - Create account linked to customer
+        // Arrange - Create account
         var account = new Account
         {
             Id = 1,
-            AccountNumber = "ACC-001",
-            CustomerId = customer.Id,
-            Status = AccountStatus.Current
+            FirstName = "John",
+            LastName = "Doe",
+            LifecycleStage = AccountLifecycleStage.Lead
         };
 
+        // Act - Progress account to active lifecycle
+        account.LifecycleStage = AccountLifecycleStage.Active;
+        account.Industry = "Technology";
+        account.AnnualRevenue = 100000m;
+
         // Assert
-        account.CustomerId.Should().Be(customer.Id);
-        account.Status.Should().Be(AccountStatus.Current);
+        account.Id.Should().Be(1);
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Active);
     }
 
     [Fact]
@@ -883,15 +882,15 @@ public class CriticalPathBVTTests
         var relationship = new AccountRelationship
         {
             Id = 1,
-            SourceCustomerId = 100,
-            TargetCustomerId = 200,
+            SourceAccountId = 100,
+            TargetAccountId = 200,
             RelationshipTypeId = 1,
             Status = "Active",
             StrengthScore = 75
         };
 
         // Assert
-        relationship.SourceCustomerId.Should().Be(100);
+        relationship.SourceAccountId.Should().Be(100);
         relationship.Status.Should().Be("Active");
     }
 
@@ -920,7 +919,7 @@ public class CriticalPathBVTTests
         var snapshot = new AccountHealthSnapshot
         {
             Id = 1,
-            CustomerId = 100,
+            AccountId = 100,
             OverallHealthScore = 78,
             HealthTrend = "Improving"
         };
@@ -938,7 +937,7 @@ public class CriticalPathBVTTests
         {
             Id = 1,
             MapName = "Partner Network",
-            CentralCustomerId = 100,
+            CentralAccountId = 100,
             RelationshipDepth = 2
         };
 

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Models;
 
@@ -245,7 +246,8 @@ public class Quote : BaseEntity
     #region Relationships
     
     /// <summary>Associated customer ID</summary>
-    public int? CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int? AccountId { get; set; }
     
     /// <summary>Associated contact ID</summary>
     public int? ContactId { get; set; }
@@ -375,7 +377,7 @@ public class Quote : BaseEntity
 
     #region Navigation Properties
     
-    public Customer? Customer { get; set; }
+    public Account? Account { get; set; }
     public Contact? Contact { get; set; }
     public Opportunity? Opportunity { get; set; }
     public User? AssignedToUser { get; set; }

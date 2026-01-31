@@ -129,7 +129,7 @@ public class CommunicationMessageListDto
     public DateTime CreatedAt { get; set; }
     
     // Linked entities
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public string? CustomerName { get; set; }
     public int? ContactId { get; set; }
     public string? ContactName { get; set; }
@@ -167,7 +167,7 @@ public class CommunicationMessageDto
     public int? ParentMessageId { get; set; }
     
     // Linked entities
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public string? CustomerName { get; set; }
     public int? ContactId { get; set; }
     public string? ContactName { get; set; }
@@ -236,7 +236,7 @@ public class SendMessageDto
     public Dictionary<string, string>? MergeFields { get; set; }
     
     // Linked entities
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? LeadId { get; set; }
     public int? OpportunityId { get; set; }
@@ -276,7 +276,7 @@ public class WhatsAppMessageDto
     public Dictionary<string, string>? TemplateParameters { get; set; }
     
     // Linked entities
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? LeadId { get; set; }
 }
@@ -368,7 +368,7 @@ public class ConversationListDto
     public bool IsPinned { get; set; }
     
     // Linked entities
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public string? CustomerName { get; set; }
     public int? ContactId { get; set; }
     public string? ContactName { get; set; }
@@ -389,7 +389,7 @@ public class ConversationDto
     public string? ParticipantAddress { get; set; }
     public string? ParticipantName { get; set; }
     
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? LeadId { get; set; }
     public int? AssignedToUserId { get; set; }

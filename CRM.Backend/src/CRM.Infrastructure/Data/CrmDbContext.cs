@@ -39,8 +39,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
         _configuration = configuration;
     }
 
-    public DbSet<Customer> Customers { get; set; }
-    public DbSet<CustomerContact> CustomerContacts { get; set; }
+    public DbSet<Account> Customers { get; set; }
+    public DbSet<AccountContact> AccountContacts { get; set; }
     public DbSet<Opportunity> Opportunities { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Interaction> Interactions { get; set; }
@@ -161,7 +161,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<AccountHealthSnapshot> AccountHealthSnapshots { get; set; }
     public DbSet<RelationshipMap> RelationshipMaps { get; set; }
     public DbSet<AccountTerritory> AccountTerritories { get; set; }
-    public DbSet<CustomerTerritoryAssignment> CustomerTerritoryAssignments { get; set; }
+    public DbSet<AccountTerritoryAssignment> CustomerTerritoryAssignments { get; set; }
     
     // Campaign execution entities
     public DbSet<CampaignRecipient> CampaignRecipients { get; set; }
@@ -373,8 +373,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
             }
         }
 
+        // Ignore the deprecated Customer class to prevent TPH discrimination
+        modelBuilder.Ignore<Customer>();
+        
         // Configure Customer
-        modelBuilder.Entity<Customer>(entity =>
+        modelBuilder.Entity<Account>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.FirstName).HasMaxLength(100);
@@ -389,37 +392,42 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Salutation).HasMaxLength(20);
             entity.Property(e => e.Suffix).HasMaxLength(20);
             entity.Property(e => e.Gender).HasMaxLength(20);
+            
+            // Map renamed properties to original database columns for backward compatibility
+            entity.Property(e => e.AccountHealthScore).HasColumnName("CustomerHealthScore");
+            // AccountType, ReferredByAccountId, ParentAccountId columns exist in database with these names
+            
             entity.HasIndex(e => e.Email);
             entity.HasIndex(e => e.Category);
             entity.HasIndex(e => e.Company);
             
             // Self-referencing relationships
-            entity.HasOne(e => e.ReferredByCustomer)
+            entity.HasOne(e => e.ReferredByAccount)
                 .WithMany()
-                .HasForeignKey(e => e.ReferredByCustomerId)
+                .HasForeignKey(e => e.ReferredByAccountId)
                 .OnDelete(DeleteBehavior.SetNull);
                 
-            entity.HasOne(e => e.ParentCustomer)
+            entity.HasOne(e => e.ParentAccount)
                 .WithMany()
-                .HasForeignKey(e => e.ParentCustomerId)
+                .HasForeignKey(e => e.ParentAccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure CustomerContact (junction table for organization contacts)
-        modelBuilder.Entity<CustomerContact>(entity =>
+        modelBuilder.Entity<AccountContact>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => new { e.CustomerId, e.ContactId }).IsUnique();
-            entity.Property(e => e.PositionAtCustomer).HasMaxLength(100);
-            entity.Property(e => e.DepartmentAtCustomer).HasMaxLength(100);
+            entity.HasIndex(e => new { e.AccountId, e.ContactId }).IsUnique();
+            entity.Property(e => e.PositionAtAccount).HasMaxLength(100);
+            entity.Property(e => e.DepartmentAtAccount).HasMaxLength(100);
             
-            entity.HasOne(e => e.Customer)
-                .WithMany(c => c.CustomerContacts)
-                .HasForeignKey(e => e.CustomerId)
+            entity.HasOne(e => e.Account)
+                .WithMany(c => c.AccountContacts)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
             
             entity.HasOne(e => e.Contact)
-                .WithMany(c => c.CustomerContacts)
+                .WithMany(c => c.AccountContacts)
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
@@ -432,9 +440,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Amount).HasPrecision(18, 2);
             
             // Link Opportunity -> Customer (required)
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany(c => c.Opportunities)
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
             
             // Link Opportunity -> Lead (optional, source lead)
@@ -672,7 +680,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
         });
 
         // Configure foreign keys from entities to lookups
-        modelBuilder.Entity<Customer>(entity =>
+        modelBuilder.Entity<Account>(entity =>
         {
             entity.HasOne(c => c.CurrencyLookup).WithMany().HasForeignKey(c => c.CurrencyLookupId).OnDelete(DeleteBehavior.SetNull);
             entity.HasOne(c => c.BillingCycleLookup).WithMany().HasForeignKey(c => c.BillingCycleLookupId).OnDelete(DeleteBehavior.SetNull);
@@ -703,9 +711,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany(c => c.Interactions)
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Link Interaction -> MarketingCampaign
@@ -741,6 +749,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
             entity.HasIndex(e => e.Username).IsUnique();
             entity.HasIndex(e => e.Email).IsUnique();
+            
+            // Column mappings for backward compatibility with existing database schema
+            entity.Property(e => e.LastLoginDate).HasColumnName("LastLoginAt");
+            entity.Property(e => e.EmailVerified).HasColumnName("IsEmailVerified");
+            entity.Property(e => e.RefreshTokenExpiry).HasColumnName("RefreshTokenExpiryTime");
+            // Role is stored as INT in database matching the UserRole enum values
 
             // Configure relationships
             entity.HasOne(e => e.Department)
@@ -844,11 +858,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Configure Account (Contract)
-        modelBuilder.Entity<Account>(entity =>
+        // Configure Subscription (formerly Account - the contract/billing entity)
+        modelBuilder.Entity<Subscription>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.AccountNumber).HasMaxLength(100);
+            entity.Property(e => e.SubscriptionNumber).HasMaxLength(100);
             entity.Property(e => e.ContractReference).HasMaxLength(200);
             entity.Property(e => e.ContractFileName).HasMaxLength(1000);
             entity.Property(e => e.ContractFilePath).HasMaxLength(2000);
@@ -856,15 +870,15 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Currency).HasMaxLength(10);
             entity.Property(e => e.BillingCycle).HasMaxLength(50);
             entity.Property(e => e.BillingContactEmail).HasMaxLength(255);
-            entity.HasIndex(e => e.AccountNumber).IsUnique(false);
+            entity.HasIndex(e => e.SubscriptionNumber).IsUnique(false);
 
-            entity.HasOne(e => e.Customer)
-                .WithMany(c => c.Accounts)
-                .HasForeignKey(e => e.CustomerId)
+            entity.HasOne(e => e.Account)
+                .WithMany(c => c.Subscriptions)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(e => e.Product)
-                .WithMany(p => p.Accounts)
+                .WithMany(p => p.Subscriptions)
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
@@ -875,9 +889,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Subject).IsRequired().HasMaxLength(255);
             
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
             
             entity.HasOne(e => e.Opportunity)
@@ -912,9 +926,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
             entity.Property(e => e.Content).IsRequired();
             
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
             
             entity.HasOne(e => e.Opportunity)
@@ -943,9 +957,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.QuoteNumber).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
             
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
             
             entity.HasOne(e => e.Contact)
@@ -1039,9 +1053,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
             
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
             
             entity.HasOne(e => e.Opportunity)
@@ -1089,9 +1103,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.SetNull);
             
             // Lead -> Customer
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
             
             // Lead -> Contact
@@ -1172,7 +1186,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
         });
 
         // Configure Customer -> Lead relationship (ConvertedFromLead)
-        modelBuilder.Entity<Customer>(entity =>
+        modelBuilder.Entity<Account>(entity =>
         {
             entity.HasOne(e => e.ConvertedFromLead)
                 .WithMany()
@@ -1302,9 +1316,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.SubcategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
             
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
             
             entity.HasOne(e => e.Contact)
@@ -1915,20 +1929,20 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.StrategicImportance).HasMaxLength(50);
-            entity.HasIndex(e => e.SourceCustomerId);
-            entity.HasIndex(e => e.TargetCustomerId);
+            entity.HasIndex(e => e.SourceAccountId);
+            entity.HasIndex(e => e.TargetAccountId);
             entity.HasIndex(e => e.RelationshipTypeId);
             entity.HasIndex(e => e.Status);
-            entity.HasIndex(e => new { e.SourceCustomerId, e.TargetCustomerId, e.RelationshipTypeId }).IsUnique();
+            entity.HasIndex(e => new { e.SourceAccountId, e.TargetAccountId, e.RelationshipTypeId }).IsUnique();
             
-            entity.HasOne(e => e.SourceCustomer)
+            entity.HasOne(e => e.SourceAccount)
                 .WithMany()
-                .HasForeignKey(e => e.SourceCustomerId)
+                .HasForeignKey(e => e.SourceAccountId)
                 .OnDelete(DeleteBehavior.Cascade);
                 
-            entity.HasOne(e => e.TargetCustomer)
+            entity.HasOne(e => e.TargetAccount)
                 .WithMany()
-                .HasForeignKey(e => e.TargetCustomerId)
+                .HasForeignKey(e => e.TargetAccountId)
                 .OnDelete(DeleteBehavior.Cascade);
                 
             entity.HasOne(e => e.RelationshipType)
@@ -1971,13 +1985,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.WarningSignals).HasColumnType("TEXT");
             entity.Property(e => e.GrowthIndicators).HasColumnType("TEXT");
             entity.Property(e => e.AnalystNotes).HasColumnType("TEXT");
-            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.AccountId);
             entity.HasIndex(e => e.SnapshotDate);
-            entity.HasIndex(e => new { e.CustomerId, e.SnapshotDate }).IsUnique();
+            entity.HasIndex(e => new { e.AccountId, e.SnapshotDate }).IsUnique();
             
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
         
@@ -1995,9 +2009,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.SharedWithGroupIds).HasColumnType("TEXT");
             entity.HasIndex(e => e.IsPublic);
             
-            entity.HasOne(e => e.CentralCustomer)
+            entity.HasOne(e => e.CentralAccount)
                 .WithMany()
-                .HasForeignKey(e => e.CentralCustomerId)
+                .HasForeignKey(e => e.CentralAccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
         
@@ -2026,20 +2040,20 @@ public class CrmDbContext : DbContext, ICrmDbContext
         });
         
         // CustomerTerritoryAssignment configuration
-        modelBuilder.Entity<CustomerTerritoryAssignment>(entity =>
+        modelBuilder.Entity<AccountTerritoryAssignment>(entity =>
         {
-            entity.HasKey(e => new { e.CustomerId, e.TerritoryId });
+            entity.HasKey(e => new { e.AccountId, e.TerritoryId });
             entity.Property(e => e.Notes).HasMaxLength(500);
             entity.HasIndex(e => e.TerritoryId);
             entity.HasIndex(e => e.IsPrimary);
             
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
                 
             entity.HasOne(e => e.Territory)
-                .WithMany(t => t.CustomerAssignments)
+                .WithMany(t => t.AccountAssignments)
                 .HasForeignKey(e => e.TerritoryId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
@@ -2064,7 +2078,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.ErrorMessage).HasColumnType("TEXT");
             entity.HasIndex(e => e.CampaignId);
             entity.HasIndex(e => e.ContactId);
-            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.AccountId);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Email);
             
@@ -2078,9 +2092,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.SetNull);
                 
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
         
@@ -2162,9 +2176,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.SetNull);
                 
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
         
@@ -2361,14 +2375,14 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.ChurnPatternsJson).HasColumnType(longTextType);
             entity.Property(e => e.SavePatternsJson).HasColumnType(longTextType);
             entity.Property(e => e.ModelVersion).HasMaxLength(50);
-            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.AccountId);
             entity.HasIndex(e => e.RiskLevel);
             entity.HasIndex(e => e.HealthSegment);
             entity.HasIndex(e => e.AssessedAt);
             
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
                 
             entity.HasOne(e => e.AIModel)
@@ -2736,9 +2750,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
                 
-            entity.HasOne(e => e.Customer)
+            entity.HasOne(e => e.Account)
                 .WithMany()
-                .HasForeignKey(e => e.CustomerId)
+                .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
         
@@ -2848,6 +2862,38 @@ public class CrmDbContext : DbContext, ICrmDbContext
             {
                 // SQL Server doesn't support cascade delete on multiple paths
                 relationship.DeleteBehavior = DeleteBehavior.NoAction;
+            }
+        }
+        
+        // FINAL STEP: For MySQL/MariaDB, set string column types to prevent row size issues
+        // This MUST be at the very end to override any other configurations
+        // Without this, Pomelo uses LONGTEXT which counts against the 65535 byte row limit
+        if (databaseProvider == "mysql" || databaseProvider == "mariadb")
+        {
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    if (property.ClrType == typeof(string))
+                    {
+                        // Only set column type if not already explicitly configured
+                        var columnType = property.GetColumnType();
+                        if (columnType == null || columnType.Equals("longtext", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var maxLength = property.GetMaxLength();
+                            if (maxLength == null || maxLength > 4000)
+                            {
+                                // Use TEXT type for large/unlimited strings
+                                property.SetColumnType("TEXT");
+                            }
+                            else
+                            {
+                                // Use VARCHAR for smaller strings
+                                property.SetColumnType($"VARCHAR({maxLength})");
+                            }
+                        }
+                    }
+                }
             }
         }
     }

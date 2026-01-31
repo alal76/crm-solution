@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities.AI;
 
 #region Churn Risk Enumerations
@@ -121,10 +122,11 @@ public class ChurnRisk : BaseEntity
     #region Customer Reference
     
     /// <summary>Customer ID</summary>
-    public int CustomerId { get; set; }
+    [Column("CustomerId")]
+    public int AccountId { get; set; }
     
     /// <summary>Navigation to Customer</summary>
-    public Customer? Customer { get; set; }
+    public Account? Account { get; set; }
     
     #endregion
     
