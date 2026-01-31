@@ -3,6 +3,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace CRM.Api.Controllers;
@@ -17,15 +18,18 @@ public class UserProfilesController : ControllerBase
 {
     private readonly IRepository<UserProfile> _profileRepository;
     private readonly IRepository<Department> _departmentRepository;
+    private readonly IRepository<User> _userRepository;
     private readonly ILogger<UserProfilesController> _logger;
 
     public UserProfilesController(
         IRepository<UserProfile> profileRepository,
         IRepository<Department> departmentRepository,
+        IRepository<User> userRepository,
         ILogger<UserProfilesController> logger)
     {
         _profileRepository = profileRepository;
         _departmentRepository = departmentRepository;
+        _userRepository = userRepository;
         _logger = logger;
     }
 
@@ -50,6 +54,42 @@ public class UserProfilesController : ControllerBase
         {
             _logger.LogError(ex, "Error retrieving profiles");
             return StatusCode(500, new { message = "Error retrieving profiles", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get current user's profile
+    /// </summary>
+    [HttpGet("me")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<UserProfileDto>> GetCurrentUserProfile()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                ?? User.FindFirst("sub")?.Value;
+            
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                return Unauthorized(new { message = "User not authenticated" });
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+                return NotFound(new { message = "User not found" });
+
+            if (!user.UserProfileId.HasValue)
+                return NotFound(new { message = "User has no profile assigned" });
+
+            var profile = await _profileRepository.GetByIdAsync(user.UserProfileId.Value);
+            if (profile == null || profile.IsDeleted)
+                return NotFound(new { message = "Profile not found" });
+
+            return Ok(MapToDto(profile));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving current user profile");
+            return StatusCode(500, new { message = "Error retrieving current user profile", error = ex.Message });
         }
     }
 

@@ -171,7 +171,7 @@ public class Opportunity : BaseEntity
     
     /// <summary>Customer/company</summary>
     [ForeignKey("CustomerId")]
-    public virtual Customer Customer { get; set; } = null!;
+    public virtual Customer? Customer { get; set; }
     
     /// <summary>Primary contact</summary>
     [ForeignKey("PrimaryContactId")]

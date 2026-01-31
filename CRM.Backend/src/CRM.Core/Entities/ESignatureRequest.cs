@@ -1,4 +1,5 @@
 using CRM.Core.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace CRM.Core.Entities;
 
@@ -173,9 +174,12 @@ public class ESignatureRequest : BaseEntity
     #region Identification
     
     /// <summary>Request number</summary>
+    [Required]
+    [MaxLength(50)]
     public string RequestNumber { get; set; } = string.Empty;
     
     /// <summary>External envelope/request ID from provider</summary>
+    [MaxLength(100)]
     public string? ExternalEnvelopeId { get; set; }
     
     /// <summary>E-signature provider</summary>
@@ -186,15 +190,19 @@ public class ESignatureRequest : BaseEntity
     #region Document Details
     
     /// <summary>Document name/title</summary>
+    [Required]
+    [MaxLength(255)]
     public string Name { get; set; } = string.Empty;
     
     /// <summary>Document type</summary>
     public SignableDocumentType DocumentType { get; set; } = SignableDocumentType.Quote;
     
     /// <summary>Email subject line</summary>
+    [MaxLength(255)]
     public string? EmailSubject { get; set; }
     
     /// <summary>Email message body</summary>
+    [MaxLength(2000)]
     public string? EmailMessage { get; set; }
     
     /// <summary>Current status</summary>
@@ -230,12 +238,15 @@ public class ESignatureRequest : BaseEntity
     #region Settings
     
     /// <summary>Days until expiration</summary>
+    [Range(1, 365)]
     public int ExpirationDays { get; set; } = 30;
     
     /// <summary>Send reminder every N days</summary>
+    [Range(1, 30)]
     public int? ReminderDays { get; set; }
     
     /// <summary>Reminders sent count</summary>
+    [Range(0, int.MaxValue)]
     public int RemindersSent { get; set; } = 0;
     
     /// <summary>Require signing order</summary>
@@ -248,6 +259,7 @@ public class ESignatureRequest : BaseEntity
     public bool AllowComments { get; set; } = true;
     
     /// <summary>Authentication required (SMS, ID, etc.)</summary>
+    [MaxLength(50)]
     public string? AuthenticationMethod { get; set; }
     
     #endregion
@@ -255,15 +267,23 @@ public class ESignatureRequest : BaseEntity
     #region Documents
     
     /// <summary>Source document URL (PDF to sign)</summary>
+    [MaxLength(500)]
+    [Url]
     public string? SourceDocumentUrl { get; set; }
     
     /// <summary>Signed document URL (completed PDF)</summary>
+    [MaxLength(500)]
+    [Url]
     public string? SignedDocumentUrl { get; set; }
     
     /// <summary>Certificate of completion URL</summary>
+    [MaxLength(500)]
+    [Url]
     public string? CertificateUrl { get; set; }
     
     /// <summary>Audit trail URL</summary>
+    [MaxLength(500)]
+    [Url]
     public string? AuditTrailUrl { get; set; }
     
     #endregion
@@ -271,12 +291,15 @@ public class ESignatureRequest : BaseEntity
     #region Results
     
     /// <summary>Decline reason</summary>
+    [MaxLength(1000)]
     public string? DeclineReason { get; set; }
     
     /// <summary>Void reason</summary>
+    [MaxLength(1000)]
     public string? VoidReason { get; set; }
     
     /// <summary>Error message if failed</summary>
+    [MaxLength(1000)]
     public string? ErrorMessage { get; set; }
     
     #endregion
@@ -339,6 +362,7 @@ public class ESignatureSigner : BaseEntity
     #region Signer Details
     
     /// <summary>Signing order (1 = first)</summary>
+    [Range(1, 100)]
     public int SigningOrder { get; set; } = 1;
     
     /// <summary>Signer role</summary>
@@ -348,6 +372,7 @@ public class ESignatureSigner : BaseEntity
     public SignerStatus Status { get; set; } = SignerStatus.Waiting;
     
     /// <summary>External recipient ID from provider</summary>
+    [MaxLength(100)]
     public string? ExternalRecipientId { get; set; }
     
     #endregion
@@ -355,18 +380,27 @@ public class ESignatureSigner : BaseEntity
     #region Contact Information
     
     /// <summary>Signer name</summary>
+    [Required]
+    [MaxLength(255)]
     public string Name { get; set; } = string.Empty;
     
     /// <summary>Signer email</summary>
+    [Required]
+    [MaxLength(255)]
+    [EmailAddress]
     public string Email { get; set; } = string.Empty;
     
     /// <summary>Phone (for SMS auth)</summary>
+    [MaxLength(30)]
+    [Phone]
     public string? Phone { get; set; }
     
     /// <summary>Title/role</summary>
+    [MaxLength(100)]
     public string? Title { get; set; }
     
     /// <summary>Company</summary>
+    [MaxLength(255)]
     public string? Company { get; set; }
     
     #endregion
@@ -393,15 +427,20 @@ public class ESignatureSigner : BaseEntity
     #region Signature Details
     
     /// <summary>Signature image URL</summary>
+    [MaxLength(500)]
+    [Url]
     public string? SignatureImageUrl { get; set; }
     
     /// <summary>IP address when signed</summary>
+    [MaxLength(45)]
     public string? SignedFromIp { get; set; }
     
     /// <summary>Location when signed</summary>
+    [MaxLength(255)]
     public string? SignedFromLocation { get; set; }
     
     /// <summary>Decline reason</summary>
+    [MaxLength(1000)]
     public string? DeclineReason { get; set; }
     
     #endregion
@@ -409,6 +448,7 @@ public class ESignatureSigner : BaseEntity
     #region Private Message
     
     /// <summary>Private message to this signer</summary>
+    [MaxLength(2000)]
     public string? PrivateMessage { get; set; }
     
     #endregion
@@ -442,24 +482,33 @@ public class ESignatureSigner : BaseEntity
 public class ESignatureDocument : BaseEntity
 {
     /// <summary>Document name</summary>
+    [Required]
+    [MaxLength(255)]
     public string Name { get; set; } = string.Empty;
     
     /// <summary>Document order</summary>
+    [Range(1, 100)]
     public int DocumentOrder { get; set; } = 1;
     
     /// <summary>External document ID</summary>
+    [MaxLength(100)]
     public string? ExternalDocumentId { get; set; }
     
     /// <summary>Document URL</summary>
+    [MaxLength(500)]
+    [Url]
     public string? DocumentUrl { get; set; }
     
     /// <summary>File type (pdf, docx)</summary>
+    [MaxLength(20)]
     public string? FileType { get; set; }
     
     /// <summary>File size in bytes</summary>
+    [Range(0, long.MaxValue)]
     public long? FileSize { get; set; }
     
     /// <summary>Page count</summary>
+    [Range(1, 10000)]
     public int? PageCount { get; set; }
     
     /// <summary>Parent request ID</summary>
@@ -475,21 +524,27 @@ public class ESignatureDocument : BaseEntity
 public class ESignatureAuditEvent : BaseEntity
 {
     /// <summary>Event type</summary>
+    [Required]
+    [MaxLength(100)]
     public string EventType { get; set; } = string.Empty;
     
     /// <summary>Event timestamp</summary>
     public DateTime EventDate { get; set; } = DateTime.UtcNow;
     
     /// <summary>Event description</summary>
+    [MaxLength(1000)]
     public string? Description { get; set; }
     
     /// <summary>IP address</summary>
+    [MaxLength(45)]
     public string? IpAddress { get; set; }
     
     /// <summary>User agent</summary>
+    [MaxLength(500)]
     public string? UserAgent { get; set; }
     
     /// <summary>Location</summary>
+    [MaxLength(255)]
     public string? Location { get; set; }
     
     /// <summary>Associated signer ID</summary>

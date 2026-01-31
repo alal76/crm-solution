@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -5,11 +7,24 @@ namespace CRM.Core.Entities;
 /// </summary>
 public class Department : BaseEntity
 {
+    /// <summary>Department name</summary>
+    [Required]
+    [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
+    
+    /// <summary>Department description</summary>
+    [MaxLength(500)]
     public string Description { get; set; } = string.Empty;
-    public string? DepartmentCode { get; set; } // e.g., "SALES", "SUPPORT"
+    
+    /// <summary>Department code e.g., "SALES", "SUPPORT"</summary>
+    [MaxLength(20)]
+    public string? DepartmentCode { get; set; }
+    
+    /// <summary>Whether department is active</summary>
     public bool IsActive { get; set; } = true;
-    public int? ParentDepartmentId { get; set; } // For hierarchical departments
+    
+    /// <summary>Parent department ID for hierarchical departments</summary>
+    public int? ParentDepartmentId { get; set; }
 
     // Navigation properties
     public virtual ICollection<User> Users { get; set; } = new List<User>();

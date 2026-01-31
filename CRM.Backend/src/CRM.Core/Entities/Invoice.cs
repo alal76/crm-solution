@@ -1,4 +1,5 @@
 using CRM.Core.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace CRM.Core.Entities;
 
@@ -135,15 +136,20 @@ public class Invoice : BaseEntity
     #region Identification
     
     /// <summary>System-generated unique invoice number</summary>
+    [Required]
+    [MaxLength(50)]
     public string InvoiceNumber { get; set; } = string.Empty;
     
     /// <summary>External reference number</summary>
+    [MaxLength(100)]
     public string? ExternalInvoiceId { get; set; }
     
     /// <summary>Reference to related documents</summary>
+    [MaxLength(100)]
     public string? ReferenceNumber { get; set; }
     
     /// <summary>Batch number for batch processing</summary>
+    [MaxLength(50)]
     public string? BatchNumber { get; set; }
     
     #endregion
@@ -151,6 +157,7 @@ public class Invoice : BaseEntity
     #region Invoice Details
     
     /// <summary>Invoice description/memo</summary>
+    [MaxLength(1000)]
     public string? Description { get; set; }
     
     /// <summary>Current invoice status</summary>
@@ -163,6 +170,7 @@ public class Invoice : BaseEntity
     public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
     
     /// <summary>Custom payment terms description</summary>
+    [MaxLength(500)]
     public string? PaymentTermsDescription { get; set; }
     
     #endregion
@@ -198,33 +206,43 @@ public class Invoice : BaseEntity
     #region Amounts
     
     /// <summary>Sum of line items before tax and discounts</summary>
+    [Range(0, double.MaxValue)]
     public decimal Subtotal { get; set; } = 0;
     
     /// <summary>Total discount amount</summary>
+    [Range(0, double.MaxValue)]
     public decimal DiscountAmount { get; set; } = 0;
     
     /// <summary>Discount percentage</summary>
+    [Range(0, 100)]
     public decimal DiscountPercent { get; set; } = 0;
     
     /// <summary>Tax amount</summary>
+    [Range(0, double.MaxValue)]
     public decimal TaxAmount { get; set; } = 0;
     
     /// <summary>Tax rate percentage</summary>
+    [Range(0, 100)]
     public decimal TaxRate { get; set; } = 0;
     
     /// <summary>Shipping/freight charges</summary>
+    [Range(0, double.MaxValue)]
     public decimal ShippingAmount { get; set; } = 0;
     
     /// <summary>Additional fees</summary>
+    [Range(0, double.MaxValue)]
     public decimal FeesAmount { get; set; } = 0;
     
     /// <summary>Total invoice amount</summary>
+    [Range(0, double.MaxValue)]
     public decimal TotalAmount { get; set; } = 0;
     
     /// <summary>Amount paid so far</summary>
+    [Range(0, double.MaxValue)]
     public decimal AmountPaid { get; set; } = 0;
     
     /// <summary>Amount credited/adjusted</summary>
+    [Range(0, double.MaxValue)]
     public decimal AmountCredited { get; set; } = 0;
     
     /// <summary>Outstanding balance</summary>
@@ -234,6 +252,8 @@ public class Invoice : BaseEntity
     public bool IsPaid => BalanceDue <= 0;
     
     /// <summary>Currency code (ISO 4217)</summary>
+    [Required]
+    [MaxLength(3)]
     public string CurrencyCode { get; set; } = "USD";
     
     /// <summary>Exchange rate if foreign currency</summary>
@@ -272,14 +292,25 @@ public class Invoice : BaseEntity
     
     #region Billing Address
     
+    [MaxLength(255)]
     public string? BillingName { get; set; }
+    [MaxLength(255)]
     public string? BillingCompany { get; set; }
+    [MaxLength(500)]
     public string? BillingStreet { get; set; }
+    [MaxLength(100)]
     public string? BillingCity { get; set; }
+    [MaxLength(100)]
     public string? BillingState { get; set; }
+    [MaxLength(20)]
     public string? BillingPostalCode { get; set; }
+    [MaxLength(100)]
     public string? BillingCountry { get; set; }
+    [MaxLength(255)]
+    [EmailAddress]
     public string? BillingEmail { get; set; }
+    [MaxLength(30)]
+    [Phone]
     public string? BillingPhone { get; set; }
     
     #endregion
@@ -302,6 +333,7 @@ public class Invoice : BaseEntity
     public DateTime? CollectionsDate { get; set; }
     
     /// <summary>Collections agency reference</summary>
+    [MaxLength(100)]
     public string? CollectionsReference { get; set; }
     
     #endregion
@@ -358,24 +390,32 @@ public class Invoice : BaseEntity
     #region Notes & Documents
     
     /// <summary>Notes displayed on invoice</summary>
+    [MaxLength(2000)]
     public string? Notes { get; set; }
     
     /// <summary>Internal notes (not shown to customer)</summary>
+    [MaxLength(2000)]
     public string? InternalNotes { get; set; }
     
     /// <summary>Footer text</summary>
+    [MaxLength(1000)]
     public string? Footer { get; set; }
     
     /// <summary>Terms and conditions</summary>
+    [MaxLength(5000)]
     public string? TermsAndConditions { get; set; }
     
     /// <summary>Void reason</summary>
+    [MaxLength(500)]
     public string? VoidReason { get; set; }
     
     /// <summary>Dispute reason</summary>
+    [MaxLength(500)]
     public string? DisputeReason { get; set; }
     
     /// <summary>PDF URL</summary>
+    [MaxLength(500)]
+    [Url]
     public string? PdfUrl { get; set; }
     
     #endregion
@@ -389,9 +429,11 @@ public class InvoiceLineItem : BaseEntity
     #region Identification
     
     /// <summary>Line item number for display</summary>
+    [Range(1, int.MaxValue)]
     public int LineNumber { get; set; }
     
     /// <summary>External line reference</summary>
+    [MaxLength(100)]
     public string? ExternalLineId { get; set; }
     
     #endregion
@@ -399,15 +441,20 @@ public class InvoiceLineItem : BaseEntity
     #region Product Details
     
     /// <summary>Item name/description</summary>
+    [Required]
+    [MaxLength(255)]
     public string Name { get; set; } = string.Empty;
     
     /// <summary>Detailed description</summary>
+    [MaxLength(1000)]
     public string? Description { get; set; }
     
     /// <summary>Product SKU</summary>
+    [MaxLength(50)]
     public string? SKU { get; set; }
     
     /// <summary>Product code</summary>
+    [MaxLength(50)]
     public string? ProductCode { get; set; }
     
     #endregion
@@ -415,30 +462,39 @@ public class InvoiceLineItem : BaseEntity
     #region Quantity & Pricing
     
     /// <summary>Quantity billed</summary>
+    [Range(0.001, double.MaxValue)]
     public decimal Quantity { get; set; } = 1;
     
     /// <summary>Unit of measure</summary>
+    [MaxLength(50)]
     public string? UnitOfMeasure { get; set; }
     
     /// <summary>Unit price</summary>
+    [Range(0, double.MaxValue)]
     public decimal UnitPrice { get; set; } = 0;
     
     /// <summary>Discount amount</summary>
+    [Range(0, double.MaxValue)]
     public decimal DiscountAmount { get; set; } = 0;
     
     /// <summary>Discount percentage</summary>
+    [Range(0, 100)]
     public decimal DiscountPercent { get; set; } = 0;
     
     /// <summary>Extended amount (quantity × price - discount)</summary>
+    [Range(0, double.MaxValue)]
     public decimal ExtendedAmount { get; set; } = 0;
     
     /// <summary>Tax amount for this line</summary>
+    [Range(0, double.MaxValue)]
     public decimal TaxAmount { get; set; } = 0;
     
     /// <summary>Tax rate for this line</summary>
+    [Range(0, 100)]
     public decimal? TaxRate { get; set; }
     
     /// <summary>Total line amount including tax</summary>
+    [Range(0, double.MaxValue)]
     public decimal TotalAmount { get; set; } = 0;
     
     #endregion
@@ -462,9 +518,11 @@ public class InvoiceLineItem : BaseEntity
     public DateTime? RevenueRecognitionEndDate { get; set; }
     
     /// <summary>Deferred revenue amount</summary>
+    [Range(0, double.MaxValue)]
     public decimal? DeferredRevenue { get; set; }
     
     /// <summary>Recognized revenue amount</summary>
+    [Range(0, double.MaxValue)]
     public decimal? RecognizedRevenue { get; set; }
     
     #endregion
@@ -500,6 +558,7 @@ public class InvoiceLineItem : BaseEntity
     #region Notes
     
     /// <summary>Line item notes</summary>
+    [MaxLength(1000)]
     public string? Notes { get; set; }
     
     #endregion
