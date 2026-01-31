@@ -8,7 +8,8 @@ import {
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Description as QuoteIcon, Send as SendIcon, CheckCircle as AcceptIcon,
-  Cancel as RejectIcon, Refresh as ReviseIcon, Note as NoteIcon
+  Cancel as RejectIcon, Refresh as ReviseIcon, Note as NoteIcon,
+  Print as PrintIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
@@ -19,37 +20,48 @@ import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
+import QuoteLineItemsEditor from '../components/QuoteLineItemsEditor';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import { generatePDF, formatCurrency, formatDate } from '../services/pdfExportService';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
   { name: 'quoteNumber', label: 'Quote Number', type: 'text' },
   { name: 'title', label: 'Title', type: 'text' },
   { name: 'status', label: 'Status', type: 'select', options: [
-    { value: 0, label: 'Draft' },
-    { value: 1, label: 'Pending' },
-    { value: 2, label: 'Sent' },
-    { value: 3, label: 'Viewed' },
-    { value: 4, label: 'Accepted' },
-    { value: 5, label: 'Rejected' },
-    { value: 6, label: 'Expired' },
-    { value: 7, label: 'Revised' },
+    { value: 0, label: 'New' },
+    { value: 1, label: 'Draft' },
+    { value: 2, label: 'Under Approval' },
+    { value: 3, label: 'Approved' },
+    { value: 4, label: 'Shared' },
+    { value: 5, label: 'Viewed' },
+    { value: 6, label: 'Accepted' },
+    { value: 7, label: 'Rejected' },
+    { value: 8, label: 'Expired' },
+    { value: 9, label: 'Revised' },
+    { value: 10, label: 'Cancelled' },
+    { value: 11, label: 'Converted' },
   ]},
   { name: 'totalAmount', label: 'Total Amount', type: 'numberRange' },
 ];
 
 const SEARCHABLE_FIELDS = ['quoteNumber', 'title', 'description', 'notes'];
 
-// Enums matching backend
+// Enums matching backend QuoteStatus
 const QUOTE_STATUSES = [
-  { value: 0, label: 'Draft', color: '#9e9e9e' },
-  { value: 1, label: 'Pending', color: '#2196f3' },
-  { value: 2, label: 'Sent', color: '#9c27b0' },
-  { value: 3, label: 'Viewed', color: '#ff9800' },
-  { value: 4, label: 'Accepted', color: '#4caf50' },
-  { value: 5, label: 'Rejected', color: '#f44336' },
-  { value: 6, label: 'Expired', color: '#607d8b' },
-  { value: 7, label: 'Revised', color: '#00bcd4' },
+  { value: 0, label: 'New', color: '#e0e0e0' },
+  { value: 1, label: 'Draft', color: '#9e9e9e' },
+  { value: 2, label: 'Under Approval', color: '#ff9800' },
+  { value: 3, label: 'Approved', color: '#8bc34a' },
+  { value: 4, label: 'Shared', color: '#2196f3' },
+  { value: 5, label: 'Viewed', color: '#9c27b0' },
+  { value: 6, label: 'Accepted', color: '#4caf50' },
+  { value: 7, label: 'Rejected', color: '#f44336' },
+  { value: 8, label: 'Expired', color: '#607d8b' },
+  { value: 9, label: 'Revised', color: '#00bcd4' },
+  { value: 10, label: 'Cancelled', color: '#795548' },
+  { value: 11, label: 'Converted', color: '#009688' },
+  { value: 12, label: 'End of Life', color: '#424242' },
 ];
 
 interface Quote extends BaseEntity {
@@ -290,6 +302,76 @@ function QuotesPage() {
     }
   };
 
+  const handlePrintQuote = async (quote: Quote) => {
+    // Fetch line items for the quote
+    let lineItems: any[] = [];
+    try {
+      const response = await apiClient.get(`/quotes/${quote.id}/lineitems`);
+      lineItems = response.data;
+    } catch {
+      // Continue without line items
+    }
+
+    const status = getStatus(quote.status);
+    const customerName = quote.customer 
+      ? `${quote.customer.firstName} ${quote.customer.lastName}${quote.customer.company ? ` (${quote.customer.company})` : ''}`
+      : 'N/A';
+
+    generatePDF(
+      {
+        title: 'Quote',
+        subtitle: `${quote.quoteNumber} - ${quote.title}`,
+        headerColor: '#6750A4',
+        includeDate: true,
+      },
+      [
+        {
+          title: 'Quote Details',
+          fields: [
+            { label: 'Quote Number', value: quote.quoteNumber },
+            { label: 'Title', value: quote.title },
+            { label: 'Status', value: status?.label || 'Unknown' },
+            { label: 'Customer', value: customerName },
+            { label: 'Valid Until', value: formatDate(quote.validUntil) },
+            { label: 'Revision', value: `v${quote.revisionNumber}` },
+          ],
+        },
+        lineItems.length > 0 ? {
+          title: 'Line Items',
+          table: {
+            columns: [
+              { header: 'Product', field: 'productName' },
+              { header: 'Description', field: 'description' },
+              { header: 'Qty', field: 'quantity', align: 'right' as const },
+              { header: 'Unit Price', field: 'unitPrice', align: 'right' as const, format: formatCurrency },
+              { header: 'Discount', field: 'discountPercent', align: 'right' as const, format: (v: number) => `${v || 0}%` },
+              { header: 'Total', field: 'lineTotal', align: 'right' as const, format: formatCurrency },
+            ],
+            data: lineItems,
+          },
+        } : { content: '' },
+        {
+          title: 'Totals',
+          fields: [
+            { label: 'Subtotal', value: formatCurrency(quote.subtotal) },
+            { label: 'Discount', value: `${formatCurrency(quote.discountAmount)} (${quote.discountPercent}%)` },
+            { label: 'Tax', value: `${formatCurrency(quote.taxAmount)} (${quote.taxPercent}%)` },
+            { label: 'Shipping', value: formatCurrency(quote.shippingAmount) },
+            { label: 'Total', value: formatCurrency(quote.totalAmount) },
+          ],
+        },
+        quote.termsAndConditions ? {
+          title: 'Terms & Conditions',
+          content: quote.termsAndConditions,
+        } : { content: '' },
+        quote.notes ? {
+          title: 'Notes',
+          content: quote.notes,
+        } : { content: '' },
+      ].filter(s => s.title || s.content || s.fields || s.table)
+    );
+  };
+
   const getStatus = (value: number) => QUOTE_STATUSES.find(s => s.value === value);
 
   const isExpired = (quote: Quote) => {
@@ -441,6 +523,11 @@ function QuotesPage() {
                             <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title="Print / PDF">
+                          <IconButton size="small" onClick={() => handlePrintQuote(quote)} sx={{ color: '#795548' }}>
+                            <PrintIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Delete">
                           <IconButton size="small" onClick={() => handleDeleteQuote(quote.id)} sx={{ color: '#f44336' }}>
                             <DeleteIcon fontSize="small" />
@@ -468,6 +555,7 @@ function QuotesPage() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
           <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
             <Tab label="Details" />
+            <Tab label="Line Items" />
             <Tab label="Pricing" />
             <Tab label="Addresses" />
             <Tab label="Terms" />
@@ -511,6 +599,26 @@ function QuotesPage() {
           </TabPanel>
 
           <TabPanel value={dialogTab} index={1}>
+            {editingId ? (
+              <QuoteLineItemsEditor
+                quoteId={editingId}
+                onTotalsChange={(t) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    subtotal: t.subtotal,
+                    discountPercent: t.discount > 0 && t.subtotal > 0 ? (t.discount / t.subtotal) * 100 : 0,
+                    taxPercent: t.tax > 0 && (t.subtotal - t.discount) > 0 ? (t.tax / (t.subtotal - t.discount)) * 100 : 0,
+                  }));
+                }}
+              />
+            ) : (
+              <Alert severity="info">
+                Please save the quote first to add line items.
+              </Alert>
+            )}
+          </TabPanel>
+
+          <TabPanel value={dialogTab} index={2}>
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <TextField fullWidth label="Subtotal ($)" name="subtotal" type="number" value={formData.subtotal} onChange={handleInputChange} />
@@ -551,7 +659,7 @@ function QuotesPage() {
             </Grid>
           </TabPanel>
 
-          <TabPanel value={dialogTab} index={2}>
+          <TabPanel value={dialogTab} index={3}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField fullWidth label="Billing Address" name="billingAddress" value={formData.billingAddress} onChange={handleInputChange} multiline rows={3} />
@@ -562,7 +670,7 @@ function QuotesPage() {
             </Grid>
           </TabPanel>
 
-          <TabPanel value={dialogTab} index={3}>
+          <TabPanel value={dialogTab} index={4}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField fullWidth label="Terms and Conditions" name="termsAndConditions" value={formData.termsAndConditions} onChange={handleInputChange} multiline rows={6} />
@@ -573,7 +681,7 @@ function QuotesPage() {
             </Grid>
           </TabPanel>
 
-          <TabPanel value={dialogTab} index={4}>
+          <TabPanel value={dialogTab} index={5}>
             {editingId ? (
               <NotesTab
                 entityType="Quote"

@@ -30,9 +30,16 @@ builder.Services.AddCors(options =>
 });
 
 // Add JWT Authentication (pass-through for validation)
-var jwtKey = builder.Configuration["JwtSettings:Key"] ?? "YourSuperSecretKeyThatIsAtLeast32CharactersLong!";
-var jwtIssuer = builder.Configuration["JwtSettings:Issuer"] ?? "CRM.Api";
-var jwtAudience = builder.Configuration["JwtSettings:Audience"] ?? "CRM.Client";
+// JWT_KEY environment variable is REQUIRED - no hardcoded fallback for security
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") 
+    ?? builder.Configuration["JwtSettings:Key"] 
+    ?? throw new InvalidOperationException("JWT_KEY environment variable or JwtSettings:Key configuration is required");
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
+    ?? builder.Configuration["JwtSettings:Issuer"] 
+    ?? "CRM.Api";
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
+    ?? builder.Configuration["JwtSettings:Audience"] 
+    ?? "CRM.Client";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

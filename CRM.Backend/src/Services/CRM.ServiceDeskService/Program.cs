@@ -32,6 +32,14 @@ builder.Services.AddScoped<IServiceRequestSubcategoryService, ServiceRequestSubc
 builder.Services.AddScoped<IServiceRequestCustomFieldService, ServiceRequestCustomFieldService>();
 builder.Services.AddScoped<IServiceRequestTypeService, ServiceRequestTypeService>();
 
+// Register workflow services
+builder.Services.AddScoped<WorkflowService>();
+builder.Services.AddScoped<WorkflowInstanceService>();
+
+// Register LLM services for AI-powered workflows
+builder.Services.AddHttpClient<ILLMService, LLMService>();
+builder.Services.AddScoped<ILLMSettingsService, LLMSettingsService>();
+
 // Register input ports (Hexagonal Architecture)
 builder.Services.AddScoped<IServiceRequestInputPort, ServiceRequestService>();
 

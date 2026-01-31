@@ -106,6 +106,14 @@ public class LLMSettingsService : ILLMSettingsService
                     IsConfigured = _llmService.IsConfigured("deepseek")
                 },
                 
+                AllenAI = new LLMProviderSettingsDto
+                {
+                    DefaultModel = GetSettingValue(dbSettings, "AllenAI.DefaultModel", _configOptions.AllenAI.DefaultModel),
+                    BaseUrl = GetSettingValue(dbSettings, "AllenAI.BaseUrl", _configOptions.AllenAI.BaseUrl),
+                    Enabled = GetBoolSettingValue(dbSettings, "AllenAI.Enabled", _configOptions.AllenAI.Enabled),
+                    IsConfigured = _llmService.IsConfigured("allenai")
+                },
+                
                 Local = new LLMProviderSettingsDto
                 {
                     DefaultModel = GetSettingValue(dbSettings, "Local.DefaultModel", _configOptions.LocalLLM.DefaultModel),
@@ -296,6 +304,10 @@ public class LLMSettingsService : ILLMSettingsService
                 new() { SettingKey = "DeepSeek.DefaultModel", SettingValue = _configOptions.DeepSeek.DefaultModel, ValueType = "string", Category = "provider.deepseek" },
                 new() { SettingKey = "DeepSeek.BaseUrl", SettingValue = _configOptions.DeepSeek.BaseUrl, ValueType = "string", Category = "provider.deepseek" },
                 
+                new() { SettingKey = "AllenAI.DefaultModel", SettingValue = _configOptions.AllenAI.DefaultModel, ValueType = "string", Category = "provider.allenai", Description = "Allen AI OLMo/Tulu models via Hugging Face" },
+                new() { SettingKey = "AllenAI.BaseUrl", SettingValue = _configOptions.AllenAI.BaseUrl, ValueType = "string", Category = "provider.allenai" },
+                new() { SettingKey = "AllenAI.Enabled", SettingValue = _configOptions.AllenAI.Enabled.ToString().ToLower(), ValueType = "boolean", Category = "provider.allenai" },
+                
                 new() { SettingKey = "Local.DefaultModel", SettingValue = _configOptions.LocalLLM.DefaultModel, ValueType = "string", Category = "provider.local" },
                 new() { SettingKey = "Local.BaseUrl", SettingValue = _configOptions.LocalLLM.BaseUrl, ValueType = "string", Category = "provider.local" },
                 new() { SettingKey = "Local.ApiFormat", SettingValue = _configOptions.LocalLLM.ApiFormat, ValueType = "string", Category = "provider.local" },
@@ -384,6 +396,7 @@ public class LLMSettingsService : ILLMSettingsService
         "google" or "gemini" => "Google",
         "bedrock" or "aws" => "Bedrock",
         "deepseek" => "DeepSeek",
+        "allenai" or "huggingface" or "ai2" => "AllenAI",
         "local" or "ollama" => "Local",
         _ => providerKey
     };

@@ -56,7 +56,7 @@ public class OpportunitiesController : ControllerBase
     {
         try
         {
-            var opportunities = await _opportunityService.GetOpportunitiesByAccountAsync(customerId);
+            var opportunities = await _opportunityService.GetOpportunitiesByCustomerAsync(customerId);
             return Ok(opportunities);
         }
         catch (Exception ex)

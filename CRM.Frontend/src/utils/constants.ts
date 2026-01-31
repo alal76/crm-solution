@@ -425,12 +425,19 @@ export const TASK_PRIORITY_OPTIONS = [
 ] as const;
 
 export const QUOTE_STATUS_OPTIONS = [
-  { value: 0, label: 'Draft', color: '#9e9e9e' },
-  { value: 1, label: 'Pending', color: '#ff9800' },
-  { value: 2, label: 'Sent', color: '#2196f3' },
-  { value: 3, label: 'Accepted', color: '#4caf50' },
-  { value: 4, label: 'Rejected', color: '#f44336' },
-  { value: 5, label: 'Expired', color: '#795548' },
+  { value: 0, label: 'New', color: '#e0e0e0' },
+  { value: 1, label: 'Draft', color: '#9e9e9e' },
+  { value: 2, label: 'Under Approval', color: '#ff9800' },
+  { value: 3, label: 'Approved', color: '#8bc34a' },
+  { value: 4, label: 'Shared', color: '#2196f3' },
+  { value: 5, label: 'Viewed', color: '#9c27b0' },
+  { value: 6, label: 'Accepted', color: '#4caf50' },
+  { value: 7, label: 'Rejected', color: '#f44336' },
+  { value: 8, label: 'Expired', color: '#607d8b' },
+  { value: 9, label: 'Revised', color: '#00bcd4' },
+  { value: 10, label: 'Cancelled', color: '#795548' },
+  { value: 11, label: 'Converted', color: '#009688' },
+  { value: 12, label: 'End of Life', color: '#424242' },
 ] as const;
 
 export const CAMPAIGN_STATUS_OPTIONS = [
@@ -441,6 +448,9 @@ export const CAMPAIGN_STATUS_OPTIONS = [
   { value: 4, label: 'Completed', color: '#9c27b0' },
   { value: 5, label: 'Cancelled', color: '#f44336' },
   { value: 6, label: 'Archived', color: '#607d8b' },
+  { value: 7, label: 'Pending Approval', color: '#ffc107' },
+  { value: 8, label: 'Rejected', color: '#d32f2f' },
+  { value: 9, label: 'In Review', color: '#03a9f4' },
 ] as const;
 
 export const CAMPAIGN_TYPE_OPTIONS = [
@@ -450,16 +460,26 @@ export const CAMPAIGN_TYPE_OPTIONS = [
   { value: 3, label: 'Display Ads', icon: '🖼️' },
   { value: 4, label: 'Content Marketing', icon: '📝' },
   { value: 5, label: 'SEO', icon: '🔎' },
-  { value: 6, label: 'Events', icon: '🎪' },
+  { value: 6, label: 'Event', icon: '🎪' },
   { value: 7, label: 'Webinar', icon: '💻' },
-  { value: 8, label: 'Trade Show', icon: '🏢' },
-  { value: 9, label: 'Direct Mail', icon: '✉️' },
+  { value: 8, label: 'Direct Mail', icon: '✉️' },
+  { value: 9, label: 'Telemarketing', icon: '📞' },
   { value: 10, label: 'Referral', icon: '👥' },
-  { value: 11, label: 'Partner', icon: '🤝' },
-  { value: 12, label: 'PR', icon: '📰' },
-  { value: 13, label: 'Video', icon: '🎬' },
-  { value: 14, label: 'Podcast', icon: '🎙️' },
-  { value: 15, label: 'Other', icon: '📋' },
+  { value: 11, label: 'Affiliate', icon: '🔗' },
+  { value: 12, label: 'Influencer', icon: '⭐' },
+  { value: 13, label: 'PR', icon: '📰' },
+  { value: 14, label: 'Trade Show', icon: '🏢' },
+  { value: 15, label: 'Video', icon: '🎬' },
+  { value: 16, label: 'Podcast', icon: '🎙️' },
+  { value: 17, label: 'SMS', icon: '💬' },
+  { value: 18, label: 'Push Notification', icon: '🔔' },
+  { value: 19, label: 'Retargeting', icon: '🎯' },
+  { value: 20, label: 'ABM', icon: '🏢' },
+  { value: 21, label: 'Partner Marketing', icon: '🤝' },
+  { value: 22, label: 'Product Launch', icon: '🚀' },
+  { value: 23, label: 'Brand Awareness', icon: '🌟' },
+  { value: 24, label: 'Integrated', icon: '🔄' },
+  { value: 25, label: 'Other', icon: '📋' },
 ] as const;
 
 export const CONTACT_ROLE_OPTIONS = [

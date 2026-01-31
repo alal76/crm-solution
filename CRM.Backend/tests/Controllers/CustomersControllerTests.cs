@@ -18,6 +18,7 @@ using Xunit;
 using Moq;
 using FluentAssertions;
 using CRM.Api.Controllers;
+using CRM.Api.Hubs;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -45,13 +46,15 @@ public class CustomersControllerTests
 {
     private readonly Mock<ICustomerService> _mockCustomerService;
     private readonly Mock<ILogger<CustomersController>> _mockLogger;
+    private readonly Mock<ICrmNotificationService> _mockNotificationService;
     private readonly CustomersController _controller;
 
     public CustomersControllerTests()
     {
         _mockCustomerService = new Mock<ICustomerService>();
         _mockLogger = new Mock<ILogger<CustomersController>>();
-        _controller = new CustomersController(_mockCustomerService.Object, _mockLogger.Object);
+        _mockNotificationService = new Mock<ICrmNotificationService>();
+        _controller = new CustomersController(_mockCustomerService.Object, _mockLogger.Object, _mockNotificationService.Object);
     }
 
     #region GetAll Tests

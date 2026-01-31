@@ -89,12 +89,12 @@ interface Opportunity extends BaseEntity {
   qualificationReason?: number;
   qualificationNotes?: string;
   region?: string;
-  accountId: number;
+  customerId: number;
   primaryContactId?: number;
   salesOwnerId?: number;
   leadId?: number;
   // Navigation properties from API
-  accountName?: string;
+  customerName?: string;
   primaryContactName?: string;
   salesOwnerName?: string;
 }
@@ -125,7 +125,7 @@ interface OpportunityForm {
   qualificationReason: number | null;
   qualificationNotes: string;
   region: string;
-  accountId: number;
+  customerId: number;
   primaryContactId: number | null;
   salesOwnerId: number | null;
 }
@@ -177,7 +177,7 @@ function OpportunitiesPage() {
     qualificationReason: null,
     qualificationNotes: '',
     region: '',
-    accountId: 0,
+    customerId: 0,
     primaryContactId: null,
     salesOwnerId: null,
   });
@@ -248,15 +248,15 @@ function OpportunitiesPage() {
     setSearchText(text);
   };
 
-  // Fetch contacts when account is selected
-  const fetchAccountContacts = useCallback(async (accountId: number) => {
-    if (!accountId) {
+  // Fetch contacts when customer is selected
+  const fetchAccountContacts = useCallback(async (customerId: number) => {
+    if (!customerId) {
       setAccountContacts([]);
       return;
     }
     try {
       setLoadingContacts(true);
-      const response = await apiClient.get(`/customers/${accountId}/contacts`);
+      const response = await apiClient.get(`/customers/${customerId}/contacts`);
       setAccountContacts(response.data.map((c: any) => ({
         id: c.contactId,
         firstName: c.contactName?.split(' ')[0] || 'Contact',
@@ -275,10 +275,10 @@ function OpportunitiesPage() {
   const filteredOpportunities = useMemo(() => {
     let result = opportunities;
     
-    // Apply account context filter first (filter by accountId)
+    // Apply account context filter first (filter by customerId)
     if (isContextActive) {
       const accountIds = getAccountIds();
-      result = result.filter(opp => accountIds.includes(opp.accountId));
+      result = result.filter(opp => accountIds.includes(opp.customerId));
     }
     
     // Then apply search filters
@@ -298,8 +298,8 @@ function OpportunitiesPage() {
     fetchAllData();
   }, [fetchAllData]);
 
-  const getAccountName = (accountId: number) => {
-    const account = accounts.find(a => a.id === accountId);
+  const getAccountName = (customerId: number) => {
+    const account = accounts.find(a => a.id === customerId);
     if (!account) return 'Unknown';
     if (account.company) return account.company;
     if (account.firstName || account.lastName) return `${account.firstName || ''} ${account.lastName || ''}`.trim();
@@ -332,13 +332,13 @@ function OpportunitiesPage() {
         qualificationReason: opp.qualificationReason ?? null,
         qualificationNotes: opp.qualificationNotes || '',
         region: opp.region || '',
-        accountId: opp.accountId,
+        customerId: opp.customerId,
         primaryContactId: opp.primaryContactId || null,
         salesOwnerId: opp.salesOwnerId || null,
       });
-      // Fetch contacts for the opportunity's account
-      if (opp.accountId) {
-        fetchAccountContacts(opp.accountId);
+      // Fetch contacts for the opportunity's customer
+      if (opp.customerId) {
+        fetchAccountContacts(opp.customerId);
       }
     } else {
       setEditingId(null);
@@ -356,7 +356,7 @@ function OpportunitiesPage() {
         qualificationReason: null,
         qualificationNotes: '',
         region: '',
-        accountId: accounts[0]?.id || 0,
+        customerId: accounts[0]?.id || 0,
         primaryContactId: null,
         salesOwnerId: null,
       });
@@ -379,12 +379,12 @@ function OpportunitiesPage() {
     setFormData(prev => ({
       ...prev,
       [name]: value === '' ? null : value,
-      // Clear primary contact when account changes
-      ...(name === 'accountId' ? { primaryContactId: null } : {}),
+      // Clear primary contact when customer changes
+      ...(name === 'customerId' ? { primaryContactId: null } : {}),
     }));
     
-    // Fetch contacts for the selected account
-    if (name === 'accountId' && value) {
+    // Fetch contacts for the selected customer
+    if (name === 'customerId' && value) {
       fetchAccountContacts(Number(value));
     }
   };
@@ -405,7 +405,7 @@ function OpportunitiesPage() {
   };
 
   const handleSaveOpportunity = async () => {
-    if (!formData.name.trim() || !formData.accountId) {
+    if (!formData.name.trim() || !formData.customerId) {
       dialogApi.setError('Please fill in required fields (Name, Account)');
       return;
     }
@@ -657,7 +657,7 @@ function OpportunitiesPage() {
                         />
                       </TableCell>
                       <TableCell>{opp.name}</TableCell>
-                      <TableCell>{opp.accountName || getAccountName(opp.accountId)}</TableCell>
+                      <TableCell>{opp.customerName || getAccountName(opp.customerId)}</TableCell>
                       <TableCell>{opp.currency || 'USD'} {opp.amount?.toLocaleString() || 0}</TableCell>
                       <TableCell>
                         <Chip 
@@ -742,8 +742,8 @@ function OpportunitiesPage() {
             <Box sx={{ mt: 2 }}>
               <EntitySelect
                 entityType="account"
-                name="accountId"
-                value={formData.accountId}
+                name="customerId"
+                value={formData.customerId}
                 onChange={handleSelectChange}
                 label="Account"
                 required
@@ -759,7 +759,7 @@ function OpportunitiesPage() {
                 value={formData.primaryContactId ?? ''}
                 onChange={handleSelectChange}
                 label="Primary Contact"
-                disabled={!formData.accountId || loadingContacts}
+                disabled={!formData.customerId || loadingContacts}
               >
                 <MenuItem value="">
                   {loadingContacts ? 'Loading contacts...' : 'None'}
@@ -769,7 +769,7 @@ function OpportunitiesPage() {
                     {c.firstName} {c.lastName}{c.role ? ` (${c.role})` : ''}
                   </MenuItem>
                 ))}
-                {formData.accountId && !loadingContacts && accountContacts.length === 0 && (
+                {formData.customerId && !loadingContacts && accountContacts.length === 0 && (
                   <MenuItem disabled>No contacts linked to this account</MenuItem>
                 )}
               </Select>

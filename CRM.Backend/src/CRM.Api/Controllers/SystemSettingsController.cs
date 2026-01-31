@@ -21,15 +21,18 @@ public class SystemSettingsController : ControllerBase
     private readonly ILogger<SystemSettingsController> _logger;
     private readonly IDbContextResolver? _contextResolver;
     private readonly IDatabaseSyncService? _databaseSyncService;
+    private readonly IWebHostEnvironment _environment;
 
     public SystemSettingsController(
         ISystemSettingsService settingsService, 
         ILogger<SystemSettingsController> logger,
+        IWebHostEnvironment environment,
         IDbContextResolver? contextResolver = null,
         IDatabaseSyncService? databaseSyncService = null)
     {
         _settingsService = settingsService;
         _logger = logger;
+        _environment = environment;
         _contextResolver = contextResolver;
         _databaseSyncService = databaseSyncService;
     }
@@ -619,9 +622,13 @@ public class SystemSettingsController : ControllerBase
         try
         {
             var settings = await _settingsService.GetSettingsAsync();
+            
+            // Quick Admin Login is only available in Development environment
+            var quickAdminLoginEnabled = _environment.IsDevelopment() && settings.QuickAdminLoginEnabled;
+            
             return Ok(new LoginSettingsResponse
             {
-                QuickAdminLoginEnabled = settings.QuickAdminLoginEnabled,
+                QuickAdminLoginEnabled = quickAdminLoginEnabled,
                 GoogleAuthEnabled = settings.GoogleAuthEnabled,
                 MicrosoftAuthEnabled = settings.MicrosoftAuthEnabled,
                 LinkedInAuthEnabled = settings.LinkedInAuthEnabled,

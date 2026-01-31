@@ -28,19 +28,26 @@ public static class DatabaseExtensions
         
         string connectionString;
         
-        // If DB_USER is set (from Kubernetes secret), build connection string from env vars
+        // If DB_USER is set (from Kubernetes secret or environment), build connection string from env vars
         if (!string.IsNullOrWhiteSpace(envDbUser))
         {
             var dbHost = envDbHost ?? "crm-db.crm-app.svc.cluster.local";
             var dbPort = envDbPort ?? "3306";
             var dbName = envDbName ?? "crm_db";
+            // DB_PASSWORD is REQUIRED when using environment variable config
+            if (string.IsNullOrWhiteSpace(envDbPass))
+            {
+                throw new InvalidOperationException("DB_PASSWORD environment variable is required when DB_USER is set");
+            }
             connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};Uid={envDbUser};Pwd={envDbPass};CharSet=utf8mb4;";
         }
         else
         {
-            // Fall back to connection string from configuration
+            // Fall back to connection string from configuration - no hardcoded password fallback
             connectionString = configuration.GetConnectionString(connectionStringName) 
-                ?? "Server=crm-db;Port=3306;Database=crm_db;Uid=crm_user;Pwd=CrmPass@Dev2024;CharSet=utf8mb4;";
+                ?? throw new InvalidOperationException(
+                    $"Database connection string '{connectionStringName}' is required. " +
+                    "Set via ConnectionStrings:DefaultConnection in appsettings.json or DB_* environment variables.");
         }
 
         services.AddDbContext<TContext>(options =>

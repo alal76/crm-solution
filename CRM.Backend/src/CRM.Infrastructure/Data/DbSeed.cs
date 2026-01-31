@@ -111,17 +111,28 @@ public class DbSeed
             await context.SaveChangesAsync();
         }
 
-        // Seed Admin User
-        var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "abhi.lal@gmail.com");
+        // Get admin credentials from environment variables (with defaults for development)
+        var adminUsername = Environment.GetEnvironmentVariable("ADMIN_USERNAME") ?? "admin";
+        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        if (string.IsNullOrWhiteSpace(adminEmail))
+        {
+            adminEmail = "admin@crm.local";
+        }
+        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "Admin@123";
+        var adminFirstName = Environment.GetEnvironmentVariable("ADMIN_FIRSTNAME") ?? "System";
+        var adminLastName = Environment.GetEnvironmentVariable("ADMIN_LASTNAME") ?? "Administrator";
+
+        // Seed Admin User - check by username OR email to avoid duplicates
+        var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Username == adminUsername || u.Email == adminEmail);
         if (adminUser == null)
         {
             adminUser = new User
             {
-                Username = "admin",
-                Email = "abhi.lal@gmail.com",
-                FirstName = "Abhishek",
-                LastName = "Lal",
-                PasswordHash = HashPassword("Admin@123"), // Change this in production!
+                Username = adminUsername,
+                Email = adminEmail,
+                FirstName = adminFirstName,
+                LastName = adminLastName,
+                PasswordHash = HashPassword(adminPassword),
                 Role = (int)UserRole.Admin,
                 IsActive = true,
                 EmailVerified = true,

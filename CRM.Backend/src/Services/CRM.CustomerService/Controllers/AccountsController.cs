@@ -1,5 +1,7 @@
 using CRM.Infrastructure.Data;
 using CRM.Core.Entities;
+using CRM.Core.Dtos;
+using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
@@ -16,20 +18,141 @@ public class AccountsController : ControllerBase
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<AccountsController> _logger;
     private readonly IConfiguration _config;
-    private readonly CRM.Core.Interfaces.IAccountService _accountService;
+    private readonly IAccountService _accountService;
+    private readonly ICustomerService _customerService;
 
     // defaults
     private const long DefaultMaxFileSize = 10 * 1024 * 1024; // 10 MB
     private static readonly string[] DefaultAllowedMimeTypes = new[] { "application/pdf", "image/png", "image/jpeg", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" };
 
-    public AccountsController(CrmDbContext db, IWebHostEnvironment env, ILogger<AccountsController> logger, IConfiguration config, CRM.Core.Interfaces.IAccountService accountService)
+    public AccountsController(
+        CrmDbContext db, 
+        IWebHostEnvironment env, 
+        ILogger<AccountsController> logger, 
+        IConfiguration config, 
+        IAccountService accountService,
+        ICustomerService customerService)
     {
         _db = db;
         _env = env;
         _logger = logger;
         _config = config;
         _accountService = accountService;
+        _customerService = customerService;
     }
+
+    // ============================================================
+    // CRUD Operations for Accounts (delegating to CustomerService)
+    // ============================================================
+
+    /// <summary>
+    /// Get all accounts (customers).
+    /// </summary>
+    [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<CustomerDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll()
+    {
+        try
+        {
+            var customers = await _customerService.GetAllCustomersAsync();
+            return Ok(customers);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving accounts");
+            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get account by ID.
+    /// </summary>
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(int id)
+    {
+        try
+        {
+            var customer = await _customerService.GetCustomerByIdAsync(id);
+            if (customer == null)
+                return NotFound(new { message = "Account not found" });
+            return Ok(customer);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving account {Id}", id);
+            return StatusCode(500, new { message = "Error retrieving account", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Create a new account.
+    /// </summary>
+    [HttpPost]
+    [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Create([FromBody] CreateCustomerDto request)
+    {
+        try
+        {
+            var result = await _customerService.CreateCustomerAsync(request);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating account");
+            return StatusCode(500, new { message = "Error creating account", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Update an existing account.
+    /// </summary>
+    [HttpPut("{id}")]
+    [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateCustomerDto request)
+    {
+        try
+        {
+            var result = await _customerService.UpdateCustomerAsync(id, request);
+            if (result == null)
+                return NotFound(new { message = "Account not found" });
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating account {Id}", id);
+            return StatusCode(500, new { message = "Error updating account", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Delete an account.
+    /// </summary>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            var success = await _customerService.DeleteCustomerAsync(id);
+            if (!success)
+                return NotFound(new { message = "Account not found" });
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting account {Id}", id);
+            return StatusCode(500, new { message = "Error deleting account", error = ex.Message });
+        }
+    }
+
+    // ============================================================
+    // Contract Management Operations
+    // ============================================================
 
     private string GetStoragePath()
     {

@@ -66,12 +66,12 @@ export interface Opportunity extends BaseEntity {
   qualificationReason?: QualificationReason;
   qualificationNotes?: string;
   region?: string;
-  accountId: number;
+  customerId: number;
   primaryContactId?: number;
   salesOwnerId?: number;
   leadId?: number;
   // Navigation properties from API
-  accountName?: string;
+  customerName?: string;
   primaryContactName?: string;
   salesOwnerName?: string;
 }
@@ -79,8 +79,8 @@ export interface Opportunity extends BaseEntity {
 export const opportunityService = {
   getAll: () => apiClient.get<Opportunity[]>('/opportunities'),
   getById: (id: number) => apiClient.get<Opportunity>(`/opportunities/${id}`),
-  getByAccount: (accountId: number) => 
-    apiClient.get<Opportunity[]>(`/opportunities/account/${accountId}`),
+  getByCustomer: (customerId: number) => 
+    apiClient.get<Opportunity[]>(`/opportunities/customer/${customerId}`),
   getTotalPipeline: () => apiClient.get(`/opportunities/pipeline/total`),
   create: (data: Opportunity) => apiClient.post<Opportunity>('/opportunities', data),
   update: (id: number, data: Opportunity) => apiClient.put(`/opportunities/${id}`, data),

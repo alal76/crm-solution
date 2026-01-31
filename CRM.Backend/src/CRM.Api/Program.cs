@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Interfaces;
+using CRM.Core.Interfaces.AI;
 using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
+using CRM.Infrastructure.Services.AI;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -377,6 +379,15 @@ builder.Services.Configure<ResilienceOptions>(builder.Configuration.GetSection("
 builder.Services.AddHttpClient<ILLMService, LLMService>();
 builder.Services.AddSingleton<IResilienceService, ResilienceService>();
 builder.Services.AddScoped<ILLMSettingsService, LLMSettingsService>();
+
+// Allen AI Services (OLMo/Tulu models for lead scoring, insights, churn prediction)
+builder.Services.Configure<AllenAIConfiguration>(builder.Configuration.GetSection("AllenAI"));
+builder.Services.AddHttpClient("AllenAI", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+builder.Services.AddScoped<IAllenAIService, AllenAIService>();
 
 // News and Social Media Feed service (NewsAPI, Twitter, LinkedIn integration)
 builder.Services.Configure<NewsSocialOptions>(builder.Configuration.GetSection("NewsSocial"));
