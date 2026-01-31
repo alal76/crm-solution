@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace CRM.Core.Entities;
 
 #region Campaign Enumerations
@@ -343,24 +345,29 @@ public class MarketingCampaign : BaseEntity
     /// FUNCTIONAL: Campaign name
     /// TECHNICAL: Required, searchable
     /// </summary>
+    [Required]
+    [MaxLength(200)]
     public string Name { get; set; } = string.Empty;
     
     /// <summary>
     /// FUNCTIONAL: Internal campaign code
     /// TECHNICAL: Unique identifier for tracking
     /// </summary>
+    [MaxLength(50)]
     public string? CampaignCode { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: Full description
     /// TECHNICAL: Rich text supported
     /// </summary>
+    [MaxLength(10000)]
     public string Description { get; set; } = string.Empty;
     
     /// <summary>
     /// FUNCTIONAL: Campaign objective text
     /// TECHNICAL: What we want to achieve
     /// </summary>
+    [MaxLength(2000)]
     public string? Objective { get; set; }
     
     /// <summary>
@@ -391,6 +398,7 @@ public class MarketingCampaign : BaseEntity
     /// FUNCTIONAL: Legacy type field
     /// TECHNICAL: Backward compatibility
     /// </summary>
+    [MaxLength(100)]
     public string Type { get; set; } = string.Empty;
     
     /// <summary>
@@ -403,12 +411,14 @@ public class MarketingCampaign : BaseEntity
     /// FUNCTIONAL: Campaign theme/headline
     /// TECHNICAL: For creative consistency
     /// </summary>
+    [MaxLength(500)]
     public string? Theme { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: Value proposition message
     /// TECHNICAL: Key message for campaign
     /// </summary>
+    [MaxLength(2000)]
     public string? ValueProposition { get; set; }
     
     #endregion
@@ -455,12 +465,14 @@ public class MarketingCampaign : BaseEntity
     /// FUNCTIONAL: Campaign timezone
     /// TECHNICAL: For scheduling
     /// </summary>
+    [MaxLength(50)]
     public string? Timezone { get; set; }
     
     /// <summary>
     /// FUNCTIONAL: Send/publish schedule
     /// TECHNICAL: JSON schedule config
     /// </summary>
+    [MaxLength(5000)]
     public string? Schedule { get; set; }
     
     #endregion
@@ -471,12 +483,14 @@ public class MarketingCampaign : BaseEntity
     /// FUNCTIONAL: Planned total budget
     /// TECHNICAL: Maximum spend
     /// </summary>
+    [Range(0, 999999999999.99)]
     public decimal Budget { get; set; } = 0;
     
     /// <summary>
     /// FUNCTIONAL: Actual spend to date
     /// TECHNICAL: Running total
     /// </summary>
+    [Range(0, 999999999999.99)]
     public decimal ActualCost { get; set; } = 0;
     
     /// <summary>
@@ -549,6 +563,7 @@ public class MarketingCampaign : BaseEntity
     /// FUNCTIONAL: Currency for all amounts
     /// TECHNICAL: ISO 4217 code
     /// </summary>
+    [MaxLength(3)]
     public string? CurrencyCode { get; set; } = "USD";
     
     #endregion
@@ -559,12 +574,14 @@ public class MarketingCampaign : BaseEntity
     /// FUNCTIONAL: Target audience size
     /// TECHNICAL: Total addressable audience
     /// </summary>
+    [Range(0, int.MaxValue)]
     public int TargetAudience { get; set; } = 0;
     
     /// <summary>
     /// FUNCTIONAL: Audience description
     /// TECHNICAL: Who we're targeting
     /// </summary>
+    [MaxLength(5000)]
     public string? TargetAudienceDescription { get; set; }
     
     /// <summary>

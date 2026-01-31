@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace CRM.Core.Models;
 
 /// <summary>
@@ -18,11 +20,15 @@ public class SocialMediaLink
     /// <summary>
     /// URL or handle for the social media profile
     /// </summary>
+    [Required]
+    [Url]
+    [MaxLength(500)]
     public string Url { get; set; } = string.Empty;
     
     /// <summary>
     /// Username or handle (if applicable)
     /// </summary>
+    [MaxLength(100)]
     public string? Handle { get; set; }
     
     public DateTime DateAdded { get; set; } = DateTime.UtcNow;

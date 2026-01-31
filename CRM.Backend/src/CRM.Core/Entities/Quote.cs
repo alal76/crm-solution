@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using CRM.Core.Models;
 
 namespace CRM.Core.Entities;
@@ -40,113 +41,340 @@ public enum QuoteStatus
 /// </summary>
 public class Quote : BaseEntity
 {
-    // Identification
+    #region Identification
+    
+    /// <summary>Unique quote number</summary>
+    [Required]
+    [MaxLength(50)]
     public string QuoteNumber { get; set; } = string.Empty;
+    
+    /// <summary>External system quote ID</summary>
+    [MaxLength(100)]
     public string? ExternalQuoteId { get; set; }
+    
+    /// <summary>Quote version number</summary>
+    [Range(1, 999)]
     public int Version { get; set; } = 1;
     
-    // Basic Information
+    #endregion
+    
+    #region Basic Information
+    
+    /// <summary>Quote name/title</summary>
+    [Required]
+    [MaxLength(200)]
     public string Name { get; set; } = string.Empty;
+    
+    /// <summary>Quote description</summary>
+    [MaxLength(5000)]
     public string? Description { get; set; }
+    
+    /// <summary>Quote status</summary>
     public QuoteStatus Status { get; set; } = QuoteStatus.New;
     
-    // Dates
+    #endregion
+    
+    #region Dates
+    
+    /// <summary>Quote creation date</summary>
     public DateTime QuoteDate { get; set; } = DateTime.UtcNow;
+    
+    /// <summary>Expiration date</summary>
     public DateTime? ExpirationDate { get; set; }
+    
+    /// <summary>Date sent to customer</summary>
     public DateTime? SentDate { get; set; }
+    
+    /// <summary>Date customer viewed</summary>
     public DateTime? ViewedDate { get; set; }
+    
+    /// <summary>Date customer accepted</summary>
     public DateTime? AcceptedDate { get; set; }
+    
+    /// <summary>Date customer rejected</summary>
     public DateTime? RejectedDate { get; set; }
     
-    // Pricing (calculated from line items)
+    #endregion
+    
+    #region Pricing
+    
+    /// <summary>Subtotal before discounts</summary>
+    [Range(0, 999999999999.99)]
     public decimal Subtotal { get; set; } = 0;
+    
+    /// <summary>Discount amount</summary>
+    [Range(0, 999999999999.99)]
     public decimal Discount { get; set; } = 0;
+    
+    /// <summary>Discount percentage</summary>
+    [Range(0, 100)]
     public decimal DiscountPercent { get; set; } = 0;
+    
+    /// <summary>Reason for discount</summary>
+    [MaxLength(500)]
     public string? DiscountReason { get; set; }
+    
+    /// <summary>Tax amount</summary>
+    [Range(0, 999999999999.99)]
     public decimal Tax { get; set; } = 0;
+    
+    /// <summary>Tax rate percentage</summary>
+    [Range(0, 100)]
     public decimal TaxRate { get; set; } = 0;
+    
+    /// <summary>Shipping/delivery cost</summary>
+    [Range(0, 999999999.99)]
     public decimal ShippingCost { get; set; } = 0;
+    
+    /// <summary>Total quote amount</summary>
+    [Range(0, 999999999999.99)]
     public decimal Total { get; set; } = 0;
+    
+    /// <summary>Currency code (ISO 4217)</summary>
+    [MaxLength(3)]
     public string? CurrencyCode { get; set; } = "USD";
     
-    // Terms
-    public string? PaymentTerms { get; set; } // Net 30, Net 60, etc.
+    #endregion
+    
+    #region Terms
+    
+    /// <summary>Payment terms (Net 30, Net 60, etc.)</summary>
+    [MaxLength(200)]
+    public string? PaymentTerms { get; set; }
+    
+    /// <summary>Delivery terms</summary>
+    [MaxLength(500)]
     public string? DeliveryTerms { get; set; }
+    
+    /// <summary>Terms and conditions</summary>
+    [MaxLength(50000)]
     public string? TermsAndConditions { get; set; }
+    
+    /// <summary>Warranty information</summary>
+    [MaxLength(5000)]
     public string? Warranty { get; set; }
+    
+    /// <summary>Quote validity in days</summary>
+    [Range(1, 365)]
     public int? ValidityDays { get; set; } = 30;
     
-    // Line Items (Legacy JSON field - prefer QuoteLineItems collection)
-    public string? LineItems { get; set; } // JSON array of quote line items
+    #endregion
     
-    // Billing Address
+    #region Line Items
+    
+    /// <summary>Line items (Legacy JSON field - prefer QuoteLineItems collection)</summary>
+    [MaxLength(50000)]
+    public string? LineItems { get; set; }
+    
+    #endregion
+    
+    #region Billing Address
+    
+    /// <summary>Billing contact name</summary>
+    [MaxLength(200)]
     public string? BillingName { get; set; }
+    
+    /// <summary>Billing street address</summary>
+    [MaxLength(500)]
     public string? BillingAddress { get; set; }
+    
+    /// <summary>Billing city</summary>
+    [MaxLength(100)]
     public string? BillingCity { get; set; }
+    
+    /// <summary>Billing state/province</summary>
+    [MaxLength(100)]
     public string? BillingState { get; set; }
+    
+    /// <summary>Billing ZIP/postal code</summary>
+    [MaxLength(20)]
     public string? BillingZipCode { get; set; }
+    
+    /// <summary>Billing country</summary>
+    [MaxLength(100)]
     public string? BillingCountry { get; set; }
     
-    // Shipping Address
+    #endregion
+    
+    #region Shipping Address
+    
+    /// <summary>Shipping contact name</summary>
+    [MaxLength(200)]
     public string? ShippingName { get; set; }
+    
+    /// <summary>Shipping street address</summary>
+    [MaxLength(500)]
     public string? ShippingAddress { get; set; }
+    
+    /// <summary>Shipping city</summary>
+    [MaxLength(100)]
     public string? ShippingCity { get; set; }
+    
+    /// <summary>Shipping state/province</summary>
+    [MaxLength(100)]
     public string? ShippingState { get; set; }
+    
+    /// <summary>Shipping ZIP/postal code</summary>
+    [MaxLength(20)]
     public string? ShippingZipCode { get; set; }
+    
+    /// <summary>Shipping country</summary>
+    [MaxLength(100)]
     public string? ShippingCountry { get; set; }
     
-    // Contact Information
+    #endregion
+    
+    #region Contact Information
+    
+    /// <summary>Contact name</summary>
+    [MaxLength(200)]
     public string? ContactName { get; set; }
+    
+    /// <summary>Contact email address</summary>
+    [EmailAddress]
+    [MaxLength(200)]
     public string? ContactEmail { get; set; }
+    
+    /// <summary>Contact phone number</summary>
+    [Phone]
+    [MaxLength(50)]
     public string? ContactPhone { get; set; }
     
-    // Relationships
-    public int? CustomerId { get; set; }
-    public int? ContactId { get; set; }
-    public int? OpportunityId { get; set; }
-    public int? AssignedToUserId { get; set; }
-    public int? CreatedByUserId { get; set; }
-    public int? ApprovedByUserId { get; set; }
-    public int? ParentQuoteId { get; set; } // For revisions
+    #endregion
     
-    // Relationship Manager
+    #region Relationships
+    
+    /// <summary>Associated customer ID</summary>
+    public int? CustomerId { get; set; }
+    
+    /// <summary>Associated contact ID</summary>
+    public int? ContactId { get; set; }
+    
+    /// <summary>Associated opportunity ID</summary>
+    public int? OpportunityId { get; set; }
+    
+    /// <summary>Assigned user ID</summary>
+    public int? AssignedToUserId { get; set; }
+    
+    /// <summary>User who created the quote</summary>
+    public int? CreatedByUserId { get; set; }
+    
+    /// <summary>User who approved the quote</summary>
+    public int? ApprovedByUserId { get; set; }
+    
+    /// <summary>Parent quote ID (for revisions)</summary>
+    public int? ParentQuoteId { get; set; }
+    
+    /// <summary>Relationship manager ID</summary>
     public int? RelationshipManagerId { get; set; }
     
-    // Approval
+    #endregion
+    
+    #region Approval
+    
+    /// <summary>Whether quote requires approval</summary>
     public bool RequiresApproval { get; set; } = false;
+    
+    /// <summary>Whether quote is approved</summary>
     public bool IsApproved { get; set; } = false;
+    
+    /// <summary>Approval date</summary>
     public DateTime? ApprovalDate { get; set; }
+    
+    /// <summary>Approval notes</summary>
+    [MaxLength(2000)]
     public string? ApprovalNotes { get; set; }
+    
+    /// <summary>Date submitted for approval</summary>
     public DateTime? SubmittedForApprovalDate { get; set; }
     
-    // Signature
+    #endregion
+    
+    #region Signature
+    
+    /// <summary>Whether quote is signed</summary>
     public bool IsSigned { get; set; } = false;
+    
+    /// <summary>Signature date</summary>
     public DateTime? SignedDate { get; set; }
+    
+    /// <summary>Name of signer</summary>
+    [MaxLength(200)]
     public string? SignedBy { get; set; }
+    
+    /// <summary>Signature image URL</summary>
+    [Url]
+    [MaxLength(1000)]
     public string? SignatureUrl { get; set; }
     
-    // Documentation
+    #endregion
+    
+    #region Documentation
+    
+    /// <summary>External notes (visible to customer)</summary>
+    [MaxLength(5000)]
     public string? Notes { get; set; }
+    
+    /// <summary>Internal notes (staff only)</summary>
+    [MaxLength(5000)]
     public string? InternalNotes { get; set; }
-    public string? Attachments { get; set; } // JSON array
+    
+    /// <summary>Attachments (JSON array)</summary>
+    [MaxLength(5000)]
+    public string? Attachments { get; set; }
+    
+    /// <summary>Quote PDF URL</summary>
+    [Url]
+    [MaxLength(1000)]
     public string? QuotePdfUrl { get; set; }
     
-    // Classification
+    #endregion
+    
+    #region Classification
+    
+    /// <summary>Comma-separated tags</summary>
+    [MaxLength(500)]
     public string? Tags { get; set; }
+    
+    /// <summary>Quote category</summary>
+    [MaxLength(100)]
     public string? Category { get; set; }
     
-    // Service/Delivery tracking
+    #endregion
+    
+    #region Service/Delivery Tracking
+    
+    /// <summary>Expected delivery date</summary>
     public DateTime? ExpectedDeliveryDate { get; set; }
+    
+    /// <summary>Actual delivery date</summary>
     public DateTime? ActualDeliveryDate { get; set; }
+    
+    /// <summary>Warranty period in months</summary>
+    [Range(0, 120)]
     public int? WarrantyMonths { get; set; }
+    
+    /// <summary>Warranty end date</summary>
     public DateTime? WarrantyEndDate { get; set; }
+    
+    /// <summary>Service start date</summary>
     public DateTime? ServiceStartDate { get; set; }
+    
+    /// <summary>Service end date</summary>
     public DateTime? ServiceEndDate { get; set; }
     
-    // Custom Fields
+    #endregion
+    
+    #region Custom Fields
+    
+    /// <summary>Custom fields (JSON)</summary>
+    [MaxLength(10000)]
     public string? CustomFields { get; set; }
+    
+    #endregion
 
-    // Navigation properties
+    #region Navigation Properties
+    
     public Customer? Customer { get; set; }
     public Contact? Contact { get; set; }
     public Opportunity? Opportunity { get; set; }
@@ -161,6 +389,8 @@ public class Quote : BaseEntity
     /// Quote line items (structured line items)
     /// </summary>
     public ICollection<QuoteLineItem>? QuoteLineItems { get; set; }
+    
+    #endregion
     
     #region Calculation Methods
     

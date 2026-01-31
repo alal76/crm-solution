@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -45,51 +47,127 @@ public enum CrmTaskType
 /// </summary>
 public class CrmTask : BaseEntity
 {
-    // Basic Information
+    #region Basic Information
+    
+    /// <summary>Task subject/title</summary>
+    [Required]
+    [MaxLength(500)]
     public string Subject { get; set; } = string.Empty;
+    
+    /// <summary>Task description</summary>
+    [MaxLength(5000)]
     public string? Description { get; set; }
+    
+    /// <summary>Type of task</summary>
     public CrmTaskType TaskType { get; set; } = CrmTaskType.Other;
+    
+    /// <summary>Current status</summary>
     public CrmTaskStatus Status { get; set; } = CrmTaskStatus.NotStarted;
+    
+    /// <summary>Task priority</summary>
     public CrmTaskPriority Priority { get; set; } = CrmTaskPriority.Normal;
     
-    // Dates
+    #endregion
+    
+    #region Dates & Timing
+    
+    /// <summary>Due date for the task</summary>
     public DateTime? DueDate { get; set; }
+    
+    /// <summary>Planned start date</summary>
     public DateTime? StartDate { get; set; }
+    
+    /// <summary>Actual completion date</summary>
     public DateTime? CompletedDate { get; set; }
+    
+    /// <summary>Reminder date/time</summary>
     public DateTime? ReminderDate { get; set; }
+    
+    /// <summary>Whether reminder is set</summary>
     public bool HasReminder { get; set; } = false;
     
-    // Progress
+    #endregion
+    
+    #region Progress & Effort
+    
+    /// <summary>Percentage complete (0-100)</summary>
+    [Range(0, 100)]
     public int PercentComplete { get; set; } = 0;
+    
+    /// <summary>Estimated effort in minutes</summary>
+    [Range(0, 525600)] // Max 1 year in minutes
     public int? EstimatedMinutes { get; set; }
+    
+    /// <summary>Actual effort in minutes</summary>
+    [Range(0, 525600)]
     public int? ActualMinutes { get; set; }
     
-    // Recurrence
+    #endregion
+    
+    #region Recurrence
+    
+    /// <summary>Whether task recurs</summary>
     public bool IsRecurring { get; set; } = false;
-    public string? RecurrencePattern { get; set; } // JSON: daily, weekly, monthly, etc.
+    
+    /// <summary>Recurrence pattern (JSON: daily, weekly, monthly, etc.)</summary>
+    [MaxLength(500)]
+    public string? RecurrencePattern { get; set; }
+    
+    /// <summary>End date for recurrence</summary>
     public DateTime? RecurrenceEndDate { get; set; }
+    
+    /// <summary>Parent task ID (for recurring instances)</summary>
     public int? ParentTaskId { get; set; }
     
-    // Relationships
+    #endregion
+    
+    #region Relationships
+    
+    /// <summary>Associated customer ID</summary>
     public int? CustomerId { get; set; }
+    
+    /// <summary>Associated contact ID</summary>
     public int? ContactId { get; set; }
+    
+    /// <summary>Associated opportunity ID</summary>
     public int? OpportunityId { get; set; }
+    
+    /// <summary>Associated campaign ID</summary>
     public int? CampaignId { get; set; }
+    
+    /// <summary>Assigned user ID</summary>
     public int? AssignedToUserId { get; set; }
-    public int? AssignedToGroupId { get; set; } // Group assignment for workflow queue
+    
+    /// <summary>Assigned group ID for workflow queue</summary>
+    public int? AssignedToGroupId { get; set; }
+    
+    /// <summary>User who created the task</summary>
     public int? CreatedByUserId { get; set; }
     
-    // Classification
+    #endregion
+    
+    #region Classification & Metadata
+    
+    /// <summary>Comma-separated tags</summary>
+    [MaxLength(500)]
     public string? Tags { get; set; }
+    
+    /// <summary>Task category</summary>
+    [MaxLength(100)]
     public string? Category { get; set; }
     
-    // Attachments
-    public string? Attachments { get; set; } // JSON array of file URLs
+    /// <summary>Attachments (JSON array of file URLs)</summary>
+    [MaxLength(5000)]
+    public string? Attachments { get; set; }
     
-    // Custom Fields
+    /// <summary>Custom fields (JSON)</summary>
+    [MaxLength(10000)]
     public string? CustomFields { get; set; }
+    
+    #endregion
 
-    // Navigation properties
+    #region Navigation Properties
+    
     public Customer? Customer { get; set; }
     public Opportunity? Opportunity { get; set; }
     public MarketingCampaign? Campaign { get; set; }
@@ -98,4 +176,6 @@ public class CrmTask : BaseEntity
     public User? CreatedByUser { get; set; }
     public CrmTask? ParentTask { get; set; }
     public ICollection<CrmTask>? SubTasks { get; set; }
+    
+    #endregion
 }
