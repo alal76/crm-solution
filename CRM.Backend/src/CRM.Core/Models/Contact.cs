@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities;
 
 namespace CRM.Core.Models;
@@ -63,71 +64,180 @@ public class Contact
 {
     public int Id { get; set; }
     
-    // Type & Status
+    #region Type & Status
+    
     public ContactType ContactType { get; set; }
     public ContactStatus Status { get; set; } = ContactStatus.Active;
     public LeadStatus? LeadStatus { get; set; } // Only for Lead type
     
-    // Personal Information
+    #endregion
+    
+    #region Personal Information
+    
+    [Required]
+    [MaxLength(100)]
     public string FirstName { get; set; } = string.Empty;
+    
+    [Required]
+    [MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
+    
+    [MaxLength(50)]
     public string? MiddleName { get; set; }
+    
+    [MaxLength(20)]
     public string? Salutation { get; set; } // Mr., Mrs., Dr., etc.
+    
+    [MaxLength(20)]
     public string? Suffix { get; set; } // Jr., Sr., III, etc.
+    
+    [MaxLength(50)]
     public string? Nickname { get; set; }
+    
+    [MaxLength(20)]
     public string? Gender { get; set; }
+    
     public DateTime? DateOfBirth { get; set; }
     
-    // Contact Information
+    #endregion
+    
+    #region Contact Information
+    
+    [EmailAddress]
+    [MaxLength(200)]
     public string? EmailPrimary { get; set; }
+    
+    [EmailAddress]
+    [MaxLength(200)]
     public string? EmailSecondary { get; set; }
+    
+    [EmailAddress]
+    [MaxLength(200)]
     public string? EmailWork { get; set; }
+    
+    [Phone]
+    [MaxLength(50)]
     public string? PhonePrimary { get; set; }
+    
+    [Phone]
+    [MaxLength(50)]
     public string? PhoneSecondary { get; set; }
+    
+    [Phone]
+    [MaxLength(50)]
     public string? PhoneMobile { get; set; }
+    
+    [Phone]
+    [MaxLength(50)]
     public string? PhoneWork { get; set; }
+    
+    [Phone]
+    [MaxLength(50)]
     public string? PhoneFax { get; set; }
     
-    // Address - Primary
+    #endregion
+    
+    #region Address - Primary
+    
+    [MaxLength(500)]
     public string? Address { get; set; }
+    
+    [MaxLength(200)]
     public string? Address2 { get; set; }
+    
+    [MaxLength(100)]
     public string? City { get; set; }
+    
+    [MaxLength(100)]
     public string? State { get; set; }
+    
+    [MaxLength(100)]
     public string? Country { get; set; }
+    
+    [MaxLength(20)]
     public string? ZipCode { get; set; }
     
-    // Address - Mailing (if different)
+    #endregion
+    
+    #region Address - Mailing (if different)
+    
+    [MaxLength(500)]
     public string? MailingAddress { get; set; }
+    
+    [MaxLength(100)]
     public string? MailingCity { get; set; }
+    
+    [MaxLength(100)]
     public string? MailingState { get; set; }
+    
+    [MaxLength(100)]
     public string? MailingCountry { get; set; }
+    
+    [MaxLength(20)]
     public string? MailingZipCode { get; set; }
     
-    // Professional Information
+    #endregion
+    
+    #region Professional Information
+    
+    [MaxLength(200)]
     public string? JobTitle { get; set; }
+    
+    [MaxLength(100)]
     public string? Department { get; set; }
+    
+    [MaxLength(200)]
     public string? Company { get; set; }
+    
+    [MaxLength(100)]
     public string? Industry { get; set; }
+    
+    [MaxLength(200)]
     public string? ReportsTo { get; set; }
+    
     public int? ReportsToContactId { get; set; }
     public int? AssistantContactId { get; set; }
+    
+    [MaxLength(200)]
     public string? AssistantName { get; set; }
+    
+    [Phone]
+    [MaxLength(50)]
     public string? AssistantPhone { get; set; }
     
-    // Lead Information (for Lead type)
+    #endregion
+    
+    #region Lead Information (for Lead type)
+    
+    [MaxLength(100)]
     public string? LeadSource { get; set; }
+    
+    [Range(0, 100)]
     public int? LeadScore { get; set; } // 0-100
+    
     public bool? IsQualified { get; set; }
     public DateTime? QualifiedDate { get; set; }
     public DateTime? ConvertedDate { get; set; }
     public int? ConvertedToCustomerId { get; set; }
+    
+    [MaxLength(20)]
     public string? LeadRating { get; set; } // Hot, Warm, Cold
     
-    // Communication Preferences
+    #endregion
+    
+    #region Communication Preferences
+    
     public PreferredContactMethod PreferredContactMethod { get; set; } = PreferredContactMethod.Email;
+    
+    [MaxLength(100)]
     public string? PreferredContactTime { get; set; }
+    
+    [MaxLength(50)]
     public string? Timezone { get; set; }
+    
+    [MaxLength(10)]
     public string? PreferredLanguage { get; set; }
+    
     public bool OptInEmail { get; set; } = true;
     public bool OptInSms { get; set; } = false;
     public bool OptInPhone { get; set; } = true;
@@ -136,26 +246,62 @@ public class Contact
     public DateTime? LastOptInDate { get; set; }
     public DateTime? LastOptOutDate { get; set; }
     
-    // Social Media
+    #endregion
+    
+    #region Social Media
+    
+    [Url]
+    [MaxLength(500)]
     public string? LinkedInUrl { get; set; }
+    
+    [MaxLength(100)]
     public string? TwitterHandle { get; set; }
+    
+    [Url]
+    [MaxLength(500)]
     public string? FacebookUrl { get; set; }
+    
+    [MaxLength(100)]
     public string? InstagramHandle { get; set; }
+    
+    [Url]
+    [MaxLength(500)]
     public string? Website { get; set; }
+    
+    [Url]
+    [MaxLength(500)]
     public string? BlogUrl { get; set; }
     
-    // Relationship Information
+    #endregion
+    
+    #region Relationship Information
+    
+    [MaxLength(10000)]
     public string? Notes { get; set; }
+    
+    [MaxLength(5000)]
     public string? Description { get; set; }
+    
+    [MaxLength(1000)]
     public string? Interests { get; set; } // Comma-separated
+    
+    [MaxLength(500)]
     public string? Tags { get; set; } // Comma-separated
     
-    // Assignment
+    #endregion
+    
+    #region Assignment
+    
     public int? OwnerId { get; set; }
     public int? AssignedToUserId { get; set; }
+    
+    [MaxLength(100)]
     public string? Territory { get; set; }
     
-    // Relationships
+    #endregion
+    
+    #region Relationships
+    
     public int? AccountId { get; set; } // Related Customer/Account
     public int? CampaignId { get; set; } // Source campaign
     
@@ -169,32 +315,60 @@ public class Contact
     /// </summary>
     public Customer? Customer { get; set; }
     
-    // Engagement Tracking
+    #endregion
+    
+    #region Engagement Tracking
+    
     public DateTime? LastActivityDate { get; set; }
     public DateTime? LastContactedDate { get; set; }
     public DateTime? NextFollowUpDate { get; set; }
+    
+    [Range(0, int.MaxValue)]
     public int? TotalInteractions { get; set; }
+    
+    [Range(0, int.MaxValue)]
     public int? EmailsReceived { get; set; }
+    
+    [Range(0, int.MaxValue)]
     public int? EmailsOpened { get; set; }
+    
+    [Range(0, int.MaxValue)]
     public int? LinksClicked { get; set; }
     
-    // System Fields
+    #endregion
+    
+    #region System Fields
+    
     public DateTime DateAdded { get; set; } = DateTime.UtcNow;
     public DateTime? LastModified { get; set; }
+    
+    [MaxLength(200)]
     public string? ModifiedBy { get; set; }
+    
     public int? CreatedByUserId { get; set; }
     
-    // Custom Fields
+    #endregion
+    
+    #region Custom Fields & Photo
+    
+    [MaxLength(10000)]
     public string? CustomFields { get; set; } // JSON for custom data
     
-    // Photo
+    [Url]
+    [MaxLength(1000)]
     public string? PhotoUrl { get; set; }
+    
+    #endregion
 
-    // Lookup FKs for normalized dropdowns
+    #region Lookup FKs
+    
     public int? PreferredContactMethodLookupId { get; set; }
     public LookupItem? PreferredContactMethodLookup { get; set; }
     
-    // Navigation Properties
+    #endregion
+    
+    #region Navigation Properties
+    
     public ICollection<SocialMediaLink> SocialMediaLinks { get; set; } = new List<SocialMediaLink>();
     public ICollection<ContactInfoLink>? ContactInfoLinks { get; set; }
     
@@ -202,4 +376,6 @@ public class Contact
     /// Many-to-many relationships with customers (via CustomerContact junction)
     /// </summary>
     public ICollection<CustomerContact>? CustomerContacts { get; set; }
+    
+    #endregion
 }
