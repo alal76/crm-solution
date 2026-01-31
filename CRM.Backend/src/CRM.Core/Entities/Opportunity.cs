@@ -111,10 +111,12 @@ public class Opportunity : BaseEntity
     #region Commercial Fields
     
     /// <summary>Estimated deal value</summary>
+    [Range(0, double.MaxValue)]
     [Column(TypeName = "decimal(18,2)")]
     public decimal Amount { get; set; } = 0;
     
     /// <summary>Currency code (USD, EUR, GBP, etc.)</summary>
+    [Required]
     [MaxLength(3)]
     public string Currency { get; set; } = "USD";
     
@@ -125,6 +127,7 @@ public class Opportunity : BaseEntity
     public OpportunityPricingModel PricingModel { get; set; } = OpportunityPricingModel.Subscription;
     
     /// <summary>Contract term in months</summary>
+    [Range(1, 120)]
     public int TermLengthMonths { get; set; } = 12;
     
     #endregion

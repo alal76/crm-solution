@@ -117,19 +117,24 @@ public class Lead : BaseEntity
     #region Contact Information (Captured)
     
     /// <summary>Lead's first name</summary>
+    [Required]
     [MaxLength(100)]
-    public string? FirstName { get; set; }
+    public string FirstName { get; set; } = string.Empty;
     
     /// <summary>Lead's last name</summary>
+    [Required]
     [MaxLength(100)]
-    public string? LastName { get; set; }
+    public string LastName { get; set; } = string.Empty;
     
     /// <summary>Lead's email address</summary>
+    [Required]
     [MaxLength(255)]
-    public string? Email { get; set; }
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
     
     /// <summary>Lead's phone number</summary>
-    [MaxLength(50)]
+    [MaxLength(30)]
+    [Phone]
     public string? Phone { get; set; }
     
     /// <summary>Lead's job title</summary>
@@ -142,6 +147,7 @@ public class Lead : BaseEntity
     
     /// <summary>Lead's company website</summary>
     [MaxLength(500)]
+    [Url]
     public string? Website { get; set; }
     
     #endregion
