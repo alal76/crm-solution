@@ -10,11 +10,11 @@ import { test, expect } from '@playwright/test';
 test.describe('Campaign Execution - Navigation', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/campaigns');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-CEXE-001: Should display campaigns list', async ({ page }) => {
-    await expect(page.locator('h1, h2, .page-title').filter({ hasText: /campaign/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1, h2, h3, h4, h5, h6, .MuiTypography-h4, .MuiTypography-h5, .page-title').filter({ hasText: /campaign/i })).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-CEXE-002: Should navigate to campaign execution page', async ({ page }) => {
@@ -25,7 +25,7 @@ test.describe('Campaign Execution - Navigation', () => {
       const executionLink = campaignRow.locator('a:has-text("Execution"), button:has-text("Execute"), [aria-label*="execution"]').first();
       if (await executionLink.isVisible()) {
         await executionLink.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await expect(page).toHaveURL(/\/campaigns\/\d+\/execution/);
       }
     }
@@ -36,7 +36,7 @@ test.describe('Campaign Execution - Workflows', () => {
   test('TC-CEXE-010: Should display workflows tab', async ({ page }) => {
     // Navigate directly to a campaign execution page (need campaign ID)
     await page.goto('/campaigns');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Get first campaign and navigate to execution
     const campaignRow = page.locator('table tbody tr').first();
@@ -52,7 +52,7 @@ test.describe('Campaign Execution - Workflows', () => {
   test('TC-CEXE-011: Should show link workflow button', async ({ page }) => {
     // This test requires being on a campaign execution page
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const linkButton = page.locator('button:has-text("Link Workflow")');
     if (await linkButton.isVisible()) {
@@ -62,7 +62,7 @@ test.describe('Campaign Execution - Workflows', () => {
 
   test('TC-CEXE-012: Should open link workflow dialog', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const linkButton = page.locator('button:has-text("Link Workflow")');
     if (await linkButton.isVisible()) {
@@ -76,7 +76,7 @@ test.describe('Campaign Execution - Workflows', () => {
 test.describe('Campaign Execution - Recipients', () => {
   test('TC-CEXE-020: Should show recipients tab', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const recipientsTab = page.locator('[role="tab"]:has-text("Recipients")');
     if (await recipientsTab.isVisible()) {
@@ -88,7 +88,7 @@ test.describe('Campaign Execution - Recipients', () => {
 
   test('TC-CEXE-021: Should open add recipients dialog', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const recipientsTab = page.locator('[role="tab"]:has-text("Recipients")');
     if (await recipientsTab.isVisible()) {
@@ -106,7 +106,7 @@ test.describe('Campaign Execution - Recipients', () => {
 
   test('TC-CEXE-022: Should add recipients to campaign', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const recipientsTab = page.locator('[role="tab"]:has-text("Recipients")');
     if (await recipientsTab.isVisible()) {
@@ -131,7 +131,7 @@ test.describe('Campaign Execution - Recipients', () => {
 test.describe('Campaign Execution - A/B Testing', () => {
   test('TC-CEXE-030: Should show A/B tests tab', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const abTestTab = page.locator('[role="tab"]:has-text("A/B Tests")');
     if (await abTestTab.isVisible()) {
@@ -143,7 +143,7 @@ test.describe('Campaign Execution - A/B Testing', () => {
 
   test('TC-CEXE-031: Should open create A/B test dialog', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const abTestTab = page.locator('[role="tab"]:has-text("A/B Tests")');
     if (await abTestTab.isVisible()) {
@@ -161,7 +161,7 @@ test.describe('Campaign Execution - A/B Testing', () => {
 
   test('TC-CEXE-032: Should create A/B test', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const abTestTab = page.locator('[role="tab"]:has-text("A/B Tests")');
     if (await abTestTab.isVisible()) {
@@ -198,7 +198,7 @@ test.describe('Campaign Execution - A/B Testing', () => {
 test.describe('Campaign Execution - Conversions', () => {
   test('TC-CEXE-040: Should show conversions tab', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const conversionsTab = page.locator('[role="tab"]:has-text("Conversions")');
     if (await conversionsTab.isVisible()) {
@@ -212,7 +212,7 @@ test.describe('Campaign Execution - Conversions', () => {
 test.describe('Campaign Execution - Analytics', () => {
   test('TC-CEXE-050: Should show analytics tab', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const analyticsTab = page.locator('[role="tab"]:has-text("Analytics")');
     if (await analyticsTab.isVisible()) {
@@ -223,7 +223,7 @@ test.describe('Campaign Execution - Analytics', () => {
 
   test('TC-CEXE-051: Should display engagement funnel', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const analyticsTab = page.locator('[role="tab"]:has-text("Analytics")');
     if (await analyticsTab.isVisible()) {
@@ -240,7 +240,7 @@ test.describe('Campaign Execution - Analytics', () => {
 
   test('TC-CEXE-052: Should display ROI metrics', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const analyticsTab = page.locator('[role="tab"]:has-text("Analytics")');
     if (await analyticsTab.isVisible()) {
@@ -259,7 +259,7 @@ test.describe('Campaign Execution - Analytics', () => {
 test.describe('Campaign Execution - Summary Cards', () => {
   test('TC-CEXE-060: Should display summary metrics cards', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check for summary metric cards at the top
     const recipientsCard = page.locator('text=Recipients').first();
@@ -270,7 +270,7 @@ test.describe('Campaign Execution - Summary Cards', () => {
 
   test('TC-CEXE-061: Should show open rate metric', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const openRateCard = page.locator('text=Open Rate').first();
     if (await openRateCard.isVisible()) {
@@ -280,7 +280,7 @@ test.describe('Campaign Execution - Summary Cards', () => {
 
   test('TC-CEXE-062: Should show conversion rate metric', async ({ page }) => {
     await page.goto('/campaigns/1/execution');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const conversionCard = page.locator('text=Conversion').first();
     if (await conversionCard.isVisible()) {

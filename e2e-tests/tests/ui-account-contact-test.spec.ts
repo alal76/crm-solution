@@ -91,7 +91,7 @@ test.describe('Create 10 Accounts with Contacts via UI', () => {
       try {
         // === CREATE ACCOUNT VIA UI ===
         console.log(`  Navigating to /customers...`);
-        await page.goto('/customers', { waitUntil: 'networkidle' });
+        await page.goto('/customers', { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(2000);
         

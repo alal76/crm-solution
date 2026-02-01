@@ -1,0 +1,238 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "open drawer" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+        - img "Company Logo" [ref=e11]
+        - link "CRM System" [ref=e12] [cursor=pointer]:
+          - /url: /
+      - button "SA" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: SA
+  - navigation [ref=e17]:
+    - list [ref=e18]:
+      - listitem [ref=e19]:
+        - link "Home" [ref=e20] [cursor=pointer]:
+          - /url: /
+          - img [ref=e21]
+          - text: Home
+      - listitem [ref=e23]: ›
+      - listitem [ref=e24]:
+        - paragraph [ref=e25]:
+          - img [ref=e26]
+          - text: Quotes
+  - generic [ref=e31]:
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - img "CRM Logo" [ref=e35]
+        - heading "Quotes" [level=4] [ref=e36]
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - button "Export" [ref=e39] [cursor=pointer]:
+            - img [ref=e41]
+            - text: Export
+          - button "Import" [ref=e43] [cursor=pointer]:
+            - img [ref=e45]
+            - text: Import
+        - button "Create Quote" [ref=e47] [cursor=pointer]:
+          - img [ref=e49]
+          - text: Create Quote
+    - generic [ref=e51]:
+      - generic [ref=e53]:
+        - generic [ref=e55]:
+          - img [ref=e57]
+          - textbox "Search quotes by number, title..." [ref=e59]
+          - group
+        - button "Show advanced filters" [ref=e60] [cursor=pointer]:
+          - img [ref=e62]
+          - text: Filters
+          - img [ref=e65]
+      - generic: Quote Number
+      - generic: Title
+      - generic: Status
+      - generic: Total Amount Min
+      - generic: Total Amount Max
+    - table [ref=e70]:
+      - rowgroup [ref=e71]:
+        - 'row "Quote # Title Customer Status Amount Valid Until Revision Actions" [ref=e72]':
+          - 'columnheader "Quote #" [ref=e73]':
+            - strong [ref=e74]: "Quote #"
+          - columnheader "Title" [ref=e75]:
+            - strong [ref=e76]: Title
+          - columnheader "Customer" [ref=e77]:
+            - strong [ref=e78]: Customer
+          - columnheader "Status" [ref=e79]:
+            - strong [ref=e80]: Status
+          - columnheader "Amount" [ref=e81]:
+            - strong [ref=e82]: Amount
+          - columnheader "Valid Until" [ref=e83]:
+            - strong [ref=e84]: Valid Until
+          - columnheader "Revision" [ref=e85]:
+            - strong [ref=e86]: Revision
+          - columnheader "Actions" [ref=e87]:
+            - strong [ref=e88]: Actions
+      - rowgroup [ref=e89]:
+        - row "Q-BVT-1769939118525 — Draft $ — vundefined Create Revision Edit Print / PDF Delete" [ref=e90]:
+          - cell "Q-BVT-1769939118525" [ref=e91]:
+            - paragraph [ref=e92]: Q-BVT-1769939118525
+          - cell [ref=e93]:
+            - generic [ref=e94]:
+              - img [ref=e95]
+              - generic:
+                - paragraph
+          - cell "—" [ref=e97]
+          - cell "Draft" [ref=e98]:
+            - generic [ref=e101]: Draft
+          - cell "$" [ref=e102]:
+            - paragraph [ref=e104]: $
+          - cell "—" [ref=e105]:
+            - paragraph [ref=e106]: —
+          - cell "vundefined" [ref=e107]:
+            - generic [ref=e109]: vundefined
+          - cell "Create Revision Edit Print / PDF Delete" [ref=e110]:
+            - button "Create Revision" [ref=e111] [cursor=pointer]:
+              - img [ref=e112]
+            - button "Edit" [ref=e114] [cursor=pointer]:
+              - img [ref=e115]
+            - button "Print / PDF" [ref=e117] [cursor=pointer]:
+              - img [ref=e118]
+            - button "Delete" [ref=e120] [cursor=pointer]:
+              - img [ref=e121]
+        - row "Q-BVT-1769938762466 — Draft $ — vundefined Create Revision Edit Print / PDF Delete" [ref=e123]:
+          - cell "Q-BVT-1769938762466" [ref=e124]:
+            - paragraph [ref=e125]: Q-BVT-1769938762466
+          - cell [ref=e126]:
+            - generic [ref=e127]:
+              - img [ref=e128]
+              - generic:
+                - paragraph
+          - cell "—" [ref=e130]
+          - cell "Draft" [ref=e131]:
+            - generic [ref=e134]: Draft
+          - cell "$" [ref=e135]:
+            - paragraph [ref=e137]: $
+          - cell "—" [ref=e138]:
+            - paragraph [ref=e139]: —
+          - cell "vundefined" [ref=e140]:
+            - generic [ref=e142]: vundefined
+          - cell "Create Revision Edit Print / PDF Delete" [ref=e143]:
+            - button "Create Revision" [ref=e144] [cursor=pointer]:
+              - img [ref=e145]
+            - button "Edit" [ref=e147] [cursor=pointer]:
+              - img [ref=e148]
+            - button "Print / PDF" [ref=e150] [cursor=pointer]:
+              - img [ref=e151]
+            - button "Delete" [ref=e153] [cursor=pointer]:
+              - img [ref=e154]
+        - row "Q-BVT-1769938567475 — Draft $ — vundefined Create Revision Edit Print / PDF Delete" [ref=e156]:
+          - cell "Q-BVT-1769938567475" [ref=e157]:
+            - paragraph [ref=e158]: Q-BVT-1769938567475
+          - cell [ref=e159]:
+            - generic [ref=e160]:
+              - img [ref=e161]
+              - generic:
+                - paragraph
+          - cell "—" [ref=e163]
+          - cell "Draft" [ref=e164]:
+            - generic [ref=e167]: Draft
+          - cell "$" [ref=e168]:
+            - paragraph [ref=e170]: $
+          - cell "—" [ref=e171]:
+            - paragraph [ref=e172]: —
+          - cell "vundefined" [ref=e173]:
+            - generic [ref=e175]: vundefined
+          - cell "Create Revision Edit Print / PDF Delete" [ref=e176]:
+            - button "Create Revision" [ref=e177] [cursor=pointer]:
+              - img [ref=e178]
+            - button "Edit" [ref=e180] [cursor=pointer]:
+              - img [ref=e181]
+            - button "Print / PDF" [ref=e183] [cursor=pointer]:
+              - img [ref=e184]
+            - button "Delete" [ref=e186] [cursor=pointer]:
+              - img [ref=e187]
+        - row "Q-BVT-1769904909866 — Draft $ — vundefined Create Revision Edit Print / PDF Delete" [ref=e189]:
+          - cell "Q-BVT-1769904909866" [ref=e190]:
+            - paragraph [ref=e191]: Q-BVT-1769904909866
+          - cell [ref=e192]:
+            - generic [ref=e193]:
+              - img [ref=e194]
+              - generic:
+                - paragraph
+          - cell "—" [ref=e196]
+          - cell "Draft" [ref=e197]:
+            - generic [ref=e200]: Draft
+          - cell "$" [ref=e201]:
+            - paragraph [ref=e203]: $
+          - cell "—" [ref=e204]:
+            - paragraph [ref=e205]: —
+          - cell "vundefined" [ref=e206]:
+            - generic [ref=e208]: vundefined
+          - cell "Create Revision Edit Print / PDF Delete" [ref=e209]:
+            - button "Create Revision" [ref=e210] [cursor=pointer]:
+              - img [ref=e211]
+            - button "Edit" [ref=e213] [cursor=pointer]:
+              - img [ref=e214]
+            - button "Print / PDF" [ref=e216] [cursor=pointer]:
+              - img [ref=e217]
+            - button "Delete" [ref=e219] [cursor=pointer]:
+              - img [ref=e220]
+        - row "Q-BVT-1769901800415 — Draft $ — vundefined Create Revision Edit Print / PDF Delete" [ref=e222]:
+          - cell "Q-BVT-1769901800415" [ref=e223]:
+            - paragraph [ref=e224]: Q-BVT-1769901800415
+          - cell [ref=e225]:
+            - generic [ref=e226]:
+              - img [ref=e227]
+              - generic:
+                - paragraph
+          - cell "—" [ref=e229]
+          - cell "Draft" [ref=e230]:
+            - generic [ref=e233]: Draft
+          - cell "$" [ref=e234]:
+            - paragraph [ref=e236]: $
+          - cell "—" [ref=e237]:
+            - paragraph [ref=e238]: —
+          - cell "vundefined" [ref=e239]:
+            - generic [ref=e241]: vundefined
+          - cell "Create Revision Edit Print / PDF Delete" [ref=e242]:
+            - button "Create Revision" [ref=e243] [cursor=pointer]:
+              - img [ref=e244]
+            - button "Edit" [ref=e246] [cursor=pointer]:
+              - img [ref=e247]
+            - button "Print / PDF" [ref=e249] [cursor=pointer]:
+              - img [ref=e250]
+            - button "Delete" [ref=e252] [cursor=pointer]:
+              - img [ref=e253]
+  - contentinfo [ref=e255]:
+    - generic [ref=e256]:
+      - generic [ref=e257]:
+        - generic [ref=e258]: CRM System
+        - generic [ref=e259]: "|"
+        - 'generic "API: N/A | Frontend: N/A | DB: 0 ZIPs" [ref=e260]': v1.7.27
+        - generic [ref=e261]: "|"
+        - 'generic "Branch: dev" [ref=e262]': "#5666434"
+      - generic [ref=e264]:
+        - generic [ref=e265]: Quote
+        - generic [ref=e266]: "|"
+        - generic [ref=e267]: ●
+        - generic [ref=e268]: API
+        - generic [ref=e269]: ●
+        - generic [ref=e270]: DB
+      - generic [ref=e271]:
+        - link "About" [ref=e272] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e273]: "|"
+        - link "Help" [ref=e274] [cursor=pointer]:
+          - /url: /help
+        - generic [ref=e275]: "|"
+        - link "Licenses" [ref=e276] [cursor=pointer]:
+          - /url: /licenses
+        - generic [ref=e277]: "|"
+        - generic [ref=e278]: © 2026 Abhishek Lal - AGPL-3.0
+  - button "Open Context Panel" [ref=e279] [cursor=pointer]:
+    - generic [ref=e280]:
+      - img [ref=e281]
+      - generic: "0"
+```

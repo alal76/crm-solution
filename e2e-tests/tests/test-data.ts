@@ -12,7 +12,7 @@
 export const TEST_USERS = {
   admin: {
     email: 'test_admin@crm-test.local',
-    password: 'TestAdmin123!@#',
+    password: 'TestAdmin@123@#',
     firstName: 'Test',
     lastName: 'Administrator',
     role: 'Administrator',
@@ -42,9 +42,9 @@ export const TEST_USERS = {
   existingAdmin: {
     email: 'admin@crm.local',
     username: 'admin',
-    password: 'Admin123!',
-    firstName: 'Admin',
-    lastName: 'User',
+    password: 'Admin@123',
+    firstName: 'System',
+    lastName: 'Administrator',
     role: 'Administrator',
   },
 };

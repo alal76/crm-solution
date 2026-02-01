@@ -169,7 +169,7 @@ test.describe('Account-Contact Linking via Mapping Table', () => {
   test('verify linked contacts appear in UI', async ({ page }) => {
     // Navigate to customers page
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
     
     // Find a customer row and click to edit

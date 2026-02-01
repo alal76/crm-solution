@@ -1,0 +1,797 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - button [ref=e7] [cursor=pointer]:
+            - img [ref=e8]
+          - img [ref=e11]
+          - link [ref=e12] [cursor=pointer]:
+            - /url: /
+            - text: CRM System
+        - button [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: SA
+    - navigation [ref=e17]:
+      - list [ref=e18]:
+        - listitem [ref=e19]:
+          - link [ref=e20] [cursor=pointer]:
+            - /url: /
+            - img [ref=e21]
+            - text: Home
+        - listitem [ref=e23]: ›
+        - listitem [ref=e24]:
+          - paragraph [ref=e25]:
+            - img [ref=e26]
+            - text: Contacts
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - img [ref=e35]
+          - heading [level=4] [ref=e36]: Contacts
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - button [ref=e39] [cursor=pointer]:
+              - img [ref=e41]
+              - text: Export
+            - button [ref=e43] [cursor=pointer]:
+              - img [ref=e45]
+              - text: Import
+          - button [ref=e47] [cursor=pointer]:
+            - img [ref=e49]
+            - text: Add Contact
+      - generic [ref=e51]:
+        - generic [ref=e53]:
+          - generic [ref=e55]:
+            - img [ref=e57]
+            - textbox [ref=e59]:
+              - /placeholder: Search contacts by name, email, company...
+            - group
+          - button [ref=e60] [cursor=pointer]:
+            - img [ref=e62]
+            - text: Filters
+            - img [ref=e65]
+        - generic: Contact Type
+        - generic: First Name
+        - generic: Last Name
+        - generic: Company
+        - generic: Job Title
+      - generic [ref=e68]:
+        - table [ref=e70]:
+          - rowgroup [ref=e71]:
+            - row [ref=e72]:
+              - columnheader [ref=e73]:
+                - generic [ref=e74] [cursor=pointer]:
+                  - checkbox [ref=e75]
+                  - img [ref=e76]
+              - columnheader [ref=e78]:
+                - strong [ref=e79]: Name
+              - columnheader [ref=e80]:
+                - strong [ref=e81]: Type
+              - columnheader [ref=e82]:
+                - strong [ref=e83]: Customer
+              - columnheader [ref=e84]:
+                - strong [ref=e85]: Company
+              - columnheader [ref=e86]:
+                - strong [ref=e87]: Job Title
+              - columnheader [ref=e88]:
+                - strong [ref=e89]: Contact Info
+              - columnheader [ref=e90]:
+                - strong [ref=e91]: Actions
+          - rowgroup [ref=e92]:
+            - row [ref=e93]:
+              - cell [ref=e94]:
+                - generic [ref=e95] [cursor=pointer]:
+                  - checkbox [ref=e96]
+                  - img [ref=e97]
+              - cell [ref=e99]: David Anderson
+              - cell [ref=e100]:
+                - generic [ref=e102]: Employee
+              - cell [ref=e103]:
+                - paragraph [ref=e104]: "-"
+              - cell [ref=e105]: Tech Corp
+              - cell [ref=e106]: Account Executive
+              - cell [ref=e107]
+              - cell [ref=e108]:
+                - generic [ref=e109]:
+                  - button [ref=e110] [cursor=pointer]:
+                    - img [ref=e112]
+                    - text: Edit
+                  - button [ref=e114] [cursor=pointer]:
+                    - img [ref=e115]
+                  - button [ref=e117] [cursor=pointer]:
+                    - img [ref=e119]
+                    - text: Delete
+            - row [ref=e121]:
+              - cell [ref=e122]:
+                - generic [ref=e123] [cursor=pointer]:
+                  - checkbox [ref=e124]
+                  - img [ref=e125]
+              - cell [ref=e127]: Emily Chen
+              - cell [ref=e128]:
+                - generic [ref=e130]: Lead
+              - cell [ref=e131]:
+                - paragraph [ref=e132]: "-"
+              - cell [ref=e133]: Prospect Inc
+              - cell [ref=e134]: VP of Operations
+              - cell [ref=e135]
+              - cell [ref=e136]:
+                - generic [ref=e137]:
+                  - button [ref=e138] [cursor=pointer]:
+                    - img [ref=e140]
+                    - text: Edit
+                  - button [ref=e142] [cursor=pointer]:
+                    - img [ref=e143]
+                  - button [ref=e145] [cursor=pointer]:
+                    - img [ref=e147]
+                    - text: Delete
+            - row [ref=e149]:
+              - cell [ref=e150]:
+                - generic [ref=e151] [cursor=pointer]:
+                  - checkbox [ref=e152]
+                  - img [ref=e153]
+              - cell [ref=e155]: Michael Johnson
+              - cell [ref=e156]:
+                - generic [ref=e158]: Employee
+              - cell [ref=e159]:
+                - paragraph [ref=e160]: "-"
+              - cell [ref=e161]: Tech Corp
+              - cell [ref=e162]: Sales Manager
+              - cell [ref=e163]
+              - cell [ref=e164]:
+                - generic [ref=e165]:
+                  - button [ref=e166] [cursor=pointer]:
+                    - img [ref=e168]
+                    - text: Edit
+                  - button [ref=e170] [cursor=pointer]:
+                    - img [ref=e171]
+                  - button [ref=e173] [cursor=pointer]:
+                    - img [ref=e175]
+                    - text: Delete
+            - row [ref=e177]:
+              - cell [ref=e178]:
+                - generic [ref=e179] [cursor=pointer]:
+                  - checkbox [ref=e180]
+                  - img [ref=e181]
+              - cell [ref=e183]: Robert Martinez
+              - cell [ref=e184]:
+                - generic [ref=e186]: Partner
+              - cell [ref=e187]:
+                - paragraph [ref=e188]: "-"
+              - cell [ref=e189]: PartnerCorp
+              - cell [ref=e190]: Partnership Manager
+              - cell [ref=e191]
+              - cell [ref=e192]:
+                - generic [ref=e193]:
+                  - button [ref=e194] [cursor=pointer]:
+                    - img [ref=e196]
+                    - text: Edit
+                  - button [ref=e198] [cursor=pointer]:
+                    - img [ref=e199]
+                  - button [ref=e201] [cursor=pointer]:
+                    - img [ref=e203]
+                    - text: Delete
+            - row [ref=e205]:
+              - cell [ref=e206]:
+                - generic [ref=e207] [cursor=pointer]:
+                  - checkbox [ref=e208]
+                  - img [ref=e209]
+              - cell [ref=e211]: Contact13 TestComp_0kc
+              - cell [ref=e212]:
+                - generic [ref=e214]: Other
+              - cell [ref=e215]:
+                - paragraph [ref=e216]: "-"
+              - cell [ref=e217]: "-"
+              - cell [ref=e218]: CTO
+              - cell [ref=e219]
+              - cell [ref=e220]:
+                - generic [ref=e221]:
+                  - button [ref=e222] [cursor=pointer]:
+                    - img [ref=e224]
+                    - text: Edit
+                  - button [ref=e226] [cursor=pointer]:
+                    - img [ref=e227]
+                  - button [ref=e229] [cursor=pointer]:
+                    - img [ref=e231]
+                    - text: Delete
+            - row [ref=e233]:
+              - cell [ref=e234]:
+                - generic [ref=e235] [cursor=pointer]:
+                  - checkbox [ref=e236]
+                  - img [ref=e237]
+              - cell [ref=e239]: Contact8 TestComp_0rj
+              - cell [ref=e240]:
+                - generic [ref=e242]: Other
+              - cell [ref=e243]:
+                - paragraph [ref=e244]: "-"
+              - cell [ref=e245]: "-"
+              - cell [ref=e246]: Project Lead
+              - cell [ref=e247]
+              - cell [ref=e248]:
+                - generic [ref=e249]:
+                  - button [ref=e250] [cursor=pointer]:
+                    - img [ref=e252]
+                    - text: Edit
+                  - button [ref=e254] [cursor=pointer]:
+                    - img [ref=e255]
+                  - button [ref=e257] [cursor=pointer]:
+                    - img [ref=e259]
+                    - text: Delete
+            - row [ref=e261]:
+              - cell [ref=e262]:
+                - generic [ref=e263] [cursor=pointer]:
+                  - checkbox [ref=e264]
+                  - img [ref=e265]
+              - cell [ref=e267]: Contact7 TestComp_19c
+              - cell [ref=e268]:
+                - generic [ref=e270]: Other
+              - cell [ref=e271]:
+                - paragraph [ref=e272]: "-"
+              - cell [ref=e273]: "-"
+              - cell [ref=e274]: Operations Manager
+              - cell [ref=e275]
+              - cell [ref=e276]:
+                - generic [ref=e277]:
+                  - button [ref=e278] [cursor=pointer]:
+                    - img [ref=e280]
+                    - text: Edit
+                  - button [ref=e282] [cursor=pointer]:
+                    - img [ref=e283]
+                  - button [ref=e285] [cursor=pointer]:
+                    - img [ref=e287]
+                    - text: Delete
+            - row [ref=e289]:
+              - cell [ref=e290]:
+                - generic [ref=e291] [cursor=pointer]:
+                  - checkbox [ref=e292]
+                  - img [ref=e293]
+              - cell [ref=e295]: Contact14 TestComp_2c5
+              - cell [ref=e296]:
+                - generic [ref=e298]: Other
+              - cell [ref=e299]:
+                - paragraph [ref=e300]: "-"
+              - cell [ref=e301]: "-"
+              - cell [ref=e302]: CFO
+              - cell [ref=e303]
+              - cell [ref=e304]:
+                - generic [ref=e305]:
+                  - button [ref=e306] [cursor=pointer]:
+                    - img [ref=e308]
+                    - text: Edit
+                  - button [ref=e310] [cursor=pointer]:
+                    - img [ref=e311]
+                  - button [ref=e313] [cursor=pointer]:
+                    - img [ref=e315]
+                    - text: Delete
+            - row [ref=e317]:
+              - cell [ref=e318]:
+                - generic [ref=e319] [cursor=pointer]:
+                  - checkbox [ref=e320]
+                  - img [ref=e321]
+              - cell [ref=e323]: Contact14 TestComp_2se
+              - cell [ref=e324]:
+                - generic [ref=e326]: Other
+              - cell [ref=e327]:
+                - paragraph [ref=e328]: "-"
+              - cell [ref=e329]: "-"
+              - cell [ref=e330]: CFO
+              - cell [ref=e331]
+              - cell [ref=e332]:
+                - generic [ref=e333]:
+                  - button [ref=e334] [cursor=pointer]:
+                    - img [ref=e336]
+                    - text: Edit
+                  - button [ref=e338] [cursor=pointer]:
+                    - img [ref=e339]
+                  - button [ref=e341] [cursor=pointer]:
+                    - img [ref=e343]
+                    - text: Delete
+            - row [ref=e345]:
+              - cell [ref=e346]:
+                - generic [ref=e347] [cursor=pointer]:
+                  - checkbox [ref=e348]
+                  - img [ref=e349]
+              - cell [ref=e351]: Contact10 TestComp_3ai
+              - cell [ref=e352]:
+                - generic [ref=e354]: Other
+              - cell [ref=e355]:
+                - paragraph [ref=e356]: "-"
+              - cell [ref=e357]: "-"
+              - cell [ref=e358]: Account Manager
+              - cell [ref=e359]
+              - cell [ref=e360]:
+                - generic [ref=e361]:
+                  - button [ref=e362] [cursor=pointer]:
+                    - img [ref=e364]
+                    - text: Edit
+                  - button [ref=e366] [cursor=pointer]:
+                    - img [ref=e367]
+                  - button [ref=e369] [cursor=pointer]:
+                    - img [ref=e371]
+                    - text: Delete
+            - row [ref=e373]:
+              - cell [ref=e374]:
+                - generic [ref=e375] [cursor=pointer]:
+                  - checkbox [ref=e376]
+                  - img [ref=e377]
+              - cell [ref=e379]: Contact2 TestComp_62n
+              - cell [ref=e380]:
+                - generic [ref=e382]: Other
+              - cell [ref=e383]:
+                - paragraph [ref=e384]: "-"
+              - cell [ref=e385]: "-"
+              - cell [ref=e386]: CFO
+              - cell [ref=e387]
+              - cell [ref=e388]:
+                - generic [ref=e389]:
+                  - button [ref=e390] [cursor=pointer]:
+                    - img [ref=e392]
+                    - text: Edit
+                  - button [ref=e394] [cursor=pointer]:
+                    - img [ref=e395]
+                  - button [ref=e397] [cursor=pointer]:
+                    - img [ref=e399]
+                    - text: Delete
+            - row [ref=e401]:
+              - cell [ref=e402]:
+                - generic [ref=e403] [cursor=pointer]:
+                  - checkbox [ref=e404]
+                  - img [ref=e405]
+              - cell [ref=e407]: Contact4 TestComp_6eq
+              - cell [ref=e408]:
+                - generic [ref=e410]: Other
+              - cell [ref=e411]:
+                - paragraph [ref=e412]: "-"
+              - cell [ref=e413]: "-"
+              - cell [ref=e414]: Director of Sales
+              - cell [ref=e415]
+              - cell [ref=e416]:
+                - generic [ref=e417]:
+                  - button [ref=e418] [cursor=pointer]:
+                    - img [ref=e420]
+                    - text: Edit
+                  - button [ref=e422] [cursor=pointer]:
+                    - img [ref=e423]
+                  - button [ref=e425] [cursor=pointer]:
+                    - img [ref=e427]
+                    - text: Delete
+            - row [ref=e429]:
+              - cell [ref=e430]:
+                - generic [ref=e431] [cursor=pointer]:
+                  - checkbox [ref=e432]
+                  - img [ref=e433]
+              - cell [ref=e435]: Contact12 TestComp_6fq
+              - cell [ref=e436]:
+                - generic [ref=e438]: Other
+              - cell [ref=e439]:
+                - paragraph [ref=e440]: "-"
+              - cell [ref=e441]: "-"
+              - cell [ref=e442]: CEO
+              - cell [ref=e443]
+              - cell [ref=e444]:
+                - generic [ref=e445]:
+                  - button [ref=e446] [cursor=pointer]:
+                    - img [ref=e448]
+                    - text: Edit
+                  - button [ref=e450] [cursor=pointer]:
+                    - img [ref=e451]
+                  - button [ref=e453] [cursor=pointer]:
+                    - img [ref=e455]
+                    - text: Delete
+            - row [ref=e457]:
+              - cell [ref=e458]:
+                - generic [ref=e459] [cursor=pointer]:
+                  - checkbox [ref=e460]
+                  - img [ref=e461]
+              - cell [ref=e463]: Contact8 TestComp_6gb
+              - cell [ref=e464]:
+                - generic [ref=e466]: Other
+              - cell [ref=e467]:
+                - paragraph [ref=e468]: "-"
+              - cell [ref=e469]: "-"
+              - cell [ref=e470]: Project Lead
+              - cell [ref=e471]
+              - cell [ref=e472]:
+                - generic [ref=e473]:
+                  - button [ref=e474] [cursor=pointer]:
+                    - img [ref=e476]
+                    - text: Edit
+                  - button [ref=e478] [cursor=pointer]:
+                    - img [ref=e479]
+                  - button [ref=e481] [cursor=pointer]:
+                    - img [ref=e483]
+                    - text: Delete
+            - row [ref=e485]:
+              - cell [ref=e486]:
+                - generic [ref=e487] [cursor=pointer]:
+                  - checkbox [ref=e488]
+                  - img [ref=e489]
+              - cell [ref=e491]: Contact15 TestComp_6ty
+              - cell [ref=e492]:
+                - generic [ref=e494]: Other
+              - cell [ref=e495]:
+                - paragraph [ref=e496]: "-"
+              - cell [ref=e497]: "-"
+              - cell [ref=e498]: VP Engineering
+              - cell [ref=e499]
+              - cell [ref=e500]:
+                - generic [ref=e501]:
+                  - button [ref=e502] [cursor=pointer]:
+                    - img [ref=e504]
+                    - text: Edit
+                  - button [ref=e506] [cursor=pointer]:
+                    - img [ref=e507]
+                  - button [ref=e509] [cursor=pointer]:
+                    - img [ref=e511]
+                    - text: Delete
+            - row [ref=e513]:
+              - cell [ref=e514]:
+                - generic [ref=e515] [cursor=pointer]:
+                  - checkbox [ref=e516]
+                  - img [ref=e517]
+              - cell [ref=e519]: Contact13 TestComp_6yc
+              - cell [ref=e520]:
+                - generic [ref=e522]: Other
+              - cell [ref=e523]:
+                - paragraph [ref=e524]: "-"
+              - cell [ref=e525]: "-"
+              - cell [ref=e526]: CTO
+              - cell [ref=e527]
+              - cell [ref=e528]:
+                - generic [ref=e529]:
+                  - button [ref=e530] [cursor=pointer]:
+                    - img [ref=e532]
+                    - text: Edit
+                  - button [ref=e534] [cursor=pointer]:
+                    - img [ref=e535]
+                  - button [ref=e537] [cursor=pointer]:
+                    - img [ref=e539]
+                    - text: Delete
+            - row [ref=e541]:
+              - cell [ref=e542]:
+                - generic [ref=e543] [cursor=pointer]:
+                  - checkbox [ref=e544]
+                  - img [ref=e545]
+              - cell [ref=e547]: Contact3 TestComp_7i3
+              - cell [ref=e548]:
+                - generic [ref=e550]: Other
+              - cell [ref=e551]:
+                - paragraph [ref=e552]: "-"
+              - cell [ref=e553]: "-"
+              - cell [ref=e554]: VP Engineering
+              - cell [ref=e555]
+              - cell [ref=e556]:
+                - generic [ref=e557]:
+                  - button [ref=e558] [cursor=pointer]:
+                    - img [ref=e560]
+                    - text: Edit
+                  - button [ref=e562] [cursor=pointer]:
+                    - img [ref=e563]
+                  - button [ref=e565] [cursor=pointer]:
+                    - img [ref=e567]
+                    - text: Delete
+            - row [ref=e569]:
+              - cell [ref=e570]:
+                - generic [ref=e571] [cursor=pointer]:
+                  - checkbox [ref=e572]
+                  - img [ref=e573]
+              - cell [ref=e575]: Contact12 TestComp_8rc
+              - cell [ref=e576]:
+                - generic [ref=e578]: Other
+              - cell [ref=e579]:
+                - paragraph [ref=e580]: "-"
+              - cell [ref=e581]: "-"
+              - cell [ref=e582]: CEO
+              - cell [ref=e583]
+              - cell [ref=e584]:
+                - generic [ref=e585]:
+                  - button [ref=e586] [cursor=pointer]:
+                    - img [ref=e588]
+                    - text: Edit
+                  - button [ref=e590] [cursor=pointer]:
+                    - img [ref=e591]
+                  - button [ref=e593] [cursor=pointer]:
+                    - img [ref=e595]
+                    - text: Delete
+            - row [ref=e597]:
+              - cell [ref=e598]:
+                - generic [ref=e599] [cursor=pointer]:
+                  - checkbox [ref=e600]
+                  - img [ref=e601]
+              - cell [ref=e603]: Contact3 TestComp_8uk
+              - cell [ref=e604]:
+                - generic [ref=e606]: Other
+              - cell [ref=e607]:
+                - paragraph [ref=e608]: "-"
+              - cell [ref=e609]: "-"
+              - cell [ref=e610]: VP Engineering
+              - cell [ref=e611]
+              - cell [ref=e612]:
+                - generic [ref=e613]:
+                  - button [ref=e614] [cursor=pointer]:
+                    - img [ref=e616]
+                    - text: Edit
+                  - button [ref=e618] [cursor=pointer]:
+                    - img [ref=e619]
+                  - button [ref=e621] [cursor=pointer]:
+                    - img [ref=e623]
+                    - text: Delete
+            - row [ref=e625]:
+              - cell [ref=e626]:
+                - generic [ref=e627] [cursor=pointer]:
+                  - checkbox [ref=e628]
+                  - img [ref=e629]
+              - cell [ref=e631]: Contact10 TestComp_bry
+              - cell [ref=e632]:
+                - generic [ref=e634]: Other
+              - cell [ref=e635]:
+                - paragraph [ref=e636]: "-"
+              - cell [ref=e637]: "-"
+              - cell [ref=e638]: Account Manager
+              - cell [ref=e639]
+              - cell [ref=e640]:
+                - generic [ref=e641]:
+                  - button [ref=e642] [cursor=pointer]:
+                    - img [ref=e644]
+                    - text: Edit
+                  - button [ref=e646] [cursor=pointer]:
+                    - img [ref=e647]
+                  - button [ref=e649] [cursor=pointer]:
+                    - img [ref=e651]
+                    - text: Delete
+            - row [ref=e653]:
+              - cell [ref=e654]:
+                - generic [ref=e655] [cursor=pointer]:
+                  - checkbox [ref=e656]
+                  - img [ref=e657]
+              - cell [ref=e659]: Contact4 TestComp_cgw
+              - cell [ref=e660]:
+                - generic [ref=e662]: Other
+              - cell [ref=e663]:
+                - paragraph [ref=e664]: "-"
+              - cell [ref=e665]: "-"
+              - cell [ref=e666]: Director of Sales
+              - cell [ref=e667]
+              - cell [ref=e668]:
+                - generic [ref=e669]:
+                  - button [ref=e670] [cursor=pointer]:
+                    - img [ref=e672]
+                    - text: Edit
+                  - button [ref=e674] [cursor=pointer]:
+                    - img [ref=e675]
+                  - button [ref=e677] [cursor=pointer]:
+                    - img [ref=e679]
+                    - text: Delete
+            - row [ref=e681]:
+              - cell [ref=e682]:
+                - generic [ref=e683] [cursor=pointer]:
+                  - checkbox [ref=e684]
+                  - img [ref=e685]
+              - cell [ref=e687]: Contact1 TestComp_dl6
+              - cell [ref=e688]:
+                - generic [ref=e690]: Other
+              - cell [ref=e691]:
+                - paragraph [ref=e692]: "-"
+              - cell [ref=e693]: "-"
+              - cell [ref=e694]: CTO
+              - cell [ref=e695]
+              - cell [ref=e696]:
+                - generic [ref=e697]:
+                  - button [ref=e698] [cursor=pointer]:
+                    - img [ref=e700]
+                    - text: Edit
+                  - button [ref=e702] [cursor=pointer]:
+                    - img [ref=e703]
+                  - button [ref=e705] [cursor=pointer]:
+                    - img [ref=e707]
+                    - text: Delete
+            - row [ref=e709]:
+              - cell [ref=e710]:
+                - generic [ref=e711] [cursor=pointer]:
+                  - checkbox [ref=e712]
+                  - img [ref=e713]
+              - cell [ref=e715]: Contact6 TestComp_evt
+              - cell [ref=e716]:
+                - generic [ref=e718]: Other
+              - cell [ref=e719]:
+                - paragraph [ref=e720]: "-"
+              - cell [ref=e721]: "-"
+              - cell [ref=e722]: Procurement Manager
+              - cell [ref=e723]
+              - cell [ref=e724]:
+                - generic [ref=e725]:
+                  - button [ref=e726] [cursor=pointer]:
+                    - img [ref=e728]
+                    - text: Edit
+                  - button [ref=e730] [cursor=pointer]:
+                    - img [ref=e731]
+                  - button [ref=e733] [cursor=pointer]:
+                    - img [ref=e735]
+                    - text: Delete
+            - row [ref=e737]:
+              - cell [ref=e738]:
+                - generic [ref=e739] [cursor=pointer]:
+                  - checkbox [ref=e740]
+                  - img [ref=e741]
+              - cell [ref=e743]: Contact4 TestComp_ewh
+              - cell [ref=e744]:
+                - generic [ref=e746]: Other
+              - cell [ref=e747]:
+                - paragraph [ref=e748]: "-"
+              - cell [ref=e749]: "-"
+              - cell [ref=e750]: Director of Sales
+              - cell [ref=e751]
+              - cell [ref=e752]:
+                - generic [ref=e753]:
+                  - button [ref=e754] [cursor=pointer]:
+                    - img [ref=e756]
+                    - text: Edit
+                  - button [ref=e758] [cursor=pointer]:
+                    - img [ref=e759]
+                  - button [ref=e761] [cursor=pointer]:
+                    - img [ref=e763]
+                    - text: Delete
+            - row [ref=e765]:
+              - cell [ref=e766]:
+                - generic [ref=e767] [cursor=pointer]:
+                  - checkbox [ref=e768]
+                  - img [ref=e769]
+              - cell [ref=e771]: Contact1 TestComp_gpm
+              - cell [ref=e772]:
+                - generic [ref=e774]: Other
+              - cell [ref=e775]:
+                - paragraph [ref=e776]: "-"
+              - cell [ref=e777]: "-"
+              - cell [ref=e778]: CTO
+              - cell [ref=e779]
+              - cell [ref=e780]:
+                - generic [ref=e781]:
+                  - button [ref=e782] [cursor=pointer]:
+                    - img [ref=e784]
+                    - text: Edit
+                  - button [ref=e786] [cursor=pointer]:
+                    - img [ref=e787]
+                  - button [ref=e789] [cursor=pointer]:
+                    - img [ref=e791]
+                    - text: Delete
+        - generic [ref=e794]:
+          - paragraph [ref=e795]: "Rows per page:"
+          - generic [ref=e796]:
+            - combobox [ref=e797] [cursor=pointer]: "25"
+            - textbox: "25"
+            - img
+          - paragraph [ref=e798]: 1–25 of 49
+          - generic [ref=e799]:
+            - button [disabled]:
+              - img
+            - button [disabled]:
+              - img
+            - button [ref=e800] [cursor=pointer]:
+              - img [ref=e801]
+            - button [ref=e803] [cursor=pointer]:
+              - img [ref=e804]
+    - contentinfo [ref=e806]:
+      - generic [ref=e807]:
+        - generic [ref=e808]:
+          - generic [ref=e809]: CRM System
+          - generic [ref=e810]: "|"
+          - generic [ref=e811]: v1.7.27
+          - generic [ref=e812]: "|"
+          - generic [ref=e813]: "#5666434"
+        - generic [ref=e815]:
+          - generic [ref=e816]: Contact
+          - generic [ref=e817]: "|"
+          - generic [ref=e818]: ●
+          - generic [ref=e819]: API
+          - generic [ref=e820]: ●
+          - generic [ref=e821]: DB
+        - generic [ref=e822]:
+          - link [ref=e823] [cursor=pointer]:
+            - /url: /about
+            - text: About
+          - generic [ref=e824]: "|"
+          - link [ref=e825] [cursor=pointer]:
+            - /url: /help
+            - text: Help
+          - generic [ref=e826]: "|"
+          - link [ref=e827] [cursor=pointer]:
+            - /url: /licenses
+            - text: Licenses
+          - generic [ref=e828]: "|"
+          - generic [ref=e829]: © 2026 Abhishek Lal - AGPL-3.0
+    - button [ref=e830] [cursor=pointer]:
+      - img [ref=e832]
+  - dialog "Add New Contact" [ref=e836]:
+    - heading "Add New Contact" [level=2] [ref=e837]
+    - tablist [ref=e841]:
+      - tab "Basic Info" [selected] [ref=e842] [cursor=pointer]: Basic Info
+      - tab "Contact Info" [disabled]:
+        - img
+        - text: Contact Info
+      - tab "Notes" [ref=e843] [cursor=pointer]:
+        - img [ref=e844]
+        - text: Notes
+    - generic [ref=e848]:
+      - generic [ref=e849]:
+        - generic [ref=e850]: Contact Type
+        - generic [ref=e851]:
+          - combobox "Other" [ref=e852] [cursor=pointer]
+          - textbox: Other
+          - img
+          - group:
+            - generic: Contact Type
+      - generic [ref=e853]:
+        - generic [ref=e854]:
+          - text: First Name
+          - generic [ref=e855]: "*"
+        - generic [ref=e856]:
+          - textbox "First Name" [ref=e857]: TEST_Michael
+          - group:
+            - generic: First Name *
+      - generic [ref=e858]:
+        - generic [ref=e859]:
+          - text: Last Name
+          - generic [ref=e860]: "*"
+        - generic [ref=e861]:
+          - textbox "Last Name" [active] [ref=e862]: GlobalTech_CEO
+          - group:
+            - generic: Last Name *
+      - generic [ref=e863]:
+        - generic: Middle Name
+        - generic [ref=e864]:
+          - textbox "Middle Name" [ref=e865]
+          - group:
+            - generic: Middle Name
+      - generic [ref=e866]:
+        - generic: Company
+        - generic [ref=e867]:
+          - textbox "Company" [ref=e868]
+          - group:
+            - generic: Company
+      - generic [ref=e869]:
+        - generic: Job Title
+        - generic [ref=e870]:
+          - textbox "Job Title" [ref=e871]
+          - group:
+            - generic: Job Title
+      - generic [ref=e872]:
+        - generic: Owner Customer
+        - generic [ref=e873]:
+          - combobox [ref=e874] [cursor=pointer]
+          - textbox
+          - img
+          - group:
+            - generic: Owner Customer
+      - generic [ref=e875]:
+        - generic: Department
+        - generic [ref=e876]:
+          - textbox "Department" [ref=e877]
+          - group:
+            - generic: Department
+      - generic [ref=e878]:
+        - generic: Reports To
+        - generic [ref=e879]:
+          - textbox "Reports To" [ref=e880]
+          - group:
+            - generic: Reports To
+      - generic [ref=e881]:
+        - generic [ref=e882]: Date of Birth
+        - generic [ref=e883]:
+          - textbox "Date of Birth" [ref=e884]
+          - group:
+            - generic: Date of Birth
+      - generic [ref=e885]:
+        - generic: Notes
+        - generic [ref=e886]:
+          - textbox "Notes" [ref=e887]
+          - group:
+            - generic: Notes
+      - alert [ref=e888]:
+        - img [ref=e890]
+        - generic [ref=e892]: Save the contact first to add addresses, phone numbers, emails, and social media accounts.
+    - generic [ref=e893]:
+      - button "Cancel" [ref=e894] [cursor=pointer]: Cancel
+      - button "Create" [ref=e895] [cursor=pointer]: Create
+```

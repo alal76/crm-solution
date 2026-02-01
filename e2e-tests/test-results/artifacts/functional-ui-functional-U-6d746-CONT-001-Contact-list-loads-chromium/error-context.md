@@ -1,0 +1,702 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "open drawer" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+        - img "Company Logo" [ref=e11]
+        - link "CRM System" [ref=e12] [cursor=pointer]:
+          - /url: /
+      - button "SA" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: SA
+  - navigation [ref=e17]:
+    - list [ref=e18]:
+      - listitem [ref=e19]:
+        - link "Home" [ref=e20] [cursor=pointer]:
+          - /url: /
+          - img [ref=e21]
+          - text: Home
+      - listitem [ref=e23]: ›
+      - listitem [ref=e24]:
+        - paragraph [ref=e25]:
+          - img [ref=e26]
+          - text: Contacts
+  - generic [ref=e31]:
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - img "CRM Logo" [ref=e35]
+        - heading "Contacts" [level=4] [ref=e36]
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - button "Export" [ref=e39] [cursor=pointer]:
+            - img [ref=e41]
+            - text: Export
+          - button "Import" [ref=e43] [cursor=pointer]:
+            - img [ref=e45]
+            - text: Import
+        - button "Add Contact" [ref=e47] [cursor=pointer]:
+          - img [ref=e49]
+          - text: Add Contact
+    - generic [ref=e51]:
+      - generic [ref=e53]:
+        - generic [ref=e55]:
+          - img [ref=e57]
+          - textbox "Search contacts by name, email, company..." [ref=e59]
+          - group
+        - button "Show advanced filters" [ref=e60] [cursor=pointer]:
+          - img [ref=e62]
+          - text: Filters
+          - img [ref=e65]
+      - generic: Contact Type
+      - generic: First Name
+      - generic: Last Name
+      - generic: Company
+      - generic: Job Title
+    - generic [ref=e68]:
+      - table [ref=e70]:
+        - rowgroup [ref=e71]:
+          - row "Name Type Customer Company Job Title Contact Info Actions" [ref=e72]:
+            - columnheader [ref=e73]:
+              - generic [ref=e74] [cursor=pointer]:
+                - checkbox [ref=e75]
+                - img [ref=e76]
+            - columnheader "Name" [ref=e78]:
+              - strong [ref=e79]: Name
+            - columnheader "Type" [ref=e80]:
+              - strong [ref=e81]: Type
+            - columnheader "Customer" [ref=e82]:
+              - strong [ref=e83]: Customer
+            - columnheader "Company" [ref=e84]:
+              - strong [ref=e85]: Company
+            - columnheader "Job Title" [ref=e86]:
+              - strong [ref=e87]: Job Title
+            - columnheader "Contact Info" [ref=e88]:
+              - strong [ref=e89]: Contact Info
+            - columnheader "Actions" [ref=e90]:
+              - strong [ref=e91]: Actions
+        - rowgroup [ref=e92]:
+          - row "David Anderson Employee - Tech Corp Account Executive Edit Manage Contact Info Delete" [ref=e93]:
+            - cell [ref=e94]:
+              - generic [ref=e95] [cursor=pointer]:
+                - checkbox [ref=e96]
+                - img [ref=e97]
+            - cell "David Anderson" [ref=e99]
+            - cell "Employee" [ref=e100]:
+              - generic [ref=e102]: Employee
+            - cell "-" [ref=e103]:
+              - paragraph [ref=e104]: "-"
+            - cell "Tech Corp" [ref=e105]
+            - cell "Account Executive" [ref=e106]
+            - cell [ref=e107]
+            - cell "Edit Manage Contact Info Delete" [ref=e108]:
+              - generic [ref=e109]:
+                - button "Edit" [ref=e110] [cursor=pointer]:
+                  - img [ref=e112]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e114] [cursor=pointer]:
+                  - img [ref=e115]
+                - button "Delete" [ref=e117] [cursor=pointer]:
+                  - img [ref=e119]
+                  - text: Delete
+          - row "Emily Chen Lead - Prospect Inc VP of Operations Edit Manage Contact Info Delete" [ref=e121]:
+            - cell [ref=e122]:
+              - generic [ref=e123] [cursor=pointer]:
+                - checkbox [ref=e124]
+                - img [ref=e125]
+            - cell "Emily Chen" [ref=e127]
+            - cell "Lead" [ref=e128]:
+              - generic [ref=e130]: Lead
+            - cell "-" [ref=e131]:
+              - paragraph [ref=e132]: "-"
+            - cell "Prospect Inc" [ref=e133]
+            - cell "VP of Operations" [ref=e134]
+            - cell [ref=e135]
+            - cell "Edit Manage Contact Info Delete" [ref=e136]:
+              - generic [ref=e137]:
+                - button "Edit" [ref=e138] [cursor=pointer]:
+                  - img [ref=e140]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e142] [cursor=pointer]:
+                  - img [ref=e143]
+                - button "Delete" [ref=e145] [cursor=pointer]:
+                  - img [ref=e147]
+                  - text: Delete
+          - row "Michael Johnson Employee - Tech Corp Sales Manager Edit Manage Contact Info Delete" [ref=e149]:
+            - cell [ref=e150]:
+              - generic [ref=e151] [cursor=pointer]:
+                - checkbox [ref=e152]
+                - img [ref=e153]
+            - cell "Michael Johnson" [ref=e155]
+            - cell "Employee" [ref=e156]:
+              - generic [ref=e158]: Employee
+            - cell "-" [ref=e159]:
+              - paragraph [ref=e160]: "-"
+            - cell "Tech Corp" [ref=e161]
+            - cell "Sales Manager" [ref=e162]
+            - cell [ref=e163]
+            - cell "Edit Manage Contact Info Delete" [ref=e164]:
+              - generic [ref=e165]:
+                - button "Edit" [ref=e166] [cursor=pointer]:
+                  - img [ref=e168]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e170] [cursor=pointer]:
+                  - img [ref=e171]
+                - button "Delete" [ref=e173] [cursor=pointer]:
+                  - img [ref=e175]
+                  - text: Delete
+          - row "Robert Martinez Partner - PartnerCorp Partnership Manager Edit Manage Contact Info Delete" [ref=e177]:
+            - cell [ref=e178]:
+              - generic [ref=e179] [cursor=pointer]:
+                - checkbox [ref=e180]
+                - img [ref=e181]
+            - cell "Robert Martinez" [ref=e183]
+            - cell "Partner" [ref=e184]:
+              - generic [ref=e186]: Partner
+            - cell "-" [ref=e187]:
+              - paragraph [ref=e188]: "-"
+            - cell "PartnerCorp" [ref=e189]
+            - cell "Partnership Manager" [ref=e190]
+            - cell [ref=e191]
+            - cell "Edit Manage Contact Info Delete" [ref=e192]:
+              - generic [ref=e193]:
+                - button "Edit" [ref=e194] [cursor=pointer]:
+                  - img [ref=e196]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e198] [cursor=pointer]:
+                  - img [ref=e199]
+                - button "Delete" [ref=e201] [cursor=pointer]:
+                  - img [ref=e203]
+                  - text: Delete
+          - row "Contact13 TestComp_0kc Other - - CTO Edit Manage Contact Info Delete" [ref=e205]:
+            - cell [ref=e206]:
+              - generic [ref=e207] [cursor=pointer]:
+                - checkbox [ref=e208]
+                - img [ref=e209]
+            - cell "Contact13 TestComp_0kc" [ref=e211]
+            - cell "Other" [ref=e212]:
+              - generic [ref=e214]: Other
+            - cell "-" [ref=e215]:
+              - paragraph [ref=e216]: "-"
+            - cell "-" [ref=e217]
+            - cell "CTO" [ref=e218]
+            - cell [ref=e219]
+            - cell "Edit Manage Contact Info Delete" [ref=e220]:
+              - generic [ref=e221]:
+                - button "Edit" [ref=e222] [cursor=pointer]:
+                  - img [ref=e224]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e226] [cursor=pointer]:
+                  - img [ref=e227]
+                - button "Delete" [ref=e229] [cursor=pointer]:
+                  - img [ref=e231]
+                  - text: Delete
+          - row "Contact8 TestComp_0rj Other - - Project Lead Edit Manage Contact Info Delete" [ref=e233]:
+            - cell [ref=e234]:
+              - generic [ref=e235] [cursor=pointer]:
+                - checkbox [ref=e236]
+                - img [ref=e237]
+            - cell "Contact8 TestComp_0rj" [ref=e239]
+            - cell "Other" [ref=e240]:
+              - generic [ref=e242]: Other
+            - cell "-" [ref=e243]:
+              - paragraph [ref=e244]: "-"
+            - cell "-" [ref=e245]
+            - cell "Project Lead" [ref=e246]
+            - cell [ref=e247]
+            - cell "Edit Manage Contact Info Delete" [ref=e248]:
+              - generic [ref=e249]:
+                - button "Edit" [ref=e250] [cursor=pointer]:
+                  - img [ref=e252]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e254] [cursor=pointer]:
+                  - img [ref=e255]
+                - button "Delete" [ref=e257] [cursor=pointer]:
+                  - img [ref=e259]
+                  - text: Delete
+          - row "Contact7 TestComp_19c Other - - Operations Manager Edit Manage Contact Info Delete" [ref=e261]:
+            - cell [ref=e262]:
+              - generic [ref=e263] [cursor=pointer]:
+                - checkbox [ref=e264]
+                - img [ref=e265]
+            - cell "Contact7 TestComp_19c" [ref=e267]
+            - cell "Other" [ref=e268]:
+              - generic [ref=e270]: Other
+            - cell "-" [ref=e271]:
+              - paragraph [ref=e272]: "-"
+            - cell "-" [ref=e273]
+            - cell "Operations Manager" [ref=e274]
+            - cell [ref=e275]
+            - cell "Edit Manage Contact Info Delete" [ref=e276]:
+              - generic [ref=e277]:
+                - button "Edit" [ref=e278] [cursor=pointer]:
+                  - img [ref=e280]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e282] [cursor=pointer]:
+                  - img [ref=e283]
+                - button "Delete" [ref=e285] [cursor=pointer]:
+                  - img [ref=e287]
+                  - text: Delete
+          - row "Contact14 TestComp_2c5 Other - - CFO Edit Manage Contact Info Delete" [ref=e289]:
+            - cell [ref=e290]:
+              - generic [ref=e291] [cursor=pointer]:
+                - checkbox [ref=e292]
+                - img [ref=e293]
+            - cell "Contact14 TestComp_2c5" [ref=e295]
+            - cell "Other" [ref=e296]:
+              - generic [ref=e298]: Other
+            - cell "-" [ref=e299]:
+              - paragraph [ref=e300]: "-"
+            - cell "-" [ref=e301]
+            - cell "CFO" [ref=e302]
+            - cell [ref=e303]
+            - cell "Edit Manage Contact Info Delete" [ref=e304]:
+              - generic [ref=e305]:
+                - button "Edit" [ref=e306] [cursor=pointer]:
+                  - img [ref=e308]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e310] [cursor=pointer]:
+                  - img [ref=e311]
+                - button "Delete" [ref=e313] [cursor=pointer]:
+                  - img [ref=e315]
+                  - text: Delete
+          - row "Contact14 TestComp_2se Other - - CFO Edit Manage Contact Info Delete" [ref=e317]:
+            - cell [ref=e318]:
+              - generic [ref=e319] [cursor=pointer]:
+                - checkbox [ref=e320]
+                - img [ref=e321]
+            - cell "Contact14 TestComp_2se" [ref=e323]
+            - cell "Other" [ref=e324]:
+              - generic [ref=e326]: Other
+            - cell "-" [ref=e327]:
+              - paragraph [ref=e328]: "-"
+            - cell "-" [ref=e329]
+            - cell "CFO" [ref=e330]
+            - cell [ref=e331]
+            - cell "Edit Manage Contact Info Delete" [ref=e332]:
+              - generic [ref=e333]:
+                - button "Edit" [ref=e334] [cursor=pointer]:
+                  - img [ref=e336]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e338] [cursor=pointer]:
+                  - img [ref=e339]
+                - button "Delete" [ref=e341] [cursor=pointer]:
+                  - img [ref=e343]
+                  - text: Delete
+          - row "Contact10 TestComp_3ai Other - - Account Manager Edit Manage Contact Info Delete" [ref=e345]:
+            - cell [ref=e346]:
+              - generic [ref=e347] [cursor=pointer]:
+                - checkbox [ref=e348]
+                - img [ref=e349]
+            - cell "Contact10 TestComp_3ai" [ref=e351]
+            - cell "Other" [ref=e352]:
+              - generic [ref=e354]: Other
+            - cell "-" [ref=e355]:
+              - paragraph [ref=e356]: "-"
+            - cell "-" [ref=e357]
+            - cell "Account Manager" [ref=e358]
+            - cell [ref=e359]
+            - cell "Edit Manage Contact Info Delete" [ref=e360]:
+              - generic [ref=e361]:
+                - button "Edit" [ref=e362] [cursor=pointer]:
+                  - img [ref=e364]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e366] [cursor=pointer]:
+                  - img [ref=e367]
+                - button "Delete" [ref=e369] [cursor=pointer]:
+                  - img [ref=e371]
+                  - text: Delete
+          - row "Contact2 TestComp_62n Other - - CFO Edit Manage Contact Info Delete" [ref=e373]:
+            - cell [ref=e374]:
+              - generic [ref=e375] [cursor=pointer]:
+                - checkbox [ref=e376]
+                - img [ref=e377]
+            - cell "Contact2 TestComp_62n" [ref=e379]
+            - cell "Other" [ref=e380]:
+              - generic [ref=e382]: Other
+            - cell "-" [ref=e383]:
+              - paragraph [ref=e384]: "-"
+            - cell "-" [ref=e385]
+            - cell "CFO" [ref=e386]
+            - cell [ref=e387]
+            - cell "Edit Manage Contact Info Delete" [ref=e388]:
+              - generic [ref=e389]:
+                - button "Edit" [ref=e390] [cursor=pointer]:
+                  - img [ref=e392]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e394] [cursor=pointer]:
+                  - img [ref=e395]
+                - button "Delete" [ref=e397] [cursor=pointer]:
+                  - img [ref=e399]
+                  - text: Delete
+          - row "Contact4 TestComp_6eq Other - - Director of Sales Edit Manage Contact Info Delete" [ref=e401]:
+            - cell [ref=e402]:
+              - generic [ref=e403] [cursor=pointer]:
+                - checkbox [ref=e404]
+                - img [ref=e405]
+            - cell "Contact4 TestComp_6eq" [ref=e407]
+            - cell "Other" [ref=e408]:
+              - generic [ref=e410]: Other
+            - cell "-" [ref=e411]:
+              - paragraph [ref=e412]: "-"
+            - cell "-" [ref=e413]
+            - cell "Director of Sales" [ref=e414]
+            - cell [ref=e415]
+            - cell "Edit Manage Contact Info Delete" [ref=e416]:
+              - generic [ref=e417]:
+                - button "Edit" [ref=e418] [cursor=pointer]:
+                  - img [ref=e420]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e422] [cursor=pointer]:
+                  - img [ref=e423]
+                - button "Delete" [ref=e425] [cursor=pointer]:
+                  - img [ref=e427]
+                  - text: Delete
+          - row "Contact12 TestComp_6fq Other - - CEO Edit Manage Contact Info Delete" [ref=e429]:
+            - cell [ref=e430]:
+              - generic [ref=e431] [cursor=pointer]:
+                - checkbox [ref=e432]
+                - img [ref=e433]
+            - cell "Contact12 TestComp_6fq" [ref=e435]
+            - cell "Other" [ref=e436]:
+              - generic [ref=e438]: Other
+            - cell "-" [ref=e439]:
+              - paragraph [ref=e440]: "-"
+            - cell "-" [ref=e441]
+            - cell "CEO" [ref=e442]
+            - cell [ref=e443]
+            - cell "Edit Manage Contact Info Delete" [ref=e444]:
+              - generic [ref=e445]:
+                - button "Edit" [ref=e446] [cursor=pointer]:
+                  - img [ref=e448]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e450] [cursor=pointer]:
+                  - img [ref=e451]
+                - button "Delete" [ref=e453] [cursor=pointer]:
+                  - img [ref=e455]
+                  - text: Delete
+          - row "Contact8 TestComp_6gb Other - - Project Lead Edit Manage Contact Info Delete" [ref=e457]:
+            - cell [ref=e458]:
+              - generic [ref=e459] [cursor=pointer]:
+                - checkbox [ref=e460]
+                - img [ref=e461]
+            - cell "Contact8 TestComp_6gb" [ref=e463]
+            - cell "Other" [ref=e464]:
+              - generic [ref=e466]: Other
+            - cell "-" [ref=e467]:
+              - paragraph [ref=e468]: "-"
+            - cell "-" [ref=e469]
+            - cell "Project Lead" [ref=e470]
+            - cell [ref=e471]
+            - cell "Edit Manage Contact Info Delete" [ref=e472]:
+              - generic [ref=e473]:
+                - button "Edit" [ref=e474] [cursor=pointer]:
+                  - img [ref=e476]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e478] [cursor=pointer]:
+                  - img [ref=e479]
+                - button "Delete" [ref=e481] [cursor=pointer]:
+                  - img [ref=e483]
+                  - text: Delete
+          - row "Contact15 TestComp_6ty Other - - VP Engineering Edit Manage Contact Info Delete" [ref=e485]:
+            - cell [ref=e486]:
+              - generic [ref=e487] [cursor=pointer]:
+                - checkbox [ref=e488]
+                - img [ref=e489]
+            - cell "Contact15 TestComp_6ty" [ref=e491]
+            - cell "Other" [ref=e492]:
+              - generic [ref=e494]: Other
+            - cell "-" [ref=e495]:
+              - paragraph [ref=e496]: "-"
+            - cell "-" [ref=e497]
+            - cell "VP Engineering" [ref=e498]
+            - cell [ref=e499]
+            - cell "Edit Manage Contact Info Delete" [ref=e500]:
+              - generic [ref=e501]:
+                - button "Edit" [ref=e502] [cursor=pointer]:
+                  - img [ref=e504]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e506] [cursor=pointer]:
+                  - img [ref=e507]
+                - button "Delete" [ref=e509] [cursor=pointer]:
+                  - img [ref=e511]
+                  - text: Delete
+          - row "Contact13 TestComp_6yc Other - - CTO Edit Manage Contact Info Delete" [ref=e513]:
+            - cell [ref=e514]:
+              - generic [ref=e515] [cursor=pointer]:
+                - checkbox [ref=e516]
+                - img [ref=e517]
+            - cell "Contact13 TestComp_6yc" [ref=e519]
+            - cell "Other" [ref=e520]:
+              - generic [ref=e522]: Other
+            - cell "-" [ref=e523]:
+              - paragraph [ref=e524]: "-"
+            - cell "-" [ref=e525]
+            - cell "CTO" [ref=e526]
+            - cell [ref=e527]
+            - cell "Edit Manage Contact Info Delete" [ref=e528]:
+              - generic [ref=e529]:
+                - button "Edit" [ref=e530] [cursor=pointer]:
+                  - img [ref=e532]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e534] [cursor=pointer]:
+                  - img [ref=e535]
+                - button "Delete" [ref=e537] [cursor=pointer]:
+                  - img [ref=e539]
+                  - text: Delete
+          - row "Contact3 TestComp_7i3 Other - - VP Engineering Edit Manage Contact Info Delete" [ref=e541]:
+            - cell [ref=e542]:
+              - generic [ref=e543] [cursor=pointer]:
+                - checkbox [ref=e544]
+                - img [ref=e545]
+            - cell "Contact3 TestComp_7i3" [ref=e547]
+            - cell "Other" [ref=e548]:
+              - generic [ref=e550]: Other
+            - cell "-" [ref=e551]:
+              - paragraph [ref=e552]: "-"
+            - cell "-" [ref=e553]
+            - cell "VP Engineering" [ref=e554]
+            - cell [ref=e555]
+            - cell "Edit Manage Contact Info Delete" [ref=e556]:
+              - generic [ref=e557]:
+                - button "Edit" [ref=e558] [cursor=pointer]:
+                  - img [ref=e560]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e562] [cursor=pointer]:
+                  - img [ref=e563]
+                - button "Delete" [ref=e565] [cursor=pointer]:
+                  - img [ref=e567]
+                  - text: Delete
+          - row "Contact12 TestComp_8rc Other - - CEO Edit Manage Contact Info Delete" [ref=e569]:
+            - cell [ref=e570]:
+              - generic [ref=e571] [cursor=pointer]:
+                - checkbox [ref=e572]
+                - img [ref=e573]
+            - cell "Contact12 TestComp_8rc" [ref=e575]
+            - cell "Other" [ref=e576]:
+              - generic [ref=e578]: Other
+            - cell "-" [ref=e579]:
+              - paragraph [ref=e580]: "-"
+            - cell "-" [ref=e581]
+            - cell "CEO" [ref=e582]
+            - cell [ref=e583]
+            - cell "Edit Manage Contact Info Delete" [ref=e584]:
+              - generic [ref=e585]:
+                - button "Edit" [ref=e586] [cursor=pointer]:
+                  - img [ref=e588]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e590] [cursor=pointer]:
+                  - img [ref=e591]
+                - button "Delete" [ref=e593] [cursor=pointer]:
+                  - img [ref=e595]
+                  - text: Delete
+          - row "Contact3 TestComp_8uk Other - - VP Engineering Edit Manage Contact Info Delete" [ref=e597]:
+            - cell [ref=e598]:
+              - generic [ref=e599] [cursor=pointer]:
+                - checkbox [ref=e600]
+                - img [ref=e601]
+            - cell "Contact3 TestComp_8uk" [ref=e603]
+            - cell "Other" [ref=e604]:
+              - generic [ref=e606]: Other
+            - cell "-" [ref=e607]:
+              - paragraph [ref=e608]: "-"
+            - cell "-" [ref=e609]
+            - cell "VP Engineering" [ref=e610]
+            - cell [ref=e611]
+            - cell "Edit Manage Contact Info Delete" [ref=e612]:
+              - generic [ref=e613]:
+                - button "Edit" [ref=e614] [cursor=pointer]:
+                  - img [ref=e616]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e618] [cursor=pointer]:
+                  - img [ref=e619]
+                - button "Delete" [ref=e621] [cursor=pointer]:
+                  - img [ref=e623]
+                  - text: Delete
+          - row "Contact10 TestComp_bry Other - - Account Manager Edit Manage Contact Info Delete" [ref=e625]:
+            - cell [ref=e626]:
+              - generic [ref=e627] [cursor=pointer]:
+                - checkbox [ref=e628]
+                - img [ref=e629]
+            - cell "Contact10 TestComp_bry" [ref=e631]
+            - cell "Other" [ref=e632]:
+              - generic [ref=e634]: Other
+            - cell "-" [ref=e635]:
+              - paragraph [ref=e636]: "-"
+            - cell "-" [ref=e637]
+            - cell "Account Manager" [ref=e638]
+            - cell [ref=e639]
+            - cell "Edit Manage Contact Info Delete" [ref=e640]:
+              - generic [ref=e641]:
+                - button "Edit" [ref=e642] [cursor=pointer]:
+                  - img [ref=e644]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e646] [cursor=pointer]:
+                  - img [ref=e647]
+                - button "Delete" [ref=e649] [cursor=pointer]:
+                  - img [ref=e651]
+                  - text: Delete
+          - row "Contact4 TestComp_cgw Other - - Director of Sales Edit Manage Contact Info Delete" [ref=e653]:
+            - cell [ref=e654]:
+              - generic [ref=e655] [cursor=pointer]:
+                - checkbox [ref=e656]
+                - img [ref=e657]
+            - cell "Contact4 TestComp_cgw" [ref=e659]
+            - cell "Other" [ref=e660]:
+              - generic [ref=e662]: Other
+            - cell "-" [ref=e663]:
+              - paragraph [ref=e664]: "-"
+            - cell "-" [ref=e665]
+            - cell "Director of Sales" [ref=e666]
+            - cell [ref=e667]
+            - cell "Edit Manage Contact Info Delete" [ref=e668]:
+              - generic [ref=e669]:
+                - button "Edit" [ref=e670] [cursor=pointer]:
+                  - img [ref=e672]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e674] [cursor=pointer]:
+                  - img [ref=e675]
+                - button "Delete" [ref=e677] [cursor=pointer]:
+                  - img [ref=e679]
+                  - text: Delete
+          - row "Contact1 TestComp_dl6 Other - - CTO Edit Manage Contact Info Delete" [ref=e681]:
+            - cell [ref=e682]:
+              - generic [ref=e683] [cursor=pointer]:
+                - checkbox [ref=e684]
+                - img [ref=e685]
+            - cell "Contact1 TestComp_dl6" [ref=e687]
+            - cell "Other" [ref=e688]:
+              - generic [ref=e690]: Other
+            - cell "-" [ref=e691]:
+              - paragraph [ref=e692]: "-"
+            - cell "-" [ref=e693]
+            - cell "CTO" [ref=e694]
+            - cell [ref=e695]
+            - cell "Edit Manage Contact Info Delete" [ref=e696]:
+              - generic [ref=e697]:
+                - button "Edit" [ref=e698] [cursor=pointer]:
+                  - img [ref=e700]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e702] [cursor=pointer]:
+                  - img [ref=e703]
+                - button "Delete" [ref=e705] [cursor=pointer]:
+                  - img [ref=e707]
+                  - text: Delete
+          - row "Contact6 TestComp_evt Other - - Procurement Manager Edit Manage Contact Info Delete" [ref=e709]:
+            - cell [ref=e710]:
+              - generic [ref=e711] [cursor=pointer]:
+                - checkbox [ref=e712]
+                - img [ref=e713]
+            - cell "Contact6 TestComp_evt" [ref=e715]
+            - cell "Other" [ref=e716]:
+              - generic [ref=e718]: Other
+            - cell "-" [ref=e719]:
+              - paragraph [ref=e720]: "-"
+            - cell "-" [ref=e721]
+            - cell "Procurement Manager" [ref=e722]
+            - cell [ref=e723]
+            - cell "Edit Manage Contact Info Delete" [ref=e724]:
+              - generic [ref=e725]:
+                - button "Edit" [ref=e726] [cursor=pointer]:
+                  - img [ref=e728]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e730] [cursor=pointer]:
+                  - img [ref=e731]
+                - button "Delete" [ref=e733] [cursor=pointer]:
+                  - img [ref=e735]
+                  - text: Delete
+          - row "Contact4 TestComp_ewh Other - - Director of Sales Edit Manage Contact Info Delete" [ref=e737]:
+            - cell [ref=e738]:
+              - generic [ref=e739] [cursor=pointer]:
+                - checkbox [ref=e740]
+                - img [ref=e741]
+            - cell "Contact4 TestComp_ewh" [ref=e743]
+            - cell "Other" [ref=e744]:
+              - generic [ref=e746]: Other
+            - cell "-" [ref=e747]:
+              - paragraph [ref=e748]: "-"
+            - cell "-" [ref=e749]
+            - cell "Director of Sales" [ref=e750]
+            - cell [ref=e751]
+            - cell "Edit Manage Contact Info Delete" [ref=e752]:
+              - generic [ref=e753]:
+                - button "Edit" [ref=e754] [cursor=pointer]:
+                  - img [ref=e756]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e758] [cursor=pointer]:
+                  - img [ref=e759]
+                - button "Delete" [ref=e761] [cursor=pointer]:
+                  - img [ref=e763]
+                  - text: Delete
+          - row "Contact1 TestComp_gpm Other - - CTO Edit Manage Contact Info Delete" [ref=e765]:
+            - cell [ref=e766]:
+              - generic [ref=e767] [cursor=pointer]:
+                - checkbox [ref=e768]
+                - img [ref=e769]
+            - cell "Contact1 TestComp_gpm" [ref=e771]
+            - cell "Other" [ref=e772]:
+              - generic [ref=e774]: Other
+            - cell "-" [ref=e775]:
+              - paragraph [ref=e776]: "-"
+            - cell "-" [ref=e777]
+            - cell "CTO" [ref=e778]
+            - cell [ref=e779]
+            - cell "Edit Manage Contact Info Delete" [ref=e780]:
+              - generic [ref=e781]:
+                - button "Edit" [ref=e782] [cursor=pointer]:
+                  - img [ref=e784]
+                  - text: Edit
+                - button "Manage Contact Info" [ref=e786] [cursor=pointer]:
+                  - img [ref=e787]
+                - button "Delete" [ref=e789] [cursor=pointer]:
+                  - img [ref=e791]
+                  - text: Delete
+      - generic [ref=e794]:
+        - paragraph [ref=e795]: "Rows per page:"
+        - generic [ref=e796]:
+          - 'combobox "Rows per page: 25" [ref=e797] [cursor=pointer]': "25"
+          - textbox: "25"
+          - img
+        - paragraph [ref=e798]: 1–25 of 49
+        - generic [ref=e799]:
+          - button "Go to first page" [disabled]:
+            - img
+          - button "Go to previous page" [disabled]:
+            - img
+          - button "Go to next page" [ref=e800] [cursor=pointer]:
+            - img [ref=e801]
+          - button "Go to last page" [ref=e803] [cursor=pointer]:
+            - img [ref=e804]
+  - contentinfo [ref=e806]:
+    - generic [ref=e807]:
+      - generic [ref=e808]:
+        - generic [ref=e809]: CRM System
+        - generic [ref=e810]: "|"
+        - 'generic "API: N/A | Frontend: N/A | DB: 0 ZIPs" [ref=e811]': v1.7.27
+        - generic [ref=e812]: "|"
+        - 'generic "Branch: dev" [ref=e813]': "#5666434"
+      - generic [ref=e815]:
+        - generic [ref=e816]: Contact
+        - generic [ref=e817]: "|"
+        - generic [ref=e818]: ●
+        - generic [ref=e819]: API
+        - generic [ref=e820]: ●
+        - generic [ref=e821]: DB
+      - generic [ref=e822]:
+        - link "About" [ref=e823] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e824]: "|"
+        - link "Help" [ref=e825] [cursor=pointer]:
+          - /url: /help
+        - generic [ref=e826]: "|"
+        - link "Licenses" [ref=e827] [cursor=pointer]:
+          - /url: /licenses
+        - generic [ref=e828]: "|"
+        - generic [ref=e829]: © 2026 Abhishek Lal - AGPL-3.0
+  - button "Open Context Panel" [ref=e830] [cursor=pointer]:
+    - generic [ref=e831]:
+      - img [ref=e832]
+      - generic: "0"
+```

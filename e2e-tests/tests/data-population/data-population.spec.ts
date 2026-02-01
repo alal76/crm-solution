@@ -360,7 +360,7 @@ test.describe.serial('Data Population Test Suite', () => {
     for (const user of users) {
       try {
         await page.goto('/admin/users');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(500);
         
         if (!await clickAddButton(page)) {
@@ -403,7 +403,7 @@ test.describe.serial('Data Population Test Suite', () => {
     for (const customer of customers) {
       try {
         await page.goto('/customers');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(500);
         
         // Click Add button
@@ -510,7 +510,7 @@ test.describe.serial('Data Population Test Suite', () => {
       for (const contact of contacts) {
         try {
           await page.goto('/contacts');
-          await page.waitForLoadState('networkidle');
+          await page.waitForLoadState('domcontentloaded');
           await page.waitForTimeout(300);
           
           if (!await clickAddButton(page)) {
@@ -557,7 +557,7 @@ test.describe.serial('Data Population Test Suite', () => {
     for (const lead of leads) {
       try {
         await page.goto('/leads');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(300);
         
         if (!await clickAddButton(page)) {
@@ -605,7 +605,7 @@ test.describe.serial('Data Population Test Suite', () => {
     for (const opp of opportunities) {
       try {
         await page.goto('/opportunities');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(300);
         
         if (!await clickAddButton(page)) {
@@ -650,7 +650,7 @@ test.describe.serial('Data Population Test Suite', () => {
     for (const product of products) {
       try {
         await page.goto('/products');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(300);
         
         if (!await clickAddButton(page)) {
@@ -698,7 +698,7 @@ test.describe.serial('Data Population Test Suite', () => {
       const srType = serviceRequestTypes[i];
       try {
         await page.goto('/service-requests');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(300);
         
         if (!await clickAddButton(page)) {

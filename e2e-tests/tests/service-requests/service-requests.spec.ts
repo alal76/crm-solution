@@ -11,7 +11,7 @@ import { TEST_SERVICE_REQUESTS, uniqueTestData } from '../test-data';
 test.describe('Service Requests - List View', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-SR-001: Should display service requests list', async ({ page }) => {
@@ -64,7 +64,7 @@ test.describe('Service Requests - List View', () => {
 test.describe('Service Requests - Create', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-SR-006: Should create bug report', async ({ page }) => {
@@ -157,7 +157,7 @@ test.describe('Service Requests - Create', () => {
 test.describe('Service Requests - Status Transitions', () => {
   test('TC-SR-010: Should change status to In Progress', async ({ page }) => {
     await page.goto('/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -196,7 +196,7 @@ test.describe('Service Requests - Status Transitions', () => {
 
   test('TC-SR-011: Should resolve service request', async ({ page }) => {
     await page.goto('/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -218,7 +218,7 @@ test.describe('Service Requests - Status Transitions', () => {
 
   test('TC-SR-012: Should close service request', async ({ page }) => {
     await page.goto('/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -242,7 +242,7 @@ test.describe('Service Requests - Status Transitions', () => {
 test.describe('Service Requests - Assignment', () => {
   test('TC-SR-013: Should assign to user', async ({ page }) => {
     await page.goto('/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -271,7 +271,7 @@ test.describe('Service Requests - Assignment', () => {
 
   test('TC-SR-014: Should reassign to different user', async ({ page }) => {
     await page.goto('/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -295,7 +295,7 @@ test.describe('Service Requests - Assignment', () => {
 test.describe('Service Requests - Delete', () => {
   test('TC-SR-015: Should delete test service request', async ({ page }) => {
     await page.goto('/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();

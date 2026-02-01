@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Relationships - Relationship Types', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/relationships');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-REL-001: Should display relationships page', async ({ page }) => {
@@ -72,7 +72,7 @@ test.describe('Relationships - Relationship Types', () => {
 test.describe('Relationships - Account Relationships', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/relationships');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-REL-010: Should show relationships tab', async ({ page }) => {
@@ -109,7 +109,7 @@ test.describe('Relationships - Account Relationships', () => {
 test.describe('Relationships - Interactions', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/relationships');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-REL-020: Should show interaction button on relationship', async ({ page }) => {
@@ -135,7 +135,7 @@ test.describe('Relationships - Interactions', () => {
 test.describe('Relationships - Health Snapshots', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/relationships');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-REL-030: Should show health snapshot button', async ({ page }) => {
@@ -150,7 +150,7 @@ test.describe('Relationships - Health Snapshots', () => {
 test.describe('Relationships - Relationship Map', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/relationships');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-REL-040: Should show map visualization button', async ({ page }) => {

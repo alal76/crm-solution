@@ -1,8 +1,8 @@
-<testsuites id="" name="" tests="5" failures="0" skipped="0" errors="0" time="9.215721">
-<testsuite name="auth.setup.ts" timestamp="2026-01-29T12:19:40.134Z" hostname="setup" tests="1" failures="0" skipped="0" time="4.492" errors="0">
-<testcase name="authenticate" classname="auth.setup.ts" time="4.492">
+<testsuites id="" name="" tests="81" failures="1" skipped="7" errors="0" time="40.407703999999995">
+<testsuite name="auth.setup.ts" timestamp="2026-02-01T09:38:30.171Z" hostname="setup" tests="1" failures="0" skipped="0" time="4.156" errors="0">
+<testcase name="authenticate" classname="auth.setup.ts" time="4.156">
 <system-out>
-<![CDATA[🔐 Attempting login with: abhi.lal@gmail.com
+<![CDATA[🔐 Attempting login with: admin@crm.local
 📋 Found 3 input fields
 📍 Current path: /
 ✅ Authentication successful, state saved
@@ -10,64 +10,266 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="data/verify-microsoft-ui.spec.ts" timestamp="2026-01-29T12:19:40.134Z" hostname="chromium" tests="4" failures="0" skipped="0" time="8.055" errors="0">
-<testcase name="Verify Microsoft Account UI Display › Navigate to Customers page and find Microsoft" classname="data/verify-microsoft-ui.spec.ts" time="2.116">
+<testsuite name="admin/admin.spec.ts" timestamp="2026-02-01T09:38:30.171Z" hostname="chromium" tests="28" failures="1" skipped="1" time="72.416" errors="0">
+<testcase name="Admin - Users Management › TC-ADMIN-001: Should display users list" classname="admin/admin.spec.ts" time="1.519">
+</testcase>
+<testcase name="Admin - Users Management › TC-ADMIN-002: Should have create user button" classname="admin/admin.spec.ts" time="1.474">
+</testcase>
+<testcase name="Admin - Users Management › TC-ADMIN-003: Should create new user" classname="admin/admin.spec.ts" time="4.706">
+</testcase>
+<testcase name="Admin - Users Management › TC-ADMIN-004: Should edit user" classname="admin/admin.spec.ts" time="5.913">
+</testcase>
+<testcase name="Admin - Users Management › TC-ADMIN-005: Should disable user" classname="admin/admin.spec.ts" time="5.523">
+</testcase>
+<testcase name="Admin - Users Management › TC-ADMIN-006: Should delete test user" classname="admin/admin.spec.ts" time="5.52">
+</testcase>
+<testcase name="Admin - Roles Management › TC-ADMIN-007: Should display roles list" classname="admin/admin.spec.ts" time="1.24">
+</testcase>
+<testcase name="Admin - Roles Management › TC-ADMIN-008: Should create new role" classname="admin/admin.spec.ts" time="12.675">
+<failure message="admin.spec.ts:149:7 TC-ADMIN-008: Should create new role" type="FAILURE">
+<![CDATA[  [chromium] › admin/admin.spec.ts:149:7 › Admin - Roles Management › TC-ADMIN-008: Should create new role 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('button:has-text("Save"), button:has-text("Create")').first()
+        - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1ra12j4">…</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        18 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+
+
+      160 |       }
+      161 |       
+    > 162 |       await page.locator('button:has-text("Save"), button:has-text("Create")').first().click();
+          |                                                                                        ^
+      163 |       await page.waitForTimeout(2000);
+      164 |     }
+      165 |   });
+        at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/admin/admin.spec.ts:162:88
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/artifacts/admin-admin-Admin---Roles--cc2ae--008-Should-create-new-role-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/artifacts/admin-admin-Admin---Roles--cc2ae--008-Should-create-new-role-chromium/error-context.md
+]]>
+</failure>
 <system-out>
 <![CDATA[
-🌐 Navigating to application...
-📸 Screenshot: Home page saved
+[[ATTACHMENT|artifacts/admin-admin-Admin---Roles--cc2ae--008-Should-create-new-role-chromium/test-failed-1.png]]
 
-🔍 Looking for navigation menu...
-   Sidebar items found: 
-📸 Screenshot: Customers list saved
-
-🔍 Searching for Microsoft Corporation...
-📸 Screenshot: Search results saved
-📸 Screenshot: Microsoft details saved
+[[ATTACHMENT|artifacts/admin-admin-Admin---Roles--cc2ae--008-Should-create-new-role-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Verify Microsoft Account UI Display › Check Microsoft Account Overview Page" classname="data/verify-microsoft-ui.spec.ts" time="1.752">
-<system-out>
-<![CDATA[
-🌐 Navigating directly to Microsoft account...
-📸 Screenshot: Account overview (full page) saved
-   Company name visible: ❌
-   Industry visible: ❌
-   Address (Redmond) visible: ❌
-
-🔍 Looking for Contacts section...
-   ⚠️ Contacts section not found on overview page
-
-🔍 Looking for Notes section...
-
-📸 Screenshot: Final account view saved
-]]>
-</system-out>
+<testcase name="Admin - Roles Management › TC-ADMIN-009: Should assign permissions to role" classname="admin/admin.spec.ts" time="5.562">
 </testcase>
-<testcase name="Verify Microsoft Account UI Display › Check individual contact details" classname="data/verify-microsoft-ui.spec.ts" time="1.731">
-<system-out>
-<![CDATA[
-🌐 Navigating to Satya Nadella contact...
-📸 Screenshot: Satya Nadella contact saved
-   Contact name visible: ❌
-   CEO title visible: ❌
-   Microsoft link visible: ❌
-   Biography/Notes visible: ❌
-]]>
-</system-out>
+<testcase name="Admin - Roles Management › TC-ADMIN-010: Should delete test role" classname="admin/admin.spec.ts" time="5.72">
 </testcase>
-<testcase name="Verify Microsoft Account UI Display › Collect all visible issues" classname="data/verify-microsoft-ui.spec.ts" time="2.456">
-<system-out>
-<![CDATA[
-🔍 Scanning for potential UI issues...
-
-📋 UI Issues Summary:
-   ⚠️ Error messages found: 
-
-📸 All screenshots saved to test-results/screenshots/
-]]>
-</system-out>
+<testcase name="Admin - Security Settings › TC-ADMIN-011: Should display settings page" classname="admin/admin.spec.ts" time="1.553">
+</testcase>
+<testcase name="Admin - Security Settings › TC-ADMIN-012: Should access security settings" classname="admin/admin.spec.ts" time="1.404">
+</testcase>
+<testcase name="Admin - Security Settings › TC-ADMIN-013: Should configure password policy" classname="admin/admin.spec.ts" time="1.7">
+</testcase>
+<testcase name="Admin - Security Settings › TC-ADMIN-014: Should configure session timeout" classname="admin/admin.spec.ts" time="1.354">
+</testcase>
+<testcase name="Admin - LLM Settings › TC-ADMIN-015: Should display LLM settings page" classname="admin/admin.spec.ts" time="0.451">
+</testcase>
+<testcase name="Admin - LLM Settings › TC-ADMIN-016: Should configure LLM endpoint" classname="admin/admin.spec.ts" time="0.359">
+</testcase>
+<testcase name="Admin - LLM Settings › TC-ADMIN-017: Should configure model selection" classname="admin/admin.spec.ts" time="0.392">
+</testcase>
+<testcase name="Admin - LLM Settings › TC-ADMIN-018: Should test LLM connection" classname="admin/admin.spec.ts" time="0.484">
+</testcase>
+<testcase name="Admin - Branding › TC-ADMIN-019: Should display branding settings" classname="admin/admin.spec.ts" time="1.417">
+</testcase>
+<testcase name="Admin - Branding › TC-ADMIN-020: Should update company name" classname="admin/admin.spec.ts" time="1.454">
+</testcase>
+<testcase name="Admin - Branding › TC-ADMIN-021: Should update primary color" classname="admin/admin.spec.ts" time="1.664">
+</testcase>
+<testcase name="Admin - Email Settings › TC-ADMIN-022: Should display email settings" classname="admin/admin.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Admin - Email Settings › TC-ADMIN-023: Should configure SMTP settings" classname="admin/admin.spec.ts" time="1.336">
+</testcase>
+<testcase name="Admin - Email Settings › TC-ADMIN-024: Should send test email" classname="admin/admin.spec.ts" time="2.098">
+</testcase>
+<testcase name="Admin - Audit Log › TC-ADMIN-025: Should display audit log" classname="admin/admin.spec.ts" time="1.928">
+</testcase>
+<testcase name="Admin - Audit Log › TC-ADMIN-026: Should filter audit log by date" classname="admin/admin.spec.ts" time="1.419">
+</testcase>
+<testcase name="Admin - Audit Log › TC-ADMIN-027: Should filter audit log by action type" classname="admin/admin.spec.ts" time="1.561">
+</testcase>
+<testcase name="Admin - Audit Log › TC-ADMIN-028: Should export audit log" classname="admin/admin.spec.ts" time="1.99">
+</testcase>
+</testsuite>
+<testsuite name="auth/authentication.spec.ts" timestamp="2026-02-01T09:38:30.171Z" hostname="chromium" tests="20" failures="0" skipped="6" time="28.513" errors="0">
+<testcase name="Authentication - Login › TC-AUTH-001: Should display login page correctly" classname="auth/authentication.spec.ts" time="0.697">
+</testcase>
+<testcase name="Authentication - Login › TC-AUTH-002: Should login successfully with valid credentials" classname="auth/authentication.spec.ts" time="0.919">
+</testcase>
+<testcase name="Authentication - Login › TC-AUTH-003: Should show error for invalid email" classname="auth/authentication.spec.ts" time="0.773">
+</testcase>
+<testcase name="Authentication - Login › TC-AUTH-004: Should show error for wrong password" classname="auth/authentication.spec.ts" time="2.629">
+</testcase>
+<testcase name="Authentication - Login › TC-AUTH-005: Should show error for empty fields" classname="auth/authentication.spec.ts" time="0.839">
+</testcase>
+<testcase name="Authentication - Login › TC-AUTH-006: Should navigate to forgot password page" classname="auth/authentication.spec.ts" time="0.96">
+</testcase>
+<testcase name="Authentication - Login › TC-AUTH-007: Should navigate to registration page" classname="auth/authentication.spec.ts" time="0.764">
+<properties>
+<property name="skip" value="Registration link not visible">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication - Login › TC-AUTH-008: Should remember me functionality" classname="auth/authentication.spec.ts" time="1.293">
+</testcase>
+<testcase name="Authentication - Logout › TC-AUTH-009: Should logout successfully" classname="auth/authentication.spec.ts" time="3.798">
+</testcase>
+<testcase name="Authentication - Logout › TC-AUTH-010: Should not access protected routes after logout" classname="auth/authentication.spec.ts" time="3.276">
+</testcase>
+<testcase name="Authentication - Registration › TC-AUTH-011: Should display registration form" classname="auth/authentication.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication - Registration › TC-AUTH-012: Should validate registration form fields" classname="auth/authentication.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication - Registration › TC-AUTH-013: Should register new test user" classname="auth/authentication.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication - Password Reset › TC-AUTH-014: Should display password reset form" classname="auth/authentication.spec.ts" time="0.527">
+</testcase>
+<testcase name="Authentication - Password Reset › TC-AUTH-015: Should send password reset email" classname="auth/authentication.spec.ts" time="3.588">
+</testcase>
+<testcase name="Authentication - Two-Factor Authentication › TC-AUTH-016: Should display 2FA setup option in settings" classname="auth/authentication.spec.ts" time="2.846">
+<properties>
+<property name="skip" value="2FA setup option not available in settings">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication - Two-Factor Authentication › TC-AUTH-017: Should handle 2FA verification page" classname="auth/authentication.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication - Session Management › TC-AUTH-018: Should maintain session across page navigation" classname="auth/authentication.spec.ts" time="0.801">
+</testcase>
+<testcase name="Authentication - Session Management › TC-AUTH-019: Should handle session timeout gracefully" classname="auth/authentication.spec.ts" time="2.882">
+</testcase>
+<testcase name="Authentication - Session Management › TC-AUTH-020: Should handle concurrent sessions" classname="auth/authentication.spec.ts" time="1.921">
+</testcase>
+</testsuite>
+<testsuite name="dashboard/dashboard.spec.ts" timestamp="2026-02-01T09:38:30.171Z" hostname="chromium" tests="32" failures="0" skipped="0" time="23.755" errors="0">
+<testcase name="Dashboard - Main View › TC-DASH-001: Should display dashboard" classname="dashboard/dashboard.spec.ts" time="0.534">
+</testcase>
+<testcase name="Dashboard - Main View › TC-DASH-002: Should display welcome message" classname="dashboard/dashboard.spec.ts" time="0.469">
+</testcase>
+<testcase name="Dashboard - Main View › TC-DASH-003: Should display navigation menu" classname="dashboard/dashboard.spec.ts" time="0.561">
+</testcase>
+<testcase name="Dashboard - Widgets › TC-DASH-004: Should display customer count widget" classname="dashboard/dashboard.spec.ts" time="0.509">
+</testcase>
+<testcase name="Dashboard - Widgets › TC-DASH-005: Should display opportunity pipeline widget" classname="dashboard/dashboard.spec.ts" time="0.556">
+</testcase>
+<testcase name="Dashboard - Widgets › TC-DASH-006: Should display service requests widget" classname="dashboard/dashboard.spec.ts" time="0.532">
+</testcase>
+<testcase name="Dashboard - Widgets › TC-DASH-007: Should display recent activity widget" classname="dashboard/dashboard.spec.ts" time="0.506">
+</testcase>
+<testcase name="Dashboard - Widgets › TC-DASH-008: Should display tasks widget" classname="dashboard/dashboard.spec.ts" time="0.818">
+</testcase>
+<testcase name="Dashboard - Metrics › TC-DASH-009: Should display revenue metrics" classname="dashboard/dashboard.spec.ts" time="0.7">
+</testcase>
+<testcase name="Dashboard - Metrics › TC-DASH-010: Should display lead conversion rate" classname="dashboard/dashboard.spec.ts" time="0.826">
+</testcase>
+<testcase name="Dashboard - Metrics › TC-DASH-011: Should display open tickets count" classname="dashboard/dashboard.spec.ts" time="0.774">
+</testcase>
+<testcase name="Dashboard - Charts › TC-DASH-012: Should display charts" classname="dashboard/dashboard.spec.ts" time="0.681">
+</testcase>
+<testcase name="Dashboard - Charts › TC-DASH-013: Should have chart interactions" classname="dashboard/dashboard.spec.ts" time="0.717">
+</testcase>
+<testcase name="Dashboard - Quick Actions › TC-DASH-014: Should have quick add customer action" classname="dashboard/dashboard.spec.ts" time="0.66">
+</testcase>
+<testcase name="Dashboard - Quick Actions › TC-DASH-015: Should have quick add opportunity action" classname="dashboard/dashboard.spec.ts" time="0.692">
+</testcase>
+<testcase name="Dashboard - Quick Actions › TC-DASH-016: Should have quick add service request action" classname="dashboard/dashboard.spec.ts" time="0.877">
+</testcase>
+<testcase name="Dashboard - Navigation › TC-DASH-017: Should navigate to customers" classname="dashboard/dashboard.spec.ts" time="0.854">
+</testcase>
+<testcase name="Dashboard - Navigation › TC-DASH-018: Should navigate to opportunities" classname="dashboard/dashboard.spec.ts" time="0.784">
+</testcase>
+<testcase name="Dashboard - Navigation › TC-DASH-019: Should navigate to leads" classname="dashboard/dashboard.spec.ts" time="0.726">
+</testcase>
+<testcase name="Dashboard - Navigation › TC-DASH-020: Should navigate to service requests" classname="dashboard/dashboard.spec.ts" time="0.76">
+</testcase>
+<testcase name="Dashboard - Navigation › TC-DASH-021: Should navigate to campaigns" classname="dashboard/dashboard.spec.ts" time="0.722">
+</testcase>
+<testcase name="Dashboard - Navigation › TC-DASH-022: Should navigate to admin" classname="dashboard/dashboard.spec.ts" time="0.732">
+</testcase>
+<testcase name="Dashboard - User Profile › TC-DASH-023: Should display user profile menu" classname="dashboard/dashboard.spec.ts" time="0.658">
+</testcase>
+<testcase name="Dashboard - User Profile › TC-DASH-024: Should access profile settings" classname="dashboard/dashboard.spec.ts" time="0.84">
+</testcase>
+<testcase name="Dashboard - User Profile › TC-DASH-025: Should logout from dashboard" classname="dashboard/dashboard.spec.ts" time="0.741">
+</testcase>
+<testcase name="Dashboard - Search › TC-DASH-026: Should have global search" classname="dashboard/dashboard.spec.ts" time="0.724">
+</testcase>
+<testcase name="Dashboard - Search › TC-DASH-027: Should search for customer" classname="dashboard/dashboard.spec.ts" time="1.732">
+</testcase>
+<testcase name="Dashboard - Search › TC-DASH-028: Should navigate from search results" classname="dashboard/dashboard.spec.ts" time="1.73">
+</testcase>
+<testcase name="Dashboard - Notifications › TC-DASH-029: Should display notification bell" classname="dashboard/dashboard.spec.ts" time="0.691">
+</testcase>
+<testcase name="Dashboard - Notifications › TC-DASH-030: Should open notifications panel" classname="dashboard/dashboard.spec.ts" time="0.654">
+</testcase>
+<testcase name="Dashboard - Responsive › TC-DASH-031: Should be responsive on mobile" classname="dashboard/dashboard.spec.ts" time="0.488">
+</testcase>
+<testcase name="Dashboard - Responsive › TC-DASH-032: Should show mobile menu" classname="dashboard/dashboard.spec.ts" time="0.507">
 </testcase>
 </testsuite>
 </testsuites>

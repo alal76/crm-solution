@@ -1047,6 +1047,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.EntityType).HasMaxLength(100);
+            entity.Property(e => e.SecondaryEntityType).HasMaxLength(100);
+            entity.Property(e => e.ActivityType).HasMaxLength(100);
             
             entity.HasOne(e => e.User)
                 .WithMany()

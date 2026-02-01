@@ -164,7 +164,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     
     logger.action('Navigating to login page...');
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     logger.info(`Current URL: ${page.url()}`);
     
     // Check if already logged in
@@ -186,7 +186,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     logger.action('Clicking login button...');
     await page.click('button[type="submit"]');
     
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
     
     logger.info(`Redirected to: ${page.url()}`);
@@ -201,7 +201,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     
     logger.action('Navigating to /customers page...');
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     
     logger.info(`Current URL: ${page.url()}`);
@@ -224,7 +224,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     logger.section('Step 3: Create Microsoft Corporation');
     
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     
     // Find and click Add button
@@ -343,7 +343,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     await saveButton.click({ force: true });
     
     await page.waitForTimeout(3000);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await page.screenshot({ path: 'test-results/screenshots/06-after-save.png' });
     logger.screenshot('06-after-save.png');
@@ -351,7 +351,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     // Verify creation
     logger.action('Verifying Microsoft Corporation was created...');
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     
     // Search for Microsoft
@@ -378,7 +378,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     
     logger.action('Navigating to /contacts page...');
     await page.goto('/contacts');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     
     logger.info(`Current URL: ${page.url()}`);
@@ -402,7 +402,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
       logger.info(`Department: ${exec.department}`);
       
       await page.goto('/contacts');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
       
       // Find and click Add button
@@ -473,7 +473,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
       await saveButton.click({ force: true });
       
       await page.waitForTimeout(2000);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       logger.success(`Created contact: ${exec.firstName} ${exec.lastName}`);
       
@@ -489,7 +489,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     
     // Navigate to customers and find Microsoft
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     
     // Search for Microsoft
@@ -506,7 +506,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
       await microsoftRow.click();
       logger.action('Clicked on Microsoft Corporation');
       await page.waitForTimeout(2000);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
     
     await page.screenshot({ path: 'test-results/screenshots/10-microsoft-details.png' });
@@ -586,7 +586,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     
     // Navigate to customers
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     
     // Search for Microsoft
@@ -603,7 +603,7 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     
     // Check contacts
     await page.goto('/contacts');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     
     await page.screenshot({ path: 'test-results/screenshots/12-final-contacts.png' });

@@ -17,7 +17,7 @@ test.describe('Create Groups via UI', () => {
   test('Create 4 groups: User, Manager, CRM Admin, User Admin', async ({ page }) => {
     // Navigate to groups settings
     await page.goto('/admin/groups');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     for (const group of groups) {

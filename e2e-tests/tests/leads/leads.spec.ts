@@ -11,7 +11,7 @@ import { TEST_LEADS, uniqueTestData } from '../test-data';
 test.describe('Leads - List View', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/leads', { timeout: 30000 });
-    await page.waitForLoadState('networkidle', { timeout: 30000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(500);
   });
@@ -54,7 +54,7 @@ test.describe('Leads - List View', () => {
 test.describe('Leads - Create', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/leads', { timeout: 30000 });
-    await page.waitForLoadState('networkidle', { timeout: 30000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(500);
   });
@@ -144,7 +144,7 @@ test.describe('Leads - Create', () => {
 test.describe('Leads - Conversion', () => {
   test('TC-LEAD-007: Should convert lead to opportunity', async ({ page }) => {
     await page.goto('/leads');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -175,7 +175,7 @@ test.describe('Leads - Conversion', () => {
 
   test('TC-LEAD-008: Should convert lead to customer', async ({ page }) => {
     await page.goto('/leads');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -197,7 +197,7 @@ test.describe('Leads - Conversion', () => {
 
   test('TC-LEAD-009: Should update lead status', async ({ page }) => {
     await page.goto('/leads');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -230,7 +230,7 @@ test.describe('Leads - Conversion', () => {
 test.describe('Leads - Delete', () => {
   test('TC-LEAD-010: Should delete test lead', async ({ page }) => {
     await page.goto('/leads');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
