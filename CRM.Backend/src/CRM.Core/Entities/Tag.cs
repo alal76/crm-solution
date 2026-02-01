@@ -1,13 +1,28 @@
 using System;
+using System.Collections.Generic;
 
 namespace CRM.Core.Entities
 {
-    public class Tag
+    /// <summary>
+    /// Tag entity for categorizing and labeling entities
+    /// </summary>
+    public class Tag : BaseEntity
     {
-        public int Id { get; set; }
-        public string? Name { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        public bool IsDeleted { get; set; }
+        public string Name { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Optional color for tag display (hex format)
+        /// </summary>
+        public string? Color { get; set; }
+        
+        /// <summary>
+        /// Optional description of the tag purpose
+        /// </summary>
+        public string? Description { get; set; }
+        
+        /// <summary>
+        /// Navigation property to entity links
+        /// </summary>
+        public virtual ICollection<EntityTag> EntityTags { get; set; } = new List<EntityTag>();
     }
 }

@@ -289,25 +289,69 @@ The 89 database tables are organized into logical domains:
 │  │ SocialMediaLinks│  │ ModuleConfigs   │  │ Activities      │          │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘          │
 │                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │                     JUNCTION TABLES                              │    │
+│  ├─────────────────────────────────────────────────────────────────┤    │
+│  │ AccountContacts    │ UserGroupMembers  │ OpportunityProducts    │    │
+│  │ EntityAddressLinks │ EntityPhoneLinks  │ EntityEmailLinks       │    │
+│  │ EntitySocialMedia  │ EntityTags        │ LeadProductInterests   │    │
+│  │ TeamMembers        │ ApprovalGroupMemb │ ServiceRequestArticles │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Entity Relationships
 
 ```
-Customer (1) ───────< (N) CustomerContacts >─────── (1) Contact
+                           POLYMORPHIC CONTACT INFO
+                           ────────────────────────
+                                    │
+        ┌───────────────────────────┼───────────────────────────┐
+        │                           │                           │
+        ▼                           ▼                           ▼
+  EntityAddressLinks         EntityPhoneLinks           EntityEmailLinks
+  (EntityType, EntityId)     (EntityType, EntityId)     (EntityType, EntityId)
+        │                           │                           │
+        ▼                           ▼                           ▼
+    Addresses                  PhoneNumbers               EmailAddresses
+
+                           TRADITIONAL JUNCTIONS
+                           ─────────────────────
+
+Customer (1) ───────< (N) AccountContacts >─────── (1) Contact
     │                                                      │
     │ (1:N)                                               │ (1:N)
     ▼                                                     ▼
-Accounts                                            EmailAddresses
+Accounts                                            TagsViaEntityTags
     │                                               PhoneNumbers
     │ (1:N)                                         Addresses
     ▼                                               SocialMediaLinks
-Opportunities ─────< (N:M) >───── Products
+Opportunities ─────< (N:M) OpportunityProducts >───── Products
     │
     │ (1:N)
     ▼
 Quotes ───────< (1:N) >───── QuoteLineItems
+
+
+User (1) ─────< (N) UserGroupMembers >─────── (1) UserGroup
+```
+
+### Junction Table Patterns
+
+The CRM uses two junction table design patterns:
+
+| Pattern | Example | Use Case |
+|---------|---------|----------|
+| **Traditional** | `AccountContacts` | Links two specific entity types |
+| **Polymorphic** | `EntityAddressLinks` | Links multiple entity types to one target |
+
+#### Polymorphic Pattern Details
+
+```
+EntityType (enum) + EntityId (int) → Target Entity
+─────────────────────────────────────────────────
+Customer = 0, Contact = 1, Lead = 2, Account = 3, Prospect = 4
 ```
 
 ---

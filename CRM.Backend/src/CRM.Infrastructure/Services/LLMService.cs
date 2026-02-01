@@ -259,23 +259,38 @@ public class LLMService : ILLMService
     {
         return provider.ToLower() switch
         {
-            "openai" => !string.IsNullOrEmpty(_options.OpenAI.ApiKey),
-            "azure" or "azureopenai" => !string.IsNullOrEmpty(_options.AzureOpenAI.Endpoint) && 
-                                        !string.IsNullOrEmpty(_options.AzureOpenAI.ApiKey),
-            "anthropic" => !string.IsNullOrEmpty(_options.Anthropic.ApiKey),
-            "google" or "gemini" or "vertexai" => !string.IsNullOrEmpty(_options.GoogleCloud.ApiKey) || 
-                                                   !string.IsNullOrEmpty(_options.GoogleCloud.ServiceAccountKeyPath),
+            "openai" => IsValidApiKey(_options.OpenAI.ApiKey),
+            "azure" or "azureopenai" => IsValidApiKey(_options.AzureOpenAI.Endpoint) && 
+                                        IsValidApiKey(_options.AzureOpenAI.ApiKey),
+            "anthropic" => IsValidApiKey(_options.Anthropic.ApiKey),
+            "google" or "gemini" or "vertexai" => IsValidApiKey(_options.GoogleCloud.ApiKey) || 
+                                                   IsValidApiKey(_options.GoogleCloud.ServiceAccountKeyPath),
             "aws" or "bedrock" => _options.AWSBedrock.UseDefaultCredentials || 
-                                  (!string.IsNullOrEmpty(_options.AWSBedrock.AccessKeyId) && 
-                                   !string.IsNullOrEmpty(_options.AWSBedrock.SecretAccessKey)),
-            "deepseek" => !string.IsNullOrEmpty(_options.DeepSeek.ApiKey),
+                                  (IsValidApiKey(_options.AWSBedrock.AccessKeyId) && 
+                                   IsValidApiKey(_options.AWSBedrock.SecretAccessKey)),
+            "deepseek" => IsValidApiKey(_options.DeepSeek.ApiKey),
             "allenai" or "huggingface" or "ai2" => _options.AllenAI.Enabled && 
-                                                    !string.IsNullOrEmpty(_options.AllenAI.ApiKey),
+                                                    IsValidApiKey(_options.AllenAI.ApiKey),
             "local" or "ollama" or "lmstudio" or "vllm" => _options.LocalLLM.Enabled && 
-                                                           !string.IsNullOrEmpty(_options.LocalLLM.BaseUrl),
-            "custom" => !string.IsNullOrEmpty(_options.CustomEndpoint.Url),
+                                                           IsValidApiKey(_options.LocalLLM.BaseUrl),
+            "custom" => IsValidApiKey(_options.CustomEndpoint.Url),
             _ => false
         };
+    }
+    
+    /// <summary>
+    /// Checks if an API key or URL is valid (not empty and not an unresolved placeholder)
+    /// </summary>
+    private static bool IsValidApiKey(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+        
+        // Check for unresolved environment variable placeholders like ${VAR:} or ${VAR:default}
+        if (value.StartsWith("${") && value.Contains(":"))
+            return false;
+        
+        return true;
     }
 
     public List<LLMProviderInfo> GetAvailableProviders()

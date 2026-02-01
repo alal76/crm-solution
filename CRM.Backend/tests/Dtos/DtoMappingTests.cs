@@ -300,10 +300,10 @@ public class DtoMappingTests
     #region Collection Mapping Tests
 
     [Fact]
-    public void CustomerList_ToDto_MapsCorrectly()
+    public void AccountList_ToDto_MapsCorrectly()
     {
         // Arrange
-        var entities = new List<Customer>
+        var entities = new List<Account>
         {
             new() { Id = 1, FirstName = "John", LastName = "Doe" },
             new() { Id = 2, FirstName = "Jane", LastName = "Smith" },

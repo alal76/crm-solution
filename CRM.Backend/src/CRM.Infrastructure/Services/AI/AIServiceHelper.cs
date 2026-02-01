@@ -31,12 +31,19 @@ public static class AIServiceHelper
 
     /// <summary>
     /// Gets the first configured and enabled provider from settings.
+    /// Uses EffectiveFallbackOrder which only contains configured providers.
     /// </summary>
     /// <param name="settings">The LLM settings DTO</param>
     /// <returns>The name of the first available provider, or the default provider</returns>
     public static string GetFirstAvailableProvider(LLMSettingsDto settings)
     {
-        // Check providers in fallback order if defined
+        // Use effective fallback order which only contains configured providers
+        if (settings.EffectiveFallbackOrder?.Count > 0)
+        {
+            return settings.EffectiveFallbackOrder[0];
+        }
+
+        // Legacy fallback: check providers in fallback order if effective order not computed
         if (settings.FallbackOrder?.Count > 0)
         {
             foreach (var provider in settings.FallbackOrder)
@@ -50,7 +57,43 @@ public static class AIServiceHelper
         }
 
         // Fall back to default provider
-        return settings.DefaultProvider ?? "openai";
+        return settings.DefaultProvider ?? "local";
+    }
+
+    /// <summary>
+    /// Gets the list of configured providers in fallback order.
+    /// Returns only providers that have API keys configured.
+    /// </summary>
+    /// <param name="settings">The LLM settings DTO</param>
+    /// <returns>List of configured provider names in fallback order</returns>
+    public static List<string> GetConfiguredProviders(LLMSettingsDto settings)
+    {
+        // Use pre-computed effective order if available
+        if (settings.EffectiveFallbackOrder?.Count > 0)
+        {
+            return settings.EffectiveFallbackOrder;
+        }
+
+        // Compute on demand if not available
+        var configuredProviders = new List<string>();
+        var allProviders = settings.FallbackOrder ?? new List<string> { "local" };
+
+        foreach (var provider in allProviders)
+        {
+            var providerSettings = GetProviderSettings(settings, provider);
+            if (providerSettings?.IsConfigured == true)
+            {
+                configuredProviders.Add(provider);
+            }
+        }
+
+        // Ensure local is always available as last resort if configured
+        if (configuredProviders.Count == 0 && settings.Local?.IsConfigured == true)
+        {
+            configuredProviders.Add("local");
+        }
+
+        return configuredProviders;
     }
 
     /// <summary>

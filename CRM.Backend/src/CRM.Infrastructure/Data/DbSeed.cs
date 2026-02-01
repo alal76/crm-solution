@@ -193,11 +193,11 @@ public class DbSeed
         }
 
         // Seed sample customers if none exist
-        if (!context.Customers.Any())
+        if (!context.Accounts.Any())
         {
-            var customers = new List<Customer>
+            var customers = new List<Account>
             {
-                new Customer
+                new Account
                 {
                     FirstName = "John",
                     LastName = "Doe",
@@ -205,7 +205,7 @@ public class DbSeed
                     Phone = "+1-555-0001",
                     Company = "Tech Corp"
                 },
-                new Customer
+                new Account
                 {
                     FirstName = "Jane",
                     LastName = "Smith",
@@ -215,7 +215,7 @@ public class DbSeed
                 }
             };
 
-            context.Customers.AddRange(customers);
+            context.Accounts.AddRange(customers);
             await context.SaveChangesAsync();
         }
 

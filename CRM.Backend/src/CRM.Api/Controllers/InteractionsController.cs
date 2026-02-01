@@ -380,10 +380,10 @@ public class InteractionsController : ControllerBase
 
             var customerId = request.AccountId ?? interaction.AccountId;
 
-            // Create customer if needed and none exists
+            // Create account if needed and none exists
             if (customerId <= 0 && request.CreateCustomerIfNeeded)
             {
-                var newCustomer = new Customer
+                var newCustomer = new Account
                 {
                     Category = AccountCategory.Individual,
                     FirstName = request.FirstName,
@@ -394,7 +394,7 @@ public class InteractionsController : ControllerBase
                     LeadSource = $"Interaction-{interaction.InteractionType}",
                     CreatedAt = DateTime.UtcNow
                 };
-                _context.Customers.Add(newCustomer);
+                _context.Accounts.Add(newCustomer);
                 await _context.SaveChangesAsync();
                 customerId = newCustomer.Id;
             }

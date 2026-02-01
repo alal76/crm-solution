@@ -135,11 +135,11 @@ public class LeadsController : ControllerBase
         {
             var lead = new Lead
             {
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Email = request.Email,
+                FirstName = request.FirstName!,
+                LastName = request.LastName!,
+                Email = request.Email ?? string.Empty,
                 Phone = request.Phone,
-                CompanyName = request.Company ?? request.CompanyName,
+                CompanyName = request.Company ?? request.CompanyName ?? string.Empty,
                 Title = request.Title,
                 Status = LeadLifecycleStatus.New,
                 Source = Enum.TryParse<LeadSource>(request.Source, out var source) ? source : LeadSource.Manual,

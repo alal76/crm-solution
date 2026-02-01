@@ -130,28 +130,28 @@ public class EnumTypeTests
 
     #endregion
 
-    #region AccountStatus Tests
+    #region SubscriptionStatus Tests
 
     [Fact]
-    public void AccountStatus_ContainsOnlyExpectedValues()
+    public void SubscriptionStatus_ContainsOnlyExpectedValues()
     {
-        var values = Enum.GetValues<AccountStatus>();
-        values.Should().Contain(AccountStatus.Current);
-        values.Should().Contain(AccountStatus.Churned);
+        var values = Enum.GetValues<SubscriptionStatus>();
+        values.Should().Contain(SubscriptionStatus.Current);
+        values.Should().Contain(SubscriptionStatus.Churned);
     }
 
     [Fact]
-    public void AccountStatus_HasExpectedCount()
+    public void SubscriptionStatus_HasExpectedCount()
     {
-        Enum.GetValues<AccountStatus>().Should().HaveCount(2);
+        Enum.GetValues<SubscriptionStatus>().Should().HaveCount(2);
     }
 
     [Theory]
     [InlineData("Current")]
     [InlineData("Churned")]
-    public void AccountStatus_ParseFromString(string value)
+    public void SubscriptionStatus_ParseFromString(string value)
     {
-        var parsed = Enum.Parse<AccountStatus>(value);
+        var parsed = Enum.Parse<SubscriptionStatus>(value);
         parsed.ToString().Should().Be(value);
     }
 

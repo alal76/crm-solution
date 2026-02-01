@@ -2,11 +2,47 @@ using System;
 
 namespace CRM.Core.Entities
 {
+    /// <summary>
+    /// Junction table for linking tags to entities (polymorphic tagging)
+    /// Enables tagging of Accounts, Contacts, Leads, Opportunities, etc.
+    /// </summary>
     public class EntityTag : BaseEntity
     {
-        public string? EntityType { get; set; }
+        /// <summary>
+        /// The type of entity being tagged (Account, Contact, Lead, Opportunity, etc.)
+        /// </summary>
+        public string EntityType { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// The ID of the entity being tagged
+        /// </summary>
         public int EntityId { get; set; }
+        
+        /// <summary>
+        /// Foreign key to the Tag
+        /// </summary>
         public int TagId { get; set; }
-        public string? Tag { get; set; }
+        
+        /// <summary>
+        /// Denormalized tag name for quick display (optional, can be computed from navigation)
+        /// </summary>
+        public string? TagName { get; set; }
+        
+        /// <summary>
+        /// Optional sort order for displaying tags on an entity
+        /// </summary>
+        public int SortOrder { get; set; } = 0;
+        
+        /// <summary>
+        /// Who added this tag
+        /// </summary>
+        public int? CreatedBy { get; set; }
+        
+        // Navigation Properties
+        
+        /// <summary>
+        /// Navigation to the Tag entity
+        /// </summary>
+        public virtual Tag? Tag { get; set; }
     }
 }

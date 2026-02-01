@@ -59,9 +59,16 @@ public class LLMProviderSetting : BaseEntity
 /// </summary>
 public class LLMSettingsDto
 {
-    public string DefaultProvider { get; set; } = "openai";
+    public string DefaultProvider { get; set; } = "local";
     public bool EnableFallback { get; set; } = true;
-    public List<string> FallbackOrder { get; set; } = new() { "openai", "azure", "anthropic", "google", "deepseek", "allenai", "local" };
+    public List<string> FallbackOrder { get; set; } = new() { "local", "openai", "azure", "anthropic", "google", "deepseek", "allenai" };
+    
+    /// <summary>
+    /// Computed fallback order containing only configured providers.
+    /// If no providers are configured with API keys, only 'local' will be included.
+    /// </summary>
+    public List<string> EffectiveFallbackOrder { get; set; } = new();
+    
     public int DefaultMaxTokens { get; set; } = 1000;
     public double DefaultTemperature { get; set; } = 0.7;
     public int TimeoutSeconds { get; set; } = 60;
