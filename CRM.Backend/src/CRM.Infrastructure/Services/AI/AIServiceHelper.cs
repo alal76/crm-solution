@@ -24,8 +24,8 @@ public static class AIServiceHelper
             "google" => settings.Google?.DefaultModel ?? "gemini-pro",
             "deepseek" => settings.DeepSeek?.DefaultModel ?? "deepseek-chat",
             "allenai" => settings.AllenAI?.DefaultModel ?? "allenai/OLMo-7B-Instruct",
-            "local" or "ollama" => settings.Local?.DefaultModel ?? "olmo2:7b",
-            _ => "olmo2:7b"  // Default to local OLMo model
+            "local" => settings.Local?.DefaultModel ?? "llama2",
+            _ => "gpt-4o-mini"
         };
     }
 

@@ -1,0 +1,59 @@
+# Docker Compose for Ollama AI Service
+# Local AI/LLM service for CRM Solution
+# Target: 192.168.0.9
+#
+# Usage:
+#   docker-compose -f docker-compose.ollama.yml up -d
+#   docker-compose -f docker-compose.ollama.yml down
+#
+# After starting, pull the OLMo model:
+#   docker exec -it crm-ollama ollama pull olmo2:7b
+#
+# Port: 11434
+
+volumes:
+  ollama-data:
+    driver: local
+
+networks:
+  crm-ai-network:
+    driver: bridge
+    name: crm-ai-network
+
+services:
+  # ============================================
+  # Ollama - Local LLM Server
+  # ============================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: crm-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    environment:
+      # Allow connections from any host
+      OLLAMA_HOST: "0.0.0.0"
+      # Model storage location
+      OLLAMA_MODELS: /root/.ollama/models
+    volumes:
+      - ollama-data:/root/.ollama
+    # Uncomment for NVIDIA GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - crm-ai-network
+    labels:
+      - "com.crm.service.type=ai"
+      - "com.crm.service.name=ollama"
+      - "com.crm.service.port=11434"

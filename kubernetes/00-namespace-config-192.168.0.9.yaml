@@ -66,6 +66,14 @@ data:
   Redis__InstanceName: "crm_"
   Redis__Enabled: "true"
   
+  # AI/LLM Configuration - Remote Ollama Server
+  LLMProviders__DefaultProvider: "local"
+  LLMProviders__EnableFallback: "true"
+  LLMProviders__LocalLLM__BaseUrl: "http://192.168.0.9:11434"
+  LLMProviders__LocalLLM__DefaultModel: "qwen2.5:0.5b"
+  LLMProviders__LocalLLM__ApiFormat: "ollama"
+  LLMProviders__LocalLLM__Enabled: "true"
+  
   # CORS Configuration
   AllowedOrigins: "http://192.168.0.9,http://192.168.0.9:80,http://192.168.0.9:3000"
 
