@@ -1,9 +1,9 @@
 {
   "major": 1,
   "minor": 7,
-  "patch": 28,
-  "lastUpdate": "2026-01-31",
-  "description": "CRM Solution v1.7.28 - Security enhancements: password management, complexity settings, group policies",
+  "patch": 29,
+  "lastUpdate": "2026-02-01",
+  "description": "CRM Solution v1.7.29 - Junction table improvements, LLM failover config, Tags/EntityTags enhancements",
   "git": {
     "branch": "dev",
     "commit": "5666434"
@@ -11,5 +11,5 @@
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "192.168.0.9",
-  "buildTime": "2026-01-31T17:03:37"
+  "buildTime": "2026-02-01T10:00:00"
 }

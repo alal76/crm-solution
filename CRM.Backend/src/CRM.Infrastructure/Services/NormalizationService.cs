@@ -17,7 +17,7 @@ public class NormalizationService : INormalizationService
     {
         var tags = await _context.EntityTags
             .Where(t => t.EntityType == entityType && t.EntityId == entityId && !t.IsDeleted)
-            .Select(t => t.Tag)
+            .Select(t => t.TagName ?? t.Tag!.Name)
             .ToListAsync();
 
         if (tags == null || !tags.Any()) return null;

@@ -23,16 +23,16 @@ namespace CRM.Core.Ports.Output;
 public interface IRepositoryPort<T> : IRepository<T> where T : BaseEntity { }
 
 /// <summary>
-/// Customer-specific repository port with additional query methods.
+/// Account-specific repository port with additional query methods.
 /// </summary>
-public interface ICustomerRepositoryPort : IRepositoryPort<Customer>
+public interface IAccountRepositoryPort : IRepositoryPort<Account>
 {
-    Task<IEnumerable<Customer>> GetIndividualsAsync();
-    Task<IEnumerable<Customer>> GetOrganizationsAsync();
-    Task<IEnumerable<Customer>> GetByLifecycleStageAsync(CustomerLifecycleStage stage);
-    Task<IEnumerable<Customer>> GetByPriorityAsync(CustomerPriority priority);
-    Task<IEnumerable<Customer>> GetByAssignedUserAsync(int userId);
-    Task<IEnumerable<Customer>> SearchAsync(string searchTerm);
+    Task<IEnumerable<Account>> GetIndividualsAsync();
+    Task<IEnumerable<Account>> GetOrganizationsAsync();
+    Task<IEnumerable<Account>> GetByLifecycleStageAsync(AccountLifecycleStage stage);
+    Task<IEnumerable<Account>> GetByPriorityAsync(AccountPriority priority);
+    Task<IEnumerable<Account>> GetByAssignedUserAsync(int userId);
+    Task<IEnumerable<Account>> SearchAsync(string searchTerm);
 }
 
 /// <summary>

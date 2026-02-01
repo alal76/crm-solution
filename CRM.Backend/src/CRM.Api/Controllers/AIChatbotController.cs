@@ -55,20 +55,27 @@ public class AIChatbotController : ControllerBase
         try
         {
             var settings = await _llmSettingsService.GetSettingsAsync();
-            var provider = settings?.DefaultProvider ?? "unknown";
+            
+            // Use effective fallback order to get the first configured provider
+            var provider = AIServiceHelper.GetFirstAvailableProvider(settings!);
             var model = AIServiceHelper.GetDefaultModelForProvider(settings!, provider);
             
-            // Check if the LLM service is configured
+            // Check if the provider is configured
             var isConfigured = _llmService.IsConfigured(provider);
             
             if (!isConfigured)
             {
+                // Return info about all configured providers for debugging
+                var configuredProviders = settings?.EffectiveFallbackOrder ?? new List<string>();
                 return Ok(new
                 {
                     isHealthy = false,
                     provider = provider,
                     model = model,
-                    message = "AI service not configured",
+                    configuredProviders = configuredProviders,
+                    message = configuredProviders.Count == 0 
+                        ? "No AI providers configured. Configure at least one provider with an API key or enable local LLM."
+                        : "AI service not configured",
                     timestamp = DateTime.UtcNow
                 });
             }
@@ -157,10 +164,13 @@ public class AIChatbotController : ControllerBase
 
             // Get LLM settings
             var settings = await _llmSettingsService.GetSettingsAsync();
-            if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
+            
+            // Use effective fallback order to determine which provider to use
+            var effectiveProviders = settings?.EffectiveFallbackOrder ?? new List<string>();
+            if (settings == null || effectiveProviders.Count == 0)
             {
                 return Ok(new { 
-                    response = "I apologize, but the AI service is not configured. Please contact your administrator to set up LLM settings." 
+                    response = "I apologize, but I'm having trouble connecting to the AI service. Please check your LLM settings or try again later." 
                 });
             }
 
@@ -214,19 +224,21 @@ public class AIChatbotController : ControllerBase
             // Add user message
             messages.Add(new LLMMessage { Role = "user", Content = request.Message });
 
-            // Get the default model from the provider settings
-            var defaultModel = GetDefaultModelForProvider(settings, settings.DefaultProvider);
+            // Use the first available provider from effective fallback order
+            var provider = effectiveProviders[0];
+            var defaultModel = GetDefaultModelForProvider(settings, provider);
 
-            // Make LLM request
+            // Make LLM request using the first configured provider
             var llmRequest = new LLMRequest
             {
-                Provider = settings.DefaultProvider,
+                Provider = provider,
                 Model = defaultModel,
                 Messages = messages,
                 Temperature = 0.7,
                 MaxTokens = 1500,
             };
 
+            _logger.LogDebug("Sending chatbot request to provider {Provider} with model {Model}", provider, defaultModel);
             var response = await _llmService.ChatAsync(llmRequest);
 
             if (response.Success)

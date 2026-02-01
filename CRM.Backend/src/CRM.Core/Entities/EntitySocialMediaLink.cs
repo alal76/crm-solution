@@ -16,6 +16,9 @@ public class EntitySocialMediaLink : BaseEntity
     // Link Properties
     public bool IsPrimary { get; set; } = false;
     public bool PreferredForContact { get; set; } = false;
+    public bool DoNotContact { get; set; } = false;
+    public DateTime? ValidFrom { get; set; }
+    public DateTime? ValidTo { get; set; }
     public string? Notes { get; set; }
     
     // Audit
@@ -23,4 +26,8 @@ public class EntitySocialMediaLink : BaseEntity
     
     // Navigation Properties
     public SocialMediaAccount? SocialMediaAccount { get; set; }
+    
+    // Computed Properties
+    public bool IsActive => (!ValidFrom.HasValue || ValidFrom <= DateTime.UtcNow) 
+                         && (!ValidTo.HasValue || ValidTo >= DateTime.UtcNow);
 }

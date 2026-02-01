@@ -333,7 +333,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
         base.OnModelCreating(modelBuilder);
 
         // Get database provider - check both configuration and actual provider
-        var databaseProvider = _configuration["DatabaseProvider"]?.ToLower() ?? "mariadb";
+        // Handle null configuration gracefully for unit tests
+        var databaseProvider = _configuration?["DatabaseProvider"]?.ToLower() ?? "mariadb";
         
         // Also check if we're using SQL Server based on the actual provider
         var isSqlServer = databaseProvider == "sqlserver" || 
@@ -374,9 +375,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
         }
 
         // Ignore the deprecated Customer class to prevent TPH discrimination
+        // This is intentional - we need EF Core to ignore the alias class
+#pragma warning disable CS0618 // Type or member is obsolete
         modelBuilder.Ignore<Customer>();
+#pragma warning restore CS0618
         
-        // Configure Customer
+        // Configure Account (formerly Customer)
         modelBuilder.Entity<Account>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -781,10 +785,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Description).HasMaxLength(500);
         });
         
-        // Configure UserGroupMember
+        // Configure UserGroupMember (junction table for User-UserGroup many-to-many)
         modelBuilder.Entity<UserGroupMember>(entity =>
         {
             entity.HasKey(e => e.Id);
+            
+            // Unique constraint: user can only be member of a group once
+            entity.HasIndex(e => new { e.UserId, e.UserGroupId }).IsUnique();
             
             entity.HasOne(e => e.User)
                 .WithMany(u => u.GroupMemberships)
@@ -1344,16 +1351,28 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.Color).HasMaxLength(20);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.HasIndex(e => e.IsDeleted);
         });
 
         modelBuilder.Entity<CRM.Core.Entities.EntityTag>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Tag).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.TagName).HasMaxLength(200);
+            
+            // Unique constraint: same tag can only be assigned once per entity
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.TagId }).IsUnique();
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
             entity.HasIndex(e => e.TagId);
+            
+            // Navigation to Tag with cascade delete
+            entity.HasOne(e => e.Tag)
+                .WithMany(t => t.EntityTags)
+                .HasForeignKey(e => e.TagId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<CRM.Core.Entities.CustomField>(entity =>

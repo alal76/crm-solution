@@ -1,4 +1,4 @@
-# Docker Compose for Ollama AI Service
+# Docker Compose for Ollama AI Service with Allen AI OLMo2
 # Local AI/LLM service for CRM Solution
 # Target: 192.168.0.9
 #
@@ -6,8 +6,13 @@
 #   docker-compose -f docker-compose.ollama.yml up -d
 #   docker-compose -f docker-compose.ollama.yml down
 #
-# After starting, pull the OLMo model:
+# Models:
+#   Primary:  olmo2:7b (Allen AI OLMo2 - 4.5GB)
+#   Fallback: qwen2.5:0.5b (lightweight - 400MB)
+#
+# Pull models after starting:
 #   docker exec -it crm-ollama ollama pull olmo2:7b
+#   docker exec -it crm-ollama ollama pull qwen2.5:0.5b
 #
 # Port: 11434
 

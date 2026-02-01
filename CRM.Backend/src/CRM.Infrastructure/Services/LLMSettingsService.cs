@@ -124,6 +124,9 @@ public class LLMSettingsService : ILLMSettingsService
                 }
             };
 
+            // Compute effective fallback order - only includes configured providers
+            dto.EffectiveFallbackOrder = ComputeEffectiveFallbackOrder(dto);
+
             return dto;
         }
         catch (Exception ex)
@@ -400,6 +403,68 @@ public class LLMSettingsService : ILLMSettingsService
         "local" or "ollama" => "Local",
         _ => providerKey
     };
+
+    /// <summary>
+    /// Computes the effective fallback order based on which providers are actually configured with API keys.
+    /// If no providers are configured (except local), only local will be in the list.
+    /// The order follows the configured FallbackOrder but filters out unconfigured providers.
+    /// </summary>
+    private static List<string> ComputeEffectiveFallbackOrder(LLMSettingsDto dto)
+    {
+        var effectiveOrder = new List<string>();
+        
+        // Map provider names to their IsConfigured status
+        var providerConfigStatus = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "openai", dto.OpenAI?.IsConfigured ?? false },
+            { "azure", dto.Azure?.IsConfigured ?? false },
+            { "anthropic", dto.Anthropic?.IsConfigured ?? false },
+            { "google", dto.Google?.IsConfigured ?? false },
+            { "bedrock", dto.Bedrock?.IsConfigured ?? false },
+            { "deepseek", dto.DeepSeek?.IsConfigured ?? false },
+            { "allenai", dto.AllenAI?.IsConfigured ?? false },
+            { "local", dto.Local?.IsConfigured ?? false }
+        };
+
+        // First, add the default provider if it's configured
+        if (!string.IsNullOrEmpty(dto.DefaultProvider) && 
+            providerConfigStatus.TryGetValue(dto.DefaultProvider, out var isDefaultConfigured) && 
+            isDefaultConfigured)
+        {
+            effectiveOrder.Add(dto.DefaultProvider.ToLower());
+        }
+
+        // Then add other providers from fallback order that are configured
+        if (dto.FallbackOrder != null)
+        {
+            foreach (var provider in dto.FallbackOrder)
+            {
+                var normalizedProvider = provider.ToLower();
+                
+                // Skip if already added as default provider
+                if (effectiveOrder.Contains(normalizedProvider))
+                    continue;
+                
+                // Only add if configured
+                if (providerConfigStatus.TryGetValue(normalizedProvider, out var isConfigured) && isConfigured)
+                {
+                    effectiveOrder.Add(normalizedProvider);
+                }
+            }
+        }
+
+        // If no providers are configured at all, ensure local is included (if configured)
+        // This handles the case where only local LLM (Ollama) is available
+        if (effectiveOrder.Count == 0)
+        {
+            if (providerConfigStatus.TryGetValue("local", out var localConfigured) && localConfigured)
+            {
+                effectiveOrder.Add("local");
+            }
+        }
+
+        return effectiveOrder;
+    }
 
     #endregion
 }

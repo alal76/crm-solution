@@ -5,6 +5,47 @@ All notable changes to CRM Solution will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.26] - 2026-02-01
+
+### Added
+
+#### Junction Table Improvements
+- **EntitySocialMediaLink**: Added `ValidFrom`, `ValidTo`, `DoNotContact`, and `IsActive` computed property
+- **Tag Entity**: Extended BaseEntity, added `Color` and `Description` fields, proper navigation to EntityTags
+- **EntityTag**: Renamed `Tag` to `TagName`, added `Tag` navigation property, `SortOrder`, `CreatedBy`
+
+#### Database Indexes
+- Unique composite indexes on all junction tables to prevent duplicates:
+  - `EntityTags`: `(EntityType, EntityId, TagId)`
+  - `UserGroupMembers`: `(UserId, UserGroupId)`
+  - `AccountContacts`: `(AccountId, ContactId)`
+- Performance indexes on junction tables:
+  - `OpportunityProducts.CreatedAt`
+  - `LeadProductInterests.CreatedAt`
+  - `AccountContacts.Role`
+  - `AccountContacts.IsPrimaryContact`
+
+#### LLM Failover Configuration
+- Configurable fallback order for AI providers in admin settings
+- Smart provider detection - only configured providers included in fallback
+- Fixed `IsConfigured()` to detect unresolved `${VAR:}` placeholders
+- Added `EffectiveFallbackOrder` computed property
+
+### Changed
+- Updated NormalizationService to use new `TagName` property with Tag navigation fallback
+- Enhanced CrmDbContext with proper junction table configurations
+- Updated documentation (DATABASE_SCHEMA.md, ARCHITECTURE_OVERVIEW.md)
+
+### Database
+- Schema `009_junction_table_improvements.sql`:
+  - Creates `Tags` and `EntityTags` tables with proper structure
+  - Creates `CustomFields` table for generic field storage
+  - Creates `llm_provider_settings` table for AI configuration
+  - Creates `SystemSettings` table for system configuration
+  - Adds all missing junction table indexes and constraints
+
+---
+
 ## [0.0.25] - 2026-01-XX
 
 ### Added

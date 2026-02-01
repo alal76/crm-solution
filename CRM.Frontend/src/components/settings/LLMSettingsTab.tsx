@@ -93,6 +93,7 @@ interface LLMSettings {
   defaultProvider: string;
   enableFallback: boolean;
   fallbackOrder: string[];
+  effectiveFallbackOrder: string[];
   defaultMaxTokens: number;
   defaultTemperature: number;
   timeoutSeconds: number;
@@ -103,6 +104,7 @@ interface LLMSettings {
   google: LLMProviderSettings;
   bedrock: LLMProviderSettings;
   deepSeek: LLMProviderSettings;
+  allenAI: LLMProviderSettings;
   local: LLMProviderSettings;
 }
 
@@ -167,6 +169,11 @@ const providerInfo: Record<string, { description: string; docsUrl: string; icon:
     docsUrl: 'https://ollama.ai/',
     icon: LocalIcon,
   },
+  allenai: {
+    description: 'Allen AI provides open-source research models like OLMo. Requires Hugging Face API for cloud access.',
+    docsUrl: 'https://allenai.org/',
+    icon: AIIcon,
+  },
   custom: {
     description: 'Connect to any OpenAI-compatible API endpoint.',
     docsUrl: '',
@@ -174,7 +181,7 @@ const providerInfo: Record<string, { description: string; docsUrl: string; icon:
   },
 };
 
-const availableProviders = ['openai', 'azure', 'anthropic', 'google', 'bedrock', 'deepseek', 'local'];
+const availableProviders = ['local', 'openai', 'azure', 'anthropic', 'google', 'bedrock', 'deepseek', 'allenai'];
 
 export const LLMSettingsTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -481,6 +488,125 @@ export const LLMSettingsTab: React.FC = () => {
                   }
                   label="Enable Fallback to Other Providers"
                 />
+              </Grid>
+
+              {/* Fallback Order Configuration */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
+                  Fallback Provider Order
+                </Typography>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                  Configure the order in which providers will be tried. Only providers with API keys configured will be used.
+                  Use the arrows to reorder providers. Unconfigured providers (shown in gray) will be skipped.
+                </Typography>
+                <Box sx={{ 
+                  border: 1, 
+                  borderColor: 'divider', 
+                  borderRadius: 1, 
+                  p: 2, 
+                  bgcolor: 'grey.50' 
+                }}>
+                  {(getMergedValue('fallbackOrder') || availableProviders).map((providerId, index) => {
+                    const provider = providers.find(p => p.value === providerId);
+                    const isConfigured = provider?.isConfigured ?? false;
+                    const isFirst = index === 0;
+                    const isLast = index === (getMergedValue('fallbackOrder') || availableProviders).length - 1;
+                    
+                    return (
+                      <Box
+                        key={providerId}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          p: 1.5,
+                          mb: index < (getMergedValue('fallbackOrder') || availableProviders).length - 1 ? 1 : 0,
+                          bgcolor: isConfigured ? 'background.paper' : 'grey.100',
+                          borderRadius: 1,
+                          border: 1,
+                          borderColor: isConfigured ? 'primary.light' : 'grey.300',
+                          opacity: isConfigured ? 1 : 0.6,
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Typography sx={{ 
+                            width: 24, 
+                            height: 24, 
+                            borderRadius: '50%', 
+                            bgcolor: isConfigured ? 'primary.main' : 'grey.400',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 600
+                          }}>
+                            {index + 1}
+                          </Typography>
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {providerId.charAt(0).toUpperCase() + providerId.slice(1)}
+                            </Typography>
+                            <Typography variant="caption" color="textSecondary">
+                              {isConfigured ? 'Configured' : 'Not configured - will be skipped'}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <Button
+                            size="small"
+                            disabled={isFirst}
+                            onClick={() => {
+                              const order = [...(getMergedValue('fallbackOrder') || availableProviders)];
+                              [order[index - 1], order[index]] = [order[index], order[index - 1]];
+                              handleSettingsChange('fallbackOrder', order);
+                            }}
+                            sx={{ minWidth: 32 }}
+                          >
+                            ↑
+                          </Button>
+                          <Button
+                            size="small"
+                            disabled={isLast}
+                            onClick={() => {
+                              const order = [...(getMergedValue('fallbackOrder') || availableProviders)];
+                              [order[index], order[index + 1]] = [order[index + 1], order[index]];
+                              handleSettingsChange('fallbackOrder', order);
+                            }}
+                            sx={{ minWidth: 32 }}
+                          >
+                            ↓
+                          </Button>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
+                
+                {/* Show effective fallback order */}
+                {settings?.effectiveFallbackOrder && settings.effectiveFallbackOrder.length > 0 && (
+                  <Alert severity="info" sx={{ mt: 2 }} icon={<InfoIcon />}>
+                    <Typography variant="body2">
+                      <strong>Active providers:</strong> {settings.effectiveFallbackOrder.join(' → ')}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      These are the providers that will actually be used based on your API key configuration.
+                    </Typography>
+                  </Alert>
+                )}
+                
+                {settings?.effectiveFallbackOrder?.length === 0 && (
+                  <Alert severity="warning" sx={{ mt: 2 }}>
+                    <Typography variant="body2">
+                      <strong>No providers configured!</strong> Configure at least one provider with an API key, or enable the local LLM (Ollama).
+                    </Typography>
+                  </Alert>
+                )}
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }} />
               </Grid>
 
               <Grid item xs={12} md={6}>

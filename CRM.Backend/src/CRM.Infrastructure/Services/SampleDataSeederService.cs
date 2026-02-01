@@ -1351,7 +1351,7 @@ public class SampleDataSeederService
             return;
         }
 
-        var customers = new List<Customer>();
+        var customers = new List<Account>();
         var industries = new[] { "Technology", "Healthcare", "Finance", "Manufacturing", "Retail", "Education", "Legal", "Construction", "Media", "Transportation" };
         
         // 70 Organization Customers
@@ -1361,7 +1361,7 @@ public class SampleDataSeederService
             var suffix = CompanySuffixes[_random.Next(CompanySuffixes.Length)];
             var cityIndex = _random.Next(Cities.Length);
             
-            customers.Add(new Customer
+            customers.Add(new Account
             {
                 Category = AccountCategory.Organization,
                 Company = $"{prefix} {suffix}",
@@ -1389,7 +1389,7 @@ public class SampleDataSeederService
             var lastName = LastNames[_random.Next(LastNames.Length)];
             var cityIndex = _random.Next(Cities.Length);
             
-            customers.Add(new Customer
+            customers.Add(new Account
             {
                 Category = AccountCategory.Individual,
                 FirstName = firstName,

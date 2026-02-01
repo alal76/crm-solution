@@ -306,14 +306,14 @@ public class Contact
     public int? CampaignId { get; set; } // Source campaign
     
     /// <summary>
-    /// Foreign key to the Customer this contact belongs to (one-to-many)
+    /// Foreign key to the Account this contact belongs to (one-to-many)
     /// </summary>
     public int? CustomerId { get; set; }
     
     /// <summary>
-    /// Navigation property to the parent Customer
+    /// Navigation property to the parent Account
     /// </summary>
-    public Customer? Customer { get; set; }
+    public Account? Customer { get; set; }
     
     #endregion
     

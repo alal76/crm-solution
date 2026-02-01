@@ -1,8 +1,8 @@
 # CRM Solution - Database Schema Documentation
 
 > **Last Updated:** February 1, 2026  
-> **Version:** 1.0  
-> **Total Tables:** ~171  
+> **Version:** 2.0  
+> **Total Tables:** ~95  
 > **Supported Databases:** MariaDB/MySQL (primary), SQL Server, PostgreSQL, SQLite
 
 ---
@@ -11,14 +11,15 @@
 
 1. [Overview](#overview)
 2. [Database Categories](#database-categories)
-3. [Core Tables](#core-tables)
-4. [CRM Entity Tables](#crm-entity-tables)
-5. [Contact Information Tables](#contact-information-tables)
-6. [Marketing & Campaigns](#marketing--campaigns)
-7. [Sales & Quotes](#sales--quotes)
-8. [Service Desk & Workflows](#service-desk--workflows)
-9. [AI & Analytics](#ai--analytics)
-10. [System & Configuration](#system--configuration)
+3. [Junction Tables](#junction-tables)
+4. [Core Tables](#core-tables)
+5. [CRM Entity Tables](#crm-entity-tables)
+6. [Contact Information Tables](#contact-information-tables)
+7. [Marketing & Campaigns](#marketing--campaigns)
+8. [Sales & Quotes](#sales--quotes)
+9. [Service Desk & Workflows](#service-desk--workflows)
+10. [AI & Analytics](#ai--analytics)
+11. [System & Configuration](#system--configuration)
 
 ---
 
@@ -60,7 +61,7 @@ The CRM database follows a normalized 3NF design with the following characterist
 | `Products` | Product catalog |
 | `Interactions` | Customer interactions |
 
-### 3. Contact Information
+### 3. Contact Information (Polymorphic Links)
 | Table | Description |
 |-------|-------------|
 | `Addresses` | Physical addresses |
@@ -284,6 +285,123 @@ The CRM database follows a normalized 3NF design with the following characterist
 | `Activities` | Activity logs |
 | `Notes` | Notes attached to entities |
 | `SocialMediaLinks` | Legacy social links |
+
+---
+
+## Junction Tables (Many-to-Many Relationships)
+
+Junction tables implement many-to-many relationships between entities. The CRM uses two patterns:
+
+### Pattern 1: Traditional Junction Tables
+
+These link two specific entity types:
+
+| Table | Relationship | Key Columns | Unique Constraint |
+|-------|--------------|-------------|-------------------|
+| `UserGroupMembers` | Users ↔ UserGroups | `UserId`, `UserGroupId` | `(UserId, UserGroupId)` |
+| `AccountContacts` | Accounts ↔ Contacts | `AccountId`, `ContactId` | `(AccountId, ContactId)` |
+| `OpportunityProducts` | Opportunities ↔ Products | `OpportunityId`, `ProductId` | Composite PK |
+| `LeadProductInterests` | Leads ↔ Products | `LeadId`, `ProductId` | Composite PK |
+| `TeamMembers` | Teams ↔ Users | `TeamId`, `UserId` | `(TeamId, UserId)` |
+| `ApprovalGroupMembers` | ApprovalGroups ↔ Users | `ApprovalGroupId`, `UserId` | `(ApprovalGroupId, UserId)` |
+
+### Pattern 2: Polymorphic Junction Tables
+
+These link multiple entity types to a single target type using `EntityType` + `EntityId`:
+
+| Table | Target Entity | Linked Entities | Key Columns |
+|-------|---------------|-----------------|-------------|
+| `EntityAddressLinks` | Addresses | Customer, Contact, Lead, Account | `EntityType`, `EntityId`, `AddressId` |
+| `EntityPhoneLinks` | PhoneNumbers | Customer, Contact, Lead, Account | `EntityType`, `EntityId`, `PhoneId` |
+| `EntityEmailLinks` | EmailAddresses | Customer, Contact, Lead, Account | `EntityType`, `EntityId`, `EmailId` |
+| `EntitySocialMediaLinks` | SocialMediaAccounts | Customer, Contact, Lead, Account | `EntityType`, `EntityId`, `SocialMediaAccountId` |
+| `EntityTags` | Tags | Any entity type | `EntityType`, `EntityId`, `TagId` |
+| `ContactInfoLinks` | Address/Phone/Email | Customer, Contact, Lead (Legacy) | `OwnerType`, `OwnerId`, `InfoKind`, `InfoId` |
+
+### Junction Table Design Principles
+
+1. **Surrogate Primary Key**: All junction tables have an `Id` column as primary key
+2. **Unique Constraints**: Prevent duplicate relationships via composite unique indexes
+3. **Cascade Deletes**: Parent deletion cascades to junction records
+4. **Audit Fields**: `CreatedAt`, `UpdatedAt`, `IsDeleted` on all junctions
+5. **Additional Metadata**: Junction-specific fields like `IsPrimary`, `Role`, `ValidFrom/ValidTo`
+
+### EntityType Enum Values
+
+For polymorphic junction tables:
+
+```csharp
+public enum EntityType
+{
+    Customer = 0,  // Accounts (legacy name)
+    Contact = 1,
+    Lead = 2,
+    Account = 3,
+    Prospect = 4
+}
+```
+
+### Junction Table SQL Examples
+
+#### EntityAddressLinks
+```sql
+CREATE TABLE EntityAddressLinks (
+  Id INT AUTO_INCREMENT PRIMARY KEY,
+  AddressId INT NOT NULL,
+  EntityType VARCHAR(50) NOT NULL,
+  EntityId INT NOT NULL,
+  AddressType VARCHAR(50) DEFAULT 'Primary',
+  IsPrimary BOOLEAN DEFAULT FALSE,
+  ValidFrom DATETIME NULL,
+  ValidTo DATETIME NULL,
+  Notes TEXT,
+  CreatedBy INT,
+  CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UpdatedAt DATETIME,
+  IsDeleted BOOLEAN DEFAULT FALSE,
+  
+  UNIQUE KEY IX_EntityAddressLinks_Unique (EntityType, EntityId, AddressId, AddressType),
+  KEY IX_EntityAddressLinks_EntityType_EntityId (EntityType, EntityId),
+  FOREIGN KEY (AddressId) REFERENCES Addresses(Id) ON DELETE CASCADE
+);
+```
+
+#### EntityTags
+```sql
+CREATE TABLE EntityTags (
+  Id INT AUTO_INCREMENT PRIMARY KEY,
+  EntityType VARCHAR(100) NOT NULL,
+  EntityId INT NOT NULL,
+  TagId INT NOT NULL,
+  TagName VARCHAR(200),
+  SortOrder INT DEFAULT 0,
+  CreatedBy INT,
+  CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UpdatedAt DATETIME,
+  IsDeleted BOOLEAN DEFAULT FALSE,
+  
+  UNIQUE KEY IX_EntityTags_EntityType_EntityId_TagId (EntityType, EntityId, TagId),
+  KEY IX_EntityTags_EntityType_EntityId (EntityType, EntityId),
+  KEY IX_EntityTags_TagId (TagId),
+  FOREIGN KEY (TagId) REFERENCES Tags(Id) ON DELETE CASCADE
+);
+```
+
+#### Tags
+```sql
+CREATE TABLE Tags (
+  Id INT AUTO_INCREMENT PRIMARY KEY,
+  Name VARCHAR(200) NOT NULL,
+  Color VARCHAR(20),
+  Description VARCHAR(500),
+  CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UpdatedAt DATETIME,
+  IsDeleted BOOLEAN DEFAULT FALSE,
+  
+  UNIQUE KEY IX_Tags_Name (Name),
+  KEY IX_Tags_IsDeleted (IsDeleted)
+);
+```
 
 ---
 

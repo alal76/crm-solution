@@ -12,7 +12,10 @@ database/
 │   ├── 003_service_request_tables.sql # Service request management
 │   ├── 004_products_opportunities.sql # Products, Opportunities, Quotes
 │   ├── 005_workflow_tables.sql    # Workflow automation
-│   └── 006_activities_communication.sql # Activities, Notes, Emails
+│   ├── 006_activities_communication.sql # Activities, Notes, Emails
+│   ├── 007_consolidated_contact_info.sql # Addresses, Phones, Emails, Social
+│   ├── 008_security_enhancements.sql # Security policies, 2FA
+│   └── 009_junction_table_improvements.sql # Tags, EntityTags, Indexes
 ├── seed/                          # Seed data files
 │   ├── 001_color_palettes.sql     # System color palettes (30 palettes)
 │   ├── 002_module_ui_configs.sql  # Module navigation config (15 modules)
@@ -21,6 +24,8 @@ database/
 ├── master_data/                   # Master data (large datasets)
 │   └── zipcode_data.sql           # ZIP/postal code data
 ├── deploy.sh                      # Main deployment script
+├── setup-database.sh              # Cross-platform setup script
+├── DATABASE_SCHEMA.md             # Comprehensive schema documentation
 └── README.md                      # This file
 ```
 
@@ -138,6 +143,34 @@ Activities and communication:
 - `EmailLogs` - Sent email history
 - `Attachments` - File attachments
 - `AuditLogs` - Change audit trail
+
+### 007_consolidated_contact_info.sql
+Normalized contact information with polymorphic linking:
+- `Addresses` - Physical/mailing addresses (enhanced)
+- `PhoneNumbers` - Phone numbers with capabilities
+- `EmailAddresses` - Email addresses with marketing consent
+- `SocialMediaAccounts` - Social media profiles
+- `EntityAddressLinks` - Links entities to addresses
+- `EntityPhoneLinks` - Links entities to phones
+- `EntityEmailLinks` - Links entities to emails
+- `EntitySocialMediaLinks` - Links entities to social profiles
+- `ContactInfoLinks` - Legacy polymorphic junction
+
+### 008_security_enhancements.sql
+Security features:
+- Password expiration policies on UserGroups
+- Two-factor authentication settings
+- Enhanced audit logging
+
+### 009_junction_table_improvements.sql
+Junction tables and system configuration:
+- `Tags` - Tag definitions with color and description
+- `EntityTags` - Polymorphic entity tagging
+- `CustomFields` - Custom field storage
+- `LLMProviderSettings` - AI provider configuration
+- `SystemSettings` - System configuration
+- Adds missing unique indexes to all junction tables
+- Adds missing columns (ValidFrom, ValidTo, DoNotContact) to link tables
 
 ## Seed Data
 
