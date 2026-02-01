@@ -36,7 +36,7 @@ test.describe('Workflow Execution - Creation', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Workflow Creation Test');
     await page.goto('/workflows');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -151,7 +151,7 @@ test.describe('Workflow Execution - Designer', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Workflow Designer Test');
     await page.goto('/workflows');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -323,7 +323,7 @@ test.describe('Workflow Execution - Running', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Workflow Execution Test');
     await page.goto('/workflows');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -385,7 +385,7 @@ test.describe('Workflow Execution - Running', () => {
     
     // Navigate to leads and create one to trigger workflow
     await page.goto('/leads');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     
     const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
@@ -405,7 +405,7 @@ test.describe('Workflow Execution - Running', () => {
       
       // Navigate back to workflows to check execution
       await page.goto('/workflows');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
       
       // Check for recent execution
@@ -419,7 +419,7 @@ test.describe('Workflow Execution - Running', () => {
     log('Triggering workflow by creating a service request');
     
     await page.goto('/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     
     const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
@@ -452,7 +452,7 @@ test.describe('Workflow Execution - History & Logs', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Workflow History Test');
     await page.goto('/workflows');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -553,7 +553,7 @@ test.describe('Workflow Execution - AI Nodes', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting AI Node Test');
     await page.goto('/workflows');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -647,7 +647,7 @@ test.describe('Workflow Execution - Management', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Workflow Management Test');
     await page.goto('/workflows');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -741,7 +741,7 @@ test.describe('Workflow Execution - Summary', () => {
     log('Listing all test workflows');
     
     await page.goto('/workflows');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();

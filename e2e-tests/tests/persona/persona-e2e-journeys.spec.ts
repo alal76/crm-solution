@@ -24,7 +24,7 @@ const TEST_USER = {
 // Helper function to login
 async function login(page: Page, email = TEST_USER.email, password = TEST_USER.password) {
   await page.goto(`${FRONTEND_URL}/login`);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   
   // MUI uses type selectors, not name
   const emailInput = page.locator('input[type="email"], input[type="text"]').first();
@@ -44,7 +44,7 @@ async function login(page: Page, email = TEST_USER.email, password = TEST_USER.p
 // Helper function to navigate
 async function navigateTo(page: Page, path: string) {
   await page.goto(`${FRONTEND_URL}${path}`);
-  // Use domcontentloaded instead of networkidle to avoid API timeout issues
+  // Use domcontentloaded instead of domcontentloaded to avoid API timeout issues
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(1000); // Brief wait for React to render
 }
@@ -62,7 +62,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
     
     test('E2E-001: Login page renders correctly', async ({ page }) => {
       await page.goto(`${FRONTEND_URL}/login`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       // MUI uses type selectors
       await expect(page.locator('input[type="email"], input[type="text"]').first()).toBeVisible();
       await expect(page.locator('input[type="password"]').first()).toBeVisible();
@@ -77,7 +77,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
 
     test('E2E-003: Invalid login shows error message', async ({ page }) => {
       await page.goto(`${FRONTEND_URL}/login`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const emailInput = page.locator('input[type="email"], input[type="text"]').first();
       await emailInput.fill('invalid@example.com');
@@ -126,42 +126,42 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
 
     test('E2E-AD-003: Navigate to User Groups', async ({ page }) => {
       await navigateTo(page, '/admin/groups');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('E2E-AD-004: Navigate to System Settings', async ({ page }) => {
       await navigateTo(page, '/admin/settings');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('E2E-AD-005: Navigate to Feature Flags', async ({ page }) => {
       await navigateTo(page, '/admin/features');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('E2E-AD-006: Navigate to Workflows', async ({ page }) => {
       await navigateTo(page, '/admin/workflows');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('E2E-AD-007: Navigate to Departments', async ({ page }) => {
       await navigateTo(page, '/admin/departments');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('E2E-AD-008: Navigate to Email Templates', async ({ page }) => {
       await navigateTo(page, '/admin/email-templates');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('E2E-AD-009: Navigate to Branding', async ({ page }) => {
       await navigateTo(page, '/admin/branding');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('E2E-AD-010: Navigate to Monitoring', async ({ page }) => {
       await navigateTo(page, '/admin/monitoring');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
   });
 
@@ -184,7 +184,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
 
       test('E2E-SR-002: Leads list displays', async ({ page }) => {
         await navigateTo(page, '/leads');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         // Check for table or list structure
         const hasTable = await page.locator('table, [role="grid"], [data-testid="leads-list"]').count() > 0;
         const hasList = await page.locator('ul, [role="list"]').count() > 0;
@@ -210,7 +210,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
 
       test('E2E-SR-005: Customers list displays', async ({ page }) => {
         await navigateTo(page, '/customers');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SR-006: Search for customer', async ({ page }) => {
@@ -236,7 +236,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
       
       test('E2E-SR-008: Navigate to Contacts page', async ({ page }) => {
         await navigateTo(page, '/contacts');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SR-009: Contacts list displays', async ({ page }) => {
@@ -254,7 +254,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
 
       test('E2E-SR-011: View opportunities pipeline', async ({ page }) => {
         await navigateTo(page, '/opportunities');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SR-012: Open new opportunity form', async ({ page }) => {
@@ -271,7 +271,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
       
       test('E2E-SR-013: Navigate to Quotes page', async ({ page }) => {
         await navigateTo(page, '/quotes');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SR-014: Quotes list displays', async ({ page }) => {
@@ -284,7 +284,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
       
       test('E2E-SR-015: Navigate to Products page', async ({ page }) => {
         await navigateTo(page, '/products');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SR-016: Products list displays', async ({ page }) => {
@@ -297,17 +297,17 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
       
       test('E2E-SR-017: Navigate to Tasks page', async ({ page }) => {
         await navigateTo(page, '/tasks');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SR-018: Navigate to Activities page', async ({ page }) => {
         await navigateTo(page, '/activities');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SR-019: Navigate to Notes page', async ({ page }) => {
         await navigateTo(page, '/notes');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
     });
   });
@@ -331,7 +331,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
 
       test('E2E-MM-002: Campaigns list displays', async ({ page }) => {
         await navigateTo(page, '/campaigns');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-MM-003: Open new campaign form', async ({ page }) => {
@@ -348,7 +348,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
       
       test('E2E-MM-004: Navigate to Leads page', async ({ page }) => {
         await navigateTo(page, '/leads');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-MM-005: Filter leads by source', async ({ page }) => {
@@ -365,7 +365,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
       
       test('E2E-MM-006: Navigate to Communications page', async ({ page }) => {
         await navigateTo(page, '/communications');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
     });
   });
@@ -384,7 +384,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
       
       test('E2E-SA-001: Navigate to Service Requests page', async ({ page }) => {
         await navigateTo(page, '/service-requests');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SA-002: Service queue displays', async ({ page }) => {
@@ -414,7 +414,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
       
       test('E2E-SA-005: Navigate to Knowledge Base', async ({ page }) => {
         await navigateTo(page, '/knowledge-base');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SA-006: Knowledge Base search', async ({ page }) => {
@@ -449,7 +449,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
 
       test('E2E-SA-009: View customer interactions', async ({ page }) => {
         await navigateTo(page, '/interactions');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
     });
   });
@@ -473,7 +473,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
 
       test('E2E-SM-002: View opportunities pipeline', async ({ page }) => {
         await navigateTo(page, '/opportunities');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SM-003: Filter by stage', async ({ page }) => {
@@ -489,7 +489,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
       
       test('E2E-SM-004: View quotes list', async ({ page }) => {
         await navigateTo(page, '/quotes');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SM-005: Open quote for review', async ({ page }) => {
@@ -506,12 +506,12 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
       
       test('E2E-SM-006: View all tasks', async ({ page }) => {
         await navigateTo(page, '/tasks');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
 
       test('E2E-SM-007: View contracts', async ({ page }) => {
         await navigateTo(page, '/contracts');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
     });
   });
@@ -548,7 +548,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
     for (const pageInfo of pages) {
       test(`E2E-NAV: Navigate to ${pageInfo.name}`, async ({ page }) => {
         await navigateTo(page, pageInfo.path);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         // Verify page doesn't show error
         const hasError = await page.locator('text=/error|500|404/i').count() > 0;
         expect(hasError).toBeFalsy();
@@ -584,7 +584,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
     for (const pageInfo of adminPages) {
       test(`E2E-ADMIN: Navigate to ${pageInfo.name}`, async ({ page }) => {
         await navigateTo(page, pageInfo.path);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       });
     }
   });
@@ -598,7 +598,7 @@ test.describe.serial('E2E Persona Tests - Browser User Journeys', () => {
 
     test('E2E-RESP-001: Login works on mobile', async ({ page }) => {
       await page.goto(`${FRONTEND_URL}/login`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const emailInput = page.locator('input[type="email"], input[type="text"]').first();
       await emailInput.waitFor({ state: 'visible', timeout: 5000 });

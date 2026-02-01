@@ -44,7 +44,7 @@ test.describe('Data Lifecycle - User Management', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting User Management Test');
     await page.goto('/admin/users');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -194,7 +194,7 @@ test.describe('Data Lifecycle - Customer Management', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Customer Management Test');
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -320,7 +320,7 @@ test.describe('Data Lifecycle - Contact Management', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Contact Management Test');
     await page.goto('/contacts');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -379,7 +379,7 @@ test.describe('Data Lifecycle - Opportunity Management', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Opportunity Management Test');
     await page.goto('/opportunities');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -466,7 +466,7 @@ test.describe('Data Lifecycle - Lead Management', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Lead Management Test');
     await page.goto('/leads');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -552,7 +552,7 @@ test.describe('Data Lifecycle - Service Request Management', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Service Request Management Test');
     await page.goto('/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -636,7 +636,7 @@ test.describe('Data Lifecycle - Campaign Management', () => {
   test.beforeEach(async ({ page }) => {
     log('Starting Campaign Management Test');
     await page.goto('/campaigns');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
   });
 
@@ -697,7 +697,7 @@ test.describe('Data Lifecycle - Relationship Impact', () => {
     
     // Navigate to customers
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -713,7 +713,7 @@ test.describe('Data Lifecycle - Relationship Impact', () => {
       
       // Check contacts page for related contacts
       await page.goto('/contacts');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const contactGrid = new DataGridHelper(page);
       await contactGrid.waitForLoad();
@@ -730,7 +730,7 @@ test.describe('Data Lifecycle - Relationship Impact', () => {
     
     // Navigate to opportunities
     await page.goto('/opportunities');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -756,7 +756,7 @@ test.describe('Data Lifecycle - Relationship Impact', () => {
     log('Testing lead conversion creates linked entities');
     
     await page.goto('/leads');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -777,7 +777,7 @@ test.describe('Data Lifecycle - Relationship Impact', () => {
     
     // First find a test customer
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -830,7 +830,7 @@ test.describe('Data Lifecycle - Cleanup', () => {
     
     for (const entity of entities) {
       await page.goto(entity.url);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(500);
       
       const grid = new DataGridHelper(page);

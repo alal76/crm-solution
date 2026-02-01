@@ -15,7 +15,7 @@ test.describe('BVT - Build Verification Tests', () => {
   
   test.beforeAll(async ({ request }) => {
     const response = await request.post(`${API_URL}/api/auth/login`, {
-      data: { email: 'admin@crm.local', password: 'Admin123!' }
+      data: { email: 'admin@crm.local', password: 'Admin@123' }
     });
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
@@ -32,7 +32,7 @@ test.describe('BVT - Build Verification Tests', () => {
 
     test('BVT-01-002: Login with valid credentials succeeds', async ({ request }) => {
       const response = await request.post(`${API_URL}/api/auth/login`, {
-        data: { email: 'admin@crm.local', password: 'Admin123!' }
+        data: { email: 'admin@crm.local', password: 'Admin@123' }
       });
       expect(response.ok()).toBeTruthy();
       const data = await response.json();

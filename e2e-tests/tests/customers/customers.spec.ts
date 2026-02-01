@@ -12,7 +12,7 @@ import { TEST_CUSTOMERS, uniqueTestData } from '../test-data';
 test.describe('Customers - List View', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000); // Wait for any dynamic loading
   });
 
@@ -101,7 +101,7 @@ test.describe('Customers - List View', () => {
 test.describe('Customers - Create', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     // Ensure page is fully loaded
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(500);
@@ -310,7 +310,7 @@ test.describe('Customers - Create', () => {
 test.describe('Customers - Edit', () => {
   test('TC-CUST-013: Should open customer for editing', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -337,7 +337,7 @@ test.describe('Customers - Edit', () => {
 
   test('TC-CUST-014: Should update customer name', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -379,7 +379,7 @@ test.describe('Customers - Edit', () => {
 
   test('TC-CUST-015: Should validate on update', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -419,7 +419,7 @@ test.describe('Customers - Edit', () => {
 test.describe('Customers - Delete', () => {
   test('TC-CUST-016: Should show delete confirmation', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -447,7 +447,7 @@ test.describe('Customers - Delete', () => {
 
   test('TC-CUST-017: Should cancel delete operation', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -479,7 +479,7 @@ test.describe('Customers - Delete', () => {
 
   test('TC-CUST-018: Should delete test customer', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -519,7 +519,7 @@ test.describe('Customers - Delete', () => {
 test.describe('Customers - Details View', () => {
   test('TC-CUST-019: Should navigate to customer details', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -552,7 +552,7 @@ test.describe('Customers - Details View', () => {
 
   test('TC-CUST-020: Should display customer overview', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -568,7 +568,7 @@ test.describe('Customers - Details View', () => {
       
       if (await overviewLink.isVisible()) {
         await overviewLink.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
     }
   });
@@ -577,7 +577,7 @@ test.describe('Customers - Details View', () => {
 test.describe('Customers - Contact Info', () => {
   test('TC-CUST-021: Should display contact info section', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -598,7 +598,7 @@ test.describe('Customers - Contact Info', () => {
 
   test('TC-CUST-022: Should add email to customer', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -629,7 +629,7 @@ test.describe('Customers - Contact Info', () => {
 
   test('TC-CUST-023: Should add phone to customer', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -657,7 +657,7 @@ test.describe('Customers - Contact Info', () => {
 
   test('TC-CUST-024: Should add address to customer', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -695,7 +695,7 @@ test.describe('Customers - Contact Info', () => {
 test.describe('Customers - Export/Import', () => {
   test('TC-CUST-025: Should have export button', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const exportButton = page.locator('button:has-text("Export"), button[aria-label*="export"]').first();
     if (await exportButton.isVisible()) {
@@ -705,7 +705,7 @@ test.describe('Customers - Export/Import', () => {
 
   test('TC-CUST-026: Should have import button', async ({ page }) => {
     await page.goto('/customers');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const importButton = page.locator('button:has-text("Import"), button[aria-label*="import"]').first();
     if (await importButton.isVisible()) {

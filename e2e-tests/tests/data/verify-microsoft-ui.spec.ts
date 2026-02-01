@@ -14,7 +14,7 @@ test.describe('Verify Microsoft Account UI Display', () => {
     await page.goto(BASE_URL);
     
     // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Take screenshot of home page
     await page.screenshot({ path: 'test-results/screenshots/01-home.png' });
@@ -39,7 +39,7 @@ test.describe('Verify Microsoft Account UI Display', () => {
       console.log('   Sidebar items found:', sidebarItems.slice(0, 5).join(', '));
     }
     
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.screenshot({ path: 'test-results/screenshots/02-customers-list.png' });
     console.log('📸 Screenshot: Customers list saved');
     
@@ -63,7 +63,7 @@ test.describe('Verify Microsoft Account UI Display', () => {
       await microsoftRow.click();
     }
     
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
     await page.screenshot({ path: 'test-results/screenshots/04-microsoft-details.png' });
     console.log('📸 Screenshot: Microsoft details saved');
@@ -74,7 +74,7 @@ test.describe('Verify Microsoft Account UI Display', () => {
     
     // Navigate directly to the account (ID 3 based on the creation)
     await page.goto(`${BASE_URL}/customers/3`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
     
     // Take screenshots of different sections
@@ -140,7 +140,7 @@ test.describe('Verify Microsoft Account UI Display', () => {
     
     // Navigate to contact ID 7 (Satya Nadella)
     await page.goto(`${BASE_URL}/contacts/7`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
     
     await page.screenshot({ path: 'test-results/screenshots/07-satya-nadella-contact.png', fullPage: true });
@@ -173,7 +173,7 @@ test.describe('Verify Microsoft Account UI Display', () => {
     
     // Go to customers list
     await page.goto(`${BASE_URL}/customers`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check for error messages
     const errorMessages = await page.locator('[class*="error"], [class*="alert-danger"], .MuiAlert-standardError').allTextContents();
@@ -197,10 +197,10 @@ test.describe('Verify Microsoft Account UI Display', () => {
     
     // Navigate through key pages
     await page.goto(`${BASE_URL}/customers/3`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await page.goto(`${BASE_URL}/contacts/7`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     if (consoleErrors.length > 0) {
       issues.push(`Console errors: ${consoleErrors.slice(0, 3).join('; ')}`);

@@ -122,7 +122,7 @@ test.describe('Create 20 Users via UI', () => {
       try {
         // Navigate to users page
         await page.goto('/admin/users');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(500);
         
         // Click Add User button

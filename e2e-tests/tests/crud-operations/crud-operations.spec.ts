@@ -75,7 +75,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
     
     try {
       await page.goto('/customers');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
       await addButton.click();
@@ -103,7 +103,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('CUSTOMER - Read', async ({ page }) => {
     try {
       await page.goto('/customers');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const customersVisible = await page.locator('table, [data-testid="customers-list"], .customer-card').first().isVisible({ timeout: 5000 });
       
@@ -122,7 +122,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('CUSTOMER - Update', async ({ page }) => {
     try {
       await page.goto('/customers');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const editButton = page.locator('button:has-text("Edit"), [aria-label="Edit"], .edit-button').first();
       if (await editButton.isVisible({ timeout: 5000 })) {
@@ -152,7 +152,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('CUSTOMER - Delete', async ({ page }) => {
     try {
       await page.goto('/customers');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       crudStats.customers.delete++;
       printResult('Customer', 'Delete', true, 'Soft delete available');
@@ -174,7 +174,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
     
     try {
       await page.goto('/contacts');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
       await addButton.click();
@@ -198,7 +198,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('CONTACT - Read', async ({ page }) => {
     try {
       await page.goto('/contacts');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const contactsList = await page.locator('table, [data-testid="contacts-list"]').first().isVisible({ timeout: 5000 });
       if (contactsList) {
@@ -214,7 +214,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('CONTACT - Update', async ({ page }) => {
     try {
       await page.goto('/contacts');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       crudStats.contacts.update++;
       printResult('Contact', 'Update', true, 'Update capability verified');
     } catch (error) {
@@ -245,7 +245,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
     
     try {
       await page.goto('/leads');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
       await addButton.click();
@@ -274,7 +274,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('LEAD - Read', async ({ page }) => {
     try {
       await page.goto('/leads');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const leadsList = await page.locator('table, [data-testid="leads-list"]').first().isVisible({ timeout: 5000 });
       if (leadsList) {
@@ -290,7 +290,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('LEAD - Update', async ({ page }) => {
     try {
       await page.goto('/leads');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       crudStats.leads.update++;
       printResult('Lead', 'Update', true, 'Update capability verified');
     } catch (error) {
@@ -321,7 +321,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
     
     try {
       await page.goto('/opportunities');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
       await addButton.click();
@@ -348,7 +348,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('OPPORTUNITY - Read', async ({ page }) => {
     try {
       await page.goto('/opportunities');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const oppsList = await page.locator('table, [data-testid="opportunities-list"]').first().isVisible({ timeout: 5000 });
       if (oppsList) {
@@ -364,7 +364,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('OPPORTUNITY - Update', async ({ page }) => {
     try {
       await page.goto('/opportunities');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       crudStats.opportunities.update++;
       printResult('Opportunity', 'Update', true, 'Update capability verified');
     } catch (error) {
@@ -395,7 +395,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
     
     try {
       await page.goto('/service-requests');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
       await addButton.click();
@@ -425,7 +425,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('SERVICE REQUEST - Read', async ({ page }) => {
     try {
       await page.goto('/service-requests');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const srList = await page.locator('table, [data-testid="service-requests-list"]').first().isVisible({ timeout: 5000 });
       if (srList) {
@@ -441,7 +441,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('SERVICE REQUEST - Update', async ({ page }) => {
     try {
       await page.goto('/service-requests');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       crudStats.serviceRequests.update++;
       printResult('Service Request', 'Update', true, 'Update capability verified');
     } catch (error) {
@@ -472,7 +472,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
     
     try {
       await page.goto('/products');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
       await addButton.click();
@@ -504,7 +504,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('PRODUCT - Read', async ({ page }) => {
     try {
       await page.goto('/products');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const productsList = await page.locator('table, [data-testid="products-list"]').first().isVisible({ timeout: 5000 });
       if (productsList) {
@@ -520,7 +520,7 @@ test.describe.serial('CRUD Operations Test Suite', () => {
   test('PRODUCT - Update', async ({ page }) => {
     try {
       await page.goto('/products');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       crudStats.products.update++;
       printResult('Product', 'Update', true, 'Update capability verified');
     } catch (error) {

@@ -1,0 +1,296 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - button [ref=e7] [cursor=pointer]:
+            - img [ref=e8]
+          - img [ref=e11]
+          - link [ref=e12] [cursor=pointer]:
+            - /url: /
+            - text: CRM System
+        - button [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: SA
+    - navigation [ref=e17]:
+      - list [ref=e18]:
+        - listitem [ref=e19]:
+          - link [ref=e20] [cursor=pointer]:
+            - /url: /
+            - img [ref=e21]
+            - text: Home
+        - listitem [ref=e23]: ›
+        - listitem [ref=e24]:
+          - paragraph [ref=e25]:
+            - img [ref=e26]
+            - text: Customers
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - img [ref=e35]
+          - heading [level=4] [ref=e36]: Accounts
+        - generic [ref=e37]:
+          - button [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+          - generic [ref=e41]:
+            - button [ref=e42] [cursor=pointer]:
+              - img [ref=e44]
+              - text: Export
+            - button [ref=e46] [cursor=pointer]:
+              - img [ref=e48]
+              - text: Import
+          - button [ref=e50] [cursor=pointer]:
+            - img [ref=e52]
+            - text: Add Account
+      - alert [ref=e54]:
+        - img [ref=e56]
+        - generic [ref=e58]: Request failed with status code 404
+        - button [ref=e60] [cursor=pointer]:
+          - img [ref=e61]
+      - generic [ref=e63]:
+        - generic [ref=e65]:
+          - generic [ref=e67]:
+            - img [ref=e69]
+            - textbox [ref=e71]:
+              - /placeholder: Search accounts by name, email, company...
+            - group
+          - button [ref=e72] [cursor=pointer]:
+            - img [ref=e74]
+            - text: Filters
+            - img [ref=e77]
+        - generic: Account Type
+        - generic: First Name
+        - generic: Last Name
+        - generic: Business Name
+        - generic: Email
+        - generic: Status
+        - generic: Industry
+        - generic: City
+      - generic [ref=e80]:
+        - table [ref=e82]:
+          - rowgroup [ref=e83]:
+            - row [ref=e84]:
+              - columnheader [ref=e85]:
+                - generic [ref=e86] [cursor=pointer]:
+                  - checkbox [ref=e87]
+                  - img [ref=e88]
+              - columnheader [ref=e90]:
+                - strong [ref=e91]: Name
+              - columnheader [ref=e92]:
+                - strong [ref=e93]: Contact
+              - columnheader [ref=e94]:
+                - strong [ref=e95]: Type
+              - columnheader [ref=e96]:
+                - strong [ref=e97]: Stage
+              - columnheader [ref=e98]:
+                - strong [ref=e99]: Priority
+              - columnheader [ref=e100]:
+                - strong [ref=e101]: Revenue
+              - columnheader [ref=e102]:
+                - strong [ref=e103]: Contacts
+              - columnheader [ref=e104]:
+                - strong [ref=e105]: Actions
+        - generic [ref=e107]:
+          - paragraph [ref=e108]: "Rows per page:"
+          - generic [ref=e109]:
+            - combobox [ref=e110] [cursor=pointer]: "25"
+            - textbox: "25"
+            - img
+          - paragraph [ref=e111]: 0–0 of 0
+          - generic [ref=e112]:
+            - button [disabled]:
+              - img
+            - button [disabled]:
+              - img
+            - button [disabled]:
+              - img
+            - button [disabled]:
+              - img
+        - paragraph [ref=e113]: No accounts found. Add your first account to get started.
+    - contentinfo [ref=e114]:
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - generic [ref=e117]: CRM System
+          - generic [ref=e118]: "|"
+          - generic [ref=e119]: v1.7.27
+          - generic [ref=e120]: "|"
+          - generic [ref=e121]: "#5666434"
+        - generic [ref=e123]:
+          - generic [ref=e124]: Customer
+          - generic [ref=e125]: "|"
+          - generic [ref=e126]: ●
+          - generic [ref=e127]: API
+          - generic [ref=e128]: ●
+          - generic [ref=e129]: DB
+        - generic [ref=e130]:
+          - link [ref=e131] [cursor=pointer]:
+            - /url: /about
+            - text: About
+          - generic [ref=e132]: "|"
+          - link [ref=e133] [cursor=pointer]:
+            - /url: /help
+            - text: Help
+          - generic [ref=e134]: "|"
+          - link [ref=e135] [cursor=pointer]:
+            - /url: /licenses
+            - text: Licenses
+          - generic [ref=e136]: "|"
+          - generic [ref=e137]: © 2026 Abhishek Lal - AGPL-3.0
+    - button [ref=e138] [cursor=pointer]:
+      - img [ref=e140]
+  - dialog "Add Account" [ref=e144]:
+    - heading "Add Account" [level=2] [ref=e145]
+    - tablist [ref=e150]:
+      - tab "Basic Info" [selected] [ref=e151] [cursor=pointer]: Basic Info
+      - tab "Business" [ref=e152] [cursor=pointer]: Business
+      - tab "Contact Preferences" [ref=e153] [cursor=pointer]: Contact Preferences
+      - tab "Additional" [ref=e154] [cursor=pointer]: Additional
+    - tabpanel [ref=e157]:
+      - generic [ref=e159]:
+        - generic [ref=e163]:
+          - generic: Salutation
+          - generic [ref=e164]:
+            - combobox "Salutation" [ref=e165]
+            - button "Open" [ref=e167] [cursor=pointer]:
+              - img [ref=e168]
+            - group:
+              - generic: Salutation
+        - generic [ref=e171]:
+          - generic [ref=e172]: First Name
+          - generic [ref=e173]:
+            - textbox "First Name" [ref=e174]: TestFirst
+            - group:
+              - generic: First Name
+        - generic [ref=e176]:
+          - generic [ref=e177]: Last Name
+          - generic [ref=e178]:
+            - textbox "Last Name" [ref=e179]: TestLast
+            - group:
+              - generic: Last Name
+        - generic [ref=e181]:
+          - generic: Suffix
+          - generic [ref=e182]:
+            - textbox "Suffix" [ref=e183]:
+              - /placeholder: Jr., III
+            - group:
+              - generic: Suffix
+        - generic [ref=e185]:
+          - generic [ref=e186]: Date of Birth
+          - generic [ref=e187]:
+            - textbox "Date of Birth" [ref=e188]
+            - group:
+              - generic: Date of Birth
+        - generic [ref=e191]:
+          - generic: Gender
+          - generic [ref=e192]:
+            - combobox "Gender" [ref=e193]
+            - button "Open" [ref=e195] [cursor=pointer]:
+              - img [ref=e196]
+            - group:
+              - generic: Gender
+        - generic [ref=e199]:
+          - generic [ref=e200]: Company Name
+          - generic [ref=e201]:
+            - textbox "Company Name" [ref=e202]: Test Company Debug
+            - group:
+              - generic: Company Name
+        - generic [ref=e204]:
+          - generic: Legal Name
+          - generic [ref=e205]:
+            - textbox "Legal Name" [ref=e206]:
+              - /placeholder: Full legal entity name
+            - group:
+              - generic: Legal Name
+        - generic [ref=e208]:
+          - generic: DBA Name
+          - generic [ref=e209]:
+            - textbox "DBA Name" [ref=e210]:
+              - /placeholder: Doing Business As
+            - group:
+              - generic: DBA Name
+        - generic [ref=e212]:
+          - generic: Tax ID / EIN
+          - generic [ref=e213]:
+            - textbox "Tax ID / EIN" [ref=e214]
+            - group:
+              - generic: Tax ID / EIN
+        - generic [ref=e216]:
+          - generic: Registration Number
+          - generic [ref=e217]:
+            - textbox "Registration Number" [ref=e218]
+            - group:
+              - generic: Registration Number
+        - generic [ref=e220]:
+          - generic: Year Founded
+          - generic [ref=e221]:
+            - spinbutton "Year Founded" [ref=e222]
+            - group:
+              - generic: Year Founded
+        - generic [ref=e224]:
+          - generic [ref=e225]:
+            - text: Email
+            - generic [ref=e226]: "*"
+          - generic [ref=e227]:
+            - textbox "Email" [ref=e228]: test@debug.local
+            - group:
+              - generic: Email *
+        - generic [ref=e230]:
+          - generic: Secondary Email
+          - generic [ref=e231]:
+            - textbox "Secondary Email" [ref=e232]
+            - group:
+              - generic: Secondary Email
+        - generic [ref=e234]:
+          - generic [ref=e235]: Phone
+          - generic [ref=e236]:
+            - textbox "Phone" [active] [ref=e237]: "+15551234567"
+            - group:
+              - generic: Phone
+        - generic [ref=e239]:
+          - generic: Mobile Phone
+          - generic [ref=e240]:
+            - textbox "Mobile Phone" [ref=e241]
+            - group:
+              - generic: Mobile Phone
+        - generic [ref=e243]:
+          - generic: Job Title
+          - generic [ref=e244]:
+            - textbox "Job Title" [ref=e245]
+            - group:
+              - generic: Job Title
+        - generic [ref=e247]:
+          - generic: Website
+          - generic [ref=e248]:
+            - textbox "Website" [ref=e249]
+            - group:
+              - generic: Website
+        - generic [ref=e251]:
+          - generic: Address
+          - generic [ref=e252]:
+            - textbox "Address" [ref=e253]
+            - group:
+              - generic: Address
+        - generic [ref=e255]:
+          - generic: City
+          - generic [ref=e256]:
+            - textbox "City" [ref=e257]
+            - group:
+              - generic: City
+        - generic [ref=e259]:
+          - generic: State
+          - generic [ref=e260]:
+            - textbox "State" [ref=e261]
+            - group:
+              - generic: State
+        - generic [ref=e263]:
+          - generic: Zip Code
+          - generic [ref=e264]:
+            - textbox "Zip Code" [ref=e265]
+            - group:
+              - generic: Zip Code
+    - generic [ref=e266]:
+      - button "Cancel" [ref=e267] [cursor=pointer]: Cancel
+      - button "Create" [ref=e268] [cursor=pointer]: Create
+```

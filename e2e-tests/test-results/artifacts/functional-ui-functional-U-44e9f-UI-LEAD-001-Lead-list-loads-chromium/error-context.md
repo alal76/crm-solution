@@ -1,0 +1,136 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "open drawer" [ref=e7] [cursor=pointer]:
+          - img [ref=e8]
+        - img "Company Logo" [ref=e11]
+        - link "CRM System" [ref=e12] [cursor=pointer]:
+          - /url: /
+      - button "SA" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: SA
+  - navigation [ref=e17]:
+    - list [ref=e18]:
+      - listitem [ref=e19]:
+        - link "Home" [ref=e20] [cursor=pointer]:
+          - /url: /
+          - img [ref=e21]
+          - text: Home
+      - listitem [ref=e23]: ›
+      - listitem [ref=e24]:
+        - paragraph [ref=e25]:
+          - img [ref=e26]
+          - text: Leads
+  - generic [ref=e30]:
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - img "CRM Logo" [ref=e34]
+        - generic [ref=e35]:
+          - heading "Leads" [level=3] [ref=e36]
+          - paragraph [ref=e37]: Manage and track your sales leads
+      - button "Add Lead" [ref=e38] [cursor=pointer]:
+        - img [ref=e40]
+        - text: Add Lead
+    - generic [ref=e42]:
+      - generic [ref=e44]:
+        - generic [ref=e46]:
+          - img [ref=e48]
+          - textbox "Search leads by name, email, company..." [ref=e50]
+          - group
+        - button "Show advanced filters" [ref=e51] [cursor=pointer]:
+          - img [ref=e53]
+          - text: Filters
+          - img [ref=e56]
+      - generic: First Name
+      - generic: Last Name
+      - generic: Company
+      - generic: Source
+      - generic: Status
+    - generic [ref=e59]:
+      - table [ref=e61]:
+        - rowgroup [ref=e62]:
+          - row "Name Email Company Source Status Date Added Actions" [ref=e63]:
+            - columnheader [ref=e64]:
+              - generic [ref=e65] [cursor=pointer]:
+                - checkbox [ref=e66]
+                - img [ref=e67]
+            - columnheader "Name" [ref=e69]
+            - columnheader "Email" [ref=e70]
+            - columnheader "Company" [ref=e71]
+            - columnheader "Source" [ref=e72]
+            - columnheader "Status" [ref=e73]
+            - columnheader "Date Added" [ref=e74]
+            - columnheader "Actions" [ref=e75]
+        - rowgroup [ref=e76]:
+          - row "Emily Chen VP of Operations emily.chen@prospect.com Prospect Inc Other New 1/31/2026" [ref=e77]:
+            - cell [ref=e78]:
+              - generic [ref=e79] [cursor=pointer]:
+                - checkbox [ref=e80]
+                - img [ref=e81]
+            - cell "Emily Chen VP of Operations" [ref=e83]:
+              - text: Emily Chen
+              - generic [ref=e84]: VP of Operations
+            - cell "emily.chen@prospect.com" [ref=e85]
+            - cell "Prospect Inc" [ref=e86]
+            - cell "Other" [ref=e87]:
+              - generic [ref=e89]: Other
+            - cell "New" [ref=e90]:
+              - generic [ref=e92]: New
+            - cell "1/31/2026" [ref=e93]
+            - cell [ref=e94]:
+              - button "Convert to Customer" [ref=e95] [cursor=pointer]:
+                - img [ref=e96]
+              - button "Edit Lead" [ref=e98] [cursor=pointer]:
+                - img [ref=e99]
+              - button "Delete Lead" [ref=e101] [cursor=pointer]:
+                - img [ref=e102]
+      - generic [ref=e105]:
+        - paragraph [ref=e106]: "Rows per page:"
+        - generic [ref=e107]:
+          - 'combobox "Rows per page: 25" [ref=e108] [cursor=pointer]': "25"
+          - textbox: "25"
+          - img
+        - paragraph [ref=e109]: 1–1 of 1
+        - generic [ref=e110]:
+          - button "Go to first page" [disabled]:
+            - img
+          - button "Go to previous page" [disabled]:
+            - img
+          - button "Go to next page" [disabled]:
+            - img
+          - button "Go to last page" [disabled]:
+            - img
+  - contentinfo [ref=e111]:
+    - generic [ref=e112]:
+      - generic [ref=e113]:
+        - generic [ref=e114]: CRM System
+        - generic [ref=e115]: "|"
+        - 'generic "API: N/A | Frontend: N/A | DB: 0 ZIPs" [ref=e116]': v1.7.27
+        - generic [ref=e117]: "|"
+        - 'generic "Branch: dev" [ref=e118]': "#5666434"
+      - generic [ref=e120]:
+        - generic [ref=e121]: Lead
+        - generic [ref=e122]: "|"
+        - generic [ref=e123]: ●
+        - generic [ref=e124]: API
+        - generic [ref=e125]: ●
+        - generic [ref=e126]: DB
+      - generic [ref=e127]:
+        - link "About" [ref=e128] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e129]: "|"
+        - link "Help" [ref=e130] [cursor=pointer]:
+          - /url: /help
+        - generic [ref=e131]: "|"
+        - link "Licenses" [ref=e132] [cursor=pointer]:
+          - /url: /licenses
+        - generic [ref=e133]: "|"
+        - generic [ref=e134]: © 2026 Abhishek Lal - AGPL-3.0
+  - button "Open Context Panel" [ref=e135] [cursor=pointer]:
+    - generic [ref=e136]:
+      - img [ref=e137]
+      - generic: "0"
+```

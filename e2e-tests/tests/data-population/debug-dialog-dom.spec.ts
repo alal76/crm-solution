@@ -6,7 +6,7 @@ import { test } from '@playwright/test';
 
 test('Debug User Dialog DOM', async ({ page }) => {
   await page.goto('/admin/users');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(1000);
   
   // Click Add User button

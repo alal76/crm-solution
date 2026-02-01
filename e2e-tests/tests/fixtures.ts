@@ -51,7 +51,8 @@ export class LoginPage {
     this.page = page;
     this.emailInput = page.locator('input[name="email"], input[type="email"], #email');
     this.passwordInput = page.locator('input[name="password"], input[type="password"], #password');
-    this.loginButton = page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")');
+    // Use getByRole with exact name to avoid matching "Quick Admin Login" button
+    this.loginButton = page.getByRole('button', { name: 'Sign In', exact: true });
     this.errorMessage = page.locator('.error-message, .MuiAlert-message, [role="alert"]');
     this.forgotPasswordLink = page.locator('a:has-text("Forgot"), a:has-text("Reset")');
     this.registerLink = page.locator('a:has-text("Register"), a:has-text("Sign Up")');

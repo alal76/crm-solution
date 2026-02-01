@@ -15,13 +15,13 @@ test.describe('UI Functional Tests', () => {
     
     // Login
     await page.goto(`${BASE_URL}/login`);
-    await page.fill('input[name="email"], input[type="email"]', 'abhi.lal@gmail.com');
+    await page.fill('input[name="email"], input[type="email"]', 'admin@crm.local');
     await page.fill('input[name="password"], input[type="password"]', 'Admin@123');
     await page.click('button[type="submit"]');
     
     // Wait for navigation
     await page.waitForURL('**/*', { timeout: 15000 });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test.afterEach(async () => {
@@ -31,7 +31,7 @@ test.describe('UI Functional Tests', () => {
   test.describe('Dashboard UI Tests', () => {
     test('UI-DASH-001: Dashboard loads successfully', async () => {
       await page.goto(`${BASE_URL}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Dashboard should have some content
       const title = await page.title();
@@ -40,7 +40,7 @@ test.describe('UI Functional Tests', () => {
 
     test('UI-DASH-002: Dashboard widgets are visible', async () => {
       await page.goto(`${BASE_URL}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Wait for dashboard content
       await page.waitForTimeout(2000);
@@ -54,7 +54,7 @@ test.describe('UI Functional Tests', () => {
   test.describe('Customer UI Tests', () => {
     test('UI-CUST-001: Customer list loads', async () => {
       await page.goto(`${BASE_URL}/customers`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Wait for table or list to load
       await page.waitForSelector('table, [class*="list"], [class*="grid"]', { timeout: 10000 });
@@ -62,7 +62,7 @@ test.describe('UI Functional Tests', () => {
 
     test('UI-CUST-002: Add customer dialog opens', async () => {
       await page.goto(`${BASE_URL}/customers`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Find and click add button
       const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create"), [aria-label*="add"], [aria-label*="Add"]').first();
@@ -79,7 +79,7 @@ test.describe('UI Functional Tests', () => {
 
     test('UI-CUST-003: Customer search works', async () => {
       await page.goto(`${BASE_URL}/customers`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Find search input
       const searchInput = page.locator('input[type="search"], input[placeholder*="search"], input[placeholder*="Search"]').first();
@@ -94,14 +94,14 @@ test.describe('UI Functional Tests', () => {
   test.describe('Contact UI Tests', () => {
     test('UI-CONT-001: Contact list loads', async () => {
       await page.goto(`${BASE_URL}/contacts`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       await page.waitForSelector('table, [class*="list"], [class*="grid"]', { timeout: 10000 });
     });
 
     test('UI-CONT-002: Add contact dialog opens', async () => {
       await page.goto(`${BASE_URL}/contacts`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').first();
       
@@ -118,14 +118,14 @@ test.describe('UI Functional Tests', () => {
   test.describe('Lead UI Tests', () => {
     test('UI-LEAD-001: Lead list loads', async () => {
       await page.goto(`${BASE_URL}/leads`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       await page.waitForSelector('table, [class*="list"], [class*="grid"]', { timeout: 10000 });
     });
 
     test('UI-LEAD-002: Lead status filter works', async () => {
       await page.goto(`${BASE_URL}/leads`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Look for filter/status dropdown
       const filterSelect = page.locator('select, [role="listbox"], [class*="filter"]').first();
@@ -140,14 +140,14 @@ test.describe('UI Functional Tests', () => {
   test.describe('Opportunity UI Tests', () => {
     test('UI-OPP-001: Opportunity list loads', async () => {
       await page.goto(`${BASE_URL}/opportunities`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       await page.waitForSelector('table, [class*="list"], [class*="grid"]', { timeout: 10000 });
     });
 
     test('UI-OPP-002: Opportunity pipeline view available', async () => {
       await page.goto(`${BASE_URL}/opportunities`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Look for pipeline/kanban view toggle
       const viewToggle = page.locator('button:has-text("Pipeline"), button:has-text("Kanban"), [class*="view-toggle"]').first();
@@ -162,7 +162,7 @@ test.describe('UI Functional Tests', () => {
   test.describe('Campaign UI Tests', () => {
     test('UI-CAMP-001: Campaign list loads', async () => {
       await page.goto(`${BASE_URL}/campaigns`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       await page.waitForSelector('table, [class*="list"], [class*="grid"]', { timeout: 10000 });
     });
@@ -171,14 +171,14 @@ test.describe('UI Functional Tests', () => {
   test.describe('Service Request UI Tests', () => {
     test('UI-SR-001: Service request list loads', async () => {
       await page.goto(`${BASE_URL}/service-requests`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       await page.waitForSelector('table, [class*="list"], [class*="grid"]', { timeout: 10000 });
     });
 
     test('UI-SR-002: Service request priority filter', async () => {
       await page.goto(`${BASE_URL}/service-requests`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const priorityFilter = page.locator('[class*="priority"], select, [role="listbox"]').first();
       
@@ -192,14 +192,14 @@ test.describe('UI Functional Tests', () => {
   test.describe('Quote UI Tests', () => {
     test('UI-QUO-001: Quote list loads', async () => {
       await page.goto(`${BASE_URL}/quotes`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       await page.waitForSelector('table, [class*="list"], [class*="grid"]', { timeout: 10000 });
     });
 
     test('UI-QUO-002: Quote builder opens', async () => {
       await page.goto(`${BASE_URL}/quotes`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const addButton = page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create Quote")').first();
       
@@ -216,7 +216,7 @@ test.describe('UI Functional Tests', () => {
   test.describe('Product UI Tests', () => {
     test('UI-PROD-001: Product list loads', async () => {
       await page.goto(`${BASE_URL}/products`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       await page.waitForSelector('table, [class*="list"], [class*="grid"]', { timeout: 10000 });
     });
@@ -225,14 +225,14 @@ test.describe('UI Functional Tests', () => {
   test.describe('User Management UI Tests', () => {
     test('UI-USER-001: User list loads', async () => {
       await page.goto(`${BASE_URL}/users`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       await page.waitForSelector('table, [class*="list"], [class*="grid"]', { timeout: 10000 });
     });
 
     test('UI-USER-002: User groups page loads', async () => {
       await page.goto(`${BASE_URL}/groups`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       await page.waitForSelector('table, [class*="list"], [class*="grid"], [class*="card"]', { timeout: 10000 });
     });
@@ -241,7 +241,7 @@ test.describe('UI Functional Tests', () => {
   test.describe('Settings UI Tests', () => {
     test('UI-SET-001: Settings page loads', async () => {
       await page.goto(`${BASE_URL}/settings`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Settings page should have some content
       const body = await page.textContent('body');
@@ -252,7 +252,7 @@ test.describe('UI Functional Tests', () => {
   test.describe('Navigation UI Tests', () => {
     test('UI-NAV-001: Main navigation works', async () => {
       await page.goto(`${BASE_URL}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Find and test navigation links
       const navLinks = ['/customers', '/contacts', '/leads', '/opportunities'];
@@ -261,7 +261,7 @@ test.describe('UI Functional Tests', () => {
         const navItem = page.locator(`a[href="${link}"], a[href*="${link}"]`).first();
         if (await navItem.isVisible()) {
           await navItem.click();
-          await page.waitForLoadState('networkidle');
+          await page.waitForLoadState('domcontentloaded');
           expect(page.url()).toContain(link);
           break; // Just test one link
         }
@@ -270,7 +270,7 @@ test.describe('UI Functional Tests', () => {
 
     test('UI-NAV-002: Breadcrumbs are visible', async () => {
       await page.goto(`${BASE_URL}/customers`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const breadcrumb = page.locator('[class*="breadcrumb"], nav[aria-label*="breadcrumb"]');
       // Breadcrumbs may or may not be visible depending on the page
@@ -278,7 +278,7 @@ test.describe('UI Functional Tests', () => {
 
     test('UI-NAV-003: User menu accessible', async () => {
       await page.goto(`${BASE_URL}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Look for user menu/avatar
       const userMenu = page.locator('[class*="avatar"], [class*="user-menu"], button:has([class*="avatar"])').first();
@@ -294,7 +294,7 @@ test.describe('UI Functional Tests', () => {
     test('UI-RESP-001: Page adapts to mobile viewport', async () => {
       await page.setViewportSize({ width: 375, height: 667 }); // iPhone SE
       await page.goto(`${BASE_URL}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Page should still be functional
       const body = await page.textContent('body');
@@ -304,7 +304,7 @@ test.describe('UI Functional Tests', () => {
     test('UI-RESP-002: Page adapts to tablet viewport', async () => {
       await page.setViewportSize({ width: 768, height: 1024 }); // iPad
       await page.goto(`${BASE_URL}/customers`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Page should still be functional
       const body = await page.textContent('body');

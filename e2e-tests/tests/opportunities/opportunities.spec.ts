@@ -11,7 +11,7 @@ import { TEST_OPPORTUNITIES, uniqueTestData } from '../test-data';
 test.describe('Opportunities - List View', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/opportunities', { timeout: 30000 });
-    await page.waitForLoadState('networkidle', { timeout: 30000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(500);
   });
@@ -58,7 +58,7 @@ test.describe('Opportunities - List View', () => {
 test.describe('Opportunities - Create', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/opportunities', { timeout: 30000 });
-    await page.waitForLoadState('networkidle', { timeout: 30000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(500);
   });
@@ -159,7 +159,7 @@ test.describe('Opportunities - Create', () => {
 test.describe('Opportunities - Pipeline', () => {
   test('TC-OPP-009: Should update opportunity stage', async ({ page }) => {
     await page.goto('/opportunities');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -191,7 +191,7 @@ test.describe('Opportunities - Pipeline', () => {
 
   test('TC-OPP-010: Should update probability', async ({ page }) => {
     await page.goto('/opportunities');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -222,7 +222,7 @@ test.describe('Opportunities - Pipeline', () => {
 
   test('TC-OPP-011: Should close opportunity as won', async ({ page }) => {
     await page.goto('/opportunities');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -244,7 +244,7 @@ test.describe('Opportunities - Pipeline', () => {
 
   test('TC-OPP-012: Should close opportunity as lost', async ({ page }) => {
     await page.goto('/opportunities');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -268,7 +268,7 @@ test.describe('Opportunities - Pipeline', () => {
 test.describe('Opportunities - Delete', () => {
   test('TC-OPP-013: Should delete test opportunity', async ({ page }) => {
     await page.goto('/opportunities');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();

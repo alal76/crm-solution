@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Dashboard - Main View', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-DASH-001: Should display dashboard', async ({ page }) => {
@@ -32,7 +32,7 @@ test.describe('Dashboard - Main View', () => {
 test.describe('Dashboard - Widgets', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-DASH-004: Should display customer count widget', async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe('Dashboard - Widgets', () => {
 test.describe('Dashboard - Metrics', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-DASH-009: Should display revenue metrics', async ({ page }) => {
@@ -102,7 +102,7 @@ test.describe('Dashboard - Metrics', () => {
 test.describe('Dashboard - Charts', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-DASH-012: Should display charts', async ({ page }) => {
@@ -125,7 +125,7 @@ test.describe('Dashboard - Charts', () => {
 test.describe('Dashboard - Quick Actions', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-DASH-014: Should have quick add customer action', async ({ page }) => {
@@ -153,14 +153,14 @@ test.describe('Dashboard - Quick Actions', () => {
 test.describe('Dashboard - Navigation', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-DASH-017: Should navigate to customers', async ({ page }) => {
     const customersLink = page.locator('a:has-text("Customer"), button:has-text("Customer")').first();
     if (await customersLink.isVisible()) {
       await customersLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await expect(page).toHaveURL(/customer/i);
     }
   });
@@ -169,7 +169,7 @@ test.describe('Dashboard - Navigation', () => {
     const opportunitiesLink = page.locator('a:has-text("Opportunit"), button:has-text("Opportunit")').first();
     if (await opportunitiesLink.isVisible()) {
       await opportunitiesLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await expect(page).toHaveURL(/opportunit/i);
     }
   });
@@ -178,7 +178,7 @@ test.describe('Dashboard - Navigation', () => {
     const leadsLink = page.locator('a:has-text("Lead"), button:has-text("Lead")').first();
     if (await leadsLink.isVisible()) {
       await leadsLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await expect(page).toHaveURL(/lead/i);
     }
   });
@@ -187,7 +187,7 @@ test.describe('Dashboard - Navigation', () => {
     const serviceLink = page.locator('a:has-text("Service"), button:has-text("Service"), a:has-text("Ticket")').first();
     if (await serviceLink.isVisible()) {
       await serviceLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
   });
 
@@ -195,7 +195,7 @@ test.describe('Dashboard - Navigation', () => {
     const campaignsLink = page.locator('a:has-text("Campaign"), button:has-text("Campaign")').first();
     if (await campaignsLink.isVisible()) {
       await campaignsLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await expect(page).toHaveURL(/campaign/i);
     }
   });
@@ -204,7 +204,7 @@ test.describe('Dashboard - Navigation', () => {
     const adminLink = page.locator('a:has-text("Admin"), button:has-text("Admin"), a:has-text("Settings")').first();
     if (await adminLink.isVisible()) {
       await adminLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
   });
 });
@@ -212,7 +212,7 @@ test.describe('Dashboard - Navigation', () => {
 test.describe('Dashboard - User Profile', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-DASH-023: Should display user profile menu', async ({ page }) => {
@@ -232,7 +232,7 @@ test.describe('Dashboard - User Profile', () => {
       const profileLink = page.locator('a:has-text("Profile"), button:has-text("Profile")').first();
       if (await profileLink.isVisible()) {
         await profileLink.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
     }
   });
@@ -246,7 +246,7 @@ test.describe('Dashboard - User Profile', () => {
       const logoutButton = page.locator('a:has-text("Logout"), button:has-text("Logout"), button:has-text("Sign Out")').first();
       if (await logoutButton.isVisible()) {
         await logoutButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
     }
   });
@@ -255,7 +255,7 @@ test.describe('Dashboard - User Profile', () => {
 test.describe('Dashboard - Search', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-DASH-026: Should have global search', async ({ page }) => {
@@ -287,7 +287,7 @@ test.describe('Dashboard - Search', () => {
       const firstResult = page.locator('.search-results li, [role="option"]').first();
       if (await firstResult.isVisible()) {
         await firstResult.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
     }
   });
@@ -296,7 +296,7 @@ test.describe('Dashboard - Search', () => {
 test.describe('Dashboard - Notifications', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('TC-DASH-029: Should display notification bell', async ({ page }) => {
@@ -324,7 +324,7 @@ test.describe('Dashboard - Responsive', () => {
   test('TC-DASH-031: Should be responsive on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Should still show main content
     const mainContent = page.locator('.dashboard, [role="main"]').first();
@@ -336,7 +336,7 @@ test.describe('Dashboard - Responsive', () => {
   test('TC-DASH-032: Should show mobile menu', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const hamburgerMenu = page.locator('[aria-label*="Menu"], .hamburger, .menu-toggle').first();
     if (await hamburgerMenu.isVisible()) {

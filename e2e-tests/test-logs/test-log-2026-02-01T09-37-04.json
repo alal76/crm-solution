@@ -1,0 +1,688 @@
+{
+  "summary": {
+    "startTime": "2026-02-01T09:37:04.549Z",
+    "totalTests": 81,
+    "passed": 73,
+    "failed": 1,
+    "skipped": 7,
+    "duration": 43688,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "admin": {
+        "total": 28,
+        "passed": 26,
+        "failed": 1,
+        "skipped": 1
+      },
+      "auth": {
+        "total": 20,
+        "passed": 14,
+        "failed": 0,
+        "skipped": 6
+      },
+      "dashboard": {
+        "total": 32,
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-02-01T09:37:48.237Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-02-01T09:37:10.393Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 4373
+    },
+    {
+      "timestamp": "2026-02-01T09:37:12.954Z",
+      "testId": "TC-ADMIN-002",
+      "testName": "TC-ADMIN-002: Should have create user button",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1489
+    },
+    {
+      "timestamp": "2026-02-01T09:37:13.001Z",
+      "testId": "TC-ADMIN-001",
+      "testName": "TC-ADMIN-001: Should display users list",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1540
+    },
+    {
+      "timestamp": "2026-02-01T09:37:16.333Z",
+      "testId": "TC-ADMIN-003",
+      "testName": "TC-ADMIN-003: Should create new user",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 4865
+    },
+    {
+      "timestamp": "2026-02-01T09:37:17.068Z",
+      "testId": "TC-ADMIN-004",
+      "testName": "TC-ADMIN-004: Should edit user",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 5602
+    },
+    {
+      "timestamp": "2026-02-01T09:37:17.560Z",
+      "testId": "TC-ADMIN-007",
+      "testName": "TC-ADMIN-007: Should display roles list",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1220
+    },
+    {
+      "timestamp": "2026-02-01T09:37:18.308Z",
+      "testId": "TC-ADMIN-005",
+      "testName": "TC-ADMIN-005: Should disable user",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 5343
+    },
+    {
+      "timestamp": "2026-02-01T09:37:18.326Z",
+      "testId": "TC-ADMIN-006",
+      "testName": "TC-ADMIN-006: Should delete test user",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 5314
+    },
+    {
+      "timestamp": "2026-02-01T09:37:19.601Z",
+      "testId": "TC-ADMIN-011",
+      "testName": "TC-ADMIN-011: Should display settings page",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1267
+    },
+    {
+      "timestamp": "2026-02-01T09:37:20.840Z",
+      "testId": "TC-ADMIN-012",
+      "testName": "TC-ADMIN-012: Should access security settings",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1231
+    },
+    {
+      "timestamp": "2026-02-01T09:37:22.169Z",
+      "testId": "TC-ADMIN-013",
+      "testName": "TC-ADMIN-013: Should configure password policy",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1320
+    },
+    {
+      "timestamp": "2026-02-01T09:37:22.868Z",
+      "testId": "TC-ADMIN-009",
+      "testName": "TC-ADMIN-009: Should assign permissions to role",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 5298
+    },
+    {
+      "timestamp": "2026-02-01T09:37:23.160Z",
+      "testId": "TC-ADMIN-015",
+      "testName": "TC-ADMIN-015: Should display LLM settings page",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 283
+    },
+    {
+      "timestamp": "2026-02-01T09:37:23.445Z",
+      "testId": "TC-ADMIN-014",
+      "testName": "TC-ADMIN-014: Should configure session timeout",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1266
+    },
+    {
+      "timestamp": "2026-02-01T09:37:23.509Z",
+      "testId": "TC-ADMIN-016",
+      "testName": "TC-ADMIN-016: Should configure LLM endpoint",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 341
+    },
+    {
+      "timestamp": "2026-02-01T09:37:23.670Z",
+      "testId": "TC-ADMIN-010",
+      "testName": "TC-ADMIN-010: Should delete test role",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 5346
+    },
+    {
+      "timestamp": "2026-02-01T09:37:23.868Z",
+      "testId": "TC-ADMIN-017",
+      "testName": "TC-ADMIN-017: Should configure model selection",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 409
+    },
+    {
+      "timestamp": "2026-02-01T09:37:23.869Z",
+      "testId": "TC-ADMIN-018",
+      "testName": "TC-ADMIN-018: Should test LLM connection",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 347
+    },
+    {
+      "timestamp": "2026-02-01T09:37:25.018Z",
+      "testId": "TC-ADMIN-019",
+      "testName": "TC-ADMIN-019: Should display branding settings",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1336
+    },
+    {
+      "timestamp": "2026-02-01T09:37:25.019Z",
+      "testId": "TC-ADMIN-022",
+      "testName": "TC-ADMIN-022: Should display email settings",
+      "module": "admin",
+      "status": "SKIP",
+      "duration": 0
+    },
+    {
+      "timestamp": "2026-02-01T09:37:25.146Z",
+      "testId": "TC-ADMIN-020",
+      "testName": "TC-ADMIN-020: Should update company name",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1268
+    },
+    {
+      "timestamp": "2026-02-01T09:37:25.167Z",
+      "testId": "TC-ADMIN-021",
+      "testName": "TC-ADMIN-021: Should update primary color",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1286
+    },
+    {
+      "timestamp": "2026-02-01T09:37:26.400Z",
+      "testId": "TC-ADMIN-023",
+      "testName": "TC-ADMIN-023: Should configure SMTP settings",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1373
+    },
+    {
+      "timestamp": "2026-02-01T09:37:26.562Z",
+      "testId": "TC-ADMIN-025",
+      "testName": "TC-ADMIN-025: Should display audit log",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1384
+    },
+    {
+      "timestamp": "2026-02-01T09:37:26.566Z",
+      "testId": "TC-ADMIN-024",
+      "testName": "TC-ADMIN-024: Should send test email",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1388
+    },
+    {
+      "timestamp": "2026-02-01T09:37:27.644Z",
+      "testId": "TC-ADMIN-026",
+      "testName": "TC-ADMIN-026: Should filter audit log by date",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1235
+    },
+    {
+      "timestamp": "2026-02-01T09:37:27.978Z",
+      "testId": "TC-ADMIN-028",
+      "testName": "TC-ADMIN-028: Should export audit log",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1400
+    },
+    {
+      "timestamp": "2026-02-01T09:37:27.988Z",
+      "testId": "TC-ADMIN-027",
+      "testName": "TC-ADMIN-027: Should filter audit log by action type",
+      "module": "admin",
+      "status": "PASS",
+      "duration": 1407
+    },
+    {
+      "timestamp": "2026-02-01T09:37:28.340Z",
+      "testId": "TC-AUTH-001",
+      "testName": "TC-AUTH-001: Should display login page correctly",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 681
+    },
+    {
+      "timestamp": "2026-02-01T09:37:29.161Z",
+      "testId": "TC-AUTH-003",
+      "testName": "TC-AUTH-003: Should show error for invalid email",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 1151
+    },
+    {
+      "timestamp": "2026-02-01T09:37:29.234Z",
+      "testId": "TC-AUTH-002",
+      "testName": "TC-AUTH-002: Should login successfully with valid credentials",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 1221
+    },
+    {
+      "timestamp": "2026-02-01T09:37:29.753Z",
+      "testId": "TC-AUTH-005",
+      "testName": "TC-AUTH-005: Should show error for empty fields",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 581
+    },
+    {
+      "timestamp": "2026-02-01T09:37:29.854Z",
+      "testId": "TC-AUTH-006",
+      "testName": "TC-AUTH-006: Should navigate to forgot password page",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 611
+    },
+    {
+      "timestamp": "2026-02-01T09:37:30.273Z",
+      "testId": "TC-AUTH-007",
+      "testName": "TC-AUTH-007: Should navigate to registration page",
+      "module": "auth",
+      "status": "SKIP",
+      "duration": 511
+    },
+    {
+      "timestamp": "2026-02-01T09:37:30.634Z",
+      "testId": "TC-AUTH-008",
+      "testName": "TC-AUTH-008: Should remember me functionality",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 756
+    },
+    {
+      "timestamp": "2026-02-01T09:37:31.592Z",
+      "testId": "TC-AUTH-004",
+      "testName": "TC-AUTH-004: Should show error for wrong password",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 3243
+    },
+    {
+      "timestamp": "2026-02-01T09:37:31.592Z",
+      "testId": "TC-AUTH-011",
+      "testName": "TC-AUTH-011: Should display registration form",
+      "module": "auth",
+      "status": "SKIP",
+      "duration": 0
+    },
+    {
+      "timestamp": "2026-02-01T09:37:31.592Z",
+      "testId": "TC-AUTH-012",
+      "testName": "TC-AUTH-012: Should validate registration form fields",
+      "module": "auth",
+      "status": "SKIP",
+      "duration": 0
+    },
+    {
+      "timestamp": "2026-02-01T09:37:31.592Z",
+      "testId": "TC-AUTH-013",
+      "testName": "TC-AUTH-013: Should register new test user",
+      "module": "auth",
+      "status": "SKIP",
+      "duration": 0
+    },
+    {
+      "timestamp": "2026-02-01T09:37:32.023Z",
+      "testId": "TC-AUTH-014",
+      "testName": "TC-AUTH-014: Should display password reset form",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 422
+    },
+    {
+      "timestamp": "2026-02-01T09:37:33.867Z",
+      "testId": "TC-AUTH-010",
+      "testName": "TC-AUTH-010: Should not access protected routes after logout",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 3213
+    },
+    {
+      "timestamp": "2026-02-01T09:37:33.991Z",
+      "testId": "TC-AUTH-009",
+      "testName": "TC-AUTH-009: Should logout successfully",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 3710
+    },
+    {
+      "timestamp": "2026-02-01T09:37:33.991Z",
+      "testId": "TC-AUTH-017",
+      "testName": "TC-AUTH-017: Should handle 2FA verification page",
+      "module": "auth",
+      "status": "SKIP",
+      "duration": 0
+    },
+    {
+      "timestamp": "2026-02-01T09:37:34.777Z",
+      "testId": "TC-ADMIN-008",
+      "testName": "TC-ADMIN-008: Should create new role",
+      "module": "admin",
+      "status": "FAIL",
+      "duration": 12408,
+      "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Save\"), button:has-text(\"Create\")').first()\u001b[22m\n\u001b[2m    - locator resolved to <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1ra12j4\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "timestamp": "2026-02-01T09:37:35.278Z",
+      "testId": "TC-AUTH-018",
+      "testName": "TC-AUTH-018: Should maintain session across page navigation",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 1272
+    },
+    {
+      "timestamp": "2026-02-01T09:37:35.628Z",
+      "testId": "TC-AUTH-015",
+      "testName": "TC-AUTH-015: Should send password reset email",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 3584
+    },
+    {
+      "timestamp": "2026-02-01T09:37:36.231Z",
+      "testId": "TC-DASH-001",
+      "testName": "TC-DASH-001: Should display dashboard",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 545
+    },
+    {
+      "timestamp": "2026-02-01T09:37:36.819Z",
+      "testId": "TC-AUTH-016",
+      "testName": "TC-AUTH-016: Should display 2FA setup option in settings",
+      "module": "auth",
+      "status": "SKIP",
+      "duration": 2935
+    },
+    {
+      "timestamp": "2026-02-01T09:37:37.282Z",
+      "testId": "TC-DASH-002",
+      "testName": "TC-DASH-002: Should display welcome message",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1015
+    },
+    {
+      "timestamp": "2026-02-01T09:37:37.431Z",
+      "testId": "TC-AUTH-020",
+      "testName": "TC-AUTH-020: Should handle concurrent sessions",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 2126
+    },
+    {
+      "timestamp": "2026-02-01T09:37:37.856Z",
+      "testId": "TC-DASH-003",
+      "testName": "TC-DASH-003: Should display navigation menu",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 1002
+    },
+    {
+      "timestamp": "2026-02-01T09:37:37.940Z",
+      "testId": "TC-DASH-004",
+      "testName": "TC-DASH-004: Should display customer count widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 630
+    },
+    {
+      "timestamp": "2026-02-01T09:37:38.182Z",
+      "testId": "TC-DASH-005",
+      "testName": "TC-DASH-005: Should display opportunity pipeline widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 720
+    },
+    {
+      "timestamp": "2026-02-01T09:37:38.377Z",
+      "testId": "TC-DASH-006",
+      "testName": "TC-DASH-006: Should display service requests widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 509
+    },
+    {
+      "timestamp": "2026-02-01T09:37:38.785Z",
+      "testId": "TC-DASH-007",
+      "testName": "TC-DASH-007: Should display recent activity widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 820
+    },
+    {
+      "timestamp": "2026-02-01T09:37:38.856Z",
+      "testId": "TC-DASH-008",
+      "testName": "TC-DASH-008: Should display tasks widget",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 648
+    },
+    {
+      "timestamp": "2026-02-01T09:37:38.970Z",
+      "testId": "TC-DASH-009",
+      "testName": "TC-DASH-009: Should display revenue metrics",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 564
+    },
+    {
+      "timestamp": "2026-02-01T09:37:39.492Z",
+      "testId": "TC-DASH-010",
+      "testName": "TC-DASH-010: Should display lead conversion rate",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 634
+    },
+    {
+      "timestamp": "2026-02-01T09:37:39.520Z",
+      "testId": "TC-DASH-012",
+      "testName": "TC-DASH-012: Should display charts",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 520
+    },
+    {
+      "timestamp": "2026-02-01T09:37:39.528Z",
+      "testId": "TC-DASH-011",
+      "testName": "TC-DASH-011: Should display open tickets count",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 650
+    },
+    {
+      "timestamp": "2026-02-01T09:37:40.138Z",
+      "testId": "TC-DASH-015",
+      "testName": "TC-DASH-015: Should have quick add opportunity action",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 586
+    },
+    {
+      "timestamp": "2026-02-01T09:37:40.216Z",
+      "testId": "TC-DASH-013",
+      "testName": "TC-DASH-013: Should have chart interactions",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 693
+    },
+    {
+      "timestamp": "2026-02-01T09:37:40.219Z",
+      "testId": "TC-DASH-014",
+      "testName": "TC-DASH-014: Should have quick add customer action",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 686
+    },
+    {
+      "timestamp": "2026-02-01T09:37:40.773Z",
+      "testId": "TC-DASH-016",
+      "testName": "TC-DASH-016: Should have quick add service request action",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 622
+    },
+    {
+      "timestamp": "2026-02-01T09:37:40.778Z",
+      "testId": "TC-DASH-017",
+      "testName": "TC-DASH-017: Should navigate to customers",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 543
+    },
+    {
+      "timestamp": "2026-02-01T09:37:40.783Z",
+      "testId": "TC-DASH-018",
+      "testName": "TC-DASH-018: Should navigate to opportunities",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 552
+    },
+    {
+      "timestamp": "2026-02-01T09:37:41.424Z",
+      "testId": "TC-DASH-020",
+      "testName": "TC-DASH-020: Should navigate to service requests",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 633
+    },
+    {
+      "timestamp": "2026-02-01T09:37:41.429Z",
+      "testId": "TC-DASH-021",
+      "testName": "TC-DASH-021: Should navigate to campaigns",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 637
+    },
+    {
+      "timestamp": "2026-02-01T09:37:41.448Z",
+      "testId": "TC-DASH-019",
+      "testName": "TC-DASH-019: Should navigate to leads",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 665
+    },
+    {
+      "timestamp": "2026-02-01T09:37:41.653Z",
+      "testId": "TC-AUTH-019",
+      "testName": "TC-AUTH-019: Should handle session timeout gracefully",
+      "module": "auth",
+      "status": "PASS",
+      "duration": 3522
+    },
+    {
+      "timestamp": "2026-02-01T09:37:41.976Z",
+      "testId": "TC-DASH-023",
+      "testName": "TC-DASH-023: Should display user profile menu",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 522
+    },
+    {
+      "timestamp": "2026-02-01T09:37:41.983Z",
+      "testId": "TC-DASH-024",
+      "testName": "TC-DASH-024: Should access profile settings",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 524
+    },
+    {
+      "timestamp": "2026-02-01T09:37:41.998Z",
+      "testId": "TC-DASH-022",
+      "testName": "TC-DASH-022: Should navigate to admin",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 562
+    },
+    {
+      "timestamp": "2026-02-01T09:37:42.126Z",
+      "testId": "TC-DASH-025",
+      "testName": "TC-DASH-025: Should logout from dashboard",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 459
+    },
+    {
+      "timestamp": "2026-02-01T09:37:42.612Z",
+      "testId": "TC-DASH-026",
+      "testName": "TC-DASH-026: Should have global search",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 621
+    },
+    {
+      "timestamp": "2026-02-01T09:37:42.612Z",
+      "testId": "TC-DASH-027",
+      "testName": "TC-DASH-027: Should search for customer",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 591
+    },
+    {
+      "timestamp": "2026-02-01T09:37:42.616Z",
+      "testId": "TC-DASH-029",
+      "testName": "TC-DASH-029: Should display notification bell",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 476
+    },
+    {
+      "timestamp": "2026-02-01T09:37:42.626Z",
+      "testId": "TC-DASH-028",
+      "testName": "TC-DASH-028: Should navigate from search results",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 609
+    },
+    {
+      "timestamp": "2026-02-01T09:37:43.260Z",
+      "testId": "TC-DASH-032",
+      "testName": "TC-DASH-032: Should show mobile menu",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 625
+    },
+    {
+      "timestamp": "2026-02-01T09:37:43.266Z",
+      "testId": "TC-DASH-030",
+      "testName": "TC-DASH-030: Should open notifications panel",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 634
+    },
+    {
+      "timestamp": "2026-02-01T09:37:43.272Z",
+      "testId": "TC-DASH-031",
+      "testName": "TC-DASH-031: Should be responsive on mobile",
+      "module": "dashboard",
+      "status": "PASS",
+      "duration": 641
+    }
+  ]
+}

@@ -11,7 +11,7 @@ import { TEST_CONTACTS, uniqueTestData } from '../test-data';
 test.describe('Contacts - List View', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/contacts', { timeout: 30000 });
-    await page.waitForLoadState('networkidle', { timeout: 30000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(500);
   });
@@ -54,7 +54,7 @@ test.describe('Contacts - List View', () => {
 test.describe('Contacts - Create', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/contacts', { timeout: 30000 });
-    await page.waitForLoadState('networkidle', { timeout: 30000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(500);
   });
@@ -162,7 +162,7 @@ test.describe('Contacts - Create', () => {
 test.describe('Contacts - Edit', () => {
   test('TC-CONT-009: Should open contact for editing', async ({ page }) => {
     await page.goto('/contacts');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -182,7 +182,7 @@ test.describe('Contacts - Edit', () => {
 
   test('TC-CONT-010: Should update contact', async ({ page }) => {
     await page.goto('/contacts');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -216,7 +216,7 @@ test.describe('Contacts - Edit', () => {
 test.describe('Contacts - Delete', () => {
   test('TC-CONT-011: Should delete test contact', async ({ page }) => {
     await page.goto('/contacts');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -246,7 +246,7 @@ test.describe('Contacts - Delete', () => {
 test.describe('Contacts - Contact Info', () => {
   test('TC-CONT-012: Should manage multiple emails', async ({ page }) => {
     await page.goto('/contacts');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -266,7 +266,7 @@ test.describe('Contacts - Contact Info', () => {
 
   test('TC-CONT-013: Should manage multiple phones', async ({ page }) => {
     await page.goto('/contacts');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
@@ -285,7 +285,7 @@ test.describe('Contacts - Contact Info', () => {
 
   test('TC-CONT-014: Should manage social media links', async ({ page }) => {
     await page.goto('/contacts');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();

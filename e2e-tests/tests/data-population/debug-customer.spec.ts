@@ -8,7 +8,7 @@ test('Debug Customer Creation', async ({ page }) => {
   console.log('\n========== Testing Customer Creation ==========');
   
   await page.goto('/customers');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(1000);
   
   // Click Add Account button

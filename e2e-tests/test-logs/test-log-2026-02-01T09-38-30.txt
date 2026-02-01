@@ -1,0 +1,521 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CRM SOLUTION - E2E TEST EXECUTION LOG                       
+═══════════════════════════════════════════════════════════════════════════════
+
+Test Run Started:  2026-02-01T09:38:30.130Z
+Test Run Ended:    2026-02-01T09:39:10.539Z
+Total Duration:    40s
+
+───────────────────────────────────────────────────────────────────────────────
+                              EXECUTION SUMMARY                                 
+───────────────────────────────────────────────────────────────────────────────
+  Total Tests:     81
+  Passed:          73 (90%)
+  Failed:          1 (1%)
+  Skipped:         7 (9%)
+
+───────────────────────────────────────────────────────────────────────────────
+                              MODULE BREAKDOWN                                  
+───────────────────────────────────────────────────────────────────────────────
+
+  AUTH.SETUP.TS
+  ├─ Total:   1
+  ├─ Passed:  1
+  ├─ Failed:  0
+  ├─ Skipped: 0
+  └─ Pass Rate: 100%
+
+  ADMIN
+  ├─ Total:   28
+  ├─ Passed:  26
+  ├─ Failed:  1
+  ├─ Skipped: 1
+  └─ Pass Rate: 93%
+
+  AUTH
+  ├─ Total:   20
+  ├─ Passed:  14
+  ├─ Failed:  0
+  ├─ Skipped: 6
+  └─ Pass Rate: 70%
+
+  DASHBOARD
+  ├─ Total:   32
+  ├─ Passed:  32
+  ├─ Failed:  0
+  ├─ Skipped: 0
+  └─ Pass Rate: 100%
+
+───────────────────────────────────────────────────────────────────────────────
+                              DETAILED TEST LOG                                 
+───────────────────────────────────────────────────────────────────────────────
+
+[2026-02-01T09:38:35.133Z] [✓ PASS] TC-UNKNOWN
+   Test: authenticate
+   Module: auth.setup.ts
+   Duration: 4156ms
+
+[2026-02-01T09:38:38.563Z] [✓ PASS] TC-ADMIN-002
+   Test: TC-ADMIN-002: Should have create user button
+   Module: admin
+   Duration: 1474ms
+
+[2026-02-01T09:38:38.574Z] [✓ PASS] TC-ADMIN-001
+   Test: TC-ADMIN-001: Should display users list
+   Module: admin
+   Duration: 1519ms
+
+[2026-02-01T09:38:41.758Z] [✓ PASS] TC-ADMIN-003
+   Test: TC-ADMIN-003: Should create new user
+   Module: admin
+   Duration: 4706ms
+
+[2026-02-01T09:38:42.976Z] [✓ PASS] TC-ADMIN-004
+   Test: TC-ADMIN-004: Should edit user
+   Module: admin
+   Duration: 5913ms
+
+[2026-02-01T09:38:43.008Z] [✓ PASS] TC-ADMIN-007
+   Test: TC-ADMIN-007: Should display roles list
+   Module: admin
+   Duration: 1240ms
+
+[2026-02-01T09:38:44.105Z] [✓ PASS] TC-ADMIN-005
+   Test: TC-ADMIN-005: Should disable user
+   Module: admin
+   Duration: 5523ms
+
+[2026-02-01T09:38:44.111Z] [✓ PASS] TC-ADMIN-006
+   Test: TC-ADMIN-006: Should delete test user
+   Module: admin
+   Duration: 5520ms
+
+[2026-02-01T09:38:45.704Z] [✓ PASS] TC-ADMIN-011
+   Test: TC-ADMIN-011: Should display settings page
+   Module: admin
+   Duration: 1553ms
+
+[2026-02-01T09:38:47.136Z] [✓ PASS] TC-ADMIN-012
+   Test: TC-ADMIN-012: Should access security settings
+   Module: admin
+   Duration: 1404ms
+
+[2026-02-01T09:38:48.583Z] [✓ PASS] TC-ADMIN-009
+   Test: TC-ADMIN-009: Should assign permissions to role
+   Module: admin
+   Duration: 5562ms
+
+[2026-02-01T09:38:48.865Z] [✓ PASS] TC-ADMIN-013
+   Test: TC-ADMIN-013: Should configure password policy
+   Module: admin
+   Duration: 1700ms
+
+[2026-02-01T09:38:49.349Z] [✓ PASS] TC-ADMIN-015
+   Test: TC-ADMIN-015: Should display LLM settings page
+   Module: admin
+   Duration: 451ms
+
+[2026-02-01T09:38:49.724Z] [✓ PASS] TC-ADMIN-016
+   Test: TC-ADMIN-016: Should configure LLM endpoint
+   Module: admin
+   Duration: 359ms
+
+[2026-02-01T09:38:49.839Z] [✓ PASS] TC-ADMIN-010
+   Test: TC-ADMIN-010: Should delete test role
+   Module: admin
+   Duration: 5720ms
+
+[2026-02-01T09:38:49.954Z] [✓ PASS] TC-ADMIN-014
+   Test: TC-ADMIN-014: Should configure session timeout
+   Module: admin
+   Duration: 1354ms
+
+[2026-02-01T09:38:50.133Z] [✓ PASS] TC-ADMIN-017
+   Test: TC-ADMIN-017: Should configure model selection
+   Module: admin
+   Duration: 392ms
+
+[2026-02-01T09:38:50.338Z] [✓ PASS] TC-ADMIN-018
+   Test: TC-ADMIN-018: Should test LLM connection
+   Module: admin
+   Duration: 484ms
+
+[2026-02-01T09:38:51.393Z] [✓ PASS] TC-ADMIN-019
+   Test: TC-ADMIN-019: Should display branding settings
+   Module: admin
+   Duration: 1417ms
+
+[2026-02-01T09:38:51.394Z] [○ SKIP] TC-ADMIN-022
+   Test: TC-ADMIN-022: Should display email settings
+   Module: admin
+   Duration: 0ms
+
+[2026-02-01T09:38:51.618Z] [✓ PASS] TC-ADMIN-020
+   Test: TC-ADMIN-020: Should update company name
+   Module: admin
+   Duration: 1454ms
+
+[2026-02-01T09:38:52.024Z] [✓ PASS] TC-ADMIN-021
+   Test: TC-ADMIN-021: Should update primary color
+   Module: admin
+   Duration: 1664ms
+
+[2026-02-01T09:38:52.769Z] [✓ PASS] TC-ADMIN-023
+   Test: TC-ADMIN-023: Should configure SMTP settings
+   Module: admin
+   Duration: 1336ms
+
+[2026-02-01T09:38:53.828Z] [✓ PASS] TC-ADMIN-024
+   Test: TC-ADMIN-024: Should send test email
+   Module: admin
+   Duration: 2098ms
+
+[2026-02-01T09:38:54.032Z] [✓ PASS] TC-ADMIN-025
+   Test: TC-ADMIN-025: Should display audit log
+   Module: admin
+   Duration: 1928ms
+
+[2026-02-01T09:38:54.270Z] [✓ PASS] TC-ADMIN-026
+   Test: TC-ADMIN-026: Should filter audit log by date
+   Module: admin
+   Duration: 1419ms
+
+[2026-02-01T09:38:55.459Z] [✓ PASS] TC-ADMIN-027
+   Test: TC-ADMIN-027: Should filter audit log by action type
+   Module: admin
+   Duration: 1561ms
+
+[2026-02-01T09:38:55.572Z] [✓ PASS] TC-AUTH-001
+   Test: TC-AUTH-001: Should display login page correctly
+   Module: auth
+   Duration: 697ms
+
+[2026-02-01T09:38:55.876Z] [✗ FAIL] TC-ADMIN-008
+   Test: TC-ADMIN-008: Should create new role
+   Module: admin
+   Duration: 12675ms
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Save"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1ra12j4">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    18 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+[2026-02-01T09:38:56.090Z] [✓ PASS] TC-ADMIN-028
+   Test: TC-ADMIN-028: Should export audit log
+   Module: admin
+   Duration: 1990ms
+
+[2026-02-01T09:38:56.359Z] [✓ PASS] TC-AUTH-003
+   Test: TC-AUTH-003: Should show error for invalid email
+   Module: auth
+   Duration: 773ms
+
+[2026-02-01T09:38:56.410Z] [✓ PASS] TC-AUTH-002
+   Test: TC-AUTH-002: Should login successfully with valid credentials
+   Module: auth
+   Duration: 919ms
+
+[2026-02-01T09:38:57.073Z] [✓ PASS] TC-AUTH-005
+   Test: TC-AUTH-005: Should show error for empty fields
+   Module: auth
+   Duration: 839ms
+
+[2026-02-01T09:38:57.201Z] [○ SKIP] TC-AUTH-007
+   Test: TC-AUTH-007: Should navigate to registration page
+   Module: auth
+   Duration: 764ms
+
+[2026-02-01T09:38:57.351Z] [✓ PASS] TC-AUTH-006
+   Test: TC-AUTH-006: Should navigate to forgot password page
+   Module: auth
+   Duration: 960ms
+
+[2026-02-01T09:38:58.410Z] [✓ PASS] TC-AUTH-008
+   Test: TC-AUTH-008: Should remember me functionality
+   Module: auth
+   Duration: 1293ms
+
+[2026-02-01T09:38:58.410Z] [○ SKIP] TC-AUTH-011
+   Test: TC-AUTH-011: Should display registration form
+   Module: auth
+   Duration: 0ms
+
+[2026-02-01T09:38:58.410Z] [○ SKIP] TC-AUTH-012
+   Test: TC-AUTH-012: Should validate registration form fields
+   Module: auth
+   Duration: 0ms
+
+[2026-02-01T09:38:58.410Z] [○ SKIP] TC-AUTH-013
+   Test: TC-AUTH-013: Should register new test user
+   Module: auth
+   Duration: 0ms
+
+[2026-02-01T09:38:58.950Z] [✓ PASS] TC-AUTH-014
+   Test: TC-AUTH-014: Should display password reset form
+   Module: auth
+   Duration: 527ms
+
+[2026-02-01T09:39:00.646Z] [✓ PASS] TC-AUTH-010
+   Test: TC-AUTH-010: Should not access protected routes after logout
+   Module: auth
+   Duration: 3276ms
+
+[2026-02-01T09:39:01.046Z] [✓ PASS] TC-AUTH-009
+   Test: TC-AUTH-009: Should logout successfully
+   Module: auth
+   Duration: 3798ms
+
+[2026-02-01T09:39:01.046Z] [○ SKIP] TC-AUTH-017
+   Test: TC-AUTH-017: Should handle 2FA verification page
+   Module: auth
+   Duration: 0ms
+
+[2026-02-01T09:39:01.855Z] [✓ PASS] TC-AUTH-018
+   Test: TC-AUTH-018: Should maintain session across page navigation
+   Module: auth
+   Duration: 801ms
+
+[2026-02-01T09:39:02.283Z] [✓ PASS] TC-AUTH-004
+   Test: TC-AUTH-004: Should show error for wrong password
+   Module: auth
+   Duration: 2629ms
+
+[2026-02-01T09:39:02.559Z] [✓ PASS] TC-AUTH-015
+   Test: TC-AUTH-015: Should send password reset email
+   Module: auth
+   Duration: 3588ms
+
+[2026-02-01T09:39:03.118Z] [✓ PASS] TC-DASH-001
+   Test: TC-DASH-001: Should display dashboard
+   Module: dashboard
+   Duration: 534ms
+
+[2026-02-01T09:39:03.517Z] [○ SKIP] TC-AUTH-016
+   Test: TC-AUTH-016: Should display 2FA setup option in settings
+   Module: auth
+   Duration: 2846ms
+
+[2026-02-01T09:39:03.606Z] [✓ PASS] TC-DASH-002
+   Test: TC-DASH-002: Should display welcome message
+   Module: dashboard
+   Duration: 469ms
+
+[2026-02-01T09:39:04.114Z] [✓ PASS] TC-DASH-003
+   Test: TC-DASH-003: Should display navigation menu
+   Module: dashboard
+   Duration: 561ms
+
+[2026-02-01T09:39:04.133Z] [✓ PASS] TC-DASH-004
+   Test: TC-DASH-004: Should display customer count widget
+   Module: dashboard
+   Duration: 509ms
+
+[2026-02-01T09:39:04.215Z] [✓ PASS] TC-AUTH-020
+   Test: TC-AUTH-020: Should handle concurrent sessions
+   Module: auth
+   Duration: 1921ms
+
+[2026-02-01T09:39:04.694Z] [✓ PASS] TC-DASH-005
+   Test: TC-DASH-005: Should display opportunity pipeline widget
+   Module: dashboard
+   Duration: 556ms
+
+[2026-02-01T09:39:04.727Z] [✓ PASS] TC-DASH-006
+   Test: TC-DASH-006: Should display service requests widget
+   Module: dashboard
+   Duration: 532ms
+
+[2026-02-01T09:39:04.752Z] [✓ PASS] TC-DASH-007
+   Test: TC-DASH-007: Should display recent activity widget
+   Module: dashboard
+   Duration: 506ms
+
+[2026-02-01T09:39:04.769Z] [✓ PASS] TC-AUTH-019
+   Test: TC-AUTH-019: Should handle session timeout gracefully
+   Module: auth
+   Duration: 2882ms
+
+[2026-02-01T09:39:05.545Z] [✓ PASS] TC-DASH-009
+   Test: TC-DASH-009: Should display revenue metrics
+   Module: dashboard
+   Duration: 700ms
+
+[2026-02-01T09:39:05.546Z] [✓ PASS] TC-DASH-008
+   Test: TC-DASH-008: Should display tasks widget
+   Module: dashboard
+   Duration: 818ms
+
+[2026-02-01T09:39:05.589Z] [✓ PASS] TC-DASH-011
+   Test: TC-DASH-011: Should display open tickets count
+   Module: dashboard
+   Duration: 774ms
+
+[2026-02-01T09:39:05.637Z] [✓ PASS] TC-DASH-010
+   Test: TC-DASH-010: Should display lead conversion rate
+   Module: dashboard
+   Duration: 826ms
+
+[2026-02-01T09:39:06.273Z] [✓ PASS] TC-DASH-012
+   Test: TC-DASH-012: Should display charts
+   Module: dashboard
+   Duration: 681ms
+
+[2026-02-01T09:39:06.283Z] [✓ PASS] TC-DASH-014
+   Test: TC-DASH-014: Should have quick add customer action
+   Module: dashboard
+   Duration: 660ms
+
+[2026-02-01T09:39:06.337Z] [✓ PASS] TC-DASH-013
+   Test: TC-DASH-013: Should have chart interactions
+   Module: dashboard
+   Duration: 717ms
+
+[2026-02-01T09:39:06.354Z] [✓ PASS] TC-DASH-015
+   Test: TC-DASH-015: Should have quick add opportunity action
+   Module: dashboard
+   Duration: 692ms
+
+[2026-02-01T09:39:07.131Z] [✓ PASS] TC-DASH-019
+   Test: TC-DASH-019: Should navigate to leads
+   Module: dashboard
+   Duration: 726ms
+
+[2026-02-01T09:39:07.153Z] [✓ PASS] TC-DASH-018
+   Test: TC-DASH-018: Should navigate to opportunities
+   Module: dashboard
+   Duration: 784ms
+
+[2026-02-01T09:39:07.153Z] [✓ PASS] TC-DASH-017
+   Test: TC-DASH-017: Should navigate to customers
+   Module: dashboard
+   Duration: 854ms
+
+[2026-02-01T09:39:07.179Z] [✓ PASS] TC-DASH-016
+   Test: TC-DASH-016: Should have quick add service request action
+   Module: dashboard
+   Duration: 877ms
+
+[2026-02-01T09:39:07.873Z] [✓ PASS] TC-DASH-023
+   Test: TC-DASH-023: Should display user profile menu
+   Module: dashboard
+   Duration: 658ms
+
+[2026-02-01T09:39:07.904Z] [✓ PASS] TC-DASH-021
+   Test: TC-DASH-021: Should navigate to campaigns
+   Module: dashboard
+   Duration: 722ms
+
+[2026-02-01T09:39:07.922Z] [✓ PASS] TC-DASH-022
+   Test: TC-DASH-022: Should navigate to admin
+   Module: dashboard
+   Duration: 732ms
+
+[2026-02-01T09:39:07.958Z] [✓ PASS] TC-DASH-020
+   Test: TC-DASH-020: Should navigate to service requests
+   Module: dashboard
+   Duration: 760ms
+
+[2026-02-01T09:39:08.666Z] [✓ PASS] TC-DASH-025
+   Test: TC-DASH-025: Should logout from dashboard
+   Module: dashboard
+   Duration: 741ms
+
+[2026-02-01T09:39:08.684Z] [✓ PASS] TC-DASH-026
+   Test: TC-DASH-026: Should have global search
+   Module: dashboard
+   Duration: 724ms
+
+[2026-02-01T09:39:08.733Z] [✓ PASS] TC-DASH-024
+   Test: TC-DASH-024: Should access profile settings
+   Module: dashboard
+   Duration: 840ms
+
+[2026-02-01T09:39:09.411Z] [✓ PASS] TC-DASH-029
+   Test: TC-DASH-029: Should display notification bell
+   Module: dashboard
+   Duration: 691ms
+
+[2026-02-01T09:39:09.412Z] [✓ PASS] TC-DASH-030
+   Test: TC-DASH-030: Should open notifications panel
+   Module: dashboard
+   Duration: 654ms
+
+[2026-02-01T09:39:09.729Z] [✓ PASS] TC-DASH-027
+   Test: TC-DASH-027: Should search for customer
+   Module: dashboard
+   Duration: 1732ms
+
+[2026-02-01T09:39:09.916Z] [✓ PASS] TC-DASH-031
+   Test: TC-DASH-031: Should be responsive on mobile
+   Module: dashboard
+   Duration: 488ms
+
+[2026-02-01T09:39:09.959Z] [✓ PASS] TC-DASH-032
+   Test: TC-DASH-032: Should show mobile menu
+   Module: dashboard
+   Duration: 507ms
+
+[2026-02-01T09:39:10.413Z] [✓ PASS] TC-DASH-028
+   Test: TC-DASH-028: Should navigate from search results
+   Module: dashboard
+   Duration: 1730ms
+
+───────────────────────────────────────────────────────────────────────────────
+                              FAILED TESTS                                     
+───────────────────────────────────────────────────────────────────────────────
+
+1. TC-ADMIN-008 - TC-ADMIN-008: Should create new role
+   Error: TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Save"), button:has-text("Create")').first()[22m
+[2m    - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1ra12j4">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    18 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              END OF LOG                                        
+═══════════════════════════════════════════════════════════════════════════════
