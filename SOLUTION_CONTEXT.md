@@ -459,6 +459,32 @@ ADMIN_PASSWORD=your-admin-password
 
 ## 8. Database Startup & Seeding Process
 
+### Database Documentation
+
+Complete database documentation is available at:
+- [database/DATABASE_SCHEMA.md](database/DATABASE_SCHEMA.md) - Full schema reference (~171 tables)
+- [database/setup-database.sh](database/setup-database.sh) - Cross-platform setup script
+
+### Manual Database Setup
+
+For manual database setup (instead of relying on EF Core):
+
+```bash
+cd database
+
+# Interactive setup
+./setup-database.sh
+
+# Specify provider
+./setup-database.sh --provider mariadb --host localhost
+
+# Using Docker container
+./setup-database.sh --docker --container crm-mariadb
+
+# Include sample data
+./setup-database.sh --seed --sample-data
+```
+
 ### Automatic Startup Sequence
 
 When the API starts (in `Program.cs`), the following happens automatically:
@@ -478,6 +504,21 @@ The seed process (in `CRM.Infrastructure/Data/DbSeed.cs`) creates:
 2. **Admin User** with credentials from environment variables
 3. **Department Structure** (Executive, Sales, Marketing, etc.)
 4. **Sample Customers** (if none exist)
+
+### Database Table Categories
+
+| Category | Table Count | Description |
+|----------|-------------|-------------|
+| Core (Users/Auth) | 8 | Users, Groups, Departments |
+| CRM Entities | 9 | Accounts, Contacts, Leads, Opportunities |
+| Contact Info | 12 | Addresses, Phones, Emails, Social |
+| Marketing | 16 | Campaigns, Email sequences, Web tracking |
+| Sales/Quotes | 14 | Quotes, Orders, Invoices, Payments |
+| CPQ | 13 | Bundles, Pricing, Approvals |
+| Service Desk | 15 | Tickets, KB, SLA |
+| Workflows | 8 | Workflow engine |
+| AI/Analytics | 13 | Predictions, Scoring |
+| System/Config | 14 | Settings, Lookups, Custom Fields |
 
 ### Seed Order Dependency
 
