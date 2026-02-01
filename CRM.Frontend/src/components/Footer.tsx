@@ -12,6 +12,11 @@ interface HealthStatus {
   timestamp?: string;
 }
 
+interface AIHealthStatus extends HealthStatus {
+  model?: string;
+  provider?: string;
+}
+
 interface VersionInfo {
   major: number;
   minor: number;
@@ -29,6 +34,7 @@ interface VersionInfo {
 function Footer() {
   const [apiStatus, setApiStatus] = useState<HealthStatus>({ status: 'down' });
   const [dbStatus, setDbStatus] = useState<HealthStatus>({ status: 'down' });
+  const [aiStatus, setAiStatus] = useState<AIHealthStatus>({ status: 'down' });
   const [ports, setPorts] = useState(getServicePorts());
   const { branding } = useBranding();
   const { effectiveContext } = useEntityContext();
@@ -90,6 +96,23 @@ function Footer() {
         setApiStatus({ status: 'down' });
         setDbStatus({ status: 'down' });
       }
+
+      // Check AI service health
+      try {
+        const aiHealthUrl = getApiEndpoint('/api/ai/chatbot/health');
+        const aiResponse = await axios.get(aiHealthUrl, { timeout: 5000 });
+        
+        if (aiResponse.status === 200 && aiResponse.data) {
+          setAiStatus({
+            status: aiResponse.data.isHealthy ? 'up' : 'down',
+            model: aiResponse.data.model,
+            provider: aiResponse.data.provider,
+          });
+        }
+      } catch (aiError: any) {
+        debugError('AI health check failed:', aiError.message);
+        setAiStatus({ status: 'down' });
+      }
     };
 
     // Check health immediately and then every 30 seconds
@@ -146,6 +169,10 @@ function Footer() {
             <span className={`status-dot ${getStatusClass(dbStatus.status)}`}>{getStatusText(dbStatus.status)}</span>
             <span className="status-text" title={versionInfo?.components?.database ? `${versionInfo.components.database.zipCodes} ZIPs, ${versionInfo.components.database.countries} Countries` : ''}>
               DB
+            </span>
+            <span className={`status-dot ${getStatusClass(aiStatus.status)}`}>{getStatusText(aiStatus.status)}</span>
+            <span className="status-text" title={aiStatus.status === 'up' ? `${aiStatus.provider || 'Local'}: ${aiStatus.model || 'Unknown'}` : 'AI Service Unavailable'}>
+              AI
             </span>
           </div>
         </div>

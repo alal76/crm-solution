@@ -145,13 +145,10 @@ public class LocalLLMOptions
 {
     public string BaseUrl { get; set; } = "http://localhost:11434";  // Ollama default
     public string ApiKey { get; set; } = "";  // Optional for some local servers
-    public string DefaultModel { get; set; } = "olmo2:7b";  // Allen AI OLMo2
-    public string FallbackModel { get; set; } = "llama3:8b";  // Fallback model
+    public string DefaultModel { get; set; } = "llama3";
     public string ApiFormat { get; set; } = "ollama";  // ollama, openai, or custom
     public Dictionary<string, string> Headers { get; set; } = new();
-    public bool Enabled { get; set; } = true;
-    public int TimeoutSeconds { get; set; } = 120;  // Longer timeout for local models
-    public int MaxTokens { get; set; } = 2048;
+    public bool Enabled { get; set; } = false;
 }
 
 public class CustomEndpointOptions

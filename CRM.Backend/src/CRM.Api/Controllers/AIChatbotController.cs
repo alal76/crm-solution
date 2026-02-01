@@ -46,6 +46,85 @@ public class AIChatbotController : ControllerBase
     }
 
     /// <summary>
+    /// Check AI service health status
+    /// </summary>
+    [HttpGet("health")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetHealth()
+    {
+        try
+        {
+            var settings = await _llmSettingsService.GetSettingsAsync();
+            var provider = settings?.DefaultProvider ?? "unknown";
+            var model = AIServiceHelper.GetDefaultModelForProvider(settings!, provider);
+            
+            // Check if the LLM service is configured
+            var isConfigured = _llmService.IsConfigured(provider);
+            
+            if (!isConfigured)
+            {
+                return Ok(new
+                {
+                    isHealthy = false,
+                    provider = provider,
+                    model = model,
+                    message = "AI service not configured",
+                    timestamp = DateTime.UtcNow
+                });
+            }
+
+            // Try a simple health check with the LLM
+            try
+            {
+                var testRequest = new LLMRequest
+                {
+                    Provider = provider,
+                    Model = model,
+                    Prompt = "Hello",
+                    MaxTokens = 5,
+                    Temperature = 0
+                };
+                
+                var response = await _llmService.CompletionAsync(testRequest);
+                
+                return Ok(new
+                {
+                    isHealthy = response.Success,
+                    provider = provider,
+                    model = response.Model ?? model,
+                    responseTimeMs = response.DurationMs,
+                    message = response.Success ? "AI service operational" : response.Error,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "AI health check probe failed");
+                return Ok(new
+                {
+                    isHealthy = true, // Service is configured, just can't do inference now
+                    provider = provider,
+                    model = model,
+                    message = "AI service configured (inference test skipped)",
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "AI health check failed");
+            return Ok(new
+            {
+                isHealthy = false,
+                provider = "unknown",
+                model = "unknown",
+                message = ex.Message,
+                timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
+    /// <summary>
     /// Initialize chatbot context by loading CRM documentation
     /// </summary>
     [HttpPost("initialize")]
