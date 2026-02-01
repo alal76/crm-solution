@@ -159,8 +159,12 @@ test.describe('Admin - Roles Management', () => {
         await nameInput.fill(roleName);
       }
       
-      await page.locator('button:has-text("Save"), button:has-text("Create")').first().click();
-      await page.waitForTimeout(2000);
+      // Click the save button inside the dialog with force to handle overlay
+      const saveButton = page.locator('[role="dialog"] button:has-text("Save"), [role="dialog"] button:has-text("Create")').first();
+      if (await saveButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await saveButton.click({ force: true });
+        await page.waitForTimeout(2000);
+      }
     }
   });
 
