@@ -179,7 +179,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4156,
+                  "duration": 4466,
                   "errors": [],
                   "stdout": [
                     {
@@ -197,7 +197,7 @@
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-02-01T09:38:30.807Z",
+                  "startTime": "2026-02-01T12:05:20.258Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -213,20 +213,20 @@
       ]
     },
     {
-      "title": "admin/admin.spec.ts",
-      "file": "admin/admin.spec.ts",
+      "title": "campaigns/campaign-bugs.spec.ts",
+      "file": "campaigns/campaign-bugs.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Admin - Users Management",
-          "file": "admin/admin.spec.ts",
-          "line": 11,
+          "title": "Campaign Bug Hunt",
+          "file": "campaigns/campaign-bugs.spec.ts",
+          "line": 9,
           "column": 6,
           "specs": [
             {
-              "title": "TC-ADMIN-001: Should display users list",
+              "title": "BUG-001: Empty form submission should show validation errors",
               "ok": true,
               "tags": [],
               "tests": [
@@ -241,12 +241,16 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1519,
+                      "duration": 3014,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "✓ Empty form validation works\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:36.714Z",
+                      "startTime": "2026-02-01T12:05:26.012Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -254,13 +258,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "e49b56f230545f147950-36408a7d71f6559d17c1",
-              "file": "admin/admin.spec.ts",
-              "line": 18,
+              "id": "315a9e599398b2654917-d2730679ef91cd9acaa3",
+              "file": "campaigns/campaign-bugs.spec.ts",
+              "line": 17,
               "column": 7
             },
             {
-              "title": "TC-ADMIN-002: Should have create user button",
+              "title": "BUG-002: End date before start date validation (requires frontend rebuild)",
               "ok": true,
               "tags": [],
               "tests": [
@@ -275,12 +279,22 @@
                       "workerIndex": 2,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 1474,
+                      "duration": 4952,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "Start date: 2026-12-01 End date: 2026-01-01\n"
+                        },
+                        {
+                          "text": "String comparison endDate < startDate: \u001b[33mtrue\u001b[39m\n"
+                        },
+                        {
+                          "text": "⚠ Date validation not active - campaign was created\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:36.684Z",
+                      "startTime": "2026-02-01T12:05:26.002Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -288,13 +302,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "e49b56f230545f147950-b775941fa5e4c4c81c55",
-              "file": "admin/admin.spec.ts",
-              "line": 24,
+              "id": "315a9e599398b2654917-84423f9cd802be819920",
+              "file": "campaigns/campaign-bugs.spec.ts",
+              "line": 37,
               "column": 7
             },
             {
-              "title": "TC-ADMIN-003: Should create new user",
+              "title": "BUG-003: Negative budget should be rejected",
               "ok": true,
               "tags": [],
               "tests": [
@@ -309,12 +323,16 @@
                       "workerIndex": 3,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 4706,
+                      "duration": 3779,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "✓ Negative budget validation correctly rejects negative values\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:36.829Z",
+                      "startTime": "2026-02-01T12:05:26.012Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -322,13 +340,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "e49b56f230545f147950-cdfe7e4572a64f53cd85",
-              "file": "admin/admin.spec.ts",
-              "line": 29,
+              "id": "315a9e599398b2654917-93135b7d936a645e03bc",
+              "file": "campaigns/campaign-bugs.spec.ts",
+              "line": 96,
               "column": 7
             },
             {
-              "title": "TC-ADMIN-004: Should edit user",
+              "title": "BUG-004: ROI calculation with zero spend should not show Infinity/NaN",
               "ok": true,
               "tags": [],
               "tests": [
@@ -343,12 +361,16 @@
                       "workerIndex": 4,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 5913,
+                      "duration": 2181,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "✓ ROI calculation handles zero spend correctly: Calculated ROI: 0%\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:36.765Z",
+                      "startTime": "2026-02-01T12:05:26.001Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -356,124 +378,14 @@
                   "status": "expected"
                 }
               ],
-              "id": "e49b56f230545f147950-9b328e2ba5179751a958",
-              "file": "admin/admin.spec.ts",
-              "line": 73,
+              "id": "315a9e599398b2654917-aa76ce5d76d1d754b2c8",
+              "file": "campaigns/campaign-bugs.spec.ts",
+              "line": 121,
               "column": 7
             },
             {
-              "title": "TC-ADMIN-005: Should disable user",
+              "title": "BUG-005: Bulk update without selecting fields should warn user",
               "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 5523,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:38.568Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-68844584f7ba44e8ca9e",
-              "file": "admin/admin.spec.ts",
-              "line": 92,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-006: Should delete test user",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5520,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:38.576Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-03f876acdeec746a6403",
-              "file": "admin/admin.spec.ts",
-              "line": 111,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Admin - Roles Management",
-          "file": "admin/admin.spec.ts",
-          "line": 137,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-ADMIN-007: Should display roles list",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 1240,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:41.759Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-0c84165fef9c1281befc",
-              "file": "admin/admin.spec.ts",
-              "line": 144,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-008: Should create new role",
-              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -486,62 +398,69 @@
                     {
                       "workerIndex": 4,
                       "parallelIndex": 3,
-                      "status": "failed",
-                      "duration": 12675,
-                      "error": {
-                        "message": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Save\"), button:has-text(\"Create\")').first()\u001b[22m\n\u001b[2m    - locator resolved to <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1ra12j4\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    18 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
-                        "stack": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Save\"), button:has-text(\"Create\")').first()\u001b[22m\n\u001b[2m    - locator resolved to <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1ra12j4\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    18 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/admin/admin.spec.ts:162:88",
-                        "location": {
-                          "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/admin/admin.spec.ts",
-                          "column": 88,
-                          "line": 162
-                        },
-                        "snippet": "  160 |       }\n  161 |       \n> 162 |       await page.locator('button:has-text(\"Save\"), button:has-text(\"Create\")').first().click();\n      |                                                                                        ^\n  163 |       await page.waitForTimeout(2000);\n  164 |     }\n  165 |   });"
-                      },
-                      "errors": [
+                      "status": "passed",
+                      "duration": 3458,
+                      "errors": [],
+                      "stdout": [
                         {
-                          "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/admin/admin.spec.ts",
-                            "column": 88,
-                            "line": 162
-                          },
-                          "message": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Save\"), button:has-text(\"Create\")').first()\u001b[22m\n\u001b[2m    - locator resolved to <button tabindex=\"0\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1ra12j4\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    18 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div tabindex=\"-1\" role=\"presentation\" class=\"MuiDialog-container MuiDialog-scrollPaper css-16u656j\">…</div> from <div role=\"presentation\" class=\"MuiDialog-root MuiModal-root css-126xj0f\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  160 |       }\n  161 |       \n> 162 |       await page.locator('button:has-text(\"Save\"), button:has-text(\"Create\")').first().click();\n      |                                                                                        ^\n  163 |       await page.waitForTimeout(2000);\n  164 |     }\n  165 |   });\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/admin/admin.spec.ts:162:88"
+                          "text": "✓ Bulk update with no fields completed without crash\n"
                         }
                       ],
-                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:42.977Z",
+                      "startTime": "2026-02-01T12:05:28.465Z",
                       "annotations": [],
-                      "attachments": [
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "315a9e599398b2654917-780c55c652c35347740a",
+              "file": "campaigns/campaign-bugs.spec.ts",
+              "line": 148,
+              "column": 7
+            },
+            {
+              "title": "BUG-006: Notes tab should show save-first message for new campaigns",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1823,
+                      "errors": [],
+                      "stdout": [
                         {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/test-results/artifacts/admin-admin-Admin---Roles--cc2ae--008-Should-create-new-role-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/test-results/artifacts/admin-admin-Admin---Roles--cc2ae--008-Should-create-new-role-chromium/error-context.md"
+                          "text": "✓ Notes tab correctly shows save-first message\n"
                         }
                       ],
-                      "errorLocation": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/admin/admin.spec.ts",
-                        "column": 88,
-                        "line": 162
-                      }
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:29.287Z",
+                      "annotations": [],
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "e49b56f230545f147950-8716428be49d678c6e18",
-              "file": "admin/admin.spec.ts",
-              "line": 149,
+              "id": "315a9e599398b2654917-4d2c09c9ef27d18ca125",
+              "file": "campaigns/campaign-bugs.spec.ts",
+              "line": 183,
               "column": 7
             },
             {
-              "title": "TC-ADMIN-009: Should assign permissions to role",
+              "title": "BUG-007: Campaign type dropdown should show all options",
               "ok": true,
               "tags": [],
               "tests": [
@@ -556,538 +475,16 @@
                       "workerIndex": 3,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 5562,
+                      "duration": 2423,
                       "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:43.008Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-024b43650f7885a6e976",
-              "file": "admin/admin.spec.ts",
-              "line": 167,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-010: Should delete test role",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 5720,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:44.107Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-b399b03799bfd8e903a4",
-              "file": "admin/admin.spec.ts",
-              "line": 186,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Admin - Security Settings",
-          "file": "admin/admin.spec.ts",
-          "line": 212,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-ADMIN-011: Should display settings page",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1553,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:44.113Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-e690ec8fad8c83eac134",
-              "file": "admin/admin.spec.ts",
-              "line": 219,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-012: Should access security settings",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1404,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:45.710Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-ef30b83df0a0dc251f5c",
-              "file": "admin/admin.spec.ts",
-              "line": 224,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-013: Should configure password policy",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1700,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:47.138Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-bf08abd1228a45581c96",
-              "file": "admin/admin.spec.ts",
-              "line": 232,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-014: Should configure session timeout",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 1354,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:48.585Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-61799f2ff034965424e3",
-              "file": "admin/admin.spec.ts",
-              "line": 245,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Admin - LLM Settings",
-          "file": "admin/admin.spec.ts",
-          "line": 260,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-ADMIN-015: Should display LLM settings page",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 451,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:48.867Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-5015a079eff874eab3e0",
-              "file": "admin/admin.spec.ts",
-              "line": 266,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-016: Should configure LLM endpoint",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 359,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:49.351Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-5b40008b12aaf54bfa54",
-              "file": "admin/admin.spec.ts",
-              "line": 272,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-017: Should configure model selection",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 392,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:49.726Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-9d668ffffde28009c328",
-              "file": "admin/admin.spec.ts",
-              "line": 280,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-018: Should test LLM connection",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 484,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:49.839Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-34ed88fe0e1323af9ee6",
-              "file": "admin/admin.spec.ts",
-              "line": 288,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Admin - Branding",
-          "file": "admin/admin.spec.ts",
-          "line": 297,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-ADMIN-019: Should display branding settings",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 1417,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:49.959Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-c6106b756db751d40638",
-              "file": "admin/admin.spec.ts",
-              "line": 305,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-020: Should update company name",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1454,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:50.134Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-4e6bcaf582a00f4d9eb1",
-              "file": "admin/admin.spec.ts",
-              "line": 311,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-021: Should update primary color",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 1664,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:50.340Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-3946163877bcc0264087",
-              "file": "admin/admin.spec.ts",
-              "line": 319,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Admin - Email Settings",
-          "file": "admin/admin.spec.ts",
-          "line": 327,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-ADMIN-022: Should display email settings",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [
-                    {
-                      "type": "skip",
-                      "location": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/admin/admin.spec.ts",
-                        "line": 335,
-                        "column": 8
-                      }
-                    }
-                  ],
-                  "expectedStatus": "skipped",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": -1,
-                      "parallelIndex": -1,
-                      "status": "skipped",
-                      "duration": 0,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:51.394Z",
-                      "annotations": [
+                      "stdout": [
                         {
-                          "type": "skip",
-                          "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/admin/admin.spec.ts",
-                            "line": 335,
-                            "column": 8
-                          }
+                          "text": "Campaign type has 26 options\n"
                         }
                       ],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "skipped"
-                }
-              ],
-              "id": "e49b56f230545f147950-36635293b8f7db42769e",
-              "file": "admin/admin.spec.ts",
-              "line": 335,
-              "column": 8
-            },
-            {
-              "title": "TC-ADMIN-023: Should configure SMTP settings",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 1336,
-                      "errors": [],
-                      "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:51.410Z",
+                      "startTime": "2026-02-01T12:05:30.065Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1095,13 +492,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "e49b56f230545f147950-7257ea5c8b55f53e2baa",
-              "file": "admin/admin.spec.ts",
-              "line": 341,
+              "id": "315a9e599398b2654917-fb96b47384bfb724d351",
+              "file": "campaigns/campaign-bugs.spec.ts",
+              "line": 209,
               "column": 7
             },
             {
-              "title": "TC-ADMIN-024: Should send test email",
+              "title": "BUG-008: Performance metrics should update calculated fields",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1116,12 +513,16 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2098,
+                      "duration": 2421,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "✓ CTR calculation correct: 5.00%\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:51.619Z",
+                      "startTime": "2026-02-01T12:05:31.126Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1129,153 +530,9 @@
                   "status": "expected"
                 }
               ],
-              "id": "e49b56f230545f147950-46fa5452ae2d0c497b45",
-              "file": "admin/admin.spec.ts",
-              "line": 355,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Admin - Audit Log",
-          "file": "admin/admin.spec.ts",
-          "line": 364,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-ADMIN-025: Should display audit log",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 1928,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:52.025Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-45c19dd92284794fdcec",
-              "file": "admin/admin.spec.ts",
-              "line": 371,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-026: Should filter audit log by date",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 1419,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:52.777Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-7eb20fd2e50a3ba621c0",
-              "file": "admin/admin.spec.ts",
-              "line": 376,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-027: Should filter audit log by action type",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1561,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:53.834Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-a2c88ce94abd2d04a0bd",
-              "file": "admin/admin.spec.ts",
-              "line": 384,
-              "column": 7
-            },
-            {
-              "title": "TC-ADMIN-028: Should export audit log",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 1990,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:54.070Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e49b56f230545f147950-58d6cd73e34a10ac5574",
-              "file": "admin/admin.spec.ts",
-              "line": 392,
+              "id": "315a9e599398b2654917-f4566483435c146744a5",
+              "file": "campaigns/campaign-bugs.spec.ts",
+              "line": 239,
               "column": 7
             }
           ]
@@ -1283,156 +540,20 @@
       ]
     },
     {
-      "title": "auth/authentication.spec.ts",
-      "file": "auth/authentication.spec.ts",
+      "title": "campaigns/campaign-execution.spec.ts",
+      "file": "campaigns/campaign-execution.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Authentication - Login",
-          "file": "auth/authentication.spec.ts",
-          "line": 11,
+          "title": "Campaign Execution - Navigation",
+          "file": "campaigns/campaign-execution.spec.ts",
+          "line": 10,
           "column": 6,
           "specs": [
             {
-              "title": "TC-AUTH-001: Should display login page correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 697,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:54.362Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-a1ee385a30650d61753f",
-              "file": "auth/authentication.spec.ts",
-              "line": 18,
-              "column": 7
-            },
-            {
-              "title": "TC-AUTH-002: Should login successfully with valid credentials",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 919,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:55.470Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-372e7d561afce1b2220d",
-              "file": "auth/authentication.spec.ts",
-              "line": 25,
-              "column": 7
-            },
-            {
-              "title": "TC-AUTH-003: Should show error for invalid email",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 773,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:55.573Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-8e55df5d1644f65ae4e9",
-              "file": "auth/authentication.spec.ts",
-              "line": 40,
-              "column": 7
-            },
-            {
-              "title": "TC-AUTH-004: Should show error for wrong password",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 2629,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:59.304Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-065243a61eca7b3d263c",
-              "file": "auth/authentication.spec.ts",
-              "line": 54,
-              "column": 7
-            },
-            {
-              "title": "TC-AUTH-005: Should show error for empty fields",
+              "title": "TC-CEXE-001: Should display campaigns list",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1447,12 +568,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 839,
+                      "duration": 464,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:56.158Z",
+                      "startTime": "2026-02-01T12:05:31.229Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1460,13 +581,199 @@
                   "status": "expected"
                 }
               ],
-              "id": "62b8d4dbcee4331d62dc-ca9a592a1a8096d04a00",
-              "file": "auth/authentication.spec.ts",
-              "line": 69,
+              "id": "c003f46a135444c7195a-bac3adf8b910cdb9680c",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 16,
               "column": 7
             },
             {
-              "title": "TC-AUTH-006: Should navigate to forgot password page",
+              "title": "TC-CEXE-002: Should navigate to campaign execution page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 384,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:31.702Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-97442041f50467b9c8f0",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 20,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Campaign Execution - Workflows",
+          "file": "campaigns/campaign-execution.spec.ts",
+          "line": 35,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-CEXE-010: Should display workflows tab",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 435,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:31.948Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-b4d00ed908eefd5d8ff7",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 36,
+              "column": 7
+            },
+            {
+              "title": "TC-CEXE-011: Should show link workflow button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 385,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:32.096Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-808ea42041b32bc62fc3",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "TC-CEXE-012: Should open link workflow dialog",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 433,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:32.418Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-11e8aef7bea736e810b6",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 63,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Campaign Execution - Recipients",
+          "file": "campaigns/campaign-execution.spec.ts",
+          "line": 76,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-CEXE-020: Should show recipients tab",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 423,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:32.507Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-b6206ea5011cfba84967",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 77,
+              "column": 7
+            },
+            {
+              "title": "TC-CEXE-021: Should open add recipients dialog",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1481,12 +788,12 @@
                       "workerIndex": 3,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 960,
+                      "duration": 474,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:56.365Z",
+                      "startTime": "2026-02-01T12:05:32.524Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1494,13 +801,785 @@
                   "status": "expected"
                 }
               ],
-              "id": "62b8d4dbcee4331d62dc-f2aef53d087c1611e2df",
-              "file": "auth/authentication.spec.ts",
-              "line": 86,
+              "id": "c003f46a135444c7195a-b3eac5b248302f4a8387",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 89,
               "column": 7
             },
             {
-              "title": "TC-AUTH-007: Should navigate to registration page",
+              "title": "TC-CEXE-022: Should add recipients to campaign",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 428,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:32.867Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-12e3677f23db58b557ce",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 107,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Campaign Execution - A/B Testing",
+          "file": "campaigns/campaign-execution.spec.ts",
+          "line": 131,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-CEXE-030: Should show A/B tests tab",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 415,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:32.949Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-080acb244ad70b7898fd",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 132,
+              "column": 7
+            },
+            {
+              "title": "TC-CEXE-031: Should open create A/B test dialog",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 371,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:33.014Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-ae95e65746d830f663de",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 144,
+              "column": 7
+            },
+            {
+              "title": "TC-CEXE-032: Should create A/B test",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 488,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:33.341Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-5cb5c4ecdac99ef25192",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 162,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Campaign Execution - Conversions",
+          "file": "campaigns/campaign-execution.spec.ts",
+          "line": 198,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-CEXE-040: Should show conversions tab",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 518,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:33.376Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-d7e79b3ddf187885fe4e",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 199,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Campaign Execution - Analytics",
+          "file": "campaigns/campaign-execution.spec.ts",
+          "line": 212,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-CEXE-050: Should show analytics tab",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 496,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:33.399Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-d5b67c0d5f5791e065e3",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 213,
+              "column": 7
+            },
+            {
+              "title": "TC-CEXE-051: Should display engagement funnel",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 498,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:33.570Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-1224d8282e740c696fc7",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 224,
+              "column": 7
+            },
+            {
+              "title": "TC-CEXE-052: Should display ROI metrics",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 499,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:33.843Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-6acbafd09ecbf85e9c64",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 241,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Campaign Execution - Summary Cards",
+          "file": "campaigns/campaign-execution.spec.ts",
+          "line": 259,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-CEXE-060: Should display summary metrics cards",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 468,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:33.912Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-6c16320e4f53399c9eec",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 260,
+              "column": 7
+            },
+            {
+              "title": "TC-CEXE-061: Should show open rate metric",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 495,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:33.916Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-8d92b99e5acf02e06d14",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 271,
+              "column": 7
+            },
+            {
+              "title": "TC-CEXE-062: Should show conversion rate metric",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 610,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:34.093Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c003f46a135444c7195a-10ec29b3ed766ccc11d4",
+              "file": "campaigns/campaign-execution.spec.ts",
+              "line": 281,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "campaigns/campaign-setup.spec.ts",
+      "file": "campaigns/campaign-setup.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Campaign Setup - Create Sample Data",
+          "file": "campaigns/campaign-setup.spec.ts",
+          "line": 63,
+          "column": 6,
+          "specs": [
+            {
+              "title": "SETUP-001: Create sample campaigns for testing",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 1703,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Creating campaign: Q1 Email Newsletter\n"
+                        },
+                        {
+                          "text": "  ⏭ Campaign \"Q1 Email Newsletter\" already exists, skipping\n"
+                        },
+                        {
+                          "text": "Creating campaign: Spring Social Media Push\n"
+                        },
+                        {
+                          "text": "  ⏭ Campaign \"Spring Social Media Push\" already exists, skipping\n"
+                        },
+                        {
+                          "text": "Creating campaign: Product Launch Webinar\n"
+                        },
+                        {
+                          "text": "  ⏭ Campaign \"Product Launch Webinar\" already exists, skipping\n"
+                        },
+                        {
+                          "text": "Creating campaign: Trade Show 2026\n"
+                        },
+                        {
+                          "text": "  ⏭ Campaign \"Trade Show 2026\" already exists, skipping\n"
+                        },
+                        {
+                          "text": "Creating campaign: Completed Winter Sale\n"
+                        },
+                        {
+                          "text": "  ⏭ Campaign \"Completed Winter Sale\" already exists, skipping\n"
+                        },
+                        {
+                          "text": "\n📊 Total campaigns in table: 19\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:34.407Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a36d1b07c6c96d5b0da7-2704386f9d0e7c1a6d97",
+              "file": "campaigns/campaign-setup.spec.ts",
+              "line": 69,
+              "column": 7
+            },
+            {
+              "title": "SETUP-002: Add performance metrics to a campaign",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4759,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Campaign row visible: \u001b[33mtrue\u001b[39m\n"
+                        },
+                        {
+                          "text": "Looking for edit button...\n"
+                        },
+                        {
+                          "text": "✓ Added performance metrics to first campaign\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:34.409Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a36d1b07c6c96d5b0da7-2cc535b58232b5ce6fdf",
+              "file": "campaigns/campaign-setup.spec.ts",
+              "line": 176,
+              "column": 7
+            },
+            {
+              "title": "SETUP-003: Add email metrics to email campaign",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 4042,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✓ Added email metrics to campaign\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:34.464Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a36d1b07c6c96d5b0da7-15a341a57aa28845b808",
+              "file": "campaigns/campaign-setup.spec.ts",
+              "line": 233,
+              "column": 7
+            },
+            {
+              "title": "SETUP-004: Add social metrics to social campaign",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4061,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✓ Added social metrics to campaign\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:34.745Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a36d1b07c6c96d5b0da7-483e6751bc66d6566b03",
+              "file": "campaigns/campaign-setup.spec.ts",
+              "line": 280,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "campaigns/campaigns.spec.ts",
+      "file": "campaigns/campaigns.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Campaigns - List View",
+          "file": "campaigns/campaigns.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-CAMP-001: Should display campaigns list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 994,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:36.170Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2a0f8c3a60a95eec0662-4ed487e989ee5c512ff2",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 17,
+              "column": 7
+            },
+            {
+              "title": "TC-CAMP-002: Should show campaign status",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 358,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:37.173Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2a0f8c3a60a95eec0662-45c5414f8e6c261031c8",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 23,
+              "column": 7
+            },
+            {
+              "title": "TC-CAMP-003: Should filter by type",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 361,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:37.563Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2a0f8c3a60a95eec0662-05bc796dc2659beaa769",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 30,
+              "column": 7
+            },
+            {
+              "title": "TC-CAMP-004: Should search campaigns",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 905,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-01T12:05:37.936Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2a0f8c3a60a95eec0662-df4318ad42a064e1a999",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 43,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Campaigns - Create",
+          "file": "campaigns/campaigns.spec.ts",
+          "line": 56,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-CAMP-005: Should create email campaign",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1509,10 +1588,9 @@
                   "annotations": [
                     {
                       "type": "skip",
-                      "description": "Registration link not visible",
                       "location": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                        "line": 106,
+                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
+                        "line": 67,
                         "column": 12
                       }
                     }
@@ -1522,22 +1600,21 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
+                      "workerIndex": 3,
+                      "parallelIndex": 2,
                       "status": "skipped",
-                      "duration": 764,
+                      "duration": 346,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:56.411Z",
+                      "startTime": "2026-02-01T12:05:38.531Z",
                       "annotations": [
                         {
                           "type": "skip",
-                          "description": "Registration link not visible",
                           "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                            "line": 106,
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
+                            "line": 67,
                             "column": 12
                           }
                         }
@@ -1548,131 +1625,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "62b8d4dbcee4331d62dc-5b9522ffed24d1788f9c",
-              "file": "auth/authentication.spec.ts",
-              "line": 98,
+              "id": "2a0f8c3a60a95eec0662-680f815da36bd005c3c4",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 62,
               "column": 7
             },
             {
-              "title": "TC-AUTH-008: Should remember me functionality",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 1293,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:57.075Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-b4e6afafa87364bce294",
-              "file": "auth/authentication.spec.ts",
-              "line": 110,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Authentication - Logout",
-          "file": "auth/authentication.spec.ts",
-          "line": 132,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-AUTH-009: Should logout successfully",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 3798,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:57.203Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-d075c4734c1bf71c4558",
-              "file": "auth/authentication.spec.ts",
-              "line": 143,
-              "column": 7
-            },
-            {
-              "title": "TC-AUTH-010: Should not access protected routes after logout",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 3276,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:57.353Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-d2d6dcde5a1aa800d6d8",
-              "file": "auth/authentication.spec.ts",
-              "line": 164,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Authentication - Registration",
-          "file": "auth/authentication.spec.ts",
-          "line": 193,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-AUTH-011: Should display registration form",
+              "title": "TC-CAMP-006: Should create social media campaign",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1682,9 +1641,9 @@
                     {
                       "type": "skip",
                       "location": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                        "line": 195,
-                        "column": 8
+                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
+                        "line": 114,
+                        "column": 12
                       }
                     }
                   ],
@@ -1693,22 +1652,22 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": -1,
-                      "parallelIndex": -1,
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
                       "status": "skipped",
-                      "duration": 0,
+                      "duration": 473,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:38:58.410Z",
+                      "startTime": "2026-02-01T12:05:38.851Z",
                       "annotations": [
                         {
                           "type": "skip",
                           "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                            "line": 195,
-                            "column": 8
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
+                            "line": 114,
+                            "column": 12
                           }
                         }
                       ],
@@ -1718,201 +1677,13 @@
                   "status": "skipped"
                 }
               ],
-              "id": "62b8d4dbcee4331d62dc-b9ad0fa632e62747029c",
-              "file": "auth/authentication.spec.ts",
-              "line": 195,
-              "column": 8
-            },
-            {
-              "title": "TC-AUTH-012: Should validate registration form fields",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [
-                    {
-                      "type": "skip",
-                      "location": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                        "line": 202,
-                        "column": 8
-                      }
-                    }
-                  ],
-                  "expectedStatus": "skipped",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": -1,
-                      "parallelIndex": -1,
-                      "status": "skipped",
-                      "duration": 0,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:58.410Z",
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                            "line": 202,
-                            "column": 8
-                          }
-                        }
-                      ],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "skipped"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-25548d2e87fa2263e46b",
-              "file": "auth/authentication.spec.ts",
-              "line": 202,
-              "column": 8
-            },
-            {
-              "title": "TC-AUTH-013: Should register new test user",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [
-                    {
-                      "type": "skip",
-                      "location": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                        "line": 210,
-                        "column": 8
-                      }
-                    }
-                  ],
-                  "expectedStatus": "skipped",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": -1,
-                      "parallelIndex": -1,
-                      "status": "skipped",
-                      "duration": 0,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:58.410Z",
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                            "line": 210,
-                            "column": 8
-                          }
-                        }
-                      ],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "skipped"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-a8666b32c6764b17f209",
-              "file": "auth/authentication.spec.ts",
-              "line": 210,
-              "column": 8
-            }
-          ]
-        },
-        {
-          "title": "Authentication - Password Reset",
-          "file": "auth/authentication.spec.ts",
-          "line": 239,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-AUTH-014: Should display password reset form",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 527,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:58.411Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-fe29165d2be04afb58f3",
-              "file": "auth/authentication.spec.ts",
-              "line": 240,
+              "id": "2a0f8c3a60a95eec0662-51019f71566c159bfd7c",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 109,
               "column": 7
             },
             {
-              "title": "TC-AUTH-015: Should send password reset email",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 3588,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:38:58.952Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-3200b24caafe76847def",
-              "file": "auth/authentication.spec.ts",
-              "line": 258,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Authentication - Two-Factor Authentication",
-          "file": "auth/authentication.spec.ts",
-          "line": 286,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-AUTH-016: Should display 2FA setup option in settings",
+              "title": "TC-CAMP-007: Should set target audience",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1921,11 +1692,10 @@
                   "annotations": [
                     {
                       "type": "skip",
-                      "description": "2FA setup option not available in settings",
                       "location": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                        "line": 317,
-                        "column": 14
+                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
+                        "line": 145,
+                        "column": 12
                       }
                     }
                   ],
@@ -1937,20 +1707,19 @@
                       "workerIndex": 3,
                       "parallelIndex": 2,
                       "status": "skipped",
-                      "duration": 2846,
+                      "duration": 443,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:39:00.647Z",
+                      "startTime": "2026-02-01T12:05:38.888Z",
                       "annotations": [
                         {
                           "type": "skip",
-                          "description": "2FA setup option not available in settings",
                           "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                            "line": 317,
-                            "column": 14
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
+                            "line": 145,
+                            "column": 12
                           }
                         }
                       ],
@@ -1960,73 +1729,21 @@
                   "status": "skipped"
                 }
               ],
-              "id": "62b8d4dbcee4331d62dc-0f472fc75a286181e5fb",
-              "file": "auth/authentication.spec.ts",
-              "line": 287,
+              "id": "2a0f8c3a60a95eec0662-4e7056cb431eb00f20fc",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 142,
               "column": 7
-            },
-            {
-              "title": "TC-AUTH-017: Should handle 2FA verification page",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [
-                    {
-                      "type": "skip",
-                      "location": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                        "line": 327,
-                        "column": 8
-                      }
-                    }
-                  ],
-                  "expectedStatus": "skipped",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": -1,
-                      "parallelIndex": -1,
-                      "status": "skipped",
-                      "duration": 0,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:01.046Z",
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/auth/authentication.spec.ts",
-                            "line": 327,
-                            "column": 8
-                          }
-                        }
-                      ],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "skipped"
-                }
-              ],
-              "id": "62b8d4dbcee4331d62dc-c6c7a96248cd77b4cea4",
-              "file": "auth/authentication.spec.ts",
-              "line": 327,
-              "column": 8
             }
           ]
         },
         {
-          "title": "Authentication - Session Management",
-          "file": "auth/authentication.spec.ts",
-          "line": 334,
+          "title": "Campaigns - Lifecycle",
+          "file": "campaigns/campaigns.spec.ts",
+          "line": 162,
           "column": 6,
           "specs": [
             {
-              "title": "TC-AUTH-018: Should maintain session across page navigation",
+              "title": "TC-CAMP-008: Should start campaign",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2041,12 +1758,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 801,
+                      "duration": 4540,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:39:01.047Z",
+                      "startTime": "2026-02-01T12:05:38.899Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2054,13 +1771,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "62b8d4dbcee4331d62dc-9df59e23395074bf413d",
-              "file": "auth/authentication.spec.ts",
-              "line": 335,
+              "id": "2a0f8c3a60a95eec0662-3a9caac7f1d64789af9d",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 163,
               "column": 7
             },
             {
-              "title": "TC-AUTH-019: Should handle session timeout gracefully",
+              "title": "TC-CAMP-009: Should pause campaign",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2072,15 +1789,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 2882,
+                      "duration": 4671,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:39:01.856Z",
+                      "startTime": "2026-02-01T12:05:39.212Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2088,13 +1805,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "62b8d4dbcee4331d62dc-215ffec0683849f80429",
-              "file": "auth/authentication.spec.ts",
-              "line": 358,
+              "id": "2a0f8c3a60a95eec0662-0cd2496ee8eeb3d4b992",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 185,
               "column": 7
             },
             {
-              "title": "TC-AUTH-020: Should handle concurrent sessions",
+              "title": "TC-CAMP-010: Should complete campaign",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2106,15 +1823,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 5,
+                      "workerIndex": 4,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 1921,
+                      "duration": 4557,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:39:02.284Z",
+                      "startTime": "2026-02-01T12:05:39.342Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2122,174 +1839,21 @@
                   "status": "expected"
                 }
               ],
-              "id": "62b8d4dbcee4331d62dc-47266eb86e1e425cb806",
-              "file": "auth/authentication.spec.ts",
-              "line": 387,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "dashboard/dashboard.spec.ts",
-      "file": "dashboard/dashboard.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Dashboard - Main View",
-          "file": "dashboard/dashboard.spec.ts",
-          "line": 9,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-DASH-001: Should display dashboard",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 534,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:02.569Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-ba51eaf18856ea66de15",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-002: Should display welcome message",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 469,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:03.120Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-4f7afbd0b9211343dac2",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 21,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-003: Should display navigation menu",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 561,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:03.533Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-552e26d98c72b5ed384f",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 26,
+              "id": "2a0f8c3a60a95eec0662-0dfdb48b14e35c9bceb6",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 207,
               "column": 7
             }
           ]
         },
         {
-          "title": "Dashboard - Widgets",
-          "file": "dashboard/dashboard.spec.ts",
-          "line": 32,
+          "title": "Campaigns - Metrics",
+          "file": "campaigns/campaigns.spec.ts",
+          "line": 230,
           "column": 6,
           "specs": [
             {
-              "title": "TC-DASH-004: Should display customer count widget",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 509,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:03.608Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-5adc7199762d43127f12",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 38,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-005: Should display opportunity pipeline widget",
+              "title": "TC-CAMP-011: Should display campaign metrics",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2304,12 +1868,12 @@
                       "workerIndex": 3,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 556,
+                      "duration": 2554,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:39:04.117Z",
+                      "startTime": "2026-02-01T12:05:39.342Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2317,81 +1881,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "747340cde928aa6c3216-ccde395a5677201ba94d",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 45,
+              "id": "2a0f8c3a60a95eec0662-913e46da4939d73c1128",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 231,
               "column": 7
             },
             {
-              "title": "TC-DASH-006: Should display service requests widget",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 532,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:04.135Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-a24f139e9215ea131794",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 52,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-007: Should display recent activity widget",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 506,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:04.226Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-3c7bedd79451080446a0",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 59,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-008: Should display tasks widget",
+              "title": "TC-CAMP-012: Should show ROI data",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2406,12 +1902,12 @@
                       "workerIndex": 3,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 818,
+                      "duration": 2529,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:39:04.696Z",
+                      "startTime": "2026-02-01T12:05:41.909Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2419,89 +1915,21 @@
                   "status": "expected"
                 }
               ],
-              "id": "747340cde928aa6c3216-ca0e51b7a6e6b87a4bb4",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 66,
+              "id": "2a0f8c3a60a95eec0662-f15655ca9d2954151214",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 251,
               "column": 7
             }
           ]
         },
         {
-          "title": "Dashboard - Metrics",
-          "file": "dashboard/dashboard.spec.ts",
-          "line": 74,
+          "title": "Campaigns - Delete",
+          "file": "campaigns/campaigns.spec.ts",
+          "line": 271,
           "column": 6,
           "specs": [
             {
-              "title": "TC-DASH-009: Should display revenue metrics",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 700,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:04.752Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-c65458e1c0e77ff98bb4",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 80,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-010: Should display lead conversion rate",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 826,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:04.754Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-7f2c4ae968877adb5240",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 87,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-011: Should display open tickets count",
+              "title": "TC-CAMP-013: Should delete test campaign",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2516,12 +1944,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 774,
+                      "duration": 4553,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T09:39:04.782Z",
+                      "startTime": "2026-02-01T12:05:43.450Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2529,779 +1957,9 @@
                   "status": "expected"
                 }
               ],
-              "id": "747340cde928aa6c3216-95fba084dfbf816b99da",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 94,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Dashboard - Charts",
-          "file": "dashboard/dashboard.spec.ts",
-          "line": 102,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-DASH-012: Should display charts",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 681,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:05.547Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-0bd9351d06402554b8de",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 108,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-013: Should have chart interactions",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 717,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:05.553Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-4195192eea5dfea21ce9",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 115,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Dashboard - Quick Actions",
-          "file": "dashboard/dashboard.spec.ts",
-          "line": 125,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-DASH-014: Should have quick add customer action",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 660,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:05.592Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-04704c68af3d9162abcf",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 131,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-015: Should have quick add opportunity action",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 692,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:05.639Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-1229f97f703df2ff4802",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 138,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-016: Should have quick add service request action",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 877,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:06.275Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-445ab9b90ca7e8290285",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 145,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Dashboard - Navigation",
-          "file": "dashboard/dashboard.spec.ts",
-          "line": 153,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-DASH-017: Should navigate to customers",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 854,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:06.284Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-0a46de5850d98a72c83c",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 159,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-018: Should navigate to opportunities",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 784,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:06.339Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-e0092daa7d5c854643d7",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 168,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-019: Should navigate to leads",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 726,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:06.355Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-07f139b345276994d965",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 177,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-020: Should navigate to service requests",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 760,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:07.137Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-cf12bc4e7ca955ddd922",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 186,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-021: Should navigate to campaigns",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 722,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:07.154Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-9a482292b3dd2c16966d",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 194,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-022: Should navigate to admin",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 732,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:07.157Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-8c8153848d9402bbad69",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 203,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Dashboard - User Profile",
-          "file": "dashboard/dashboard.spec.ts",
-          "line": 212,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-DASH-023: Should display user profile menu",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 658,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:07.179Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-89877e2f15e3a747e94f",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 218,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-024: Should access profile settings",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 840,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:07.874Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-6d08e35ca3516816c59d",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 226,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-025: Should logout from dashboard",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 741,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:07.906Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-ee09ca887388d58a6f7e",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 240,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Dashboard - Search",
-          "file": "dashboard/dashboard.spec.ts",
-          "line": 255,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-DASH-026: Should have global search",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 724,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:07.932Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-aae48c179693192ce45c",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 261,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-027: Should search for customer",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 1732,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:07.977Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-6b88447db5f46bf77daf",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 268,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-028: Should navigate from search results",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 1730,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:08.667Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-4a5787918d4dac084d5b",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 281,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Dashboard - Notifications",
-          "file": "dashboard/dashboard.spec.ts",
-          "line": 296,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-DASH-029: Should display notification bell",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 691,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:08.692Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-77ad7fb1ae199e1a129a",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 302,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-030: Should open notifications panel",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 654,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:08.734Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-3bc068b1ecbfbfba1755",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 309,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Dashboard - Responsive",
-          "file": "dashboard/dashboard.spec.ts",
-          "line": 323,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-DASH-031: Should be responsive on mobile",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 488,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:09.416Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-192be86bee18290805f2",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 324,
-              "column": 7
-            },
-            {
-              "title": "TC-DASH-032: Should show mobile menu",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 507,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T09:39:09.413Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "747340cde928aa6c3216-10c925d4463cd423aed0",
-              "file": "dashboard/dashboard.spec.ts",
-              "line": 336,
+              "id": "2a0f8c3a60a95eec0662-f15557fa484beb397e51",
+              "file": "campaigns/campaigns.spec.ts",
+              "line": 272,
               "column": 7
             }
           ]
@@ -3311,11 +1969,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-02-01T09:38:30.131Z",
-    "duration": 40407.704,
-    "expected": 73,
-    "skipped": 7,
-    "unexpected": 1,
+    "startTime": "2026-02-01T12:05:19.361Z",
+    "duration": 28689.188,
+    "expected": 41,
+    "skipped": 3,
+    "unexpected": 0,
     "flaky": 0
   }
 }

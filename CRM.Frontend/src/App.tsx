@@ -40,6 +40,7 @@ import { initializeErrorHandler } from './utils/errorHandler';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PasswordResetPage from './pages/PasswordResetPage';
+import SetupPasswordPage from './pages/SetupPasswordPage';
 import './App.css';
 
 // ============================================================================
@@ -196,6 +197,7 @@ function ThemedApp() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/password-reset" element={<PasswordResetPage />} />
+              <Route path="/setup-password" element={<SetupPasswordPage />} />
 
               {/* Protected Routes */}
               <Route

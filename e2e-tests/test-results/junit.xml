@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="81" failures="1" skipped="7" errors="0" time="40.407703999999995">
-<testsuite name="auth.setup.ts" timestamp="2026-02-01T09:38:30.171Z" hostname="setup" tests="1" failures="0" skipped="0" time="4.156" errors="0">
-<testcase name="authenticate" classname="auth.setup.ts" time="4.156">
+<testsuites id="" name="" tests="44" failures="0" skipped="3" errors="0" time="28.689187999999998">
+<testsuite name="auth.setup.ts" timestamp="2026-02-01T12:05:19.395Z" hostname="setup" tests="1" failures="0" skipped="0" time="4.466" errors="0">
+<testcase name="authenticate" classname="auth.setup.ts" time="4.466">
 <system-out>
 <![CDATA[🔐 Attempting login with: admin@crm.local
 📋 Found 3 input fields
@@ -10,266 +10,179 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="admin/admin.spec.ts" timestamp="2026-02-01T09:38:30.171Z" hostname="chromium" tests="28" failures="1" skipped="1" time="72.416" errors="0">
-<testcase name="Admin - Users Management › TC-ADMIN-001: Should display users list" classname="admin/admin.spec.ts" time="1.519">
-</testcase>
-<testcase name="Admin - Users Management › TC-ADMIN-002: Should have create user button" classname="admin/admin.spec.ts" time="1.474">
-</testcase>
-<testcase name="Admin - Users Management › TC-ADMIN-003: Should create new user" classname="admin/admin.spec.ts" time="4.706">
-</testcase>
-<testcase name="Admin - Users Management › TC-ADMIN-004: Should edit user" classname="admin/admin.spec.ts" time="5.913">
-</testcase>
-<testcase name="Admin - Users Management › TC-ADMIN-005: Should disable user" classname="admin/admin.spec.ts" time="5.523">
-</testcase>
-<testcase name="Admin - Users Management › TC-ADMIN-006: Should delete test user" classname="admin/admin.spec.ts" time="5.52">
-</testcase>
-<testcase name="Admin - Roles Management › TC-ADMIN-007: Should display roles list" classname="admin/admin.spec.ts" time="1.24">
-</testcase>
-<testcase name="Admin - Roles Management › TC-ADMIN-008: Should create new role" classname="admin/admin.spec.ts" time="12.675">
-<failure message="admin.spec.ts:149:7 TC-ADMIN-008: Should create new role" type="FAILURE">
-<![CDATA[  [chromium] › admin/admin.spec.ts:149:7 › Admin - Roles Management › TC-ADMIN-008: Should create new role 
-
-    TimeoutError: locator.click: Timeout 10000ms exceeded.
-    Call log:
-      - waiting for locator('button:has-text("Save"), button:has-text("Create")').first()
-        - locator resolved to <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1ra12j4">…</button>
-      - attempting click action
-        2 × waiting for element to be visible, enabled and stable
-          - element is visible, enabled and stable
-          - scrolling into view if needed
-          - done scrolling
-          - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events
-        - retrying click action
-        - waiting 20ms
-        2 × waiting for element to be visible, enabled and stable
-          - element is visible, enabled and stable
-          - scrolling into view if needed
-          - done scrolling
-          - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events
-        - retrying click action
-          - waiting 100ms
-        18 × waiting for element to be visible, enabled and stable
-           - element is visible, enabled and stable
-           - scrolling into view if needed
-           - done scrolling
-           - <div tabindex="-1" role="presentation" class="MuiDialog-container MuiDialog-scrollPaper css-16u656j">…</div> from <div role="presentation" class="MuiDialog-root MuiModal-root css-126xj0f">…</div> subtree intercepts pointer events
-         - retrying click action
-           - waiting 500ms
-
-
-      160 |       }
-      161 |       
-    > 162 |       await page.locator('button:has-text("Save"), button:has-text("Create")').first().click();
-          |                                                                                        ^
-      163 |       await page.waitForTimeout(2000);
-      164 |     }
-      165 |   });
-        at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/admin/admin.spec.ts:162:88
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/artifacts/admin-admin-Admin---Roles--cc2ae--008-Should-create-new-role-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/artifacts/admin-admin-Admin---Roles--cc2ae--008-Should-create-new-role-chromium/error-context.md
-]]>
-</failure>
+<testsuite name="campaigns/campaign-bugs.spec.ts" timestamp="2026-02-01T12:05:19.395Z" hostname="chromium" tests="8" failures="0" skipped="0" time="24.051" errors="0">
+<testcase name="Campaign Bug Hunt › BUG-001: Empty form submission should show validation errors" classname="campaigns/campaign-bugs.spec.ts" time="3.014">
 <system-out>
-<![CDATA[
-[[ATTACHMENT|artifacts/admin-admin-Admin---Roles--cc2ae--008-Should-create-new-role-chromium/test-failed-1.png]]
-
-[[ATTACHMENT|artifacts/admin-admin-Admin---Roles--cc2ae--008-Should-create-new-role-chromium/error-context.md]]
+<![CDATA[✓ Empty form validation works
 ]]>
 </system-out>
 </testcase>
-<testcase name="Admin - Roles Management › TC-ADMIN-009: Should assign permissions to role" classname="admin/admin.spec.ts" time="5.562">
+<testcase name="Campaign Bug Hunt › BUG-002: End date before start date validation (requires frontend rebuild)" classname="campaigns/campaign-bugs.spec.ts" time="4.952">
+<system-out>
+<![CDATA[Start date: 2026-12-01 End date: 2026-01-01
+String comparison endDate < startDate: [33mtrue[39m
+⚠ Date validation not active - campaign was created
+]]>
+</system-out>
 </testcase>
-<testcase name="Admin - Roles Management › TC-ADMIN-010: Should delete test role" classname="admin/admin.spec.ts" time="5.72">
+<testcase name="Campaign Bug Hunt › BUG-003: Negative budget should be rejected" classname="campaigns/campaign-bugs.spec.ts" time="3.779">
+<system-out>
+<![CDATA[✓ Negative budget validation correctly rejects negative values
+]]>
+</system-out>
 </testcase>
-<testcase name="Admin - Security Settings › TC-ADMIN-011: Should display settings page" classname="admin/admin.spec.ts" time="1.553">
+<testcase name="Campaign Bug Hunt › BUG-004: ROI calculation with zero spend should not show Infinity/NaN" classname="campaigns/campaign-bugs.spec.ts" time="2.181">
+<system-out>
+<![CDATA[✓ ROI calculation handles zero spend correctly: Calculated ROI: 0%
+]]>
+</system-out>
 </testcase>
-<testcase name="Admin - Security Settings › TC-ADMIN-012: Should access security settings" classname="admin/admin.spec.ts" time="1.404">
+<testcase name="Campaign Bug Hunt › BUG-005: Bulk update without selecting fields should warn user" classname="campaigns/campaign-bugs.spec.ts" time="3.458">
+<system-out>
+<![CDATA[✓ Bulk update with no fields completed without crash
+]]>
+</system-out>
 </testcase>
-<testcase name="Admin - Security Settings › TC-ADMIN-013: Should configure password policy" classname="admin/admin.spec.ts" time="1.7">
+<testcase name="Campaign Bug Hunt › BUG-006: Notes tab should show save-first message for new campaigns" classname="campaigns/campaign-bugs.spec.ts" time="1.823">
+<system-out>
+<![CDATA[✓ Notes tab correctly shows save-first message
+]]>
+</system-out>
 </testcase>
-<testcase name="Admin - Security Settings › TC-ADMIN-014: Should configure session timeout" classname="admin/admin.spec.ts" time="1.354">
+<testcase name="Campaign Bug Hunt › BUG-007: Campaign type dropdown should show all options" classname="campaigns/campaign-bugs.spec.ts" time="2.423">
+<system-out>
+<![CDATA[Campaign type has 26 options
+]]>
+</system-out>
 </testcase>
-<testcase name="Admin - LLM Settings › TC-ADMIN-015: Should display LLM settings page" classname="admin/admin.spec.ts" time="0.451">
-</testcase>
-<testcase name="Admin - LLM Settings › TC-ADMIN-016: Should configure LLM endpoint" classname="admin/admin.spec.ts" time="0.359">
-</testcase>
-<testcase name="Admin - LLM Settings › TC-ADMIN-017: Should configure model selection" classname="admin/admin.spec.ts" time="0.392">
-</testcase>
-<testcase name="Admin - LLM Settings › TC-ADMIN-018: Should test LLM connection" classname="admin/admin.spec.ts" time="0.484">
-</testcase>
-<testcase name="Admin - Branding › TC-ADMIN-019: Should display branding settings" classname="admin/admin.spec.ts" time="1.417">
-</testcase>
-<testcase name="Admin - Branding › TC-ADMIN-020: Should update company name" classname="admin/admin.spec.ts" time="1.454">
-</testcase>
-<testcase name="Admin - Branding › TC-ADMIN-021: Should update primary color" classname="admin/admin.spec.ts" time="1.664">
-</testcase>
-<testcase name="Admin - Email Settings › TC-ADMIN-022: Should display email settings" classname="admin/admin.spec.ts" time="0">
-<properties>
-<property name="skip" value="">
-</property>
-</properties>
-<skipped>
-</skipped>
-</testcase>
-<testcase name="Admin - Email Settings › TC-ADMIN-023: Should configure SMTP settings" classname="admin/admin.spec.ts" time="1.336">
-</testcase>
-<testcase name="Admin - Email Settings › TC-ADMIN-024: Should send test email" classname="admin/admin.spec.ts" time="2.098">
-</testcase>
-<testcase name="Admin - Audit Log › TC-ADMIN-025: Should display audit log" classname="admin/admin.spec.ts" time="1.928">
-</testcase>
-<testcase name="Admin - Audit Log › TC-ADMIN-026: Should filter audit log by date" classname="admin/admin.spec.ts" time="1.419">
-</testcase>
-<testcase name="Admin - Audit Log › TC-ADMIN-027: Should filter audit log by action type" classname="admin/admin.spec.ts" time="1.561">
-</testcase>
-<testcase name="Admin - Audit Log › TC-ADMIN-028: Should export audit log" classname="admin/admin.spec.ts" time="1.99">
+<testcase name="Campaign Bug Hunt › BUG-008: Performance metrics should update calculated fields" classname="campaigns/campaign-bugs.spec.ts" time="2.421">
+<system-out>
+<![CDATA[✓ CTR calculation correct: 5.00%
+]]>
+</system-out>
 </testcase>
 </testsuite>
-<testsuite name="auth/authentication.spec.ts" timestamp="2026-02-01T09:38:30.171Z" hostname="chromium" tests="20" failures="0" skipped="6" time="28.513" errors="0">
-<testcase name="Authentication - Login › TC-AUTH-001: Should display login page correctly" classname="auth/authentication.spec.ts" time="0.697">
+<testsuite name="campaigns/campaign-execution.spec.ts" timestamp="2026-02-01T12:05:19.395Z" hostname="chromium" tests="18" failures="0" skipped="0" time="8.284" errors="0">
+<testcase name="Campaign Execution - Navigation › TC-CEXE-001: Should display campaigns list" classname="campaigns/campaign-execution.spec.ts" time="0.464">
 </testcase>
-<testcase name="Authentication - Login › TC-AUTH-002: Should login successfully with valid credentials" classname="auth/authentication.spec.ts" time="0.919">
+<testcase name="Campaign Execution - Navigation › TC-CEXE-002: Should navigate to campaign execution page" classname="campaigns/campaign-execution.spec.ts" time="0.384">
 </testcase>
-<testcase name="Authentication - Login › TC-AUTH-003: Should show error for invalid email" classname="auth/authentication.spec.ts" time="0.773">
+<testcase name="Campaign Execution - Workflows › TC-CEXE-010: Should display workflows tab" classname="campaigns/campaign-execution.spec.ts" time="0.435">
 </testcase>
-<testcase name="Authentication - Login › TC-AUTH-004: Should show error for wrong password" classname="auth/authentication.spec.ts" time="2.629">
+<testcase name="Campaign Execution - Workflows › TC-CEXE-011: Should show link workflow button" classname="campaigns/campaign-execution.spec.ts" time="0.385">
 </testcase>
-<testcase name="Authentication - Login › TC-AUTH-005: Should show error for empty fields" classname="auth/authentication.spec.ts" time="0.839">
+<testcase name="Campaign Execution - Workflows › TC-CEXE-012: Should open link workflow dialog" classname="campaigns/campaign-execution.spec.ts" time="0.433">
 </testcase>
-<testcase name="Authentication - Login › TC-AUTH-006: Should navigate to forgot password page" classname="auth/authentication.spec.ts" time="0.96">
+<testcase name="Campaign Execution - Recipients › TC-CEXE-020: Should show recipients tab" classname="campaigns/campaign-execution.spec.ts" time="0.423">
 </testcase>
-<testcase name="Authentication - Login › TC-AUTH-007: Should navigate to registration page" classname="auth/authentication.spec.ts" time="0.764">
-<properties>
-<property name="skip" value="Registration link not visible">
-</property>
-</properties>
-<skipped>
-</skipped>
+<testcase name="Campaign Execution - Recipients › TC-CEXE-021: Should open add recipients dialog" classname="campaigns/campaign-execution.spec.ts" time="0.474">
 </testcase>
-<testcase name="Authentication - Login › TC-AUTH-008: Should remember me functionality" classname="auth/authentication.spec.ts" time="1.293">
+<testcase name="Campaign Execution - Recipients › TC-CEXE-022: Should add recipients to campaign" classname="campaigns/campaign-execution.spec.ts" time="0.428">
 </testcase>
-<testcase name="Authentication - Logout › TC-AUTH-009: Should logout successfully" classname="auth/authentication.spec.ts" time="3.798">
+<testcase name="Campaign Execution - A/B Testing › TC-CEXE-030: Should show A/B tests tab" classname="campaigns/campaign-execution.spec.ts" time="0.415">
 </testcase>
-<testcase name="Authentication - Logout › TC-AUTH-010: Should not access protected routes after logout" classname="auth/authentication.spec.ts" time="3.276">
+<testcase name="Campaign Execution - A/B Testing › TC-CEXE-031: Should open create A/B test dialog" classname="campaigns/campaign-execution.spec.ts" time="0.371">
 </testcase>
-<testcase name="Authentication - Registration › TC-AUTH-011: Should display registration form" classname="auth/authentication.spec.ts" time="0">
-<properties>
-<property name="skip" value="">
-</property>
-</properties>
-<skipped>
-</skipped>
+<testcase name="Campaign Execution - A/B Testing › TC-CEXE-032: Should create A/B test" classname="campaigns/campaign-execution.spec.ts" time="0.488">
 </testcase>
-<testcase name="Authentication - Registration › TC-AUTH-012: Should validate registration form fields" classname="auth/authentication.spec.ts" time="0">
-<properties>
-<property name="skip" value="">
-</property>
-</properties>
-<skipped>
-</skipped>
+<testcase name="Campaign Execution - Conversions › TC-CEXE-040: Should show conversions tab" classname="campaigns/campaign-execution.spec.ts" time="0.518">
 </testcase>
-<testcase name="Authentication - Registration › TC-AUTH-013: Should register new test user" classname="auth/authentication.spec.ts" time="0">
-<properties>
-<property name="skip" value="">
-</property>
-</properties>
-<skipped>
-</skipped>
+<testcase name="Campaign Execution - Analytics › TC-CEXE-050: Should show analytics tab" classname="campaigns/campaign-execution.spec.ts" time="0.496">
 </testcase>
-<testcase name="Authentication - Password Reset › TC-AUTH-014: Should display password reset form" classname="auth/authentication.spec.ts" time="0.527">
+<testcase name="Campaign Execution - Analytics › TC-CEXE-051: Should display engagement funnel" classname="campaigns/campaign-execution.spec.ts" time="0.498">
 </testcase>
-<testcase name="Authentication - Password Reset › TC-AUTH-015: Should send password reset email" classname="auth/authentication.spec.ts" time="3.588">
+<testcase name="Campaign Execution - Analytics › TC-CEXE-052: Should display ROI metrics" classname="campaigns/campaign-execution.spec.ts" time="0.499">
 </testcase>
-<testcase name="Authentication - Two-Factor Authentication › TC-AUTH-016: Should display 2FA setup option in settings" classname="auth/authentication.spec.ts" time="2.846">
-<properties>
-<property name="skip" value="2FA setup option not available in settings">
-</property>
-</properties>
-<skipped>
-</skipped>
+<testcase name="Campaign Execution - Summary Cards › TC-CEXE-060: Should display summary metrics cards" classname="campaigns/campaign-execution.spec.ts" time="0.468">
 </testcase>
-<testcase name="Authentication - Two-Factor Authentication › TC-AUTH-017: Should handle 2FA verification page" classname="auth/authentication.spec.ts" time="0">
-<properties>
-<property name="skip" value="">
-</property>
-</properties>
-<skipped>
-</skipped>
+<testcase name="Campaign Execution - Summary Cards › TC-CEXE-061: Should show open rate metric" classname="campaigns/campaign-execution.spec.ts" time="0.495">
 </testcase>
-<testcase name="Authentication - Session Management › TC-AUTH-018: Should maintain session across page navigation" classname="auth/authentication.spec.ts" time="0.801">
-</testcase>
-<testcase name="Authentication - Session Management › TC-AUTH-019: Should handle session timeout gracefully" classname="auth/authentication.spec.ts" time="2.882">
-</testcase>
-<testcase name="Authentication - Session Management › TC-AUTH-020: Should handle concurrent sessions" classname="auth/authentication.spec.ts" time="1.921">
+<testcase name="Campaign Execution - Summary Cards › TC-CEXE-062: Should show conversion rate metric" classname="campaigns/campaign-execution.spec.ts" time="0.61">
 </testcase>
 </testsuite>
-<testsuite name="dashboard/dashboard.spec.ts" timestamp="2026-02-01T09:38:30.171Z" hostname="chromium" tests="32" failures="0" skipped="0" time="23.755" errors="0">
-<testcase name="Dashboard - Main View › TC-DASH-001: Should display dashboard" classname="dashboard/dashboard.spec.ts" time="0.534">
+<testsuite name="campaigns/campaign-setup.spec.ts" timestamp="2026-02-01T12:05:19.395Z" hostname="chromium" tests="4" failures="0" skipped="0" time="14.565" errors="0">
+<testcase name="Campaign Setup - Create Sample Data › SETUP-001: Create sample campaigns for testing" classname="campaigns/campaign-setup.spec.ts" time="1.703">
+<system-out>
+<![CDATA[Creating campaign: Q1 Email Newsletter
+  ⏭ Campaign "Q1 Email Newsletter" already exists, skipping
+Creating campaign: Spring Social Media Push
+  ⏭ Campaign "Spring Social Media Push" already exists, skipping
+Creating campaign: Product Launch Webinar
+  ⏭ Campaign "Product Launch Webinar" already exists, skipping
+Creating campaign: Trade Show 2026
+  ⏭ Campaign "Trade Show 2026" already exists, skipping
+Creating campaign: Completed Winter Sale
+  ⏭ Campaign "Completed Winter Sale" already exists, skipping
+
+📊 Total campaigns in table: 19
+]]>
+</system-out>
 </testcase>
-<testcase name="Dashboard - Main View › TC-DASH-002: Should display welcome message" classname="dashboard/dashboard.spec.ts" time="0.469">
+<testcase name="Campaign Setup - Create Sample Data › SETUP-002: Add performance metrics to a campaign" classname="campaigns/campaign-setup.spec.ts" time="4.759">
+<system-out>
+<![CDATA[Campaign row visible: [33mtrue[39m
+Looking for edit button...
+✓ Added performance metrics to first campaign
+]]>
+</system-out>
 </testcase>
-<testcase name="Dashboard - Main View › TC-DASH-003: Should display navigation menu" classname="dashboard/dashboard.spec.ts" time="0.561">
+<testcase name="Campaign Setup - Create Sample Data › SETUP-003: Add email metrics to email campaign" classname="campaigns/campaign-setup.spec.ts" time="4.042">
+<system-out>
+<![CDATA[✓ Added email metrics to campaign
+]]>
+</system-out>
 </testcase>
-<testcase name="Dashboard - Widgets › TC-DASH-004: Should display customer count widget" classname="dashboard/dashboard.spec.ts" time="0.509">
+<testcase name="Campaign Setup - Create Sample Data › SETUP-004: Add social metrics to social campaign" classname="campaigns/campaign-setup.spec.ts" time="4.061">
+<system-out>
+<![CDATA[✓ Added social metrics to campaign
+]]>
+</system-out>
 </testcase>
-<testcase name="Dashboard - Widgets › TC-DASH-005: Should display opportunity pipeline widget" classname="dashboard/dashboard.spec.ts" time="0.556">
+</testsuite>
+<testsuite name="campaigns/campaigns.spec.ts" timestamp="2026-02-01T12:05:19.395Z" hostname="chromium" tests="13" failures="0" skipped="3" time="27.284" errors="0">
+<testcase name="Campaigns - List View › TC-CAMP-001: Should display campaigns list" classname="campaigns/campaigns.spec.ts" time="0.994">
 </testcase>
-<testcase name="Dashboard - Widgets › TC-DASH-006: Should display service requests widget" classname="dashboard/dashboard.spec.ts" time="0.532">
+<testcase name="Campaigns - List View › TC-CAMP-002: Should show campaign status" classname="campaigns/campaigns.spec.ts" time="0.358">
 </testcase>
-<testcase name="Dashboard - Widgets › TC-DASH-007: Should display recent activity widget" classname="dashboard/dashboard.spec.ts" time="0.506">
+<testcase name="Campaigns - List View › TC-CAMP-003: Should filter by type" classname="campaigns/campaigns.spec.ts" time="0.361">
 </testcase>
-<testcase name="Dashboard - Widgets › TC-DASH-008: Should display tasks widget" classname="dashboard/dashboard.spec.ts" time="0.818">
+<testcase name="Campaigns - List View › TC-CAMP-004: Should search campaigns" classname="campaigns/campaigns.spec.ts" time="0.905">
 </testcase>
-<testcase name="Dashboard - Metrics › TC-DASH-009: Should display revenue metrics" classname="dashboard/dashboard.spec.ts" time="0.7">
+<testcase name="Campaigns - Create › TC-CAMP-005: Should create email campaign" classname="campaigns/campaigns.spec.ts" time="0.346">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
 </testcase>
-<testcase name="Dashboard - Metrics › TC-DASH-010: Should display lead conversion rate" classname="dashboard/dashboard.spec.ts" time="0.826">
+<testcase name="Campaigns - Create › TC-CAMP-006: Should create social media campaign" classname="campaigns/campaigns.spec.ts" time="0.473">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
 </testcase>
-<testcase name="Dashboard - Metrics › TC-DASH-011: Should display open tickets count" classname="dashboard/dashboard.spec.ts" time="0.774">
+<testcase name="Campaigns - Create › TC-CAMP-007: Should set target audience" classname="campaigns/campaigns.spec.ts" time="0.443">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
 </testcase>
-<testcase name="Dashboard - Charts › TC-DASH-012: Should display charts" classname="dashboard/dashboard.spec.ts" time="0.681">
+<testcase name="Campaigns - Lifecycle › TC-CAMP-008: Should start campaign" classname="campaigns/campaigns.spec.ts" time="4.54">
 </testcase>
-<testcase name="Dashboard - Charts › TC-DASH-013: Should have chart interactions" classname="dashboard/dashboard.spec.ts" time="0.717">
+<testcase name="Campaigns - Lifecycle › TC-CAMP-009: Should pause campaign" classname="campaigns/campaigns.spec.ts" time="4.671">
 </testcase>
-<testcase name="Dashboard - Quick Actions › TC-DASH-014: Should have quick add customer action" classname="dashboard/dashboard.spec.ts" time="0.66">
+<testcase name="Campaigns - Lifecycle › TC-CAMP-010: Should complete campaign" classname="campaigns/campaigns.spec.ts" time="4.557">
 </testcase>
-<testcase name="Dashboard - Quick Actions › TC-DASH-015: Should have quick add opportunity action" classname="dashboard/dashboard.spec.ts" time="0.692">
+<testcase name="Campaigns - Metrics › TC-CAMP-011: Should display campaign metrics" classname="campaigns/campaigns.spec.ts" time="2.554">
 </testcase>
-<testcase name="Dashboard - Quick Actions › TC-DASH-016: Should have quick add service request action" classname="dashboard/dashboard.spec.ts" time="0.877">
+<testcase name="Campaigns - Metrics › TC-CAMP-012: Should show ROI data" classname="campaigns/campaigns.spec.ts" time="2.529">
 </testcase>
-<testcase name="Dashboard - Navigation › TC-DASH-017: Should navigate to customers" classname="dashboard/dashboard.spec.ts" time="0.854">
-</testcase>
-<testcase name="Dashboard - Navigation › TC-DASH-018: Should navigate to opportunities" classname="dashboard/dashboard.spec.ts" time="0.784">
-</testcase>
-<testcase name="Dashboard - Navigation › TC-DASH-019: Should navigate to leads" classname="dashboard/dashboard.spec.ts" time="0.726">
-</testcase>
-<testcase name="Dashboard - Navigation › TC-DASH-020: Should navigate to service requests" classname="dashboard/dashboard.spec.ts" time="0.76">
-</testcase>
-<testcase name="Dashboard - Navigation › TC-DASH-021: Should navigate to campaigns" classname="dashboard/dashboard.spec.ts" time="0.722">
-</testcase>
-<testcase name="Dashboard - Navigation › TC-DASH-022: Should navigate to admin" classname="dashboard/dashboard.spec.ts" time="0.732">
-</testcase>
-<testcase name="Dashboard - User Profile › TC-DASH-023: Should display user profile menu" classname="dashboard/dashboard.spec.ts" time="0.658">
-</testcase>
-<testcase name="Dashboard - User Profile › TC-DASH-024: Should access profile settings" classname="dashboard/dashboard.spec.ts" time="0.84">
-</testcase>
-<testcase name="Dashboard - User Profile › TC-DASH-025: Should logout from dashboard" classname="dashboard/dashboard.spec.ts" time="0.741">
-</testcase>
-<testcase name="Dashboard - Search › TC-DASH-026: Should have global search" classname="dashboard/dashboard.spec.ts" time="0.724">
-</testcase>
-<testcase name="Dashboard - Search › TC-DASH-027: Should search for customer" classname="dashboard/dashboard.spec.ts" time="1.732">
-</testcase>
-<testcase name="Dashboard - Search › TC-DASH-028: Should navigate from search results" classname="dashboard/dashboard.spec.ts" time="1.73">
-</testcase>
-<testcase name="Dashboard - Notifications › TC-DASH-029: Should display notification bell" classname="dashboard/dashboard.spec.ts" time="0.691">
-</testcase>
-<testcase name="Dashboard - Notifications › TC-DASH-030: Should open notifications panel" classname="dashboard/dashboard.spec.ts" time="0.654">
-</testcase>
-<testcase name="Dashboard - Responsive › TC-DASH-031: Should be responsive on mobile" classname="dashboard/dashboard.spec.ts" time="0.488">
-</testcase>
-<testcase name="Dashboard - Responsive › TC-DASH-032: Should show mobile menu" classname="dashboard/dashboard.spec.ts" time="0.507">
+<testcase name="Campaigns - Delete › TC-CAMP-013: Should delete test campaign" classname="campaigns/campaigns.spec.ts" time="4.553">
 </testcase>
 </testsuite>
 </testsuites>

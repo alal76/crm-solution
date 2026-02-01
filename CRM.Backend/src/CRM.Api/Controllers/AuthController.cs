@@ -387,4 +387,55 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { message = "An error occurred during password reset" });
         }
     }
+
+    /// <summary>
+    /// Set password for first-time login or expired password
+    /// </summary>
+    [HttpPost("setup-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SetupPassword([FromBody] SetPasswordRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var response = await _authenticationService.SetupPasswordAsync(request);
+            return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning($"Password setup failed: {ex.Message}");
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning($"Password setup validation failed: {ex.Message}");
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Password setup error: {ex.Message}");
+            return StatusCode(500, new { message = "An error occurred during password setup" });
+        }
+    }
+
+    /// <summary>
+    /// Get password complexity requirements (for client-side validation)
+    /// </summary>
+    [HttpGet("password-requirements")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPasswordRequirements()
+    {
+        try
+        {
+            var requirements = await _authenticationService.GetPasswordRequirementsAsync();
+            return Ok(requirements);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Get password requirements error: {ex.Message}");
+            return StatusCode(500, new { message = "An error occurred retrieving password requirements" });
+        }
+    }
 }

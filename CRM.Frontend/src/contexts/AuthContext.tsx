@@ -48,7 +48,16 @@ const deleteCookie = (name: string) => {
 interface AuthContextType {
   isAuthenticated: boolean;
   user: any | null;
-  login: (email: string, password: string) => Promise<{ requiresTwoFactor?: boolean; twoFactorToken?: string }>;
+  login: (email: string, password: string) => Promise<{
+    requiresTwoFactor?: boolean;
+    twoFactorToken?: string;
+    requiresPasswordSetup?: boolean;
+    passwordExpired?: boolean;
+    mustChangePassword?: boolean;
+    passwordSetupToken?: string;
+    passwordExpirationWarning?: boolean;
+    daysUntilPasswordExpiration?: number;
+  }>;
   verifyTwoFactor: (twoFactorToken: string, code: string) => Promise<void>;
   register: (data: any) => Promise<{ requiresApproval?: boolean; message?: string } | void>;
   logout: () => void;
@@ -365,7 +374,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string): Promise<{ requiresTwoFactor?: boolean; twoFactorToken?: string }> => {
+  const login = async (email: string, password: string): Promise<{
+    requiresTwoFactor?: boolean;
+    twoFactorToken?: string;
+    requiresPasswordSetup?: boolean;
+    passwordExpired?: boolean;
+    mustChangePassword?: boolean;
+    passwordSetupToken?: string;
+    passwordExpirationWarning?: boolean;
+    daysUntilPasswordExpiration?: number;
+  }> => {
     try {
       const endpoint = '/auth/login';
       debugLog('[AuthContext] Login attempt', { email, endpoint });
@@ -373,12 +391,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await axiosInstance.post(endpoint, { email, password });
       debugLog('[AuthContext] Login response received', { userId: response.data.userId, status: response.status });
       
+      // Check if password setup is required (first-time login or expired)
+      if (response.data.requiresPasswordSetup || response.data.passwordExpired || response.data.mustChangePassword) {
+        debugLog('[AuthContext] Password setup/change required for user');
+        return {
+          requiresPasswordSetup: response.data.requiresPasswordSetup,
+          passwordExpired: response.data.passwordExpired,
+          mustChangePassword: response.data.mustChangePassword,
+          passwordSetupToken: response.data.passwordSetupToken,
+        };
+      }
+      
       // Check if 2FA is required
       if (response.data.requiresTwoFactor) {
         debugLog('[AuthContext] 2FA required for user');
         return { 
           requiresTwoFactor: true, 
-          twoFactorToken: response.data.twoFactorToken 
+          twoFactorToken: response.data.twoFactorToken,
+          passwordExpirationWarning: response.data.passwordExpirationWarning,
+          daysUntilPasswordExpiration: response.data.daysUntilPasswordExpiration,
         };
       }
       

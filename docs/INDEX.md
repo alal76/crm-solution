@@ -1,195 +1,174 @@
-# CRM Solution - Documentation Index
+# CRM Solution - Documentation Hub
 
-**Version:** 0.0.25  
-**Last Updated:** January 2025
-
----
-
-## 🚀 Quick Navigation
-
-### Start Here
-| Priority | Document | Description |
-|----------|----------|-------------|
-| ⭐ 1st | [guides/QUICK_START.md](guides/QUICK_START.md) | 5-minute setup guide |
-| ⭐ 2nd | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide |
-| ⭐ 3rd | [DATABASE_SETUP.md](DATABASE_SETUP.md) | Database configuration |
+> **Version:** 1.7.28 | **Release:** Pre-Release | **Last Updated:** February 1, 2026
 
 ---
 
-## 📚 All Documentation
+## 📖 Documentation Structure
 
-### Architecture (`architecture/`)
+This documentation provides complete coverage of the CRM Solution from architecture to implementation, with end-to-end traceability from business requirements to code.
 
-| File | Description |
-|------|-------------|
-| [CLOUD_DEPLOYMENT_ARCHITECTURE.md](architecture/CLOUD_DEPLOYMENT_ARCHITECTURE.md) | Cloud deployment patterns |
-| [DATABASE_CONFIGURATION.md](architecture/DATABASE_CONFIGURATION.md) | Database design and configuration |
-| [HEXAGONAL_ARCHITECTURE.md](architecture/HEXAGONAL_ARCHITECTURE.md) | Clean/Hexagonal architecture patterns |
-| [KUBERNETES_ARCHITECTURE.md](architecture/KUBERNETES_ARCHITECTURE.md) | Kubernetes cluster design |
-| [PORT_CONFIGURATION.md](architecture/PORT_CONFIGURATION.md) | Service port mappings |
+### Quick Navigation
 
-### Deployment (`deployment/`)
-
-| File | Description |
-|------|-------------|
-| [DEPLOYMENT_COMPLETE.md](deployment/DEPLOYMENT_COMPLETE.md) | Deployment completion checklist |
-| [DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) | General deployment instructions |
-| [DOCKER_ARCHITECTURE.md](deployment/DOCKER_ARCHITECTURE.md) | Docker container architecture |
-| [DOCKER_COMMANDS.md](deployment/DOCKER_COMMANDS.md) | Docker command reference |
-| [DOCKER_IMAGE_UPDATE.md](deployment/DOCKER_IMAGE_UPDATE.md) | Updating Docker images |
-| [DOCKER_SETUP.md](deployment/DOCKER_SETUP.md) | Docker environment setup |
-| [KUBERNETES_DEPLOYMENT_GUIDE.md](deployment/KUBERNETES_DEPLOYMENT_GUIDE.md) | K8s deployment guide |
-| [KUBERNETES_SETUP_COMPLETE.md](deployment/KUBERNETES_SETUP_COMPLETE.md) | K8s setup checklist |
-| [LOCAL_DEVELOPMENT_PORTS.md](deployment/LOCAL_DEVELOPMENT_PORTS.md) | Local dev port configuration |
-| [PRODUCTION_SERVER_SETUP.md](deployment/PRODUCTION_SERVER_SETUP.md) | Production server configuration |
-| [REMOTE_DOCKER_DEPLOYMENT.md](deployment/REMOTE_DOCKER_DEPLOYMENT.md) | Remote Docker deployment |
-| [SSH_AUTHENTICATION_SETUP.md](deployment/SSH_AUTHENTICATION_SETUP.md) | SSH key authentication |
-
-### Features (`features/`)
-
-| File | Description |
-|------|-------------|
-| [ADMIN_SETTINGS_GUIDE.md](features/ADMIN_SETTINGS_GUIDE.md) | Admin settings usage |
-| [ADMIN_SETTINGS_REFACTORING.md](features/ADMIN_SETTINGS_REFACTORING.md) | Settings refactoring notes |
-| [CONTACTS_IMPLEMENTATION.md](features/CONTACTS_IMPLEMENTATION.md) | Contact system implementation |
-| [MARKETING_CAMPAIGNS.md](features/MARKETING_CAMPAIGNS.md) | Marketing campaign features |
-| [MARKETING_CAMPAIGNS_REFACTORING.md](features/MARKETING_CAMPAIGNS_REFACTORING.md) | Campaign refactoring |
-| [OAUTH_IMPLEMENTATION.md](features/OAUTH_IMPLEMENTATION.md) | OAuth2 integration |
-| [OAUTH_REFACTORING.md](features/OAUTH_REFACTORING.md) | OAuth refactoring notes |
-| [RESPONSIVE_DESIGN.md](features/RESPONSIVE_DESIGN.md) | Responsive UI implementation |
-| [RESPONSIVE_DESIGN_PATTERNS.md](features/RESPONSIVE_DESIGN_PATTERNS.md) | Responsive design patterns |
-| [SIGNALR_IMPLEMENTATION.md](features/SIGNALR_IMPLEMENTATION.md) | SignalR real-time features |
-| [SIGNALR_REFACTORING.md](features/SIGNALR_REFACTORING.md) | SignalR refactoring notes |
-| [USER_MANAGEMENT_README.md](features/USER_MANAGEMENT_README.md) | User management guide |
-| [USER_MANAGEMENT_REFACTORING.md](features/USER_MANAGEMENT_REFACTORING.md) | User management refactoring |
-
-### Guides (`guides/`)
-
-| File | Description |
-|------|-------------|
-| [FRONTEND_UPDATES.md](guides/FRONTEND_UPDATES.md) | Frontend update procedures |
-| [LOGIN_DEBUG_FIX.md](guides/LOGIN_DEBUG_FIX.md) | Login debugging |
-| [LOGIN_DEBUG_SUMMARY.md](guides/LOGIN_DEBUG_SUMMARY.md) | Login issue summary |
-| [QUICK_START.md](guides/QUICK_START.md) | Quick start guide |
-
-### Testing (`testing/`)
-
-| File | Description |
-|------|-------------|
-| [TEST_EXECUTION_GUIDE.md](testing/TEST_EXECUTION_GUIDE.md) | How to run tests |
-| [TESTING_GUIDE.md](testing/TESTING_GUIDE.md) | Testing overview |
-| [TESTING_SUMMARY.md](testing/TESTING_SUMMARY.md) | Test summary |
-
-### Root-Level Docs
-
-| File | Description |
-|------|-------------|
-| [BUILD_SYSTEM.md](BUILD_SYSTEM.md) | Build system documentation |
-| [DATABASE_SETUP.md](DATABASE_SETUP.md) | Database setup instructions |
-| [DEVELOPMENT.md](DEVELOPMENT.md) | Development guide |
-| [FEATURE_CHECKLIST.md](FEATURE_CHECKLIST.md) | Feature status tracking |
-| [FILE_LISTING.md](FILE_LISTING.md) | Project file listing |
-| [HOWTO.md](HOWTO.md) | How-to tutorials |
-| [IMPLEMENTATION_COMPLETE.md](IMPLEMENTATION_COMPLETE.md) | Implementation status |
-| [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | Implementation details |
-| [INFRASTRUCTURE_GUIDE.md](INFRASTRUCTURE_GUIDE.md) | Infrastructure setup |
-| [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | Project overview |
-| [SESSION_12_COMPLETION.md](SESSION_12_COMPLETION.md) | Session notes |
-| [TECHNOLOGY_ACKNOWLEDGEMENTS.md](TECHNOLOGY_ACKNOWLEDGEMENTS.md) | Technology credits |
-| [TEST_REPORT.md](TEST_REPORT.md) | Test results |
-| [VERSIONING.md](VERSIONING.md) | Version management |
-| [WORKFLOW_EXAMPLES.md](WORKFLOW_EXAMPLES.md) | Workflow engine examples |
-| [ZIPCODE_IMPORT.md](ZIPCODE_IMPORT.md) | Zip code data import |
-| [ADDRESS_UI_FEATURE.md](ADDRESS_UI_FEATURE.md) | Address UI features |
+| Section | Description | Audience |
+|---------|-------------|----------|
+| [🏗️ Architecture](01-architecture/README.md) | System design, patterns, layers | Architects, Senior Devs |
+| [🎨 Design](02-design/README.md) | UI/UX design, data models, workflows | Designers, Product |
+| [⚙️ Backend](03-backend/README.md) | .NET Core API, services, entities | Backend Developers |
+| [🔌 API Reference](04-api/README.md) | REST endpoints, schemas, examples | All Developers |
+| [💻 Frontend](05-frontend/README.md) | React components, state, routing | Frontend Developers |
+| [📏 Standards](06-standards/README.md) | Coding standards, conventions | All Developers |
+| [🧪 Testing](07-testing/README.md) | Unit, integration, E2E tests | QA, Developers |
+| [🚀 Deployment](08-deployment/README.md) | Docker, Kubernetes, CI/CD | DevOps, Ops |
+| [📋 Operations](09-operations/README.md) | Monitoring, maintenance, runbooks | Ops, Support |
+| [🔍 Traceability](10-traceability/README.md) | Feature-to-code mapping | All Teams |
 
 ---
 
-## 🏗️ System Architecture
+## 🚀 Quick Start
+
+### For New Developers
+
+1. **Read First:** [Architecture Overview](01-architecture/README.md)
+2. **Setup:** [Development Setup Guide](08-deployment/development-setup.md)
+3. **Standards:** [Coding Standards](06-standards/README.md)
+4. **Run Locally:** [Quick Start](08-deployment/quick-start.md)
+
+### For AI Agents
+
+📌 **Start Here:** [AGENT_CONTEXT.md](AGENT_CONTEXT.md)
+
+This file provides:
+- Solution context for AI assistants
+- Key file locations and patterns
+- Update instructions for documentation
+- Change tracking requirements
+
+---
+
+## 📊 Solution Overview
+
+### Technology Stack
+
+| Layer | Technology | Version |
+|-------|------------|---------|
+| **Frontend** | React + TypeScript + Material-UI | React 18, MUI 5 |
+| **Backend** | ASP.NET Core Web API | .NET 8.0 |
+| **Database** | MariaDB (primary), SQL Server, PostgreSQL | MariaDB 10.11+ |
+| **ORM** | Entity Framework Core | EF Core 8 |
+| **Real-time** | SignalR | ASP.NET SignalR |
+| **Caching** | Redis | Redis 7+ |
+| **Container** | Docker + Kubernetes | Docker 24+, K8s 1.28+ |
+| **Testing** | xUnit, Playwright | Latest |
+
+### Module Map
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         FRONTEND                                 │
-│                React 18 + TypeScript + MUI                       │
-│                     (Port 80/3000)                               │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                          BACKEND                                 │
-│               ASP.NET Core 8.0 Web API                          │
-│                    (Port 5000)                                   │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐               │
-│  │ Controllers │ │  Services   │ │   SignalR   │               │
-│  └─────────────┘ └─────────────┘ └─────────────┘               │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                        DATABASE                                  │
-│                MariaDB (89 Tables)                              │
-│                    (Port 3306)                                   │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           CRM SOLUTION MODULES                               │
+├─────────────────┬─────────────────┬─────────────────┬───────────────────────┤
+│   SALES         │   MARKETING     │   SERVICE       │   ADMINISTRATION      │
+├─────────────────┼─────────────────┼─────────────────┼───────────────────────┤
+│ • Customers     │ • Campaigns     │ • Service Req   │ • User Management     │
+│ • Contacts      │ • Email         │ • Tickets       │ • Groups & Roles      │
+│ • Leads         │ • Analytics     │ • Knowledge Base│ • Security Settings   │
+│ • Opportunities │ • Templates     │ • SLA Tracking  │ • System Settings     │
+│ • Quotes        │ • A/B Testing   │                 │ • Audit Logs          │
+│ • Products      │                 │                 │ • Workflows           │
+│ • Services      │                 │                 │                       │
+└─────────────────┴─────────────────┴─────────────────┴───────────────────────┘
 ```
 
 ---
 
-## 🔧 Common Tasks
+## 📁 Repository Structure
 
-### Start Development Environment
-```bash
-docker-compose -f docker/docker-compose.yml up -d
 ```
-
-### Run Tests
-```bash
-# Backend
-cd CRM.Backend/tests && dotnet test
-
-# Frontend
-cd CRM.Frontend && npm test
-
-# E2E
-cd e2e-tests && npx playwright test
-```
-
-### Build for Production
-```bash
-./build.sh
-```
-
-### Deploy to Production
-```bash
-./scripts/deploy-production.sh
+crm-solution/
+├── 📁 CRM.Backend/                 # .NET Backend Solution
+│   ├── 📁 src/
+│   │   ├── 📁 CRM.Api/             # Web API (Controllers, Middleware)
+│   │   ├── 📁 CRM.Core/            # Domain (Entities, DTOs, Interfaces)
+│   │   ├── 📁 CRM.Infrastructure/  # Data Access (EF Core, Services)
+│   │   └── 📁 CRM.DatabaseSeeder/  # Database Seeding Utility
+│   ├── 📁 tests/                   # Unit & Integration Tests
+│   └── 📁 migrations/              # SQL Server Migrations
+│
+├── 📁 CRM.Frontend/                # React Frontend
+│   └── 📁 src/
+│       ├── 📁 components/          # Reusable UI Components
+│       ├── 📁 pages/               # Page Components
+│       ├── 📁 services/            # API Service Layer
+│       ├── 📁 contexts/            # React Contexts
+│       ├── 📁 hooks/               # Custom Hooks
+│       └── 📁 theme/               # MUI Theme Configuration
+│
+├── 📁 database/                    # Database Scripts (MariaDB)
+│   ├── 📁 schema/                  # Table Definitions
+│   ├── 📁 seed/                    # Seed Data
+│   └── 📁 master_data/             # Reference Data
+│
+├── 📁 docker/                      # Docker Configuration
+├── 📁 kubernetes/                  # Kubernetes Manifests
+├── 📁 e2e-tests/                   # Playwright E2E Tests
+├── 📁 scripts/                     # Build & Deployment Scripts
+│
+└── 📁 docs/                        # 📖 THIS DOCUMENTATION
+    ├── 📁 01-architecture/         # System Architecture
+    ├── 📁 02-design/               # Design Documentation
+    ├── 📁 03-backend/              # Backend Documentation
+    ├── 📁 04-api/                  # API Reference
+    ├── 📁 05-frontend/             # Frontend Documentation
+    ├── 📁 06-standards/            # Coding Standards
+    ├── 📁 07-testing/              # Testing Documentation
+    ├── 📁 08-deployment/           # Deployment Guides
+    ├── 📁 09-operations/           # Operations & Runbooks
+    ├── 📁 10-traceability/         # Feature Traceability
+    └── 📄 AGENT_CONTEXT.md         # AI Agent Instructions
 ```
 
 ---
 
-## 📊 Current Statistics
+## 🔄 Documentation Maintenance
 
-| Metric | Value |
-|--------|-------|
-| **Version** | 0.0.25 |
-| **Database Tables** | 89 |
-| **Backend Tests** | 700+ |
-| **API Endpoints** | 50+ |
-| **Frontend Components** | 100+ |
+### For Developers
 
----
+When making changes to the solution:
 
-## 🔗 External Links
+1. **Update traceability** in [10-traceability/](10-traceability/) when adding new features
+2. **Update API docs** in [04-api/](04-api/) when changing endpoints
+3. **Update standards** in [06-standards/](06-standards/) when introducing new patterns
+4. **Log changes** in [CHANGELOG.md](../CHANGELOG.md)
 
-- **Production Server:** `http://192.168.0.9`
-- **API Documentation:** `http://192.168.0.9:5000/swagger`
+### For AI Agents
 
----
-
-## 📝 Document Updates
-
-To update documentation:
-1. Edit Markdown files directly
-2. Run verification: `npm run docs:verify` (if available)
-3. Commit with message: `docs: description of change`
+See [AGENT_CONTEXT.md](AGENT_CONTEXT.md) for:
+- How to read and understand this documentation
+- How to update documentation when making changes
+- Key files to reference for context
+- Pattern matching for common operations
 
 ---
 
-*Last generated: January 2025*
+## 📚 Additional Resources
+
+### Root-Level Documentation
+
+| File | Description |
+|------|-------------|
+| [ARCHITECTURE_OVERVIEW.md](../ARCHITECTURE_OVERVIEW.md) | High-level architecture diagram |
+| [SOLUTION_CONTEXT.md](../SOLUTION_CONTEXT.md) | Complete context reference |
+| [CHANGELOG.md](../CHANGELOG.md) | Version history |
+| [README.md](../README.md) | Project introduction |
+
+### Legacy Documentation
+
+Previous documentation has been consolidated into this structure. Original files are preserved in [legacy/](legacy/) for reference.
+
+---
+
+## 📞 Support
+
+- **Repository Issues:** GitHub Issues
+- **Documentation Issues:** Tag with `docs` label
+- **Questions:** Check [09-operations/faq.md](09-operations/faq.md)

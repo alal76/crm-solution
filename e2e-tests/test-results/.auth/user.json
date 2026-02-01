@@ -2,30 +2,30 @@
   "cookies": [
     {
       "name": "crm_auth_token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhZG1pbkBjcm0ubG9jYWwiLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IlN5c3RlbSIsImZhbWlseV9uYW1lIjoiQWRtaW5pc3RyYXRvciIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc2OTkzOTA4NSwiZXhwIjoxNzY5OTQwODg1LCJpYXQiOjE3Njk5MzkwODUsImlzcyI6IkNSTS5BcGkiLCJhdWQiOiJDUk0uRnJvbnRlbmQifQ.19SE_BMz61WP0nSqCzoQHNvSO41SKNawatwQol0ojY4",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhZG1pbkBjcm0ubG9jYWwiLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IlN5c3RlbSIsImZhbWlseV9uYW1lIjoiQWRtaW5pc3RyYXRvciIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc2OTk0NzUyMiwiZXhwIjoxNzY5OTQ5MzIyLCJpYXQiOjE3Njk5NDc1MjIsImlzcyI6IkNSTS5BcGkiLCJhdWQiOiJDUk0uRnJvbnRlbmQifQ.gHyGyaeJDYOksPUNprrzmTaXASMmc4aNMr_5wob8I6A",
       "domain": "192.168.0.9",
       "path": "/",
-      "expires": 1772531085,
+      "expires": 1772539522,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Strict"
     },
     {
       "name": "crm_refresh_token",
-      "value": "jdMBkWPGpYar9xr2136cDXpcfDfwyKhxByjPOHrjKEeWDZSGkwkXyqgdgSHTHSqj98qpev51YLPnnGfAsOQ33g%3D%3D",
+      "value": "vtNaapkllA4wyMhze04SNrzWiVkY4Wy%2Bhv%2FJmUUvwYc%2BjHgoDPReeJ3jVoNvvhWVvSsWKlT9Py2jNNiEzrw1KA%3D%3D",
       "domain": "192.168.0.9",
       "path": "/",
-      "expires": 1772531085,
+      "expires": 1772539522,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Strict"
     },
     {
       "name": "crm_user_data",
-      "value": "%7B%22userId%22%3A1%2C%22username%22%3A%22admin%22%2C%22email%22%3A%22admin%40crm.local%22%2C%22firstName%22%3A%22System%22%2C%22lastName%22%3A%22Administrator%22%2C%22role%22%3A%22Admin%22%2C%22accessToken%22%3A%22eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhZG1pbkBjcm0ubG9jYWwiLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IlN5c3RlbSIsImZhbWlseV9uYW1lIjoiQWRtaW5pc3RyYXRvciIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc2OTkzOTA4NSwiZXhwIjoxNzY5OTQwODg1LCJpYXQiOjE3Njk5MzkwODUsImlzcyI6IkNSTS5BcGkiLCJhdWQiOiJDUk0uRnJvbnRlbmQifQ.19SE_BMz61WP0nSqCzoQHNvSO41SKNawatwQol0ojY4%22%2C%22refreshToken%22%3A%22jdMBkWPGpYar9xr2136cDXpcfDfwyKhxByjPOHrjKEeWDZSGkwkXyqgdgSHTHSqj98qpev51YLPnnGfAsOQ33g%3D%3D%22%2C%22expiresAt%22%3A%222026-02-01T10%3A44%3A45.8342521Z%22%2C%22departmentId%22%3Anull%2C%22departmentName%22%3Anull%2C%22userProfileId%22%3Anull%2C%22userProfileName%22%3Anull%2C%22primaryGroupId%22%3A1%2C%22primaryGroupName%22%3A%22SysAdmin%22%2C%22accessiblePages%22%3A%5B%5D%2C%22permissions%22%3A%7B%22canCreateCustomers%22%3Afalse%2C%22canEditCustomers%22%3Afalse%2C%22canDeleteCustomers%22%3Afalse%2C%22canCreateOpportunities%22%3Afalse%2C%22canEditOpportunities%22%3Afalse%2C%22canDeleteOpportunities%22%3Afalse%2C%22canCreateProducts%22%3Afalse%2C%22canEditProducts%22%3Afalse%2C%22canDeleteProducts%22%3Afalse%2C%22canManageCampaigns%22%3Afalse%2C%22canViewReports%22%3Afalse%2C%22canManageUsers%22%3Afalse%7D%2C%22groupPermissions%22%3A%7B%22isSystemAdmin%22%3Atrue%2C%22canAccessDashboard%22%3Atrue%2C%22canAccessCustomers%22%3Atrue%2C%22canAccessContacts%22%3Atrue%2C%22canAccessLeads%22%3Atrue%2C%22canAccessOpportunities%22%3Atrue%2C%22canAccessProducts%22%3Atrue%2C%22canAccessServices%22%3Atrue%2C%22canAccessCampaigns%22%3Atrue%2C%22canAccessQuotes%22%3Atrue%2C%22canAccessTasks%22%3Atrue%2C%22canAccessActivities%22%3Atrue%2C%22canAccessNotes%22%3Atrue%2C%22canAccessWorkflows%22%3Atrue%2C%22canAccessServiceRequests%22%3Atrue%2C%22canAccessReports%22%3Atrue%2C%22canAccessSettings%22%3Atrue%2C%22canAccessUserManagement%22%3Atrue%2C%22canCreateCustomers%22%3Atrue%2C%22canEditCustomers%22%3Atrue%2C%22canDeleteCustomers%22%3Atrue%2C%22canViewAllCustomers%22%3Atrue%2C%22canCreateContacts%22%3Atrue%2C%22canEditContacts%22%3Atrue%2C%22canDeleteContacts%22%3Atrue%2C%22canCreateLeads%22%3Atrue%2C%22canEditLeads%22%3Atrue%2C%22canDeleteLeads%22%3Atrue%2C%22canConvertLeads%22%3Atrue%2C%22canCreateOpportunities%22%3Atrue%2C%22canEditOpportunities%22%3Atrue%2C%22canDeleteOpportunities%22%3Atrue%2C%22canCloseOpportunities%22%3Atrue%2C%22canCreateProducts%22%3Atrue%2C%22canEditProducts%22%3Atrue%2C%22canDeleteProducts%22%3Atrue%2C%22canManagePricing%22%3Atrue%2C%22canCreateCampaigns%22%3Atrue%2C%22canEditCampaigns%22%3Atrue%2C%22canDeleteCampaigns%22%3Atrue%2C%22canLaunchCampaigns%22%3Atrue%2C%22canCreateQuotes%22%3Atrue%2C%22canEditQuotes%22%3Atrue%2C%22canDeleteQuotes%22%3Atrue%2C%22canApproveQuotes%22%3Atrue%2C%22canCreateTasks%22%3Atrue%2C%22canEditTasks%22%3Atrue%2C%22canDeleteTasks%22%3Atrue%2C%22canAssignTasks%22%3Atrue%2C%22canCreateWorkflows%22%3Atrue%2C%22canEditWorkflows%22%3Atrue%2C%22canDeleteWorkflows%22%3Atrue%2C%22canActivateWorkflows%22%3Atrue%2C%22dataAccessScope%22%3A%22all%22%2C%22canExportData%22%3Atrue%2C%22canImportData%22%3Atrue%2C%22canBulkEdit%22%3Atrue%2C%22canBulkDelete%22%3Atrue%7D%2C%22headerColor%22%3A%22%23C62828%22%2C%22photoUrl%22%3Anull%2C%22themePreference%22%3A%22system%22%2C%22requiresTwoFactor%22%3Afalse%2C%22twoFactorEnabled%22%3Afalse%2C%22twoFactorToken%22%3Anull%2C%22requiresApproval%22%3Afalse%2C%22message%22%3Anull%7D",
+      "value": "%7B%22userId%22%3A1%2C%22username%22%3A%22admin%22%2C%22email%22%3A%22admin%40crm.local%22%2C%22firstName%22%3A%22System%22%2C%22lastName%22%3A%22Administrator%22%2C%22role%22%3A%22Admin%22%2C%22accessToken%22%3A%22eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhZG1pbkBjcm0ubG9jYWwiLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IlN5c3RlbSIsImZhbWlseV9uYW1lIjoiQWRtaW5pc3RyYXRvciIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc2OTk0NzUyMiwiZXhwIjoxNzY5OTQ5MzIyLCJpYXQiOjE3Njk5NDc1MjIsImlzcyI6IkNSTS5BcGkiLCJhdWQiOiJDUk0uRnJvbnRlbmQifQ.gHyGyaeJDYOksPUNprrzmTaXASMmc4aNMr_5wob8I6A%22%2C%22refreshToken%22%3A%22vtNaapkllA4wyMhze04SNrzWiVkY4Wy%2Bhv%2FJmUUvwYc%2BjHgoDPReeJ3jVoNvvhWVvSsWKlT9Py2jNNiEzrw1KA%3D%3D%22%2C%22expiresAt%22%3A%222026-02-01T13%3A05%3A22.1354345Z%22%2C%22departmentId%22%3Anull%2C%22departmentName%22%3Anull%2C%22userProfileId%22%3Anull%2C%22userProfileName%22%3Anull%2C%22primaryGroupId%22%3A1%2C%22primaryGroupName%22%3A%22SysAdmin%22%2C%22accessiblePages%22%3A%5B%5D%2C%22permissions%22%3A%7B%22canCreateCustomers%22%3Afalse%2C%22canEditCustomers%22%3Afalse%2C%22canDeleteCustomers%22%3Afalse%2C%22canCreateOpportunities%22%3Afalse%2C%22canEditOpportunities%22%3Afalse%2C%22canDeleteOpportunities%22%3Afalse%2C%22canCreateProducts%22%3Afalse%2C%22canEditProducts%22%3Afalse%2C%22canDeleteProducts%22%3Afalse%2C%22canManageCampaigns%22%3Afalse%2C%22canViewReports%22%3Afalse%2C%22canManageUsers%22%3Afalse%7D%2C%22groupPermissions%22%3A%7B%22isSystemAdmin%22%3Atrue%2C%22canAccessDashboard%22%3Atrue%2C%22canAccessCustomers%22%3Atrue%2C%22canAccessContacts%22%3Atrue%2C%22canAccessLeads%22%3Atrue%2C%22canAccessOpportunities%22%3Atrue%2C%22canAccessProducts%22%3Atrue%2C%22canAccessServices%22%3Atrue%2C%22canAccessCampaigns%22%3Atrue%2C%22canAccessQuotes%22%3Atrue%2C%22canAccessTasks%22%3Atrue%2C%22canAccessActivities%22%3Atrue%2C%22canAccessNotes%22%3Atrue%2C%22canAccessWorkflows%22%3Atrue%2C%22canAccessServiceRequests%22%3Atrue%2C%22canAccessReports%22%3Atrue%2C%22canAccessSettings%22%3Atrue%2C%22canAccessUserManagement%22%3Atrue%2C%22canCreateCustomers%22%3Atrue%2C%22canEditCustomers%22%3Atrue%2C%22canDeleteCustomers%22%3Atrue%2C%22canViewAllCustomers%22%3Atrue%2C%22canCreateContacts%22%3Atrue%2C%22canEditContacts%22%3Atrue%2C%22canDeleteContacts%22%3Atrue%2C%22canCreateLeads%22%3Atrue%2C%22canEditLeads%22%3Atrue%2C%22canDeleteLeads%22%3Atrue%2C%22canConvertLeads%22%3Atrue%2C%22canCreateOpportunities%22%3Atrue%2C%22canEditOpportunities%22%3Atrue%2C%22canDeleteOpportunities%22%3Atrue%2C%22canCloseOpportunities%22%3Atrue%2C%22canCreateProducts%22%3Atrue%2C%22canEditProducts%22%3Atrue%2C%22canDeleteProducts%22%3Atrue%2C%22canManagePricing%22%3Atrue%2C%22canCreateCampaigns%22%3Atrue%2C%22canEditCampaigns%22%3Atrue%2C%22canDeleteCampaigns%22%3Atrue%2C%22canLaunchCampaigns%22%3Atrue%2C%22canCreateQuotes%22%3Atrue%2C%22canEditQuotes%22%3Atrue%2C%22canDeleteQuotes%22%3Atrue%2C%22canApproveQuotes%22%3Atrue%2C%22canCreateTasks%22%3Atrue%2C%22canEditTasks%22%3Atrue%2C%22canDeleteTasks%22%3Atrue%2C%22canAssignTasks%22%3Atrue%2C%22canCreateWorkflows%22%3Atrue%2C%22canEditWorkflows%22%3Atrue%2C%22canDeleteWorkflows%22%3Atrue%2C%22canActivateWorkflows%22%3Atrue%2C%22dataAccessScope%22%3A%22all%22%2C%22canExportData%22%3Atrue%2C%22canImportData%22%3Atrue%2C%22canBulkEdit%22%3Atrue%2C%22canBulkDelete%22%3Atrue%7D%2C%22headerColor%22%3A%22%23C62828%22%2C%22photoUrl%22%3Anull%2C%22themePreference%22%3A%22system%22%2C%22requiresTwoFactor%22%3Afalse%2C%22twoFactorEnabled%22%3Afalse%2C%22twoFactorToken%22%3Anull%2C%22requiresApproval%22%3Afalse%2C%22message%22%3Anull%7D",
       "domain": "192.168.0.9",
       "path": "/",
-      "expires": 1772531085,
+      "expires": 1772539522,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Strict"
@@ -35,7 +35,7 @@
       "value": "%7B%22departmentId%22%3Anull%2C%22departmentName%22%3Anull%2C%22userProfileId%22%3Anull%2C%22userProfileName%22%3Anull%2C%22primaryGroupId%22%3A1%2C%22primaryGroupName%22%3A%22SysAdmin%22%2C%22accessiblePages%22%3A%5B%5D%2C%22permissions%22%3A%7B%22canCreateCustomers%22%3Afalse%2C%22canEditCustomers%22%3Afalse%2C%22canDeleteCustomers%22%3Afalse%2C%22canCreateOpportunities%22%3Afalse%2C%22canEditOpportunities%22%3Afalse%2C%22canDeleteOpportunities%22%3Afalse%2C%22canCreateProducts%22%3Afalse%2C%22canEditProducts%22%3Afalse%2C%22canDeleteProducts%22%3Afalse%2C%22canManageCampaigns%22%3Afalse%2C%22canViewReports%22%3Afalse%2C%22canManageUsers%22%3Afalse%7D%2C%22groupPermissions%22%3A%7B%22isSystemAdmin%22%3Atrue%2C%22canAccessDashboard%22%3Atrue%2C%22canAccessCustomers%22%3Atrue%2C%22canAccessContacts%22%3Atrue%2C%22canAccessLeads%22%3Atrue%2C%22canAccessOpportunities%22%3Atrue%2C%22canAccessProducts%22%3Atrue%2C%22canAccessServices%22%3Atrue%2C%22canAccessCampaigns%22%3Atrue%2C%22canAccessQuotes%22%3Atrue%2C%22canAccessTasks%22%3Atrue%2C%22canAccessActivities%22%3Atrue%2C%22canAccessNotes%22%3Atrue%2C%22canAccessWorkflows%22%3Atrue%2C%22canAccessServiceRequests%22%3Atrue%2C%22canAccessReports%22%3Atrue%2C%22canAccessSettings%22%3Atrue%2C%22canAccessUserManagement%22%3Atrue%2C%22canCreateCustomers%22%3Atrue%2C%22canEditCustomers%22%3Atrue%2C%22canDeleteCustomers%22%3Atrue%2C%22canViewAllCustomers%22%3Atrue%2C%22canCreateContacts%22%3Atrue%2C%22canEditContacts%22%3Atrue%2C%22canDeleteContacts%22%3Atrue%2C%22canCreateLeads%22%3Atrue%2C%22canEditLeads%22%3Atrue%2C%22canDeleteLeads%22%3Atrue%2C%22canConvertLeads%22%3Atrue%2C%22canCreateOpportunities%22%3Atrue%2C%22canEditOpportunities%22%3Atrue%2C%22canDeleteOpportunities%22%3Atrue%2C%22canCloseOpportunities%22%3Atrue%2C%22canCreateProducts%22%3Atrue%2C%22canEditProducts%22%3Atrue%2C%22canDeleteProducts%22%3Atrue%2C%22canManagePricing%22%3Atrue%2C%22canCreateCampaigns%22%3Atrue%2C%22canEditCampaigns%22%3Atrue%2C%22canDeleteCampaigns%22%3Atrue%2C%22canLaunchCampaigns%22%3Atrue%2C%22canCreateQuotes%22%3Atrue%2C%22canEditQuotes%22%3Atrue%2C%22canDeleteQuotes%22%3Atrue%2C%22canApproveQuotes%22%3Atrue%2C%22canCreateTasks%22%3Atrue%2C%22canEditTasks%22%3Atrue%2C%22canDeleteTasks%22%3Atrue%2C%22canAssignTasks%22%3Atrue%2C%22canCreateWorkflows%22%3Atrue%2C%22canEditWorkflows%22%3Atrue%2C%22canDeleteWorkflows%22%3Atrue%2C%22canActivateWorkflows%22%3Atrue%2C%22dataAccessScope%22%3A%22all%22%2C%22canExportData%22%3Atrue%2C%22canImportData%22%3Atrue%2C%22canBulkEdit%22%3Atrue%2C%22canBulkDelete%22%3Atrue%7D%7D",
       "domain": "192.168.0.9",
       "path": "/",
-      "expires": 1772531085,
+      "expires": 1772539522,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Strict"
@@ -47,7 +47,7 @@
       "localStorage": [
         {
           "name": "accessToken",
-          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhZG1pbkBjcm0ubG9jYWwiLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IlN5c3RlbSIsImZhbWlseV9uYW1lIjoiQWRtaW5pc3RyYXRvciIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc2OTkzOTA4NSwiZXhwIjoxNzY5OTQwODg1LCJpYXQiOjE3Njk5MzkwODUsImlzcyI6IkNSTS5BcGkiLCJhdWQiOiJDUk0uRnJvbnRlbmQifQ.19SE_BMz61WP0nSqCzoQHNvSO41SKNawatwQol0ojY4"
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwiZW1haWwiOiJhZG1pbkBjcm0ubG9jYWwiLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiZ2l2ZW5fbmFtZSI6IlN5c3RlbSIsImZhbWlseV9uYW1lIjoiQWRtaW5pc3RyYXRvciIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTc2OTk0NzUyMiwiZXhwIjoxNzY5OTQ5MzIyLCJpYXQiOjE3Njk5NDc1MjIsImlzcyI6IkNSTS5BcGkiLCJhdWQiOiJDUk0uRnJvbnRlbmQifQ.gHyGyaeJDYOksPUNprrzmTaXASMmc4aNMr_5wob8I6A"
         },
         {
           "name": "userProfile",
@@ -55,7 +55,7 @@
         },
         {
           "name": "refreshToken",
-          "value": "jdMBkWPGpYar9xr2136cDXpcfDfwyKhxByjPOHrjKEeWDZSGkwkXyqgdgSHTHSqj98qpev51YLPnnGfAsOQ33g=="
+          "value": "vtNaapkllA4wyMhze04SNrzWiVkY4Wy+hv/JmUUvwYc+jHgoDPReeJ3jVoNvvhWVvSsWKlT9Py2jNNiEzrw1KA=="
         },
         {
           "name": "moduleStatus",
@@ -63,11 +63,11 @@
         },
         {
           "name": "crm_debug_logs",
-          "value": "[{\"id\":\"err_1769939085971_z657kv68v\",\"timestamp\":\"2026-02-01T09:44:45.971Z\",\"type\":\"console.error\",\"message\":\"[2026-02-01T09:44:45.971Z] Error: Failed to start the transport 'WebSockets': Error: WebSocket failed to connect. The connection could not be found on the server, either the endpoint may not be a SignalR endpoint, the connection ID is not present on the server, or there is a proxy blocking WebSockets. If you have multiple servers check that sticky sessions are enabled.\",\"url\":\"http://192.168.0.9/\",\"additionalInfo\":{\"args\":[\"[2026-02-01T09:44:45.971Z] Error: Failed to start the transport 'WebSockets': Error: WebSocket failed to connect. The connection could not be found on the server, either the endpoint may not be a SignalR endpoint, the connection ID is not present on the server, or there is a proxy blocking WebSockets. If you have multiple servers check that sticky sessions are enabled.\"]}}]"
+          "value": "[{\"id\":\"err_1769947522264_iqsm495ui\",\"timestamp\":\"2026-02-01T12:05:22.264Z\",\"type\":\"console.error\",\"message\":\"[2026-02-01T12:05:22.264Z] Error: Failed to start the transport 'WebSockets': Error: WebSocket failed to connect. The connection could not be found on the server, either the endpoint may not be a SignalR endpoint, the connection ID is not present on the server, or there is a proxy blocking WebSockets. If you have multiple servers check that sticky sessions are enabled.\",\"url\":\"http://192.168.0.9/\",\"additionalInfo\":{\"args\":[\"[2026-02-01T12:05:22.264Z] Error: Failed to start the transport 'WebSockets': Error: WebSocket failed to connect. The connection could not be found on the server, either the endpoint may not be a SignalR endpoint, the connection ID is not present on the server, or there is a proxy blocking WebSockets. If you have multiple servers check that sticky sessions are enabled.\"]}}]"
         },
         {
           "name": "crm_last_activity",
-          "value": "1769939085960"
+          "value": "1769947522219"
         },
         {
           "name": "crm_selected_accounts",

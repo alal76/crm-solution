@@ -1,0 +1,44 @@
+{
+  "summary": {
+    "startTime": "2026-02-01T11:52:01.713Z",
+    "totalTests": 2,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 0,
+    "duration": 16464,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "campaigns": {
+        "total": 1,
+        "passed": 0,
+        "failed": 1,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-02-01T11:52:18.177Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-02-01T11:52:07.564Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 4452
+    },
+    {
+      "timestamp": "2026-02-01T11:52:18.163Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BUG-002: End date before start date should be rejected",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 9809,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[role=\"dialog\"]').locator('.MuiAlert-root')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"dialog\"]').locator('.MuiAlert-root')\u001b[22m\n"
+    }
+  ]
+}

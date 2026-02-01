@@ -1,9 +1,9 @@
 {
   "major": 1,
   "minor": 7,
-  "patch": 27,
+  "patch": 28,
   "lastUpdate": "2026-01-31",
-  "description": "CRM Solution v1.7.27 - Test fixes, Opportunity entity fix",
+  "description": "CRM Solution v1.7.28 - Security enhancements: password management, complexity settings, group policies",
   "git": {
     "branch": "dev",
     "commit": "5666434"

@@ -98,4 +98,14 @@ public interface IAuthenticationService
     /// Admin reset user password by user ID
     /// </summary>
     Task<bool> AdminResetPasswordAsync(int userId, string newPassword);
+
+    /// <summary>
+    /// Set password for first-time login or expired password
+    /// </summary>
+    Task<AuthResponse> SetupPasswordAsync(SetPasswordRequest request);
+
+    /// <summary>
+    /// Get password complexity requirements from system settings
+    /// </summary>
+    Task<PasswordComplexityRequirements> GetPasswordRequirementsAsync();
 }
