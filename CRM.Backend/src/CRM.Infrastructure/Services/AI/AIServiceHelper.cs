@@ -23,9 +23,9 @@ public static class AIServiceHelper
             "anthropic" => settings.Anthropic?.DefaultModel ?? "claude-3-5-sonnet-20241022",
             "google" => settings.Google?.DefaultModel ?? "gemini-pro",
             "deepseek" => settings.DeepSeek?.DefaultModel ?? "deepseek-chat",
-            "allenai" => settings.AllenAI?.DefaultModel ?? "OLMo-2-0325-32B-Instruct",
-            "local" => settings.Local?.DefaultModel ?? "llama2",
-            _ => "gpt-4o-mini"
+            "allenai" => settings.AllenAI?.DefaultModel ?? "allenai/OLMo-7B-Instruct",
+            "local" or "ollama" => settings.Local?.DefaultModel ?? "olmo2:7b",
+            _ => "olmo2:7b"  // Default to local OLMo model
         };
     }
 
@@ -140,7 +140,7 @@ public static class AIServiceHelper
         public const string Anthropic = "claude-3-5-sonnet-20241022";
         public const string Google = "gemini-pro";
         public const string DeepSeek = "deepseek-chat";
-        public const string AllenAI = "OLMo-2-0325-32B-Instruct";
+        public const string AllenAI = "allenai/OLMo-7B-Instruct";
         public const string Local = "llama2";
     }
 }

@@ -107,12 +107,35 @@ public class DeepSeekOptions
 /// </summary>
 public class AllenAIOptions
 {
-    public string ApiKey { get; set; } = "";  // Hugging Face API token
+    private string _apiKey = "";
+    
+    /// <summary>Hugging Face API token (alias: HuggingFaceApiKey)</summary>
+    public string ApiKey 
+    { 
+        get => _apiKey; 
+        set => _apiKey = value; 
+    }
+    
+    /// <summary>Hugging Face API token (alias for ApiKey, for backwards compatibility)</summary>
+    public string HuggingFaceApiKey 
+    { 
+        get => _apiKey; 
+        set => _apiKey = value; 
+    }
+    
     public string BaseUrl { get; set; } = "https://api-inference.huggingface.co/models";
-    public string DefaultModel { get; set; } = "allenai/OLMo-7B-Instruct";  // or allenai/tulu-2-7b
+    public string OLMoEndpoint { get; set; } = "https://api-inference.huggingface.co/models/allenai/OLMo-7B";
+    public string TuluEndpoint { get; set; } = "https://api-inference.huggingface.co/models/allenai/tulu-2-7b";
+    public string DefaultModel { get; set; } = "allenai/OLMo-7B-Instruct";
     public bool Enabled { get; set; } = true;
     public int MaxNewTokens { get; set; } = 1000;
     public double Temperature { get; set; } = 0.7;
+    public int TimeoutSeconds { get; set; } = 60;
+    public int MaxRetries { get; set; } = 3;
+    public bool EnableCaching { get; set; } = true;
+    public int CacheExpirationMinutes { get; set; } = 60;
+    public bool EnableLocalFallback { get; set; } = true;
+    public int BatchSize { get; set; } = 10;
 }
 
 /// <summary>
@@ -122,10 +145,13 @@ public class LocalLLMOptions
 {
     public string BaseUrl { get; set; } = "http://localhost:11434";  // Ollama default
     public string ApiKey { get; set; } = "";  // Optional for some local servers
-    public string DefaultModel { get; set; } = "llama3";
+    public string DefaultModel { get; set; } = "olmo2:7b";  // Allen AI OLMo2
+    public string FallbackModel { get; set; } = "llama3:8b";  // Fallback model
     public string ApiFormat { get; set; } = "ollama";  // ollama, openai, or custom
     public Dictionary<string, string> Headers { get; set; } = new();
-    public bool Enabled { get; set; } = false;
+    public bool Enabled { get; set; } = true;
+    public int TimeoutSeconds { get; set; } = 120;  // Longer timeout for local models
+    public int MaxTokens { get; set; } = 2048;
 }
 
 public class CustomEndpointOptions

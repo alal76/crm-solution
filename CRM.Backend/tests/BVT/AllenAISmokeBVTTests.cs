@@ -312,7 +312,7 @@ public class AllenAISmokeBVTTests
         var model = AIServiceHelper.GetDefaultModelForProvider(settings, "allenai");
 
         // Assert
-        model.Should().Be("OLMo-2-0325-32B-Instruct");
+        model.Should().Be("allenai/OLMo-7B-Instruct");
     }
 
     [Fact]
