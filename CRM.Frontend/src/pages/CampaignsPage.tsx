@@ -183,7 +183,11 @@ function CampaignsPage() {
     setOpenDialog(true);
   };
 
-  const handleCloseDialog = () => { setOpenDialog(false); setEditingId(null); };
+  const handleCloseDialog = () => { 
+    setOpenDialog(false); 
+    setEditingId(null); 
+    dialogApi.clearError();
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -200,10 +204,50 @@ function CampaignsPage() {
   };
 
   const handleSaveCampaign = async () => {
-    if (!formData.name.trim() || !formData.startDate) {
-      dialogApi.setError('Please fill in required fields (Name, Start Date)');
+    // Required field validation
+    if (!formData.name.trim()) {
+      dialogApi.setError('Campaign name is required');
       return;
     }
+    if (!formData.startDate) {
+      dialogApi.setError('Start date is required');
+      return;
+    }
+    
+    // Date range validation
+    if (formData.endDate && formData.startDate && formData.endDate < formData.startDate) {
+      dialogApi.setError('End date cannot be before start date');
+      return;
+    }
+    
+    // Budget validation
+    if (formData.budget < 0) {
+      dialogApi.setError('Budget cannot be negative');
+      return;
+    }
+    if (formData.actualSpend < 0) {
+      dialogApi.setError('Actual spend cannot be negative');
+      return;
+    }
+    
+    // Metrics validation (non-negative)
+    if (formData.impressions < 0 || formData.clicks < 0 || formData.conversions < 0 ||
+        formData.leadsGenerated < 0 || formData.revenue < 0 || formData.emailsSent < 0 ||
+        formData.emailsOpened < 0 || formData.socialReach < 0) {
+      dialogApi.setError('Metrics cannot be negative');
+      return;
+    }
+    
+    // Logical validation: clicks <= impressions, emailsOpened <= emailsSent
+    if (formData.clicks > formData.impressions && formData.impressions > 0) {
+      dialogApi.setError('Clicks cannot exceed impressions');
+      return;
+    }
+    if (formData.emailsOpened > formData.emailsSent && formData.emailsSent > 0) {
+      dialogApi.setError('Emails opened cannot exceed emails sent');
+      return;
+    }
+    
     await dialogApi.execute(async () => {
       if (editingId) {
         await apiClient.put(`/campaigns/${editingId}`, formData);
@@ -251,15 +295,22 @@ function CampaignsPage() {
   };
   
   const handleBulkUpdate = async () => {
+    // Validate at least one field is selected for update
+    if (!bulkFormData.status && !bulkFormData.priority && !bulkFormData.campaignType) {
+      bulkApi.setError('Please select at least one field to update');
+      return;
+    }
+    
     await bulkApi.execute(async () => {
-      const updates = selectedIds.map(id => {
-        const updatePayload: any = {};
-        if (bulkFormData.status) updatePayload.status = parseInt(bulkFormData.status);
-        if (bulkFormData.priority) updatePayload.priority = parseInt(bulkFormData.priority);
-        if (bulkFormData.campaignType) updatePayload.campaignType = parseInt(bulkFormData.campaignType);
-        return apiClient.put(`/campaigns/${id}`, updatePayload);
-      });
-      await Promise.all(updates);
+      const updatePayload: any = {};
+      if (bulkFormData.status) updatePayload.status = parseInt(bulkFormData.status);
+      if (bulkFormData.priority) updatePayload.priority = parseInt(bulkFormData.priority);
+      if (bulkFormData.campaignType) updatePayload.campaignType = parseInt(bulkFormData.campaignType);
+      
+      // Send same payload to all selected campaigns
+      await Promise.all(selectedIds.map(id => 
+        apiClient.put(`/campaigns/${id}`, updatePayload)
+      ));
       setSuccessMessage(`Updated ${selectedIds.length} campaigns`);
       setSelectedIds([]);
       setBulkDialogOpen(false);

@@ -1,0 +1,100 @@
+{
+  "summary": {
+    "startTime": "2026-02-01T10:38:30.294Z",
+    "totalTests": 9,
+    "passed": 8,
+    "failed": 1,
+    "skipped": 0,
+    "duration": 15006,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "campaigns": {
+        "total": 8,
+        "passed": 7,
+        "failed": 1,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-02-01T10:38:45.300Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-02-01T10:38:36.185Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 4604
+    },
+    {
+      "timestamp": "2026-02-01T10:38:40.515Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BUG-004: ROI calculation with zero spend should not show Infinity/NaN",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 2663
+    },
+    {
+      "timestamp": "2026-02-01T10:38:41.361Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BUG-001: Empty form submission should show validation errors",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 3510
+    },
+    {
+      "timestamp": "2026-02-01T10:38:41.775Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BUG-002: End date before start date should be rejected",
+      "module": "campaigns",
+      "status": "FAIL",
+      "duration": 3903,
+      "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    },
+    {
+      "timestamp": "2026-02-01T10:38:41.919Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BUG-003: Negative budget should be rejected",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 4064
+    },
+    {
+      "timestamp": "2026-02-01T10:38:43.334Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BUG-006: Notes tab should show save-first message for new campaigns",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 1960
+    },
+    {
+      "timestamp": "2026-02-01T10:38:44.004Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BUG-005: Bulk update without selecting fields should warn user",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 3474
+    },
+    {
+      "timestamp": "2026-02-01T10:38:44.242Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BUG-008: Performance metrics should update calculated fields",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 2314
+    },
+    {
+      "timestamp": "2026-02-01T10:38:45.268Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BUG-007: Campaign type dropdown should show all options",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 2428
+    }
+  ]
+}

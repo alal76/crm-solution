@@ -75,6 +75,18 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const [quickAdminLoginEnabled, setQuickAdminLoginEnabled] = useState(true);
   const [savingQuickLogin, setSavingQuickLogin] = useState(false);
 
+  // Password Complexity state
+  const [passwordSettings, setPasswordSettings] = useState({
+    minPasswordLength: 8,
+    maxPasswordLength: 128,
+    requireUppercase: true,
+    requireLowercase: true,
+    requireNumbers: true,
+    requireSpecialChars: false,
+    defaultPasswordExpirationDays: 0,
+  });
+  const [savingPasswordSettings, setSavingPasswordSettings] = useState(false);
+
   // SSL/TLS state
   const [sslStatus, setSslStatus] = useState<{
     httpsEnabled: boolean;
@@ -134,9 +146,47 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       if (response.ok) {
         const data = await response.json();
         setQuickAdminLoginEnabled(data.quickAdminLoginEnabled ?? true);
+        // Load password complexity settings
+        setPasswordSettings({
+          minPasswordLength: data.minPasswordLength ?? 8,
+          maxPasswordLength: data.maxPasswordLength ?? 128,
+          requireUppercase: data.requireUppercase ?? true,
+          requireLowercase: data.requireLowercase ?? true,
+          requireNumbers: data.requireNumbers ?? true,
+          requireSpecialChars: data.requireSpecialChars ?? false,
+          defaultPasswordExpirationDays: data.defaultPasswordExpirationDays ?? 0,
+        });
       }
     } catch (err) {
-      console.error('Error loading quick admin login status:', err);
+      console.error('Error loading settings:', err);
+    }
+  };
+
+  const handleSavePasswordSettings = async () => {
+    setSavingPasswordSettings(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${getApiUrl()}/systemsettings`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(passwordSettings),
+      });
+
+      if (response.ok) {
+        setSuccess('Password complexity settings saved successfully');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to save password settings');
+      }
+    } catch (err) {
+      setError('Failed to save password settings');
+    } finally {
+      setSavingPasswordSettings(false);
     }
   };
 
@@ -828,6 +878,131 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                 }
               />
             </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Password Complexity Settings Card */}
+      <Card sx={{ borderRadius: 3, mb: 3 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 3 }}>
+            <LockIcon sx={{ fontSize: 40, color: '#6750A4' }} />
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                Password Complexity Requirements
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Configure password strength requirements for all users in the system.
+              </Typography>
+            </Box>
+          </Box>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Minimum Password Length"
+                type="number"
+                value={passwordSettings.minPasswordLength}
+                onChange={(e) => setPasswordSettings(prev => ({ ...prev, minPasswordLength: parseInt(e.target.value) || 8 }))}
+                inputProps={{ min: 6, max: 128 }}
+                size="small"
+                helperText="Minimum: 6 characters"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Maximum Password Length"
+                type="number"
+                value={passwordSettings.maxPasswordLength}
+                onChange={(e) => setPasswordSettings(prev => ({ ...prev, maxPasswordLength: parseInt(e.target.value) || 128 }))}
+                inputProps={{ min: 16, max: 256 }}
+                size="small"
+                helperText="0 for unlimited"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Default Password Expiration (days)"
+                type="number"
+                value={passwordSettings.defaultPasswordExpirationDays}
+                onChange={(e) => setPasswordSettings(prev => ({ ...prev, defaultPasswordExpirationDays: parseInt(e.target.value) || 0 }))}
+                inputProps={{ min: 0, max: 365 }}
+                size="small"
+                helperText="0 for no expiration. Groups can override this."
+              />
+            </Grid>
+          </Grid>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
+            Character Requirements
+          </Typography>
+          
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={passwordSettings.requireUppercase}
+                    onChange={(e) => setPasswordSettings(prev => ({ ...prev, requireUppercase: e.target.checked }))}
+                  />
+                }
+                label="Require uppercase letter (A-Z)"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={passwordSettings.requireLowercase}
+                    onChange={(e) => setPasswordSettings(prev => ({ ...prev, requireLowercase: e.target.checked }))}
+                  />
+                }
+                label="Require lowercase letter (a-z)"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={passwordSettings.requireNumbers}
+                    onChange={(e) => setPasswordSettings(prev => ({ ...prev, requireNumbers: e.target.checked }))}
+                  />
+                }
+                label="Require number (0-9)"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={passwordSettings.requireSpecialChars}
+                    onChange={(e) => setPasswordSettings(prev => ({ ...prev, requireSpecialChars: e.target.checked }))}
+                  />
+                }
+                label="Require special character (!@#$%...)"
+              />
+            </Grid>
+          </Grid>
+
+          <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              onClick={handleSavePasswordSettings}
+              disabled={savingPasswordSettings}
+              startIcon={savingPasswordSettings ? <CircularProgress size={16} /> : <CheckIcon />}
+              sx={{
+                textTransform: 'none',
+                backgroundColor: '#6750A4',
+                '&:hover': { backgroundColor: '#5940A2' },
+              }}
+            >
+              {savingPasswordSettings ? 'Saving...' : 'Save Password Settings'}
+            </Button>
           </Box>
         </CardContent>
       </Card>

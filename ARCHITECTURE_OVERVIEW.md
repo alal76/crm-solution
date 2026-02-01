@@ -367,6 +367,73 @@ Frontend <──SignalR WebSocket──> CrmNotificationHub
                                             └────────────┘
 ```
 
+### Password Management Flow
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                        Login Request                                      │
+└──────────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+                    ┌───────────────────────┐
+                    │  Password Never Set?  │────Yes────▶ Redirect to /setup-password
+                    │  (PasswordNeverSet)   │             (First-time user)
+                    └───────────────────────┘
+                                 │ No
+                                 ▼
+                    ┌───────────────────────┐
+                    │  Must Reset Password? │────Yes────▶ Redirect to /setup-password
+                    │  (MustResetPassword)  │             (Admin-forced reset)
+                    └───────────────────────┘
+                                 │ No
+                                 ▼
+                    ┌───────────────────────┐
+                    │  Password Expired?    │────────────┐
+                    │  (Check Group Policy) │            │
+                    └───────────────────────┘            │
+                                 │                       ▼
+                     No         │          ┌─────────────────────────────┐
+                                ▼          │  Group Password Policy      │
+                    ┌─────────────────┐    │  ───────────────────────── │
+                    │ Successful      │    │  MustChange (1): Redirect  │
+                    │ Login           │    │  Alert (2): Show warning   │
+                    └─────────────────┘    │  Warn (3): Show notice     │
+                                           └─────────────────────────────┘
+```
+
+### Password Complexity Settings (System-Wide)
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| `MinPasswordLength` | Minimum password length | 8 |
+| `MaxPasswordLength` | Maximum password length (0 = no limit) | 128 |
+| `RequireUppercase` | Require at least one uppercase letter | true |
+| `RequireLowercase` | Require at least one lowercase letter | true |
+| `RequireNumbers` | Require at least one digit | true |
+| `RequireSpecialChars` | Require at least one special character | false |
+| `DefaultPasswordExpirationDays` | Default expiration (0 = never) | 0 |
+
+### Group-Level Security Policies
+
+| Setting | Description |
+|---------|-------------|
+| `PasswordExpirationDays` | Days until password expires (null = use system default) |
+| `PasswordExpirationPolicy` | Action on expiration: None (0), MustChange (1), Alert (2), Warn (3) |
+| `PasswordExpirationWarningDays` | Days before expiration to show warning |
+| `RequireTwoFactor` | Group prefers two-factor authentication |
+| `EnforceTwoFactor` | Two-factor is mandatory for group members |
+
+### User Password Fields
+
+| Field | Description |
+|-------|-------------|
+| `PasswordLastChangedAt` | Timestamp of last password change |
+| `MustResetPassword` | Admin-forced password reset flag |
+| `PasswordNeverSet` | User has never set a password (first login) |
+| `BackupCodes` | Encrypted 2FA backup codes |
+| `PasswordResetToken` | Token for password reset flow |
+| `PasswordResetTokenExpiry` | Expiration of reset token |
+
 ### JWT Token Structure
 
 ```json
@@ -388,6 +455,15 @@ Frontend <──SignalR WebSocket──> CrmNotificationHub
 | **Authenticated** | Any logged-in user |
 | **Role-based** | Specific role required |
 | **Group-based** | Membership in specific group |
+
+### Two-Factor Authentication
+
+| Configuration | Description |
+|---------------|-------------|
+| **System-Wide** | `RequireTwoFactor` in SystemSettings enables 2FA globally |
+| **Group-Level** | `RequireTwoFactor` suggests 2FA, `EnforceTwoFactor` mandates it |
+| **User-Level** | Users can optionally enable 2FA if not required |
+| **Backup Codes** | 10 single-use codes stored encrypted in user record |
 
 ---
 

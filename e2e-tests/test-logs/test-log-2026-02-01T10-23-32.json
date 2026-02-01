@@ -1,0 +1,30 @@
+{
+  "summary": {
+    "startTime": "2026-02-01T10:23:32.888Z",
+    "totalTests": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "duration": 5773129,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 0,
+        "failed": 1,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-02-01T11:59:46.017Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-02-01T11:59:45.925Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "FAIL",
+      "duration": 5771204,
+      "error": "Error: page.goto: Target page, context or browser has been closed"
+    }
+  ]
+}

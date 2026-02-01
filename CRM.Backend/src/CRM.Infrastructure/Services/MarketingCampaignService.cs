@@ -74,8 +74,42 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
         return items;
     }
 
+    /// <summary>
+    /// Validates campaign business rules
+    /// </summary>
+    private void ValidateCampaign(MarketingCampaign campaign)
+    {
+        if (string.IsNullOrWhiteSpace(campaign.Name))
+        {
+            throw new ArgumentException("Campaign name is required");
+        }
+        
+        if (campaign.EndDate.HasValue && campaign.StartDate.HasValue && 
+            campaign.EndDate.Value < campaign.StartDate.Value)
+        {
+            throw new ArgumentException("End date cannot be before start date");
+        }
+        
+        if (campaign.Budget < 0)
+        {
+            throw new ArgumentException("Budget cannot be negative");
+        }
+        
+        if (campaign.ActualCost < 0)
+        {
+            throw new ArgumentException("Actual cost cannot be negative");
+        }
+        
+        if (campaign.TargetAudience < 0)
+        {
+            throw new ArgumentException("Target audience cannot be negative");
+        }
+    }
+
     public async Task<int> CreateCampaignAsync(MarketingCampaign campaign)
     {
+        ValidateCampaign(campaign);
+        campaign.CreatedAt = DateTime.UtcNow;
         await _repository.AddAsync(campaign);
         await _repository.SaveAsync();
         return campaign.Id;
@@ -83,6 +117,7 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
 
     public async Task UpdateCampaignAsync(MarketingCampaign campaign)
     {
+        ValidateCampaign(campaign);
         campaign.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(campaign);
         await _repository.SaveAsync();
@@ -91,11 +126,17 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
     public async Task DeleteCampaignAsync(int id)
     {
         var campaign = await _repository.GetByIdAsync(id);
-        if (campaign != null)
+        if (campaign == null)
         {
-            await _repository.DeleteAsync(campaign);
-            await _repository.SaveAsync();
+            throw new InvalidOperationException($"Campaign with ID {id} not found");
         }
+        
+        // Soft delete by marking as deleted rather than hard delete
+        // This preserves campaign history for metrics and reporting
+        campaign.IsDeleted = true;
+        campaign.UpdatedAt = DateTime.UtcNow;
+        await _repository.UpdateAsync(campaign);
+        await _repository.SaveAsync();
     }
 
     public async Task AddCampaignMetricAsync(CampaignMetric metric)

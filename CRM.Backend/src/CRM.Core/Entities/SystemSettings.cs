@@ -299,6 +299,37 @@ public class SystemSettings : BaseEntity
     public int MinPasswordLength { get; set; } = 8;
     
     /// <summary>
+    /// Maximum password length (0 for no maximum)
+    /// </summary>
+    public int MaxPasswordLength { get; set; } = 128;
+    
+    /// <summary>
+    /// Whether passwords must contain at least one uppercase letter
+    /// </summary>
+    public bool RequireUppercase { get; set; } = true;
+    
+    /// <summary>
+    /// Whether passwords must contain at least one lowercase letter
+    /// </summary>
+    public bool RequireLowercase { get; set; } = true;
+    
+    /// <summary>
+    /// Whether passwords must contain at least one number
+    /// </summary>
+    public bool RequireNumbers { get; set; } = true;
+    
+    /// <summary>
+    /// Whether passwords must contain at least one special character
+    /// </summary>
+    public bool RequireSpecialChars { get; set; } = false;
+    
+    /// <summary>
+    /// Default maximum password age in days (0 for no expiration).
+    /// Individual groups can override this with their own PasswordExpirationDays setting.
+    /// </summary>
+    public int DefaultPasswordExpirationDays { get; set; } = 0;
+    
+    /// <summary>
     /// Session timeout in minutes
     /// </summary>
     public int SessionTimeoutMinutes { get; set; } = 60;

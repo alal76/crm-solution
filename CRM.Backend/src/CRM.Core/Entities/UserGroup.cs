@@ -1,6 +1,33 @@
 namespace CRM.Core.Entities;
 
 /// <summary>
+/// Password expiration policy for user groups.
+/// Defines how password expiration is handled for group members.
+/// </summary>
+public enum PasswordExpirationPolicy
+{
+    /// <summary>
+    /// No password expiration for this group
+    /// </summary>
+    None = 0,
+    
+    /// <summary>
+    /// User must change password - blocks login until password is changed
+    /// </summary>
+    MustChange = 1,
+    
+    /// <summary>
+    /// Alert the user about expiration but allow login
+    /// </summary>
+    Alert = 2,
+    
+    /// <summary>
+    /// Warn the user as expiration approaches (e.g., 7 days before)
+    /// </summary>
+    Warn = 3
+}
+
+/// <summary>
 /// FUNCTIONAL VIEW:
 /// ================
 /// User groups for organizing users and managing permissions collectively.
@@ -244,6 +271,39 @@ public class UserGroup : BaseEntity
     /// Whether members can bulk delete records
     /// </summary>
     public bool CanBulkDelete { get; set; } = false;
+    
+    #endregion
+    
+    #region Security Policy
+    
+    /// <summary>
+    /// Number of days before password expires for members of this group.
+    /// Null or 0 means passwords don't expire.
+    /// </summary>
+    public int? PasswordExpirationDays { get; set; }
+    
+    /// <summary>
+    /// How to handle password expiration for this group.
+    /// None: No expiration, MustChange: Block login, Alert: Allow login but alert, Warn: Warn before expiration
+    /// </summary>
+    public PasswordExpirationPolicy PasswordExpirationPolicy { get; set; } = PasswordExpirationPolicy.None;
+    
+    /// <summary>
+    /// Number of days before expiration to start warning users (only used with Warn policy)
+    /// </summary>
+    public int? PasswordExpirationWarningDays { get; set; } = 7;
+    
+    /// <summary>
+    /// Whether two-factor authentication is required for members of this group.
+    /// Only applies if 2FA is enabled at the system level (RequireTwoFactor in SystemSettings).
+    /// </summary>
+    public bool RequireTwoFactor { get; set; } = false;
+    
+    /// <summary>
+    /// Whether 2FA requirement can be enforced for this group (respects system-level 2FA setting)
+    /// If system-level 2FA is disabled, group-level 2FA is ignored.
+    /// </summary>
+    public bool EnforceTwoFactor { get; set; } = false;
     
     #endregion
     

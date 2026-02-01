@@ -121,6 +121,24 @@ public class User : BaseEntity
     /// </summary>
     public string? BackupCodes { get; set; }
 
+    // === Password Management ===
+    
+    /// <summary>
+    /// When the password was last changed (for password expiration policies)
+    /// </summary>
+    public DateTime? PasswordLastChangedAt { get; set; }
+    
+    /// <summary>
+    /// Flag indicating user must reset password on next login
+    /// </summary>
+    public bool MustResetPassword { get; set; } = false;
+    
+    /// <summary>
+    /// Flag indicating password has never been set (user created without password, e.g., by admin)
+    /// When true, user must set up password on first login
+    /// </summary>
+    public bool PasswordNeverSet { get; set; } = false;
+
     // === Password Reset ===
     
     /// <summary>

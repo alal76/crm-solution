@@ -158,6 +158,44 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         if (!user.IsActive)
             throw new UnauthorizedAccessException("User account is inactive");
 
+        // Check if password setup is required (first-time login with no password set)
+        if (user.PasswordNeverSet || user.MustResetPassword)
+        {
+            var passwordSetupToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            var cacheKey = $"password_setup_{passwordSetupToken}";
+            _cache.Set(cacheKey, user.Id, TimeSpan.FromMinutes(15));
+            
+            return new AuthResponse
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                RequiresPasswordSetup = user.PasswordNeverSet,
+                MustChangePassword = user.MustResetPassword,
+                PasswordSetupToken = passwordSetupToken
+            };
+        }
+
+        // Check password expiration based on group policy
+        var passwordStatus = CheckPasswordExpiration(user);
+        if (passwordStatus.isExpired)
+        {
+            var passwordSetupToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            var cacheKey = $"password_setup_{passwordSetupToken}";
+            _cache.Set(cacheKey, user.Id, TimeSpan.FromMinutes(15));
+            
+            return new AuthResponse
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PasswordExpired = true,
+                PasswordSetupToken = passwordSetupToken
+            };
+        }
+
         // Check if 2FA is enabled for this user
         if (user.TwoFactorEnabled && !string.IsNullOrEmpty(user.TwoFactorSecret))
         {
@@ -176,7 +214,10 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
                 LastName = user.LastName,
                 RequiresTwoFactor = true,
                 TwoFactorEnabled = true,
-                TwoFactorToken = tempToken
+                TwoFactorToken = tempToken,
+                // Include password expiration warning even for 2FA flow
+                PasswordExpirationWarning = passwordStatus.isWarning,
+                DaysUntilPasswordExpiration = passwordStatus.daysRemaining
             };
         }
 
@@ -186,6 +227,10 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         // Generate response with tokens
         var response = GenerateAuthResponse(user);
         
+        // Add password expiration warning to response
+        response.PasswordExpirationWarning = passwordStatus.isWarning;
+        response.DaysUntilPasswordExpiration = passwordStatus.daysRemaining;
+        
         // Store refresh token for later validation
         user.RefreshToken = response.RefreshToken;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
@@ -194,6 +239,47 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         await _userRepository.SaveAsync();
 
         return response;
+    }
+
+    /// <summary>
+    /// Check password expiration based on user's primary group policy
+    /// </summary>
+    private (bool isExpired, bool isWarning, int? daysRemaining) CheckPasswordExpiration(User user)
+    {
+        // If no group or no password last changed date, assume not expired
+        if (user.PrimaryGroup == null || user.PasswordLastChangedAt == null)
+            return (false, false, null);
+
+        var group = user.PrimaryGroup;
+        
+        // If no expiration policy or expiration days, password doesn't expire
+        if (group.PasswordExpirationPolicy == PasswordExpirationPolicy.None || 
+            group.PasswordExpirationDays == null || group.PasswordExpirationDays <= 0)
+            return (false, false, null);
+
+        var passwordAge = (DateTime.UtcNow - user.PasswordLastChangedAt.Value).TotalDays;
+        var daysRemaining = (int)(group.PasswordExpirationDays.Value - passwordAge);
+
+        // Password has expired
+        if (passwordAge >= group.PasswordExpirationDays.Value)
+        {
+            // If policy is MustChange, block login
+            if (group.PasswordExpirationPolicy == PasswordExpirationPolicy.MustChange)
+                return (true, false, 0);
+            
+            // For Alert policy, allow login but indicate expiration
+            if (group.PasswordExpirationPolicy == PasswordExpirationPolicy.Alert)
+                return (false, true, 0);
+        }
+
+        // Check for warning period
+        var warningDays = group.PasswordExpirationWarningDays ?? 7;
+        if (daysRemaining <= warningDays && daysRemaining > 0)
+        {
+            return (false, true, daysRemaining);
+        }
+
+        return (false, false, daysRemaining > 0 ? daysRemaining : null);
     }
 
     public async Task<AuthResponse> OAuthLoginAsync(OAuthLoginRequest request)
@@ -822,6 +908,101 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         _logger.LogInformation($"Admin reset password for user {userId}");
         return true;
+    }
+
+    public async Task<AuthResponse> SetupPasswordAsync(SetPasswordRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PasswordSetupToken))
+            throw new ArgumentException("Password setup token is required");
+
+        if (string.IsNullOrWhiteSpace(request.NewPassword))
+            throw new ArgumentException("New password is required");
+
+        if (request.NewPassword != request.ConfirmPassword)
+            throw new ArgumentException("Passwords do not match");
+
+        // Validate password against complexity requirements
+        await ValidatePasswordComplexityAsync(request.NewPassword);
+
+        // Get user ID from cache token
+        var cacheKey = $"password_setup_{request.PasswordSetupToken}";
+        if (!_cache.TryGetValue(cacheKey, out int userId))
+            throw new UnauthorizedAccessException("Invalid or expired password setup token");
+
+        // Remove token from cache (one-time use)
+        _cache.Remove(cacheKey);
+
+        // Get user with navigation properties
+        var user = await _dbContext.Users
+            .Include(u => u.PrimaryGroup)
+            .Include(u => u.Department)
+            .Include(u => u.UserProfile)
+            .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
+
+        if (user == null)
+            throw new InvalidOperationException("User not found");
+
+        // Update password and reset flags
+        user.PasswordHash = HashPassword(request.NewPassword);
+        user.PasswordLastChangedAt = DateTime.UtcNow;
+        user.PasswordNeverSet = false;
+        user.MustResetPassword = false;
+        user.LastLoginDate = DateTime.UtcNow;
+
+        // Generate auth response with tokens
+        var response = GenerateAuthResponse(user);
+        
+        // Store refresh token
+        user.RefreshToken = response.RefreshToken;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
+
+        _logger.LogInformation($"User {userId} set up password successfully");
+        return response;
+    }
+
+    public async Task<PasswordComplexityRequirements> GetPasswordRequirementsAsync()
+    {
+        var settings = await _dbContext.SystemSettings.FirstOrDefaultAsync();
+        
+        return new PasswordComplexityRequirements
+        {
+            MinLength = settings?.MinPasswordLength ?? 8,
+            MaxLength = settings?.MaxPasswordLength ?? 128,
+            RequireUppercase = settings?.RequireUppercase ?? true,
+            RequireLowercase = settings?.RequireLowercase ?? true,
+            RequireNumbers = settings?.RequireNumbers ?? true,
+            RequireSpecialChars = settings?.RequireSpecialChars ?? false
+        };
+    }
+
+    private async Task ValidatePasswordComplexityAsync(string password)
+    {
+        var requirements = await GetPasswordRequirementsAsync();
+        var errors = new List<string>();
+
+        if (password.Length < requirements.MinLength)
+            errors.Add($"Password must be at least {requirements.MinLength} characters");
+
+        if (requirements.MaxLength > 0 && password.Length > requirements.MaxLength)
+            errors.Add($"Password must be no more than {requirements.MaxLength} characters");
+
+        if (requirements.RequireUppercase && !password.Any(char.IsUpper))
+            errors.Add("Password must contain at least one uppercase letter");
+
+        if (requirements.RequireLowercase && !password.Any(char.IsLower))
+            errors.Add("Password must contain at least one lowercase letter");
+
+        if (requirements.RequireNumbers && !password.Any(char.IsDigit))
+            errors.Add("Password must contain at least one number");
+
+        if (requirements.RequireSpecialChars && !password.Any(c => !char.IsLetterOrDigit(c)))
+            errors.Add("Password must contain at least one special character");
+
+        if (errors.Any())
+            throw new ArgumentException(string.Join(". ", errors));
     }
 
     // Helper Methods

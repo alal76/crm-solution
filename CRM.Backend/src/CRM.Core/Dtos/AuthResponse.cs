@@ -58,6 +58,36 @@ public class AuthResponse
     public string? TwoFactorToken { get; set; }
     
     /// <summary>
+    /// Whether the user needs to set up a password (first-time login with no password set)
+    /// </summary>
+    public bool RequiresPasswordSetup { get; set; } = false;
+    
+    /// <summary>
+    /// Whether the user's password has expired
+    /// </summary>
+    public bool PasswordExpired { get; set; } = false;
+    
+    /// <summary>
+    /// Whether the user is in the password expiration warning period
+    /// </summary>
+    public bool PasswordExpirationWarning { get; set; } = false;
+    
+    /// <summary>
+    /// Number of days until password expires (only set when PasswordExpirationWarning is true)
+    /// </summary>
+    public int? DaysUntilPasswordExpiration { get; set; }
+    
+    /// <summary>
+    /// Whether the user must change password on this login (e.g., admin forced reset)
+    /// </summary>
+    public bool MustChangePassword { get; set; } = false;
+    
+    /// <summary>
+    /// Temporary token for password setup/change (only set when RequiresPasswordSetup or PasswordExpired is true)
+    /// </summary>
+    public string? PasswordSetupToken { get; set; }
+    
+    /// <summary>
     /// Whether the registration requires admin approval
     /// </summary>
     public bool RequiresApproval { get; set; } = false;

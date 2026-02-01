@@ -27,8 +27,9 @@ INSERT INTO SystemSettings (
   PrimaryColor, SecondaryColor, TertiaryColor, SurfaceColor, BackgroundColor,
   UseGroupHeaderColor, SelectedPaletteId, SelectedPaletteName, PalettesLastRefreshed,
   -- Security Settings
-  RequireTwoFactor, MinPasswordLength, SessionTimeoutMinutes,
-  AllowUserRegistration, RequireApprovalForNewUsers,
+  RequireTwoFactor, MinPasswordLength, MaxPasswordLength, SessionTimeoutMinutes,
+  RequireUppercase, RequireLowercase, RequireNumbers, RequireSpecialChars,
+  DefaultPasswordExpirationDays, AllowUserRegistration, RequireApprovalForNewUsers,
   -- OAuth Settings
   GoogleAuthEnabled, GoogleClientId, GoogleClientSecret,
   MicrosoftAuthEnabled, MicrosoftClientId, MicrosoftClientSecret, MicrosoftTenantId,
@@ -64,8 +65,9 @@ INSERT INTO SystemSettings (
   '#6750A4', '#625B71', '#7D5260', '#FFFBFE', '#FFFBFE',
   0, 1, 'Material Purple', NOW(),
   -- Security Settings
-  0, 8, 60,
-  1, 1,
+  0, 8, 128, 60,  -- RequireTwoFactor, MinPasswordLength, MaxPasswordLength, SessionTimeoutMinutes
+  1, 1, 1, 0,     -- RequireUppercase, RequireLowercase, RequireNumbers, RequireSpecialChars
+  0, 1, 1,        -- DefaultPasswordExpirationDays, AllowUserRegistration, RequireApprovalForNewUsers
   -- OAuth Settings (disabled by default)
   0, NULL, NULL,
   0, NULL, NULL, 'common',

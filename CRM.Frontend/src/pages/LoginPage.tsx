@@ -429,6 +429,24 @@ const LoginPage: React.FC = () => {
       try {
         const result = await login(formData.email.trim(), formData.password);
         debugLog('[LoginPage] Login result', result);
+        
+        // Check if password setup is required (first-time login or expired)
+        if (result.requiresPasswordSetup || result.passwordExpired || result.mustChangePassword) {
+          navigate('/setup-password', {
+            state: {
+              passwordSetupToken: result.passwordSetupToken,
+              isFirstTimeSetup: result.requiresPasswordSetup,
+              isExpired: result.passwordExpired,
+              mustChange: result.mustChangePassword,
+              email: formData.email.trim(),
+            },
+          });
+          setLoading(false);
+          loginInProgress.current = false;
+          debugInfo('[LoginPage] Password setup required');
+          return;
+        }
+        
         // Check if 2FA is required
         if (result.requiresTwoFactor && result.twoFactorToken) {
           setTwoFactorToken(result.twoFactorToken);
@@ -445,6 +463,15 @@ const LoginPage: React.FC = () => {
           localStorage.removeItem('savedEmail');
           localStorage.removeItem('rememberMe');
         }
+        
+        // Show password expiration warning if applicable
+        if (result.passwordExpirationWarning && result.daysUntilPasswordExpiration !== undefined) {
+          // Store warning for display after login
+          sessionStorage.setItem('passwordExpirationWarning', JSON.stringify({
+            daysRemaining: result.daysUntilPasswordExpiration,
+          }));
+        }
+        
         navigate('/');
       } catch (err: unknown) {
         const error = err as { 

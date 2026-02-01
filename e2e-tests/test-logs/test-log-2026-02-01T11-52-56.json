@@ -1,0 +1,43 @@
+{
+  "summary": {
+    "startTime": "2026-02-01T11:52:56.660Z",
+    "totalTests": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 11297,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "campaigns": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-02-01T11:53:07.957Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-02-01T11:53:02.862Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "PASS",
+      "duration": 4822
+    },
+    {
+      "timestamp": "2026-02-01T11:53:07.923Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "BUG-002: End date before start date should be rejected",
+      "module": "campaigns",
+      "status": "PASS",
+      "duration": 4305
+    }
+  ]
+}

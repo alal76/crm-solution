@@ -71,8 +71,30 @@ public class CampaignsController : ControllerBase
     {
         try
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            // Business validation: End date must be after start date
+            if (campaign.EndDate.HasValue && campaign.StartDate.HasValue && 
+                campaign.EndDate.Value < campaign.StartDate.Value)
+            {
+                return BadRequest(new { message = "End date cannot be before start date" });
+            }
+            
+            // Business validation: Budget cannot be negative
+            if (campaign.Budget < 0)
+            {
+                return BadRequest(new { message = "Budget cannot be negative" });
+            }
+            
             var id = await _campaignService.CreateCampaignAsync(campaign);
             return CreatedAtAction(nameof(GetById), new { id }, campaign);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -86,9 +108,35 @@ public class CampaignsController : ControllerBase
     {
         try
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            // Business validation: End date must be after start date
+            if (campaign.EndDate.HasValue && campaign.StartDate.HasValue && 
+                campaign.EndDate.Value < campaign.StartDate.Value)
+            {
+                return BadRequest(new { message = "End date cannot be before start date" });
+            }
+            
+            // Business validation: Budget cannot be negative
+            if (campaign.Budget < 0)
+            {
+                return BadRequest(new { message = "Budget cannot be negative" });
+            }
+            
             campaign.Id = id;
             await _campaignService.UpdateCampaignAsync(campaign);
             return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -104,6 +152,10 @@ public class CampaignsController : ControllerBase
         {
             await _campaignService.DeleteCampaignAsync(id);
             return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
         catch (Exception ex)
         {

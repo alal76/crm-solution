@@ -99,6 +99,12 @@ interface GroupPermissions {
   canImportData: boolean;
   canBulkEdit: boolean;
   canBulkDelete: boolean;
+  // Security Policy
+  passwordExpirationDays: number | null;
+  passwordExpirationPolicy: number;
+  passwordExpirationWarningDays: number | null;
+  requireTwoFactor: boolean;
+  enforceTwoFactor: boolean;
 }
 
 interface UserGroup extends GroupPermissions {
@@ -172,6 +178,12 @@ const defaultPermissions: GroupPermissions = {
   canImportData: false,
   canBulkEdit: false,
   canBulkDelete: false,
+  // Security Policy
+  passwordExpirationDays: null,
+  passwordExpirationPolicy: 0, // 0=None, 1=MustChange, 2=Alert, 3=Warn
+  passwordExpirationWarningDays: 7,
+  requireTwoFactor: false,
+  enforceTwoFactor: false,
 };
 
 function GroupManagementTab() {
@@ -438,6 +450,7 @@ function GroupManagementTab() {
             <Tab label="Menu Access" />
             <Tab label="Entity Permissions" />
             <Tab label="Data Access" />
+            <Tab label="Security Policy" />
           </Tabs>
 
           {dialogTab === 0 && (
@@ -738,6 +751,107 @@ function GroupManagementTab() {
                     <Grid item xs={6}>{renderPermissionSwitch('canBulkEdit', 'Bulk Edit')}</Grid>
                     <Grid item xs={6}>{renderPermissionSwitch('canBulkDelete', 'Bulk Delete')}</Grid>
                   </Grid>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+
+          {dialogTab === 4 && (
+            <Box sx={{ pt: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                Password Expiration Policy
+              </Typography>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                These settings control password expiration for members of this group.
+                System-level password complexity settings still apply.
+              </Alert>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Password Expiration (days)"
+                    type="number"
+                    value={formData.passwordExpirationDays ?? ''}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      passwordExpirationDays: e.target.value ? parseInt(e.target.value) : null 
+                    })}
+                    inputProps={{ min: 0, max: 365 }}
+                    helperText="0 or empty for no expiration"
+                    disabled={formData.isSystemAdmin}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Warning Days Before Expiration"
+                    type="number"
+                    value={formData.passwordExpirationWarningDays ?? 7}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      passwordExpirationWarningDays: parseInt(e.target.value) || 7 
+                    })}
+                    inputProps={{ min: 1, max: 30 }}
+                    helperText="Days before expiration to start warning users"
+                    disabled={formData.isSystemAdmin || !formData.passwordExpirationDays}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                    Expiration Behavior
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {[
+                      { value: 0, label: 'None', desc: 'No expiration enforcement' },
+                      { value: 1, label: 'Must Change', desc: 'Block login until password is changed' },
+                      { value: 2, label: 'Alert', desc: 'Allow login but show alert' },
+                      { value: 3, label: 'Warn', desc: 'Warn users as expiration approaches' },
+                    ].map((policy) => (
+                      <Button
+                        key={policy.value}
+                        variant={formData.passwordExpirationPolicy === policy.value ? 'contained' : 'outlined'}
+                        onClick={() => setFormData({ ...formData, passwordExpirationPolicy: policy.value })}
+                        disabled={formData.isSystemAdmin}
+                        sx={{ textTransform: 'none', flexDirection: 'column', alignItems: 'flex-start', py: 1, px: 2 }}
+                      >
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{policy.label}</Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.8 }}>{policy.desc}</Typography>
+                      </Button>
+                    ))}
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Typography variant="subtitle1" sx={{ mt: 4, mb: 2, fontWeight: 600 }}>
+                Two-Factor Authentication Requirements
+              </Typography>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Group-level 2FA settings only apply when 2FA is enabled at the system level.
+              </Alert>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={formData.requireTwoFactor ?? false}
+                        onChange={(e) => setFormData({ ...formData, requireTwoFactor: e.target.checked })}
+                        disabled={formData.isSystemAdmin}
+                      />
+                    }
+                    label="Require 2FA for group members"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={formData.enforceTwoFactor ?? false}
+                        onChange={(e) => setFormData({ ...formData, enforceTwoFactor: e.target.checked })}
+                        disabled={formData.isSystemAdmin || !formData.requireTwoFactor}
+                      />
+                    }
+                    label="Enforce 2FA (block login until 2FA is set up)"
+                  />
                 </Grid>
               </Grid>
             </Box>
