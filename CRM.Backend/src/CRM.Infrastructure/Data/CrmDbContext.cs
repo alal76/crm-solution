@@ -197,6 +197,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<DuplicateMatchField> DuplicateMatchFields { get; set; }
     public DbSet<DuplicateCandidate> DuplicateCandidates { get; set; }
     public DbSet<DuplicateMergeHistory> DuplicateMergeHistories { get; set; }
+    public DbSet<DuplicateMergeGroup> DuplicateMergeGroups { get; set; }
+    public DbSet<DuplicateMergeGroupMember> DuplicateMergeGroupMembers { get; set; }
 
     // =============================================================================
     // Marketing Automation Entities (Email Sequences, Web Tracking, Forms)

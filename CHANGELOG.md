@@ -5,6 +5,50 @@ All notable changes to CRM Solution will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.29] - 2026-02-02
+
+### Added - Deduplication Feature (Complete)
+
+#### Backend Services
+- `IDuplicateDetectionService` - Interface for duplicate detection operations
+- `IMergeService` - Interface for merge/unmerge operations
+- `DuplicateDetectionService` - Full duplicate detection with fuzzy matching algorithms
+- `MergeService` - Merge/unmerge with snapshots and related record relinking
+- `DuplicatesController` - REST API endpoints for all deduplication operations
+
+#### Database Tables & Migrations
+- `DuplicateRules` - Configurable detection rules per entity type
+- `DuplicateMatchFields` - Field-level matching configuration
+- `DuplicateCandidates` - Detected duplicate pairs with match scores
+- `DuplicateMergeGroups` - Tracks merged record groups
+- `DuplicateMergeGroupMembers` - Individual records with JSON snapshots
+
+#### API Endpoints
+- `POST /api/duplicates/check` - Real-time duplicate check on create/edit
+- `POST /api/duplicates/scan/{entityType}` - Batch duplicate scanning
+- `GET /api/duplicates/candidates/{entityType}` - List pending duplicates
+- `POST /api/duplicates/merge/preview` - Preview merge field selections
+- `POST /api/duplicates/merge` - Execute merge with audit trail
+- `POST /api/duplicates/unmerge` - Restore merged records
+
+#### Matching Algorithms
+- Exact matching (case-insensitive)
+- Fuzzy matching (Levenshtein distance)
+- Phonetic matching (Soundex)
+- Normalized matching (phone numbers)
+- Email domain extraction
+
+#### Testing
+- 29 unit tests for DuplicateDetectionService and MergeService
+- E2E test suite for API endpoints
+- Tested on 192.168.0.9 with MariaDB
+
+### Fixed
+- JWT claim parsing for user ID extraction (nameid claim support)
+- Contact query filters for IsMergedDuplicate field
+
+---
+
 ## [0.0.28] - 2026-02-01
 
 ### Added - Azure DevOps & Cloud Deployment

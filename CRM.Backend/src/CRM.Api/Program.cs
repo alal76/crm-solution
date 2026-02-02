@@ -370,6 +370,10 @@ builder.Services.AddScoped<WorkflowInstanceService>();
 // Relationship management services
 builder.Services.AddScoped<RelationshipService>();
 
+// Duplicate detection and merge services
+builder.Services.AddScoped<IDuplicateDetectionService, DuplicateDetectionService>();
+builder.Services.AddScoped<IMergeService, MergeService>();
+
 // Campaign execution services
 builder.Services.AddScoped<CampaignExecutionService>();
 

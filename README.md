@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-0.0.25-blue)
+![Version](https://img.shields.io/badge/version-1.9.0-blue)
 ![.NET](https://img.shields.io/badge/.NET-8.0-purple)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -82,6 +82,18 @@ This is a hobby side project not related to my day job - and built on weekends -
 | **Task Automation** | Automated task creation and assignment |
 | **Approval Workflows** | Multi-level approval processes |
 | **Notifications** | Real-time alerts via SignalR |
+
+### Data Quality & Deduplication
+
+| Feature | Description |
+|---------|-------------|
+| **Duplicate Detection** | Real-time detection on create/edit with configurable rules |
+| **Fuzzy Matching** | Levenshtein, Soundex, and email domain matching algorithms |
+| **Merge Wizard** | Field-by-field comparison with override selection |
+| **Merge Preview** | Preview changes before executing merge |
+| **Unmerge Capability** | Restore merged records with full audit trail |
+| **Batch Scanning** | Scan entire entity tables for duplicates |
+| **Match Scoring** | Configurable thresholds and field weights |
 
 ### Relationships & Mapping
 

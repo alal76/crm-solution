@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="44" failures="0" skipped="3" errors="0" time="28.689187999999998">
-<testsuite name="auth.setup.ts" timestamp="2026-02-01T12:05:19.395Z" hostname="setup" tests="1" failures="0" skipped="0" time="4.466" errors="0">
-<testcase name="authenticate" classname="auth.setup.ts" time="4.466">
+<testsuites id="" name="" tests="18" failures="1" skipped="1" errors="0" time="10.2231">
+<testsuite name="auth.setup.ts" timestamp="2026-02-02T12:12:20.319Z" hostname="setup" tests="1" failures="0" skipped="0" time="4.215" errors="0">
+<testcase name="authenticate" classname="auth.setup.ts" time="4.215">
 <system-out>
 <![CDATA[🔐 Attempting login with: admin@crm.local
 📋 Found 3 input fields
@@ -10,179 +10,186 @@
 </system-out>
 </testcase>
 </testsuite>
-<testsuite name="campaigns/campaign-bugs.spec.ts" timestamp="2026-02-01T12:05:19.395Z" hostname="chromium" tests="8" failures="0" skipped="0" time="24.051" errors="0">
-<testcase name="Campaign Bug Hunt › BUG-001: Empty form submission should show validation errors" classname="campaigns/campaign-bugs.spec.ts" time="3.014">
+<testsuite name="deduplication/deduplication.spec.ts" timestamp="2026-02-02T12:12:20.319Z" hostname="chromium" tests="17" failures="1" skipped="1" time="14.437" errors="0">
+<testcase name="Deduplication - API Tests › TC-DEDUP-001: Should check for duplicates with no matches" classname="deduplication/deduplication.spec.ts" time="0.856">
 <system-out>
-<![CDATA[✓ Empty form validation works
+<![CDATA[Duplicate check response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
 ]]>
 </system-out>
 </testcase>
-<testcase name="Campaign Bug Hunt › BUG-002: End date before start date validation (requires frontend rebuild)" classname="campaigns/campaign-bugs.spec.ts" time="4.952">
+<testcase name="Deduplication - API Tests › TC-DEDUP-002: Should detect duplicate by email" classname="deduplication/deduplication.spec.ts" time="0.729">
 <system-out>
-<![CDATA[Start date: 2026-12-01 End date: 2026-01-01
-String comparison endDate < startDate: [33mtrue[39m
-⚠ Date validation not active - campaign was created
+<![CDATA[Duplicate detection response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
 ]]>
 </system-out>
 </testcase>
-<testcase name="Campaign Bug Hunt › BUG-003: Negative budget should be rejected" classname="campaigns/campaign-bugs.spec.ts" time="3.779">
+<testcase name="Deduplication - API Tests › TC-DEDUP-003: Should detect fuzzy name matches" classname="deduplication/deduplication.spec.ts" time="0.562">
 <system-out>
-<![CDATA[✓ Negative budget validation correctly rejects negative values
+<![CDATA[Fuzzy match response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
 ]]>
 </system-out>
 </testcase>
-<testcase name="Campaign Bug Hunt › BUG-004: ROI calculation with zero spend should not show Infinity/NaN" classname="campaigns/campaign-bugs.spec.ts" time="2.181">
+<testcase name="Deduplication - API Tests › TC-DEDUP-004: Should get active duplicate rules" classname="deduplication/deduplication.spec.ts" time="0.683">
 <system-out>
-<![CDATA[✓ ROI calculation handles zero spend correctly: Calculated ROI: 0%
+<![CDATA[Duplicate rules response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
 ]]>
 </system-out>
 </testcase>
-<testcase name="Campaign Bug Hunt › BUG-005: Bulk update without selecting fields should warn user" classname="campaigns/campaign-bugs.spec.ts" time="3.458">
+<testcase name="Deduplication - API Tests › TC-DEDUP-005: Should handle Contact duplicates" classname="deduplication/deduplication.spec.ts" time="0.909">
 <system-out>
-<![CDATA[✓ Bulk update with no fields completed without crash
+<![CDATA[Contact duplicate check: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
 ]]>
 </system-out>
 </testcase>
-<testcase name="Campaign Bug Hunt › BUG-006: Notes tab should show save-first message for new campaigns" classname="campaigns/campaign-bugs.spec.ts" time="1.823">
+<testcase name="Deduplication - API Tests › TC-DEDUP-006: Should handle Account duplicates" classname="deduplication/deduplication.spec.ts" time="0.47">
 <system-out>
-<![CDATA[✓ Notes tab correctly shows save-first message
+<![CDATA[Account duplicate check: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
 ]]>
 </system-out>
 </testcase>
-<testcase name="Campaign Bug Hunt › BUG-007: Campaign type dropdown should show all options" classname="campaigns/campaign-bugs.spec.ts" time="2.423">
+<testcase name="Deduplication - Merge Operations › TC-DEDUP-010: Should preview merge operation" classname="deduplication/deduplication.spec.ts" time="0.974">
 <system-out>
-<![CDATA[Campaign type has 26 options
+<![CDATA[Merge preview response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
 ]]>
 </system-out>
 </testcase>
-<testcase name="Campaign Bug Hunt › BUG-008: Performance metrics should update calculated fields" classname="campaigns/campaign-bugs.spec.ts" time="2.421">
+<testcase name="Deduplication - Merge Operations › TC-DEDUP-011: Should get merge history" classname="deduplication/deduplication.spec.ts" time="0.842">
 <system-out>
-<![CDATA[✓ CTR calculation correct: 5.00%
+<![CDATA[Merge history response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
 ]]>
 </system-out>
 </testcase>
-</testsuite>
-<testsuite name="campaigns/campaign-execution.spec.ts" timestamp="2026-02-01T12:05:19.395Z" hostname="chromium" tests="18" failures="0" skipped="0" time="8.284" errors="0">
-<testcase name="Campaign Execution - Navigation › TC-CEXE-001: Should display campaigns list" classname="campaigns/campaign-execution.spec.ts" time="0.464">
-</testcase>
-<testcase name="Campaign Execution - Navigation › TC-CEXE-002: Should navigate to campaign execution page" classname="campaigns/campaign-execution.spec.ts" time="0.384">
-</testcase>
-<testcase name="Campaign Execution - Workflows › TC-CEXE-010: Should display workflows tab" classname="campaigns/campaign-execution.spec.ts" time="0.435">
-</testcase>
-<testcase name="Campaign Execution - Workflows › TC-CEXE-011: Should show link workflow button" classname="campaigns/campaign-execution.spec.ts" time="0.385">
-</testcase>
-<testcase name="Campaign Execution - Workflows › TC-CEXE-012: Should open link workflow dialog" classname="campaigns/campaign-execution.spec.ts" time="0.433">
-</testcase>
-<testcase name="Campaign Execution - Recipients › TC-CEXE-020: Should show recipients tab" classname="campaigns/campaign-execution.spec.ts" time="0.423">
-</testcase>
-<testcase name="Campaign Execution - Recipients › TC-CEXE-021: Should open add recipients dialog" classname="campaigns/campaign-execution.spec.ts" time="0.474">
-</testcase>
-<testcase name="Campaign Execution - Recipients › TC-CEXE-022: Should add recipients to campaign" classname="campaigns/campaign-execution.spec.ts" time="0.428">
-</testcase>
-<testcase name="Campaign Execution - A/B Testing › TC-CEXE-030: Should show A/B tests tab" classname="campaigns/campaign-execution.spec.ts" time="0.415">
-</testcase>
-<testcase name="Campaign Execution - A/B Testing › TC-CEXE-031: Should open create A/B test dialog" classname="campaigns/campaign-execution.spec.ts" time="0.371">
-</testcase>
-<testcase name="Campaign Execution - A/B Testing › TC-CEXE-032: Should create A/B test" classname="campaigns/campaign-execution.spec.ts" time="0.488">
-</testcase>
-<testcase name="Campaign Execution - Conversions › TC-CEXE-040: Should show conversions tab" classname="campaigns/campaign-execution.spec.ts" time="0.518">
-</testcase>
-<testcase name="Campaign Execution - Analytics › TC-CEXE-050: Should show analytics tab" classname="campaigns/campaign-execution.spec.ts" time="0.496">
-</testcase>
-<testcase name="Campaign Execution - Analytics › TC-CEXE-051: Should display engagement funnel" classname="campaigns/campaign-execution.spec.ts" time="0.498">
-</testcase>
-<testcase name="Campaign Execution - Analytics › TC-CEXE-052: Should display ROI metrics" classname="campaigns/campaign-execution.spec.ts" time="0.499">
-</testcase>
-<testcase name="Campaign Execution - Summary Cards › TC-CEXE-060: Should display summary metrics cards" classname="campaigns/campaign-execution.spec.ts" time="0.468">
-</testcase>
-<testcase name="Campaign Execution - Summary Cards › TC-CEXE-061: Should show open rate metric" classname="campaigns/campaign-execution.spec.ts" time="0.495">
-</testcase>
-<testcase name="Campaign Execution - Summary Cards › TC-CEXE-062: Should show conversion rate metric" classname="campaigns/campaign-execution.spec.ts" time="0.61">
-</testcase>
-</testsuite>
-<testsuite name="campaigns/campaign-setup.spec.ts" timestamp="2026-02-01T12:05:19.395Z" hostname="chromium" tests="4" failures="0" skipped="0" time="14.565" errors="0">
-<testcase name="Campaign Setup - Create Sample Data › SETUP-001: Create sample campaigns for testing" classname="campaigns/campaign-setup.spec.ts" time="1.703">
-<system-out>
-<![CDATA[Creating campaign: Q1 Email Newsletter
-  ⏭ Campaign "Q1 Email Newsletter" already exists, skipping
-Creating campaign: Spring Social Media Push
-  ⏭ Campaign "Spring Social Media Push" already exists, skipping
-Creating campaign: Product Launch Webinar
-  ⏭ Campaign "Product Launch Webinar" already exists, skipping
-Creating campaign: Trade Show 2026
-  ⏭ Campaign "Trade Show 2026" already exists, skipping
-Creating campaign: Completed Winter Sale
-  ⏭ Campaign "Completed Winter Sale" already exists, skipping
+<testcase name="Deduplication - Merge Operations › TC-DEDUP-012: Should handle invalid entity type gracefully" classname="deduplication/deduplication.spec.ts" time="0.836">
+<failure message="deduplication.spec.ts:207:7 TC-DEDUP-012: Should handle invalid entity type gracefully" type="FAILURE">
+<![CDATA[  [chromium] › deduplication/deduplication.spec.ts:207:7 › Deduplication - Merge Operations › TC-DEDUP-012: Should handle invalid entity type gracefully 
 
-📊 Total campaigns in table: 19
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 400
+    Received: 401
+
+      218 |     console.log('Invalid entity response:', JSON.stringify(response, null, 2));
+      219 |     // Should return 400 Bad Request, not 500
+    > 220 |     expect(response.status).toBe(400);
+          |                             ^
+      221 |   });
+      222 |
+      223 |   test('TC-DEDUP-013: Should require field values', async ({ page }) => {
+        at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/deduplication/deduplication.spec.ts:220:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/artifacts/deduplication-deduplicatio-17103-alid-entity-type-gracefully-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/artifacts/deduplication-deduplicatio-17103-alid-entity-type-gracefully-chromium/error-context.md
 ]]>
-</system-out>
-</testcase>
-<testcase name="Campaign Setup - Create Sample Data › SETUP-002: Add performance metrics to a campaign" classname="campaigns/campaign-setup.spec.ts" time="4.759">
+</failure>
 <system-out>
-<![CDATA[Campaign row visible: [33mtrue[39m
-Looking for edit button...
-✓ Added performance metrics to first campaign
+<![CDATA[Invalid entity response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
+
+[[ATTACHMENT|artifacts/deduplication-deduplicatio-17103-alid-entity-type-gracefully-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|artifacts/deduplication-deduplicatio-17103-alid-entity-type-gracefully-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="Campaign Setup - Create Sample Data › SETUP-003: Add email metrics to email campaign" classname="campaigns/campaign-setup.spec.ts" time="4.042">
-<system-out>
-<![CDATA[✓ Added email metrics to campaign
-]]>
-</system-out>
-</testcase>
-<testcase name="Campaign Setup - Create Sample Data › SETUP-004: Add social metrics to social campaign" classname="campaigns/campaign-setup.spec.ts" time="4.061">
-<system-out>
-<![CDATA[✓ Added social metrics to campaign
-]]>
-</system-out>
-</testcase>
-</testsuite>
-<testsuite name="campaigns/campaigns.spec.ts" timestamp="2026-02-01T12:05:19.395Z" hostname="chromium" tests="13" failures="0" skipped="3" time="27.284" errors="0">
-<testcase name="Campaigns - List View › TC-CAMP-001: Should display campaigns list" classname="campaigns/campaigns.spec.ts" time="0.994">
-</testcase>
-<testcase name="Campaigns - List View › TC-CAMP-002: Should show campaign status" classname="campaigns/campaigns.spec.ts" time="0.358">
-</testcase>
-<testcase name="Campaigns - List View › TC-CAMP-003: Should filter by type" classname="campaigns/campaigns.spec.ts" time="0.361">
-</testcase>
-<testcase name="Campaigns - List View › TC-CAMP-004: Should search campaigns" classname="campaigns/campaigns.spec.ts" time="0.905">
-</testcase>
-<testcase name="Campaigns - Create › TC-CAMP-005: Should create email campaign" classname="campaigns/campaigns.spec.ts" time="0.346">
-<properties>
-<property name="skip" value="">
-</property>
-</properties>
+<testcase name="Deduplication - Merge Operations › TC-DEDUP-013: Should require field values" classname="deduplication/deduplication.spec.ts" time="0">
 <skipped>
 </skipped>
 </testcase>
-<testcase name="Campaigns - Create › TC-CAMP-006: Should create social media campaign" classname="campaigns/campaigns.spec.ts" time="0.473">
-<properties>
-<property name="skip" value="">
-</property>
-</properties>
-<skipped>
-</skipped>
+<testcase name="Deduplication - UI Integration › TC-DEDUP-020: Should show duplicate detection dialog on lead create" classname="deduplication/deduplication.spec.ts" time="2.962">
 </testcase>
-<testcase name="Campaigns - Create › TC-CAMP-007: Should set target audience" classname="campaigns/campaigns.spec.ts" time="0.443">
-<properties>
-<property name="skip" value="">
-</property>
-</properties>
-<skipped>
-</skipped>
+<testcase name="Deduplication - UI Integration › TC-DEDUP-021: Should navigate to duplicate management page" classname="deduplication/deduplication.spec.ts" time="0.866">
+<system-out>
+<![CDATA[Has duplicate management section: [33mfalse[39m
+]]>
+</system-out>
 </testcase>
-<testcase name="Campaigns - Lifecycle › TC-CAMP-008: Should start campaign" classname="campaigns/campaigns.spec.ts" time="4.54">
+<testcase name="Deduplication - Edge Cases › TC-DEDUP-030: Should handle special characters in names" classname="deduplication/deduplication.spec.ts" time="0.767">
+<system-out>
+<![CDATA[Special chars response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
+]]>
+</system-out>
 </testcase>
-<testcase name="Campaigns - Lifecycle › TC-CAMP-009: Should pause campaign" classname="campaigns/campaigns.spec.ts" time="4.671">
+<testcase name="Deduplication - Edge Cases › TC-DEDUP-031: Should handle unicode characters" classname="deduplication/deduplication.spec.ts" time="0.746">
+<system-out>
+<![CDATA[Unicode response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
+]]>
+</system-out>
 </testcase>
-<testcase name="Campaigns - Lifecycle › TC-CAMP-010: Should complete campaign" classname="campaigns/campaigns.spec.ts" time="4.557">
+<testcase name="Deduplication - Edge Cases › TC-DEDUP-032: Should handle very long field values" classname="deduplication/deduplication.spec.ts" time="0.769">
+<system-out>
+<![CDATA[Long values response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
+]]>
+</system-out>
 </testcase>
-<testcase name="Campaigns - Metrics › TC-CAMP-011: Should display campaign metrics" classname="campaigns/campaigns.spec.ts" time="2.554">
+<testcase name="Deduplication - Edge Cases › TC-DEDUP-033: Should handle phone number variations" classname="deduplication/deduplication.spec.ts" time="0.664">
+<system-out>
+<![CDATA[Phone format "555-123-4567" response status: [33m401[39m
+Phone format "(555) 123-4567" response status: [33m401[39m
+Phone format "5551234567" response status: [33m401[39m
+Phone format "+1 555 123 4567" response status: [33m401[39m
+Phone format "555.123.4567" response status: [33m401[39m
+]]>
+</system-out>
 </testcase>
-<testcase name="Campaigns - Metrics › TC-CAMP-012: Should show ROI data" classname="campaigns/campaigns.spec.ts" time="2.529">
-</testcase>
-<testcase name="Campaigns - Delete › TC-CAMP-013: Should delete test campaign" classname="campaigns/campaigns.spec.ts" time="4.553">
+<testcase name="Deduplication - Edge Cases › TC-DEDUP-034: Should handle email variations" classname="deduplication/deduplication.spec.ts" time="0.802">
+<system-out>
+<![CDATA[Email plus addressing response: {
+  "status": 401,
+  "data": "",
+  "ok": false
+}
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>
