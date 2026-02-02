@@ -144,7 +144,7 @@ services:
       DemoDatabase__DatabaseName: ${DEMO_DB_NAME:-crm_demodb}
       
       # Redis Cache - use container hostname
-      Redis__ConnectionString: crm-redis:6379
+      Redis__ConnectionString: ${REDIS_CONNECTION_STRING:-crm-redis:6379}
       Redis__InstanceName: ${REDIS_INSTANCE_NAME:-crm_}
       Redis__Enabled: ${REDIS_ENABLED:-true}
       

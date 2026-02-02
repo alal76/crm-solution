@@ -15,11 +15,11 @@ services:
       - "5000:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-      - Frontend__Url=http://192.168.0.9
+      - JwtSettings__Key=${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}
+      - Frontend__Url=${FRONTEND_URL:-http://localhost:3000}
       - Monitoring__DeploymentType=docker
-      - Monitoring__BuildServerFQDN=192.168.0.9
-      - Redis__ConnectionString=crm-redis:6379
+      - Monitoring__BuildServerFQDN=${BUILD_SERVER_FQDN:-localhost}
+      - Redis__ConnectionString=${REDIS_CONNECTION_STRING:-crm-redis:6379}
       - Redis__Enabled=true
     depends_on:
       - crm-identity
@@ -48,7 +48,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-      - Redis__ConnectionString=crm-redis:6379
+      - Redis__ConnectionString=${REDIS_CONNECTION_STRING:-crm-redis:6379}
     networks:
       - crm-network
 
@@ -64,7 +64,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-      - Redis__ConnectionString=crm-redis:6379
+      - Redis__ConnectionString=${REDIS_CONNECTION_STRING:-crm-redis:6379}
     networks:
       - crm-network
 
@@ -80,7 +80,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-      - Redis__ConnectionString=crm-redis:6379
+      - Redis__ConnectionString=${REDIS_CONNECTION_STRING:-crm-redis:6379}
     networks:
       - crm-network
 
@@ -96,7 +96,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-      - Redis__ConnectionString=crm-redis:6379
+      - Redis__ConnectionString=${REDIS_CONNECTION_STRING:-crm-redis:6379}
     networks:
       - crm-network
 
@@ -112,7 +112,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-      - Redis__ConnectionString=crm-redis:6379
+      - Redis__ConnectionString=${REDIS_CONNECTION_STRING:-crm-redis:6379}
     networks:
       - crm-network
 
@@ -128,7 +128,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
-      - Redis__ConnectionString=crm-redis:6379
+      - Redis__ConnectionString=${REDIS_CONNECTION_STRING:-crm-redis:6379}
     networks:
       - crm-network
 
