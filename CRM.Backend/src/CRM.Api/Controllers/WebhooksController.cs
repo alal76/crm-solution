@@ -366,7 +366,7 @@ public class WebhooksController : ControllerBase
     /// Webhook verification endpoint (GET) for Facebook/Twitter/WhatsApp verification
     /// </summary>
     [HttpGet("verify")]
-    public ActionResult VerifyWebhook(
+    public async Task<ActionResult> VerifyWebhook(
         [FromQuery(Name = "hub.mode")] string? hubMode,
         [FromQuery(Name = "hub.verify_token")] string? hubVerifyToken,
         [FromQuery(Name = "hub.challenge")] string? hubChallenge)
@@ -374,12 +374,38 @@ public class WebhooksController : ControllerBase
         // For Facebook/Instagram verification
         if (hubMode == "subscribe" && !string.IsNullOrEmpty(hubChallenge))
         {
-            // TODO: Verify token against stored webhook secret
-            _logger.LogInformation("Webhook verification request received");
+            // Verify token against stored webhook secret
+            if (!string.IsNullOrEmpty(hubVerifyToken))
+            {
+                var validSecret = await VerifyWebhookSecretAsync(hubVerifyToken);
+                if (!validSecret)
+                {
+                    _logger.LogWarning("Webhook verification failed: invalid verify token");
+                    return Unauthorized("Invalid verification token");
+                }
+            }
+            
+            _logger.LogInformation("Webhook verification request verified successfully");
             return Ok(hubChallenge);
         }
 
         return BadRequest("Verification failed");
+    }
+
+    /// <summary>
+    /// Verifies the webhook secret against stored channel configurations
+    /// </summary>
+    private async Task<bool> VerifyWebhookSecretAsync(string token)
+    {
+        // Check if token matches any configured channel's webhook secret or verification token
+        var hasMatchingSecret = await _context.CommunicationChannels
+            .Where(c => c.IsEnabled && !c.IsDeleted)
+            .Where(c => c.WebhookSecret == token || 
+                       c.ApiSecret == token || 
+                       c.WhatsAppVerifyToken == token)
+            .AnyAsync();
+
+        return hasMatchingSecret;
     }
 
     #endregion
