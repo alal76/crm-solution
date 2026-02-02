@@ -42,7 +42,14 @@ import {
   Tab,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { DialogError, DialogSuccess, ActionButton } from '../components/common';
+import { 
+  DialogError, 
+  DialogSuccess, 
+  ActionButton,
+  DialogHeader,
+  RelatedEntitiesPanel,
+  EnhancedEmptyState,
+} from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { useProfile } from '../contexts/ProfileContext';
 import LookupSelect from '../components/LookupSelect';
@@ -60,6 +67,8 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import EscalateIcon from '@mui/icons-material/TrendingUp';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import NoteIcon from '@mui/icons-material/Note';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import LinkIcon from '@mui/icons-material/Link';
 import logo from '../assets/logo.png';
 import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
@@ -904,8 +913,20 @@ function ServiceRequestsPage() {
                 <TableBody>
                   {filteredRequests.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={11} align="center">
-                        No service requests found
+                      <TableCell colSpan={11} sx={{ border: 0 }}>
+                        <EnhancedEmptyState
+                          illustration="serviceRequests"
+                          title={advancedSearchFilters.length > 0 ? "No service requests match your filters" : "No service requests yet"}
+                          description={advancedSearchFilters.length > 0 
+                            ? "Try adjusting your filters to find what you're looking for"
+                            : "Create your first service request to start tracking customer issues"
+                          }
+                          variant={advancedSearchFilters.length > 0 ? "no-results" : "no-data"}
+                          primaryActionLabel="New Service Request"
+                          onPrimaryAction={() => handleAddRequest()}
+                          secondaryActionLabel={advancedSearchFilters.length > 0 ? "Clear Filters" : undefined}
+                          onSecondaryAction={advancedSearchFilters.length > 0 ? () => setAdvancedSearchFilters([]) : undefined}
+                        />
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -1061,17 +1082,21 @@ function ServiceRequestsPage() {
 
       {/* Create/Edit/View Dialog */}
       <Dialog open={openDialog} onClose={() => { setOpenDialog(false); setDialogTab(0); }} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ pb: 0 }}>
-          {viewMode
-            ? `View Service Request - ${selectedRequest?.ticketNumber}`
-            : selectedRequest
-            ? 'Edit Service Request'
-            : 'New Service Request'}
-        </DialogTitle>
+        <DialogHeader
+          mode={viewMode ? 'view' : selectedRequest ? 'edit' : 'create'}
+          entityType="serviceRequest"
+          entityName={selectedRequest?.ticketNumber || undefined}
+          entityId={selectedRequest?.id || undefined}
+          onClose={() => { setOpenDialog(false); setDialogTab(0); }}
+          subtitle={selectedRequest?.subject || undefined}
+          status={selectedRequest ? (STATUS_LABELS[selectedRequest.status] || undefined) : undefined}
+          statusColor={selectedRequest ? STATUS_COLORS[selectedRequest.status] : undefined}
+        />
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
-            <Tab label="Request Info" />
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Service request dialog tabs">
+            <Tab label="Request Info" id="sr-tab-0" aria-controls="sr-tabpanel-0" />
+            {selectedRequest && <Tab label="Related" icon={<LinkIcon fontSize="small" />} iconPosition="start" id="sr-tab-1" aria-controls="sr-tabpanel-1" />}
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={`sr-tab-${selectedRequest ? 2 : 1}`} aria-controls={`sr-tabpanel-${selectedRequest ? 2 : 1}`} />
           </Tabs>
         </Box>
         <DialogContent dividers>
@@ -1345,8 +1370,22 @@ function ServiceRequestsPage() {
           </Grid>
           )}
 
+          {/* Related Entities Tab (only when editing) */}
+          {selectedRequest && dialogTab === 1 && (
+            <RelatedEntitiesPanel
+              entityType="serviceRequests"
+              entityId={selectedRequest.id!}
+              showRelated={['accounts', 'contacts', 'activities']}
+              onEntityClick={(type, id) => {
+                setOpenDialog(false);
+                setDialogTab(0);
+                console.log(`Navigate to ${type} ${id}`);
+              }}
+            />
+          )}
+
           {/* Notes Tab */}
-          {dialogTab === 1 && (
+          {dialogTab === (selectedRequest ? 2 : 1) && (
             <Box>
               {selectedRequest?.id ? (
                 <NotesTab

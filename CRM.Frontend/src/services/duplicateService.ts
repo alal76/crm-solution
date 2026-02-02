@@ -2,7 +2,7 @@
 // Copyright (C) 2024-2026 Abhishek Lal
 // Duplicate Detection Service - Frontend API service
 
-import api from './api';
+import api from './apiClient';
 
 // ==================== Types ====================
 

@@ -41,6 +41,7 @@ import {
   Delete as DeleteIcon,
   Close as CloseIcon,
   Note as NoteIcon,
+  Link as LinkIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
@@ -53,7 +54,14 @@ import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../compon
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
 import { BaseEntity } from '../types';
-import { DialogError, DialogSuccess, ActionButton } from '../components/common';
+import { 
+  DialogError, 
+  DialogSuccess, 
+  ActionButton,
+  DialogHeader,
+  RelatedEntitiesPanel,
+  EnhancedEmptyState,
+} from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
@@ -707,9 +715,21 @@ function OpportunitiesPage() {
               showLastButton
             />
             {filteredOpportunities.length === 0 && (
-              <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
-                No opportunities found
-              </Typography>
+              <EnhancedEmptyState
+                illustration="opportunities"
+                variant={searchText || searchFilters.length > 0 ? 'no-results' : 'no-data'}
+                title={searchText || searchFilters.length > 0 ? 'No opportunities match your search' : undefined}
+                primaryActionLabel={searchText || searchFilters.length > 0 ? 'Clear Filters' : 'Add Opportunity'}
+                onPrimaryAction={() => {
+                  if (searchText || searchFilters.length > 0) {
+                    setSearchText('');
+                    setSearchFilters([]);
+                  } else {
+                    handleOpenDialog();
+                  }
+                }}
+                compact
+              />
             )}
           </CardContent>
         </Card>
@@ -717,11 +737,21 @@ function OpportunitiesPage() {
 
       {/* Add/Edit Opportunity Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ pb: 0 }}>{editingId ? 'Edit Opportunity' : 'Create New Opportunity'}</DialogTitle>
+        <DialogHeader
+          mode={editingId ? 'edit' : 'create'}
+          entityType="opportunity"
+          entityName={editingId ? formData.name : undefined}
+          entityId={editingId || undefined}
+          onClose={handleCloseDialog}
+          subtitle={formData.accountId ? `${formData.currency} ${formData.amount?.toLocaleString() || 0}` : undefined}
+          status={STAGES.find(s => s.value === formData.stage)?.label}
+          statusColor={STAGES.find(s => s.value === formData.stage)?.color}
+        />
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
-            <Tab label="Opportunity Info" />
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Opportunity dialog tabs">
+            <Tab label="Opportunity Info" id="opp-tab-0" aria-controls="opp-tabpanel-0" />
+            {editingId && <Tab label="Related" icon={<LinkIcon fontSize="small" />} iconPosition="start" id="opp-tab-1" aria-controls="opp-tabpanel-1" />}
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={editingId ? "opp-tab-2" : "opp-tab-1"} aria-controls={editingId ? "opp-tabpanel-2" : "opp-tabpanel-1"} />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2 }}>
@@ -926,9 +956,28 @@ function OpportunitiesPage() {
           </Box>
           )}
 
+          {/* Related Entities Tab - Only when editing */}
+          {editingId && dialogTab === 1 && (
+            <Box role="tabpanel" id="opp-tabpanel-1" aria-labelledby="opp-tab-1">
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                Related Records
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                View quotes, contacts, and activities linked to this opportunity.
+              </Typography>
+              <RelatedEntitiesPanel
+                entityType="opportunity"
+                entityId={editingId}
+                showRelated={['contacts', 'quotes', 'activities']}
+                compact
+                showAddButtons
+              />
+            </Box>
+          )}
+
           {/* Notes Tab */}
-          {dialogTab === 1 && (
-            <Box>
+          {((editingId && dialogTab === 2) || (!editingId && dialogTab === 1)) && (
+            <Box role="tabpanel" id={editingId ? "opp-tabpanel-2" : "opp-tabpanel-1"} aria-labelledby={editingId ? "opp-tab-2" : "opp-tab-1"}>
               {editingId ? (
                 <NotesTab
                   entityType="Opportunity"

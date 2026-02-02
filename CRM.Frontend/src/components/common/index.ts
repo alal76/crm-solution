@@ -34,3 +34,15 @@ export { ConcurrencyConflictDialog } from './ConcurrencyConflictDialog';
 export type { ConflictData } from './ConcurrencyConflictDialog';
 
 export { UserEditingIndicator, UserEditingAvatars } from './UserEditingIndicator';
+
+// Related Entities Panel for displaying linked records
+export { RelatedEntitiesPanel } from './RelatedEntitiesPanel';
+export type { RelatedEntitiesPanelProps, RelatedEntityType } from './RelatedEntitiesPanel';
+
+// Enhanced Empty State with illustrations
+export { EnhancedEmptyState } from './EnhancedEmptyState';
+export type { EnhancedEmptyStateProps, EmptyStateVariant, EntityIllustration } from './EnhancedEmptyState';
+
+// Dialog Header for consistent CRUD dialog headers
+export { DialogHeader } from './DialogHeader';
+export type { DialogHeaderProps, DialogMode, DialogEntityType } from './DialogHeader';

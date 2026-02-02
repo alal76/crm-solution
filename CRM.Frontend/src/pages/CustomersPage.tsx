@@ -7,7 +7,15 @@ import {
   FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, Paper,
   SelectChangeEvent, Collapse, Stack, TablePagination
 } from '@mui/material';
-import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
+import { 
+  TabPanel, 
+  DialogError, 
+  DialogSuccess, 
+  ActionButton,
+  DialogHeader,
+  RelatedEntitiesPanel,
+  EnhancedEmptyState,
+} from '../components/common';
 import {
   LIFECYCLE_STAGE_OPTIONS,
   CUSTOMER_TYPE_OPTIONS,
@@ -19,7 +27,8 @@ import {
   Business as BusinessIcon, Person as PersonIcon, Email as EmailIcon,
   Phone as PhoneIcon, PersonAdd as PersonAddIcon, Group as GroupIcon,
   ContactPhone as ContactPhoneIcon, Refresh as RefreshIcon,
-  FilterAlt as FilterIcon, Close as CloseIcon, Note as NoteIcon
+  FilterAlt as FilterIcon, Close as CloseIcon, Note as NoteIcon,
+  TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
@@ -633,6 +642,11 @@ function CustomersPage() {
       baseTabs.push({ index: 101, name: 'Linked Contacts' });
     }
 
+    // Add Related tab when editing (show related opportunities, service requests, etc.)
+    if (editingId) {
+      baseTabs.push({ index: 103, name: 'Related' });
+    }
+
     // Add Notes tab when editing
     if (editingId) {
       baseTabs.push({ index: 102, name: 'Notes' });
@@ -862,9 +876,19 @@ function CustomersPage() {
               showLastButton
             />
             {customers.length === 0 && (
-              <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
-                No accounts found. Add your first account to get started.
-              </Typography>
+              <EnhancedEmptyState
+                illustration="accounts"
+                title={searchFilters.length > 0 || searchText ? "No accounts match your search" : "No accounts yet"}
+                description={searchFilters.length > 0 || searchText 
+                  ? "Try adjusting your filters or search terms to find what you're looking for"
+                  : "Get started by adding your first account to the CRM"
+                }
+                variant={searchFilters.length > 0 || searchText ? "no-results" : "no-data"}
+                primaryActionLabel="Add Account"
+                onPrimaryAction={() => handleOpenDialog()}
+                secondaryActionLabel={searchFilters.length > 0 ? "Clear Filters" : undefined}
+                onSecondaryAction={searchFilters.length > 0 ? () => setSearchFilters([]) : undefined}
+              />
             )}
           </CardContent>
         </Card>
@@ -872,17 +896,35 @@ function CustomersPage() {
 
       {/* Add/Edit Account Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ pb: 0 }}>{editingId ? 'Edit Account' : 'Add Account'}</DialogTitle>
+        <DialogHeader
+          mode={editingId ? 'edit' : 'create'}
+          entityType="account"
+          entityName={editingId ? (formData.company || `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || undefined) : undefined}
+          entityId={editingId || undefined}
+          onClose={handleCloseDialog}
+          subtitle={editingId ? formData.emailPrimary || undefined : undefined}
+          status={editingId && formData.lifecycleStage ? 
+            (LIFECYCLE_STAGE_OPTIONS.find(s => s.value === formData.lifecycleStage)?.label) : undefined}
+          statusColor={editingId && formData.lifecycleStage !== undefined ? (
+            formData.lifecycleStage === 3 ? 'success' : // Active
+            formData.lifecycleStage === 1 ? 'info' : // Lead
+            formData.lifecycleStage === 2 ? 'warning' : // Opportunity
+            formData.lifecycleStage === 4 ? 'error' : 'default' // At Risk or other
+          ) : undefined}
+        />
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} variant="scrollable" scrollButtons="auto">
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} variant="scrollable" scrollButtons="auto" aria-label="Account dialog tabs">
             {visibleTabs.map((tab, idx) => (
               <Tab 
                 key={tab.index} 
                 label={tab.name}
+                id={`account-tab-${idx}`}
+                aria-controls={`account-tabpanel-${idx}`}
                 icon={
                   tab.index === 100 ? <ContactPhoneIcon fontSize="small" /> : 
                   tab.index === 101 ? <GroupIcon fontSize="small" /> : 
                   tab.index === 102 ? <NoteIcon fontSize="small" /> : 
+                  tab.index === 103 ? <TrendingUpIcon fontSize="small" /> :
                   undefined
                 }
                 iconPosition="start"
@@ -989,6 +1031,22 @@ function CustomersPage() {
                       ))}
                     </List>
                   )}
+                </TabPanel>
+              )}
+
+              {/* Related Entities Tab */}
+              {editingId && (
+                <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 103)}>
+                  <RelatedEntitiesPanel
+                    entityType="accounts"
+                    entityId={editingId}
+                    showRelated={['contacts', 'opportunities', 'serviceRequests', 'quotes', 'contracts']}
+                    onEntityClick={(type, id) => {
+                      // Close dialog and navigate - in real app would use router
+                      handleCloseDialog();
+                      console.log(`Navigate to ${type} ${id}`);
+                    }}
+                  />
                 </TabPanel>
               )}
 
