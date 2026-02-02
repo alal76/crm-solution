@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/88</span>
+                <span class='fraction'>0/90</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/60</span>
+                <span class='fraction'>0/58</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/26</span>
+                <span class='fraction'>0/27</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/82</span>
+                <span class='fraction'>0/84</span>
             </div>
         
             
@@ -570,7 +570,9 @@
 <a name='L505'></a><a href='#L505'>505</a>
 <a name='L506'></a><a href='#L506'>506</a>
 <a name='L507'></a><a href='#L507'>507</a>
-<a name='L508'></a><a href='#L508'>508</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L508'></a><a href='#L508'>508</a>
+<a name='L509'></a><a href='#L509'>509</a>
+<a name='L510'></a><a href='#L510'>510</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -638,6 +640,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -700,6 +703,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -952,7 +956,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1120,6 +1124,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { DialogError } from '../components/common';
 import logo from '../assets/logo.png';
 &nbsp;
 // Service types that are considered "Services" (subset of ProductType enum)
@@ -1212,6 +1217,7 @@ function <span class="fstat-no" title="function not covered" >ServicesPage(</spa
   const [error, setError] = <span class="cstat-no" title="statement not covered" >useState&lt;string | null&gt;(null);</span>
   const [successMessage, setSuccessMessage] = <span class="cstat-no" title="statement not covered" >useState&lt;string | null&gt;(null);</span>
   const [openDialog, setOpenDialog] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
+  const [dialogError, setDialogError] = <span class="cstat-no" title="statement not covered" >useState&lt;string | null&gt;(null);</span>
   const [editingId, setEditingId] = <span class="cstat-no" title="statement not covered" >useState&lt;number | null&gt;(null);</span>
   const [formData, setFormData] = <span class="cstat-no" title="statement not covered" >useState&lt;ServiceForm&gt;(initialFormData);</span>
 &nbsp;
@@ -1260,7 +1266,7 @@ function <span class="fstat-no" title="function not covered" >ServicesPage(</spa
   const handleCloseDialog = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    setOpenDialog(false);</span>
 <span class="cstat-no" title="statement not covered" >    setEditingId(null);</span>
-<span class="cstat-no" title="statement not covered" >    setError(null);</span>
+<span class="cstat-no" title="statement not covered" >    setDialogError(null);</span>
   };
 &nbsp;
   const handleInputChange = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(e</span>: React.ChangeEvent&lt;HTMLInputElement | HTMLTextAreaElement&gt;) =&gt; {</span>
@@ -1280,12 +1286,12 @@ function <span class="fstat-no" title="function not covered" >ServicesPage(</spa
 &nbsp;
   const handleSaveService = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    if (!formData.name.trim()) {</span>
-<span class="cstat-no" title="statement not covered" >      setError('Please enter a service name');</span>
+<span class="cstat-no" title="statement not covered" >      setDialogError('Please enter a service name');</span>
 <span class="cstat-no" title="statement not covered" >      return;</span>
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    if (!formData.sku.trim()) {</span>
-<span class="cstat-no" title="statement not covered" >      setError('Please enter a SKU');</span>
+<span class="cstat-no" title="statement not covered" >      setDialogError('Please enter a SKU');</span>
 <span class="cstat-no" title="statement not covered" >      return;</span>
     }
 &nbsp;
@@ -1307,7 +1313,7 @@ function <span class="fstat-no" title="function not covered" >ServicesPage(</spa
 <span class="cstat-no" title="statement not covered" >      fetchServices();</span>
 <span class="cstat-no" title="statement not covered" >      setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setSuccessMessage(null),</span> 3000);</span>
     } catch (err: any) {
-<span class="cstat-no" title="statement not covered" >      setError(err.response?.data?.message || 'Failed to save service');</span>
+<span class="cstat-no" title="statement not covered" >      setDialogError(err.response?.data?.message || 'Failed to save service');</span>
 <span class="cstat-no" title="statement not covered" >      console.error('Error saving service:', err);</span>
     }
   };
@@ -1459,7 +1465,7 @@ function <span class="fstat-no" title="function not covered" >ServicesPage(</spa
           {editingId ? 'Edit Service' : 'Create New Service'}
         &lt;/DialogTitle&gt;
         &lt;DialogContent sx={{ pt: 2 }}&gt;
-          {error &amp;&amp; &lt;Alert severity="error" sx={{ mb: 2 }}&gt;{error}&lt;/Alert&gt;}
+          &lt;DialogError error={dialogError} onClose={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setDialogError(null)}</span> /&gt;
           
           &lt;Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}&gt;
             &lt;TextField
@@ -1591,7 +1597,7 @@ export default ServicesPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T19:40:06.086Z
+                at 2026-02-02T09:44:02.205Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

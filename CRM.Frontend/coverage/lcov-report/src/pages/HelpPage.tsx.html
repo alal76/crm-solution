@@ -516,7 +516,29 @@
 <a name='L451'></a><a href='#L451'>451</a>
 <a name='L452'></a><a href='#L452'>452</a>
 <a name='L453'></a><a href='#L453'>453</a>
-<a name='L454'></a><a href='#L454'>454</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L454'></a><a href='#L454'>454</a>
+<a name='L455'></a><a href='#L455'>455</a>
+<a name='L456'></a><a href='#L456'>456</a>
+<a name='L457'></a><a href='#L457'>457</a>
+<a name='L458'></a><a href='#L458'>458</a>
+<a name='L459'></a><a href='#L459'>459</a>
+<a name='L460'></a><a href='#L460'>460</a>
+<a name='L461'></a><a href='#L461'>461</a>
+<a name='L462'></a><a href='#L462'>462</a>
+<a name='L463'></a><a href='#L463'>463</a>
+<a name='L464'></a><a href='#L464'>464</a>
+<a name='L465'></a><a href='#L465'>465</a>
+<a name='L466'></a><a href='#L466'>466</a>
+<a name='L467'></a><a href='#L467'>467</a>
+<a name='L468'></a><a href='#L468'>468</a>
+<a name='L469'></a><a href='#L469'>469</a>
+<a name='L470'></a><a href='#L470'>470</a>
+<a name='L471'></a><a href='#L471'>471</a>
+<a name='L472'></a><a href='#L472'>472</a>
+<a name='L473'></a><a href='#L473'>473</a>
+<a name='L474'></a><a href='#L474'>474</a>
+<a name='L475'></a><a href='#L475'>475</a>
+<a name='L476'></a><a href='#L476'>476</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -668,7 +690,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1106,6 +1150,20 @@ const HelpPage: React.FC = <span class="cstat-no" title="statement not covered" 
       topics: ['Enabling 2FA', 'Backup Codes', 'Password Security', 'Session Management'],
     },
     {
+      title: 'Relationship Management',
+      description: 'Track B2B and B2C relationships with hierarchies and health metrics.',
+      duration: '25 min',
+      level: 'Intermediate',
+      topics: ['B2B Relationships', 'B2C Customer Tracking', 'Hierarchy Management', 'Influence Levels', 'Relationship Health'],
+    },
+    {
+      title: 'Campaign Execution',
+      description: 'Execute multi-channel campaigns with batch processing and analytics.',
+      duration: '30 min',
+      level: 'Advanced',
+      topics: ['Batch Processing', 'Channel Selection', 'A/B Testing', 'Real-time Analytics', 'Workflow Integration'],
+    },
+    {
       title: 'Admin Configuration',
       description: 'System administration and configuration options.',
       duration: '30 min',
@@ -1153,6 +1211,14 @@ const HelpPage: React.FC = <span class="cstat-no" title="statement not covered" 
     {
       question: 'How do I track campaign performance?',
       answer: 'Go to Campaigns and select a campaign. View metrics including budget spent, leads generated, and conversions. The dashboard also shows campaign performance summaries.',
+    },
+    {
+      question: 'How do I set up B2B relationships?',
+      answer: 'Navigate to the Relationships page from the sidebar. Click "Add Relationship" and select the relationship type (B2B). Link two accounts and define the hierarchy, ownership level, and influence level. You can track relationship health and engagement over time.',
+    },
+    {
+      question: 'How do I execute a campaign?',
+      answer: 'Go to Campaign Execution from the sidebar. Select a campaign and configure execution settings including target audience, channel (Email, SMS, etc.), and schedule. Enable A/B testing if needed. Start the batch process and monitor real-time analytics from the execution dashboard.',
     },
     {
       question: 'What browsers are supported?',
@@ -1429,7 +1495,7 @@ export default HelpPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T19:40:06.086Z
+                at 2026-02-02T09:44:02.205Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

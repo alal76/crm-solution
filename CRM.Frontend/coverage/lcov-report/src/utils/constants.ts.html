@@ -570,7 +570,27 @@
 <a name='L505'></a><a href='#L505'>505</a>
 <a name='L506'></a><a href='#L506'>506</a>
 <a name='L507'></a><a href='#L507'>507</a>
-<a name='L508'></a><a href='#L508'>508</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L508'></a><a href='#L508'>508</a>
+<a name='L509'></a><a href='#L509'>509</a>
+<a name='L510'></a><a href='#L510'>510</a>
+<a name='L511'></a><a href='#L511'>511</a>
+<a name='L512'></a><a href='#L512'>512</a>
+<a name='L513'></a><a href='#L513'>513</a>
+<a name='L514'></a><a href='#L514'>514</a>
+<a name='L515'></a><a href='#L515'>515</a>
+<a name='L516'></a><a href='#L516'>516</a>
+<a name='L517'></a><a href='#L517'>517</a>
+<a name='L518'></a><a href='#L518'>518</a>
+<a name='L519'></a><a href='#L519'>519</a>
+<a name='L520'></a><a href='#L520'>520</a>
+<a name='L521'></a><a href='#L521'>521</a>
+<a name='L522'></a><a href='#L522'>522</a>
+<a name='L523'></a><a href='#L523'>523</a>
+<a name='L524'></a><a href='#L524'>524</a>
+<a name='L525'></a><a href='#L525'>525</a>
+<a name='L526'></a><a href='#L526'>526</a>
+<a name='L527'></a><a href='#L527'>527</a>
+<a name='L528'></a><a href='#L528'>528</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1005,6 +1025,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1015,7 +1042,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1504,12 +1544,19 @@ export const TASK_PRIORITY_OPTIONS = <span class="cstat-no" title="statement not
 ] as const;
 &nbsp;
 export const QUOTE_STATUS_OPTIONS = <span class="cstat-no" title="statement not covered" >[</span>
-  { value: 0, label: 'Draft', color: '#9e9e9e' },
-  { value: 1, label: 'Pending', color: '#ff9800' },
-  { value: 2, label: 'Sent', color: '#2196f3' },
-  { value: 3, label: 'Accepted', color: '#4caf50' },
-  { value: 4, label: 'Rejected', color: '#f44336' },
-  { value: 5, label: 'Expired', color: '#795548' },
+  { value: 0, label: 'New', color: '#e0e0e0' },
+  { value: 1, label: 'Draft', color: '#9e9e9e' },
+  { value: 2, label: 'Under Approval', color: '#ff9800' },
+  { value: 3, label: 'Approved', color: '#8bc34a' },
+  { value: 4, label: 'Shared', color: '#2196f3' },
+  { value: 5, label: 'Viewed', color: '#9c27b0' },
+  { value: 6, label: 'Accepted', color: '#4caf50' },
+  { value: 7, label: 'Rejected', color: '#f44336' },
+  { value: 8, label: 'Expired', color: '#607d8b' },
+  { value: 9, label: 'Revised', color: '#00bcd4' },
+  { value: 10, label: 'Cancelled', color: '#795548' },
+  { value: 11, label: 'Converted', color: '#009688' },
+  { value: 12, label: 'End of Life', color: '#424242' },
 ] as const;
 &nbsp;
 export const CAMPAIGN_STATUS_OPTIONS = <span class="cstat-no" title="statement not covered" >[</span>
@@ -1520,6 +1567,9 @@ export const CAMPAIGN_STATUS_OPTIONS = <span class="cstat-no" title="statement n
   { value: 4, label: 'Completed', color: '#9c27b0' },
   { value: 5, label: 'Cancelled', color: '#f44336' },
   { value: 6, label: 'Archived', color: '#607d8b' },
+  { value: 7, label: 'Pending Approval', color: '#ffc107' },
+  { value: 8, label: 'Rejected', color: '#d32f2f' },
+  { value: 9, label: 'In Review', color: '#03a9f4' },
 ] as const;
 &nbsp;
 export const CAMPAIGN_TYPE_OPTIONS = <span class="cstat-no" title="statement not covered" >[</span>
@@ -1529,16 +1579,26 @@ export const CAMPAIGN_TYPE_OPTIONS = <span class="cstat-no" title="statement not
   { value: 3, label: 'Display Ads', icon: '🖼️' },
   { value: 4, label: 'Content Marketing', icon: '📝' },
   { value: 5, label: 'SEO', icon: '🔎' },
-  { value: 6, label: 'Events', icon: '🎪' },
+  { value: 6, label: 'Event', icon: '🎪' },
   { value: 7, label: 'Webinar', icon: '💻' },
-  { value: 8, label: 'Trade Show', icon: '🏢' },
-  { value: 9, label: 'Direct Mail', icon: '✉️' },
+  { value: 8, label: 'Direct Mail', icon: '✉️' },
+  { value: 9, label: 'Telemarketing', icon: '📞' },
   { value: 10, label: 'Referral', icon: '👥' },
-  { value: 11, label: 'Partner', icon: '🤝' },
-  { value: 12, label: 'PR', icon: '📰' },
-  { value: 13, label: 'Video', icon: '🎬' },
-  { value: 14, label: 'Podcast', icon: '🎙️' },
-  { value: 15, label: 'Other', icon: '📋' },
+  { value: 11, label: 'Affiliate', icon: '🔗' },
+  { value: 12, label: 'Influencer', icon: '⭐' },
+  { value: 13, label: 'PR', icon: '📰' },
+  { value: 14, label: 'Trade Show', icon: '🏢' },
+  { value: 15, label: 'Video', icon: '🎬' },
+  { value: 16, label: 'Podcast', icon: '🎙️' },
+  { value: 17, label: 'SMS', icon: '💬' },
+  { value: 18, label: 'Push Notification', icon: '🔔' },
+  { value: 19, label: 'Retargeting', icon: '🎯' },
+  { value: 20, label: 'ABM', icon: '🏢' },
+  { value: 21, label: 'Partner Marketing', icon: '🤝' },
+  { value: 22, label: 'Product Launch', icon: '🚀' },
+  { value: 23, label: 'Brand Awareness', icon: '🌟' },
+  { value: 24, label: 'Integrated', icon: '🔄' },
+  { value: 25, label: 'Other', icon: '📋' },
 ] as const;
 &nbsp;
 export const CONTACT_ROLE_OPTIONS = <span class="cstat-no" title="statement not covered" >[</span>
@@ -1591,7 +1651,7 @@ export const getColorByValue = <span class="cstat-no" title="statement not cover
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T19:40:06.086Z
+                at 2026-02-02T09:44:02.205Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

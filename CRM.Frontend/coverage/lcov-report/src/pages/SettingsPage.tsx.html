@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/348</span>
+                <span class='fraction'>0/346</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/176</span>
+                <span class='fraction'>0/174</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/94</span>
+                <span class='fraction'>0/93</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/326</span>
+                <span class='fraction'>0/324</span>
             </div>
         
             
@@ -1867,19 +1867,7 @@
 <a name='L1802'></a><a href='#L1802'>1802</a>
 <a name='L1803'></a><a href='#L1803'>1803</a>
 <a name='L1804'></a><a href='#L1804'>1804</a>
-<a name='L1805'></a><a href='#L1805'>1805</a>
-<a name='L1806'></a><a href='#L1806'>1806</a>
-<a name='L1807'></a><a href='#L1807'>1807</a>
-<a name='L1808'></a><a href='#L1808'>1808</a>
-<a name='L1809'></a><a href='#L1809'>1809</a>
-<a name='L1810'></a><a href='#L1810'>1810</a>
-<a name='L1811'></a><a href='#L1811'>1811</a>
-<a name='L1812'></a><a href='#L1812'>1812</a>
-<a name='L1813'></a><a href='#L1813'>1813</a>
-<a name='L1814'></a><a href='#L1814'>1814</a>
-<a name='L1815'></a><a href='#L1815'>1815</a>
-<a name='L1816'></a><a href='#L1816'>1816</a>
-<a name='L1817'></a><a href='#L1817'>1817</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L1805'></a><a href='#L1805'>1805</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2063,12 +2051,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -3377,12 +3359,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -3696,6 +3672,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useState, useEffect, useCallback } from 'react';
+import { getApiUrl } from '../config/ports';
 import { TabPanel } from '../components/common';
 import {
   Container,
@@ -3765,7 +3742,6 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import UserApprovalTab from '../components/settings/UserApprovalTab';
 import GroupManagementTab from '../components/settings/GroupManagementTab';
-import DatabaseSettingsTab from '../components/settings/DatabaseSettingsTab';
 import ModuleFieldSettingsTab from '../components/settings/ModuleFieldSettingsTabNew';
 import UserManagementTab from '../components/settings/UserManagementTab';
 import SocialLoginSettingsTab from '../components/settings/SocialLoginSettingsTab';
@@ -3773,7 +3749,7 @@ import SecuritySettingsTab from '../components/settings/SecuritySettingsTab';
 import NavigationSettingsTab from '../components/settings/NavigationSettingsTab';
 import ServiceRequestSettingsTab from '../components/settings/ServiceRequestSettingsTab';
 import DeploymentSettingsTab from '../components/settings/DeploymentSettingsTab';
-import MonitoringSettingsTab from '../components/settings/MonitoringSettingsTab';
+import MonitoringDashboard from './admin/MonitoringDashboard';
 import MasterDataSettingsTab from '../components/settings/MasterDataSettingsTab';
 import FeatureManagementTab from '../components/settings/FeatureManagementTab';
 import logo from '../assets/logo.png';
@@ -3878,12 +3854,6 @@ function <span class="fstat-no" title="function not covered" >CompanyBrandingTab
   
   // Snackbar for notifications
   const [snackbar, setSnackbar] = <span class="cstat-no" title="statement not covered" >useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });</span>
-&nbsp;
-  const getApiUrl = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return window.location.hostname === 'localhost' </span>
-      ? 'http://localhost:5000/api'
-      : `http://${window.location.hostname}:5000/api`;
-  };
 &nbsp;
   // Load user-defined palettes
   const loadUserDefinedPalettes = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
@@ -5196,27 +5166,21 @@ function <span class="fstat-no" title="function not covered" >SettingsPage(</spa
     {
       id: 'systemadmin',
       title: 'System Administration',
-      description: 'Core technical settings, database, deployment, monitoring, and security',
+      description: 'Core technical settings, deployment, monitoring, and security',
       icon: &lt;AdminPanelSettingsIcon /&gt;,
       color: '#1976d2',
       items: [
         {
-          id: 'database',
-          label: 'Database Settings',
-          icon: &lt;StorageIcon sx={{ fontSize: 20 }} /&gt;,
-          component: &lt;DatabaseSettingsTab /&gt;,
+          id: 'monitoring',
+          label: 'Monitoring',
+          icon: &lt;MonitorIcon sx={{ fontSize: 20 }} /&gt;,
+          component: &lt;MonitoringDashboard /&gt;,
         },
         {
           id: 'deployment',
           label: 'Deployment &amp; Hosting',
           icon: &lt;CloudIcon sx={{ fontSize: 20 }} /&gt;,
           component: &lt;DeploymentSettingsTab /&gt;,
-        },
-        {
-          id: 'monitoring',
-          label: 'Monitoring',
-          icon: &lt;MonitorIcon sx={{ fontSize: 20 }} /&gt;,
-          component: &lt;MonitoringSettingsTab /&gt;,
         },
         {
           id: 'security',
@@ -5518,7 +5482,7 @@ export default SettingsPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T19:40:06.086Z
+                at 2026-02-02T09:44:02.205Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
