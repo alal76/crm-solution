@@ -18,14 +18,30 @@ builder.Host.UseSerilog();
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
-// Add CORS
+// Add CORS - environment-aware configuration
+var configuredOrigins = builder.Configuration["AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? Array.Empty<string>();
+var isProduction = builder.Environment.IsProduction();
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("Default", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        if (isProduction && configuredOrigins.Length > 0)
+        {
+            // PRODUCTION: Strict whitelist only
+            policy.WithOrigins(configuredOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+        else
+        {
+            // DEVELOPMENT/STAGING: Permissive for local development
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
     });
 });
 
@@ -66,7 +82,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 app.UseSerilogRequestLogging();
 
-app.UseCors("AllowAll");
+app.UseCors("Default");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Models;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -522,7 +523,17 @@ public class TestDatabaseFixture : IDisposable
         _connectionString = Environment.GetEnvironmentVariable("TEST_DATABASE_CONNECTION")
             ?? "Server=localhost;Port=3306;Database=crm_testdb;User=crm_user;Password=CrmPass@Dev2024;";
 
+        // Create minimal configuration for CrmDbContext
+        var inMemorySettings = new Dictionary<string, string?> {
+            {"DatabaseProvider", "mysql"},
+            {"ConnectionStrings:DefaultConnection", _connectionString}
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings)
+            .Build();
+
         var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(configuration);
         services.AddDbContext<CrmDbContext>(options =>
         {
             options.UseMySql(_connectionString, ServerVersion.AutoDetect(_connectionString));

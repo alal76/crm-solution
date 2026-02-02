@@ -210,50 +210,65 @@ var configuredOrigins = builder.Configuration["AllowedOrigins"]?.Split(',', Stri
 // Get frontend port for dynamic origin building
 var frontendPort = builder.Configuration["FRONTEND_EXTERNAL_PORT"] ?? "3000";
 
+// Determine if running in production
+var isProduction = builder.Environment.IsProduction();
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.SetIsOriginAllowed(origin =>
+        if (isProduction && configuredOrigins.Length > 0)
         {
-            // Always allow configured origins
-            if (configuredOrigins.Any(allowed => 
-                string.Equals(allowed, origin, StringComparison.OrdinalIgnoreCase)))
-                return true;
-            
-            // Parse the origin URL
-            if (!Uri.TryCreate(origin, UriKind.Absolute, out var originUri))
-                return false;
-            
-            var host = originUri.Host;
-            
-            // Allow localhost and 127.0.0.1 (development)
-            if (host == "localhost" || host == "127.0.0.1")
-                return true;
-            
-            // Allow local network IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
-            if (System.Net.IPAddress.TryParse(host, out var ip))
+            // PRODUCTION: Strict whitelist - only explicitly configured origins allowed
+            policy.WithOrigins(configuredOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
+        else
+        {
+            // DEVELOPMENT/STAGING: Allow configured origins + local development
+            policy.SetIsOriginAllowed(origin =>
             {
-                var bytes = ip.GetAddressBytes();
-                if (bytes.Length == 4)
+                // Always allow configured origins
+                if (configuredOrigins.Any(allowed =>
+                    string.Equals(allowed, origin, StringComparison.OrdinalIgnoreCase)))
+                    return true;
+
+                // Parse the origin URL
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var originUri))
+                    return false;
+
+                var host = originUri.Host;
+
+                // Allow localhost and 127.0.0.1 (development)
+                if (host == "localhost" || host == "127.0.0.1")
+                    return true;
+
+                // Allow local network IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x) - ONLY in non-production
+                if (System.Net.IPAddress.TryParse(host, out var ip))
                 {
-                    // 192.168.x.x
-                    if (bytes[0] == 192 && bytes[1] == 168)
-                        return true;
-                    // 10.x.x.x
-                    if (bytes[0] == 10)
-                        return true;
-                    // 172.16.x.x - 172.31.x.x
-                    if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
-                        return true;
+                    var bytes = ip.GetAddressBytes();
+                    if (bytes.Length == 4)
+                    {
+                        // 192.168.x.x
+                        if (bytes[0] == 192 && bytes[1] == 168)
+                            return true;
+                        // 10.x.x.x
+                        if (bytes[0] == 10)
+                            return true;
+                        // 172.16.x.x - 172.31.x.x
+                        if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
+                            return true;
+                    }
                 }
-            }
-            
-            return false;
-        })
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
+
+                return false;
+            })
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+        }
     });
     options.AddPolicy("AllowAll", policy =>
     {
