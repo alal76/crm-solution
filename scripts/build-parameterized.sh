@@ -31,10 +31,12 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 load_env_config() {
     log_info "Loading environment configuration..."
     
-    # Load .env file if exists
+    # Load .env file safely if exists
     if [ -f "$PROJECT_ROOT/.env" ]; then
         log_info "Loading .env file"
-        export $(grep -v '^#' "$PROJECT_ROOT/.env" | grep -v '^$' | xargs)
+        set -a  # Enable auto-export of variables
+        source "$PROJECT_ROOT/.env"
+        set +a  # Disable auto-export
     elif [ -f "$PROJECT_ROOT/.env.example" ]; then
         log_warn ".env not found, using .env.example as template"
         log_warn "Please copy .env.example to .env and configure your values"

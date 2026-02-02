@@ -31,9 +31,11 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 load_config() {
     log_info "Loading deployment configuration..."
     
-    # Load environment file
+    # Load environment file safely
     if [ -f "$PROJECT_ROOT/.env" ]; then
-        export $(grep -v '^#' "$PROJECT_ROOT/.env" | grep -v '^$' | xargs)
+        set -a  # Enable auto-export of variables
+        source "$PROJECT_ROOT/.env"
+        set +a  # Disable auto-export
     fi
     
     # Set defaults

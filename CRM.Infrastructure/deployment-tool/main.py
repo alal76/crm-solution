@@ -670,9 +670,15 @@ class DeploymentConfig:
     
     def __post_init__(self):
         """Load values from environment variables if not set."""
-        # Load admin password from environment
+        # Load admin password from environment - fail if not provided
         if not self.admin_password:
-            self.admin_password = os.getenv('DEPLOYMENT_ADMIN_PASSWORD') or os.getenv('ADMIN_PASSWORD', 'Admin@123')
+            env_password = os.getenv('DEPLOYMENT_ADMIN_PASSWORD') or os.getenv('ADMIN_PASSWORD')
+            if not env_password:
+                raise ValueError(
+                    "Admin password must be set via DEPLOYMENT_ADMIN_PASSWORD or ADMIN_PASSWORD environment variable. "
+                    "Never use default passwords in production!"
+                )
+            self.admin_password = env_password
         
         # Load JWT secret from environment
         if not self.jwt_secret:
