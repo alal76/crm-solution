@@ -1,0 +1,320 @@
+# =============================================================================
+# CRM Solution - Azure DevOps CI/CD Pipeline for AKS
+# Version: 2.0.0
+# Description: Build, test, and deploy to Azure Kubernetes Service
+# =============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+      - dev
+  paths:
+    exclude:
+      - '*.md'
+      - 'docs/**'
+
+pr:
+  branches:
+    include:
+      - main
+      - dev
+
+variables:
+  # Azure settings
+  azureSubscription: 'Azure-CRM-ServiceConnection'
+  resourceGroup: 'crm-solution-rg'
+  
+  # Container Registry
+  acrName: 'crmacr'
+  acrLoginServer: '$(acrName).azurecr.io'
+  
+  # AKS
+  aksClusterName: 'aks-crm'
+  aksNamespace: 'crm'
+  
+  # Image names
+  backendImage: 'crm-api'
+  frontendImage: 'crm-frontend'
+  imageTag: '$(Build.BuildId)'
+  
+  # Build
+  buildConfiguration: 'Release'
+  dotnetVersion: '8.0.x'
+  nodeVersion: '20.x'
+
+stages:
+  # ==========================================================================
+  # STAGE 1: BUILD AND TEST
+  # ==========================================================================
+  - stage: Build
+    displayName: 'Build & Test'
+    jobs:
+      # Backend Build
+      - job: BuildBackend
+        displayName: 'Build .NET Backend'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UseDotNet@2
+            displayName: 'Install .NET SDK'
+            inputs:
+              version: $(dotnetVersion)
+              
+          - task: DotNetCoreCLI@2
+            displayName: 'Restore packages'
+            inputs:
+              command: 'restore'
+              projects: 'CRM.Backend/CRM.sln'
+              
+          - task: DotNetCoreCLI@2
+            displayName: 'Build solution'
+            inputs:
+              command: 'build'
+              projects: 'CRM.Backend/CRM.sln'
+              arguments: '--configuration $(buildConfiguration) --no-restore'
+              
+          - task: DotNetCoreCLI@2
+            displayName: 'Run unit tests'
+            inputs:
+              command: 'test'
+              projects: 'CRM.Backend/tests/CRM.Tests.csproj'
+              arguments: '--configuration $(buildConfiguration) --no-build --filter "Category!=Integration&Category!=DatabaseSchema" --logger trx'
+              
+          - task: PublishTestResults@2
+            displayName: 'Publish test results'
+            inputs:
+              testResultsFormat: 'VSTest'
+              testResultsFiles: '**/*.trx'
+              
+      # Frontend Build
+      - job: BuildFrontend
+        displayName: 'Build React Frontend'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+              
+          - script: |
+              cd CRM.Frontend
+              npm ci
+              npm run build
+            displayName: 'Build frontend'
+
+  # ==========================================================================
+  # STAGE 2: BUILD AND PUSH DOCKER IMAGES
+  # ==========================================================================
+  - stage: Docker
+    displayName: 'Build Docker Images'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: BuildPushImages
+        displayName: 'Build & Push to ACR'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: Docker@2
+            displayName: 'Login to ACR'
+            inputs:
+              containerRegistry: $(acrName)
+              command: 'login'
+              
+          - task: Docker@2
+            displayName: 'Build Backend Image'
+            inputs:
+              containerRegistry: $(acrName)
+              repository: $(backendImage)
+              command: 'build'
+              Dockerfile: 'docker/Dockerfile.backend'
+              buildContext: '.'
+              tags: |
+                $(imageTag)
+                latest
+                
+          - task: Docker@2
+            displayName: 'Push Backend Image'
+            inputs:
+              containerRegistry: $(acrName)
+              repository: $(backendImage)
+              command: 'push'
+              tags: |
+                $(imageTag)
+                latest
+                
+          - task: Docker@2
+            displayName: 'Build Frontend Image'
+            inputs:
+              containerRegistry: $(acrName)
+              repository: $(frontendImage)
+              command: 'build'
+              Dockerfile: 'docker/Dockerfile.frontend'
+              buildContext: '.'
+              tags: |
+                $(imageTag)
+                latest
+                
+          - task: Docker@2
+            displayName: 'Push Frontend Image'
+            inputs:
+              containerRegistry: $(acrName)
+              repository: $(frontendImage)
+              command: 'push'
+              tags: |
+                $(imageTag)
+                latest
+
+  # ==========================================================================
+  # STAGE 3: DEPLOY TO DEV/STAGING
+  # ==========================================================================
+  - stage: DeployDev
+    displayName: 'Deploy to Dev'
+    dependsOn: Docker
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+    variables:
+      environment: 'dev'
+    jobs:
+      - deployment: DeployToAKS
+        displayName: 'Deploy to AKS Dev'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: 'crm-dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                
+                - task: AzureCLI@2
+                  displayName: 'Get AKS credentials'
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials --resource-group $(resourceGroup)-dev --name $(aksClusterName)-dev --overwrite-existing
+                      
+                - task: AzureCLI@2
+                  displayName: 'Get LLM VM IP'
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      LLM_VM_IP=$(az vm show -d -g $(resourceGroup)-dev -n vm-llm-crm-dev --query publicIps -o tsv)
+                      echo "##vso[task.setvariable variable=LLM_VM_IP]$LLM_VM_IP"
+                      
+                - task: KubernetesManifest@0
+                  displayName: 'Create namespace'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: 'aks-dev-connection'
+                    manifests: 'azure/k8s/01-namespace-config.yaml'
+                    
+                - task: Bash@3
+                  displayName: 'Substitute variables in manifests'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      export ACR_LOGIN_SERVER=$(acrLoginServer)
+                      export IMAGE_TAG=$(imageTag)
+                      export LLM_VM_IP=$(LLM_VM_IP)
+                      export API_HOSTNAME=api-crm-dev.eastus.cloudapp.azure.com
+                      export DOMAIN_NAME=crm-dev.eastus.cloudapp.azure.com
+                      
+                      envsubst < azure/k8s/02-backend-deployment.yaml > /tmp/backend.yaml
+                      envsubst < azure/k8s/03-frontend-deployment.yaml > /tmp/frontend.yaml
+                      envsubst < azure/k8s/04-ingress.yaml > /tmp/ingress.yaml
+                      
+                - task: KubernetesManifest@0
+                  displayName: 'Deploy backend'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: 'aks-dev-connection'
+                    manifests: '/tmp/backend.yaml'
+                    
+                - task: KubernetesManifest@0
+                  displayName: 'Deploy frontend'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: 'aks-dev-connection'
+                    manifests: '/tmp/frontend.yaml'
+                    
+                - task: KubernetesManifest@0
+                  displayName: 'Deploy ingress'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: 'aks-dev-connection'
+                    manifests: '/tmp/ingress.yaml'
+
+  # ==========================================================================
+  # STAGE 4: DEPLOY TO PRODUCTION
+  # ==========================================================================
+  - stage: DeployProd
+    displayName: 'Deploy to Production'
+    dependsOn: Docker
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    variables:
+      environment: 'prod'
+    jobs:
+      - deployment: DeployToAKSProd
+        displayName: 'Deploy to AKS Prod'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: 'crm-prod'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                
+                - task: AzureCLI@2
+                  displayName: 'Get AKS credentials'
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az aks get-credentials --resource-group $(resourceGroup)-prod --name $(aksClusterName)-prod --overwrite-existing
+                      
+                - task: AzureCLI@2
+                  displayName: 'Get LLM VM IP'
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      LLM_VM_IP=$(az vm show -d -g $(resourceGroup)-prod -n vm-llm-crm-prod --query publicIps -o tsv)
+                      echo "##vso[task.setvariable variable=LLM_VM_IP]$LLM_VM_IP"
+                      
+                - task: Bash@3
+                  displayName: 'Substitute variables in manifests'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      export ACR_LOGIN_SERVER=$(acrLoginServer)
+                      export IMAGE_TAG=$(imageTag)
+                      export LLM_VM_IP=$(LLM_VM_IP)
+                      export API_HOSTNAME=api.crm-solution.com
+                      export DOMAIN_NAME=crm-solution.com
+                      
+                      envsubst < azure/k8s/01-namespace-config.yaml > /tmp/namespace.yaml
+                      envsubst < azure/k8s/02-backend-deployment.yaml > /tmp/backend.yaml
+                      envsubst < azure/k8s/03-frontend-deployment.yaml > /tmp/frontend.yaml
+                      envsubst < azure/k8s/04-ingress.yaml > /tmp/ingress.yaml
+                      envsubst < azure/k8s/05-autoscaling.yaml > /tmp/autoscaling.yaml
+                      
+                - task: KubernetesManifest@0
+                  displayName: 'Deploy all manifests'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: 'aks-prod-connection'
+                    manifests: |
+                      /tmp/namespace.yaml
+                      /tmp/backend.yaml
+                      /tmp/frontend.yaml
+                      /tmp/ingress.yaml
+                      /tmp/autoscaling.yaml

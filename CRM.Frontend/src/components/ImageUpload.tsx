@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { getApiUrl } from '../config/ports';
 import {
   Box,
   Avatar,
@@ -57,9 +58,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     setUploading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:5000/api'
-        : `http://${window.location.hostname}:5000/api`;
+      const apiUrl = getApiUrl();
 
       const formData = new FormData();
       formData.append('file', file);
@@ -90,9 +89,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     if (preview && preview.startsWith('/uploads')) {
       try {
         const token = localStorage.getItem('accessToken');
-        const apiUrl = window.location.hostname === 'localhost' 
-          ? 'http://localhost:5000/api'
-          : `http://${window.location.hostname}:5000/api`;
+        const apiUrl = getApiUrl();
 
         await fetch(`${apiUrl}/fileupload?path=${encodeURIComponent(preview)}`, {
           method: 'DELETE',

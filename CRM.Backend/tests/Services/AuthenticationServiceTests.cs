@@ -235,7 +235,7 @@ public class AuthenticationServiceTests : IDisposable
     [Fact]
     public async Task RegisterAsync_WithExistingEmail_ThrowsException()
     {
-        // Arrange
+        // Arrange - Add user directly to the in-memory DbContext
         var existingUser = new User
         {
             Id = 10,
@@ -248,8 +248,9 @@ public class AuthenticationServiceTests : IDisposable
             CreatedAt = DateTime.UtcNow
         };
 
-        _mockUserRepo.Setup(r => r.GetAllAsync())
-            .ReturnsAsync(new List<User> { existingUser });
+        // Add the existing user to the in-memory database (not mock)
+        await _dbContext.Users.AddAsync(existingUser);
+        await _dbContext.SaveChangesAsync();
 
         var registerRequest = new RegisterRequest
         {

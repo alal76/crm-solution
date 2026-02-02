@@ -6,7 +6,8 @@ This directory contains the complete database schema and seed data for the CRM S
 
 ```
 database/
-├── schema/                        # Database schema files (run in order)
+├── schema/                        # Database schema files
+│   ├── 000_baseline_schema.sql    # COMPLETE SCHEMA (use for fresh installs)
 │   ├── 001_core_tables.sql        # Users, UserGroups, Customers, Contacts
 │   ├── 002_master_data_tables.sql # ZipCodes, ColorPalettes, SystemSettings
 │   ├── 003_service_request_tables.sql # Service request management
@@ -15,7 +16,7 @@ database/
 │   ├── 006_activities_communication.sql # Activities, Notes, Emails
 │   ├── 007_consolidated_contact_info.sql # Addresses, Phones, Emails, Social
 │   ├── 008_security_enhancements.sql # Security policies, 2FA
-│   └── 009_junction_table_improvements.sql # Tags, EntityTags, Indexes
+│   └── 009_junction_table_improvements.sql # Tags, EntityTags, LLM settings
 ├── seed/                          # Seed data files
 │   ├── 001_color_palettes.sql     # System color palettes (30 palettes)
 │   ├── 002_module_ui_configs.sql  # Module navigation config (15 modules)
@@ -27,6 +28,20 @@ database/
 ├── setup-database.sh              # Cross-platform setup script
 ├── DATABASE_SCHEMA.md             # Comprehensive schema documentation
 └── README.md                      # This file
+```
+
+## Deployment Strategy
+
+### Fresh Installation (New Database)
+Use the consolidated baseline schema for fastest deployment:
+```bash
+mysql -u crm_user -p crm_demodb < schema/000_baseline_schema.sql
+```
+
+### Existing Database (Incremental Migration)
+Run schema files 001-009 in order for incremental updates:
+```bash
+./deploy.sh --schema-only
 ```
 
 ## Deployment

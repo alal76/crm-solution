@@ -63,17 +63,11 @@ import {
 import { useBranding } from '../contexts/BrandingContext';
 import { TabPanel } from '../components/common';
 import { ArchitectureDiagram } from '../components/architecture';
+import { getApiBaseUrl } from '../config/ports';
 
 const AboutPage: React.FC = () => {
   const { branding } = useBranding();
   const companyName = branding.companyName;
-  
-  // Get API base URL for uploads
-  const getApiBaseUrl = () => {
-    return window.location.hostname === 'localhost'
-      ? 'http://localhost:5000'
-      : `http://${window.location.hostname}:5000`;
-  };
   
   // Get logo URL with proper API base
   const getLogoUrl = () => {

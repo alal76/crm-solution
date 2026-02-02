@@ -125,6 +125,23 @@ else
     export GENERATE_SOURCEMAP=false
     export CI=true
 
+    # Pre-build validation: Check .env.production
+    echo -e "${YELLOW}Pre-build validation...${NC}"
+    ENV_PROD_FILE="$FRONTEND_DIR/.env.production"
+    if [ -f "$ENV_PROD_FILE" ]; then
+        API_URL_LINE=$(grep -E "^REACT_APP_API_URL=" "$ENV_PROD_FILE" 2>/dev/null || echo "")
+        if [ -n "$API_URL_LINE" ] && [ "$API_URL_LINE" != "REACT_APP_API_URL=" ]; then
+            echo -e "${RED}ERROR: .env.production has hardcoded REACT_APP_API_URL${NC}"
+            echo "Current value: $API_URL_LINE"
+            echo "Fix: Set REACT_APP_API_URL= (empty) in .env.production"
+            exit 1
+        fi
+        echo -e "${GREEN}✓${NC} .env.production is correctly configured"
+    else
+        echo -e "${YELLOW}⚠${NC} .env.production not found - using defaults"
+    fi
+
+    echo ""
     echo "Starting build..."
     echo "Build started at $(date)"
     echo ""
@@ -142,6 +159,26 @@ else
             echo ""
             echo "Bundle sizes:"
             ls -lh "$FRONTEND_DIR/build/static/js/"*.js 2>/dev/null | awk '{print "   " $9 ": " $5}'
+        fi
+
+        # Post-build validation
+        echo ""
+        echo -e "${YELLOW}Post-build validation...${NC}"
+        if [ -x "$SCRIPT_DIR/validate-build.sh" ]; then
+            if "$SCRIPT_DIR/validate-build.sh"; then
+                echo -e "${GREEN}✓${NC} Build validation passed"
+            else
+                echo -e "${RED}✗${NC} Build validation failed - review errors above"
+                exit 1
+            fi
+        else
+            # Quick inline check if script doesn't exist
+            HARDCODED_URLS=$(grep -rE 'localhost:[0-9]{4}|192\.168\.[0-9]+\.[0-9]+:[0-9]+' "$FRONTEND_DIR/build/static/js/"*.js 2>/dev/null | wc -l | tr -d ' ')
+            if [ "$HARDCODED_URLS" -gt 0 ]; then
+                echo -e "${RED}✗${NC} WARNING: Found $HARDCODED_URLS hardcoded URLs in bundle"
+            else
+                echo -e "${GREEN}✓${NC} No hardcoded URLs found in bundle"
+            fi
         fi
     else
         echo ""

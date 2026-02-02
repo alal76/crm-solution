@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { getApiUrl } from '../../config/ports';
 import {
   Box,
   Typography,
@@ -155,11 +156,7 @@ function FeatureManagementTab() {
   const [hasChanges, setHasChanges] = useState(false);
   const [expandedPanel, setExpandedPanel] = useState<string | false>('core');
 
-  const getApiUrl = () => {
-    return window.location.hostname === 'localhost'
-      ? 'http://localhost:5000/api'
-      : `http://${window.location.hostname}:5000/api`;
-  };
+  const apiUrl = getApiUrl();
 
   const loadFeatures = useCallback(async () => {
     try {

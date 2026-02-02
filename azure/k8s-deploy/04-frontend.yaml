@@ -1,0 +1,59 @@
+# =============================================================================
+# CRM Solution - Frontend Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-frontend
+  namespace: crm
+  labels:
+    app: crm-frontend
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crm-frontend
+  template:
+    metadata:
+      labels:
+        app: crm-frontend
+        tier: frontend
+    spec:
+      containers:
+        - name: crm-frontend
+          image: crmdevacrdev.azurecr.io/crm-frontend:v2
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-frontend-service
+  namespace: crm
+spec:
+  selector:
+    app: crm-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+  type: LoadBalancer

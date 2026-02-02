@@ -18,7 +18,7 @@ if (typeof window !== 'undefined') {
 }
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: API_URL || 'http://localhost:5000/api',
+  baseURL: API_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },

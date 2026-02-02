@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiUrl } from '../../config/ports';
 import {
   Box,
   Typography,
@@ -86,17 +87,13 @@ function SocialLoginSettingsTab() {
   const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({});
   const [expandedProvider, setExpandedProvider] = useState<string | false>(false);
 
-  const getApiUrl = () => {
-    return window.location.hostname === 'localhost'
-      ? 'http://localhost:5000/api'
-      : `http://${window.location.hostname}:5000/api`;
-  };
+  const apiUrl = getApiUrl();
 
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await fetch(`${getApiUrl()}/systemsettings`, {
+        const response = await fetch(`${apiUrl}/systemsettings`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -131,14 +128,14 @@ function SocialLoginSettingsTab() {
       }
     };
     loadSettings();
-  }, []);
+  }, [apiUrl]);
 
   const handleSave = async () => {
     setSaving(true);
     setError(null);
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/systemsettings`, {
+      const response = await fetch(`${apiUrl}/systemsettings`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,

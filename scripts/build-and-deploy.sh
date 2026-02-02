@@ -155,10 +155,23 @@ build_images() {
         set -e
         cd /opt/crm/source
         
+        # Pre-build validation: Check .env.production
+        echo "Validating .env.production..."
+        if [ -f "CRM.Frontend/.env.production" ]; then
+            API_URL=\$(grep -E "^REACT_APP_API_URL=" CRM.Frontend/.env.production | cut -d= -f2)
+            if [ -n "\$API_URL" ] && [ "\$API_URL" != "" ]; then
+                echo "ERROR: .env.production has hardcoded REACT_APP_API_URL: \$API_URL"
+                echo "Fix: Set REACT_APP_API_URL= (empty) in CRM.Frontend/.env.production"
+                exit 1
+            fi
+            echo "✓ .env.production is correctly configured (REACT_APP_API_URL is empty)"
+        fi
+        
         echo "Building API image..."
         docker build -f docker/Dockerfile.backend -t crm-backend:v${version} -t crm-backend:latest . 2>&1 | tail -10
         
         echo "Building Frontend image..."
+        # Note: REACT_APP_API_URL is intentionally NOT passed - it should be empty
         docker build -f docker/Dockerfile.frontend -t crm-frontend:v${version} -t crm-frontend:latest \
             --build-arg REACT_APP_VERSION=${version} . 2>&1 | tail -10
         

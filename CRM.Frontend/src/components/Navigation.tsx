@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { getApiBaseUrl } from '../config/ports';
 import {
   AppBar,
   Toolbar,
@@ -429,13 +430,6 @@ function NavigationContent() {
     const firstInitial = user?.firstName?.charAt(0)?.toUpperCase() || '';
     const lastInitial = user?.lastName?.charAt(0)?.toUpperCase() || '';
     return `${firstInitial}${lastInitial}` || 'U';
-  };
-
-  // Get API base URL for uploads
-  const getApiBaseUrl = () => {
-    return window.location.hostname === 'localhost'
-      ? 'http://localhost:5000'
-      : `http://${window.location.hostname}:5000`;
   };
 
   // Get logo URL: from branding settings or default

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { getApiUrl } from '../config/ports';
 import { TabPanel } from '../components/common';
 import {
   Container,
@@ -180,12 +181,6 @@ function CompanyBrandingTab() {
   
   // Snackbar for notifications
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
-
-  const getApiUrl = () => {
-    return window.location.hostname === 'localhost' 
-      ? 'http://localhost:5000/api'
-      : `http://${window.location.hostname}:5000/api`;
-  };
 
   // Load user-defined palettes
   const loadUserDefinedPalettes = async () => {

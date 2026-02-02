@@ -36,10 +36,17 @@ build/
 *.user
 *.suo
 .DS_Store
+# Environment files - IMPORTANT:
+# - .env and .env.local are ignored (local overrides)
+# - .env.production SHOULD be tracked (contains empty REACT_APP_API_URL for runtime detection)
+# - .env.example SHOULD be tracked (template for developers)
 .env
 .env.local
-.env.production
 .env.*.local
+!.env.production
+!.env.example
+!CRM.Frontend/.env.production
+!CRM.Frontend/.env.example
 appsettings.*.json
 !appsettings.json
 .docker-remote-config.json
