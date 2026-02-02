@@ -24,7 +24,7 @@ public class RedisCacheOptions
     public const string SectionName = "Redis";
     
     /// <summary>Redis connection string (e.g., "localhost:6379")</summary>
-    public string ConnectionString { get; set; } = "localhost:6379";
+    public string ConnectionString { get; set; } = string.Empty;
     
     /// <summary>Instance name prefix for all cache keys</summary>
     public string InstanceName { get; set; } = "crm_";

@@ -143,7 +143,7 @@ public class AllenAIOptions
 /// </summary>
 public class LocalLLMOptions
 {
-    public string BaseUrl { get; set; } = "http://localhost:11434";  // Ollama default
+    public string BaseUrl { get; set; } = string.Empty;
     public string ApiKey { get; set; } = "";  // Optional for some local servers
     public string DefaultModel { get; set; } = "llama3";
     public string ApiFormat { get; set; } = "ollama";  // ollama, openai, or custom
