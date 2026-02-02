@@ -56,6 +56,153 @@ Use the parameterized build script:
 # Build specific architecture
 ./scripts/build-parameterized.sh --arch microservices
 
+# Build with specific build type
+./scripts/build-parameterized.sh --build-type dev
+./scripts/build-parameterized.sh --build-type test
+./scripts/build-parameterized.sh --build-type integration
+./scripts/build-parameterized.sh --build-type production
+
+# Build for production
+./scripts/build-parameterized.sh --env production --build-type production --tag v1.0.0
+
+# Build and push to registry
+./scripts/build-parameterized.sh --registry ghcr.io/myorg --push --tag latest
+
+# Quick build without tests
+./scripts/build-parameterized.sh --skip-tests --build-type dev
+```
+
+## Build Types
+
+The system supports four build types, each optimized for different purposes:
+
+### Development Build (`--build-type dev`)
+
+**Purpose:** Extensive logging for identifying and fixing bugs
+
+**Characteristics:**
+- ✅ Debug .NET configuration
+- ✅ Verbose logging (Debug level)
+- ✅ Source maps enabled
+- ✅ No minification
+- ✅ Console statements retained
+- ✅ SQL query logging enabled
+- ✅ Request/response logging
+- ✅ Performance metrics
+- ✅ Detailed error messages with stack traces
+
+**Use Cases:**
+- Local development
+- Debugging issues
+- Understanding application flow
+- Performance analysis
+
+**Example:**
+```bash
+./scripts/build-parameterized.sh --build-type dev --arch monolithic
+```
+
+### Test Build (`--build-type test`)
+
+**Purpose:** Full instrumentation for QA activities
+
+**Characteristics:**
+- ✅ Debug .NET configuration
+- ✅ Debug logging
+- ✅ Source maps enabled
+- ✅ Code coverage hooks
+- ✅ Performance monitoring
+- ✅ Test instrumentation
+- ✅ Test data generation
+- ✅ Separate performance log file
+
+**Use Cases:**
+- Quality assurance testing
+- Automated testing
+- Performance benchmarking
+- Code coverage analysis
+- Integration testing
+
+**Example:**
+```bash
+./scripts/build-parameterized.sh --build-type test --env staging
+```
+
+### Integration Build (`--build-type integration`)
+
+**Purpose:** Focus on external integrations and API testing
+
+**Characteristics:**
+- ✅ Release .NET configuration
+- ✅ Information log level (Debug for APIs)
+- ✅ Source maps enabled
+- ✅ API and middleware logging
+- ✅ External API call logging
+- ✅ HTTP request/response logging
+- ✅ Separate API log file
+- ✅ Circuit breaker and retry logging
+
+**Use Cases:**
+- Testing external integrations
+- API endpoint testing
+- Third-party service integration
+- Middleware debugging
+- OAuth/authentication flows
+
+**Example:**
+```bash
+./scripts/build-parameterized.sh --build-type integration --arch microservices
+```
+
+### Production Build (`--build-type production`)
+
+**Purpose:** Optimized, clean, fast code for production deployment
+
+**Characteristics:**
+- ✅ Release .NET configuration
+- ✅ Warning/Error log level only
+- ✅ Source maps disabled
+- ✅ Full minification
+- ✅ Console statements removed
+- ✅ Minimal instrumentation
+- ✅ Optimized bundle sizes
+- ✅ No sensitive data logging
+
+**Use Cases:**
+- Production deployments
+- Performance-critical environments
+- Public-facing applications
+- Minimal resource usage
+
+**Example:**
+```bash
+./scripts/build-parameterized.sh --build-type production --env production --push --tag v1.2.3
+```
+
+## Build Type Comparison
+
+| Feature | Dev | Test | Integration | Production |
+|---------|-----|------|-------------|------------|
+| .NET Configuration | Debug | Debug | Release | Release |
+| Log Level | Debug | Debug | Information | Warning |
+| Source Maps | ✅ | ✅ | ✅ | ❌ |
+| Minification | ❌ | ❌ | ✅ | ✅ |
+| Console Logging | Full | Full | Partial | None |
+| SQL Query Logging | ✅ | ✅ | ❌ | ❌ |
+| Code Coverage | ❌ | ✅ | ❌ | ❌ |
+| Performance Monitoring | ✅ | ✅ | ✅ | ❌ |
+| API Logging | Basic | Basic | Detailed | Minimal |
+| Optimization Level | None | Basic | Standard | Aggressive |
+
+
+
+```bash
+# Build with defaults from .env
+./scripts/build-parameterized.sh
+
+# Build specific architecture
+./scripts/build-parameterized.sh --arch microservices
+
 # Build for production
 ./scripts/build-parameterized.sh --env production --tag v1.0.0
 
