@@ -1,0 +1,111 @@
+name: Delete Merged Branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      branches_to_delete:
+        description: 'Comma-separated list of branches to delete (leave empty to delete predefined merged branches)'
+        required: false
+        default: 'copilot/review-architecture-and-standards,copilot/review-solution-architecture'
+
+permissions:
+  contents: write
+
+jobs:
+  delete-merged-branches:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+      
+      - name: Get branches to delete
+        id: get-branches
+        run: |
+          if [ -z "${{ github.event.inputs.branches_to_delete }}" ]; then
+            BRANCHES="copilot/review-architecture-and-standards,copilot/review-solution-architecture"
+          else
+            BRANCHES="${{ github.event.inputs.branches_to_delete }}"
+          fi
+          echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+      
+      - name: Verify branches are merged
+        run: |
+          IFS=',' read -ra BRANCHES <<< "${{ steps.get-branches.outputs.branches }}"
+          for branch in "${BRANCHES[@]}"; do
+            branch=$(echo "$branch" | xargs)  # trim whitespace
+            echo "Checking if $branch is merged to main..."
+            
+            # Check if branch exists
+            if ! git ls-remote --heads origin "$branch" | grep -q "$branch"; then
+              echo "  ⚠️  Branch $branch does not exist remotely"
+              continue
+            fi
+            
+            # Fetch the branch
+            git fetch origin "$branch"
+            
+            # Check if it's merged to main
+            if git merge-base --is-ancestor "origin/$branch" origin/main; then
+              echo "  ✓ Branch $branch is merged to main"
+            else
+              echo "  ✗ Branch $branch is NOT merged to main - will NOT delete"
+              exit 1
+            fi
+          done
+      
+      - name: Delete merged branches
+        run: |
+          IFS=',' read -ra BRANCHES <<< "${{ steps.get-branches.outputs.branches }}"
+          DELETED_COUNT=0
+          SKIPPED_COUNT=0
+          
+          echo "========================================"
+          echo "Deleting merged branches"
+          echo "========================================"
+          
+          for branch in "${BRANCHES[@]}"; do
+            branch=$(echo "$branch" | xargs)  # trim whitespace
+            
+            # Skip protected branches
+            if [ "$branch" = "main" ] || [ "$branch" = "dev" ]; then
+              echo "⚠️  Skipping protected branch: $branch"
+              SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+              continue
+            fi
+            
+            # Check if branch exists
+            if ! git ls-remote --heads origin "$branch" | grep -q "$branch"; then
+              echo "⚠️  Branch $branch does not exist remotely - skipping"
+              SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+              continue
+            fi
+            
+            echo "Deleting branch: $branch"
+            if git push origin --delete "$branch"; then
+              echo "  ✓ Successfully deleted $branch"
+              DELETED_COUNT=$((DELETED_COUNT + 1))
+            else
+              echo "  ✗ Failed to delete $branch"
+            fi
+          done
+          
+          echo ""
+          echo "========================================"
+          echo "Summary"
+          echo "========================================"
+          echo "Deleted: $DELETED_COUNT branch(es)"
+          echo "Skipped: $SKIPPED_COUNT branch(es)"
+      
+      - name: List remaining branches
+        run: |
+          echo ""
+          echo "Remaining remote branches:"
+          git ls-remote --heads origin | awk '{print "  " $2}' | sed 's|refs/heads/||'
