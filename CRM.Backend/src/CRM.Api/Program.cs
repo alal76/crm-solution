@@ -645,6 +645,10 @@ if (Directory.Exists(frontendBuildPath))
 }
 
 app.UseRouting();
+
+// Add security headers
+app.UseMiddleware<CRM.Api.Middleware.SecurityHeadersMiddleware>();
+
 // Use the default CORS policy globally
 app.UseCors();
 // Apply rate limiting before authentication
