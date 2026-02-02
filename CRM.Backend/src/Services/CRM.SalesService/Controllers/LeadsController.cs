@@ -103,7 +103,7 @@ public class LeadsController : ControllerBase
                     l.Region,
                     l.Website,
                     l.OwnerId,
-                    l.CustomerId,
+                    l.AccountId,
                     l.ContactId,
                     l.CampaignId,
                     l.MqlDate,
@@ -248,7 +248,7 @@ public class LeadsController : ControllerBase
             var opportunity = new Opportunity
             {
                 Name = request.OpportunityName ?? $"{lead.CompanyName} - Opportunity",
-                CustomerId = request.CustomerId ?? lead.CustomerId ?? 0, // CustomerId is required
+                AccountId = request.CustomerId ?? lead.AccountId ?? 0, // AccountId is required
                 PrimaryContactId = lead.ContactId,
                 Amount = request.EstimatedValue ?? 0,
                 Stage = OpportunityStage.Discovery,

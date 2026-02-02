@@ -87,10 +87,10 @@ export function sanitizeUrl(url: string): string {
   const trimmed = url.trim().toLowerCase();
   
   // Block dangerous protocols
+  // eslint-disable-next-line no-script-url
+  const dangerousProtocols = ['javascript:', 'data:', 'vbscript:'];
   if (
-    trimmed.startsWith('javascript:') ||
-    trimmed.startsWith('data:') ||
-    trimmed.startsWith('vbscript:')
+    dangerousProtocols.some(protocol => trimmed.startsWith(protocol))
   ) {
     return '';
   }

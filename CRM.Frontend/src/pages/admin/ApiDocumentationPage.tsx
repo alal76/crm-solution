@@ -273,7 +273,7 @@ const ApiDocumentationPage: React.FC = () => {
     setTimeout(() => setCopiedText(null), 2000);
   };
 
-  const getMethodColor = (method: string) => {
+  const getMethodColor = (method: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
     switch (method) {
       case 'GET': return 'success';
       case 'POST': return 'primary';
@@ -386,7 +386,7 @@ const ApiDocumentationPage: React.FC = () => {
                         <Chip
                           label={endpoint.method}
                           size="small"
-                          color={getMethodColor(endpoint.method) as any}
+                          color={getMethodColor(endpoint.method)}
                           sx={{ minWidth: 60 }}
                         />
                         <Typography sx={{ fontFamily: 'monospace', flexGrow: 1 }}>

@@ -189,7 +189,7 @@ Respond ONLY with valid JSON in this exact format:
                 
                 if (customer != null)
                 {
-                    customerContext = $"\n\nCustomer Context:\n- Company: {customer.Company}\n- Account Type: {customer.CustomerType}\n- Industry: {customer.Industry}";
+                    customerContext = $"\n\nCustomer Context:\n- Company: {customer.Company}\n- Account Type: {customer.Category}\n- Industry: {customer.Industry}";
                 }
             }
 

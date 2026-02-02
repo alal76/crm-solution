@@ -207,7 +207,9 @@ const FIELD_TYPE_OPTIONS = [
   { value: FormFieldType.Divider, label: 'Divider' },
 ];
 
-const FORM_STATUS_OPTIONS = [
+type ChipColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+
+const FORM_STATUS_OPTIONS: Array<{ value: FormStatus; label: string; color: ChipColor }> = [
   { value: FormStatus.Draft, label: 'Draft', color: 'default' },
   { value: FormStatus.Published, label: 'Published', color: 'success' },
   { value: FormStatus.Paused, label: 'Paused', color: 'warning' },
@@ -221,7 +223,7 @@ const SUBMIT_ACTION_OPTIONS = [
   { value: FormSubmitAction.StayOnPage, label: 'Stay on Page' },
 ];
 
-const SUBMISSION_STATUS_OPTIONS = [
+const SUBMISSION_STATUS_OPTIONS: Array<{ value: SubmissionStatus; label: string; color: ChipColor }> = [
   { value: SubmissionStatus.New, label: 'New', color: 'info' },
   { value: SubmissionStatus.Processing, label: 'Processing', color: 'warning' },
   { value: SubmissionStatus.LeadCreated, label: 'Lead Created', color: 'success' },
@@ -246,10 +248,10 @@ const WIDTH_OPTIONS = [
 
 // ==================== HELPER FUNCTIONS ====================
 
-const getStatusInfo = (status: FormStatus) => 
+const getStatusInfo = (status: FormStatus): { label: string; color: ChipColor } => 
   FORM_STATUS_OPTIONS.find(s => s.value === status) || { label: 'Unknown', color: 'default' };
 
-const getSubmissionStatusInfo = (status: SubmissionStatus) =>
+const getSubmissionStatusInfo = (status: SubmissionStatus): { label: string; color: ChipColor } =>
   SUBMISSION_STATUS_OPTIONS.find(s => s.value === status) || { label: 'Unknown', color: 'default' };
 
 const getFieldTypeLabel = (type: FormFieldType) =>
@@ -632,7 +634,7 @@ function FormBuilderPage() {
                           <Chip 
                             label={statusInfo.label} 
                             size="small" 
-                            color={statusInfo.color as any}
+                            color={statusInfo.color}
                           />
                         </TableCell>
                         <TableCell align="center">{form.fields?.length || 0}</TableCell>
@@ -1315,7 +1317,7 @@ function FormBuilderPage() {
                       <TableCell>{sub.submissionNumber}</TableCell>
                       <TableCell>{new Date(sub.submittedAt).toLocaleString()}</TableCell>
                       <TableCell>
-                        <Chip label={statusInfo.label} size="small" color={statusInfo.color as any} />
+                        <Chip label={statusInfo.label} size="small" color={statusInfo.color} />
                       </TableCell>
                       <TableCell>{sub.ipAddress || '-'}</TableCell>
                       <TableCell>{sub.leadId || '-'}</TableCell>

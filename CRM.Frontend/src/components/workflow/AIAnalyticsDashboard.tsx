@@ -249,7 +249,7 @@ export const AIAnalyticsDashboard: React.FC<AIAnalyticsDashboardProps> = ({
   dateRange: initialDateRange = 'month',
   onExport,
 }) => {
-  const [dateRange, setDateRange] = useState(initialDateRange);
+  const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'quarter' | 'year'>(initialDateRange);
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<AIAnalyticsSummary | null>(mockSummary);
   const [recentExecutions, setRecentExecutions] = useState<AINodeExecution[]>(mockExecutions);
@@ -304,7 +304,7 @@ export const AIAnalyticsDashboard: React.FC<AIAnalyticsDashboardProps> = ({
             <Select
               value={dateRange}
               label="Period"
-              onChange={(e) => setDateRange(e.target.value as any)}
+              onChange={(e) => setDateRange(e.target.value as 'today' | 'week' | 'month' | 'quarter' | 'year')}
             >
               <MenuItem value="today">Today</MenuItem>
               <MenuItem value="week">This Week</MenuItem>

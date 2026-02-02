@@ -21,6 +21,7 @@ using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Services.AI;
+using CRM.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -627,6 +628,9 @@ if (forceHttpsRedirect && File.Exists(sslCertPath))
         appBuilder.UseHttpsRedirection();
     });
 }
+
+// Add security headers to all responses
+app.UseSecurityHeaders();
 
 // Serve static files from wwwroot (for uploaded files)
 var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");

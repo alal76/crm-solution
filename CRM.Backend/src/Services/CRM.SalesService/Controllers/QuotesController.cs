@@ -37,13 +37,13 @@ public class QuotesController : ControllerBase
         [FromQuery] bool? expired = null)
     {
         var query = _context.Quotes
-            .Include(q => q.Customer)
+            .Include(q => q.Account)
             .Include(q => q.Opportunity)
             .Include(q => q.AssignedToUser)
             .AsQueryable();
 
         if (customerId.HasValue)
-            query = query.Where(q => q.CustomerId == customerId);
+            query = query.Where(q => q.AccountId == customerId);
         
         if (opportunityId.HasValue)
             query = query.Where(q => q.OpportunityId == opportunityId);
@@ -72,7 +72,7 @@ public class QuotesController : ControllerBase
     public async Task<ActionResult<Quote>> GetQuote(int id)
     {
         var quote = await _context.Quotes
-            .Include(q => q.Customer)
+            .Include(q => q.Account)
             .Include(q => q.Opportunity)
             .Include(q => q.AssignedToUser)
             .Include(q => q.Revisions)
@@ -98,7 +98,7 @@ public class QuotesController : ControllerBase
     public async Task<ActionResult<Quote>> GetQuoteByNumber(string quoteNumber)
     {
         var quote = await _context.Quotes
-            .Include(q => q.Customer)
+            .Include(q => q.Account)
             .Include(q => q.Opportunity)
             .FirstOrDefaultAsync(q => q.QuoteNumber == quoteNumber);
 
@@ -143,7 +143,7 @@ public class QuotesController : ControllerBase
         _context.Quotes.Add(quote);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Quote {QuoteNumber} created for customer {CustomerId}", quote.QuoteNumber, quote.CustomerId);
+        _logger.LogInformation("Quote {QuoteNumber} created for customer {CustomerId}", quote.QuoteNumber, quote.AccountId);
         return CreatedAtAction(nameof(GetQuote), new { id = quote.Id }, quote);
     }
 
@@ -310,7 +310,7 @@ public class QuotesController : ControllerBase
             Status = QuoteStatus.Draft,
             Version = originalQuote.Version + 1,
             ParentQuoteId = originalQuote.Id,
-            CustomerId = originalQuote.CustomerId,
+            AccountId = originalQuote.AccountId,
             ContactId = originalQuote.ContactId,
             OpportunityId = originalQuote.OpportunityId,
             AssignedToUserId = originalQuote.AssignedToUserId,

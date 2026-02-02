@@ -467,7 +467,7 @@ export const ActionPropertiesPanel: React.FC<ActionPropertiesPanelProps> = ({
                 <Select
                   value={config.notificationType || 'in_app'}
                   label="Notification Type"
-                  onChange={(e) => updateConfig({ notificationType: e.target.value as any })}
+                  onChange={(e) => updateConfig({ notificationType: e.target.value as 'in_app' | 'push' | 'email' | 'sms' })}
                   disabled={readonly}
                 >
                   <MenuItem value="in_app">In-App Notification</MenuItem>
@@ -507,7 +507,7 @@ export const ActionPropertiesPanel: React.FC<ActionPropertiesPanelProps> = ({
                   <Select
                     value={config.apiMethod || 'POST'}
                     label="Method"
-                    onChange={(e) => updateConfig({ apiMethod: e.target.value as any })}
+                    onChange={(e) => updateConfig({ apiMethod: e.target.value as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' })}
                     disabled={readonly}
                   >
                     <MenuItem value="GET">GET</MenuItem>
@@ -621,7 +621,7 @@ export const ActionPropertiesPanel: React.FC<ActionPropertiesPanelProps> = ({
                   <Select
                     value={config.taskPriority || 'Medium'}
                     label="Priority"
-                    onChange={(e) => updateConfig({ taskPriority: e.target.value as any })}
+                    onChange={(e) => updateConfig({ taskPriority: e.target.value as 'low' | 'normal' | 'high' | 'urgent' })}
                     disabled={readonly}
                   >
                     <MenuItem value="Low">Low</MenuItem>
@@ -986,7 +986,7 @@ export const ActionPropertiesPanel: React.FC<ActionPropertiesPanelProps> = ({
             <Select
               value={config.fallbackAction || 'fail'}
               label="On Failure"
-              onChange={(e) => updateConfig({ fallbackAction: e.target.value as any })}
+              onChange={(e) => updateConfig({ fallbackAction: e.target.value as 'fail' | 'skip' | 'default_value' })}
               disabled={readonly}
             >
               <MenuItem value="fail">Fail Workflow</MenuItem>

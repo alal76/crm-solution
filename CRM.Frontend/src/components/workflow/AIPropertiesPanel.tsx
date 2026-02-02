@@ -739,7 +739,7 @@ const AIAgentPanel: React.FC<AIAgentPanelProps> = ({
               <Select
                 value={config.autonomyLevel}
                 label="Autonomy Level"
-                onChange={(e) => onChange({ ...config, autonomyLevel: e.target.value as any })}
+                onChange={(e) => onChange({ ...config, autonomyLevel: e.target.value as 'low' | 'medium' | 'high' | 'full' })}
                 disabled={disabled}
               >
                 <MenuItem value="low">Low - Requires approval for all actions</MenuItem>
@@ -803,7 +803,7 @@ const AIAgentPanel: React.FC<AIAgentPanelProps> = ({
                   <Select
                     value={config.memoryType}
                     label="Memory Type"
-                    onChange={(e) => onChange({ ...config, memoryType: e.target.value as any })}
+                    onChange={(e) => onChange({ ...config, memoryType: e.target.value as 'conversation' | 'summary' | 'vector' })}
                     disabled={disabled}
                   >
                     <MenuItem value="conversation">Conversation History</MenuItem>
@@ -937,7 +937,7 @@ const AIContentGeneratorPanel: React.FC<AIContentGeneratorPanelProps> = ({
               <Select
                 value={config.contentType}
                 label="Content Type"
-                onChange={(e) => onChange({ ...config, contentType: e.target.value as any })}
+                onChange={(e) => onChange({ ...config, contentType: e.target.value as 'email' | 'summary' | 'report' | 'response' | 'document' | 'custom' })}
                 disabled={disabled}
               >
                 <MenuItem value="email">Email</MenuItem>
@@ -955,7 +955,7 @@ const AIContentGeneratorPanel: React.FC<AIContentGeneratorPanelProps> = ({
               <Select
                 value={config.tone}
                 label="Tone"
-                onChange={(e) => onChange({ ...config, tone: e.target.value as any })}
+                onChange={(e) => onChange({ ...config, tone: e.target.value as 'professional' | 'friendly' | 'formal' | 'casual' | 'empathetic' })}
                 disabled={disabled}
               >
                 <MenuItem value="professional">Professional</MenuItem>
@@ -972,7 +972,7 @@ const AIContentGeneratorPanel: React.FC<AIContentGeneratorPanelProps> = ({
               <Select
                 value={config.outputFormat}
                 label="Output Format"
-                onChange={(e) => onChange({ ...config, outputFormat: e.target.value as any })}
+                onChange={(e) => onChange({ ...config, outputFormat: e.target.value as 'text' | 'html' | 'markdown' | 'json' })}
                 disabled={disabled}
               >
                 <MenuItem value="text">Plain Text</MenuItem>
@@ -1206,7 +1206,7 @@ const AIDataExtractorPanel: React.FC<AIDataExtractorPanelProps> = ({
               <Select
                 value={config.outputFormat}
                 label="Output Format"
-                onChange={(e) => onChange({ ...config, outputFormat: e.target.value as any })}
+                onChange={(e) => onChange({ ...config, outputFormat: e.target.value as 'object' | 'array' })}
                 disabled={disabled}
               >
                 <MenuItem value="object">Object</MenuItem>
@@ -1269,7 +1269,7 @@ const AIDataExtractorPanel: React.FC<AIDataExtractorPanelProps> = ({
                     <Select
                       value={field.type}
                       label="Type"
-                      onChange={(e) => updateField(index, { type: e.target.value as any })}
+                      onChange={(e) => updateField(index, { type: e.target.value as 'string' | 'number' | 'boolean' | 'date' | 'email' | 'phone' | 'address' })}
                       disabled={disabled}
                     >
                       <MenuItem value="string">String</MenuItem>
@@ -1334,7 +1334,7 @@ const AIDataExtractorPanel: React.FC<AIDataExtractorPanelProps> = ({
                     <Select
                       value={newField.type}
                       label="Type"
-                      onChange={(e) => setNewField({ ...newField, type: e.target.value as any })}
+                      onChange={(e) => setNewField({ ...newField, type: e.target.value as 'string' | 'number' | 'boolean' | 'date' | 'email' | 'phone' })}
                     >
                       <MenuItem value="string">String</MenuItem>
                       <MenuItem value="number">Number</MenuItem>
@@ -1468,7 +1468,7 @@ const AIClassifierPanel: React.FC<AIClassifierPanelProps> = ({
               <Select
                 value={config.classificationType}
                 label="Classification Type"
-                onChange={(e) => onChange({ ...config, classificationType: e.target.value as any })}
+                onChange={(e) => onChange({ ...config, classificationType: e.target.value as 'single' | 'multi' })}
                 disabled={disabled}
               >
                 <MenuItem value="single">Single Category</MenuItem>
@@ -1692,7 +1692,7 @@ const AISentimentAnalyzerPanel: React.FC<AISentimentAnalyzerPanelProps> = ({
               <Select
                 value={config.analysisType}
                 label="Analysis Type"
-                onChange={(e) => onChange({ ...config, analysisType: e.target.value as any })}
+                onChange={(e) => onChange({ ...config, analysisType: e.target.value as 'basic' | 'detailed' | 'emotional' })}
                 disabled={disabled}
               >
                 <MenuItem value="basic">Basic (Positive/Neutral/Negative)</MenuItem>
@@ -2087,7 +2087,7 @@ const HumanReviewPanel: React.FC<HumanReviewPanelProps> = ({
                     <Select
                       value={newOption.action}
                       label="Action"
-                      onChange={(e) => setNewOption({ ...newOption, action: e.target.value as any })}
+                      onChange={(e) => setNewOption({ ...newOption, action: e.target.value as 'approve' | 'reject' | 'modify' | 'escalate' })}
                     >
                       <MenuItem value="approve">Approve</MenuItem>
                       <MenuItem value="reject">Reject</MenuItem>

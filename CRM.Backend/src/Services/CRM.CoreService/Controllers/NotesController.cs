@@ -38,13 +38,13 @@ public class NotesController : ControllerBase
         [FromQuery] bool? pinned = null)
     {
         var query = _context.Notes
-            .Include(n => n.Customer)
+            .Include(n => n.Account)
             .Include(n => n.Opportunity)
             .Include(n => n.CreatedByUser)
             .AsQueryable();
 
         if (customerId.HasValue)
-            query = query.Where(n => n.CustomerId == customerId);
+            query = query.Where(n => n.AccountId == customerId);
         
         if (opportunityId.HasValue)
             query = query.Where(n => n.OpportunityId == opportunityId);
@@ -82,7 +82,7 @@ public class NotesController : ControllerBase
     public async Task<ActionResult<Note>> GetNote(int id)
     {
         var note = await _context.Notes
-            .Include(n => n.Customer)
+            .Include(n => n.Account)
             .Include(n => n.Opportunity)
             .Include(n => n.CreatedByUser)
             .FirstOrDefaultAsync(n => n.Id == id);
@@ -178,7 +178,7 @@ public class NotesController : ControllerBase
 
         query = entityType.ToLower() switch
         {
-            "customer" => query.Where(n => n.CustomerId == entityId),
+            "customer" => query.Where(n => n.AccountId == entityId),
             "opportunity" => query.Where(n => n.OpportunityId == entityId),
             "product" => query.Where(n => n.ProductId == entityId),
             "campaign" => query.Where(n => n.CampaignId == entityId),

@@ -322,7 +322,7 @@ const TestResultsPage: React.FC = () => {
     return summary.total > 0 ? ((summary.passed / summary.total) * 100).toFixed(1) : '0';
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
     switch (status) {
       case 'passed':
         return 'success';
@@ -730,7 +730,7 @@ const TestResultsPage: React.FC = () => {
                             icon={getStatusIcon(test.status) ?? undefined}
                             label={test.status}
                             size="small"
-                            color={getStatusColor(test.status) as any}
+                            color={getStatusColor(test.status)}
                             variant="outlined"
                           />
                         </TableCell>
@@ -1009,7 +1009,7 @@ const TestResultsPage: React.FC = () => {
                       <TableRow><TableCell><strong>Class</strong></TableCell><TableCell>{selectedTest.className}</TableCell></TableRow>
                       <TableRow><TableCell><strong>Method</strong></TableCell><TableCell>{selectedTest.methodName}</TableCell></TableRow>
                       <TableRow><TableCell><strong>Category</strong></TableCell><TableCell>{selectedTest.category}</TableCell></TableRow>
-                      <TableRow><TableCell><strong>Status</strong></TableCell><TableCell><Chip label={selectedTest.status} color={getStatusColor(selectedTest.status) as any} size="small" /></TableCell></TableRow>
+                      <TableRow><TableCell><strong>Status</strong></TableCell><TableCell><Chip label={selectedTest.status} color={getStatusColor(selectedTest.status)} size="small" /></TableCell></TableRow>
                       <TableRow><TableCell><strong>Duration</strong></TableCell><TableCell>{selectedTest.duration}</TableCell></TableRow>
                     </TableBody>
                   </Table>

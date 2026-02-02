@@ -343,7 +343,7 @@ const EmailAIAssist: React.FC<EmailAIAssistProps> = ({
     }
   };
 
-  const getUrgencyColor = (urgency?: string) => {
+  const getUrgencyColor = (urgency?: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
     switch (urgency?.toLowerCase()) {
       case 'critical':
         return 'error';
@@ -462,7 +462,7 @@ const EmailAIAssist: React.FC<EmailAIAssistProps> = ({
                             <Chip
                               icon={<UrgentIcon />}
                               label={analysis.urgency}
-                              color={getUrgencyColor(analysis.urgency) as any}
+                              color={getUrgencyColor(analysis.urgency)}
                               size="small"
                               sx={{ textTransform: 'capitalize' }}
                             />

@@ -30,7 +30,7 @@ namespace CRM.Infrastructure.Services;
 /// PATTERN:
 /// [Controller] → [IAccountInputPort] → [AccountService] → [IRepository] → [Database]
 /// </summary>
-public class AccountService : IAccountService, IAccountInputPort
+public class AccountService : IAccountService, IAccountInputPort, ICustomerInputPort
 {
     private readonly IRepository<Account> _accountRepository;
     private readonly IRepository<AccountContact> _accountContactRepository;

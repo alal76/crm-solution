@@ -305,7 +305,7 @@ const LicensesPage: React.FC = () => {
     { category: 'Infrastructure', icon: <BuildIcon />, dependencies: infrastructureDependencies },
   ];
 
-  const getLicenseColor = (license: string) => {
+  const getLicenseColor = (license: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
     switch (license) {
       case 'MIT':
         return 'success';
@@ -468,14 +468,14 @@ const LicensesPage: React.FC = () => {
                               <Chip
                                 label={dep.license}
                                 size="small"
-                                color={getLicenseColor(dep.license) as any}
+                                color={getLicenseColor(dep.license)}
                               />
                             </Link>
                           ) : (
                             <Chip
                               label={dep.license}
                               size="small"
-                              color={getLicenseColor(dep.license) as any}
+                              color={getLicenseColor(dep.license)}
                             />
                           )}
                         </TableCell>

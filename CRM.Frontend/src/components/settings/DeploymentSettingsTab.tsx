@@ -2926,7 +2926,7 @@ echo "Frontend URL: http://localhost:3000"
   );
 
   // Helper function to get status color
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
     switch (status?.toLowerCase()) {
       case 'running': case 'healthy': case 'success': return 'success';
       case 'building': case 'deploying': case 'provisioning': case 'degraded': return 'warning';
@@ -3052,14 +3052,14 @@ echo "Frontend URL: http://localhost:3000"
                             <Chip 
                               label={deployment.status} 
                               size="small" 
-                              color={getStatusColor(deployment.status) as any}
+                              color={getStatusColor(deployment.status)}
                             />
                           </TableCell>
                           <TableCell>
                             <Chip 
                               label={deployment.healthStatus} 
                               size="small" 
-                              color={getStatusColor(deployment.healthStatus) as any}
+                              color={getStatusColor(deployment.healthStatus)}
                             />
                           </TableCell>
                           <TableCell>
@@ -3201,7 +3201,7 @@ echo "Frontend URL: http://localhost:3000"
                   <Chip 
                     label={attempt.status} 
                     size="small" 
-                    color={getStatusColor(attempt.status) as any}
+                    color={getStatusColor(attempt.status)}
                   />
                 </TableCell>
                 <TableCell>{attempt.gitBranch || '-'}</TableCell>
@@ -3294,7 +3294,7 @@ echo "Frontend URL: http://localhost:3000"
                   <Typography variant="h6">Latest Health Check Result</Typography>
                   <Chip 
                     label={healthCheckResult.overallStatus} 
-                    color={getStatusColor(healthCheckResult.overallStatus) as any}
+                    color={getStatusColor(healthCheckResult.overallStatus)}
                   />
                 </Box>
                 <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
@@ -3385,7 +3385,7 @@ echo "Frontend URL: http://localhost:3000"
                           <Chip 
                             label={check.status} 
                             size="small" 
-                            color={getStatusColor(check.status) as any}
+                            color={getStatusColor(check.status)}
                           />
                         </TableCell>
                         <TableCell>

@@ -254,7 +254,7 @@ export const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = (
               value={input.valueType}
               onChange={(e) => {
                 const inputs = [...(config.inputs || [])];
-                inputs[index] = { ...inputs[index], valueType: e.target.value as any };
+                inputs[index] = { ...inputs[index], valueType: e.target.value as 'static' | 'variable' | 'expression' };
                 updateConfig({ inputs });
               }}
               disabled={readonly}
