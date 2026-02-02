@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/77</span>
-            </div>
-        
-            
-            <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
-                <span class="quiet">Branches</span>
                 <span class='fraction'>0/76</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/74</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/36</span>
+                <span class='fraction'>0/35</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/74</span>
+                <span class='fraction'>0/73</span>
             </div>
         
             
@@ -787,10 +787,8 @@
 <a name='L722'></a><a href='#L722'>722</a>
 <a name='L723'></a><a href='#L723'>723</a>
 <a name='L724'></a><a href='#L724'>724</a>
-<a name='L725'></a><a href='#L725'>725</a>
-<a name='L726'></a><a href='#L726'>726</a>
-<a name='L727'></a><a href='#L727'>727</a>
-<a name='L728'></a><a href='#L728'>728</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L725'></a><a href='#L725'>725</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -879,10 +877,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1518,6 +1512,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useState, useEffect } from 'react';
+import { getApiUrl } from '../../config/ports';
 import {
   Box,
   Typography,
@@ -1605,17 +1600,13 @@ function <span class="fstat-no" title="function not covered" >SocialLoginSetting
   const [showSecrets, setShowSecrets] = <span class="cstat-no" title="statement not covered" >useState&lt;{ [key: string]: boolean }&gt;({});</span>
   const [expandedProvider, setExpandedProvider] = <span class="cstat-no" title="statement not covered" >useState&lt;string | false&gt;(false);</span>
 &nbsp;
-  const getApiUrl = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return window.location.hostname === 'localhost'</span>
-      ? 'http://localhost:5000/api'
-      : `http://${window.location.hostname}:5000/api`;
-  };
+  const apiUrl = <span class="cstat-no" title="statement not covered" >getApiUrl();</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
     const loadSettings = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      try {</span>
         const token = <span class="cstat-no" title="statement not covered" >localStorage.getItem('accessToken');</span>
-        const response = <span class="cstat-no" title="statement not covered" >await fetch(`${getApiUrl()}/systemsettings`, {</span>
+        const response = <span class="cstat-no" title="statement not covered" >await fetch(`${apiUrl}/systemsettings`, {</span>
           headers: { Authorization: `Bearer ${token}` },
         });
 &nbsp;
@@ -1650,14 +1641,14 @@ function <span class="fstat-no" title="function not covered" >SocialLoginSetting
       }
     };
 <span class="cstat-no" title="statement not covered" >    loadSettings();</span>
-  }, []);
+  }, [apiUrl]);
 &nbsp;
   const handleSave = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    setSaving(true);</span>
 <span class="cstat-no" title="statement not covered" >    setError(null);</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const token = <span class="cstat-no" title="statement not covered" >localStorage.getItem('accessToken');</span>
-      const response = <span class="cstat-no" title="statement not covered" >await fetch(`${getApiUrl()}/systemsettings`, {</span>
+      const response = <span class="cstat-no" title="statement not covered" >await fetch(`${apiUrl}/systemsettings`, {</span>
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -2251,7 +2242,7 @@ export default SocialLoginSettingsTab;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T19:40:06.086Z
+                at 2026-02-02T09:44:02.205Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

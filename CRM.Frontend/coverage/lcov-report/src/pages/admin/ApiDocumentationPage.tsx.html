@@ -1018,7 +1018,11 @@
 <a name='L953'></a><a href='#L953'>953</a>
 <a name='L954'></a><a href='#L954'>954</a>
 <a name='L955'></a><a href='#L955'>955</a>
-<a name='L956'></a><a href='#L956'>956</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L956'></a><a href='#L956'>956</a>
+<a name='L957'></a><a href='#L957'>957</a>
+<a name='L958'></a><a href='#L958'>958</a>
+<a name='L959'></a><a href='#L959'>959</a>
+<a name='L960'></a><a href='#L960'>960</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1099,6 +1103,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2076,7 +2084,7 @@ const apiEndpoints: ApiEndpoint[] = <span class="cstat-no" title="statement not 
   // Contacts
   { method: 'GET', path: '/api/contacts', description: 'Get paginated list of contacts', auth: true, category: 'Contacts' },
   { method: 'GET', path: '/api/contacts/{id}', description: 'Get contact by ID', auth: true, category: 'Contacts' },
-  { method: 'POST', path: '/api/contacts', description: 'Create new contact', auth: true, category: 'Contacts', requestBody: '{ "firstName": "string", "lastName": "string", "email": "string", "phone": "string", "customerId": "int?" }' },
+  { method: 'POST', path: '/api/contacts', description: 'Create new contact', auth: true, category: 'Contacts', requestBody: '{ "firstName": "string", "lastName": "string", "email": "string", "phone": "string", "accountId": "int?" }' },
   { method: 'PUT', path: '/api/contacts/{id}', description: 'Update contact', auth: true, category: 'Contacts' },
   { method: 'DELETE', path: '/api/contacts/{id}', description: 'Delete contact', auth: true, category: 'Contacts' },
   { method: 'GET', path: '/api/contactinfo/{contactId}', description: 'Get all contact info entries', auth: true, category: 'Contacts' },
@@ -2101,7 +2109,7 @@ const apiEndpoints: ApiEndpoint[] = <span class="cstat-no" title="statement not 
   // Opportunities
   { method: 'GET', path: '/api/opportunities', description: 'Get paginated list of opportunities', auth: true, category: 'Opportunities' },
   { method: 'GET', path: '/api/opportunities/{id}', description: 'Get opportunity by ID', auth: true, category: 'Opportunities' },
-  { method: 'POST', path: '/api/opportunities', description: 'Create new opportunity', auth: true, category: 'Opportunities', requestBody: '{ "title": "string", "amount": "decimal", "probability": "int", "stageId": "int", "accountId": "int" }' },
+  { method: 'POST', path: '/api/opportunities', description: 'Create new opportunity', auth: true, category: 'Opportunities', requestBody: '{ "name": "string", "amount": "decimal", "probability": "int", "stage": "int", "accountId": "int" }' },
   { method: 'PUT', path: '/api/opportunities/{id}', description: 'Update opportunity', auth: true, category: 'Opportunities' },
   { method: 'DELETE', path: '/api/opportunities/{id}', description: 'Delete opportunity', auth: true, category: 'Opportunities' },
   { method: 'GET', path: '/api/opportunities/pipeline', description: 'Get pipeline value summary', auth: true, category: 'Opportunities' },
@@ -2181,10 +2189,14 @@ const apiEndpoints: ApiEndpoint[] = <span class="cstat-no" title="statement not 
   { method: 'PUT', path: '/api/dashboardconfig', description: 'Update dashboard configuration', auth: true, category: 'Dashboard' },
 &nbsp;
   // Workflows
-  { method: 'GET', path: '/api/workflow/definitions', description: 'Get workflow definitions', auth: true, category: 'Workflows' },
-  { method: 'POST', path: '/api/workflow/definitions', description: 'Create workflow definition', auth: true, category: 'Workflows' },
-  { method: 'GET', path: '/api/workflow/instances', description: 'Get workflow instances', auth: true, category: 'Workflows' },
-  { method: 'POST', path: '/api/workflow/instances/{id}/execute', description: 'Execute workflow', auth: true, category: 'Workflows' },
+  { method: 'GET', path: '/api/workflows', description: 'Get workflow definitions', auth: true, category: 'Workflows' },
+  { method: 'POST', path: '/api/workflows', description: 'Create workflow definition', auth: true, category: 'Workflows' },
+  { method: 'GET', path: '/api/workflows/instances', description: 'Get workflow instances', auth: true, category: 'Workflows' },
+  { method: 'POST', path: '/api/workflows/instances/{id}/execute', description: 'Execute workflow', auth: true, category: 'Workflows' },
+  { method: 'GET', path: '/api/workflows/config', description: 'Get workflow configuration', auth: true, category: 'Workflows' },
+  { method: 'GET', path: '/api/workflows/llm-settings', description: 'Get LLM provider settings', auth: true, category: 'Workflows' },
+  { method: 'PUT', path: '/api/workflows/llm-settings', description: 'Update LLM settings', auth: true, category: 'Workflows' },
+  { method: 'POST', path: '/api/workflows/llm-settings/reset', description: 'Reset LLM settings to defaults', auth: true, category: 'Workflows' },
 &nbsp;
   // Webhooks
   { method: 'GET', path: '/api/webhooks', description: 'Get registered webhooks', auth: true, category: 'Webhooks' },
@@ -2216,17 +2228,17 @@ const webhooks: Webhook[] = <span class="cstat-no" title="statement not covered"
   { event: 'customer.created', description: 'Fired when a new customer is created', category: 'Customer', payload: '{ "event": "customer.created", "timestamp": "ISO8601", "data": { "id": 1, "firstName": "John", "lastName": "Doe", "email": "john@example.com" } }' },
   { event: 'customer.updated', description: 'Fired when a customer is updated', category: 'Customer', payload: '{ "event": "customer.updated", "timestamp": "ISO8601", "data": { "id": 1, "changes": {...}, "previousValues": {...} } }' },
   { event: 'customer.deleted', description: 'Fired when a customer is deleted', category: 'Customer', payload: '{ "event": "customer.deleted", "timestamp": "ISO8601", "data": { "id": 1 } }' },
-  { event: 'contact.created', description: 'Fired when a new contact is created', category: 'Contact', payload: '{ "event": "contact.created", "timestamp": "ISO8601", "data": { "id": 1, "firstName": "Jane", "lastName": "Smith", "customerId": 1 } }' },
+  { event: 'contact.created', description: 'Fired when a new contact is created', category: 'Contact', payload: '{ "event": "contact.created", "timestamp": "ISO8601", "data": { "id": 1, "firstName": "Jane", "lastName": "Smith", "accountId": 1 } }' },
   { event: 'lead.created', description: 'Fired when a new lead is created', category: 'Lead', payload: '{ "event": "lead.created", "timestamp": "ISO8601", "data": { "id": 1, "firstName": "Bob", "source": "Web", "score": 75 } }' },
   { event: 'lead.converted', description: 'Fired when a lead is converted to opportunity', category: 'Lead', payload: '{ "event": "lead.converted", "timestamp": "ISO8601", "data": { "leadId": 1, "opportunityId": 5, "accountId": 10 } }' },
-  { event: 'opportunity.created', description: 'Fired when a new opportunity is created', category: 'Opportunity', payload: '{ "event": "opportunity.created", "timestamp": "ISO8601", "data": { "id": 1, "title": "New Deal", "amount": 50000, "stageId": 1 } }' },
+  { event: 'opportunity.created', description: 'Fired when a new opportunity is created', category: 'Opportunity', payload: '{ "event": "opportunity.created", "timestamp": "ISO8601", "data": { "id": 1, "name": "New Deal", "amount": 50000, "stage": 1 } }' },
   { event: 'opportunity.stage_changed', description: 'Fired when opportunity stage changes', category: 'Opportunity', payload: '{ "event": "opportunity.stage_changed", "timestamp": "ISO8601", "data": { "id": 1, "previousStage": "Qualification", "newStage": "Proposal", "probability": 50 } }' },
   { event: 'opportunity.won', description: 'Fired when an opportunity is marked as won', category: 'Opportunity', payload: '{ "event": "opportunity.won", "timestamp": "ISO8601", "data": { "id": 1, "amount": 50000, "accountId": 10, "closedDate": "ISO8601" } }' },
   { event: 'opportunity.lost', description: 'Fired when an opportunity is marked as lost', category: 'Opportunity', payload: '{ "event": "opportunity.lost", "timestamp": "ISO8601", "data": { "id": 1, "reason": "Budget constraints", "competitorId": null } }' },
   { event: 'task.created', description: 'Fired when a task is created', category: 'Task', payload: '{ "event": "task.created", "timestamp": "ISO8601", "data": { "id": 1, "title": "Follow up", "dueDate": "ISO8601", "assignedToId": 5 } }' },
   { event: 'task.completed', description: 'Fired when a task is completed', category: 'Task', payload: '{ "event": "task.completed", "timestamp": "ISO8601", "data": { "id": 1, "completedBy": 5, "completedAt": "ISO8601" } }' },
   { event: 'campaign.started', description: 'Fired when a campaign starts', category: 'Campaign', payload: '{ "event": "campaign.started", "timestamp": "ISO8601", "data": { "id": 1, "name": "Q1 Promo", "type": "Email", "budget": 10000 } }' },
-  { event: 'service_request.created', description: 'Fired when a service request is created', category: 'Service', payload: '{ "event": "service_request.created", "timestamp": "ISO8601", "data": { "id": 1, "title": "Support Request", "priority": "High", "customerId": 10 } }' },
+  { event: 'service_request.created', description: 'Fired when a service request is created', category: 'Service', payload: '{ "event": "service_request.created", "timestamp": "ISO8601", "data": { "id": 1, "title": "Support Request", "priority": "High", "accountId": 10 } }' },
   { event: 'service_request.resolved', description: 'Fired when a service request is resolved', category: 'Service', payload: '{ "event": "service_request.resolved", "timestamp": "ISO8601", "data": { "id": 1, "resolution": "Issue fixed", "resolvedBy": 5 } }' },
   { event: 'user.created', description: 'Fired when a user is created', category: 'User', payload: '{ "event": "user.created", "timestamp": "ISO8601", "data": { "id": 1, "email": "new@example.com", "roles": ["User"] } }' },
   { event: 'user.login', description: 'Fired when a user logs in', category: 'User', payload: '{ "event": "user.login", "timestamp": "ISO8601", "data": { "userId": 1, "ip": "192.168.1.1", "userAgent": "..." } }' },
@@ -2935,7 +2947,7 @@ export default ApiDocumentationPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T19:40:06.086Z
+                at 2026-02-02T09:44:02.205Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

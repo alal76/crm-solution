@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/30</span>
+                <span class='fraction'>0/28</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/20</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/30</span>
+                <span class='fraction'>0/28</span>
             </div>
         
             
@@ -592,7 +592,10 @@
 <a name='L527'></a><a href='#L527'>527</a>
 <a name='L528'></a><a href='#L528'>528</a>
 <a name='L529'></a><a href='#L529'>529</a>
-<a name='L530'></a><a href='#L530'>530</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L530'></a><a href='#L530'>530</a>
+<a name='L531'></a><a href='#L531'>531</a>
+<a name='L532'></a><a href='#L532'>532</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -666,13 +669,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -704,6 +700,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -711,8 +717,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1186,17 +1190,11 @@ import {
 import { useBranding } from '../contexts/BrandingContext';
 import { TabPanel } from '../components/common';
 import { ArchitectureDiagram } from '../components/architecture';
+import { getApiBaseUrl } from '../config/ports';
 &nbsp;
 const AboutPage: React.FC = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
   const { branding } = <span class="cstat-no" title="statement not covered" >useBranding();</span>
   const companyName = <span class="cstat-no" title="statement not covered" >branding.companyName;</span>
-  
-  // Get API base URL for uploads
-  const getApiBaseUrl = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return window.location.hostname === 'localhost'</span>
-      ? 'http://localhost:5000'
-      : `http://${window.location.hostname}:5000`;
-  };
   
   // Get logo URL with proper API base
   const getLogoUrl = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
@@ -1216,7 +1214,7 @@ const AboutPage: React.FC = <span class="cstat-no" title="statement not covered"
   const logoUrl = <span class="cstat-no" title="statement not covered" >getLogoUrl();</span>
   const [tabValue, setTabValue] = <span class="cstat-no" title="statement not covered" >useState(0);</span>
 &nbsp;
-  const version = <span class="cstat-no" title="statement not covered" >'1.3.1';</span>
+  const version = <span class="cstat-no" title="statement not covered" >'0.0.24';</span>
   const releaseDate = <span class="cstat-no" title="statement not covered" >'January 2026';</span>
   const author = <span class="cstat-no" title="statement not covered" >'Abhishek Lal';</span>
 &nbsp;
@@ -1224,8 +1222,10 @@ const AboutPage: React.FC = <span class="cstat-no" title="statement not covered"
     { name: 'Customer Management', description: 'Complete customer lifecycle management' },
     { name: 'Sales Pipeline', description: 'Track opportunities and deals' },
     { name: 'Contact Management', description: 'Manage contacts and relationships' },
+    { name: 'Relationship Management', description: 'B2B and B2C relationship tracking with hierarchies and health metrics' },
     { name: 'Task Management', description: 'Track tasks and activities' },
     { name: 'Campaign Management', description: 'Marketing campaign tracking' },
+    { name: 'Campaign Execution', description: 'Multi-channel execution with batch processing and A/B testing' },
     { name: 'Quote Management', description: 'Generate and manage quotes' },
     { name: 'Workflow Automation', description: 'Automate business processes' },
     { name: 'Two-Factor Authentication', description: 'Enhanced security with 2FA' },
@@ -1243,44 +1243,50 @@ const AboutPage: React.FC = <span class="cstat-no" title="statement not covered"
   // Test results data - updated at build time
   const testResults = <span class="cstat-no" title="statement not covered" >{</span>
     lastRun: 'January 2026',
-    totalTests: 129,
-    passed: 129,
-    failed: 0,
+    totalTests: 748,
+    passed: 747,
+    failed: 1,
     skipped: 0,
-    duration: '6s',
+    duration: '45s',
     testSuites: [
       {
         name: 'Build Verification Tests (BVT)',
         description: 'Critical path tests for core entities and functionality',
-        tests: 20,
-        passed: 20,
+        tests: 48,
+        passed: 48,
         examples: [
           'BVT-001: Customer Entity Creation',
           'BVT-002: CustomerContact Relationship',
           'BVT-003: Opportunity Entity',
           'BVT-013: Workflow Definition Entity',
-          'BVT-019: Activity Tracking'
+          'BVT-019: Activity Tracking',
+          'BVT-045: Relationship Management',
+          'BVT-048: Campaign Execution'
         ]
       },
       {
         name: 'Controller Tests',
         description: 'API endpoint validation and request/response testing',
-        tests: 35,
-        passed: 35,
+        tests: 145,
+        passed: 145,
         examples: [
           'CustomersController CRUD Operations',
           'OpportunitiesController Status Changes',
+          'RelationshipsController CRUD Operations',
+          'CampaignExecutionsController Operations',
           'HealthController Endpoint Validation'
         ]
       },
       {
         name: 'Service Tests',
         description: 'Business logic and service layer testing',
-        tests: 54,
-        passed: 54,
+        tests: 285,
+        passed: 284,
         examples: [
           'ContactsService CRUD Operations',
           'SystemSettingsService Module Toggles',
+          'RelationshipService B2B/B2C Tracking',
+          'CampaignExecutionService Batch Processing',
           'CustomerService Search Functionality',
           'NormalizationService Data Processing'
         ]
@@ -1288,8 +1294,8 @@ const AboutPage: React.FC = <span class="cstat-no" title="statement not covered"
       {
         name: 'Integration Tests',
         description: 'Database and external service integration tests',
-        tests: 20,
-        passed: 20,
+        tests: 120,
+        passed: 120,
         examples: [
           'Entity Framework InMemory Tests',
           'Authentication Flow Tests',
@@ -1657,7 +1663,7 @@ export default AboutPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T19:40:06.086Z
+                at 2026-02-02T09:44:02.205Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

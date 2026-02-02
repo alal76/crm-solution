@@ -1522,7 +1522,45 @@
 <a name='L1457'></a><a href='#L1457'>1457</a>
 <a name='L1458'></a><a href='#L1458'>1458</a>
 <a name='L1459'></a><a href='#L1459'>1459</a>
-<a name='L1460'></a><a href='#L1460'>1460</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L1460'></a><a href='#L1460'>1460</a>
+<a name='L1461'></a><a href='#L1461'>1461</a>
+<a name='L1462'></a><a href='#L1462'>1462</a>
+<a name='L1463'></a><a href='#L1463'>1463</a>
+<a name='L1464'></a><a href='#L1464'>1464</a>
+<a name='L1465'></a><a href='#L1465'>1465</a>
+<a name='L1466'></a><a href='#L1466'>1466</a>
+<a name='L1467'></a><a href='#L1467'>1467</a>
+<a name='L1468'></a><a href='#L1468'>1468</a>
+<a name='L1469'></a><a href='#L1469'>1469</a>
+<a name='L1470'></a><a href='#L1470'>1470</a>
+<a name='L1471'></a><a href='#L1471'>1471</a>
+<a name='L1472'></a><a href='#L1472'>1472</a>
+<a name='L1473'></a><a href='#L1473'>1473</a>
+<a name='L1474'></a><a href='#L1474'>1474</a>
+<a name='L1475'></a><a href='#L1475'>1475</a>
+<a name='L1476'></a><a href='#L1476'>1476</a>
+<a name='L1477'></a><a href='#L1477'>1477</a>
+<a name='L1478'></a><a href='#L1478'>1478</a>
+<a name='L1479'></a><a href='#L1479'>1479</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -3500,6 +3538,23 @@ export interface EventTypeOption {
   category: string;
 }
 &nbsp;
+export interface EntityFieldConfig {
+  name: string;
+  label: string;
+  type: 'string' | 'number' | 'boolean' | 'date' | 'enum' | 'reference';
+  required: boolean;
+  enumValues?: string[];
+  referenceEntity?: string;
+  group?: string;
+}
+&nbsp;
+export interface RelatedEntityConfig {
+  name: string;
+  label: string;
+  entityType: string;
+  relationType: 'parent' | 'child' | 'related';
+}
+&nbsp;
 export interface WorkflowConfig {
   entityTypes: EntityTypeOption[];
   nodeTypes: NodeTypeOption[];
@@ -3515,6 +3570,8 @@ export interface WorkflowConfig {
   colorOptions: string[];
   fallbackActions: EntityTypeOption[];
   eventTypes: EventTypeOption[];
+  entityFields: Record&lt;string, EntityFieldConfig[]&gt;;
+  relatedEntities: Record&lt;string, RelatedEntityConfig[]&gt;;
 }
 &nbsp;
 // ============================================================================
@@ -3989,45 +4046,45 @@ export const workflowService = <span class="cstat-no" title="statement not cover
     skip?: number;
     take?: number;
   }): Promise&lt;WorkflowDefinition[]&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get('/api/workflows', { params });</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get('/workflows', { params });</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Get a single workflow with versions
 <span class="fstat-no" title="function not covered" >  as</span>ync getWorkflow(id: number): Promise&lt;WorkflowDefinitionDetail&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/api/workflows/${id}`);</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/workflows/${id}`);</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Create a new workflow
 <span class="fstat-no" title="function not covered" >  as</span>ync createWorkflow(workflow: CreateWorkflowDto): Promise&lt;{ id: number }&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post('/api/workflows', workflow);</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post('/workflows', workflow);</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Update a workflow
 <span class="fstat-no" title="function not covered" >  as</span>ync updateWorkflow(id: number, workflow: UpdateWorkflowDto): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.put(`/api/workflows/${id}`, workflow);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.put(`/workflows/${id}`, workflow);</span>
   },
 &nbsp;
   // Delete a workflow
 <span class="fstat-no" title="function not covered" >  as</span>ync deleteWorkflow(id: number): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.delete(`/api/workflows/${id}`);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.delete(`/workflows/${id}`);</span>
   },
 &nbsp;
   // Activate a workflow version
 <span class="fstat-no" title="function not covered" >  as</span>ync activateWorkflow(workflowId: number, versionId: number): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/api/workflows/${workflowId}/activate/${versionId}`);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/workflows/${workflowId}/activate/${versionId}`);</span>
   },
 &nbsp;
   // Pause a workflow
 <span class="fstat-no" title="function not covered" >  as</span>ync pauseWorkflow(id: number): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/api/workflows/${id}/pause`);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/workflows/${id}/pause`);</span>
   },
 &nbsp;
   // Get workflow statistics
 <span class="fstat-no" title="function not covered" >  as</span>ync getStatistics(): Promise&lt;WorkflowStatistics&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get('/api/workflows/statistics');</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get('/workflows/statistics');</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
@@ -4041,7 +4098,7 @@ export const workflowService = <span class="cstat-no" title="statement not cover
 <span class="cstat-no" title="statement not covered" >      return configLoadPromise;</span>
     }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    configLoadPromise = apiClient.get('/api/workflows/config')</span>
+<span class="cstat-no" title="statement not covered" >    configLoadPromise = apiClient.get('/workflows/config')</span>
       .then(<span class="fstat-no" title="function not covered" >re</span>sponse =&gt; {
 <span class="cstat-no" title="statement not covered" >        cachedConfig = response.data;</span>
 <span class="cstat-no" title="statement not covered" >        configLoadPromise = null;</span>
@@ -4151,19 +4208,19 @@ export const workflowService = <span class="cstat-no" title="statement not cover
 &nbsp;
   // Get a specific version with full graph
 <span class="fstat-no" title="function not covered" >  as</span>ync getVersion(versionId: number): Promise&lt;WorkflowVersionDetail&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/api/workflows/versions/${versionId}`);</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/workflows/versions/${versionId}`);</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Create a new version
 <span class="fstat-no" title="function not covered" >  as</span>ync createVersion(workflowId: number, sourceVersionId?: number): Promise&lt;{ id: number; versionNumber: number }&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post(`/api/workflows/${workflowId}/versions`, { sourceVersionId });</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post(`/workflows/${workflowId}/versions`, { sourceVersionId });</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Save canvas layout
 <span class="fstat-no" title="function not covered" >  as</span>ync saveCanvasLayout(versionId: number, canvasLayout: string): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.put(`/api/workflows/versions/${versionId}/layout`, { canvasLayout });</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.put(`/workflows/versions/${versionId}/layout`, { canvasLayout });</span>
   },
 &nbsp;
   // ============================================================================
@@ -4172,23 +4229,23 @@ export const workflowService = <span class="cstat-no" title="statement not cover
 &nbsp;
   // Add a node
 <span class="fstat-no" title="function not covered" >  as</span>ync addNode(versionId: number, node: CreateNodeDto): Promise&lt;{ id: number; nodeKey: string }&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post(`/api/workflows/versions/${versionId}/nodes`, node);</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post(`/workflows/versions/${versionId}/nodes`, node);</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Update a node
 <span class="fstat-no" title="function not covered" >  as</span>ync updateNode(nodeId: number, node: UpdateNodeDto): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.put(`/api/workflows/nodes/${nodeId}`, node);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.put(`/workflows/nodes/${nodeId}`, node);</span>
   },
 &nbsp;
   // Delete a node
 <span class="fstat-no" title="function not covered" >  as</span>ync deleteNode(nodeId: number): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.delete(`/api/workflows/nodes/${nodeId}`);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.delete(`/workflows/nodes/${nodeId}`);</span>
   },
 &nbsp;
   // Update node positions (bulk)
 <span class="fstat-no" title="function not covered" >  as</span>ync updateNodePositions(versionId: number, positions: NodePositionDto[]): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.put(`/api/workflows/versions/${versionId}/nodes/positions`, positions);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.put(`/workflows/versions/${versionId}/nodes/positions`, positions);</span>
   },
 &nbsp;
   // ============================================================================
@@ -4197,18 +4254,18 @@ export const workflowService = <span class="cstat-no" title="statement not cover
 &nbsp;
   // Add a transition
 <span class="fstat-no" title="function not covered" >  as</span>ync addTransition(versionId: number, transition: CreateTransitionDto): Promise&lt;{ id: number }&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post(`/api/workflows/versions/${versionId}/transitions`, transition);</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post(`/workflows/versions/${versionId}/transitions`, transition);</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Update a transition
 <span class="fstat-no" title="function not covered" >  as</span>ync updateTransition(transitionId: number, transition: UpdateTransitionDto): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.put(`/api/workflows/transitions/${transitionId}`, transition);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.put(`/workflows/transitions/${transitionId}`, transition);</span>
   },
 &nbsp;
   // Delete a transition
 <span class="fstat-no" title="function not covered" >  as</span>ync deleteTransition(transitionId: number): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.delete(`/api/workflows/transitions/${transitionId}`);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.delete(`/workflows/transitions/${transitionId}`);</span>
   }
 };
 &nbsp;
@@ -4240,7 +4297,7 @@ export const workflowInstanceService = <span class="cstat-no" title="statement n
     pageNumber?: number;
     pageSize?: number;
   }): Promise&lt;PaginatedResult&lt;WorkflowInstance&gt;&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get('/api/workflow-instances', { params });</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get('/workflow-instances', { params });</span>
     // Handle both array and paginated response formats
 <span class="cstat-no" title="statement not covered" >    if (Array.isArray(response.data)) {</span>
 <span class="cstat-no" title="statement not covered" >      return {</span>
@@ -4256,61 +4313,61 @@ export const workflowInstanceService = <span class="cstat-no" title="statement n
 &nbsp;
   // Get a specific instance with details
 <span class="fstat-no" title="function not covered" >  as</span>ync getInstance(id: number): Promise&lt;WorkflowInstanceDetail&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/api/workflow-instances/${id}`);</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/workflow-instances/${id}`);</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Get instances for an entity
 <span class="fstat-no" title="function not covered" >  as</span>ync getInstancesForEntity(entityType: string, entityId: number): Promise&lt;WorkflowInstance[]&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/api/workflow-instances/entity/${entityType}/${entityId}`);</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/workflow-instances/entity/${entityType}/${entityId}`);</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Start a new workflow instance
 <span class="fstat-no" title="function not covered" >  as</span>ync startWorkflow(dto: StartWorkflowDto): Promise&lt;{ id: number; correlationId: string }&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post('/api/workflow-instances', dto);</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post('/workflow-instances', dto);</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Cancel an instance
 <span class="fstat-no" title="function not covered" >  as</span>ync cancelInstance(id: number, reason: string): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/api/workflow-instances/${id}/cancel`, { reason });</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/workflow-instances/${id}/cancel`, { reason });</span>
   },
 &nbsp;
   // Pause an instance
 <span class="fstat-no" title="function not covered" >  as</span>ync pauseInstance(id: number): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/api/workflow-instances/${id}/pause`);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/workflow-instances/${id}/pause`);</span>
   },
 &nbsp;
   // Resume an instance
 <span class="fstat-no" title="function not covered" >  as</span>ync resumeInstance(id: number): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/api/workflow-instances/${id}/resume`);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/workflow-instances/${id}/resume`);</span>
   },
 &nbsp;
   // Retry a failed instance
 <span class="fstat-no" title="function not covered" >  as</span>ync retryInstance(id: number): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/api/workflow-instances/${id}/retry`);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/workflow-instances/${id}/retry`);</span>
   },
 &nbsp;
   // Skip a node
 <span class="fstat-no" title="function not covered" >  as</span>ync skipNode(instanceId: number, nodeId: number, reason: string): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/api/workflow-instances/${instanceId}/skip-node/${nodeId}`, { reason });</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/workflow-instances/${instanceId}/skip-node/${nodeId}`, { reason });</span>
   },
 &nbsp;
   // Get my human tasks
 <span class="fstat-no" title="function not covered" >  as</span>ync getMyTasks(): Promise&lt;HumanTask[]&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get('/api/workflow-instances/my-tasks');</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get('/workflow-instances/my-tasks');</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Claim a task
 <span class="fstat-no" title="function not covered" >  as</span>ync claimTask(taskId: number): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/api/workflow-instances/tasks/${taskId}/claim`);</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/workflow-instances/tasks/${taskId}/claim`);</span>
   },
 &nbsp;
   // Complete a task
 <span class="fstat-no" title="function not covered" >  as</span>ync completeTask(taskId: number, formData?: string, outputData?: string): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/api/workflow-instances/tasks/${taskId}/complete`, { formData, outputData });</span>
+<span class="cstat-no" title="statement not covered" >    await apiClient.post(`/workflow-instances/tasks/${taskId}/complete`, { formData, outputData });</span>
   },
 &nbsp;
   // Get logs for an instance
@@ -4320,7 +4377,7 @@ export const workflowInstanceService = <span class="cstat-no" title="statement n
     skip?: number;
     take?: number;
   }): Promise&lt;WorkflowLog[]&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/api/workflow-instances/${instanceId}/logs`, { params });</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/workflow-instances/${instanceId}/logs`, { params });</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
@@ -4335,7 +4392,7 @@ export const workflowInstanceService = <span class="cstat-no" title="statement n
     fromDate?: string;
     toDate?: string;
   }): Promise&lt;InstanceStatistics&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get('/api/workflow-instances/statistics', { params });</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get('/workflow-instances/statistics', { params });</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
@@ -4352,7 +4409,7 @@ export const workflowInstanceService = <span class="cstat-no" title="statement n
     skip?: number;
     take?: number;
   }): Promise&lt;{ items: AuditLogEntry[]; hasMore: boolean }&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/api/workflow-instances/definitions/${definitionId}/audit-log`, { params });</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/workflow-instances/definitions/${definitionId}/audit-log`, { params });</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
@@ -4362,7 +4419,7 @@ export const workflowInstanceService = <span class="cstat-no" title="statement n
     toDate?: string;
   }): Promise&lt;Blob&gt; {
     const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(</span>
-      `/api/workflow-instances/definitions/${definitionId}/audit-log/export`, 
+      `/workflow-instances/definitions/${definitionId}/audit-log/export`, 
       { params, responseType: 'blob' }
     );
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
@@ -4370,13 +4427,13 @@ export const workflowInstanceService = <span class="cstat-no" title="statement n
 &nbsp;
   // Get execution timeline for an instance
 <span class="fstat-no" title="function not covered" >  as</span>ync getExecutionTimeline(instanceId: number): Promise&lt;ExecutionTimeline&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/api/workflow-instances/${instanceId}/timeline`);</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.get(`/workflow-instances/${instanceId}/timeline`);</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   },
 &nbsp;
   // Simulate workflow execution (dry run)
 <span class="fstat-no" title="function not covered" >  as</span>ync simulateWorkflow(workflowId: number, sampleData: object): Promise&lt;SimulationResult&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post(`/api/workflows/${workflowId}/simulate`, { sampleData });</span>
+    const response = <span class="cstat-no" title="statement not covered" >await apiClient.post(`/workflows/${workflowId}/simulate`, { sampleData });</span>
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   }
 };
@@ -4447,7 +4504,7 @@ export default workflowService;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T19:40:06.086Z
+                at 2026-02-02T09:44:02.205Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

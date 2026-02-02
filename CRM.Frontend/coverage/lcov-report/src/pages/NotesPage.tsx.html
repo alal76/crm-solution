@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/107</span>
+                <span class='fraction'>0/110</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/33</span>
+                <span class='fraction'>0/34</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/92</span>
+                <span class='fraction'>0/94</span>
             </div>
         
             
@@ -512,7 +512,10 @@
 <a name='L447'></a><a href='#L447'>447</a>
 <a name='L448'></a><a href='#L448'>448</a>
 <a name='L449'></a><a href='#L449'>449</a>
-<a name='L450'></a><a href='#L450'>450</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L450'></a><a href='#L450'>450</a>
+<a name='L451'></a><a href='#L451'>451</a>
+<a name='L452'></a><a href='#L452'>452</a>
+<a name='L453'></a><a href='#L453'>453</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -531,6 +534,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -587,6 +591,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -880,6 +885,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -974,6 +980,7 @@ import {
   Visibility as PublicIcon, Lock as PrivateIcon, People as TeamIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { DialogError } from '../components/common';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
@@ -1033,6 +1040,7 @@ function <span class="fstat-no" title="function not covered" >NotesPage(</span>)
   const [error, setError] = <span class="cstat-no" title="statement not covered" >useState&lt;string | null&gt;(null);</span>
   const [successMessage, setSuccessMessage] = <span class="cstat-no" title="statement not covered" >useState&lt;string | null&gt;(null);</span>
   const [openDialog, setOpenDialog] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
+  const [dialogError, setDialogError] = <span class="cstat-no" title="statement not covered" >useState&lt;string | null&gt;(null);</span>
   const [editingId, setEditingId] = <span class="cstat-no" title="statement not covered" >useState&lt;number | null&gt;(null);</span>
   const [searchQuery, setSearchQuery] = <span class="cstat-no" title="statement not covered" >useState('');</span>
   const [typeFilter, setTypeFilter] = <span class="cstat-no" title="statement not covered" >useState&lt;number | 'all'&gt;('all');</span>
@@ -1074,7 +1082,7 @@ function <span class="fstat-no" title="function not covered" >NotesPage(</span>)
 <span class="cstat-no" title="statement not covered" >    setOpenDialog(true);</span>
   };
 &nbsp;
-  const handleCloseDialog = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; { <span class="cstat-no" title="statement not covered" >setOpenDialog(false); <span class="cstat-no" title="statement not covered" ></span>setEditingId(null); </span>};</span>
+  const handleCloseDialog = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; { <span class="cstat-no" title="statement not covered" >setOpenDialog(false); <span class="cstat-no" title="statement not covered" ></span>setEditingId(null); <span class="cstat-no" title="statement not covered" ></span>setDialogError(null); </span>};</span>
 &nbsp;
   const handleInputChange = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(e</span>: React.ChangeEvent&lt;HTMLInputElement | HTMLTextAreaElement&gt;) =&gt; {</span>
     const { name, value } = <span class="cstat-no" title="statement not covered" >e.target;</span>
@@ -1088,7 +1096,7 @@ function <span class="fstat-no" title="function not covered" >NotesPage(</span>)
 &nbsp;
   const handleSaveNote = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    if (!formData.content.trim()) {</span>
-<span class="cstat-no" title="statement not covered" >      setError('Please enter note content');</span>
+<span class="cstat-no" title="statement not covered" >      setDialogError('Please enter note content');</span>
 <span class="cstat-no" title="statement not covered" >      return;</span>
     }
 <span class="cstat-no" title="statement not covered" >    try {</span>
@@ -1108,7 +1116,7 @@ function <span class="fstat-no" title="function not covered" >NotesPage(</span>)
 <span class="cstat-no" title="statement not covered" >      fetchNotes();</span>
 <span class="cstat-no" title="statement not covered" >      setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setSuccessMessage(null),</span> 3000);</span>
     } catch (err: any) {
-<span class="cstat-no" title="statement not covered" >      setError(err.response?.data?.message || 'Failed to save note');</span>
+<span class="cstat-no" title="statement not covered" >      setDialogError(err.response?.data?.message || 'Failed to save note');</span>
     }
   };
 &nbsp;
@@ -1329,6 +1337,7 @@ function <span class="fstat-no" title="function not covered" >NotesPage(</span>)
       &lt;Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth&gt;
         &lt;DialogTitle&gt;{editingId ? 'Edit Note' : 'Add Note'}&lt;/DialogTitle&gt;
         &lt;DialogContent sx={{ pt: 2 }}&gt;
+          &lt;DialogError error={dialogError} onClose={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setDialogError(null)}</span> /&gt;
           &lt;Grid container spacing={2}&gt;
             &lt;Grid item xs={12}&gt;
               &lt;TextField fullWidth label="Title (optional)" name="title" value={formData.title} onChange={handleInputChange} /&gt;
@@ -1417,7 +1426,7 @@ export default NotesPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T19:40:06.086Z
+                at 2026-02-02T09:44:02.205Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

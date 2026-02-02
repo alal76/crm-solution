@@ -2731,7 +2731,7 @@ interface Interaction extends BaseEntity {
   followUpNotes?: string;
   tags?: string;
   category?: string;
-  customerId: number;
+  accountId: number;
   customer?: { id: number; firstName?: string; lastName?: string; companyName?: string };
   contactId?: number;
   contact?: { id: number; firstName?: string; lastName?: string };
@@ -2752,12 +2752,12 @@ interface Contact extends BaseEntity {
   firstName: string;
   lastName: string;
   email?: string;
-  customerId: number;
+  accountId: number;
 }
 &nbsp;
 interface Opportunity extends BaseEntity {
   title: string;
-  customerId: number;
+  accountId: number;
 }
 &nbsp;
 interface InteractionStats {
@@ -2846,12 +2846,12 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
   const [opportunities, setOpportunities] = <span class="cstat-no" title="statement not covered" >useState&lt;Opportunity[]&gt;([]);</span>
 &nbsp;
   // Form state
-  const [linkForm, setLinkForm] = <span class="cstat-no" title="statement not covered" >useState({ customerId: '', contactId: '', opportunityId: '', notes: '' });</span>
+  const [linkForm, setLinkForm] = <span class="cstat-no" title="statement not covered" >useState({ accountId: '', contactId: '', opportunityId: '', notes: '' });</span>
   const [noteForm, setNoteForm] = <span class="cstat-no" title="statement not covered" >useState({ note: '', isInternal: false });</span>
   const [tagForm, setTagForm] = <span class="cstat-no" title="statement not covered" >useState&lt;string[]&gt;([]);</span>
   const [contactForm, setContactForm] = <span class="cstat-no" title="statement not covered" >useState({</span>
     firstName: '', lastName: '', email: '', phone: '', title: '',
-    customerId: '', createCustomerIfNeeded: false,
+    accountId: '', createCustomerIfNeeded: false,
   });
   const [serviceRequestForm, setServiceRequestForm] = <span class="cstat-no" title="statement not covered" >useState({</span>
     requestType: 'Support', priority: 'Normal', description: '',
@@ -2954,7 +2954,7 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
   const handleOpenLinkDialog = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(i</span>nteraction: Interaction) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    setSelectedInteraction(interaction);</span>
 <span class="cstat-no" title="statement not covered" >    setLinkForm({</span>
-      customerId: interaction.customerId ? String(interaction.customerId) : '',
+      accountId: interaction.accountId ? String(interaction.accountId) : '',
       contactId: interaction.contactId ? String(interaction.contactId) : '',
       opportunityId: interaction.opportunityId ? String(interaction.opportunityId) : '',
       notes: '',
@@ -2982,8 +2982,8 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
       email: interaction.emailAddress || '',
       phone: interaction.phoneNumber || '',
       title: '',
-      customerId: interaction.customerId ? String(interaction.customerId) : '',
-      createCustomerIfNeeded: !interaction.customerId,
+      accountId: interaction.accountId ? String(interaction.accountId) : '',
+      createCustomerIfNeeded: !interaction.accountId,
     });
 <span class="cstat-no" title="statement not covered" >    setCreateContactDialogOpen(true);</span>
   };
@@ -3015,7 +3015,7 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
 <span class="cstat-no" title="statement not covered" >    if (!selectedInteraction) <span class="cstat-no" title="statement not covered" >return;</span></span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
 <span class="cstat-no" title="statement not covered" >      await apiClient.post(`/interactions/${selectedInteraction.id}/link`, {</span>
-        customerId: linkForm.customerId ? parseInt(linkForm.customerId) : null,
+        accountId: linkForm.accountId ? parseInt(linkForm.accountId) : null,
         contactId: linkForm.contactId ? parseInt(linkForm.contactId) : null,
         opportunityId: linkForm.opportunityId ? parseInt(linkForm.opportunityId) : null,
         notes: linkForm.notes,
@@ -3062,7 +3062,7 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
         email: contactForm.email,
         phone: contactForm.phone,
         title: contactForm.title,
-        customerId: contactForm.customerId ? parseInt(contactForm.customerId) : null,
+        accountId: contactForm.accountId ? parseInt(contactForm.accountId) : null,
         createCustomerIfNeeded: contactForm.createCustomerIfNeeded,
       });
 <span class="cstat-no" title="statement not covered" >      setSuccess('Contact created successfully');</span>
@@ -3111,7 +3111,7 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
 <span class="cstat-no" title="statement not covered" >    return date.toLocaleDateString();</span>
   };
 &nbsp;
-  const getCustomerName = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(i</span>nteraction: Interaction) =&gt; {</span>
+  const getAccountName = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(i</span>nteraction: Interaction) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    if (interaction.customer) {</span>
 <span class="cstat-no" title="statement not covered" >      return interaction.customer.companyName ||</span>
         `${interaction.customer.firstName || ''} ${interaction.customer.lastName || ''}`.trim();
@@ -3271,7 +3271,7 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
         hover
         sx={{
           cursor: 'pointer',
-          bgcolor: interaction.customerId &lt;= 0 ? 'rgba(255, 152, 0, 0.08)' : 'inherit',
+          bgcolor: interaction.accountId &lt;= 0 ? 'rgba(255, 152, 0, 0.08)' : 'inherit',
         }}
         onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >handleViewDetails(interaction)}</span>
       &gt;
@@ -3291,7 +3291,7 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
           &lt;/Box&gt;
         &lt;/TableCell&gt;
         &lt;TableCell&gt;
-          &lt;Typography variant="body2"&gt;{getCustomerName(interaction)}&lt;/Typography&gt;
+          &lt;Typography variant="body2"&gt;{getAccountName(interaction)}&lt;/Typography&gt;
           &lt;Typography variant="caption" color="text.secondary"&gt;{getContactName(interaction)}&lt;/Typography&gt;
         &lt;/TableCell&gt;
         &lt;TableCell&gt;
@@ -3438,7 +3438,7 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
                   &lt;Divider /&gt;
                   &lt;Box&gt;
                     &lt;Typography variant="caption" color="text.secondary"&gt;Customer&lt;/Typography&gt;
-                    &lt;Typography variant="body2"&gt;{getCustomerName(selectedInteraction)}&lt;/Typography&gt;
+                    &lt;Typography variant="body2"&gt;{getAccountName(selectedInteraction)}&lt;/Typography&gt;
                   &lt;/Box&gt;
                   &lt;Box&gt;
                     &lt;Typography variant="caption" color="text.secondary"&gt;Contact&lt;/Typography&gt;
@@ -3527,19 +3527,19 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
           &lt;Autocomplete
             options={customers}
             getOptionLabel={<span class="fstat-no" title="function not covered" >(c</span>) =&gt; <span class="cstat-no" title="statement not covered" >c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}</span>
-            value={customers.find(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >c.id === parseInt(linkForm.customerId))</span> || null}
-            onChange={<span class="fstat-no" title="function not covered" >(_</span>, v) =&gt; <span class="cstat-no" title="statement not covered" >setLinkForm({ ...linkForm, customerId: v ? String(v.id) : '' })}</span>
+            value={customers.find(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >c.id === parseInt(linkForm.accountId))</span> || null}
+            onChange={<span class="fstat-no" title="function not covered" >(_</span>, v) =&gt; <span class="cstat-no" title="statement not covered" >setLinkForm({ ...linkForm, accountId: v ? String(v.id) : '' })}</span>
             renderInput={<span class="fstat-no" title="function not covered" >(p</span>arams) =&gt; <span class="cstat-no" title="statement not covered" >&lt;TextField {...params} label="Account" fullWidth /&gt;}</span>
           /&gt;
           &lt;Autocomplete
-            options={contacts.filter(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >!linkForm.customerId || c.customerId === parseInt(linkForm.customerId))</span>}
+            options={contacts.filter(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >!linkForm.accountId || c.accountId === parseInt(linkForm.accountId))</span>}
             getOptionLabel={<span class="fstat-no" title="function not covered" >(c</span>) =&gt; <span class="cstat-no" title="statement not covered" >`${c.firstName} ${c.lastName}` + (c.email ? ` (${c.email})` : '')}</span>
             value={contacts.find(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >c.id === parseInt(linkForm.contactId))</span> || null}
             onChange={<span class="fstat-no" title="function not covered" >(_</span>, v) =&gt; <span class="cstat-no" title="statement not covered" >setLinkForm({ ...linkForm, contactId: v ? String(v.id) : '' })}</span>
             renderInput={<span class="fstat-no" title="function not covered" >(p</span>arams) =&gt; <span class="cstat-no" title="statement not covered" >&lt;TextField {...params} label="Contact" fullWidth /&gt;}</span>
           /&gt;
           &lt;Autocomplete
-            options={opportunities.filter(<span class="fstat-no" title="function not covered" >o </span>=&gt; <span class="cstat-no" title="statement not covered" >!linkForm.customerId || o.customerId === parseInt(linkForm.customerId))</span>}
+            options={opportunities.filter(<span class="fstat-no" title="function not covered" >o </span>=&gt; <span class="cstat-no" title="statement not covered" >!linkForm.accountId || o.accountId === parseInt(linkForm.accountId))</span>}
             getOptionLabel={<span class="fstat-no" title="function not covered" >(o</span>) =&gt; <span class="cstat-no" title="statement not covered" >o.title}</span>
             value={opportunities.find(<span class="fstat-no" title="function not covered" >o </span>=&gt; <span class="cstat-no" title="statement not covered" >o.id === parseInt(linkForm.opportunityId))</span> || null}
             onChange={<span class="fstat-no" title="function not covered" >(_</span>, v) =&gt; <span class="cstat-no" title="statement not covered" >setLinkForm({ ...linkForm, opportunityId: v ? String(v.id) : '' })}</span>
@@ -3666,8 +3666,8 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
           &lt;Autocomplete
             options={customers}
             getOptionLabel={<span class="fstat-no" title="function not covered" >(c</span>) =&gt; <span class="cstat-no" title="statement not covered" >c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}</span>
-            value={customers.find(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >c.id === parseInt(contactForm.customerId))</span> || null}
-            onChange={<span class="fstat-no" title="function not covered" >(_</span>, v) =&gt; <span class="cstat-no" title="statement not covered" >setContactForm({ ...contactForm, customerId: v ? String(v.id) : '' })}</span>
+            value={customers.find(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >c.id === parseInt(contactForm.accountId))</span> || null}
+            onChange={<span class="fstat-no" title="function not covered" >(_</span>, v) =&gt; <span class="cstat-no" title="statement not covered" >setContactForm({ ...contactForm, accountId: v ? String(v.id) : '' })}</span>
             renderInput={<span class="fstat-no" title="function not covered" >(p</span>arams) =&gt; <span class="cstat-no" title="statement not covered" >&lt;TextField {...params} label="Account" fullWidth /&gt;}</span>
           /&gt;
           &lt;FormControlLabel
@@ -3700,7 +3700,7 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
       &lt;DialogTitle&gt;Create Service Request from Interaction&lt;/DialogTitle&gt;
       &lt;DialogContent&gt;
         &lt;Stack spacing={2} sx={{ mt: 1 }}&gt;
-          {selectedInteraction &amp;&amp; selectedInteraction.customerId &lt;= 0 &amp;&amp; (
+          {selectedInteraction &amp;&amp; selectedInteraction.accountId &lt;= 0 &amp;&amp; (
             &lt;Alert severity="warning"&gt;
               This interaction is not linked to a customer. Please link it first before creating a service request.
             &lt;/Alert&gt;
@@ -3790,7 +3790,7 @@ function <span class="fstat-no" title="function not covered" >InteractionsPage(<
           variant="contained"
           color={serviceRequestForm.expedite ? 'error' : 'primary'}
           onClick={handleCreateServiceRequest}
-          disabled={selectedInteraction?.customerId! &lt;= 0}
+          disabled={selectedInteraction?.accountId! &lt;= 0}
           startIcon={serviceRequestForm.expedite ? &lt;ExpediteIcon /&gt; : &lt;CreateRequestIcon /&gt;}
         &gt;
           {serviceRequestForm.expedite ? 'Create &amp; Expedite' : 'Create Service Request'}
@@ -3883,7 +3883,7 @@ export default InteractionsPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T19:40:06.086Z
+                at 2026-02-02T09:44:02.205Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
