@@ -668,6 +668,29 @@ class DeploymentConfig:
     build_server_is_local: bool = True
     build_server_ssh_key: str = ""
     
+    def __post_init__(self):
+        """Load values from environment variables if not set."""
+        # Load admin password from environment - fail if not provided
+        if not self.admin_password:
+            env_password = os.getenv('DEPLOYMENT_ADMIN_PASSWORD') or os.getenv('ADMIN_PASSWORD')
+            if not env_password:
+                raise ValueError(
+                    "Admin password must be set via DEPLOYMENT_ADMIN_PASSWORD or ADMIN_PASSWORD environment variable. "
+                    "Never use default passwords in production!"
+                )
+            self.admin_password = env_password
+        
+        # Load JWT secret from environment
+        if not self.jwt_secret:
+            self.jwt_secret = os.getenv('JWT_SECRET', '')
+        
+        # Load database passwords from environment
+        if self.database_password == "CrmPass@Dev2024!":
+            self.database_password = os.getenv('DB_PASSWORD', 'CrmPass@Dev2024!')
+        
+        if self.database_root_password == "RootPass@Dev2024":
+            self.database_root_password = os.getenv('DB_ROOT_PASSWORD', 'RootPass@Dev2024')
+    
     # Components to deploy
     deploy_frontend: bool = True
     deploy_api: bool = True
@@ -700,12 +723,12 @@ class DeploymentConfig:
     # Admin User
     admin_username: str = "admin"
     admin_email: str = "admin@crm.local"
-    admin_password: str = "Admin@123"
+    admin_password: str = ""  # Load from environment variable ADMIN_PASSWORD or DEPLOYMENT_ADMIN_PASSWORD
     admin_first_name: str = "System"
     admin_last_name: str = "Administrator"
     
     # Security
-    jwt_secret: str = ""
+    jwt_secret: str = ""  # Load from environment variable JWT_SECRET
     allowed_origins: str = ""
     
     # Seed Data

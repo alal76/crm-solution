@@ -1,0 +1,339 @@
+name: CRM Solution - Parameterized CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      architecture:
+        description: 'Architecture mode'
+        required: true
+        default: 'monolithic'
+        type: choice
+        options:
+          - monolithic
+          - microservices
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      deploy_platform:
+        description: 'Deployment platform'
+        required: true
+        default: 'docker'
+        type: choice
+        options:
+          - docker
+          - kubernetes
+      cloud_provider:
+        description: 'Cloud provider (for k8s)'
+        required: false
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - aws
+          - azure
+          - gcp
+      skip_tests:
+        description: 'Skip tests'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  # Configuration from inputs or defaults
+  ARCHITECTURE_MODE: ${{ github.event.inputs.architecture || 'monolithic' }}
+  TARGET_ENV: ${{ github.event.inputs.environment || 'development' }}
+  DEPLOY_PLATFORM: ${{ github.event.inputs.deploy_platform || 'docker' }}
+  CLOUD_PROVIDER: ${{ github.event.inputs.cloud_provider || 'none' }}
+  SKIP_TESTS: ${{ github.event.inputs.skip_tests || 'false' }}
+
+jobs:
+  # ==========================================================================
+  # CONFIGURATION
+  # ==========================================================================
+  configure:
+    name: Configure Build
+    runs-on: ubuntu-latest
+    outputs:
+      architecture: ${{ steps.config.outputs.architecture }}
+      target_env: ${{ steps.config.outputs.target_env }}
+      deploy_platform: ${{ steps.config.outputs.deploy_platform }}
+      deploy_frontend: ${{ steps.config.outputs.deploy_frontend }}
+      deploy_backend: ${{ steps.config.outputs.deploy_backend }}
+      run_tests: ${{ steps.config.outputs.run_tests }}
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Load CI/CD Configuration
+      id: config
+      run: |
+        echo "architecture=${{ env.ARCHITECTURE_MODE }}" >> $GITHUB_OUTPUT
+        echo "target_env=${{ env.TARGET_ENV }}" >> $GITHUB_OUTPUT
+        echo "deploy_platform=${{ env.DEPLOY_PLATFORM }}" >> $GITHUB_OUTPUT
+        echo "deploy_frontend=${DEPLOY_FRONTEND:-true}" >> $GITHUB_OUTPUT
+        echo "deploy_backend=${DEPLOY_API:-true}" >> $GITHUB_OUTPUT
+        echo "run_tests=$([ "${{ env.SKIP_TESTS }}" == "true" ] && echo "false" || echo "true")" >> $GITHUB_OUTPUT
+        
+    - name: Display Configuration
+      run: |
+        echo "Build Configuration:"
+        echo "  Architecture: ${{ steps.config.outputs.architecture }}"
+        echo "  Environment: ${{ steps.config.outputs.target_env }}"
+        echo "  Platform: ${{ steps.config.outputs.deploy_platform }}"
+        echo "  Run Tests: ${{ steps.config.outputs.run_tests }}"
+
+  # ==========================================================================
+  # FRONTEND BUILD & TEST
+  # ==========================================================================
+  frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: configure
+    if: needs.configure.outputs.deploy_frontend == 'true'
+    
+    permissions:
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: 'CRM.Frontend/package-lock.json'
+    
+    - name: Install dependencies
+      working-directory: CRM.Frontend
+      run: npm ci
+    
+    - name: TypeScript check
+      working-directory: CRM.Frontend
+      run: npx tsc --noEmit
+    
+    - name: Run tests
+      if: needs.configure.outputs.run_tests == 'true'
+      working-directory: CRM.Frontend
+      run: npm test -- --coverage --watchAll=false --passWithNoTests
+    
+    - name: Build production
+      working-directory: CRM.Frontend
+      run: npm run build
+      env:
+        REACT_APP_API_URL: ${{ secrets.API_URL }}
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: CRM.Frontend/build/
+        retention-days: 7
+
+  # ==========================================================================
+  # BACKEND BUILD & TEST
+  # ==========================================================================
+  backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    needs: configure
+    if: needs.configure.outputs.deploy_backend == 'true'
+    
+    permissions:
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore packages
+      working-directory: CRM.Backend
+      run: dotnet restore CRM.sln
+    
+    - name: Build solution
+      working-directory: CRM.Backend
+      run: dotnet build CRM.sln -c Release --no-restore
+    
+    - name: Run tests
+      if: needs.configure.outputs.run_tests == 'true'
+      working-directory: CRM.Backend
+      run: dotnet test tests/CRM.Tests.csproj --logger "trx" --collect:"XPlat Code Coverage"
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: backend-test-results
+        path: CRM.Backend/tests/TestResults/
+        retention-days: 7
+
+  # ==========================================================================
+  # DOCKER BUILD
+  # ==========================================================================
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [configure, frontend, backend]
+    if: always() && (needs.frontend.result == 'success' || needs.backend.result == 'success')
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    strategy:
+      matrix:
+        component: 
+          - ${{ needs.configure.outputs.deploy_frontend == 'true' && 'frontend' || '' }}
+          - ${{ needs.configure.outputs.deploy_backend == 'true' && 'backend' || '' }}
+        exclude:
+          - component: ''
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/crm-${{ matrix.component }}
+        tags: |
+          type=ref,event=branch
+          type=sha
+          type=semver,pattern={{version}}
+          type=raw,value=${{ needs.configure.outputs.target_env }}
+    
+    - name: Build and push image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ./docker/Dockerfile.${{ matrix.component }}
+        push: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          ENVIRONMENT=${{ needs.configure.outputs.target_env }}
+
+  # ==========================================================================
+  # DEPLOY
+  # ==========================================================================
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: [configure, docker-build]
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    
+    permissions:
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup deployment tools
+      run: |
+        # Install kubectl if deploying to k8s
+        if [ "${{ needs.configure.outputs.deploy_platform }}" == "kubernetes" ]; then
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+        fi
+    
+    - name: Configure cloud credentials
+      if: env.CLOUD_PROVIDER != 'none'
+      run: |
+        case "${{ env.CLOUD_PROVIDER }}" in
+          aws)
+            echo "Configuring AWS credentials..."
+            # AWS credentials configured via secrets
+            ;;
+          azure)
+            echo "Configuring Azure credentials..."
+            az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+            ;;
+          gcp)
+            echo "Configuring GCP credentials..."
+            echo "${{ secrets.GCP_SA_KEY }}" | base64 -d > /tmp/gcp-key.json
+            gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+            ;;
+        esac
+    
+    - name: Deploy with parameterized script
+      run: |
+        ./scripts/deploy-parameterized.sh \
+          --platform "${{ needs.configure.outputs.deploy_platform }}" \
+          --arch "${{ needs.configure.outputs.architecture }}" \
+          --env "${{ needs.configure.outputs.target_env }}" \
+          --cloud "${{ env.CLOUD_PROVIDER }}"
+      env:
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+    
+    - name: Run health checks
+      run: |
+        echo "Running post-deployment health checks..."
+        sleep 10
+        # Health check will be performed by deployment script
+
+  # ==========================================================================
+  # SUMMARY
+  # ==========================================================================
+  summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [configure, frontend, backend, docker-build, deploy]
+    if: always()
+    
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Generate Summary
+      run: |
+        cat << EOF >> $GITHUB_STEP_SUMMARY
+        ## 🚀 CRM Solution - Build Summary
+        
+        **Configuration:**
+        - Architecture: \`${{ needs.configure.outputs.architecture }}\`
+        - Environment: \`${{ needs.configure.outputs.target_env }}\`
+        - Platform: \`${{ needs.configure.outputs.deploy_platform }}\`
+        
+        **Build Results:**
+        - Frontend: ${{ needs.frontend.result == 'success' && '✅' || needs.frontend.result == 'skipped' && '⏭️' || '❌' }}
+        - Backend: ${{ needs.backend.result == 'success' && '✅' || needs.backend.result == 'skipped' && '⏭️' || '❌' }}
+        - Docker: ${{ needs.docker-build.result == 'success' && '✅' || needs.docker-build.result == 'skipped' && '⏭️' || '❌' }}
+        - Deploy: ${{ needs.deploy.result == 'success' && '✅' || needs.deploy.result == 'skipped' && '⏭️' || '❌' }}
+        
+        **Triggered by:** ${{ github.event_name }}
+        **Commit:** ${{ github.sha }}
+        EOF

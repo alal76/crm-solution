@@ -1,6 +1,6 @@
 {
   "admin_username": "sysadmin",
-  "admin_password": "Password@123",
+  "admin_password": "${ADMIN_PASSWORD:CHANGE_ME}",
   "hosting_platform": "local",
   "cloud_provider": "aws",
   "orchestration": "docker",

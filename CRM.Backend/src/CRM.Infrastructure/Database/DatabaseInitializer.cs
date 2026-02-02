@@ -117,17 +117,18 @@ public class DatabaseInitializer
 
     /// <summary>
     /// Gets connection string examples for each provider
+    /// NOTE: These are examples only. Use environment variables for actual credentials.
     /// </summary>
     public static Dictionary<DatabaseProvider, string> GetConnectionStringExamples()
     {
         return new Dictionary<DatabaseProvider, string>
         {
             [DatabaseProvider.SQLite] = "Data Source=crm.db",
-            [DatabaseProvider.SqlServer] = "Server=localhost;Database=CrmDatabase;User Id=sa;Password=YourPassword;TrustServerCertificate=True;",
-            [DatabaseProvider.PostgreSQL] = "Host=localhost;Port=5432;Database=crm_database;Username=postgres;Password=YourPassword;",
-            [DatabaseProvider.MySQL] = "Server=localhost;Port=3306;Database=crm_database;User=root;Password=YourPassword;",
-            [DatabaseProvider.MariaDB] = "Server=localhost;Port=3306;Database=crm_database;User=root;Password=YourPassword;",
-            [DatabaseProvider.Oracle] = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)));User Id=crm;Password=YourPassword;"
+            [DatabaseProvider.SqlServer] = "Server=localhost;Database=CrmDatabase;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;",
+            [DatabaseProvider.PostgreSQL] = "Host=localhost;Port=5432;Database=crm_database;Username=postgres;Password=${DB_PASSWORD};",
+            [DatabaseProvider.MySQL] = "Server=localhost;Port=3306;Database=crm_database;User=root;Password=${DB_PASSWORD};",
+            [DatabaseProvider.MariaDB] = "Server=localhost;Port=3306;Database=crm_database;User=root;Password=${DB_PASSWORD};",
+            [DatabaseProvider.Oracle] = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)));User Id=crm;Password=${DB_PASSWORD};"
         };
     }
 

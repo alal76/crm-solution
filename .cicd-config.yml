@@ -1,0 +1,294 @@
+# =============================================================================
+# CRM Solution - CI/CD Configuration
+# =============================================================================
+# This file centralizes all CI/CD configuration parameters to enable
+# deployment to different environments without modifying scripts
+# =============================================================================
+
+# =============================================================================
+# DEPLOYMENT ARCHITECTURE
+# =============================================================================
+architecture:
+  # Options: monolithic, microservices
+  mode: ${ARCHITECTURE_MODE:-monolithic}
+  
+# =============================================================================
+# COMPONENTS TO BUILD & DEPLOY
+# =============================================================================
+components:
+  frontend:
+    enabled: ${DEPLOY_FRONTEND:-true}
+    build_path: CRM.Frontend
+    dockerfile: docker/Dockerfile.frontend
+    image_name: crm-frontend
+    port: ${FRONTEND_PORT:-3000}
+    
+  backend_api:
+    enabled: ${DEPLOY_API:-true}
+    build_path: CRM.Backend/src/CRM.Api
+    dockerfile: docker/Dockerfile.backend
+    image_name: crm-api
+    port: ${API_PORT:-5000}
+    
+  database:
+    enabled: ${DEPLOY_DATABASE:-true}
+    provider: ${DATABASE_PROVIDER:-mariadb}
+    image: ${DB_IMAGE:-mariadb:10.11}
+    port: ${DATABASE_PORT:-3306}
+    
+  redis:
+    enabled: ${DEPLOY_REDIS:-true}
+    image: ${REDIS_IMAGE:-redis:7-alpine}
+    port: ${REDIS_PORT:-6379}
+    
+  # Microservices (only if architecture.mode = microservices)
+  microservices:
+    gateway:
+      enabled: ${DEPLOY_GATEWAY:-true}
+      image_name: crm-gateway
+      port: 5000
+      
+    identity:
+      enabled: ${DEPLOY_IDENTITY:-true}
+      image_name: crm-identity
+      port: 5001
+      
+    customer:
+      enabled: ${DEPLOY_CUSTOMER:-true}
+      image_name: crm-customer
+      port: 5002
+      
+    sales:
+      enabled: ${DEPLOY_SALES:-true}
+      image_name: crm-sales
+      port: 5003
+      
+    marketing:
+      enabled: ${DEPLOY_MARKETING:-true}
+      image_name: crm-marketing
+      port: 5004
+      
+    servicedesk:
+      enabled: ${DEPLOY_SERVICEDESK:-true}
+      image_name: crm-servicedesk
+      port: 5005
+      
+    core:
+      enabled: ${DEPLOY_CORE:-true}
+      image_name: crm-core
+      port: 5006
+
+# =============================================================================
+# BUILD CONFIGURATION
+# =============================================================================
+build:
+  # Build type configuration
+  # Options: dev, test, integration, production
+  type: ${BUILD_TYPE:-production}
+  
+  # Build type definitions
+  types:
+    dev:
+      description: "Development build with extensive logging for debugging"
+      dotnet_configuration: Debug
+      log_level: Debug
+      source_maps: true
+      minification: false
+      console_removal: false
+      instrumentation: true
+      code_analysis: true
+      optimization_level: none
+      defines: "DEBUG;TRACE;VERBOSE_LOGGING"
+      
+    test:
+      description: "Test build for QA with full instrumentation"
+      dotnet_configuration: Debug
+      log_level: Debug
+      source_maps: true
+      minification: false
+      console_removal: false
+      instrumentation: full
+      code_coverage: true
+      performance_monitoring: true
+      code_analysis: true
+      optimization_level: basic
+      defines: "DEBUG;TRACE;ENABLE_TESTING;CODE_COVERAGE"
+      
+    integration:
+      description: "Integration build focused on external integrations"
+      dotnet_configuration: Release
+      log_level: Information
+      source_maps: true
+      minification: true
+      console_removal: false
+      instrumentation: api_focused
+      api_logging: verbose
+      middleware_logging: true
+      code_analysis: false
+      optimization_level: standard
+      defines: "TRACE;ENABLE_INTEGRATION;API_LOGGING"
+      
+    production:
+      description: "Production build - optimized and clean"
+      dotnet_configuration: Release
+      log_level: Warning
+      source_maps: false
+      minification: true
+      console_removal: true
+      instrumentation: minimal
+      code_analysis: false
+      optimization_level: aggressive
+      defines: "RELEASE"
+  
+  # Build server location
+  source: ${BUILD_SOURCE:-local}  # local, remote, cloud
+  
+  # For remote builds
+  remote:
+    host: ${BUILD_SERVER_HOST:-}
+    user: ${BUILD_SERVER_USER:-root}
+    port: ${BUILD_SERVER_PORT:-22}
+    ssh_key: ${BUILD_SSH_KEY:-~/.ssh/id_rsa}
+    
+  # Build options
+  options:
+    cache: ${BUILD_CACHE_ENABLED:-true}
+    parallel: ${BUILD_PARALLEL:-true}
+    optimization: ${BUILD_OPTIMIZATION:-Release}
+    skip_tests: ${SKIP_TESTS:-false}
+    
+  # Image registry
+  registry:
+    type: ${REGISTRY_TYPE:-dockerhub}  # dockerhub, ghcr, acr, ecr, gcr
+    url: ${REGISTRY_URL:-}
+    username: ${REGISTRY_USERNAME:-}
+    password_env: REGISTRY_PASSWORD
+    namespace: ${REGISTRY_NAMESPACE:-}
+
+# =============================================================================
+# DEPLOYMENT TARGETS
+# =============================================================================
+environments:
+  development:
+    platform: ${DEV_PLATFORM:-docker}  # docker, kubernetes, vm
+    location: local
+    domain: localhost
+    ssl_enabled: false
+    
+  staging:
+    platform: ${STAGING_PLATFORM:-kubernetes}
+    location: ${STAGING_LOCATION:-}  # e.g., "192.168.1.100" or cloud region
+    domain: ${STAGING_DOMAIN:-staging.crm.local}
+    ssl_enabled: ${STAGING_SSL:-false}
+    namespace: ${STAGING_NAMESPACE:-crm-staging}
+    
+  production:
+    platform: ${PROD_PLATFORM:-kubernetes}
+    location: ${PROD_LOCATION:-}  # e.g., "prod-server.com" or cloud region
+    domain: ${PROD_DOMAIN:-}
+    ssl_enabled: ${PROD_SSL:-true}
+    namespace: ${PROD_NAMESPACE:-crm-prod}
+
+# =============================================================================
+# CLOUD PROVIDER CONFIGURATION
+# =============================================================================
+cloud:
+  provider: ${CLOUD_PROVIDER:-none}  # none, aws, azure, gcp
+  
+  aws:
+    region: ${AWS_REGION:-us-east-1}
+    account_id: ${AWS_ACCOUNT_ID:-}
+    cluster_name: ${AWS_EKS_CLUSTER:-crm-cluster}
+    
+  azure:
+    subscription_id: ${AZURE_SUBSCRIPTION_ID:-}
+    resource_group: ${AZURE_RESOURCE_GROUP:-crm-solution-rg}
+    location: ${AZURE_LOCATION:-eastus}
+    cluster_name: ${AZURE_AKS_CLUSTER:-crm-cluster}
+    container_registry: ${AZURE_ACR_NAME:-crmacr}
+    
+  gcp:
+    project_id: ${GCP_PROJECT_ID:-}
+    region: ${GCP_REGION:-us-central1}
+    cluster_name: ${GCP_GKE_CLUSTER:-crm-cluster}
+
+# =============================================================================
+# TESTING CONFIGURATION
+# =============================================================================
+testing:
+  unit_tests:
+    enabled: ${RUN_UNIT_TESTS:-true}
+    fail_on_error: ${UNIT_TEST_FAIL:-true}
+    
+  integration_tests:
+    enabled: ${RUN_INTEGRATION_TESTS:-true}
+    fail_on_error: ${INTEGRATION_TEST_FAIL:-false}
+    
+  e2e_tests:
+    enabled: ${RUN_E2E_TESTS:-false}
+    fail_on_error: ${E2E_TEST_FAIL:-false}
+    
+  smoke_tests:
+    enabled: ${RUN_SMOKE_TESTS:-true}
+    endpoints:
+      - /health
+      - /api/health
+      - /
+
+# =============================================================================
+# SECURITY & COMPLIANCE
+# =============================================================================
+security:
+  vulnerability_scan:
+    enabled: ${SECURITY_SCAN:-true}
+    fail_on_high: ${FAIL_ON_HIGH_VULN:-false}
+    
+  secrets_scan:
+    enabled: ${SECRETS_SCAN:-true}
+    
+  code_quality:
+    enabled: ${CODE_QUALITY_CHECK:-true}
+    min_coverage: ${MIN_CODE_COVERAGE:-0}
+
+# =============================================================================
+# ROLLOUT STRATEGY
+# =============================================================================
+deployment:
+  strategy: ${DEPLOY_STRATEGY:-rolling}  # rolling, blue-green, canary
+  
+  rolling:
+    max_unavailable: 1
+    max_surge: 1
+    
+  canary:
+    steps:
+      - weight: 10
+        pause: 300
+      - weight: 50
+        pause: 300
+      - weight: 100
+        
+  health_check:
+    enabled: true
+    timeout: ${HEALTH_CHECK_TIMEOUT:-60}
+    retries: ${HEALTH_CHECK_RETRIES:-5}
+    
+  rollback:
+    auto_rollback: ${AUTO_ROLLBACK:-true}
+    on_failure: true
+
+# =============================================================================
+# NOTIFICATIONS
+# =============================================================================
+notifications:
+  slack:
+    enabled: ${NOTIFY_SLACK:-false}
+    webhook_url_env: SLACK_WEBHOOK_URL
+    
+  email:
+    enabled: ${NOTIFY_EMAIL:-false}
+    recipients: ${NOTIFICATION_EMAILS:-}
+    
+  teams:
+    enabled: ${NOTIFY_TEAMS:-false}
+    webhook_url_env: TEAMS_WEBHOOK_URL
