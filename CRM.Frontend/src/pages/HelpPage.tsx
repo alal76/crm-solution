@@ -240,7 +240,7 @@ const HelpPage: React.FC = () => {
       faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getLevelColor = (level: string) => {
+  const getLevelColor = (level: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
     switch (level) {
       case 'Beginner':
         return 'success';
@@ -383,7 +383,7 @@ const HelpPage: React.FC = () => {
                             <Chip
                               label={tutorial.level}
                               size="small"
-                              color={getLevelColor(tutorial.level) as any}
+                              color={getLevelColor(tutorial.level)}
                             />
                             <Typography variant="caption" color="text.secondary">
                               {tutorial.duration}

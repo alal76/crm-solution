@@ -159,7 +159,8 @@ function ProfileManagementPage() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, checked, type } = e.target as any;
+    const target = e.target as HTMLInputElement;
+    const { name, value, checked, type } = target;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,

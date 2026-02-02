@@ -106,9 +106,13 @@ interface ContractForm {
   quoteId: number | null;
 }
 
+// ==================== TYPES ====================
+
+type ChipColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+
 // ==================== CONSTANTS ====================
 
-const CONTRACT_STATUS_OPTIONS = [
+const CONTRACT_STATUS_OPTIONS: Array<{ value: ContractStatus; label: string; color: ChipColor }> = [
   { value: ContractStatus.Draft, label: 'Draft', color: 'default' },
   { value: ContractStatus.PendingApproval, label: 'Pending Approval', color: 'warning' },
   { value: ContractStatus.Approved, label: 'Approved', color: 'info' },
@@ -141,7 +145,7 @@ const BILLING_FREQUENCY_OPTIONS = [
 
 // ==================== HELPER FUNCTIONS ====================
 
-const getStatusInfo = (status: ContractStatus) =>
+const getStatusInfo = (status: ContractStatus): { label: string; color: ChipColor } =>
   CONTRACT_STATUS_OPTIONS.find(s => s.value === status) || { label: 'Unknown', color: 'default' };
 
 const getTypeLabel = (type: ContractType) =>
@@ -566,7 +570,7 @@ function ContractsPage() {
                           <Chip
                             label={statusInfo.label}
                             size="small"
-                            color={statusInfo.color as any}
+                            color={statusInfo.color}
                           />
                         </TableCell>
                         <TableCell align="right">{formatCurrency(contract.value)}</TableCell>

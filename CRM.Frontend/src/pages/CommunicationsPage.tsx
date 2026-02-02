@@ -282,7 +282,7 @@ function CommunicationsPage() {
     }
   };
 
-  const getChannelColor = (channelType: string) => {
+  const getChannelColor = (channelType: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
     switch (channelType?.toLowerCase()) {
       case 'email': return 'primary';
       case 'whatsapp': return 'success';
@@ -468,7 +468,7 @@ function CommunicationsPage() {
                           icon={getChannelIcon(message.channelType)}
                           label={message.channelType}
                           size="small"
-                          color={getChannelColor(message.channelType) as any}
+                            color={getChannelColor(message.channelType)}
                           variant="outlined"
                         />
                       </TableCell>
@@ -552,7 +552,7 @@ function CommunicationsPage() {
                           icon={getChannelIcon(message.channelType)}
                           label={message.channelType}
                           size="small"
-                          color={getChannelColor(message.channelType) as any}
+                          color={getChannelColor(message.channelType)}
                           variant="outlined"
                         />
                       </TableCell>

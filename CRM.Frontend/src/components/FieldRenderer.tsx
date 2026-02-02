@@ -63,7 +63,7 @@ const FieldRenderer: React.FC<Props> = ({ config, formData, onChange, onSelectCh
     return () => { cancelled = true; };
   }, [config.options]);
 
-  const fieldValue = (formData as any)[config.fieldName];
+  const fieldValue = formData[config.fieldName];
   const commonProps = {
     fullWidth: true,
     label: config.fieldLabel,
@@ -75,7 +75,7 @@ const FieldRenderer: React.FC<Props> = ({ config, formData, onChange, onSelectCh
     disabled: disabled,
     helperText: config.helpText,
     size: 'small' as const,
-  } as any;
+  };
 
   // Hide category field completely - Individual/Organization toggle is no longer needed
   // All accounts are treated as organizations by default

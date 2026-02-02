@@ -57,7 +57,7 @@ public class ContractsController : ControllerBase
         try
         {
             var query = _context.Contracts
-                .Include(c => c.Customer)
+                .Include(c => c.Account)
                 .Include(c => c.Contact)
                 .Include(c => c.Owner)
                 .Where(c => !c.IsDeleted);
@@ -75,7 +75,7 @@ public class ContractsController : ControllerBase
 
             if (customerId.HasValue)
             {
-                query = query.Where(c => c.CustomerId == customerId.Value);
+                query = query.Where(c => c.AccountId == customerId.Value);
             }
 
             if (expiringSoon == true)
@@ -99,11 +99,11 @@ public class ContractsController : ControllerBase
                     StatusValue = (int)c.Status,
                     ContractType = c.ContractType.ToString(),
                     ContractTypeValue = (int)c.ContractType,
-                    c.CustomerId,
-                    CustomerName = c.Customer != null
-                        ? (c.Customer.Category == CustomerCategory.Organization
-                            ? c.Customer.Company
-                            : $"{c.Customer.FirstName} {c.Customer.LastName}")
+                    c.AccountId,
+                    CustomerName = c.Account != null
+                        ? (c.Account.Category == AccountCategory.Organization
+                            ? c.Account.Company
+                            : $"{c.Account.FirstName} {c.Account.LastName}")
                         : null,
                     c.ContactId,
                     ContactName = c.Contact != null ? $"{c.Contact.FirstName} {c.Contact.LastName}" : null,
@@ -154,7 +154,7 @@ public class ContractsController : ControllerBase
         try
         {
             var contract = await _context.Contracts
-                .Include(c => c.Customer)
+                .Include(c => c.Account)
                 .Include(c => c.Contact)
                 .Include(c => c.Owner)
                 .Include(c => c.ParentContract)
@@ -172,11 +172,11 @@ public class ContractsController : ControllerBase
                     StatusValue = (int)c.Status,
                     ContractType = c.ContractType.ToString(),
                     ContractTypeValue = (int)c.ContractType,
-                    c.CustomerId,
-                    CustomerName = c.Customer != null
-                        ? (c.Customer.Category == CustomerCategory.Organization
-                            ? c.Customer.Company
-                            : $"{c.Customer.FirstName} {c.Customer.LastName}")
+                    c.AccountId,
+                    CustomerName = c.Account != null
+                        ? (c.Account.Category == AccountCategory.Organization
+                            ? c.Account.Company
+                            : $"{c.Account.FirstName} {c.Account.LastName}")
                         : null,
                     c.ContactId,
                     ContactName = c.Contact != null ? $"{c.Contact.FirstName} {c.Contact.LastName}" : null,
@@ -247,7 +247,7 @@ public class ContractsController : ControllerBase
                 Description = request.Description,
                 Status = Enum.TryParse<ContractStatus>(request.Status, true, out var status) ? status : ContractStatus.Draft,
                 ContractType = Enum.TryParse<ContractType>(request.ContractType, true, out var type) ? type : ContractType.Service,
-                CustomerId = request.CustomerId,
+                AccountId = request.CustomerId,
                 ContactId = request.ContactId,
                 OwnerId = request.OwnerId ?? GetCurrentUserId(),
                 ParentContractId = request.ParentContractId,
@@ -308,7 +308,7 @@ public class ContractsController : ControllerBase
             }
             if (request.ContractType != null && Enum.TryParse<ContractType>(request.ContractType, true, out var type))
                 contract.ContractType = type;
-            if (request.CustomerId.HasValue) contract.CustomerId = request.CustomerId.Value;
+            if (request.CustomerId.HasValue) contract.AccountId = request.CustomerId.Value;
             if (request.ContactId.HasValue) contract.ContactId = request.ContactId;
             if (request.OwnerId.HasValue) contract.OwnerId = request.OwnerId;
             if (request.ParentContractId.HasValue) contract.ParentContractId = request.ParentContractId;
@@ -529,7 +529,7 @@ public class ContractsController : ControllerBase
                 Description = existingContract.Description,
                 Status = ContractStatus.Draft,
                 ContractType = existingContract.ContractType,
-                CustomerId = existingContract.CustomerId,
+                AccountId = existingContract.AccountId,
                 ContactId = existingContract.ContactId,
                 OwnerId = existingContract.OwnerId,
                 ParentContractId = existingContract.Id,
@@ -676,7 +676,7 @@ public class ContractsController : ControllerBase
         {
             var expirationDate = DateTime.UtcNow.AddDays(days);
             var contracts = await _context.Contracts
-                .Include(c => c.Customer)
+                .Include(c => c.Account)
                 .Where(c => !c.IsDeleted && c.Status == ContractStatus.Active && c.EndDate <= expirationDate)
                 .OrderBy(c => c.EndDate)
                 .Select(c => new
@@ -684,11 +684,11 @@ public class ContractsController : ControllerBase
                     c.Id,
                     c.ContractNumber,
                     c.Name,
-                    c.CustomerId,
-                    CustomerName = c.Customer != null
-                        ? (c.Customer.Category == CustomerCategory.Organization
-                            ? c.Customer.Company
-                            : $"{c.Customer.FirstName} {c.Customer.LastName}")
+                    c.AccountId,
+                    CustomerName = c.Account != null
+                        ? (c.Account.Category == AccountCategory.Organization
+                            ? c.Account.Company
+                            : $"{c.Account.FirstName} {c.Account.LastName}")
                         : null,
                     c.EndDate,
                     c.Value,

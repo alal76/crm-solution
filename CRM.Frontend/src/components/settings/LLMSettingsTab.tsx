@@ -340,7 +340,7 @@ export const LLMSettingsTab: React.FC = () => {
     );
   };
 
-  const getCircuitStateColor = (state: string) => {
+  const getCircuitStateColor = (state: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
     switch (state?.toLowerCase()) {
       case 'closed': return 'success';
       case 'open': return 'error';
@@ -715,7 +715,7 @@ export const LLMSettingsTab: React.FC = () => {
                           <Tooltip title={`Circuit Breaker: ${circuitState.state}`}>
                             <Chip
                               label={circuitState.state}
-                              color={getCircuitStateColor(circuitState.state) as any}
+                              color={getCircuitStateColor(circuitState.state)}
                               size="small"
                               variant="outlined"
                             />
@@ -850,7 +850,7 @@ export const LLMSettingsTab: React.FC = () => {
                           </Typography>
                           <Chip
                             label={cb.state}
-                            color={getCircuitStateColor(cb.state) as any}
+                            color={getCircuitStateColor(cb.state)}
                             size="small"
                           />
                         </Box>

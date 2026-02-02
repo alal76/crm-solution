@@ -39,13 +39,13 @@ public class TasksController : ControllerBase
         [FromQuery] bool? overdue = null)
     {
         var query = _context.CrmTasks
-            .Include(t => t.Customer)
+            .Include(t => t.Account)
             .Include(t => t.Opportunity)
             .Include(t => t.AssignedToUser)
             .AsQueryable();
 
         if (customerId.HasValue)
-            query = query.Where(t => t.CustomerId == customerId);
+            query = query.Where(t => t.AccountId == customerId);
         
         if (opportunityId.HasValue)
             query = query.Where(t => t.OpportunityId == opportunityId);
@@ -80,7 +80,7 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<CrmTask>> GetTask(int id)
     {
         var task = await _context.CrmTasks
-            .Include(t => t.Customer)
+            .Include(t => t.Account)
             .Include(t => t.Opportunity)
             .Include(t => t.AssignedToUser)
             .Include(t => t.SubTasks)
@@ -186,7 +186,7 @@ public class TasksController : ControllerBase
         var tomorrow = today.AddDays(1);
 
         var tasks = await _context.CrmTasks
-            .Include(t => t.Customer)
+            .Include(t => t.Account)
             .Include(t => t.AssignedToUser)
             .Where(t => t.DueDate >= today && t.DueDate < tomorrow && t.Status != CrmTaskStatus.Completed)
             .OrderBy(t => t.DueDate)
@@ -202,7 +202,7 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<IEnumerable<CrmTask>>> GetOverdueTasks()
     {
         var tasks = await _context.CrmTasks
-            .Include(t => t.Customer)
+            .Include(t => t.Account)
             .Include(t => t.AssignedToUser)
             .Where(t => t.DueDate < DateTime.UtcNow && t.Status != CrmTaskStatus.Completed && t.Status != CrmTaskStatus.Cancelled)
             .OrderBy(t => t.DueDate)
@@ -236,7 +236,7 @@ public class TasksController : ControllerBase
                 .AnyAsync();
 
             IQueryable<CrmTask> query = _context.CrmTasks
-                .Include(t => t.Customer)
+                .Include(t => t.Account)
                 .Include(t => t.Opportunity)
                 .Include(t => t.AssignedToUser)
                 .Include(t => t.AssignedToGroup)
@@ -282,8 +282,8 @@ public class TasksController : ControllerBase
                 t.PercentComplete,
                 t.EstimatedMinutes,
                 t.ActualMinutes,
-                t.CustomerId,
-                CustomerName = t.Customer?.Company,
+                t.AccountId,
+                CustomerName = t.Account?.Company,
                 t.OpportunityId,
                 OpportunityName = t.Opportunity?.Name,
                 t.AssignedToUserId,

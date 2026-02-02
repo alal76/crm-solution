@@ -402,6 +402,14 @@ crm-solution/
 
 ## 📚 Documentation
 
+### Standards & Best Practices
+
+| Document | Description |
+|----------|-------------|
+| [Coding Standards](CODING_STANDARDS.md) | Code style guidelines |
+| [Security Best Practices](SECURITY_BEST_PRACTICES.md) | Security guidelines |
+| [Architecture Decisions](docs/architecture/decisions/README.md) | ADR framework |
+
 ### Architecture
 
 | Document | Description |

@@ -38,7 +38,8 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock fetch for API calls
-global.fetch = jest.fn();
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
 
 // ============================================================================
 // Test Suite: Form Structure
@@ -47,7 +48,7 @@ global.fetch = jest.fn();
 describe('LoginPage - Form Structure', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ quickAdminLoginEnabled: false }),
     });

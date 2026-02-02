@@ -45,39 +45,39 @@ interface EntitySelectProps {
   excludeIds?: number[];
 }
 
-// Entity item interfaces
-interface CustomerItem {
+// Base interface for all entity items - all entities have an id
+interface BaseEntityItem {
   id: number;
+}
+
+// Entity item interfaces
+interface CustomerItem extends BaseEntityItem {
   firstName: string;
   lastName: string;
   company?: string;
   displayName?: string;
 }
 
-interface ContactItem {
-  id: number;
+interface ContactItem extends BaseEntityItem {
   firstName: string;
   lastName: string;
   company?: string;
   emailPrimary?: string;
 }
 
-interface ProductItem {
-  id: number;
+interface ProductItem extends BaseEntityItem {
   name: string;
   sku?: string;
   price?: number;
 }
 
-interface OpportunityItem {
-  id: number;
+interface OpportunityItem extends BaseEntityItem {
   name: string;
   amount?: number;
   stage?: number;
 }
 
-interface UserItem {
-  id: number;
+interface UserItem extends BaseEntityItem {
   firstName: string;
   lastName: string;
   email?: string;
@@ -548,7 +548,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
   };
 
   // Filter out excluded IDs
-  const filteredItems = items.filter(item => !excludeIds.includes((item as any).id));
+  const filteredItems = items.filter(item => !excludeIds.includes(item.id));
 
   return (
     <>
@@ -600,7 +600,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
 
           {/* Entity items */}
           {filteredItems.map((item) => (
-            <MenuItem key={(item as any).id} value={(item as any).id}>
+            <MenuItem key={item.id} value={item.id}>
               {getDisplayText(item)}
             </MenuItem>
           ))}

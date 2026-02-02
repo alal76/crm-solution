@@ -271,20 +271,20 @@ function CustomerOverviewPage() {
 
                 {/* Search Type Selector */}
                 <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-                  {[
-                    { value: 'all', label: 'All' },
-                    { value: 'name', label: 'Name' },
-                    { value: 'email', label: 'Email' },
-                    { value: 'id', label: 'ID' },
-                    { value: 'phone', label: 'Phone' },
-                  ].map(type => (
+                  {([
+                    { value: 'all' as const, label: 'All' },
+                    { value: 'name' as const, label: 'Name' },
+                    { value: 'email' as const, label: 'Email' },
+                    { value: 'id' as const, label: 'ID' },
+                    { value: 'phone' as const, label: 'Phone' },
+                  ]).map(type => (
                     <Chip
                       key={type.value}
                       label={type.label}
                       size="small"
                       variant={searchType === type.value ? 'filled' : 'outlined'}
                       color={searchType === type.value ? 'primary' : 'default'}
-                      onClick={() => setSearchType(type.value as any)}
+                      onClick={() => setSearchType(type.value)}
                       sx={{ cursor: 'pointer' }}
                     />
                   ))}

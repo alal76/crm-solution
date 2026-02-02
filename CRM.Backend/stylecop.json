@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+  "settings": {
+    "documentationRules": {
+      "companyName": "Abhishek Lal",
+      "copyrightText": "CRM Solution - Customer Relationship Management System\nCopyright (C) 2024-2026 {companyName}",
+      "xmlHeader": false,
+      "documentExposedElements": true,
+      "documentInternalElements": false,
+      "documentPrivateElements": false,
+      "documentInterfaces": true,
+      "documentPrivateFields": false
+    },
+    "indentation": {
+      "indentationSize": 4,
+      "tabSize": 4,
+      "useTabs": false
+    },
+    "layoutRules": {
+      "newlineAtEndOfFile": "require"
+    },
+    "maintainabilityRules": {
+      "topLevelTypes": ["class", "interface", "struct", "enum", "delegate"]
+    },
+    "namingRules": {
+      "allowCommonHungarianPrefixes": true,
+      "allowedHungarianPrefixes": ["db", "ui", "io"]
+    },
+    "orderingRules": {
+      "usingDirectivesPlacement": "outsideNamespace",
+      "systemUsingDirectivesFirst": true,
+      "blankLinesBetweenUsingGroups": "require"
+    },
+    "readabilityRules": {
+      "allowBuiltInTypeAliases": true
+    },
+    "spacingRules": {
+    }
+  }
+}

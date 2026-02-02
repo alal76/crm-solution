@@ -31,7 +31,7 @@ builder.Services.AddScoped<IContactsService, ContactsService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 
 // Register input ports (Hexagonal Architecture)
-builder.Services.AddScoped<ICustomerInputPort, CustomerService>();
+builder.Services.AddScoped<ICustomerInputPort, AccountService>();
 builder.Services.AddScoped<IContactInputPort, ContactsService>();
 builder.Services.AddScoped<IAccountInputPort, AccountService>();
 

@@ -1,0 +1,260 @@
+# =============================================================================
+# CRM Solution - Production Docker Compose for 192.168.0.9
+# =============================================================================
+# This file uses pre-built images and connects to existing SQL Server
+#
+# Usage:
+#   docker compose -f docker-compose.production.yml up -d
+#
+# Services:
+#   Tier 0: crm-redis (SQL Server is external on 192.168.0.9:1433)
+#   Tier 1: crm-gateway, crm-identity, crm-customer, crm-sales, crm-marketing, crm-servicedesk, crm-core
+#   Tier 2: crm-frontend
+# =============================================================================
+
+volumes:
+  crm_redis_data:
+    driver: local
+    name: crm_redis_data
+
+networks:
+  crm-network:
+    driver: bridge
+    name: crm-network
+
+services:
+  # ===========================================================================
+  # TIER 0: SHARED INFRASTRUCTURE
+  # ===========================================================================
+
+  crm-redis:
+    image: redis:7-alpine
+    container_name: crm-redis
+    hostname: crm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - crm_redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  # ===========================================================================
+  # TIER 1: MICROSERVICES
+  # ===========================================================================
+
+  crm-identity:
+    image: 192.168.0.9:5000/crm-identity:latest
+    container_name: crm-identity
+    hostname: crm-identity
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5001
+      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+      JwtSettings__Issuer: "CRM-API"
+      JwtSettings__Audience: "CRM-Client"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - crm-network
+
+  crm-customer:
+    image: 192.168.0.9:5000/crm-customer:latest
+    container_name: crm-customer
+    hostname: crm-customer
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5002
+      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+    depends_on:
+      crm-identity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - crm-network
+
+  crm-sales:
+    image: 192.168.0.9:5000/crm-sales:latest
+    container_name: crm-sales
+    hostname: crm-sales
+    restart: unless-stopped
+    ports:
+      - "5003:5003"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5003
+      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+    depends_on:
+      crm-identity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - crm-network
+
+  crm-marketing:
+    image: 192.168.0.9:5000/crm-marketing:latest
+    container_name: crm-marketing
+    hostname: crm-marketing
+    restart: unless-stopped
+    ports:
+      - "5004:5004"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5004
+      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+    depends_on:
+      crm-identity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - crm-network
+
+  crm-servicedesk:
+    image: 192.168.0.9:5000/crm-servicedesk:latest
+    container_name: crm-servicedesk
+    hostname: crm-servicedesk
+    restart: unless-stopped
+    ports:
+      - "5005:5005"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5005
+      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+    depends_on:
+      crm-identity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - crm-network
+
+  crm-core:
+    image: 192.168.0.9:5000/crm-core:latest
+    container_name: crm-core
+    hostname: crm-core
+    restart: unless-stopped
+    ports:
+      - "5006:5006"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5006
+      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+    depends_on:
+      crm-identity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - crm-network
+
+  crm-gateway:
+    image: 192.168.0.9:5000/crm-gateway:latest
+    container_name: crm-gateway
+    hostname: crm-gateway
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5000
+      AllowedHosts: "*"
+      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+      Services__Identity: http://crm-identity:5001
+      Services__Customer: http://crm-customer:5002
+      Services__Sales: http://crm-sales:5003
+      Services__Marketing: http://crm-marketing:5004
+      Services__ServiceDesk: http://crm-servicedesk:5005
+      Services__Core: http://crm-core:5006
+    depends_on:
+      crm-identity:
+        condition: service_healthy
+      crm-customer:
+        condition: service_healthy
+      crm-sales:
+        condition: service_healthy
+      crm-marketing:
+        condition: service_healthy
+      crm-servicedesk:
+        condition: service_healthy
+      crm-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - crm-network
+
+  # ===========================================================================
+  # TIER 2: FRONTEND
+  # ===========================================================================
+
+  crm-frontend:
+    image: 192.168.0.9:5000/crm-frontend:latest
+    container_name: crm-frontend
+    hostname: crm-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      API_URL: http://crm-gateway:5000
+    volumes:
+      - /tmp/nginx-frontend-microservices.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      crm-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - crm-network

@@ -1,0 +1,29 @@
+# Prettier ignore patterns
+node_modules/
+build/
+dist/
+coverage/
+*.min.js
+*.min.css
+package-lock.json
+yarn.lock
+*.lock
+.git/
+.next/
+out/
+
+# Build artifacts
+CRM.Backend/**/bin/
+CRM.Backend/**/obj/
+CRM.Frontend/build/
+artifacts/
+
+# Generated files
+*.generated.ts
+*.generated.cs
+
+# Third-party code
+vendor/
+
+# Documentation build
+docs/_site/

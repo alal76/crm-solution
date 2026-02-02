@@ -92,9 +92,13 @@ interface ArticleForm {
   expiresAt: string;
 }
 
+// ==================== TYPES ====================
+
+type ChipColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+
 // ==================== CONSTANTS ====================
 
-const ARTICLE_STATUS_OPTIONS = [
+const ARTICLE_STATUS_OPTIONS: Array<{ value: ArticleStatus; label: string; color: ChipColor }> = [
   { value: ArticleStatus.Draft, label: 'Draft', color: 'default' },
   { value: ArticleStatus.InReview, label: 'In Review', color: 'warning' },
   { value: ArticleStatus.Published, label: 'Published', color: 'success' },
@@ -111,7 +115,7 @@ const VISIBILITY_OPTIONS = [
 
 // ==================== HELPER FUNCTIONS ====================
 
-const getStatusInfo = (status: ArticleStatus) =>
+const getStatusInfo = (status: ArticleStatus): { label: string; color: ChipColor } =>
   ARTICLE_STATUS_OPTIONS.find(s => s.value === status) || { label: 'Unknown', color: 'default' };
 
 const getVisibilityLabel = (visibility: ArticleVisibility) =>
@@ -591,7 +595,7 @@ function KnowledgeBasePage() {
                           <Chip
                             label={statusInfo.label}
                             size="small"
-                            color={statusInfo.color as any}
+                            color={statusInfo.color}
                           />
                         </TableCell>
                         <TableCell>{getVisibilityLabel(article.visibility)}</TableCell>
