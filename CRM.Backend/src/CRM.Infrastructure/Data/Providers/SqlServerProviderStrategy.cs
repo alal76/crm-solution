@@ -9,42 +9,119 @@ namespace CRM.Infrastructure.Data.Providers;
 
 /// <summary>
 /// SQL Server-specific database provider strategy.
+/// Supports: Standalone, Always On Availability Groups (Clustered), Azure SQL Hyperscale.
+/// 
 /// Handles:
 /// - Native rowversion for optimistic concurrency
 /// - nvarchar(max) for large text fields
 /// - NoAction delete behavior to avoid multiple cascade path errors
+/// - Deployment-specific optimizations
 /// </summary>
-public class SqlServerProviderStrategy : IDatabaseProviderStrategy
+public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
 {
-    public string ProviderName => "sqlserver";
+    public SqlServerProviderStrategy(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone) 
+        : base(deploymentMode)
+    {
+    }
     
-    public string LongTextColumnType => "nvarchar(max)";
+    public override string ProviderName => "sqlserver";
     
-    public string TextColumnType => "nvarchar(max)";
+    public override string LongTextColumnType => "nvarchar(max)";
     
-    public DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.NoAction;
+    public override string TextColumnType => "nvarchar(max)";
     
-    public void ConfigureRowVersion(ModelBuilder modelBuilder, IMutableEntityType entityType)
+    public override string JsonColumnType => "nvarchar(max)"; // SQL Server 2016+ has JSON functions but no native type
+    
+    public override string GuidColumnType => "uniqueidentifier";
+    
+    public override string TimestampColumnType => "datetime2";
+    
+    public override bool SupportsNativeJson => false; // Has JSON functions but stores as nvarchar
+    
+    public override bool SupportsNativeGuid => true;
+    
+    public override bool SupportsSequences => true;
+    
+    public override DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.NoAction;
+    
+    public override int RecommendedBatchSize => _deploymentMode switch
+    {
+        DatabaseDeploymentMode.Standalone => 100,
+        DatabaseDeploymentMode.Clustered => 500,  // Always On can handle more
+        DatabaseDeploymentMode.Hyperscale => 2000, // Azure SQL Hyperscale optimized for large batches
+        _ => 100
+    };
+    
+    public override void ConfigureRowVersion(ModelBuilder modelBuilder, IMutableEntityType entityType)
     {
         var rowVersionProperty = entityType.FindProperty("RowVersion");
         if (rowVersionProperty != null)
         {
-            // SQL Server uses native rowversion type
+            // SQL Server uses native rowversion type (8-byte auto-incrementing value)
             modelBuilder.Entity(entityType.ClrType)
                 .Property("RowVersion")
                 .IsRowVersion();
         }
     }
     
-    public void ApplyPostConfiguration(ModelBuilder modelBuilder)
+    public override void ApplyPostConfiguration(ModelBuilder modelBuilder)
     {
         // SQL Server specific: disable cascade deletes to avoid "multiple cascade paths" errors
-        // This MUST be applied after all entity configurations
         foreach (var relationship in modelBuilder.Model.GetEntityTypes()
             .SelectMany(e => e.GetForeignKeys()))
         {
-            // SQL Server doesn't support cascade delete on multiple paths
             relationship.DeleteBehavior = DeleteBehavior.NoAction;
         }
     }
+    
+    public override void ConfigureIndexes(ModelBuilder modelBuilder)
+    {
+        // SQL Server supports filtered indexes and included columns
+        // These are typically configured per-entity, but we can set defaults here
+        if (_deploymentMode == DatabaseDeploymentMode.Hyperscale)
+        {
+            // Hyperscale benefits from columnstore indexes for analytics
+            // Note: Actual columnstore would require explicit configuration per table
+        }
+    }
+    
+    public override string OptimizeConnectionString(string baseConnectionString)
+    {
+        var optimizations = _deploymentMode switch
+        {
+            DatabaseDeploymentMode.Standalone => 
+                ";MultipleActiveResultSets=True;TrustServerCertificate=True",
+            DatabaseDeploymentMode.Clustered => 
+                ";MultipleActiveResultSets=True;MultiSubnetFailover=True;ApplicationIntent=ReadWrite;TrustServerCertificate=True",
+            DatabaseDeploymentMode.Hyperscale => 
+                ";MultipleActiveResultSets=True;ApplicationIntent=ReadWrite;TrustServerCertificate=True;Command Timeout=120",
+            _ => ""
+        };
+        
+        return baseConnectionString.TrimEnd(';') + optimizations;
+    }
+}
+
+/// <summary>
+/// Azure SQL Hyperscale-specific strategy.
+/// Optimized for distributed storage with read replicas.
+/// </summary>
+public class AzureSqlHyperscaleStrategy : SqlServerProviderStrategy
+{
+    public AzureSqlHyperscaleStrategy() : base(DatabaseDeploymentMode.Hyperscale) { }
+    
+    public new string ProviderName => "azuresql-hyperscale";
+    
+    public override int RecommendedBatchSize => 2000;
+    
+    public override ConnectionPoolSettings ConnectionPoolSettings => new()
+    {
+        MinPoolSize = 20,
+        MaxPoolSize = 200,
+        ConnectionTimeout = 30,
+        CommandTimeout = 120, // Longer for distributed queries
+        EnableRetryOnFailure = true,
+        MaxRetryCount = 10,
+        MaxRetryDelaySeconds = 60
+    };
 }
