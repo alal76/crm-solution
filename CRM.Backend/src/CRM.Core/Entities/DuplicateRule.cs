@@ -341,4 +341,127 @@ public class DuplicateMergeHistory : BaseEntity
     
     /// <summary>Navigation to duplicate candidate</summary>
     public DuplicateCandidate? DuplicateCandidate { get; set; }
+    
+    /// <summary>Related merge group ID</summary>
+    public int? MergeGroupId { get; set; }
+    
+    /// <summary>Navigation to merge group</summary>
+    public DuplicateMergeGroup? MergeGroup { get; set; }
 }
+
+#region Merge Group Entities
+
+/// <summary>
+/// Merge group status
+/// </summary>
+public enum MergeGroupStatus
+{
+    /// <summary>Merge is active</summary>
+    Active = 0,
+    
+    /// <summary>All records unmerged</summary>
+    Unmerged = 1,
+    
+    /// <summary>Some records unmerged</summary>
+    PartialUnmerge = 2
+}
+
+/// <summary>
+/// Group of merged duplicate records.
+/// Supports multi-record merges and unmerge functionality.
+/// </summary>
+public class DuplicateMergeGroup : BaseEntity
+{
+    /// <summary>Entity type that was merged (Lead, Contact, Account)</summary>
+    public DuplicateEntityType EntityType { get; set; }
+    
+    /// <summary>ID of the master/surviving record</summary>
+    public int MasterRecordId { get; set; }
+    
+    /// <summary>Unique identifier for this merge group</summary>
+    public string GroupIdentifier { get; set; } = Guid.NewGuid().ToString("N");
+    
+    /// <summary>Status of the merge group</summary>
+    public MergeGroupStatus Status { get; set; } = MergeGroupStatus.Active;
+    
+    /// <summary>When the merge occurred</summary>
+    public DateTime MergedAt { get; set; } = DateTime.UtcNow;
+    
+    /// <summary>User who performed the merge</summary>
+    public int? MergedById { get; set; }
+    
+    /// <summary>Navigation to merger</summary>
+    public User? MergedBy { get; set; }
+    
+    /// <summary>When unmerge occurred (if applicable)</summary>
+    public DateTime? UnmergedAt { get; set; }
+    
+    /// <summary>User who performed the unmerge</summary>
+    public int? UnmergedById { get; set; }
+    
+    /// <summary>Navigation to unmerger</summary>
+    public User? UnmergedBy { get; set; }
+    
+    /// <summary>Notes about the merge</summary>
+    public string? Notes { get; set; }
+    
+    /// <summary>Members of this merge group</summary>
+    public ICollection<DuplicateMergeGroupMember> Members { get; set; } = new List<DuplicateMergeGroupMember>();
+    
+    /// <summary>Related merge histories</summary>
+    public ICollection<DuplicateMergeHistory> MergeHistories { get; set; } = new List<DuplicateMergeHistory>();
+}
+
+/// <summary>
+/// Member status in a merge group
+/// </summary>
+public enum MergeGroupMemberStatus
+{
+    /// <summary>Record is merged</summary>
+    Merged = 0,
+    
+    /// <summary>Record has been unmerged</summary>
+    Unmerged = 1
+}
+
+/// <summary>
+/// Individual record that was part of a merge group.
+/// Stores snapshot for unmerge functionality.
+/// </summary>
+public class DuplicateMergeGroupMember : BaseEntity
+{
+    /// <summary>Parent merge group ID</summary>
+    public int MergeGroupId { get; set; }
+    
+    /// <summary>Navigation to merge group</summary>
+    public DuplicateMergeGroup? MergeGroup { get; set; }
+    
+    /// <summary>Record ID that was merged</summary>
+    public int RecordId { get; set; }
+    
+    /// <summary>Entity type for polymorphic reference</summary>
+    public DuplicateEntityType RecordType { get; set; }
+    
+    /// <summary>Is this the master record?</summary>
+    public bool IsMaster { get; set; }
+    
+    /// <summary>Complete JSON snapshot of record before merge</summary>
+    public string? RecordSnapshot { get; set; }
+    
+    /// <summary>Which field values from this record were used in master (JSON)</summary>
+    public string? FieldValuesUsed { get; set; }
+    
+    /// <summary>Related records that were relinked to master (JSON)</summary>
+    public string? RelinkedRecords { get; set; }
+    
+    /// <summary>Status of this member</summary>
+    public MergeGroupMemberStatus Status { get; set; } = MergeGroupMemberStatus.Merged;
+    
+    /// <summary>When this record was merged</summary>
+    public DateTime MergedAt { get; set; } = DateTime.UtcNow;
+    
+    /// <summary>When this record was unmerged (if applicable)</summary>
+    public DateTime? UnmergedAt { get; set; }
+}
+
+#endregion

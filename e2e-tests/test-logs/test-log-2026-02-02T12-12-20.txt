@@ -1,0 +1,146 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CRM SOLUTION - E2E TEST EXECUTION LOG                       
+═══════════════════════════════════════════════════════════════════════════════
+
+Test Run Started:  2026-02-02T12:12:20.298Z
+Test Run Ended:    2026-02-02T12:12:30.522Z
+Total Duration:    10s
+
+───────────────────────────────────────────────────────────────────────────────
+                              EXECUTION SUMMARY                                 
+───────────────────────────────────────────────────────────────────────────────
+  Total Tests:     18
+  Passed:          16 (89%)
+  Failed:          1 (6%)
+  Skipped:         1 (6%)
+
+───────────────────────────────────────────────────────────────────────────────
+                              MODULE BREAKDOWN                                  
+───────────────────────────────────────────────────────────────────────────────
+
+  AUTH.SETUP.TS
+  ├─ Total:   1
+  ├─ Passed:  1
+  ├─ Failed:  0
+  ├─ Skipped: 0
+  └─ Pass Rate: 100%
+
+  DEDUPLICATION
+  ├─ Total:   17
+  ├─ Passed:  15
+  ├─ Failed:  1
+  ├─ Skipped: 1
+  └─ Pass Rate: 88%
+
+───────────────────────────────────────────────────────────────────────────────
+                              DETAILED TEST LOG                                 
+───────────────────────────────────────────────────────────────────────────────
+
+[2026-02-02T12:12:25.239Z] [✓ PASS] TC-UNKNOWN
+   Test: authenticate
+   Module: auth.setup.ts
+   Duration: 4215ms
+
+[2026-02-02T12:12:27.093Z] [✓ PASS] TC-DEDUP-001
+   Test: TC-DEDUP-001: Should check for duplicates with no matches
+   Module: deduplication
+   Duration: 856ms
+
+[2026-02-02T12:12:27.131Z] [✓ PASS] TC-DEDUP-021
+   Test: TC-DEDUP-021: Should navigate to duplicate management page
+   Module: deduplication
+   Duration: 866ms
+
+[2026-02-02T12:12:27.204Z] [✓ PASS] TC-DEDUP-010
+   Test: TC-DEDUP-010: Should preview merge operation
+   Module: deduplication
+   Duration: 974ms
+
+[2026-02-02T12:12:27.843Z] [✓ PASS] TC-DEDUP-002
+   Test: TC-DEDUP-002: Should detect duplicate by email
+   Module: deduplication
+   Duration: 729ms
+
+[2026-02-02T12:12:27.907Z] [✓ PASS] TC-DEDUP-030
+   Test: TC-DEDUP-030: Should handle special characters in names
+   Module: deduplication
+   Duration: 767ms
+
+[2026-02-02T12:12:28.057Z] [✓ PASS] TC-DEDUP-011
+   Test: TC-DEDUP-011: Should get merge history
+   Module: deduplication
+   Duration: 842ms
+
+[2026-02-02T12:12:28.412Z] [✓ PASS] TC-DEDUP-003
+   Test: TC-DEDUP-003: Should detect fuzzy name matches
+   Module: deduplication
+   Duration: 562ms
+
+[2026-02-02T12:12:28.661Z] [✓ PASS] TC-DEDUP-031
+   Test: TC-DEDUP-031: Should handle unicode characters
+   Module: deduplication
+   Duration: 746ms
+
+[2026-02-02T12:12:28.922Z] [✗ FAIL] TC-DEDUP-012
+   Test: TC-DEDUP-012: Should handle invalid entity type gracefully
+   Module: deduplication
+   Duration: 836ms
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+Expected: [32m400[39m
+Received: [31m401[39m
+
+[2026-02-02T12:12:28.922Z] [○ SKIP] TC-DEDUP-013
+   Test: TC-DEDUP-013: Should require field values
+   Module: deduplication
+   Duration: 0ms
+
+[2026-02-02T12:12:29.103Z] [✓ PASS] TC-DEDUP-004
+   Test: TC-DEDUP-004: Should get active duplicate rules
+   Module: deduplication
+   Duration: 683ms
+
+[2026-02-02T12:12:29.199Z] [✓ PASS] TC-DEDUP-020
+   Test: TC-DEDUP-020: Should show duplicate detection dialog on lead create
+   Module: deduplication
+   Duration: 2962ms
+
+[2026-02-02T12:12:29.436Z] [✓ PASS] TC-DEDUP-032
+   Test: TC-DEDUP-032: Should handle very long field values
+   Module: deduplication
+   Duration: 769ms
+
+[2026-02-02T12:12:30.018Z] [✓ PASS] TC-DEDUP-034
+   Test: TC-DEDUP-034: Should handle email variations
+   Module: deduplication
+   Duration: 802ms
+
+[2026-02-02T12:12:30.020Z] [✓ PASS] TC-DEDUP-005
+   Test: TC-DEDUP-005: Should handle Contact duplicates
+   Module: deduplication
+   Duration: 909ms
+
+[2026-02-02T12:12:30.478Z] [✓ PASS] TC-DEDUP-033
+   Test: TC-DEDUP-033: Should handle phone number variations
+   Module: deduplication
+   Duration: 664ms
+
+[2026-02-02T12:12:30.496Z] [✓ PASS] TC-DEDUP-006
+   Test: TC-DEDUP-006: Should handle Account duplicates
+   Module: deduplication
+   Duration: 470ms
+
+───────────────────────────────────────────────────────────────────────────────
+                              FAILED TESTS                                     
+───────────────────────────────────────────────────────────────────────────────
+
+1. TC-DEDUP-012 - TC-DEDUP-012: Should handle invalid entity type gracefully
+   Error: Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+Expected: [32m400[39m
+Received: [31m401[39m
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              END OF LOG                                        
+═══════════════════════════════════════════════════════════════════════════════

@@ -1,15 +1,15 @@
 {
   "major": 1,
-  "minor": 8,
+  "minor": 9,
   "patch": 0,
-  "lastUpdate": "2026-02-01",
-  "description": "CRM Solution v1.8.0 - Azure DevOps CI/CD, Bicep IaC, multi-environment deployment",
+  "lastUpdate": "2026-02-02",
+  "description": "CRM Solution v1.9.0 - Deduplication Feature with fuzzy matching, merge/unmerge, and audit trail",
   "git": {
     "branch": "dev",
-    "commit": "5666434"
+    "commit": "dedup-feature"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-01T22:00:00"
+  "buildTime": "2026-02-02T14:45:00"
 }

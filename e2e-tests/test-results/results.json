@@ -179,7 +179,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4466,
+                  "duration": 4215,
                   "errors": [],
                   "stdout": [
                     {
@@ -197,7 +197,7 @@
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-02-01T12:05:20.258Z",
+                  "startTime": "2026-02-02T12:12:20.908Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -213,20 +213,20 @@
       ]
     },
     {
-      "title": "campaigns/campaign-bugs.spec.ts",
-      "file": "campaigns/campaign-bugs.spec.ts",
+      "title": "deduplication/deduplication.spec.ts",
+      "file": "deduplication/deduplication.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Campaign Bug Hunt",
-          "file": "campaigns/campaign-bugs.spec.ts",
-          "line": 9,
+          "title": "Deduplication - API Tests",
+          "file": "deduplication/deduplication.spec.ts",
+          "line": 39,
           "column": 6,
           "specs": [
             {
-              "title": "BUG-001: Empty form submission should show validation errors",
+              "title": "TC-DEDUP-001: Should check for duplicates with no matches",
               "ok": true,
               "tags": [],
               "tests": [
@@ -241,16 +241,16 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3014,
+                      "duration": 856,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "✓ Empty form validation works\n"
+                          "text": "Duplicate check response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T12:05:26.012Z",
+                      "startTime": "2026-02-02T12:12:26.015Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -258,171 +258,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "315a9e599398b2654917-d2730679ef91cd9acaa3",
-              "file": "campaigns/campaign-bugs.spec.ts",
-              "line": 17,
+              "id": "c4a875a6c503b914ab9b-853625f16925986b3f90",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 42,
               "column": 7
             },
             {
-              "title": "BUG-002: End date before start date validation (requires frontend rebuild)",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 4952,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "Start date: 2026-12-01 End date: 2026-01-01\n"
-                        },
-                        {
-                          "text": "String comparison endDate < startDate: \u001b[33mtrue\u001b[39m\n"
-                        },
-                        {
-                          "text": "⚠ Date validation not active - campaign was created\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:26.002Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "315a9e599398b2654917-84423f9cd802be819920",
-              "file": "campaigns/campaign-bugs.spec.ts",
-              "line": 37,
-              "column": 7
-            },
-            {
-              "title": "BUG-003: Negative budget should be rejected",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 3779,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "✓ Negative budget validation correctly rejects negative values\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:26.012Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "315a9e599398b2654917-93135b7d936a645e03bc",
-              "file": "campaigns/campaign-bugs.spec.ts",
-              "line": 96,
-              "column": 7
-            },
-            {
-              "title": "BUG-004: ROI calculation with zero spend should not show Infinity/NaN",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 2181,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "✓ ROI calculation handles zero spend correctly: Calculated ROI: 0%\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:26.001Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "315a9e599398b2654917-aa76ce5d76d1d754b2c8",
-              "file": "campaigns/campaign-bugs.spec.ts",
-              "line": 121,
-              "column": 7
-            },
-            {
-              "title": "BUG-005: Bulk update without selecting fields should warn user",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 3458,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "✓ Bulk update with no fields completed without crash\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:28.465Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "315a9e599398b2654917-780c55c652c35347740a",
-              "file": "campaigns/campaign-bugs.spec.ts",
-              "line": 148,
-              "column": 7
-            },
-            {
-              "title": "BUG-006: Notes tab should show save-first message for new campaigns",
+              "title": "TC-DEDUP-002: Should detect duplicate by email",
               "ok": true,
               "tags": [],
               "tests": [
@@ -437,16 +279,16 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1823,
+                      "duration": 729,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "✓ Notes tab correctly shows save-first message\n"
+                          "text": "Duplicate detection response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T12:05:29.287Z",
+                      "startTime": "2026-02-02T12:12:27.093Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -454,51 +296,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "315a9e599398b2654917-4d2c09c9ef27d18ca125",
-              "file": "campaigns/campaign-bugs.spec.ts",
-              "line": 183,
+              "id": "c4a875a6c503b914ab9b-383599e1341afb04c2b5",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 65,
               "column": 7
             },
             {
-              "title": "BUG-007: Campaign type dropdown should show all options",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 2423,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "Campaign type has 26 options\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:30.065Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "315a9e599398b2654917-fb96b47384bfb724d351",
-              "file": "campaigns/campaign-bugs.spec.ts",
-              "line": 209,
-              "column": 7
-            },
-            {
-              "title": "BUG-008: Performance metrics should update calculated fields",
+              "title": "TC-DEDUP-003: Should detect fuzzy name matches",
               "ok": true,
               "tags": [],
               "tests": [
@@ -513,16 +317,16 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2421,
+                      "duration": 562,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "✓ CTR calculation correct: 5.00%\n"
+                          "text": "Fuzzy match response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T12:05:31.126Z",
+                      "startTime": "2026-02-02T12:12:27.843Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -530,512 +334,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "315a9e599398b2654917-f4566483435c146744a5",
-              "file": "campaigns/campaign-bugs.spec.ts",
-              "line": 239,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "campaigns/campaign-execution.spec.ts",
-      "file": "campaigns/campaign-execution.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Campaign Execution - Navigation",
-          "file": "campaigns/campaign-execution.spec.ts",
-          "line": 10,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CEXE-001: Should display campaigns list",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 464,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:31.229Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-bac3adf8b910cdb9680c",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 16,
+              "id": "c4a875a6c503b914ab9b-39bfbec8a0821ec053e9",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 108,
               "column": 7
             },
             {
-              "title": "TC-CEXE-002: Should navigate to campaign execution page",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 384,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:31.702Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-97442041f50467b9c8f0",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 20,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Campaign Execution - Workflows",
-          "file": "campaigns/campaign-execution.spec.ts",
-          "line": 35,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CEXE-010: Should display workflows tab",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 435,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:31.948Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-b4d00ed908eefd5d8ff7",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 36,
-              "column": 7
-            },
-            {
-              "title": "TC-CEXE-011: Should show link workflow button",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 385,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:32.096Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-808ea42041b32bc62fc3",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 52,
-              "column": 7
-            },
-            {
-              "title": "TC-CEXE-012: Should open link workflow dialog",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 433,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:32.418Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-11e8aef7bea736e810b6",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 63,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Campaign Execution - Recipients",
-          "file": "campaigns/campaign-execution.spec.ts",
-          "line": 76,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CEXE-020: Should show recipients tab",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 423,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:32.507Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-b6206ea5011cfba84967",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 77,
-              "column": 7
-            },
-            {
-              "title": "TC-CEXE-021: Should open add recipients dialog",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 474,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:32.524Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-b3eac5b248302f4a8387",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 89,
-              "column": 7
-            },
-            {
-              "title": "TC-CEXE-022: Should add recipients to campaign",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 428,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:32.867Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-12e3677f23db58b557ce",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 107,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Campaign Execution - A/B Testing",
-          "file": "campaigns/campaign-execution.spec.ts",
-          "line": 131,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CEXE-030: Should show A/B tests tab",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 415,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:32.949Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-080acb244ad70b7898fd",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 132,
-              "column": 7
-            },
-            {
-              "title": "TC-CEXE-031: Should open create A/B test dialog",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 371,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:33.014Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-ae95e65746d830f663de",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 144,
-              "column": 7
-            },
-            {
-              "title": "TC-CEXE-032: Should create A/B test",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 488,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:33.341Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-5cb5c4ecdac99ef25192",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 162,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Campaign Execution - Conversions",
-          "file": "campaigns/campaign-execution.spec.ts",
-          "line": 198,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CEXE-040: Should show conversions tab",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 518,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:33.376Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-d7e79b3ddf187885fe4e",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 199,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Campaign Execution - Analytics",
-          "file": "campaigns/campaign-execution.spec.ts",
-          "line": 212,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CEXE-050: Should show analytics tab",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 496,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:33.399Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-d5b67c0d5f5791e065e3",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 213,
-              "column": 7
-            },
-            {
-              "title": "TC-CEXE-051: Should display engagement funnel",
+              "title": "TC-DEDUP-004: Should get active duplicate rules",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1050,12 +355,16 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 498,
+                      "duration": 683,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "Duplicate rules response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T12:05:33.570Z",
+                      "startTime": "2026-02-02T12:12:28.412Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1063,123 +372,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "c003f46a135444c7195a-1224d8282e740c696fc7",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 224,
+              "id": "c4a875a6c503b914ab9b-3bb47f975234e5ab1f70",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 128,
               "column": 7
             },
             {
-              "title": "TC-CEXE-052: Should display ROI metrics",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 499,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:33.843Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-6acbafd09ecbf85e9c64",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 241,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Campaign Execution - Summary Cards",
-          "file": "campaigns/campaign-execution.spec.ts",
-          "line": 259,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CEXE-060: Should display summary metrics cards",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 468,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:33.912Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-6c16320e4f53399c9eec",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 260,
-              "column": 7
-            },
-            {
-              "title": "TC-CEXE-061: Should show open rate metric",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 495,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:33.916Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-8d92b99e5acf02e06d14",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 271,
-              "column": 7
-            },
-            {
-              "title": "TC-CEXE-062: Should show conversion rate metric",
+              "title": "TC-DEDUP-005: Should handle Contact duplicates",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1194,97 +393,16 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 610,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:34.093Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "c003f46a135444c7195a-10ec29b3ed766ccc11d4",
-              "file": "campaigns/campaign-execution.spec.ts",
-              "line": 281,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "campaigns/campaign-setup.spec.ts",
-      "file": "campaigns/campaign-setup.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Campaign Setup - Create Sample Data",
-          "file": "campaigns/campaign-setup.spec.ts",
-          "line": 63,
-          "column": 6,
-          "specs": [
-            {
-              "title": "SETUP-001: Create sample campaigns for testing",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 1703,
+                      "duration": 909,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "Creating campaign: Q1 Email Newsletter\n"
-                        },
-                        {
-                          "text": "  ⏭ Campaign \"Q1 Email Newsletter\" already exists, skipping\n"
-                        },
-                        {
-                          "text": "Creating campaign: Spring Social Media Push\n"
-                        },
-                        {
-                          "text": "  ⏭ Campaign \"Spring Social Media Push\" already exists, skipping\n"
-                        },
-                        {
-                          "text": "Creating campaign: Product Launch Webinar\n"
-                        },
-                        {
-                          "text": "  ⏭ Campaign \"Product Launch Webinar\" already exists, skipping\n"
-                        },
-                        {
-                          "text": "Creating campaign: Trade Show 2026\n"
-                        },
-                        {
-                          "text": "  ⏭ Campaign \"Trade Show 2026\" already exists, skipping\n"
-                        },
-                        {
-                          "text": "Creating campaign: Completed Winter Sale\n"
-                        },
-                        {
-                          "text": "  ⏭ Campaign \"Completed Winter Sale\" already exists, skipping\n"
-                        },
-                        {
-                          "text": "\n📊 Total campaigns in table: 19\n"
+                          "text": "Contact duplicate check: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T12:05:34.407Z",
+                      "startTime": "2026-02-02T12:12:29.103Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1292,95 +410,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "a36d1b07c6c96d5b0da7-2704386f9d0e7c1a6d97",
-              "file": "campaigns/campaign-setup.spec.ts",
-              "line": 69,
+              "id": "c4a875a6c503b914ab9b-de279c0271d40d4ef867",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 138,
               "column": 7
             },
             {
-              "title": "SETUP-002: Add performance metrics to a campaign",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 4759,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "Campaign row visible: \u001b[33mtrue\u001b[39m\n"
-                        },
-                        {
-                          "text": "Looking for edit button...\n"
-                        },
-                        {
-                          "text": "✓ Added performance metrics to first campaign\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:34.409Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "a36d1b07c6c96d5b0da7-2cc535b58232b5ce6fdf",
-              "file": "campaigns/campaign-setup.spec.ts",
-              "line": 176,
-              "column": 7
-            },
-            {
-              "title": "SETUP-003: Add email metrics to email campaign",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 4042,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "✓ Added email metrics to campaign\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:34.464Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "a36d1b07c6c96d5b0da7-15a341a57aa28845b808",
-              "file": "campaigns/campaign-setup.spec.ts",
-              "line": 233,
-              "column": 7
-            },
-            {
-              "title": "SETUP-004: Add social metrics to social campaign",
+              "title": "TC-DEDUP-006: Should handle Account duplicates",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1395,16 +431,16 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4061,
+                      "duration": 470,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "✓ Added social metrics to campaign\n"
+                          "text": "Account duplicate check: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T12:05:34.745Z",
+                      "startTime": "2026-02-02T12:12:30.020Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1412,448 +448,212 @@
                   "status": "expected"
                 }
               ],
-              "id": "a36d1b07c6c96d5b0da7-483e6751bc66d6566b03",
-              "file": "campaigns/campaign-setup.spec.ts",
-              "line": 280,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "campaigns/campaigns.spec.ts",
-      "file": "campaigns/campaigns.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Campaigns - List View",
-          "file": "campaigns/campaigns.spec.ts",
-          "line": 11,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CAMP-001: Should display campaigns list",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 994,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:36.170Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "2a0f8c3a60a95eec0662-4ed487e989ee5c512ff2",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 17,
-              "column": 7
-            },
-            {
-              "title": "TC-CAMP-002: Should show campaign status",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 358,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:37.173Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "2a0f8c3a60a95eec0662-45c5414f8e6c261031c8",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 23,
-              "column": 7
-            },
-            {
-              "title": "TC-CAMP-003: Should filter by type",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 361,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:37.563Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "2a0f8c3a60a95eec0662-05bc796dc2659beaa769",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 30,
-              "column": 7
-            },
-            {
-              "title": "TC-CAMP-004: Should search campaigns",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 905,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:37.936Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "2a0f8c3a60a95eec0662-df4318ad42a064e1a999",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 43,
+              "id": "c4a875a6c503b914ab9b-d98f3cc1690369402fae",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 157,
               "column": 7
             }
           ]
         },
         {
-          "title": "Campaigns - Create",
-          "file": "campaigns/campaigns.spec.ts",
-          "line": 56,
+          "title": "Deduplication - Merge Operations",
+          "file": "deduplication/deduplication.spec.ts",
+          "line": 177,
           "column": 6,
           "specs": [
             {
-              "title": "TC-CAMP-005: Should create email campaign",
+              "title": "TC-DEDUP-010: Should preview merge operation",
               "ok": true,
               "tags": [],
               "tests": [
                 {
                   "timeout": 60000,
-                  "annotations": [
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
                     {
-                      "type": "skip",
-                      "location": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
-                        "line": 67,
-                        "column": 12
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 974,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Merge preview response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-02T12:12:26.046Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c4a875a6c503b914ab9b-a6136da44132d7e5949d",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 180,
+              "column": 7
+            },
+            {
+              "title": "TC-DEDUP-011: Should get merge history",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 842,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Merge history response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-02T12:12:27.203Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c4a875a6c503b914ab9b-128d8062634c429d9b91",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 197,
+              "column": 7
+            },
+            {
+              "title": "TC-DEDUP-012: Should handle invalid entity type gracefully",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 836,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m400\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m400\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/deduplication/deduplication.spec.ts:220:29",
+                        "location": {
+                          "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/deduplication/deduplication.spec.ts",
+                          "column": 29,
+                          "line": 220
+                        },
+                        "snippet": "  218 |     console.log('Invalid entity response:', JSON.stringify(response, null, 2));\n  219 |     // Should return 400 Bad Request, not 500\n> 220 |     expect(response.status).toBe(400);\n      |                             ^\n  221 |   });\n  222 |\n  223 |   test('TC-DEDUP-013: Should require field values', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/deduplication/deduplication.spec.ts",
+                            "column": 29,
+                            "line": 220
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m400\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n  218 |     console.log('Invalid entity response:', JSON.stringify(response, null, 2));\n  219 |     // Should return 400 Bad Request, not 500\n> 220 |     expect(response.status).toBe(400);\n      |                             ^\n  221 |   });\n  222 |\n  223 |   test('TC-DEDUP-013: Should require field values', async ({ page }) => {\n    at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/deduplication/deduplication.spec.ts:220:29"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Invalid entity response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-02T12:12:28.057Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/test-results/artifacts/deduplication-deduplicatio-17103-alid-entity-type-gracefully-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/test-results/artifacts/deduplication-deduplicatio-17103-alid-entity-type-gracefully-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/deduplication/deduplication.spec.ts",
+                        "column": 29,
+                        "line": 220
                       }
                     }
                   ],
-                  "expectedStatus": "skipped",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "skipped",
-                      "duration": 346,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:38.531Z",
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
-                            "line": 67,
-                            "column": 12
-                          }
-                        }
-                      ],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "skipped"
+                  "status": "unexpected"
                 }
               ],
-              "id": "2a0f8c3a60a95eec0662-680f815da36bd005c3c4",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 62,
-              "column": 7
-            },
-            {
-              "title": "TC-CAMP-006: Should create social media campaign",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [
-                    {
-                      "type": "skip",
-                      "location": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
-                        "line": 114,
-                        "column": 12
-                      }
-                    }
-                  ],
-                  "expectedStatus": "skipped",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "skipped",
-                      "duration": 473,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:38.851Z",
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
-                            "line": 114,
-                            "column": 12
-                          }
-                        }
-                      ],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "skipped"
-                }
-              ],
-              "id": "2a0f8c3a60a95eec0662-51019f71566c159bfd7c",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 109,
-              "column": 7
-            },
-            {
-              "title": "TC-CAMP-007: Should set target audience",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [
-                    {
-                      "type": "skip",
-                      "location": {
-                        "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
-                        "line": 145,
-                        "column": 12
-                      }
-                    }
-                  ],
-                  "expectedStatus": "skipped",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 2,
-                      "status": "skipped",
-                      "duration": 443,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:38.888Z",
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "location": {
-                            "file": "/Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/campaigns/campaigns.spec.ts",
-                            "line": 145,
-                            "column": 12
-                          }
-                        }
-                      ],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "skipped"
-                }
-              ],
-              "id": "2a0f8c3a60a95eec0662-4e7056cb431eb00f20fc",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 142,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Campaigns - Lifecycle",
-          "file": "campaigns/campaigns.spec.ts",
-          "line": 162,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CAMP-008: Should start campaign",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 4540,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:38.899Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "2a0f8c3a60a95eec0662-3a9caac7f1d64789af9d",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 163,
-              "column": 7
-            },
-            {
-              "title": "TC-CAMP-009: Should pause campaign",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 4671,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:39.212Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "2a0f8c3a60a95eec0662-0cd2496ee8eeb3d4b992",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 185,
-              "column": 7
-            },
-            {
-              "title": "TC-CAMP-010: Should complete campaign",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 4557,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:39.342Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "2a0f8c3a60a95eec0662-0dfdb48b14e35c9bceb6",
-              "file": "campaigns/campaigns.spec.ts",
+              "id": "c4a875a6c503b914ab9b-fc6f78e5351784c6ac16",
+              "file": "deduplication/deduplication.spec.ts",
               "line": 207,
               "column": 7
+            },
+            {
+              "title": "TC-DEDUP-013: Should require field values",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": -1,
+                      "parallelIndex": -1,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-02T12:12:28.922Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c4a875a6c503b914ab9b-6a44430389672e4bcc1f",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 223,
+              "column": 7
             }
           ]
         },
         {
-          "title": "Campaigns - Metrics",
-          "file": "campaigns/campaigns.spec.ts",
-          "line": 230,
+          "title": "Deduplication - UI Integration",
+          "file": "deduplication/deduplication.spec.ts",
+          "line": 238,
           "column": 6,
           "specs": [
             {
-              "title": "TC-CAMP-011: Should display campaign metrics",
+              "title": "TC-DEDUP-020: Should show duplicate detection dialog on lead create",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1868,12 +668,12 @@
                       "workerIndex": 3,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 2554,
+                      "duration": 2962,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T12:05:39.342Z",
+                      "startTime": "2026-02-02T12:12:26.003Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1881,13 +681,223 @@
                   "status": "expected"
                 }
               ],
-              "id": "2a0f8c3a60a95eec0662-913e46da4939d73c1128",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 231,
+              "id": "c4a875a6c503b914ab9b-c79f7cab40d6e4910597",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 239,
               "column": 7
             },
             {
-              "title": "TC-CAMP-012: Should show ROI data",
+              "title": "TC-DEDUP-021: Should navigate to duplicate management page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 866,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Has duplicate management section: \u001b[33mfalse\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-02T12:12:26.015Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c4a875a6c503b914ab9b-3b1f5b042bceb1dba38c",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 272,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Deduplication - Edge Cases",
+          "file": "deduplication/deduplication.spec.ts",
+          "line": 290,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-DEDUP-030: Should handle special characters in names",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 767,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Special chars response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-02T12:12:27.131Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c4a875a6c503b914ab9b-66232d5284378ea0aa25",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 291,
+              "column": 7
+            },
+            {
+              "title": "TC-DEDUP-031: Should handle unicode characters",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 746,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Unicode response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-02T12:12:27.907Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c4a875a6c503b914ab9b-7b87fc944e0f28280806",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 310,
+              "column": 7
+            },
+            {
+              "title": "TC-DEDUP-032: Should handle very long field values",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 769,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Long values response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-02T12:12:28.661Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c4a875a6c503b914ab9b-e94a7ad5cd288a2c21f4",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 329,
+              "column": 7
+            },
+            {
+              "title": "TC-DEDUP-033: Should handle phone number variations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 664,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Phone format \"555-123-4567\" response status: \u001b[33m401\u001b[39m\n"
+                        },
+                        {
+                          "text": "Phone format \"(555) 123-4567\" response status: \u001b[33m401\u001b[39m\n"
+                        },
+                        {
+                          "text": "Phone format \"5551234567\" response status: \u001b[33m401\u001b[39m\n"
+                        },
+                        {
+                          "text": "Phone format \"+1 555 123 4567\" response status: \u001b[33m401\u001b[39m\n"
+                        },
+                        {
+                          "text": "Phone format \"555.123.4567\" response status: \u001b[33m401\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-02T12:12:29.678Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c4a875a6c503b914ab9b-61f143da43376d6ed98d",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 349,
+              "column": 7
+            },
+            {
+              "title": "TC-DEDUP-034: Should handle email variations",
               "ok": true,
               "tags": [],
               "tests": [
@@ -1902,12 +912,16 @@
                       "workerIndex": 3,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 2529,
+                      "duration": 802,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "Email plus addressing response: {\n  \"status\": 401,\n  \"data\": \"\",\n  \"ok\": false\n}\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-01T12:05:41.909Z",
+                      "startTime": "2026-02-02T12:12:29.201Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1915,51 +929,9 @@
                   "status": "expected"
                 }
               ],
-              "id": "2a0f8c3a60a95eec0662-f15655ca9d2954151214",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 251,
-              "column": 7
-            }
-          ]
-        },
-        {
-          "title": "Campaigns - Delete",
-          "file": "campaigns/campaigns.spec.ts",
-          "line": 271,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC-CAMP-013: Should delete test campaign",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 4553,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-02-01T12:05:43.450Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "2a0f8c3a60a95eec0662-f15557fa484beb397e51",
-              "file": "campaigns/campaigns.spec.ts",
-              "line": 272,
+              "id": "c4a875a6c503b914ab9b-a708bb9d2f81da229880",
+              "file": "deduplication/deduplication.spec.ts",
+              "line": 379,
               "column": 7
             }
           ]
@@ -1969,11 +941,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-02-01T12:05:19.361Z",
-    "duration": 28689.188,
-    "expected": 41,
-    "skipped": 3,
-    "unexpected": 0,
+    "startTime": "2026-02-02T12:12:20.299Z",
+    "duration": 10223.1,
+    "expected": 16,
+    "skipped": 1,
+    "unexpected": 1,
     "flaky": 0
   }
 }

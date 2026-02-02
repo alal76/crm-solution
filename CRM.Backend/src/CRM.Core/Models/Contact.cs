@@ -360,6 +360,22 @@ public class Contact
     
     #endregion
 
+    #region Merge Tracking
+    
+    /// <summary>If this record was merged, ID of the master record it was merged into</summary>
+    public int? MergedIntoId { get; set; }
+    
+    /// <summary>Reference to the merge group this record belongs to</summary>
+    public int? MergeGroupId { get; set; }
+    
+    /// <summary>Quick flag indicating this is a merged duplicate (soft-deleted)</summary>
+    public bool IsMergedDuplicate { get; set; } = false;
+    
+    /// <summary>When this record was merged</summary>
+    public DateTime? MergedAt { get; set; }
+    
+    #endregion
+
     #region Lookup FKs
     
     public int? PreferredContactMethodLookupId { get; set; }
