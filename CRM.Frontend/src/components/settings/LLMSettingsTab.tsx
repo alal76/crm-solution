@@ -204,7 +204,7 @@ export const LLMSettingsTab: React.FC = () => {
       const token = localStorage.getItem('accessToken');
       
       // Fetch workflow config for providers list
-      const configResponse = await fetch(getApiEndpoint('/workflow/config'), {
+      const configResponse = await fetch(getApiEndpoint('/workflows/config'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (configResponse.ok) {
@@ -213,7 +213,7 @@ export const LLMSettingsTab: React.FC = () => {
       }
 
       // Fetch LLM settings from database
-      const settingsResponse = await fetch(getApiEndpoint('/workflow/llm-settings'), {
+      const settingsResponse = await fetch(getApiEndpoint('/workflows/llm-settings'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (settingsResponse.ok) {
@@ -270,7 +270,7 @@ export const LLMSettingsTab: React.FC = () => {
     setError(null);
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(getApiEndpoint('/workflow/llm-settings'), {
+      const response = await fetch(getApiEndpoint('/workflows/llm-settings'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -301,7 +301,7 @@ export const LLMSettingsTab: React.FC = () => {
     setError(null);
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(getApiEndpoint('/workflow/llm-settings/reset'), {
+      const response = await fetch(getApiEndpoint('/workflows/llm-settings/reset'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });

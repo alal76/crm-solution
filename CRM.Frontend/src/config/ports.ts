@@ -60,7 +60,7 @@ export const getApiBaseUrl = (): string => {
 
 /**
  * Get the API URL with /api suffix
- * @returns Full API URL (e.g., 'http://localhost:5000/api' or 'http://example.com/api')
+ * @returns Full API URL (hostname:port/api format)
  */
 export const getApiUrl = (): string => {
   return `${getApiBaseUrl()}/api`;

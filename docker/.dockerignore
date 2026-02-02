@@ -9,7 +9,8 @@ npm-debug.log
 yarn-error.log
 
 # Build outputs
-build
+# Note: Only ignore the root build directory, not CRM.Frontend/build
+/build
 dist
 out
 *.exe
