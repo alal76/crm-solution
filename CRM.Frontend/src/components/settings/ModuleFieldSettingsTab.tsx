@@ -53,7 +53,7 @@ import {
   AccountTree as AccountTreeIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import apiClient from '../../services/apiClient';
 import fieldMasterDataService, {
   FieldMasterDataLink,
