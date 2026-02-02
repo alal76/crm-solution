@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -21,37 +37,37 @@ namespace CRM.Infrastructure.Services;
 public class ZipCodeImportOptions
 {
     public const string SectionName = "ZipCodeImport";
-    
+
     /// <summary>
     /// Enable automatic scheduled imports
     /// </summary>
     public bool EnableScheduledImport { get; set; } = false;
-    
+
     /// <summary>
     /// Cron expression for scheduled imports (e.g., "0 0 1 * *" for monthly)
     /// </summary>
     public string CronExpression { get; set; } = "0 0 1 * *"; // Monthly at midnight on the 1st
-    
+
     /// <summary>
     /// Import source: "GeoNames", "GitHub", or custom URL
     /// </summary>
     public string ImportSource { get; set; } = "GeoNames";
-    
+
     /// <summary>
     /// Custom GitHub URL for ZIP code data
     /// </summary>
     public string? GitHubUrl { get; set; }
-    
+
     /// <summary>
     /// List of country codes to import (empty = all countries)
     /// </summary>
     public List<string> CountryCodes { get; set; } = new() { "US" };
-    
+
     /// <summary>
     /// Auto-import on startup if table is empty
     /// </summary>
     public bool ImportOnStartupIfEmpty { get; set; } = true;
-    
+
     /// <summary>
     /// Minimum hours between imports
     /// </summary>
@@ -82,17 +98,17 @@ public class ZipCodeImportHostedService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("ZIP Code Import Service starting...");
-        
+
         // Initial delay to let the application start up
         await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
-        
+
         // Check if we should import on startup
         if (_options.ImportOnStartupIfEmpty && !_initialImportDone)
         {
             await CheckAndImportIfEmptyAsync(stoppingToken);
             _initialImportDone = true;
         }
-        
+
         // Main scheduling loop
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -119,7 +135,7 @@ public class ZipCodeImportHostedService : BackgroundService
     {
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CRM.Infrastructure.Data.CrmDbContext>();
-        
+
         var count = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
             .CountAsync(context.ZipCodes, cancellationToken);
 
@@ -158,7 +174,7 @@ public class ZipCodeImportHostedService : BackgroundService
     {
         // Simple cron-like check for monthly on the 1st at midnight
         var now = DateTime.UtcNow;
-        
+
         // Parse simple cron expression (minute hour dayOfMonth month dayOfWeek)
         var parts = _options.CronExpression.Split(' ');
         if (parts.Length < 5) return false;
@@ -206,21 +222,21 @@ public class ZipCodeImportHostedService : BackgroundService
             var totalImported = 0;
             var totalSkipped = 0;
             var errors = new List<string>();
-            
+
             foreach (var countryCode in _options.CountryCodes)
             {
                 if (cancellationToken.IsCancellationRequested) break;
-                
+
                 var countryResult = await importService.ImportCountryFromGeoNamesAsync(countryCode, cancellationToken);
                 totalImported += countryResult.RecordsImported;
                 totalSkipped += countryResult.RecordsSkipped;
-                
+
                 if (!countryResult.Success && !string.IsNullOrEmpty(countryResult.ErrorMessage))
                 {
                     errors.Add($"{countryCode}: {countryResult.ErrorMessage}");
                 }
             }
-            
+
             result = new ZipCodeImportResult
             {
                 Success = errors.Count == 0,
@@ -278,7 +294,7 @@ public class ZipCodeImportJob
         using var scope = _serviceProvider.CreateScope();
         var importService = scope.ServiceProvider.GetRequiredService<IZipCodeImportService>();
 
-        _logger.LogInformation("Executing ZIP code import job. Source: {Source}, Country: {Country}", 
+        _logger.LogInformation("Executing ZIP code import job. Source: {Source}, Country: {Country}",
             source, countryCode ?? "All");
 
         if (source.Equals("GitHub", StringComparison.OrdinalIgnoreCase))

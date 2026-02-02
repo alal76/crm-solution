@@ -83,8 +83,8 @@ public class WorkflowEngineController : ControllerBase
                 CompletedAt = i.CompletedAt,
                 CurrentNodeId = i.CurrentNodeId,
                 CurrentNodeName = i.CurrentNode?.Name,
-                TriggeredByName = i.TriggeredBy != null 
-                    ? $"{i.TriggeredBy.FirstName} {i.TriggeredBy.LastName}" 
+                TriggeredByName = i.TriggeredBy != null
+                    ? $"{i.TriggeredBy.FirstName} {i.TriggeredBy.LastName}"
                     : "System",
                 ErrorMessage = i.ErrorMessage,
                 IsCancelled = i.IsCancelled
@@ -130,8 +130,8 @@ public class WorkflowEngineController : ControllerBase
                 CurrentNodeName = instance.CurrentNode?.Name,
                 TriggerEvent = instance.TriggerEvent,
                 TriggeredById = instance.TriggeredById,
-                TriggeredByName = instance.TriggeredBy != null 
-                    ? $"{instance.TriggeredBy.FirstName} {instance.TriggeredBy.LastName}" 
+                TriggeredByName = instance.TriggeredBy != null
+                    ? $"{instance.TriggeredBy.FirstName} {instance.TriggeredBy.LastName}"
                     : "System",
                 InputData = instance.InputData,
                 StateData = instance.StateData,
@@ -377,7 +377,7 @@ public class WorkflowEngineController : ControllerBase
         try
         {
             var userId = GetCurrentUserId();
-            
+
             var query = _context.WorkflowTasks
                 .Include(t => t.WorkflowInstance)
                     .ThenInclude(i => i!.WorkflowDefinition)

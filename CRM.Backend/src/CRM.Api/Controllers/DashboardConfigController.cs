@@ -54,10 +54,10 @@ public class DashboardConfigController : ControllerBase
 
             var dashboards = await _context.Dashboards
                 .Where(d => !d.IsDeleted && d.IsActive)
-                .Where(d => 
+                .Where(d =>
                     d.Visibility == DashboardVisibility.Public ||
                     (d.Visibility == DashboardVisibility.Private && d.OwnerId == userId) ||
-                    (d.Visibility == DashboardVisibility.RoleBased && 
+                    (d.Visibility == DashboardVisibility.RoleBased &&
                      (d.AllowedRoles == null || d.AllowedRoles.Contains(userRole))))
                 .OrderBy(d => d.DisplayOrder)
                 .ThenBy(d => d.Name)
@@ -157,7 +157,7 @@ public class DashboardConfigController : ControllerBase
             if (dashboard.Visibility == DashboardVisibility.Private && dashboard.OwnerId != userId)
                 return Forbid();
 
-            if (dashboard.Visibility == DashboardVisibility.RoleBased && 
+            if (dashboard.Visibility == DashboardVisibility.RoleBased &&
                 dashboard.AllowedRoles != null && !dashboard.AllowedRoles.Contains(userRole))
                 return Forbid();
 
@@ -225,10 +225,10 @@ public class DashboardConfigController : ControllerBase
 
             var dashboard = await _context.Dashboards
                 .Where(d => d.IsDefault && !d.IsDeleted && d.IsActive)
-                .Where(d => 
+                .Where(d =>
                     d.Visibility == DashboardVisibility.Public ||
                     (d.Visibility == DashboardVisibility.Private && d.OwnerId == userId) ||
-                    (d.Visibility == DashboardVisibility.RoleBased && 
+                    (d.Visibility == DashboardVisibility.RoleBased &&
                      (d.AllowedRoles == null || d.AllowedRoles.Contains(userRole))))
                 .Include(d => d.Widgets.Where(w => !w.IsDeleted && w.IsVisible))
                 .Include(d => d.Owner)
@@ -239,10 +239,10 @@ public class DashboardConfigController : ControllerBase
                 // Return the first available dashboard
                 dashboard = await _context.Dashboards
                     .Where(d => !d.IsDeleted && d.IsActive)
-                    .Where(d => 
+                    .Where(d =>
                         d.Visibility == DashboardVisibility.Public ||
                         (d.Visibility == DashboardVisibility.Private && d.OwnerId == userId) ||
-                        (d.Visibility == DashboardVisibility.RoleBased && 
+                        (d.Visibility == DashboardVisibility.RoleBased &&
                          (d.AllowedRoles == null || d.AllowedRoles.Contains(userRole))))
                     .Include(d => d.Widgets.Where(w => !w.IsDeleted && w.IsVisible))
                     .OrderBy(d => d.DisplayOrder)
@@ -339,7 +339,7 @@ public class DashboardConfigController : ControllerBase
                 RefreshIntervalSeconds = dto.RefreshIntervalSeconds ?? 300,
                 LayoutConfig = dto.LayoutConfig,
                 OwnerId = dto.OwnerId ?? userId,
-                Visibility = Enum.TryParse<DashboardVisibility>(dto.Visibility, out var vis) 
+                Visibility = Enum.TryParse<DashboardVisibility>(dto.Visibility, out var vis)
                     ? vis : DashboardVisibility.Public,
                 AllowedRoles = dto.AllowedRoles,
                 CreatedAt = DateTime.UtcNow
@@ -549,7 +549,7 @@ public class DashboardConfigController : ControllerBase
 
             _logger.LogInformation("Widget {Title} created with ID {Id}", widget.Title, widget.Id);
 
-            return CreatedAtAction(nameof(GetWidgets), new { dashboardId = dto.DashboardId }, 
+            return CreatedAtAction(nameof(GetWidgets), new { dashboardId = dto.DashboardId },
                 new { id = widget.Id, title = widget.Title });
         }
         catch (Exception ex)
@@ -714,9 +714,9 @@ public class DashboardConfigController : ControllerBase
             new { id = "customers.count", name = "Customer Count", category = "Customers", type = "count" },
             new { id = "customers.new_this_month", name = "New Customers This Month", category = "Customers", type = "count" },
             new { id = "customers.by_lifecycle", name = "Customers by Lifecycle Stage", category = "Customers", type = "distribution" },
-            
+
             new { id = "contacts.count", name = "Contact Count", category = "Contacts", type = "count" },
-            
+
             new { id = "opportunities.count", name = "Opportunity Count", category = "Opportunities", type = "count" },
             new { id = "opportunities.pipeline_value", name = "Pipeline Value", category = "Opportunities", type = "currency" },
             new { id = "opportunities.won_value", name = "Won Value", category = "Opportunities", type = "currency" },
@@ -724,28 +724,28 @@ public class DashboardConfigController : ControllerBase
             new { id = "opportunities.pipeline_trend", name = "Pipeline Trend", category = "Opportunities", type = "trend" },
             new { id = "opportunities.close_forecast", name = "Expected Closings", category = "Opportunities", type = "forecast" },
             new { id = "opportunities.recent", name = "Recent Opportunities", category = "Opportunities", type = "list" },
-            
+
             new { id = "campaigns.count", name = "Campaign Count", category = "Marketing", type = "count" },
             new { id = "campaigns.active", name = "Active Campaigns", category = "Marketing", type = "count" },
             new { id = "campaigns.budget_total", name = "Total Budget", category = "Marketing", type = "currency" },
-            
+
             new { id = "tasks.count", name = "Task Count", category = "Tasks", type = "count" },
             new { id = "tasks.pending", name = "Pending Tasks", category = "Tasks", type = "count" },
             new { id = "tasks.overdue", name = "Overdue Tasks", category = "Tasks", type = "count" },
             new { id = "tasks.my_tasks", name = "My Tasks", category = "Tasks", type = "list" },
-            
+
             new { id = "service_requests.count", name = "Service Request Count", category = "Service", type = "count" },
             new { id = "service_requests.open", name = "Open Requests", category = "Service", type = "count" },
             new { id = "service_requests.by_status", name = "Requests by Status", category = "Service", type = "distribution" },
             new { id = "service_requests.by_priority", name = "Requests by Priority", category = "Service", type = "distribution" },
-            
+
             new { id = "products.count", name = "Product Count", category = "Products", type = "count" },
             new { id = "products.active", name = "Active Products", category = "Products", type = "count" },
-            
+
             new { id = "users.active", name = "Active Users", category = "Users", type = "count" },
-            
+
             new { id = "activities.recent", name = "Recent Activities", category = "Activities", type = "list" },
-            
+
             new { id = "leads.count", name = "Lead Count", category = "Leads", type = "count" },
             new { id = "leads.this_month", name = "Leads This Month", category = "Leads", type = "count" },
             new { id = "leads.conversion_rate", name = "Lead Conversion Rate", category = "Leads", type = "percentage" }

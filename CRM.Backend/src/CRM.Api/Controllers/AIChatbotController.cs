@@ -27,7 +27,7 @@ public class AIChatbotController : ControllerBase
     private readonly ILLMService _llmService;
     private readonly ILLMSettingsService _llmSettingsService;
     private readonly ILogger<AIChatbotController> _logger;
-    
+
     // Cached documentation context
     private static string? _cachedDocumentation;
     private static DateTime _cacheExpiry = DateTime.MinValue;
@@ -55,14 +55,14 @@ public class AIChatbotController : ControllerBase
         try
         {
             var settings = await _llmSettingsService.GetSettingsAsync();
-            
+
             // Use effective fallback order to get the first configured provider
             var provider = AIServiceHelper.GetFirstAvailableProvider(settings!);
             var model = AIServiceHelper.GetDefaultModelForProvider(settings!, provider);
-            
+
             // Check if the provider is configured
             var isConfigured = _llmService.IsConfigured(provider);
-            
+
             if (!isConfigured)
             {
                 // Return info about all configured providers for debugging
@@ -73,7 +73,7 @@ public class AIChatbotController : ControllerBase
                     provider = provider,
                     model = model,
                     configuredProviders = configuredProviders,
-                    message = configuredProviders.Count == 0 
+                    message = configuredProviders.Count == 0
                         ? "No AI providers configured. Configure at least one provider with an API key or enable local LLM."
                         : "AI service not configured",
                     timestamp = DateTime.UtcNow
@@ -91,9 +91,9 @@ public class AIChatbotController : ControllerBase
                     MaxTokens = 5,
                     Temperature = 0
                 };
-                
+
                 var response = await _llmService.CompletionAsync(testRequest);
-                
+
                 return Ok(new
                 {
                     isHealthy = response.Success,
@@ -164,13 +164,13 @@ public class AIChatbotController : ControllerBase
 
             // Get LLM settings
             var settings = await _llmSettingsService.GetSettingsAsync();
-            
+
             // Use effective fallback order to determine which provider to use
             var effectiveProviders = settings?.EffectiveFallbackOrder ?? new List<string>();
             if (settings == null || effectiveProviders.Count == 0)
             {
-                return Ok(new { 
-                    response = "I apologize, but I'm having trouble connecting to the AI service. Please check your LLM settings or try again later." 
+                return Ok(new {
+                    response = "I apologize, but I'm having trouble connecting to the AI service. Please check your LLM settings or try again later."
                 });
             }
 
@@ -196,10 +196,10 @@ public class AIChatbotController : ControllerBase
             // Add account context if available
             if (!string.IsNullOrEmpty(accountInfo))
             {
-                messages.Add(new LLMMessage 
-                { 
-                    Role = "system", 
-                    Content = $"Current Account Context:\n{accountInfo}" 
+                messages.Add(new LLMMessage
+                {
+                    Role = "system",
+                    Content = $"Current Account Context:\n{accountInfo}"
                 });
             }
 
@@ -210,13 +210,13 @@ public class AIChatbotController : ControllerBase
                     .Where(m => !string.IsNullOrEmpty(m.Content) && (m.Role == "user" || m.Role == "assistant"))
                     .TakeLast(20) // Last 20 messages (10 exchanges)
                     .ToList();
-                
+
                 foreach (var historyMessage in recentHistory)
                 {
-                    messages.Add(new LLMMessage 
-                    { 
-                        Role = historyMessage.Role, 
-                        Content = historyMessage.Content 
+                    messages.Add(new LLMMessage
+                    {
+                        Role = historyMessage.Role,
+                        Content = historyMessage.Content
                     });
                 }
             }
@@ -248,16 +248,16 @@ public class AIChatbotController : ControllerBase
             else
             {
                 _logger.LogWarning("LLM request failed: {Error}", response.Error);
-                return Ok(new { 
-                    response = "I'm having trouble processing your request right now. Please try again or rephrase your question." 
+                return Ok(new {
+                    response = "I'm having trouble processing your request right now. Please try again or rephrase your question."
                 });
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing chatbot message");
-            return Ok(new { 
-                response = "An error occurred while processing your message. Please try again." 
+            return Ok(new {
+                response = "An error occurred while processing your message. Please try again."
             });
         }
     }
@@ -319,7 +319,7 @@ public class AIChatbotController : ControllerBase
         // Modules
         documentation.AppendLine("## Main Modules");
         documentation.AppendLine();
-        
+
         documentation.AppendLine("### Customers/Accounts");
         documentation.AppendLine("- Manage both individual and organization customers");
         documentation.AppendLine("- Track customer information including contacts, addresses, and communication history");
@@ -389,7 +389,7 @@ public class AIChatbotController : ControllerBase
         // AI Features Documentation - Training Context for Allen AI
         documentation.AppendLine("## AI-Powered Features");
         documentation.AppendLine();
-        
+
         documentation.AppendLine("### Lead Scoring (AI-Driven)");
         documentation.AppendLine("- Automatic lead scoring using AI models (Allen AI OLMo/Tulu)");
         documentation.AppendLine("- Score range: 0-100 based on multiple factors");
@@ -399,7 +399,7 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine("- Historical scoring data tracked for trend analysis");
         documentation.AppendLine("- Usage: Navigate to Leads > Select lead > View AI Score tab");
         documentation.AppendLine();
-        
+
         documentation.AppendLine("### Opportunity Insights");
         documentation.AppendLine("- AI-generated insights for sales opportunities");
         documentation.AppendLine("- Win probability predictions with confidence intervals");
@@ -409,7 +409,7 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine("- Optimal timing suggestions for follow-ups");
         documentation.AppendLine("- Usage: Navigate to Opportunities > Select opportunity > View Insights panel");
         documentation.AppendLine();
-        
+
         documentation.AppendLine("### Churn Risk Prediction");
         documentation.AppendLine("- Proactive customer churn risk assessment");
         documentation.AppendLine("- Risk levels: Critical (>80%), High (60-80%), Medium (40-60%), Low (<40%)");
@@ -419,7 +419,7 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine("- Early warning indicators and alerts");
         documentation.AppendLine("- Usage: Navigate to Customers > Select customer > Risk Assessment tab");
         documentation.AppendLine();
-        
+
         documentation.AppendLine("### Next Best Action Recommendations");
         documentation.AppendLine("- AI suggests optimal next actions for each customer/lead");
         documentation.AppendLine("- Action types: Call, Email, Meeting, Send proposal, Offer discount");
@@ -429,7 +429,7 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine("- Channel preferences based on historical response rates");
         documentation.AppendLine("- Usage: Dashboard > Today's Recommended Actions widget");
         documentation.AppendLine();
-        
+
         documentation.AppendLine("### Email Intelligence");
         documentation.AppendLine("- AI-powered email analysis and optimization");
         documentation.AppendLine("- Sentiment analysis of incoming emails");
@@ -439,7 +439,7 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine("- Subject line optimization for outgoing emails");
         documentation.AppendLine("- Usage: Email composer > AI Assist button");
         documentation.AppendLine();
-        
+
         documentation.AppendLine("### AI Model Configuration");
         documentation.AppendLine("- Supports multiple AI providers: OpenAI, Azure, Anthropic, Google, DeepSeek, Allen AI");
         documentation.AppendLine("- Allen AI models (free, open-source): OLMo-7B-Instruct, Tulu-2-7B, OLMo-1B");
@@ -455,7 +455,7 @@ public class AIChatbotController : ControllerBase
             var contactCount = await _context.Contacts.CountAsync();
             var opportunityCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted);
             var productCount = await _context.Products.CountAsync(p => !p.IsDeleted);
-            
+
             documentation.AppendLine("## Current System Statistics");
             documentation.AppendLine($"- Total Customers: {customerCount}");
             documentation.AppendLine($"- Total Contacts: {contactCount}");
@@ -500,7 +500,7 @@ public class AIChatbotController : ControllerBase
     private string BuildSystemPrompt(string documentation, string? accountContext)
     {
         var prompt = new StringBuilder();
-        
+
         prompt.AppendLine("You are a helpful CRM Assistant for a Customer Relationship Management system.");
         prompt.AppendLine("Your role is to help users navigate the CRM, understand features, and accomplish their tasks.");
         prompt.AppendLine();
@@ -529,7 +529,7 @@ public class AIChatbotController : ControllerBase
             return "";
 
         var context = new StringBuilder();
-        
+
         try
         {
             var accounts = await _context.Customers
@@ -544,7 +544,7 @@ public class AIChatbotController : ControllerBase
                     c.LifecycleStage,
                     c.Industry,
                     OpportunityCount = c.Opportunities != null ? c.Opportunities.Count(o => !o.IsDeleted) : 0,
-                    OpenOpportunityValue = c.Opportunities != null 
+                    OpenOpportunityValue = c.Opportunities != null
                         ? c.Opportunities
                             .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
                             .Sum(o => o.Amount)
@@ -554,10 +554,10 @@ public class AIChatbotController : ControllerBase
 
             foreach (var account in accounts)
             {
-                var name = !string.IsNullOrEmpty(account.Company) 
-                    ? account.Company 
+                var name = !string.IsNullOrEmpty(account.Company)
+                    ? account.Company
                     : $"{account.FirstName} {account.LastName}";
-                
+
                 context.AppendLine($"Account: {name}");
                 if (!string.IsNullOrEmpty(account.Email))
                     context.AppendLine($"  - Email: {account.Email}");

@@ -349,7 +349,7 @@ const LoginPage: React.FC = () => {
       script.defer = true;
       
       script.onload = () => {
-        if (window.google) {
+        if (window.google?.accounts?.id) {
           window.google.accounts.id.initialize({
             client_id: googleClientId,
             callback: handleGoogleResponse,

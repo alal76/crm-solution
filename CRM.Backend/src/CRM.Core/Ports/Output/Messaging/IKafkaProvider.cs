@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -55,22 +71,22 @@ public interface IKafkaProvider : IMessageQueueProvider
     /// <summary>
     /// Produces a message to a topic with a key.
     /// </summary>
-    Task<ProduceResult> ProduceAsync<TKey, TValue>(string topic, TKey key, TValue value, ProduceOptions? options = null, CancellationToken cancellationToken = default) 
-        where TKey : class 
+    Task<ProduceResult> ProduceAsync<TKey, TValue>(string topic, TKey key, TValue value, ProduceOptions? options = null, CancellationToken cancellationToken = default)
+        where TKey : class
         where TValue : class;
 
     /// <summary>
     /// Produces a message to a specific partition.
     /// </summary>
-    Task<ProduceResult> ProduceToPartitionAsync<TKey, TValue>(string topic, int partition, TKey key, TValue value, ProduceOptions? options = null, CancellationToken cancellationToken = default) 
-        where TKey : class 
+    Task<ProduceResult> ProduceToPartitionAsync<TKey, TValue>(string topic, int partition, TKey key, TValue value, ProduceOptions? options = null, CancellationToken cancellationToken = default)
+        where TKey : class
         where TValue : class;
 
     /// <summary>
     /// Produces multiple messages in a batch.
     /// </summary>
-    Task<IEnumerable<ProduceResult>> ProduceBatchAsync<TKey, TValue>(string topic, IEnumerable<(TKey Key, TValue Value)> messages, ProduceOptions? options = null, CancellationToken cancellationToken = default) 
-        where TKey : class 
+    Task<IEnumerable<ProduceResult>> ProduceBatchAsync<TKey, TValue>(string topic, IEnumerable<(TKey Key, TValue Value)> messages, ProduceOptions? options = null, CancellationToken cancellationToken = default)
+        where TKey : class
         where TValue : class;
 
     /// <summary>
@@ -100,22 +116,22 @@ public interface IKafkaProvider : IMessageQueueProvider
     /// <summary>
     /// Subscribes to a topic with a consumer group.
     /// </summary>
-    Task<IKafkaSubscription> SubscribeAsync<TKey, TValue>(string topic, string groupId, Func<ConsumeResult<TKey, TValue>, Task<MessageResult>> handler, ConsumeOptions? options = null, CancellationToken cancellationToken = default) 
-        where TKey : class 
+    Task<IKafkaSubscription> SubscribeAsync<TKey, TValue>(string topic, string groupId, Func<ConsumeResult<TKey, TValue>, Task<MessageResult>> handler, ConsumeOptions? options = null, CancellationToken cancellationToken = default)
+        where TKey : class
         where TValue : class;
 
     /// <summary>
     /// Subscribes to multiple topics with a consumer group.
     /// </summary>
-    Task<IKafkaSubscription> SubscribeAsync<TKey, TValue>(IEnumerable<string> topics, string groupId, Func<ConsumeResult<TKey, TValue>, Task<MessageResult>> handler, ConsumeOptions? options = null, CancellationToken cancellationToken = default) 
-        where TKey : class 
+    Task<IKafkaSubscription> SubscribeAsync<TKey, TValue>(IEnumerable<string> topics, string groupId, Func<ConsumeResult<TKey, TValue>, Task<MessageResult>> handler, ConsumeOptions? options = null, CancellationToken cancellationToken = default)
+        where TKey : class
         where TValue : class;
 
     /// <summary>
     /// Assigns specific partitions to consume from.
     /// </summary>
-    Task<IKafkaSubscription> AssignPartitionsAsync<TKey, TValue>(string topic, IEnumerable<int> partitions, Func<ConsumeResult<TKey, TValue>, Task<MessageResult>> handler, ConsumeOptions? options = null, CancellationToken cancellationToken = default) 
-        where TKey : class 
+    Task<IKafkaSubscription> AssignPartitionsAsync<TKey, TValue>(string topic, IEnumerable<int> partitions, Func<ConsumeResult<TKey, TValue>, Task<MessageResult>> handler, ConsumeOptions? options = null, CancellationToken cancellationToken = default)
+        where TKey : class
         where TValue : class;
 
     /// <summary>

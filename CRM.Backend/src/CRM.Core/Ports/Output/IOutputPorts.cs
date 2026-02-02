@@ -124,8 +124,8 @@ public interface IEmailPort
 public interface IExternalApiPort
 {
     Task<T?> GetAsync<T>(string url) where T : class;
-    Task<TResponse?> PostAsync<TRequest, TResponse>(string url, TRequest data) 
-        where TRequest : class 
+    Task<TResponse?> PostAsync<TRequest, TResponse>(string url, TRequest data)
+        where TRequest : class
         where TResponse : class;
 }
 

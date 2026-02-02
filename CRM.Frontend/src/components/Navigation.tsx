@@ -468,8 +468,8 @@ function NavigationContent() {
   }
   
   // Filter nav items based on group permissions and module status
-  const visibleNavItems = navItems.filter(item => canAccessMenu(item.menuName));
-  const visibleAdminItems = adminItems.filter(item => canAccessMenu(item.menuName));
+  const visibleNavItems = navItems.filter((item: { menuName: string }) => canAccessMenu(item.menuName));
+  const visibleAdminItems = adminItems.filter((item: { menuName: string }) => canAccessMenu(item.menuName));
 
   return (
     <>

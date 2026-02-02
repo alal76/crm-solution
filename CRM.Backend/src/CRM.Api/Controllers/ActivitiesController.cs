@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
@@ -47,19 +63,19 @@ public class ActivitiesController : ControllerBase
 
         if (customerId.HasValue)
             query = query.Where(a => a.AccountId == customerId);
-        
+
         if (opportunityId.HasValue)
             query = query.Where(a => a.OpportunityId == opportunityId);
-        
+
         if (userId.HasValue)
             query = query.Where(a => a.UserId == userId);
-        
+
         if (activityType.HasValue)
             query = query.Where(a => a.ActivityType == activityType);
-        
+
         if (fromDate.HasValue)
             query = query.Where(a => a.ActivityDate >= fromDate);
-        
+
         if (toDate.HasValue)
             query = query.Where(a => a.ActivityDate <= toDate);
 
@@ -141,7 +157,7 @@ public class ActivitiesController : ControllerBase
     /// </summary>
     [HttpGet("entity/{entityType}/{entityId}")]
     public async Task<ActionResult<IEnumerable<Activity>>> GetActivitiesByEntity(
-        string entityType, 
+        string entityType,
         int entityId,
         [FromQuery] int limit = 50)
     {

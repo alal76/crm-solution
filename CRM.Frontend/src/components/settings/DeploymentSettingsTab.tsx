@@ -2518,10 +2518,10 @@ echo "Frontend URL: http://localhost:3000"
                 {credentialsValidated[provider.id] && validationDetails[provider.id] && (
                   <Alert severity="success" sx={{ mb: 2 }}>
                     ✓ Credentials validated successfully
-                    {validationDetails[provider.id]?.regions?.length > 0 && (
+                    {(validationDetails[provider.id]?.regions?.length ?? 0) > 0 && (
                       <Typography variant="caption" display="block">
                         Available regions: {validationDetails[provider.id]?.regions?.slice(0, 5).join(', ')}
-                        {validationDetails[provider.id]?.regions?.length > 5 && ` (+${validationDetails[provider.id]?.regions?.length - 5} more)`}
+                        {(validationDetails[provider.id]?.regions?.length ?? 0) > 5 && ` (+${(validationDetails[provider.id]?.regions?.length ?? 0) - 5} more)`}
                       </Typography>
                     )}
                   </Alert>

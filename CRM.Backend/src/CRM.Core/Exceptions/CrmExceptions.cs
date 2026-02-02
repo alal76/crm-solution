@@ -14,7 +14,7 @@ public abstract class CrmException : Exception
     /// HTTP status code to return for this exception
     /// </summary>
     public HttpStatusCode StatusCode { get; }
-    
+
     /// <summary>
     /// Error code for client-side handling
     /// </summary>
@@ -59,7 +59,7 @@ public class ValidationException : CrmException
     }
 
     public ValidationException(string field, string error)
-        : this($"Validation failed for {field}: {error}", 
+        : this($"Validation failed for {field}: {error}",
             new Dictionary<string, string[]> { { field, new[] { error } } })
     {
     }

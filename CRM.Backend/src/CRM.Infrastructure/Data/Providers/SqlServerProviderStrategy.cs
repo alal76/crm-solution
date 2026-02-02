@@ -10,7 +10,7 @@ namespace CRM.Infrastructure.Data.Providers;
 /// <summary>
 /// SQL Server-specific database provider strategy.
 /// Supports: Standalone, Always On Availability Groups (Clustered), Azure SQL Hyperscale.
-/// 
+///
 /// Handles:
 /// - Native rowversion for optimistic concurrency
 /// - nvarchar(max) for large text fields
@@ -19,31 +19,31 @@ namespace CRM.Infrastructure.Data.Providers;
 /// </summary>
 public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
 {
-    public SqlServerProviderStrategy(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone) 
+    public SqlServerProviderStrategy(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone)
         : base(deploymentMode)
     {
     }
-    
+
     public override string ProviderName => "sqlserver";
-    
+
     public override string LongTextColumnType => "nvarchar(max)";
-    
+
     public override string TextColumnType => "nvarchar(max)";
-    
+
     public override string JsonColumnType => "nvarchar(max)"; // SQL Server 2016+ has JSON functions but no native type
-    
+
     public override string GuidColumnType => "uniqueidentifier";
-    
+
     public override string TimestampColumnType => "datetime2";
-    
+
     public override bool SupportsNativeJson => false; // Has JSON functions but stores as nvarchar
-    
+
     public override bool SupportsNativeGuid => true;
-    
+
     public override bool SupportsSequences => true;
-    
+
     public override DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.NoAction;
-    
+
     public override int RecommendedBatchSize => _deploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => 100,
@@ -51,7 +51,7 @@ public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
         DatabaseDeploymentMode.Hyperscale => 2000, // Azure SQL Hyperscale optimized for large batches
         _ => 100
     };
-    
+
     public override void ConfigureRowVersion(ModelBuilder modelBuilder, IMutableEntityType entityType)
     {
         var rowVersionProperty = entityType.FindProperty("RowVersion");
@@ -63,7 +63,7 @@ public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
                 .IsRowVersion();
         }
     }
-    
+
     public override void ApplyPostConfiguration(ModelBuilder modelBuilder)
     {
         // SQL Server specific: disable cascade deletes to avoid "multiple cascade paths" errors
@@ -73,7 +73,7 @@ public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
             relationship.DeleteBehavior = DeleteBehavior.NoAction;
         }
     }
-    
+
     public override void ConfigureIndexes(ModelBuilder modelBuilder)
     {
         // SQL Server supports filtered indexes and included columns
@@ -84,20 +84,20 @@ public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
             // Note: Actual columnstore would require explicit configuration per table
         }
     }
-    
+
     public override string OptimizeConnectionString(string baseConnectionString)
     {
         var optimizations = _deploymentMode switch
         {
-            DatabaseDeploymentMode.Standalone => 
+            DatabaseDeploymentMode.Standalone =>
                 ";MultipleActiveResultSets=True;TrustServerCertificate=True",
-            DatabaseDeploymentMode.Clustered => 
+            DatabaseDeploymentMode.Clustered =>
                 ";MultipleActiveResultSets=True;MultiSubnetFailover=True;ApplicationIntent=ReadWrite;TrustServerCertificate=True",
-            DatabaseDeploymentMode.Hyperscale => 
+            DatabaseDeploymentMode.Hyperscale =>
                 ";MultipleActiveResultSets=True;ApplicationIntent=ReadWrite;TrustServerCertificate=True;Command Timeout=120",
             _ => ""
         };
-        
+
         return baseConnectionString.TrimEnd(';') + optimizations;
     }
 }
@@ -109,11 +109,11 @@ public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
 public class AzureSqlHyperscaleStrategy : SqlServerProviderStrategy
 {
     public AzureSqlHyperscaleStrategy() : base(DatabaseDeploymentMode.Hyperscale) { }
-    
+
     public new string ProviderName => "azuresql-hyperscale";
-    
+
     public override int RecommendedBatchSize => 2000;
-    
+
     public override ConnectionPoolSettings ConnectionPoolSettings => new()
     {
         MinPoolSize = 20,

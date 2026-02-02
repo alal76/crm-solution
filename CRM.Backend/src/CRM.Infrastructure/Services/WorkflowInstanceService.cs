@@ -133,7 +133,7 @@ public class WorkflowInstanceService
             var runningCount = await _context.WorkflowInstances
                 .CountAsync(i => i.WorkflowDefinitionId == workflowDefinitionId &&
                                  i.Status == WorkflowInstanceStatus.Running);
-            
+
             if (runningCount >= workflow.MaxConcurrentInstances)
                 throw new InvalidOperationException($"Maximum concurrent instances ({workflow.MaxConcurrentInstances}) reached");
         }
@@ -156,8 +156,8 @@ public class WorkflowInstanceService
             StateData = "{}",
             ScheduledAt = scheduledAt,
             StartedAt = scheduledAt.HasValue ? null : DateTime.UtcNow,
-            TimeoutAt = workflow.DefaultTimeoutHours > 0 
-                ? DateTime.UtcNow.AddHours(workflow.DefaultTimeoutHours) 
+            TimeoutAt = workflow.DefaultTimeoutHours > 0
+                ? DateTime.UtcNow.AddHours(workflow.DefaultTimeoutHours)
                 : null,
             Priority = workflow.Priority,
             CreatedAt = DateTime.UtcNow
@@ -167,7 +167,7 @@ public class WorkflowInstanceService
         await _context.SaveChangesAsync();
 
         // Create initial log entry
-        await LogAsync(instance.Id, WorkflowLogLevel.Info, "Lifecycle", 
+        await LogAsync(instance.Id, WorkflowLogLevel.Info, "Lifecycle",
             $"Workflow instance started: {workflow.Name}", startNode.Id);
 
         // Create first task if not scheduled
@@ -176,9 +176,9 @@ public class WorkflowInstanceService
             await CreateTaskForNodeAsync(instance.Id, startNode);
         }
 
-        _logger.LogInformation("Started workflow instance {InstanceId} for {EntityType}:{EntityId}", 
+        _logger.LogInformation("Started workflow instance {InstanceId} for {EntityType}:{EntityId}",
             instance.Id, entityType, entityId);
-        
+
         return instance;
     }
 
@@ -202,10 +202,10 @@ public class WorkflowInstanceService
 
         // Cancel pending tasks
         var pendingTasks = await _context.WorkflowTasks
-            .Where(t => t.WorkflowInstanceId == instanceId && 
+            .Where(t => t.WorkflowInstanceId == instanceId &&
                        (t.Status == WorkflowTaskStatus.Pending || t.Status == WorkflowTaskStatus.Waiting))
             .ToListAsync();
-        
+
         foreach (var task in pendingTasks)
         {
             task.Status = WorkflowTaskStatus.Cancelled;
@@ -213,7 +213,7 @@ public class WorkflowInstanceService
         }
 
         await _context.SaveChangesAsync();
-        await LogAsync(instanceId, WorkflowLogLevel.Warning, "Lifecycle", 
+        await LogAsync(instanceId, WorkflowLogLevel.Warning, "Lifecycle",
             $"Workflow instance cancelled: {reason}", userId: userId);
 
         _logger.LogInformation("Cancelled workflow instance {InstanceId}: {Reason}", instanceId, reason);
@@ -277,7 +277,7 @@ public class WorkflowInstanceService
             }
         }
 
-        await LogAsync(instanceId, WorkflowLogLevel.Info, "Lifecycle", 
+        await LogAsync(instanceId, WorkflowLogLevel.Info, "Lifecycle",
             $"Workflow instance retry #{instance.RetryCount}", userId: userId);
         return true;
     }
@@ -310,11 +310,11 @@ public class WorkflowInstanceService
         };
 
         _context.WorkflowNodeInstances.Add(nodeInstance);
-        
+
         // Update current node on instance
         instance.CurrentNodeId = nodeId;
         instance.UpdatedAt = DateTime.UtcNow;
-        
+
         await _context.SaveChangesAsync();
         return nodeInstance;
     }
@@ -342,7 +342,7 @@ public class WorkflowInstanceService
         nodeInstance.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        
+
         await LogAsync(nodeInstance.WorkflowInstanceId, WorkflowLogLevel.Info, "Execution",
             $"Node completed: {nodeInstance.WorkflowNode.Name}", nodeInstance.WorkflowNodeId);
 
@@ -377,13 +377,13 @@ public class WorkflowInstanceService
         {
             nodeInstance.Status = WorkflowNodeInstanceStatus.Retrying;
             nodeInstance.RetryCount++;
-            
+
             var delay = node.UseExponentialBackoff
                 ? TimeSpan.FromSeconds(node.RetryDelaySeconds * Math.Pow(2, nodeInstance.RetryCount - 1))
                 : TimeSpan.FromSeconds(node.RetryDelaySeconds);
-            
+
             nodeInstance.NextRetryAt = DateTime.UtcNow.Add(delay);
-            
+
             await LogAsync(nodeInstance.WorkflowInstanceId, WorkflowLogLevel.Warning, "Execution",
                 $"Node failed, retrying in {delay.TotalSeconds}s: {errorMessage}", node.Id);
         }
@@ -396,7 +396,7 @@ public class WorkflowInstanceService
             instance.ErrorStackTrace = stackTrace;
             instance.CompletedAt = DateTime.UtcNow;
             instance.UpdatedAt = DateTime.UtcNow;
-            
+
             await LogAsync(nodeInstance.WorkflowInstanceId, WorkflowLogLevel.Error, "Execution",
                 $"Node failed permanently: {errorMessage}", node.Id);
         }
@@ -414,12 +414,12 @@ public class WorkflowInstanceService
         if (instance == null) return false;
 
         var nodeInstance = await _context.WorkflowNodeInstances
-            .FirstOrDefaultAsync(ni => ni.WorkflowInstanceId == instanceId && 
+            .FirstOrDefaultAsync(ni => ni.WorkflowInstanceId == instanceId &&
                                        ni.WorkflowNodeId == nodeId &&
-                                       (ni.Status == WorkflowNodeInstanceStatus.Pending || 
+                                       (ni.Status == WorkflowNodeInstanceStatus.Pending ||
                                         ni.Status == WorkflowNodeInstanceStatus.Waiting ||
                                         ni.Status == WorkflowNodeInstanceStatus.Running));
-        
+
         if (nodeInstance != null)
         {
             nodeInstance.Status = WorkflowNodeInstanceStatus.Skipped;
@@ -431,7 +431,7 @@ public class WorkflowInstanceService
 
         // Cancel related tasks
         var tasks = await _context.WorkflowTasks
-            .Where(t => t.WorkflowInstanceId == instanceId && 
+            .Where(t => t.WorkflowInstanceId == instanceId &&
                        t.WorkflowNodeId == nodeId &&
                        (t.Status == WorkflowTaskStatus.Pending || t.Status == WorkflowTaskStatus.Waiting))
             .ToListAsync();
@@ -443,9 +443,9 @@ public class WorkflowInstanceService
         }
 
         await _context.SaveChangesAsync();
-        await LogAsync(instanceId, WorkflowLogLevel.Warning, "Execution", 
+        await LogAsync(instanceId, WorkflowLogLevel.Warning, "Execution",
             $"Node skipped: {reason}", nodeId, userId: userId);
-        
+
         return true;
     }
 
@@ -466,8 +466,8 @@ public class WorkflowInstanceService
             _ => WorkflowTaskType.Automated
         };
 
-        var config = node.Configuration != null 
-            ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(node.Configuration) 
+        var config = node.Configuration != null
+            ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(node.Configuration)
             : null;
 
         var task = new WorkflowTask
@@ -481,8 +481,8 @@ public class WorkflowInstanceService
             Status = WorkflowTaskStatus.Pending,
             Priority = node.ExecutionOrder,
             QueueName = GetQueueForNodeType(node.NodeType),
-            TimeoutAt = node.TimeoutMinutes > 0 
-                ? DateTime.UtcNow.AddMinutes(node.TimeoutMinutes) 
+            TimeoutAt = node.TimeoutMinutes > 0
+                ? DateTime.UtcNow.AddMinutes(node.TimeoutMinutes)
                 : null,
             MaxRetries = node.RetryCount,
             InputData = node.Configuration,
@@ -492,7 +492,7 @@ public class WorkflowInstanceService
 
         _context.WorkflowTasks.Add(task);
         await _context.SaveChangesAsync();
-        
+
         return task;
     }
 
@@ -520,7 +520,7 @@ public class WorkflowInstanceService
         string? workerId = null)
     {
         var now = DateTime.UtcNow;
-        
+
         return await _context.WorkflowTasks
             .Include(t => t.WorkflowInstance)
                 .ThenInclude(i => i.WorkflowDefinition)
@@ -545,7 +545,7 @@ public class WorkflowInstanceService
         if (task == null) return false;
 
         // Check if already locked
-        if (task.Status == WorkflowTaskStatus.Locked && 
+        if (task.Status == WorkflowTaskStatus.Locked &&
             task.LockExpiresAt > DateTime.UtcNow)
             return false;
 
@@ -613,7 +613,7 @@ public class WorkflowInstanceService
             var delay = node.UseExponentialBackoff
                 ? TimeSpan.FromSeconds(node.RetryDelaySeconds * Math.Pow(2, task.RetryCount - 1))
                 : TimeSpan.FromSeconds(node.RetryDelaySeconds);
-            
+
             task.NextRetryAt = DateTime.UtcNow.Add(delay);
             task.LockedByWorkerId = null;
             task.LockExpiresAt = null;
@@ -631,7 +631,7 @@ public class WorkflowInstanceService
     {
         var now = DateTime.UtcNow;
         var retryTasks = await _context.WorkflowTasks
-            .Where(t => t.Status == WorkflowTaskStatus.Retrying && 
+            .Where(t => t.Status == WorkflowTaskStatus.Retrying &&
                        t.NextRetryAt <= now)
             .ToListAsync();
 

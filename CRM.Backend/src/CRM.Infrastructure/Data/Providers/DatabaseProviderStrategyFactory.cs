@@ -10,14 +10,14 @@ namespace CRM.Infrastructure.Data.Providers;
 /// <summary>
 /// Factory for creating database provider strategies based on configuration.
 /// Implements the Factory Pattern to select the appropriate strategy.
-/// 
+///
 /// Supported Providers and Deployment Modes:
 /// - SQL Server: Standalone, Always On AG (Clustered), Azure SQL Hyperscale
 /// - MySQL: Standalone, Group Replication (Clustered), HeatWave (Hyperscale)
 /// - MariaDB: Standalone, Galera Cluster, ColumnStore
 /// - PostgreSQL: Standalone, Patroni (Clustered), Citus/Aurora (Hyperscale)
 /// - Oracle: Standalone, RAC (Clustered), Autonomous/Exadata (Hyperscale)
-/// 
+///
 /// Configuration:
 /// - DatabaseProvider: sqlserver, mysql, mariadb, postgresql, oracle
 /// - DatabaseDeploymentMode: standalone, clustered, hyperscale
@@ -26,12 +26,12 @@ namespace CRM.Infrastructure.Data.Providers;
 public class DatabaseProviderStrategyFactory
 {
     private readonly IConfiguration? _configuration;
-    
+
     public DatabaseProviderStrategyFactory(IConfiguration? configuration = null)
     {
         _configuration = configuration;
     }
-    
+
     /// <summary>
     /// Creates a provider strategy based on the configured database provider.
     /// </summary>
@@ -39,17 +39,17 @@ public class DatabaseProviderStrategyFactory
     /// <returns>The appropriate database provider strategy.</returns>
     public IDatabaseProviderStrategy CreateStrategy(string? databaseProvider = null)
     {
-        var provider = databaseProvider?.ToLowerInvariant() 
+        var provider = databaseProvider?.ToLowerInvariant()
             ?? _configuration?["DatabaseProvider"]?.ToLowerInvariant()
             ?? "sqlserver";
-            
+
         var deploymentModeStr = _configuration?["DatabaseDeploymentMode"]?.ToLowerInvariant() ?? "standalone";
         var deploymentMode = ParseDeploymentMode(deploymentModeStr);
         var clusterType = _configuration?["DatabaseClusterType"]?.ToLowerInvariant();
-        
+
         return CreateStrategy(provider, deploymentMode, clusterType);
     }
-    
+
     /// <summary>
     /// Creates a provider strategy with explicit deployment configuration.
     /// </summary>
@@ -63,7 +63,7 @@ public class DatabaseProviderStrategyFactory
         string? clusterType = null)
     {
         var provider = databaseProvider.ToLowerInvariant();
-        
+
         return provider switch
         {
             "sqlserver" or "mssql" => CreateSqlServerStrategy(deploymentMode, clusterType),
@@ -75,7 +75,7 @@ public class DatabaseProviderStrategyFactory
             _ => new SqlServerProviderStrategy(deploymentMode)
         };
     }
-    
+
     /// <summary>
     /// Creates a provider strategy by detecting the actual EF Core provider being used.
     /// </summary>
@@ -86,12 +86,12 @@ public class DatabaseProviderStrategyFactory
         var providerName = context.Database.ProviderName ?? "";
         var deploymentMode = GetDeploymentModeFromConfiguration();
         var clusterType = _configuration?["DatabaseClusterType"]?.ToLowerInvariant();
-        
+
         if (providerName.Contains("SqlServer", StringComparison.OrdinalIgnoreCase))
         {
             return CreateSqlServerStrategy(deploymentMode, clusterType);
         }
-        
+
         if (providerName.Contains("Pomelo", StringComparison.OrdinalIgnoreCase) ||
             providerName.Contains("MySql", StringComparison.OrdinalIgnoreCase))
         {
@@ -103,22 +103,22 @@ public class DatabaseProviderStrategyFactory
             }
             return CreateMySqlStrategy(deploymentMode, clusterType);
         }
-        
+
         if (providerName.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) ||
             providerName.Contains("PostgreSQL", StringComparison.OrdinalIgnoreCase))
         {
             return CreatePostgreSqlStrategy(deploymentMode, clusterType);
         }
-        
+
         if (providerName.Contains("Oracle", StringComparison.OrdinalIgnoreCase))
         {
             return CreateOracleStrategy(deploymentMode, clusterType);
         }
-        
+
         // Default to SQL Server
         return new SqlServerProviderStrategy(deploymentMode);
     }
-    
+
     /// <summary>
     /// Determines the provider strategy based on configuration and optional runtime detection.
     /// </summary>
@@ -129,7 +129,7 @@ public class DatabaseProviderStrategyFactory
     {
         var deploymentMode = GetDeploymentModeFromConfiguration();
         var clusterType = _configuration?["DatabaseClusterType"]?.ToLowerInvariant();
-        
+
         // First try runtime detection if available
         if (!string.IsNullOrEmpty(runtimeProviderName))
         {
@@ -137,7 +137,7 @@ public class DatabaseProviderStrategyFactory
             {
                 return CreateSqlServerStrategy(deploymentMode, clusterType);
             }
-            
+
             if (runtimeProviderName.Contains("Pomelo", StringComparison.OrdinalIgnoreCase) ||
                 runtimeProviderName.Contains("MySql", StringComparison.OrdinalIgnoreCase))
             {
@@ -147,27 +147,27 @@ public class DatabaseProviderStrategyFactory
                 }
                 return CreateMySqlStrategy(deploymentMode, clusterType);
             }
-            
+
             if (runtimeProviderName.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) ||
                 runtimeProviderName.Contains("PostgreSQL", StringComparison.OrdinalIgnoreCase))
             {
                 return CreatePostgreSqlStrategy(deploymentMode, clusterType);
             }
-            
+
             if (runtimeProviderName.Contains("Oracle", StringComparison.OrdinalIgnoreCase))
             {
                 return CreateOracleStrategy(deploymentMode, clusterType);
             }
         }
-        
+
         // Fall back to configured provider
         return CreateStrategy(configuredProvider);
     }
-    
+
     #region Provider-Specific Factory Methods
-    
+
     private static IDatabaseProviderStrategy CreateSqlServerStrategy(
-        DatabaseDeploymentMode deploymentMode, 
+        DatabaseDeploymentMode deploymentMode,
         string? clusterType)
     {
         return clusterType switch
@@ -177,9 +177,9 @@ public class DatabaseProviderStrategyFactory
             _ => new SqlServerProviderStrategy(deploymentMode)
         };
     }
-    
+
     private static IDatabaseProviderStrategy CreateMySqlStrategy(
-        DatabaseDeploymentMode deploymentMode, 
+        DatabaseDeploymentMode deploymentMode,
         string? clusterType)
     {
         return clusterType switch
@@ -189,9 +189,9 @@ public class DatabaseProviderStrategyFactory
             _ => new MySqlProviderStrategy(deploymentMode)
         };
     }
-    
+
     private static IDatabaseProviderStrategy CreateMariaDbStrategy(
-        DatabaseDeploymentMode deploymentMode, 
+        DatabaseDeploymentMode deploymentMode,
         string? clusterType)
     {
         return clusterType switch
@@ -201,9 +201,9 @@ public class DatabaseProviderStrategyFactory
             _ => new MariaDbProviderStrategy(deploymentMode)
         };
     }
-    
+
     private static IDatabaseProviderStrategy CreatePostgreSqlStrategy(
-        DatabaseDeploymentMode deploymentMode, 
+        DatabaseDeploymentMode deploymentMode,
         string? clusterType)
     {
         return clusterType switch
@@ -214,9 +214,9 @@ public class DatabaseProviderStrategyFactory
             _ => new PostgreSqlProviderStrategy(deploymentMode)
         };
     }
-    
+
     private static IDatabaseProviderStrategy CreateOracleStrategy(
-        DatabaseDeploymentMode deploymentMode, 
+        DatabaseDeploymentMode deploymentMode,
         string? clusterType)
     {
         return clusterType switch
@@ -227,17 +227,17 @@ public class DatabaseProviderStrategyFactory
             _ => new OracleProviderStrategy(deploymentMode)
         };
     }
-    
+
     #endregion
-    
+
     #region Helper Methods
-    
+
     private DatabaseDeploymentMode GetDeploymentModeFromConfiguration()
     {
         var deploymentModeStr = _configuration?["DatabaseDeploymentMode"]?.ToLowerInvariant() ?? "standalone";
         return ParseDeploymentMode(deploymentModeStr);
     }
-    
+
     private static DatabaseDeploymentMode ParseDeploymentMode(string? mode)
     {
         return mode?.ToLowerInvariant() switch
@@ -248,11 +248,11 @@ public class DatabaseProviderStrategyFactory
             _ => DatabaseDeploymentMode.Standalone
         };
     }
-    
+
     #endregion
-    
+
     #region Static Convenience Methods
-    
+
     /// <summary>
     /// Gets a list of all supported database providers.
     /// </summary>
@@ -264,7 +264,7 @@ public class DatabaseProviderStrategyFactory
         "postgresql",
         "oracle"
     };
-    
+
     /// <summary>
     /// Gets a list of all supported deployment modes.
     /// </summary>
@@ -274,7 +274,7 @@ public class DatabaseProviderStrategyFactory
         "clustered",
         "hyperscale"
     };
-    
+
     /// <summary>
     /// Gets a dictionary of providers to their supported cluster types.
     /// </summary>
@@ -286,6 +286,6 @@ public class DatabaseProviderStrategyFactory
         ["postgresql"] = new[] { "patroni", "citus", "aurora" },
         ["oracle"] = new[] { "rac", "autonomous", "exadata" }
     };
-    
+
     #endregion
 }

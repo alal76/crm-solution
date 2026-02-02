@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
@@ -19,7 +35,7 @@ public class CloudDeploymentService : ICloudDeploymentService
     private readonly IHttpClientFactory _httpClientFactory;
 
     public CloudDeploymentService(
-        ICrmDbContext context, 
+        ICrmDbContext context,
         ILogger<CloudDeploymentService> logger,
         IHttpClientFactory httpClientFactory)
     {
@@ -70,8 +86,8 @@ public class CloudDeploymentService : ICloudDeploymentService
             ProjectId = request.ProjectId,
             Region = request.Region,
             Endpoint = request.Endpoint,
-            Configuration = request.Configuration != null 
-                ? JsonSerializer.Serialize(request.Configuration) 
+            Configuration = request.Configuration != null
+                ? JsonSerializer.Serialize(request.Configuration)
                 : null,
             IsActive = true,
             IsDefault = request.IsDefault
@@ -175,7 +191,7 @@ public class CloudDeploymentService : ICloudDeploymentService
                 };
             }
         }
-        
+
         // Test new credentials without saved provider
         if (string.IsNullOrEmpty(request.ProviderType))
         {
@@ -185,7 +201,7 @@ public class CloudDeploymentService : ICloudDeploymentService
                 Message = "Provider type is required for credential validation"
             };
         }
-        
+
         try
         {
             // Parse provider type
@@ -197,7 +213,7 @@ public class CloudDeploymentService : ICloudDeploymentService
                     Message = $"Invalid provider type: {request.ProviderType}"
                 };
             }
-            
+
             // Create temporary provider for testing
             var tempProvider = new CloudProvider
             {
@@ -209,11 +225,11 @@ public class CloudDeploymentService : ICloudDeploymentService
                 ProjectId = request.ProjectId,
                 Region = request.Region,
                 Endpoint = request.Endpoint,
-                Configuration = request.Configuration != null 
-                    ? System.Text.Json.JsonSerializer.Serialize(request.Configuration) 
+                Configuration = request.Configuration != null
+                    ? System.Text.Json.JsonSerializer.Serialize(request.Configuration)
                     : null
             };
-            
+
             // Test connection based on provider type
             var result = providerType switch
             {
@@ -226,7 +242,7 @@ public class CloudDeploymentService : ICloudDeploymentService
                 CloudProviderType.Docker => await TestDockerConnection(tempProvider),
                 _ => new ProviderConnectionResult { Success = false, Message = "Unsupported provider type" }
             };
-            
+
             return result;
         }
         catch (Exception ex)
@@ -239,7 +255,7 @@ public class CloudDeploymentService : ICloudDeploymentService
             };
         }
     }
-    
+
     private Task<ProviderConnectionResult> TestAwsConnectionWithCredentials(CloudProvider provider)
     {
         // Validate AWS credentials
@@ -251,18 +267,18 @@ public class CloudDeploymentService : ICloudDeploymentService
                 Message = "AWS Access Key ID and Secret Access Key are required"
             });
         }
-        
+
         // In production, this would make actual AWS API calls to validate credentials
         // For now, return success with available regions
         return Task.FromResult(new ProviderConnectionResult
         {
             Success = true,
             Message = "AWS credentials validated successfully",
-            AvailableRegions = new List<string> 
-            { 
-                "us-east-1", "us-east-2", "us-west-1", "us-west-2", 
-                "eu-west-1", "eu-west-2", "eu-central-1", 
-                "ap-southeast-1", "ap-southeast-2", "ap-northeast-1" 
+            AvailableRegions = new List<string>
+            {
+                "us-east-1", "us-east-2", "us-west-1", "us-west-2",
+                "eu-west-1", "eu-west-2", "eu-central-1",
+                "ap-southeast-1", "ap-southeast-2", "ap-northeast-1"
             },
             AvailableResources = new List<ResourceOption>
             {
@@ -273,7 +289,7 @@ public class CloudDeploymentService : ICloudDeploymentService
             }
         });
     }
-    
+
     private Task<ProviderConnectionResult> TestAzureConnectionWithCredentials(CloudProvider provider)
     {
         // Validate Azure credentials
@@ -286,15 +302,15 @@ public class CloudDeploymentService : ICloudDeploymentService
                 Message = "Azure Subscription ID, Tenant ID, Client ID, and Client Secret are required"
             });
         }
-        
+
         return Task.FromResult(new ProviderConnectionResult
         {
             Success = true,
             Message = "Azure credentials validated successfully",
-            AvailableRegions = new List<string> 
-            { 
-                "East US", "West US", "Central US", "West Europe", 
-                "North Europe", "Southeast Asia", "UK South", "Australia East" 
+            AvailableRegions = new List<string>
+            {
+                "East US", "West US", "Central US", "West Europe",
+                "North Europe", "Southeast Asia", "UK South", "Australia East"
             },
             AvailableResources = new List<ResourceOption>
             {
@@ -305,7 +321,7 @@ public class CloudDeploymentService : ICloudDeploymentService
             }
         });
     }
-    
+
     private Task<ProviderConnectionResult> TestGcpConnectionWithCredentials(CloudProvider provider)
     {
         // Validate GCP credentials
@@ -317,15 +333,15 @@ public class CloudDeploymentService : ICloudDeploymentService
                 Message = "GCP Project ID is required"
             });
         }
-        
+
         return Task.FromResult(new ProviderConnectionResult
         {
             Success = true,
             Message = "GCP credentials validated successfully",
-            AvailableRegions = new List<string> 
-            { 
-                "us-central1", "us-east1", "us-west1", 
-                "europe-west1", "asia-east1", "australia-southeast1" 
+            AvailableRegions = new List<string>
+            {
+                "us-central1", "us-east1", "us-west1",
+                "europe-west1", "asia-east1", "australia-southeast1"
             },
             AvailableResources = new List<ResourceOption>
             {
@@ -336,7 +352,7 @@ public class CloudDeploymentService : ICloudDeploymentService
             }
         });
     }
-    
+
     private Task<ProviderConnectionResult> TestDigitalOceanConnectionWithCredentials(CloudProvider provider)
     {
         // Validate DigitalOcean credentials
@@ -348,15 +364,15 @@ public class CloudDeploymentService : ICloudDeploymentService
                 Message = "DigitalOcean API Token is required"
             });
         }
-        
+
         return Task.FromResult(new ProviderConnectionResult
         {
             Success = true,
             Message = "DigitalOcean credentials validated successfully",
-            AvailableRegions = new List<string> 
-            { 
-                "nyc1", "nyc3", "sfo2", "sfo3", "ams3", 
-                "sgp1", "lon1", "fra1", "tor1", "blr1" 
+            AvailableRegions = new List<string>
+            {
+                "nyc1", "nyc3", "sfo2", "sfo3", "ams3",
+                "sgp1", "lon1", "fra1", "tor1", "blr1"
             },
             AvailableResources = new List<ResourceOption>
             {
@@ -367,7 +383,7 @@ public class CloudDeploymentService : ICloudDeploymentService
             }
         });
     }
-    
+
     private Task<ProviderConnectionResult> TestOnPremiseConnectionWithCredentials(CloudProvider provider)
     {
         // Validate on-premises credentials
@@ -379,7 +395,7 @@ public class CloudDeploymentService : ICloudDeploymentService
                 Message = "Server host/endpoint is required"
             });
         }
-        
+
         return Task.FromResult(new ProviderConnectionResult
         {
             Success = true,
@@ -469,8 +485,8 @@ public class CloudDeploymentService : ICloudDeploymentService
             CpuUnits = request.CpuUnits,
             MemoryMb = request.MemoryMb,
             Replicas = request.Replicas,
-            EnvironmentVariables = request.EnvironmentVariables != null 
-                ? JsonSerializer.Serialize(request.EnvironmentVariables) 
+            EnvironmentVariables = request.EnvironmentVariables != null
+                ? JsonSerializer.Serialize(request.EnvironmentVariables)
                 : null,
             Status = DeploymentStatus.Pending
         };
@@ -505,7 +521,7 @@ public class CloudDeploymentService : ICloudDeploymentService
         if (request.CpuUnits.HasValue) deployment.CpuUnits = request.CpuUnits.Value;
         if (request.MemoryMb.HasValue) deployment.MemoryMb = request.MemoryMb.Value;
         if (request.Replicas.HasValue) deployment.Replicas = request.Replicas.Value;
-        if (request.EnvironmentVariables != null) 
+        if (request.EnvironmentVariables != null)
             deployment.EnvironmentVariables = JsonSerializer.Serialize(request.EnvironmentVariables);
 
         await _context.SaveChangesAsync();
@@ -566,10 +582,10 @@ public class CloudDeploymentService : ICloudDeploymentService
             {
                 CloudProviderType.Kubernetes => await DeployToKubernetes(deployment, attempt, request),
                 CloudProviderType.Docker => await DeployToDocker(deployment, attempt, request),
-                _ => new DeploymentResult 
-                { 
-                    Success = false, 
-                    Message = $"Provider type {deployment.CloudProvider.ProviderType} not yet implemented" 
+                _ => new DeploymentResult
+                {
+                    Success = false,
+                    Message = $"Provider type {deployment.CloudProvider.ProviderType} not yet implemented"
                 }
             };
 
@@ -579,7 +595,7 @@ public class CloudDeploymentService : ICloudDeploymentService
             attempt.DurationSeconds = (int)(DateTime.UtcNow - attempt.StartedAt).TotalSeconds;
             attempt.BuildLog = result.BuildLog;
             attempt.DeployLog = result.DeployLog;
-            
+
             if (!result.Success)
             {
                 attempt.ErrorMessage = result.Message;
@@ -759,19 +775,19 @@ public class CloudDeploymentService : ICloudDeploymentService
         if (attempt == null) return "Attempt not found";
 
         var logs = new System.Text.StringBuilder();
-        
+
         if (!string.IsNullOrEmpty(attempt.BuildLog))
         {
             logs.AppendLine("=== BUILD LOG ===");
             logs.AppendLine(attempt.BuildLog);
         }
-        
+
         if (!string.IsNullOrEmpty(attempt.DeployLog))
         {
             logs.AppendLine("\n=== DEPLOY LOG ===");
             logs.AppendLine(attempt.DeployLog);
         }
-        
+
         if (!string.IsNullOrEmpty(attempt.ErrorMessage))
         {
             logs.AppendLine("\n=== ERROR ===");
@@ -876,11 +892,11 @@ public class CloudDeploymentService : ICloudDeploymentService
 
         // Save health check log
         _context.HealthCheckLogs.Add(log);
-        
+
         // Update deployment health status
         deployment.HealthStatus = log.Status;
         deployment.LastHealthCheck = log.CheckedAt;
-        
+
         await _context.SaveChangesAsync();
 
         return result;
@@ -1238,7 +1254,7 @@ public class CloudDeploymentService : ICloudDeploymentService
         {
             // Apply Kubernetes manifests
             logs.AppendLine($"Deploying to Kubernetes namespace: {ns}");
-            
+
             var backendTag = request.BackendVersion ?? $"v{attempt.AttemptNumber}";
             var frontendTag = request.FrontendVersion ?? $"v{attempt.AttemptNumber}";
 
@@ -1261,7 +1277,7 @@ public class CloudDeploymentService : ICloudDeploymentService
 
             // Get service URLs
             var services = await RunKubectlCommand($"get svc -n {ns} -o json");
-            
+
             // Update attempt with image tags
             attempt.BackendImageTag = backendTag;
             attempt.FrontendImageTag = frontendTag;
@@ -1326,7 +1342,7 @@ public class CloudDeploymentService : ICloudDeploymentService
     private async Task<DeploymentResult> ScaleKubernetesDeployment(CloudDeployment deployment, int replicas)
     {
         var ns = deployment.Namespace ?? "crm-app";
-        
+
         var backendScale = await RunKubectlCommand($"scale deployment/crm-backend --replicas={replicas} -n {ns}");
         var frontendScale = await RunKubectlCommand($"scale deployment/crm-frontend --replicas={replicas} -n {ns}");
 
@@ -1341,7 +1357,7 @@ public class CloudDeploymentService : ICloudDeploymentService
     private async Task<DeploymentResult> RestartKubernetesDeployment(CloudDeployment deployment)
     {
         var ns = deployment.Namespace ?? "crm-app";
-        
+
         var backendRestart = await RunKubectlCommand($"rollout restart deployment/crm-backend -n {ns}");
         var frontendRestart = await RunKubectlCommand($"rollout restart deployment/crm-frontend -n {ns}");
 

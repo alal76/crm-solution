@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
@@ -44,13 +60,13 @@ public class QuotesController : ControllerBase
 
         if (customerId.HasValue)
             query = query.Where(q => q.AccountId == customerId);
-        
+
         if (opportunityId.HasValue)
             query = query.Where(q => q.OpportunityId == opportunityId);
-        
+
         if (status.HasValue)
             query = query.Where(q => q.Status == status);
-        
+
         if (expired == true)
             query = query.Where(q => q.ExpirationDate < DateTime.UtcNow && q.Status == QuoteStatus.Shared);
 
@@ -213,7 +229,7 @@ public class QuotesController : ControllerBase
         quote.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Quote {QuoteNumber} sent", quote.QuoteNumber);
         return Ok(quote);
     }
@@ -261,7 +277,7 @@ public class QuotesController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Quote {QuoteNumber} accepted", quote.QuoteNumber);
         return Ok(quote);
     }
@@ -286,7 +302,7 @@ public class QuotesController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Quote {QuoteNumber} rejected", quote.QuoteNumber);
         return Ok(quote);
     }
@@ -368,7 +384,7 @@ public class QuotesController : ControllerBase
         }
 
         var afterDiscount = quote.Subtotal - quote.Discount;
-        
+
         if (quote.TaxRate > 0)
         {
             quote.Tax = afterDiscount * (quote.TaxRate / 100);
@@ -423,7 +439,7 @@ public class QuotesController : ControllerBase
         var quote = await _context.Quotes
             .Include(q => q.QuoteLineItems)
             .FirstOrDefaultAsync(q => q.Id == quoteId);
-            
+
         if (quote == null)
             return NotFound("Quote not found");
 

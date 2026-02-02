@@ -29,31 +29,31 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         builder.Property(e => e.Salutation).HasMaxLength(20);
         builder.Property(e => e.Suffix).HasMaxLength(20);
         builder.Property(e => e.Gender).HasMaxLength(20);
-        
+
         // Map renamed properties to original database columns for backward compatibility
         builder.Property(e => e.AccountHealthScore).HasColumnName("CustomerHealthScore");
-        
+
         builder.HasIndex(e => e.Email);
         builder.HasIndex(e => e.Category);
         builder.HasIndex(e => e.Company);
-        
+
         // Self-referencing relationships
         builder.HasOne(e => e.ReferredByAccount)
             .WithMany()
             .HasForeignKey(e => e.ReferredByAccountId)
             .OnDelete(DeleteBehavior.SetNull);
-            
+
         builder.HasOne(e => e.ParentAccount)
             .WithMany()
             .HasForeignKey(e => e.ParentAccountId)
             .OnDelete(DeleteBehavior.SetNull);
-            
+
         // Lookup relationships
         builder.HasOne(c => c.CurrencyLookup)
             .WithMany()
             .HasForeignKey(c => c.CurrencyLookupId)
             .OnDelete(DeleteBehavior.SetNull);
-            
+
         builder.HasOne(c => c.BillingCycleLookup)
             .WithMany()
             .HasForeignKey(c => c.BillingCycleLookupId)
@@ -72,12 +72,12 @@ public class AccountContactConfiguration : IEntityTypeConfiguration<AccountConta
         builder.HasIndex(e => new { e.AccountId, e.ContactId }).IsUnique();
         builder.Property(e => e.PositionAtAccount).HasMaxLength(100);
         builder.Property(e => e.DepartmentAtAccount).HasMaxLength(100);
-        
+
         builder.HasOne(e => e.Account)
             .WithMany(c => c.AccountContacts)
             .HasForeignKey(e => e.AccountId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         builder.HasOne(e => e.Contact)
             .WithMany(c => c.AccountContacts)
             .HasForeignKey(e => e.ContactId)
@@ -97,7 +97,7 @@ public class ContactConfiguration : IEntityTypeConfiguration<Contact>
             .WithMany()
             .HasForeignKey(c => c.PreferredContactMethodLookupId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         // Contact belongs to Customer (one-to-many)
         builder.HasOne(c => c.Customer)
             .WithMany(cust => cust.Contacts)
@@ -131,7 +131,7 @@ public class InteractionConfiguration : IEntityTypeConfiguration<Interaction>
     {
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Type).IsRequired().HasMaxLength(50);
-        
+
         builder.HasOne(e => e.Account)
             .WithMany(c => c.Interactions)
             .HasForeignKey(e => e.AccountId)
@@ -157,7 +157,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(e => e.Email).IsRequired().HasMaxLength(255);
         builder.HasIndex(e => e.Username).IsUnique();
         builder.HasIndex(e => e.Email).IsUnique();
-        
+
         // Column mappings for backward compatibility
         builder.Property(e => e.LastLoginDate).HasColumnName("LastLoginAt");
         builder.Property(e => e.EmailVerified).HasColumnName("IsEmailVerified");
@@ -173,7 +173,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithMany(p => p.Users)
             .HasForeignKey(e => e.UserProfileId)
             .OnDelete(DeleteBehavior.SetNull);
-            
+
         builder.HasOne(e => e.PrimaryGroup)
             .WithMany(g => g.PrimaryUsers)
             .HasForeignKey(e => e.PrimaryGroupId)

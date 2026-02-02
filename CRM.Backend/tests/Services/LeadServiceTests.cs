@@ -287,7 +287,7 @@ public class LeadServiceTests
         };
 
         // Act
-        var searchResult = leads.Where(l => 
+        var searchResult = leads.Where(l =>
             l.LastName?.Contains("Doe", StringComparison.OrdinalIgnoreCase) ?? false);
 
         // Assert

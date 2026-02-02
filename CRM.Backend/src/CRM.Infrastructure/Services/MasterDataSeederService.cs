@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -27,12 +43,12 @@ public interface IMasterDataSeederService
     /// Should be called during application startup.
     /// </summary>
     Task SeedIfEmptyAsync();
-    
+
     /// <summary>
     /// Force re-seed all master data (clears existing and re-populates)
     /// </summary>
     Task ReseedAllAsync();
-    
+
     /// <summary>
     /// Get the count of seeded master data records
     /// </summary>
@@ -145,7 +161,7 @@ public class MasterDataSeederService : IMasterDataSeederService
     private async Task SeedZipCodesAsync()
     {
         var zipCodes = GetDefaultZipCodes();
-        
+
         // Batch insert for performance
         const int batchSize = 1000;
         for (int i = 0; i < zipCodes.Count; i += batchSize)
@@ -155,7 +171,7 @@ public class MasterDataSeederService : IMasterDataSeederService
             await _context.SaveChangesAsync();
             _logger.LogDebug("Inserted ZIP code batch {Batch}/{Total}", i / batchSize + 1, (zipCodes.Count + batchSize - 1) / batchSize);
         }
-        
+
         _logger.LogInformation("Seeded {Count} ZIP codes.", zipCodes.Count);
     }
 

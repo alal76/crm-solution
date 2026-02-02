@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -18,28 +34,28 @@ public class Address : BaseEntity
     public string? County { get; set; }
     public string? CountryCode { get; set; } = "US";
     public string Country { get; set; } = "United States";
-    
+
     // Link to ZipCode master data for cascading dropdown support
     public int? ZipCodeId { get; set; }
-    
+
     // Link to Locality (neighborhood/subdivision within a city)
     public int? LocalityId { get; set; }
-    
+
     /// <summary>
     /// Locality/neighborhood name (denormalized for quick access)
     /// </summary>
     public string? Locality { get; set; }
-    
+
     // Geocoding
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
     public string? GeocodeAccuracy { get; set; }
-    
+
     // Verification
     public bool IsVerified { get; set; } = false;
     public DateTime? VerifiedDate { get; set; }
     public string? VerificationSource { get; set; }
-    
+
     // Additional Info
     public bool? IsResidential { get; set; }
     public string? DeliveryInstructions { get; set; }
@@ -47,43 +63,43 @@ public class Address : BaseEntity
     public string? SiteContactName { get; set; }
     public string? SiteContactPhone { get; set; }
     public string? Notes { get; set; }
-    
+
     /// <summary>
     /// Complete address stored as XML with element names and values
     /// Format: <Address><Label>Primary</Label><Line1>123 Main St</Line1>...</Address>
     /// </summary>
     public string? AddressXml { get; set; }
-    
+
     // Audit
     public int? CreatedBy { get; set; }
     public int? UpdatedBy { get; set; }
-    
+
     // Legacy field for backward compatibility
     public bool IsPrimary { get; set; } = false;
-    
+
     // Navigation Properties
     public ZipCode? ZipCodeData { get; set; }
     public Locality? LocalityData { get; set; }
     public ICollection<EntityAddressLink>? EntityAddressLinks { get; set; }
-    
+
     // Computed Properties
-    public string FormattedAddress => 
+    public string FormattedAddress =>
         string.Join(", ", new[] { Line1, Line2, Locality, City, State, PostalCode, Country }
             .Where(s => !string.IsNullOrWhiteSpace(s)));
-    
+
     /// <summary>
     /// Generate XML representation of the address
     /// </summary>
     public string GenerateAddressXml()
     {
         var elements = new List<string>();
-        
+
         void AddElement(string name, string? value)
         {
             if (!string.IsNullOrWhiteSpace(value))
                 elements.Add($"<{name}>{System.Security.SecurityElement.Escape(value)}</{name}>");
         }
-        
+
         AddElement("Label", Label);
         AddElement("Line1", Line1);
         AddElement("Line2", Line2);
@@ -97,10 +113,10 @@ public class Address : BaseEntity
         AddElement("Country", Country);
         AddElement("Latitude", Latitude?.ToString());
         AddElement("Longitude", Longitude?.ToString());
-        
+
         return $"<Address>{string.Join("", elements)}</Address>";
     }
-    
+
     /// <summary>
     /// Update AddressXml from current field values
     /// </summary>

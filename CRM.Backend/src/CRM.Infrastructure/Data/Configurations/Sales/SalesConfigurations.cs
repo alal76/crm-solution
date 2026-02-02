@@ -18,19 +18,19 @@ public class OpportunityConfiguration : IEntityTypeConfiguration<Opportunity>
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Name).IsRequired().HasMaxLength(255);
         builder.Property(e => e.Amount).HasPrecision(18, 2);
-        
+
         // Link Opportunity -> Account (required)
         builder.HasOne(e => e.Account)
             .WithMany(c => c.Opportunities)
             .HasForeignKey(e => e.AccountId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         // Link Opportunity -> Lead (optional, source lead)
         builder.HasOne(e => e.Lead)
             .WithMany(l => l.Opportunities)
             .HasForeignKey(e => e.LeadId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         // Link Opportunity -> User (sales owner)
         builder.HasOne(e => e.SalesOwner)
             .WithMany()
@@ -47,17 +47,17 @@ public class OpportunityProductConfiguration : IEntityTypeConfiguration<Opportun
     public void Configure(EntityTypeBuilder<OpportunityProduct> builder)
     {
         builder.HasKey(op => new { op.OpportunityId, op.ProductId });
-        
+
         builder.HasOne(op => op.Opportunity)
             .WithMany(o => o.Products)
             .HasForeignKey(op => op.OpportunityId)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
         builder.HasOne(op => op.Product)
             .WithMany()
             .HasForeignKey(op => op.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
-            
+
         builder.Property(e => e.UnitPrice).HasPrecision(18, 2);
         builder.Property(e => e.DiscountPercent).HasPrecision(5, 2);
         builder.Property(e => e.LineTotal).HasPrecision(18, 2);
@@ -84,12 +84,12 @@ public class LeadProductInterestConfiguration : IEntityTypeConfiguration<LeadPro
     public void Configure(EntityTypeBuilder<LeadProductInterest> builder)
     {
         builder.HasKey(lpi => new { lpi.LeadId, lpi.ProductId });
-        
+
         builder.HasOne(lpi => lpi.Lead)
             .WithMany(l => l.ProductInterests)
             .HasForeignKey(lpi => lpi.LeadId)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
         builder.HasOne(lpi => lpi.Product)
             .WithMany()
             .HasForeignKey(lpi => lpi.ProductId)

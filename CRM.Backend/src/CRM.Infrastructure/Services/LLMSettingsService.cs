@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -60,21 +76,21 @@ public class LLMSettingsService : ILLMSettingsService
                 DefaultTemperature = GetDoubleSettingValue(dbSettings, "DefaultTemperature", _configOptions.DefaultTemperature),
                 TimeoutSeconds = GetIntSettingValue(dbSettings, "TimeoutSeconds", _configOptions.TimeoutSeconds),
                 MaxRetries = GetIntSettingValue(dbSettings, "MaxRetries", _configOptions.MaxRetries),
-                
+
                 OpenAI = new LLMProviderSettingsDto
                 {
                     DefaultModel = GetSettingValue(dbSettings, "OpenAI.DefaultModel", _configOptions.OpenAI.DefaultModel),
                     BaseUrl = GetSettingValue(dbSettings, "OpenAI.BaseUrl", _configOptions.OpenAI.BaseUrl),
                     IsConfigured = _llmService.IsConfigured("openai")
                 },
-                
+
                 Azure = new LLMProviderSettingsDto
                 {
                     DefaultModel = GetSettingValue(dbSettings, "Azure.DefaultModel", _configOptions.AzureOpenAI.DefaultModel),
                     ApiVersion = GetSettingValue(dbSettings, "Azure.ApiVersion", _configOptions.AzureOpenAI.ApiVersion),
                     IsConfigured = _llmService.IsConfigured("azure")
                 },
-                
+
                 Anthropic = new LLMProviderSettingsDto
                 {
                     DefaultModel = GetSettingValue(dbSettings, "Anthropic.DefaultModel", _configOptions.Anthropic.DefaultModel),
@@ -82,7 +98,7 @@ public class LLMSettingsService : ILLMSettingsService
                     ApiVersion = GetSettingValue(dbSettings, "Anthropic.ApiVersion", _configOptions.Anthropic.ApiVersion),
                     IsConfigured = _llmService.IsConfigured("anthropic")
                 },
-                
+
                 Google = new LLMProviderSettingsDto
                 {
                     DefaultModel = GetSettingValue(dbSettings, "Google.DefaultModel", _configOptions.GoogleCloud.DefaultModel),
@@ -90,7 +106,7 @@ public class LLMSettingsService : ILLMSettingsService
                     UseVertexAI = GetBoolSettingValue(dbSettings, "Google.UseVertexAI", _configOptions.GoogleCloud.UseVertexAI),
                     IsConfigured = _llmService.IsConfigured("google")
                 },
-                
+
                 Bedrock = new LLMProviderSettingsDto
                 {
                     DefaultModel = GetSettingValue(dbSettings, "Bedrock.DefaultModel", _configOptions.AWSBedrock.DefaultModel),
@@ -98,14 +114,14 @@ public class LLMSettingsService : ILLMSettingsService
                     UseDefaultCredentials = GetBoolSettingValue(dbSettings, "Bedrock.UseDefaultCredentials", _configOptions.AWSBedrock.UseDefaultCredentials),
                     IsConfigured = _llmService.IsConfigured("bedrock")
                 },
-                
+
                 DeepSeek = new LLMProviderSettingsDto
                 {
                     DefaultModel = GetSettingValue(dbSettings, "DeepSeek.DefaultModel", _configOptions.DeepSeek.DefaultModel),
                     BaseUrl = GetSettingValue(dbSettings, "DeepSeek.BaseUrl", _configOptions.DeepSeek.BaseUrl),
                     IsConfigured = _llmService.IsConfigured("deepseek")
                 },
-                
+
                 AllenAI = new LLMProviderSettingsDto
                 {
                     DefaultModel = GetSettingValue(dbSettings, "AllenAI.DefaultModel", _configOptions.AllenAI.DefaultModel),
@@ -113,7 +129,7 @@ public class LLMSettingsService : ILLMSettingsService
                     Enabled = GetBoolSettingValue(dbSettings, "AllenAI.Enabled", _configOptions.AllenAI.Enabled),
                     IsConfigured = _llmService.IsConfigured("allenai")
                 },
-                
+
                 Local = new LLMProviderSettingsDto
                 {
                     DefaultModel = GetSettingValue(dbSettings, "Local.DefaultModel", _configOptions.LocalLLM.DefaultModel),
@@ -166,22 +182,22 @@ public class LLMSettingsService : ILLMSettingsService
             // Update general settings
             if (request.DefaultProvider != null)
                 await SetSettingValueAsync("DefaultProvider", request.DefaultProvider, "string", "general");
-            
+
             if (request.EnableFallback.HasValue)
                 await SetSettingValueAsync("EnableFallback", request.EnableFallback.Value.ToString().ToLower(), "boolean", "general");
-            
+
             if (request.FallbackOrder != null)
                 await SetSettingValueAsync("FallbackOrder", JsonSerializer.Serialize(request.FallbackOrder), "json", "general");
-            
+
             if (request.DefaultMaxTokens.HasValue)
                 await SetSettingValueAsync("DefaultMaxTokens", request.DefaultMaxTokens.Value.ToString(), "integer", "general");
-            
+
             if (request.DefaultTemperature.HasValue)
                 await SetSettingValueAsync("DefaultTemperature", request.DefaultTemperature.Value.ToString(), "decimal", "general");
-            
+
             if (request.TimeoutSeconds.HasValue)
                 await SetSettingValueAsync("TimeoutSeconds", request.TimeoutSeconds.Value.ToString(), "integer", "general");
-            
+
             if (request.MaxRetries.HasValue)
                 await SetSettingValueAsync("MaxRetries", request.MaxRetries.Value.ToString(), "integer", "general");
 
@@ -192,31 +208,31 @@ public class LLMSettingsService : ILLMSettingsService
                 {
                     var category = $"provider.{providerKey.ToLower()}";
                     var prefix = GetProviderPrefix(providerKey);
-                    
+
                     if (providerSettings.DefaultModel != null)
                         await SetSettingValueAsync($"{prefix}.DefaultModel", providerSettings.DefaultModel, "string", category);
-                    
+
                     if (providerSettings.BaseUrl != null)
                         await SetSettingValueAsync($"{prefix}.BaseUrl", providerSettings.BaseUrl, "string", category);
-                    
+
                     if (providerSettings.ApiVersion != null)
                         await SetSettingValueAsync($"{prefix}.ApiVersion", providerSettings.ApiVersion, "string", category);
-                    
+
                     if (providerSettings.Location != null)
                         await SetSettingValueAsync($"{prefix}.Location", providerSettings.Location, "string", category);
-                    
+
                     if (providerSettings.Region != null)
                         await SetSettingValueAsync($"{prefix}.Region", providerSettings.Region, "string", category);
-                    
+
                     if (providerSettings.ApiFormat != null)
                         await SetSettingValueAsync($"{prefix}.ApiFormat", providerSettings.ApiFormat, "string", category);
-                    
+
                     if (providerSettings.Enabled.HasValue)
                         await SetSettingValueAsync($"{prefix}.Enabled", providerSettings.Enabled.Value.ToString().ToLower(), "boolean", category);
-                    
+
                     if (providerSettings.UseVertexAI.HasValue)
                         await SetSettingValueAsync($"{prefix}.UseVertexAI", providerSettings.UseVertexAI.Value.ToString().ToLower(), "boolean", category);
-                    
+
                     if (providerSettings.UseDefaultCredentials.HasValue)
                         await SetSettingValueAsync($"{prefix}.UseDefaultCredentials", providerSettings.UseDefaultCredentials.Value.ToString().ToLower(), "boolean", category);
                 }
@@ -224,7 +240,7 @@ public class LLMSettingsService : ILLMSettingsService
 
             await _context.SaveChangesAsync();
             _logger.LogInformation("LLM settings updated successfully");
-            
+
             return await GetSettingsAsync();
         }
         catch (Exception ex)
@@ -284,33 +300,33 @@ public class LLMSettingsService : ILLMSettingsService
                 new() { SettingKey = "DefaultTemperature", SettingValue = _configOptions.DefaultTemperature.ToString(), ValueType = "decimal", Category = "general", Description = "Default temperature for completions" },
                 new() { SettingKey = "TimeoutSeconds", SettingValue = _configOptions.TimeoutSeconds.ToString(), ValueType = "integer", Category = "general", Description = "Timeout in seconds for LLM requests" },
                 new() { SettingKey = "MaxRetries", SettingValue = _configOptions.MaxRetries.ToString(), ValueType = "integer", Category = "general", Description = "Maximum retry attempts on failure" },
-                
+
                 // Provider defaults
                 new() { SettingKey = "OpenAI.DefaultModel", SettingValue = _configOptions.OpenAI.DefaultModel, ValueType = "string", Category = "provider.openai" },
                 new() { SettingKey = "OpenAI.BaseUrl", SettingValue = _configOptions.OpenAI.BaseUrl, ValueType = "string", Category = "provider.openai" },
-                
+
                 new() { SettingKey = "Azure.DefaultModel", SettingValue = _configOptions.AzureOpenAI.DefaultModel, ValueType = "string", Category = "provider.azure" },
                 new() { SettingKey = "Azure.ApiVersion", SettingValue = _configOptions.AzureOpenAI.ApiVersion, ValueType = "string", Category = "provider.azure" },
-                
+
                 new() { SettingKey = "Anthropic.DefaultModel", SettingValue = _configOptions.Anthropic.DefaultModel, ValueType = "string", Category = "provider.anthropic" },
                 new() { SettingKey = "Anthropic.BaseUrl", SettingValue = _configOptions.Anthropic.BaseUrl, ValueType = "string", Category = "provider.anthropic" },
                 new() { SettingKey = "Anthropic.ApiVersion", SettingValue = _configOptions.Anthropic.ApiVersion, ValueType = "string", Category = "provider.anthropic" },
-                
+
                 new() { SettingKey = "Google.DefaultModel", SettingValue = _configOptions.GoogleCloud.DefaultModel, ValueType = "string", Category = "provider.google" },
                 new() { SettingKey = "Google.Location", SettingValue = _configOptions.GoogleCloud.Location, ValueType = "string", Category = "provider.google" },
                 new() { SettingKey = "Google.UseVertexAI", SettingValue = _configOptions.GoogleCloud.UseVertexAI.ToString().ToLower(), ValueType = "boolean", Category = "provider.google" },
-                
+
                 new() { SettingKey = "Bedrock.DefaultModel", SettingValue = _configOptions.AWSBedrock.DefaultModel, ValueType = "string", Category = "provider.bedrock" },
                 new() { SettingKey = "Bedrock.Region", SettingValue = _configOptions.AWSBedrock.Region, ValueType = "string", Category = "provider.bedrock" },
                 new() { SettingKey = "Bedrock.UseDefaultCredentials", SettingValue = _configOptions.AWSBedrock.UseDefaultCredentials.ToString().ToLower(), ValueType = "boolean", Category = "provider.bedrock" },
-                
+
                 new() { SettingKey = "DeepSeek.DefaultModel", SettingValue = _configOptions.DeepSeek.DefaultModel, ValueType = "string", Category = "provider.deepseek" },
                 new() { SettingKey = "DeepSeek.BaseUrl", SettingValue = _configOptions.DeepSeek.BaseUrl, ValueType = "string", Category = "provider.deepseek" },
-                
+
                 new() { SettingKey = "AllenAI.DefaultModel", SettingValue = _configOptions.AllenAI.DefaultModel, ValueType = "string", Category = "provider.allenai", Description = "Allen AI OLMo/Tulu models via Hugging Face" },
                 new() { SettingKey = "AllenAI.BaseUrl", SettingValue = _configOptions.AllenAI.BaseUrl, ValueType = "string", Category = "provider.allenai" },
                 new() { SettingKey = "AllenAI.Enabled", SettingValue = _configOptions.AllenAI.Enabled.ToString().ToLower(), ValueType = "boolean", Category = "provider.allenai" },
-                
+
                 new() { SettingKey = "Local.DefaultModel", SettingValue = _configOptions.LocalLLM.DefaultModel, ValueType = "string", Category = "provider.local" },
                 new() { SettingKey = "Local.BaseUrl", SettingValue = _configOptions.LocalLLM.BaseUrl, ValueType = "string", Category = "provider.local" },
                 new() { SettingKey = "Local.ApiFormat", SettingValue = _configOptions.LocalLLM.ApiFormat, ValueType = "string", Category = "provider.local" },
@@ -338,7 +354,7 @@ public class LLMSettingsService : ILLMSettingsService
             var allSettings = await _context.LLMProviderSettings.ToListAsync();
             _context.LLMProviderSettings.RemoveRange(allSettings);
             await _context.SaveChangesAsync();
-            
+
             await InitializeDefaultSettingsAsync();
             _logger.LogInformation("LLM settings reset to defaults");
         }
@@ -412,7 +428,7 @@ public class LLMSettingsService : ILLMSettingsService
     private static List<string> ComputeEffectiveFallbackOrder(LLMSettingsDto dto)
     {
         var effectiveOrder = new List<string>();
-        
+
         // Map provider names to their IsConfigured status
         var providerConfigStatus = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
         {
@@ -427,8 +443,8 @@ public class LLMSettingsService : ILLMSettingsService
         };
 
         // First, add the default provider if it's configured
-        if (!string.IsNullOrEmpty(dto.DefaultProvider) && 
-            providerConfigStatus.TryGetValue(dto.DefaultProvider, out var isDefaultConfigured) && 
+        if (!string.IsNullOrEmpty(dto.DefaultProvider) &&
+            providerConfigStatus.TryGetValue(dto.DefaultProvider, out var isDefaultConfigured) &&
             isDefaultConfigured)
         {
             effectiveOrder.Add(dto.DefaultProvider.ToLower());
@@ -440,11 +456,11 @@ public class LLMSettingsService : ILLMSettingsService
             foreach (var provider in dto.FallbackOrder)
             {
                 var normalizedProvider = provider.ToLower();
-                
+
                 // Skip if already added as default provider
                 if (effectiveOrder.Contains(normalizedProvider))
                     continue;
-                
+
                 // Only add if configured
                 if (providerConfigStatus.TryGetValue(normalizedProvider, out var isConfigured) && isConfigured)
                 {

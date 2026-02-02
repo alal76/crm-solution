@@ -27,7 +27,7 @@ public class AllenAIService : IAllenAIService
     private readonly ILogger<AllenAIService> _logger;
     private readonly AllenAIConfiguration _config;
     private readonly IMemoryCache _cache;
-    
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -54,7 +54,7 @@ public class AllenAIService : IAllenAIService
     public async Task<LeadScore> ScoreLeadAsync(int leadId, CancellationToken cancellationToken = default)
     {
         var cacheKey = $"lead_score_{leadId}";
-        
+
         if (_config.EnableCaching && _cache.TryGetValue<LeadScore>(cacheKey, out var cachedScore) && cachedScore != null)
         {
             if (cachedScore.ExpiresAt > DateTime.UtcNow)
@@ -73,11 +73,11 @@ public class AllenAIService : IAllenAIService
         }
 
         var score = await CalculateLeadScoreAsync(lead, cancellationToken);
-        
+
         // Save to database
         _context.LeadScores.Add(score);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         // Cache the result
         if (_config.EnableCaching)
         {
@@ -92,7 +92,7 @@ public class AllenAIService : IAllenAIService
     {
         var results = new List<LeadScore>();
         var leadIdList = leadIds.ToList();
-        
+
         foreach (var batch in leadIdList.Chunk(_config.BatchSize))
         {
             var batchTasks = batch.Select(id => ScoreLeadAsync(id, cancellationToken));
@@ -118,7 +118,7 @@ public class AllenAIService : IAllenAIService
     {
         // Build feature vector for lead scoring
         var features = BuildLeadFeatures(lead);
-        
+
         // Use AI model to predict conversion probability
         var prompt = BuildLeadScoringPrompt(features);
         var response = await InvokeModelAsync(prompt, cancellationToken);
@@ -130,7 +130,7 @@ public class AllenAIService : IAllenAIService
         var engagementScore = CalculateEngagementScore(lead);
         var intentScore = CalculateIntentScore(lead);
 
-        var overallScore = (demographicScore * 0.2m) + (behavioralScore * 0.3m) + 
+        var overallScore = (demographicScore * 0.2m) + (behavioralScore * 0.3m) +
                           (engagementScore * 0.25m) + (intentScore * 0.25m);
 
         var category = overallScore switch
@@ -197,7 +197,7 @@ public class AllenAIService : IAllenAIService
         sb.AppendLine("- probability: number (0-100)");
         sb.AppendLine("- insights: string (brief analysis)");
         sb.AppendLine("- topFactors: array of strings (key factors)");
-        
+
         return sb.ToString();
     }
 
@@ -207,9 +207,9 @@ public class AllenAIService : IAllenAIService
         {
             // Try to extract probability from response
             var probability = ExtractNumberFromText(response, "probability", 50);
-            var insights = ExtractTextBetween(response, "insights", "topFactors") ?? 
+            var insights = ExtractTextBetween(response, "insights", "topFactors") ??
                           "Lead analysis completed using AI model.";
-            
+
             return (probability / 100m, insights);
         }
         catch
@@ -221,13 +221,13 @@ public class AllenAIService : IAllenAIService
     private decimal CalculateDemographicScore(Lead lead)
     {
         var score = 50m;
-        
+
         if (!string.IsNullOrEmpty(lead.CompanyName)) score += 10;
         if (!string.IsNullOrEmpty(lead.Title)) score += 10;
         if (!string.IsNullOrEmpty(lead.Region)) score += 10;
         if (!string.IsNullOrEmpty(lead.Email)) score += 10;
         if (!string.IsNullOrEmpty(lead.Phone)) score += 10;
-        
+
         return Math.Min(100, score);
     }
 
@@ -241,24 +241,24 @@ public class AllenAIService : IAllenAIService
     {
         var productInterestCount = lead.ProductInterests?.Count ?? 0;
         var hasScore = lead.Score > 0;
-        
+
         var score = 40m;
         score += productInterestCount * 15;
         if (hasScore) score += 20;
-        
+
         return Math.Min(100, score);
     }
 
     private decimal CalculateIntentScore(Lead lead)
     {
         var score = 30m;
-        
+
         if (lead.Status == LeadLifecycleStatus.Qualified) score += 30;
         else if (lead.Status == LeadLifecycleStatus.Working) score += 20;
         else if (lead.Status == LeadLifecycleStatus.Nurturing) score += 10;
-        
+
         if (lead.ProductInterests?.Any() == true) score += 20;
-        
+
         return Math.Min(100, score);
     }
 
@@ -309,7 +309,7 @@ public class AllenAIService : IAllenAIService
         // Build insight based on opportunity data
         var winProbability = CalculateWinProbability(opportunity);
         var healthScore = CalculateOpportunityHealth(opportunity);
-        
+
         var insight = new OpportunityInsight
         {
             OpportunityId = opportunityId,
@@ -322,8 +322,8 @@ public class AllenAIService : IAllenAIService
             EngagementScore = 70m, // Placeholder
             StakeholderScore = 60m, // Placeholder
             PredictedCloseDate = opportunity.ExpectedCloseDate,
-            DaysToClose = opportunity.ExpectedCloseDate.HasValue 
-                ? (int)(opportunity.ExpectedCloseDate.Value - DateTime.UtcNow).TotalDays 
+            DaysToClose = opportunity.ExpectedCloseDate.HasValue
+                ? (int)(opportunity.ExpectedCloseDate.Value - DateTime.UtcNow).TotalDays
                 : null,
             OnTrackForClose = healthScore >= 60,
             PredictedValue = opportunity.Amount,
@@ -358,7 +358,7 @@ public class AllenAIService : IAllenAIService
     public async Task<List<OpportunityInsight>> GetAtRiskOpportunitiesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.OpportunityInsights
-            .Where(i => i.HealthStatus == DealHealthStatus.AtRisk || 
+            .Where(i => i.HealthStatus == DealHealthStatus.AtRisk ||
                         i.HealthStatus == DealHealthStatus.Critical ||
                         i.HealthStatus == DealHealthStatus.Stalled)
             .Where(i => i.ExpiresAt > DateTime.UtcNow && !i.IsDeleted)
@@ -413,9 +413,9 @@ public class AllenAIService : IAllenAIService
     {
         var daysSinceCreation = (DateTime.UtcNow - opportunity.CreatedAt).Days;
         var stageProgress = (int)opportunity.Stage / 5.0m * 100;
-        
+
         if (daysSinceCreation == 0) return 100;
-        
+
         // Expected: move ~1 stage per 2 weeks
         var expectedProgress = (daysSinceCreation / 14.0m) * 20m;
         var velocity = stageProgress / Math.Max(expectedProgress, 1) * 100;
@@ -524,7 +524,7 @@ public class AllenAIService : IAllenAIService
         else if (customer.LifecycleStage == AccountLifecycleStage.Active) risk -= 0.1m;
 
         // Opportunities - active opportunities indicate engagement
-        var activeOpportunities = customer.Opportunities?.Count(o => 
+        var activeOpportunities = customer.Opportunities?.Count(o =>
             o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost) ?? 0;
         if (activeOpportunities > 0) risk -= 0.15m;
 
@@ -539,7 +539,7 @@ public class AllenAIService : IAllenAIService
         {
             // Calculate if not set
             score = 50;
-            
+
             if (customer.LifecycleStage == AccountLifecycleStage.Active) score += 20;
             if (customer.LifecycleStage == AccountLifecycleStage.AtRisk) score -= 20;
 
@@ -601,7 +601,7 @@ public class AllenAIService : IAllenAIService
 
         // Generate new recommendations
         var recommendations = await GenerateRecommendationsAsync(targetType, entityId, maxActions, cancellationToken);
-        
+
         if (recommendations.Any())
         {
             _context.ActionRecommendations.AddRange(recommendations);
@@ -733,10 +733,10 @@ public class AllenAIService : IAllenAIService
     private ActionRecommendation CreateCustomerRecommendation(Account customer)
     {
         // Get customer display name based on category
-        var customerName = customer.Category == AccountCategory.Organization 
-            ? customer.Company 
+        var customerName = customer.Category == AccountCategory.Organization
+            ? customer.Company
             : $"{customer.FirstName} {customer.LastName}".Trim();
-        
+
         return new ActionRecommendation
         {
             TargetType = ActionTargetType.Customer,
@@ -790,15 +790,15 @@ public class AllenAIService : IAllenAIService
             5. Brief summary
 
             Subject: {subject ?? "No subject"}
-            
+
             Email content:
             {emailContent}
-            
+
             Respond in JSON format.
             """;
 
         var response = await InvokeModelAsync(prompt, cancellationToken);
-        
+
         // Parse response and create EmailIntelligence
         var sentiment = ExtractSentiment(response);
         var intent = ExtractIntent(response);
@@ -829,12 +829,12 @@ public class AllenAIService : IAllenAIService
     {
         var prompt = $"""
             Generate a professional response to this email.
-            
+
             Original email:
             {emailContent}
-            
+
             {(context != null ? $"Additional context: {context}" : "")}
-            
+
             Write a helpful, professional response.
             """;
 
@@ -846,15 +846,15 @@ public class AllenAIService : IAllenAIService
     {
         var prompt = $"""
             Extract action items from this email. List each action item on a separate line.
-            
+
             Email:
             {emailContent}
-            
+
             Action items:
             """;
 
         var response = await InvokeModelAsync(prompt, cancellationToken);
-        
+
         return response
             .Split('\n', StringSplitOptions.RemoveEmptyEntries)
             .Select(s => s.Trim().TrimStart('-', '*', '•', ' '))
@@ -944,9 +944,9 @@ public class AllenAIService : IAllenAIService
     {
         var prompt = $"""
             Summarize the following text in {maxLength} characters or less:
-            
+
             {content}
-            
+
             Summary:
             """;
 
@@ -982,7 +982,7 @@ public class AllenAIService : IAllenAIService
 
             using var client = _httpClientFactory.CreateClient("AllenAI");
             var response = await client.GetAsync(endpoint, cancellationToken);
-            
+
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
@@ -1011,7 +1011,7 @@ public class AllenAIService : IAllenAIService
 
             if (!string.IsNullOrEmpty(_config.HuggingFaceApiKey))
             {
-                client.DefaultRequestHeaders.Authorization = 
+                client.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _config.HuggingFaceApiKey);
             }
 
@@ -1025,7 +1025,7 @@ public class AllenAIService : IAllenAIService
             }
 
             _logger.LogWarning("AI model request failed: {StatusCode}", response.StatusCode);
-            
+
             // Fallback to local processing
             if (_config.EnableLocalFallback)
             {
@@ -1037,7 +1037,7 @@ public class AllenAIService : IAllenAIService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error invoking AI model");
-            
+
             if (_config.EnableLocalFallback)
             {
                 return GenerateLocalResponse(prompt);
@@ -1099,7 +1099,7 @@ public class AllenAIService : IAllenAIService
         {
             var startIndex = text.IndexOf(start, StringComparison.OrdinalIgnoreCase);
             if (startIndex < 0) return null;
-            
+
             var endIndex = text.IndexOf(end, startIndex + start.Length, StringComparison.OrdinalIgnoreCase);
             if (endIndex < 0) endIndex = text.Length;
 

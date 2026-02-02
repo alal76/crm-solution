@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
@@ -298,7 +314,7 @@ public class CommunicationsController : ControllerBase
                 return NotFound(new { message = "Channel not found" });
 
             var testResult = await TestChannelConnectionAsync(channel);
-            
+
             if (testResult.Success)
             {
                 channel.Status = ChannelStatus.Connected;
@@ -310,7 +326,7 @@ public class CommunicationsController : ControllerBase
                 channel.Status = ChannelStatus.Error;
                 channel.LastError = testResult.ErrorMessage;
             }
-            
+
             await _context.SaveChangesAsync();
 
             return Ok(new { success = testResult.Success, message = testResult.Message, details = testResult.Details });
@@ -318,7 +334,7 @@ public class CommunicationsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error testing channel {ChannelId}", id);
-            
+
             var channel = await _context.CommunicationChannels.FindAsync(id);
             if (channel != null)
             {
@@ -361,12 +377,12 @@ public class CommunicationsController : ControllerBase
             if (!channel.SmtpPort.HasValue)
                 return new ChannelTestResult { Success = false, Message = "SMTP port not configured", ErrorMessage = "Missing SMTP port" };
 
-            _logger.LogInformation("Email channel {ChannelId} connection test: SMTP server {Server}:{Port}", 
+            _logger.LogInformation("Email channel {ChannelId} connection test: SMTP server {Server}:{Port}",
                 channel.Id, channel.SmtpServer, channel.SmtpPort);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "Email channel configured correctly",
                 Details = new { server = channel.SmtpServer, port = channel.SmtpPort, ssl = channel.SmtpUseSsl }
             };
@@ -388,12 +404,12 @@ public class CommunicationsController : ControllerBase
 
         try
         {
-            _logger.LogInformation("WhatsApp channel {ChannelId} connection test: Phone ID {PhoneId}", 
+            _logger.LogInformation("WhatsApp channel {ChannelId} connection test: Phone ID {PhoneId}",
                 channel.Id, channel.WhatsAppPhoneNumberId);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "WhatsApp Business API credentials validated",
                 Details = new { phoneNumberId = channel.WhatsAppPhoneNumberId, businessAccountId = channel.WhatsAppBusinessAccountId }
             };
@@ -417,9 +433,9 @@ public class CommunicationsController : ControllerBase
         {
             _logger.LogInformation("Twitter channel {ChannelId} connection test validated", channel.Id);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "Twitter API credentials validated",
                 Details = new { hasAccessToken = !string.IsNullOrEmpty(channel.AccessToken) }
             };
@@ -441,12 +457,12 @@ public class CommunicationsController : ControllerBase
 
         try
         {
-            _logger.LogInformation("Facebook channel {ChannelId} connection test: Page ID {PageId}", 
+            _logger.LogInformation("Facebook channel {ChannelId} connection test: Page ID {PageId}",
                 channel.Id, channel.SocialAccountId);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "Facebook Page credentials validated",
                 Details = new { pageId = channel.SocialAccountId, username = channel.SocialUsername }
             };
@@ -470,9 +486,9 @@ public class CommunicationsController : ControllerBase
         {
             _logger.LogInformation("SMS channel {ChannelId} connection test validated", channel.Id);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "SMS API credentials validated",
                 Details = new { provider = "configured" }
             };
@@ -496,9 +512,9 @@ public class CommunicationsController : ControllerBase
         {
             _logger.LogInformation("LinkedIn channel {ChannelId} connection test validated", channel.Id);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "LinkedIn API credentials validated",
                 Details = new { tokenExpires = channel.TokenExpiresAt?.ToString("O") }
             };
@@ -559,11 +575,11 @@ public class CommunicationsController : ControllerBase
                 return new MessageSendResult { Success = false, ErrorMessage = "SMTP not configured" };
 
             _logger.LogInformation("Email sent to {ToAddress} via {Server}", message.ToAddress, channel.SmtpServer);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"email_{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"email_{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)
@@ -584,11 +600,11 @@ public class CommunicationsController : ControllerBase
                 return new MessageSendResult { Success = false, ErrorMessage = "WhatsApp not configured" };
 
             _logger.LogInformation("WhatsApp message sent to {ToAddress}", message.ToAddress);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"wamid.{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"wamid.{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)
@@ -609,11 +625,11 @@ public class CommunicationsController : ControllerBase
                 return new MessageSendResult { Success = false, ErrorMessage = "Twitter not configured" };
 
             _logger.LogInformation("Twitter DM sent to {ToAddress}", message.ToAddress);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"tw_{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"tw_{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)
@@ -634,11 +650,11 @@ public class CommunicationsController : ControllerBase
                 return new MessageSendResult { Success = false, ErrorMessage = "Facebook not configured" };
 
             _logger.LogInformation("Facebook message sent to {ToAddress}", message.ToAddress);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"mid.{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"mid.{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)
@@ -659,11 +675,11 @@ public class CommunicationsController : ControllerBase
                 return new MessageSendResult { Success = false, ErrorMessage = "SMS provider not configured" };
 
             _logger.LogInformation("SMS sent to {ToAddress}", message.ToAddress);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"SM{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"SM{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)
@@ -684,11 +700,11 @@ public class CommunicationsController : ControllerBase
                 return new MessageSendResult { Success = false, ErrorMessage = "LinkedIn not configured" };
 
             _logger.LogInformation("LinkedIn message sent to {ToAddress}", message.ToAddress);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"li_{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"li_{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)

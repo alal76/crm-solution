@@ -13,7 +13,7 @@ public static class InstrumentationService
 {
     // Activity source for distributed tracing
     public static readonly ActivitySource ActivitySource = new("CRM.Solution", "1.3.1");
-    
+
     // Performance counters
     private static readonly Dictionary<string, PerformanceMetric> _metrics = new();
     private static readonly object _lock = new();

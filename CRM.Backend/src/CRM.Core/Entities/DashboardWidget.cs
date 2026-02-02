@@ -13,97 +13,97 @@ public class DashboardWidget : BaseEntity
     /// Dashboard this widget belongs to
     /// </summary>
     public int DashboardId { get; set; }
-    
+
     /// <summary>
     /// Navigation property to dashboard
     /// </summary>
     public virtual Dashboard? Dashboard { get; set; }
-    
+
     /// <summary>
     /// Title displayed on the widget
     /// </summary>
     public string Title { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Optional subtitle or description
     /// </summary>
     public string? Subtitle { get; set; }
-    
+
     /// <summary>
     /// Type of widget
     /// </summary>
     public WidgetType WidgetType { get; set; } = WidgetType.StatCard;
-    
+
     /// <summary>
     /// Data source identifier (e.g., "customers.count", "opportunities.pipeline")
     /// </summary>
     public string DataSource { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Position in grid - row index (0-based)
     /// </summary>
     public int RowIndex { get; set; } = 0;
-    
+
     /// <summary>
     /// Position in grid - column index (0-based)
     /// </summary>
     public int ColumnIndex { get; set; } = 0;
-    
+
     /// <summary>
     /// Number of columns this widget spans (1-4)
     /// </summary>
     public int ColumnSpan { get; set; } = 1;
-    
+
     /// <summary>
     /// Number of rows this widget spans (1-4)
     /// </summary>
     public int RowSpan { get; set; } = 1;
-    
+
     /// <summary>
     /// Widget display order within the dashboard
     /// </summary>
     public int DisplayOrder { get; set; } = 0;
-    
+
     /// <summary>
     /// Whether this widget is visible
     /// </summary>
     public bool IsVisible { get; set; } = true;
-    
+
     /// <summary>
     /// Icon name for the widget (Material Icon)
     /// </summary>
     public string? IconName { get; set; }
-    
+
     /// <summary>
     /// Primary color for the widget (hex)
     /// </summary>
     public string? Color { get; set; }
-    
+
     /// <summary>
     /// Background color or gradient
     /// </summary>
     public string? BackgroundColor { get; set; }
-    
+
     /// <summary>
     /// Navigation link when widget is clicked
     /// </summary>
     public string? NavigationLink { get; set; }
-    
+
     /// <summary>
     /// JSON configuration for chart options, filters, etc.
     /// </summary>
     public string? ConfigJson { get; set; }
-    
+
     /// <summary>
     /// Whether to show a trend indicator
     /// </summary>
     public bool ShowTrend { get; set; } = false;
-    
+
     /// <summary>
     /// Comparison period for trend (days)
     /// </summary>
     public int TrendPeriodDays { get; set; } = 30;
-    
+
     /// <summary>
     /// Widget-specific refresh interval in seconds (0 = use dashboard default)
     /// </summary>

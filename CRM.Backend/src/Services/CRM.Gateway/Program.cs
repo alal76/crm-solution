@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -47,14 +63,14 @@ builder.Services.AddCors(options =>
 
 // Add JWT Authentication (pass-through for validation)
 // JWT_KEY environment variable is REQUIRED - no hardcoded fallback for security
-var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") 
-    ?? builder.Configuration["JwtSettings:Key"] 
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
+    ?? builder.Configuration["JwtSettings:Key"]
     ?? throw new InvalidOperationException("JWT_KEY environment variable or JwtSettings:Key configuration is required");
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
-    ?? builder.Configuration["JwtSettings:Issuer"] 
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
+    ?? builder.Configuration["JwtSettings:Issuer"]
     ?? "CRM.Api";
-var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
-    ?? builder.Configuration["JwtSettings:Audience"] 
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+    ?? builder.Configuration["JwtSettings:Audience"]
     ?? "CRM.Client";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

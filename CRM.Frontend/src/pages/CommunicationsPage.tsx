@@ -490,7 +490,7 @@ function CommunicationsPage() {
                       </TableCell>
                       <TableCell>
                         <Typography variant="caption">
-                          {new Date(message.receivedAt || message.createdAt).toLocaleString()}
+                          {new Date(message.receivedAt || message.createdAt || 0).toLocaleString()}
                         </Typography>
                       </TableCell>
                       <TableCell align="right">
@@ -569,7 +569,7 @@ function CommunicationsPage() {
                       </TableCell>
                       <TableCell>
                         <Typography variant="caption">
-                          {new Date(message.sentAt || message.createdAt).toLocaleString()}
+                          {new Date(message.sentAt || message.createdAt || 0).toLocaleString()}
                         </Typography>
                       </TableCell>
                       <TableCell align="right">
@@ -668,7 +668,7 @@ function CommunicationsPage() {
                       <TableCell>
                         <Chip label={message.status} size="small" color={getStatusColor(message.status)} />
                       </TableCell>
-                      <TableCell>{new Date(message.createdAt).toLocaleString()}</TableCell>
+                      <TableCell>{new Date(message.createdAt || 0).toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -689,7 +689,7 @@ function CommunicationsPage() {
                       <TableCell>
                         <Chip label={message.status} size="small" color={getStatusColor(message.status)} />
                       </TableCell>
-                      <TableCell>{new Date(message.createdAt).toLocaleString()}</TableCell>
+                      <TableCell>{new Date(message.createdAt || 0).toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                   {messages.filter(m => m.channelType === 'WhatsApp').length === 0 && (
@@ -715,7 +715,7 @@ function CommunicationsPage() {
                       <TableCell>
                         <Chip label={message.status} size="small" color={getStatusColor(message.status)} />
                       </TableCell>
-                      <TableCell>{new Date(message.createdAt).toLocaleString()}</TableCell>
+                      <TableCell>{new Date(message.createdAt || 0).toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                   {messages.filter(m => m.channelType === 'Twitter').length === 0 && (
@@ -741,7 +741,7 @@ function CommunicationsPage() {
                       <TableCell>
                         <Chip label={message.status} size="small" color={getStatusColor(message.status)} />
                       </TableCell>
-                      <TableCell>{new Date(message.createdAt).toLocaleString()}</TableCell>
+                      <TableCell>{new Date(message.createdAt || 0).toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                   {messages.filter(m => m.channelType === 'Facebook').length === 0 && (

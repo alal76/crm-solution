@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.ComponentModel.DataAnnotations.Schema;
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
@@ -18,89 +34,89 @@ public class AccountTerritory : BaseEntity
     [Required]
     [MaxLength(255)]
     public string TerritoryName { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Unique code for the territory
     /// </summary>
     [MaxLength(50)]
     public string? TerritoryCode { get; set; }
-    
+
     /// <summary>
     /// Description of the territory
     /// </summary>
     public string? Description { get; set; }
-    
+
     /// <summary>
     /// JSON array of countries in this territory
     /// </summary>
     public string? Countries { get; set; }
-    
+
     /// <summary>
     /// JSON array of regions
     /// </summary>
     public string? Regions { get; set; }
-    
+
     /// <summary>
     /// JSON array of states
     /// </summary>
     public string? States { get; set; }
-    
+
     /// <summary>
     /// JSON array of cities
     /// </summary>
     public string? Cities { get; set; }
-    
+
     /// <summary>
     /// JSON array of industries
     /// </summary>
     public string? Industries { get; set; }
-    
+
     /// <summary>
     /// JSON array of customer types
     /// </summary>
     public string? CustomerTypes { get; set; }
-    
+
     /// <summary>
     /// Minimum revenue range
     /// </summary>
     public decimal? RevenueRangeMin { get; set; }
-    
+
     /// <summary>
     /// Maximum revenue range
     /// </summary>
     public decimal? RevenueRangeMax { get; set; }
-    
+
     /// <summary>
     /// Primary owner user ID
     /// </summary>
     public int? PrimaryOwnerId { get; set; }
-    
+
     /// <summary>
     /// JSON array of team member user IDs
     /// </summary>
     public string? TeamMemberIds { get; set; }
-    
+
     /// <summary>
     /// Annual quota for the territory
     /// </summary>
     public decimal? AnnualQuota { get; set; }
-    
+
     /// <summary>
     /// Currency for quota
     /// </summary>
     [MaxLength(10)]
     public string QuotaCurrency { get; set; } = "USD";
-    
+
     /// <summary>
     /// Target number of accounts
     /// </summary>
     public int? TargetAccountCount { get; set; }
-    
+
     /// <summary>
     /// Whether the territory is active
     /// </summary>
     public bool IsActive { get; set; } = true;
-    
+
     // Navigation properties
     public virtual User? PrimaryOwner { get; set; }
     public virtual ICollection<AccountTerritoryAssignment> AccountAssignments { get; set; } = new List<AccountTerritoryAssignment>();
@@ -119,34 +135,34 @@ public class AccountTerritoryAssignment
     [Required]
     [Column("CustomerId")]
     public int AccountId { get; set; }
-    
+
     /// <summary>
     /// The territory being assigned to
     /// </summary>
     [Required]
     public int TerritoryId { get; set; }
-    
+
     /// <summary>
     /// Date of assignment
     /// </summary>
     public DateTime AssignedDate { get; set; } = DateTime.UtcNow;
-    
+
     /// <summary>
     /// Whether this is the primary territory for the account
     /// </summary>
     public bool IsPrimary { get; set; } = true;
-    
+
     /// <summary>
     /// User who made the assignment
     /// </summary>
     public int? AssignedBy { get; set; }
-    
+
     /// <summary>
     /// Notes about the assignment
     /// </summary>
     [MaxLength(500)]
     public string? Notes { get; set; }
-    
+
     // Navigation properties
     public virtual Account? Account { get; set; }
     public virtual AccountTerritory? Territory { get; set; }

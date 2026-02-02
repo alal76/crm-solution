@@ -14,32 +14,32 @@ namespace CRM.Infrastructure.Data.Providers;
 public abstract class DatabaseProviderStrategyBase : IDatabaseProviderStrategy
 {
     protected readonly DatabaseDeploymentMode _deploymentMode;
-    
+
     protected DatabaseProviderStrategyBase(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone)
     {
         _deploymentMode = deploymentMode;
     }
-    
+
     public abstract string ProviderName { get; }
-    
+
     public DatabaseDeploymentMode DeploymentMode => _deploymentMode;
-    
+
     public abstract string LongTextColumnType { get; }
-    
+
     public abstract string TextColumnType { get; }
-    
+
     public abstract string JsonColumnType { get; }
-    
+
     public abstract string GuidColumnType { get; }
-    
+
     public abstract string TimestampColumnType { get; }
-    
+
     public abstract bool SupportsNativeJson { get; }
-    
+
     public abstract bool SupportsNativeGuid { get; }
-    
+
     public abstract bool SupportsSequences { get; }
-    
+
     public virtual int RecommendedBatchSize => _deploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => 100,
@@ -47,7 +47,7 @@ public abstract class DatabaseProviderStrategyBase : IDatabaseProviderStrategy
         DatabaseDeploymentMode.Hyperscale => 1000,
         _ => 100
     };
-    
+
     public virtual ConnectionPoolSettings ConnectionPoolSettings => _deploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => ConnectionPoolSettings.Standalone,
@@ -55,26 +55,26 @@ public abstract class DatabaseProviderStrategyBase : IDatabaseProviderStrategy
         DatabaseDeploymentMode.Hyperscale => ConnectionPoolSettings.Hyperscale,
         _ => ConnectionPoolSettings.Standalone
     };
-    
+
     public abstract DeleteBehavior DefaultDeleteBehavior { get; }
-    
+
     public abstract void ConfigureRowVersion(ModelBuilder modelBuilder, IMutableEntityType entityType);
-    
+
     public abstract void ApplyPostConfiguration(ModelBuilder modelBuilder);
-    
+
     public virtual void ConfigureIndexes(ModelBuilder modelBuilder)
     {
         // Default: No special index configuration
         // Override in derived classes for provider-specific index features
     }
-    
+
     public virtual string OptimizeConnectionString(string baseConnectionString)
     {
         // Default: Return connection string as-is
         // Override in derived classes for deployment-specific modifications
         return baseConnectionString;
     }
-    
+
     /// <summary>
     /// Helper method to check if an entity type has a RowVersion property.
     /// </summary>

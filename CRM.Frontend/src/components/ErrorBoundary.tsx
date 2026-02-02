@@ -28,7 +28,7 @@ import {
 } from '@mui/icons-material';
 
 interface ComponentErrorInfo {
-  componentStack: string;
+  componentStack: string | undefined;
 }
 
 interface ErrorLogEntry {
@@ -94,7 +94,7 @@ class ErrorBoundary extends Component<Props, State> {
     const entry: ErrorLogEntry = {
       timestamp: new Date().toISOString(),
       error: `${error.name}: ${error.message}\n${error.stack || ''}`,
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo.componentStack ?? undefined,
       url: window.location.href,
       userAgent: navigator.userAgent,
     };

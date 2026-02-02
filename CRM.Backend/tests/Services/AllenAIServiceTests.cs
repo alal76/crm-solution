@@ -197,7 +197,7 @@ public class AllenAIServiceTests
 
         // Act - Weighted average calculation
         // (80 * 0.2) + (70 * 0.3) + (75 * 0.25) + (65 * 0.25) = 16 + 21 + 18.75 + 16.25 = 72.0
-        var overallScore = (demographicScore * 0.2m) + (behavioralScore * 0.3m) + 
+        var overallScore = (demographicScore * 0.2m) + (behavioralScore * 0.3m) +
                           (engagementScore * 0.25m) + (intentScore * 0.25m);
 
         // Assert
@@ -611,7 +611,7 @@ public class AllenAIServiceTests
         var behavioralScore = 70m;
         var engagementScore = 75m;
         var intentScore = 80m;
-        var overallScore = (demographicScore * 0.2m) + (behavioralScore * 0.3m) + 
+        var overallScore = (demographicScore * 0.2m) + (behavioralScore * 0.3m) +
                           (engagementScore * 0.25m) + (intentScore * 0.25m);
 
         // Create lead score

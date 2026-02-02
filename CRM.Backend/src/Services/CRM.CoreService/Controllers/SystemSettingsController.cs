@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -24,7 +40,7 @@ public class SystemSettingsController : ControllerBase
     private readonly IWebHostEnvironment _environment;
 
     public SystemSettingsController(
-        ISystemSettingsService settingsService, 
+        ISystemSettingsService settingsService,
         ILogger<SystemSettingsController> logger,
         IWebHostEnvironment environment,
         IDbContextResolver? contextResolver = null,
@@ -85,7 +101,7 @@ public class SystemSettingsController : ControllerBase
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-            
+
             var settings = await _settingsService.UpdateSettingsAsync(request, userId);
             return Ok(settings);
         }
@@ -106,7 +122,7 @@ public class SystemSettingsController : ControllerBase
         try
         {
             var request = new UpdateSystemSettingsRequest();
-            
+
             switch (moduleName.ToLower())
             {
                 case "customers": request.CustomersEnabled = enabled; break;
@@ -126,10 +142,10 @@ public class SystemSettingsController : ControllerBase
                 default:
                     return BadRequest($"Unknown module: {moduleName}");
             }
-            
+
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-            
+
             var settings = await _settingsService.UpdateSettingsAsync(request, userId);
             return Ok(settings);
         }
@@ -151,7 +167,7 @@ public class SystemSettingsController : ControllerBase
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-            
+
             var request = new UpdateSystemSettingsRequest { CompanyLogoUrl = "" };
             var settings = await _settingsService.UpdateSettingsAsync(request, userId);
             return Ok(settings);
@@ -174,7 +190,7 @@ public class SystemSettingsController : ControllerBase
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-            
+
             var request = new UpdateSystemSettingsRequest { CompanyLoginLogoUrl = "" };
             var settings = await _settingsService.UpdateSettingsAsync(request, userId);
             return Ok(settings);
@@ -197,9 +213,9 @@ public class SystemSettingsController : ControllerBase
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-            
-            var request = new UpdateSystemSettingsRequest 
-            { 
+
+            var request = new UpdateSystemSettingsRequest
+            {
                 CompanyLogoUrl = "",
                 CompanyLoginLogoUrl = "",
                 PrimaryColor = "#6750A4",
@@ -280,16 +296,16 @@ public class SystemSettingsController : ControllerBase
             };
 
             var settings = await _settingsService.UpdateSettingsAsync(request, userId);
-            
+
             _logger.LogInformation("SSL certificate uploaded by user {UserId}", userId);
-            
-            return Ok(new { 
+
+            return Ok(new {
                 message = "SSL certificate uploaded successfully",
                 certificatePath = certPath,
                 privateKeyPath = keyPath,
                 expiry = expiry,
                 subject = subject,
-                settings 
+                settings
             });
         }
         catch (Exception ex)
@@ -318,9 +334,9 @@ public class SystemSettingsController : ControllerBase
             };
 
             var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
-            
+
             _logger.LogInformation("HTTPS mode toggled to {Enabled} by user {UserId}", request.Enabled, userId);
-            
+
             return Ok(settings);
         }
         catch (Exception ex)
@@ -340,7 +356,7 @@ public class SystemSettingsController : ControllerBase
         try
         {
             var settings = await _settingsService.GetSettingsAsync();
-            
+
             return Ok(new
             {
                 httpsEnabled = settings.HttpsEnabled,
@@ -350,8 +366,8 @@ public class SystemSettingsController : ControllerBase
                 certificateExpiry = settings.SslCertificateExpiry,
                 certificateSubject = settings.SslCertificateSubject,
                 isExpired = settings.SslCertificateExpiry.HasValue && settings.SslCertificateExpiry < DateTime.UtcNow,
-                expiresInDays = settings.SslCertificateExpiry.HasValue 
-                    ? (int)(settings.SslCertificateExpiry.Value - DateTime.UtcNow).TotalDays 
+                expiresInDays = settings.SslCertificateExpiry.HasValue
+                    ? (int)(settings.SslCertificateExpiry.Value - DateTime.UtcNow).TotalDays
                     : (int?)null
             });
         }
@@ -372,7 +388,7 @@ public class SystemSettingsController : ControllerBase
         try
         {
             var currentSettings = await _settingsService.GetSettingsAsync();
-            
+
             // Delete certificate files if they exist
             if (!string.IsNullOrEmpty(currentSettings.SslCertificatePath) && System.IO.File.Exists(currentSettings.SslCertificatePath))
             {
@@ -397,9 +413,9 @@ public class SystemSettingsController : ControllerBase
             };
 
             var settings = await _settingsService.UpdateSettingsAsync(request, userId);
-            
+
             _logger.LogInformation("SSL certificate removed by user {UserId}", userId);
-            
+
             return Ok(settings);
         }
         catch (Exception ex)
@@ -427,9 +443,9 @@ public class SystemSettingsController : ControllerBase
             };
 
             var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
-            
+
             _logger.LogInformation("Navigation order updated by user {UserId}", userId);
-            
+
             return Ok(settings);
         }
         catch (Exception ex)
@@ -449,7 +465,7 @@ public class SystemSettingsController : ControllerBase
         try
         {
             var settings = await _settingsService.GetSettingsAsync();
-            
+
             return Ok(new SampleDataStatusResponse
             {
                 SampleDataSeeded = settings.SampleDataSeeded,
@@ -474,10 +490,10 @@ public class SystemSettingsController : ControllerBase
         try
         {
             var settings = await _settingsService.GetSettingsAsync();
-            
+
             // Quick Admin Login is only available in Development environment
             var quickAdminLoginEnabled = _environment.IsDevelopment() && settings.QuickAdminLoginEnabled;
-            
+
             return Ok(new LoginSettingsResponse
             {
                 QuickAdminLoginEnabled = quickAdminLoginEnabled,
@@ -515,9 +531,9 @@ public class SystemSettingsController : ControllerBase
             }
 
             var result = await _databaseSyncService.RunSyncCheckAsync();
-            _logger.LogInformation("Database sync completed. Success: {Success}, Fields synced: {FieldsSynced}", 
+            _logger.LogInformation("Database sync completed. Success: {Success}, Fields synced: {FieldsSynced}",
                 result.Success, result.FieldsSynced);
-            
+
             return Ok(result);
         }
         catch (Exception ex)
@@ -542,7 +558,7 @@ public class SystemSettingsController : ControllerBase
             }
 
             var result = await _databaseSyncService.RunSyncCheckAsync();
-            
+
             return Ok(new
             {
                 productionDatabase = new
@@ -572,7 +588,7 @@ public class SystemSettingsController : ControllerBase
         try
         {
             var settings = await _settingsService.GetSettingsAsync();
-            
+
             return Ok(new
             {
                 coreModules = new
@@ -635,7 +651,7 @@ public class SystemSettingsController : ControllerBase
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-            
+
             var updateRequest = new UpdateSystemSettingsRequest
             {
                 CustomersEnabled = request.CustomersEnabled,
@@ -656,11 +672,11 @@ public class SystemSettingsController : ControllerBase
                 WhatsAppEnabled = request.WhatsAppEnabled,
                 SocialMediaEnabled = request.SocialMediaEnabled
             };
-            
+
             var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
-            
+
             _logger.LogInformation("Features updated by user {UserId}", userId);
-            
+
             return Ok(settings);
         }
         catch (Exception ex)
@@ -709,23 +725,23 @@ public class UpdateFeaturesRequest
     public bool? OpportunitiesEnabled { get; set; }
     public bool? ProductsEnabled { get; set; }
     public bool? ServicesEnabled { get; set; }
-    
+
     // Sales Modules
     public bool? CampaignsEnabled { get; set; }
     public bool? QuotesEnabled { get; set; }
-    
+
     // Productivity Modules
     public bool? TasksEnabled { get; set; }
     public bool? ActivitiesEnabled { get; set; }
     public bool? NotesEnabled { get; set; }
-    
+
     // Automation Modules
     public bool? WorkflowsEnabled { get; set; }
-    
+
     // Analytics Modules
     public bool? ReportsEnabled { get; set; }
     public bool? DashboardEnabled { get; set; }
-    
+
     // Communication Modules
     public bool? EmailEnabled { get; set; }
     public bool? WhatsAppEnabled { get; set; }
@@ -743,7 +759,7 @@ public class LoginSettingsResponse
     public bool LinkedInAuthEnabled { get; set; }
     public bool FacebookAuthEnabled { get; set; }
     public bool AllowUserRegistration { get; set; }
-    
+
     // Branding for login page
     public string? CompanyName { get; set; }
     public string? CompanyLogoUrl { get; set; }

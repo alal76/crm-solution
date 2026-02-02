@@ -10,7 +10,7 @@ namespace CRM.Infrastructure.Data.Providers;
 /// <summary>
 /// Oracle Database-specific provider strategy.
 /// Supports: Standalone, Oracle RAC (Clustered), Oracle Autonomous/Exadata (Hyperscale).
-/// 
+///
 /// Handles:
 /// - ORA_ROWSCN for optimistic concurrency
 /// - CLOB/NCLOB for large text fields
@@ -20,31 +20,31 @@ namespace CRM.Infrastructure.Data.Providers;
 /// </summary>
 public class OracleProviderStrategy : DatabaseProviderStrategyBase
 {
-    public OracleProviderStrategy(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone) 
+    public OracleProviderStrategy(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone)
         : base(deploymentMode)
     {
     }
-    
+
     public override string ProviderName => "oracle";
-    
+
     public override string LongTextColumnType => "NCLOB"; // Unicode CLOB for large text
-    
+
     public override string TextColumnType => "NVARCHAR2(4000)"; // Max VARCHAR2 size
-    
+
     public override string JsonColumnType => "NCLOB"; // JSON type in 21c+, CLOB with IS JSON constraint in 12c+
-    
+
     public override string GuidColumnType => "RAW(16)"; // 16-byte binary, more efficient than CHAR(36)
-    
+
     public override string TimestampColumnType => "TIMESTAMP WITH TIME ZONE";
-    
+
     public override bool SupportsNativeJson => true; // 12c+ with IS JSON constraint, 21c+ native
-    
+
     public override bool SupportsNativeGuid => false; // RAW(16) is close but not true UUID
-    
+
     public override bool SupportsSequences => true; // Sequences are the Oracle way
-    
+
     public override DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.Cascade;
-    
+
     public override int RecommendedBatchSize => _deploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => 100,
@@ -52,7 +52,7 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
         DatabaseDeploymentMode.Hyperscale => 2000, // Autonomous optimized for high throughput
         _ => 100
     };
-    
+
     public override ConnectionPoolSettings ConnectionPoolSettings => _deploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => new ConnectionPoolSettings
@@ -87,7 +87,7 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
         },
         _ => ConnectionPoolSettings.Standalone
     };
-    
+
     public override void ConfigureRowVersion(ModelBuilder modelBuilder, IMutableEntityType entityType)
     {
         var rowVersionProperty = entityType.FindProperty("RowVersion");
@@ -102,7 +102,7 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
                 .ValueGeneratedOnAddOrUpdate();
         }
     }
-    
+
     public override void ApplyPostConfiguration(ModelBuilder modelBuilder)
     {
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
@@ -114,7 +114,7 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
                 {
                     var maxLength = property.GetMaxLength();
                     var columnType = property.GetColumnType();
-                    
+
                     if (columnType == null)
                     {
                         if (maxLength == null || maxLength > 4000)
@@ -129,7 +129,7 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
                         }
                     }
                 }
-                
+
                 // Handle GUIDs - Oracle uses RAW(16)
                 if (property.ClrType == typeof(Guid) || property.ClrType == typeof(Guid?))
                 {
@@ -138,7 +138,7 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
                         property.SetColumnType("RAW(16)");
                     }
                 }
-                
+
                 // Handle boolean - Oracle doesn't have native boolean before 23c
                 if (property.ClrType == typeof(bool) || property.ClrType == typeof(bool?))
                 {
@@ -150,37 +150,37 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
             }
         }
     }
-    
+
     public override void ConfigureIndexes(ModelBuilder modelBuilder)
     {
         // Oracle supports bitmap indexes, function-based indexes, partitioned indexes
         // RAC: Consider global vs local indexes for partitioned tables
         // Autonomous: Auto-indexing handles most cases
-        
+
         if (_deploymentMode == DatabaseDeploymentMode.Hyperscale)
         {
             // Autonomous Database has auto-indexing
             // Exadata has storage indexes
         }
     }
-    
+
     public override string OptimizeConnectionString(string baseConnectionString)
     {
         // Oracle connection strings use different format (TNS or EZ Connect)
         // These optimizations assume standard Oracle.ManagedDataAccess connection string format
         var optimizations = _deploymentMode switch
         {
-            DatabaseDeploymentMode.Standalone => 
+            DatabaseDeploymentMode.Standalone =>
                 ";Statement Cache Size=50;Self Tuning=True",
-            DatabaseDeploymentMode.Clustered => 
+            DatabaseDeploymentMode.Clustered =>
                 // RAC: Enable load balancing and failover
                 ";Statement Cache Size=100;Self Tuning=True;Load Balancing=True;HA Events=True",
-            DatabaseDeploymentMode.Hyperscale => 
+            DatabaseDeploymentMode.Hyperscale =>
                 // Autonomous: Use connection pooling, parallel execution
                 ";Statement Cache Size=200;Self Tuning=True;Connection Timeout=30;Command Timeout=120",
             _ => ""
         };
-        
+
         return baseConnectionString.TrimEnd(';') + optimizations;
     }
 }
@@ -192,15 +192,15 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
 public class OracleRacStrategy : OracleProviderStrategy
 {
     public OracleRacStrategy() : base(DatabaseDeploymentMode.Clustered) { }
-    
+
     public new string ProviderName => "oracle-rac";
-    
+
     public override int RecommendedBatchSize => 500;
-    
+
     public override string OptimizeConnectionString(string baseConnectionString)
     {
         // RAC-specific: Connect to SCAN listener, enable load balancing
-        return baseConnectionString.TrimEnd(';') + 
+        return baseConnectionString.TrimEnd(';') +
             ";Load Balancing=True;HA Events=True;Statement Cache Size=100";
     }
 }
@@ -212,11 +212,11 @@ public class OracleRacStrategy : OracleProviderStrategy
 public class OracleAutonomousStrategy : OracleProviderStrategy
 {
     public OracleAutonomousStrategy() : base(DatabaseDeploymentMode.Hyperscale) { }
-    
+
     public new string ProviderName => "oracle-autonomous";
-    
+
     public override int RecommendedBatchSize => 5000;
-    
+
     public override ConnectionPoolSettings ConnectionPoolSettings => new()
     {
         MinPoolSize = 20,
@@ -226,11 +226,11 @@ public class OracleAutonomousStrategy : OracleProviderStrategy
         EnableRetryOnFailure = true,
         MaxRetryCount = 10
     };
-    
+
     public override string OptimizeConnectionString(string baseConnectionString)
     {
         // Autonomous: Wallet-based connection, auto-scaling
-        return baseConnectionString.TrimEnd(';') + 
+        return baseConnectionString.TrimEnd(';') +
             ";Statement Cache Size=200;Self Tuning=True;Command Timeout=300";
     }
 }
@@ -242,12 +242,12 @@ public class OracleAutonomousStrategy : OracleProviderStrategy
 public class OracleExadataStrategy : OracleProviderStrategy
 {
     public OracleExadataStrategy() : base(DatabaseDeploymentMode.Hyperscale) { }
-    
+
     public new string ProviderName => "oracle-exadata";
-    
+
     // Exadata with smart scan can handle very large batches
     public override int RecommendedBatchSize => 10000;
-    
+
     public override ConnectionPoolSettings ConnectionPoolSettings => new()
     {
         MinPoolSize = 30,

@@ -49,12 +49,12 @@ public class PerformanceTestHarness
             {
                 var result = await response.Content.ReadFromJsonAsync<JsonElement>();
                 _authToken = result.GetProperty("accessToken").GetString();
-                _httpClient.DefaultRequestHeaders.Authorization = 
+                _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", _authToken);
                 Console.WriteLine("✓ Authentication successful");
                 return true;
             }
-            
+
             Console.WriteLine($"✗ Authentication failed: {response.StatusCode}");
             return false;
         }
@@ -124,19 +124,19 @@ public class PerformanceTestHarness
                     await Task.Delay(100); // Small delay between requests
                 }
             }));
-            
+
             Console.WriteLine($"  → User {userCount} started");
             await Task.Delay(delayPerUser);
         }
 
         // Run at max capacity for additional time
         await Task.Delay(TimeSpan.FromSeconds(30));
-        
+
         cts.Cancel();
-        
+
         try { await Task.WhenAll(userTasks); }
         catch (OperationCanceledException) { }
-        
+
         stopwatch.Stop();
 
         return GenerateResult(testName, stopwatch.Elapsed, maxConcurrentUsers, _metrics.Count);
@@ -156,7 +156,7 @@ public class PerformanceTestHarness
         _metrics.Clear();
         var stopwatch = Stopwatch.StartNew();
         var cts = new CancellationTokenSource(TimeSpan.FromMinutes(durationMinutes));
-        
+
         var tasks = Enumerable.Range(0, concurrentUsers)
             .Select(userId => Task.Run(async () =>
             {
@@ -170,7 +170,7 @@ public class PerformanceTestHarness
 
         try { await Task.WhenAll(tasks); }
         catch (OperationCanceledException) { }
-        
+
         stopwatch.Stop();
 
         return GenerateResult(testName, stopwatch.Elapsed, concurrentUsers, _metrics.Count);
@@ -184,7 +184,7 @@ public class PerformanceTestHarness
         for (int i = 0; i < requestCount; i++)
         {
             await ExecuteRequestAsync(userId, requestFunc);
-            
+
             // Random think time between requests (50-200ms)
             await Task.Delay(Random.Shared.Next(50, 200));
         }
@@ -255,7 +255,7 @@ public class PerformanceTestHarness
             SuccessfulRequests = successfulRequests.Count,
             FailedRequests = failedRequests.Count,
             RequestsPerSecond = metricsList.Count / totalDuration.TotalSeconds,
-            
+
             // Latency metrics
             AvgResponseTimeMs = durations.Count > 0 ? durations.Average() : 0,
             MinResponseTimeMs = durations.Count > 0 ? durations.Min() : 0,
@@ -264,11 +264,11 @@ public class PerformanceTestHarness
             P90ResponseTimeMs = durations.Count > 0 ? durations[(int)(durations.Count * 0.90)] : 0,
             P95ResponseTimeMs = durations.Count > 0 ? durations[(int)(durations.Count * 0.95)] : 0,
             P99ResponseTimeMs = durations.Count > 0 ? durations[(int)(durations.Count * 0.99)] : 0,
-            
+
             // Throughput
             TotalBytesTransferred = successfulRequests.Sum(m => m.ResponseSize),
             SuccessRate = metricsList.Count > 0 ? (double)successfulRequests.Count / metricsList.Count * 100 : 0,
-            
+
             // Error analysis
             ErrorsByType = failedRequests
                 .GroupBy(m => m.Error ?? "Unknown")
@@ -314,7 +314,7 @@ public class PerformanceTestHarness
             "C" or "C+" => ConsoleColor.DarkYellow,
             _ => ConsoleColor.Red
         };
-        
+
         Console.ForegroundColor = color;
         Console.WriteLine($"\n  Performance Grade: {grade}");
         Console.ResetColor();
@@ -428,12 +428,12 @@ public class PerformanceTestHarness
         Console.WriteLine("╠═══════════════════════════╦═════════╦══════════╦══════════╦══════════════╣");
         Console.WriteLine("║ Test                      ║ RPS     ║ Avg(ms)  ║ P95(ms)  ║ Success Rate ║");
         Console.WriteLine("╠═══════════════════════════╬═════════╬══════════╬══════════╬══════════════╣");
-        
+
         foreach (var result in results)
         {
             Console.WriteLine($"║ {result.TestName,-25} ║ {result.RequestsPerSecond,7:F1} ║ {result.AvgResponseTimeMs,8:F0} ║ {result.P95ResponseTimeMs,8:F0} ║ {result.SuccessRate,10:F1}% ║");
         }
-        
+
         Console.WriteLine("╚═══════════════════════════╩═════════╩══════════╩══════════╩══════════════╝");
     }
 
@@ -474,7 +474,7 @@ public class PerformanceTestResult
     public int SuccessfulRequests { get; set; }
     public int FailedRequests { get; set; }
     public double RequestsPerSecond { get; set; }
-    
+
     // Latency
     public double AvgResponseTimeMs { get; set; }
     public double MinResponseTimeMs { get; set; }
@@ -483,11 +483,11 @@ public class PerformanceTestResult
     public double P90ResponseTimeMs { get; set; }
     public double P95ResponseTimeMs { get; set; }
     public double P99ResponseTimeMs { get; set; }
-    
+
     // Throughput
     public long TotalBytesTransferred { get; set; }
     public double SuccessRate { get; set; }
-    
+
     // Errors
     public Dictionary<string, int> ErrorsByType { get; set; } = new();
 }

@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -56,10 +72,10 @@ public class UsersController : ControllerBase
                 .Include(u => u.PrimaryGroup)
                 .Where(u => !u.IsDeleted)
                 .ToListAsync();
-            
+
             var contacts = await _contactsService.GetAllAsync();
             var contactDict = contacts.ToDictionary(c => c.Id);
-            
+
             var userDtos = users
                 .Select(u => MapToDto(u, u.ContactId.HasValue && contactDict.ContainsKey(u.ContactId.Value) ? contactDict[u.ContactId.Value] : null))
                 .ToList();
@@ -85,7 +101,7 @@ public class UsersController : ControllerBase
             var users = await _userRepository.GetAllAsync();
             var contacts = await _contactsService.GetAllAsync();
             var contactDict = contacts.ToDictionary(c => c.Id);
-            
+
             var departmentUsers = users
                 .Where(u => !u.IsDeleted && u.DepartmentId == departmentId)
                 .Select(u => MapToDto(u, u.ContactId.HasValue && contactDict.ContainsKey(u.ContactId.Value) ? contactDict[u.ContactId.Value] : null))
@@ -197,7 +213,7 @@ public class UsersController : ControllerBase
             user.DepartmentId = updateDto.DepartmentId ?? user.DepartmentId;
             user.UserProfileId = updateDto.UserProfileId ?? user.UserProfileId;
             user.PrimaryGroupId = updateDto.PrimaryGroupId ?? user.PrimaryGroupId;
-            
+
             // Handle contact link - allow explicit null to unlink
             if (updateDto.ContactId.HasValue)
             {
@@ -206,7 +222,7 @@ public class UsersController : ControllerBase
                     return BadRequest(new { message = "Contact not found" });
                 user.ContactId = updateDto.ContactId;
             }
-            
+
             user.UpdatedAt = DateTime.UtcNow;
 
             await _userRepository.UpdateAsync(user);
@@ -467,7 +483,7 @@ public class UsersController : ControllerBase
                 user.DateFormat = string.IsNullOrEmpty(dto.DateFormat) ? null : dto.DateFormat;
             if (dto.TimeFormat != null)
                 user.TimeFormat = string.IsNullOrEmpty(dto.TimeFormat) ? null : dto.TimeFormat;
-            
+
             // Update display settings
             if (dto.RowsPerPage.HasValue)
                 user.RowsPerPage = dto.RowsPerPage;

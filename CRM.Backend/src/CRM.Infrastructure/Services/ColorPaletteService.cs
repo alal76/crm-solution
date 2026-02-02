@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -26,12 +42,12 @@ public class ColorPaletteService : IColorPaletteService
     private readonly HttpClient _httpClient;
     private readonly ILogger<ColorPaletteService> _logger;
     private readonly IResilienceService? _resilienceService;
-    
-    private const string GITHUB_PALETTES_URL = 
+
+    private const string GITHUB_PALETTES_URL =
         "https://raw.githubusercontent.com/NSTechBytes/yourpalettes-website/main/api/colorpalettes.json";
 
     public ColorPaletteService(
-        CrmDbContext context, 
+        CrmDbContext context,
         HttpClient httpClient,
         ILogger<ColorPaletteService> logger,
         IResilienceService? resilienceService = null)
@@ -48,7 +64,7 @@ public class ColorPaletteService : IColorPaletteService
             .OrderBy(p => p.Category)
             .ThenBy(p => p.Name)
             .ToListAsync();
-            
+
         return palettes.Select(ToDto);
     }
 
@@ -58,7 +74,7 @@ public class ColorPaletteService : IColorPaletteService
             .Where(p => p.Category == category)
             .OrderBy(p => p.Name)
             .ToListAsync();
-            
+
         return palettes.Select(ToDto);
     }
 
@@ -80,14 +96,14 @@ public class ColorPaletteService : IColorPaletteService
     public async Task<IEnumerable<ColorPaletteDto>> SearchAsync(string searchTerm, int limit = 50)
     {
         var normalizedSearch = searchTerm.ToLower();
-        
+
         var palettes = await _context.ColorPalettes
-            .Where(p => p.Name.ToLower().Contains(normalizedSearch) || 
+            .Where(p => p.Name.ToLower().Contains(normalizedSearch) ||
                        (p.Category != null && p.Category.ToLower().Contains(normalizedSearch)))
             .OrderBy(p => p.Name)
             .Take(limit)
             .ToListAsync();
-            
+
         return palettes.Select(ToDto);
     }
 
@@ -96,7 +112,7 @@ public class ColorPaletteService : IColorPaletteService
         try
         {
             _logger.LogInformation("Starting palette refresh from GitHub...");
-            
+
             string json;
             if (_resilienceService != null)
             {
@@ -115,23 +131,23 @@ public class ColorPaletteService : IColorPaletteService
                 response.EnsureSuccessStatusCode();
                 json = await response.Content.ReadAsStringAsync();
             }
-            
+
             var palettes = JsonSerializer.Deserialize<List<GitHubPalette>>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
-            
+
             if (palettes == null || palettes.Count == 0)
             {
                 _logger.LogWarning("No palettes found in GitHub response");
                 return 0;
             }
-            
+
             _logger.LogInformation("Fetched {Count} palettes from GitHub", palettes.Count);
-            
+
             // Clear existing non-user-defined palettes only
             await _context.ColorPalettes.Where(p => !p.IsUserDefined).ExecuteDeleteAsync();
-            
+
             // Insert new palettes in batches
             var entities = palettes.Select(p => new ColorPalette
             {
@@ -145,7 +161,7 @@ public class ColorPaletteService : IColorPaletteService
                 IsUserDefined = false,
                 CreatedAt = DateTime.UtcNow
             }).ToList();
-            
+
             // Batch insert for better performance
             const int batchSize = 1000;
             for (int i = 0; i < entities.Count; i += batchSize)
@@ -154,7 +170,7 @@ public class ColorPaletteService : IColorPaletteService
                 await _context.ColorPalettes.AddRangeAsync(batch);
                 await _context.SaveChangesAsync();
             }
-            
+
             // Update last refresh timestamp in system settings
             var settings = await _context.SystemSettings.FirstOrDefaultAsync();
             if (settings != null)
@@ -162,7 +178,7 @@ public class ColorPaletteService : IColorPaletteService
                 settings.PalettesLastRefreshed = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
-            
+
             _logger.LogInformation("Successfully cached {Count} palettes", entities.Count);
             return entities.Count;
         }
@@ -187,10 +203,10 @@ public class ColorPaletteService : IColorPaletteService
             IsUserDefined = true,
             CreatedByUserId = userId
         };
-        
+
         _context.ColorPalettes.Add(palette);
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Created custom palette '{Name}' by user {UserId}", request.Name, userId);
         return ToDto(palette);
     }
@@ -199,13 +215,13 @@ public class ColorPaletteService : IColorPaletteService
     {
         var palette = await _context.ColorPalettes
             .FirstOrDefaultAsync(p => p.Id == paletteId && p.IsUserDefined && p.CreatedByUserId == userId);
-        
+
         if (palette == null)
             return false;
-        
+
         _context.ColorPalettes.Remove(palette);
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Deleted custom palette {PaletteId} by user {UserId}", paletteId, userId);
         return true;
     }
@@ -216,7 +232,7 @@ public class ColorPaletteService : IColorPaletteService
             .Where(p => p.IsUserDefined)
             .OrderBy(p => p.Name)
             .ToListAsync();
-        
+
         return palettes.Select(ToDto);
     }
 
@@ -225,13 +241,13 @@ public class ColorPaletteService : IColorPaletteService
         Id = palette.Id,
         Name = palette.Name,
         Category = palette.Category,
-        Colors = new List<string> 
-        { 
-            palette.Color1, 
-            palette.Color2, 
-            palette.Color3, 
-            palette.Color4, 
-            palette.Color5 
+        Colors = new List<string>
+        {
+            palette.Color1,
+            palette.Color2,
+            palette.Color3,
+            palette.Color4,
+            palette.Color5
         },
         IsUserDefined = palette.IsUserDefined
     };

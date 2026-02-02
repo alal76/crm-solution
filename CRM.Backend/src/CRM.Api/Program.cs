@@ -40,7 +40,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure Kestrel for HTTPS
 var sslCertPath = builder.Configuration["SSL_CERT_PATH"] ?? Path.Combine(Directory.GetCurrentDirectory(), "ssl", "server.pfx");
 // SECURITY: SSL_CERT_PASSWORD must be set in production - see SECURITY_BEST_PRACTICES.md
-var sslCertPassword = builder.Configuration["SSL_CERT_PASSWORD"] 
+var sslCertPassword = builder.Configuration["SSL_CERT_PASSWORD"]
     ?? throw new InvalidOperationException("SSL_CERT_PASSWORD environment variable is required for HTTPS. Set it or use HTTP-only mode.");
 var httpsPort = int.TryParse(builder.Configuration["HTTPS_PORT"], out var hp) ? hp : 5001;
 var httpPort = int.TryParse(builder.Configuration["HTTP_PORT"], out var p) ? p : 5000;
@@ -49,7 +49,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 {
     // Always listen on HTTP
     serverOptions.ListenAnyIP(httpPort);
-    
+
     // Try to enable HTTPS if certificate exists
     if (File.Exists(sslCertPath))
     {
@@ -118,7 +118,7 @@ builder.Services.AddScoped<IDbCacheService, DbCacheService>();
 var monitoringConfig = builder.Configuration.GetSection("Monitoring");
 builder.Services.Configure<MonitoringOptions>(monitoringConfig);
 builder.Services.AddScoped<IMonitoringService, MonitoringService>();
-Log.Information("Monitoring configured - DeploymentType: {Type}, BuildServer: {Server}", 
+Log.Information("Monitoring configured - DeploymentType: {Type}, BuildServer: {Server}",
     monitoringConfig.GetValue<string>("DeploymentType", "docker"),
     monitoringConfig.GetValue<string>("BuildServer", "localhost"));
 
@@ -139,10 +139,10 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
         Content = rateLimitingConfig.GetValue("QuotaExceededMessage", "API calls quota exceeded!"),
         ContentType = "text/plain"
     };
-    
+
     // Build rules list from configuration
     var rules = new List<RateLimitRule>();
-    
+
     // Add general rules from config
     var generalRulesSection = rateLimitingConfig.GetSection("GeneralRules");
     if (generalRulesSection.Exists())
@@ -162,7 +162,7 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
         // Default general rule if not configured
         rules.Add(new RateLimitRule { Endpoint = "*", Period = "1m", Limit = 1000 });
     }
-    
+
     // Add endpoint-specific rules from config
     var endpointRulesSection = rateLimitingConfig.GetSection("EndpointRules");
     if (endpointRulesSection.Exists())
@@ -178,7 +178,7 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
             });
         }
     }
-    
+
     options.GeneralRules = rules;
 });
 builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
@@ -289,7 +289,7 @@ if (string.IsNullOrWhiteSpace(connectionString) && (databaseProvider.ToLower() =
     var dbName = builder.Configuration["DB_NAME"] ?? "crm_db";
     var dbUser = builder.Configuration["DB_USER"] ?? "crm_user";
     // SECURITY: DB_PASSWORD must be set in production - see SECURITY_BEST_PRACTICES.md
-    var dbPass = builder.Configuration["DB_PASSWORD"] ?? builder.Configuration["DB_PASS"] 
+    var dbPass = builder.Configuration["DB_PASSWORD"] ?? builder.Configuration["DB_PASS"]
         ?? (builder.Environment.IsDevelopment() ? "crm_pass" : throw new InvalidOperationException("DB_PASSWORD environment variable is required in production"));
     connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};Uid={dbUser};Pwd={dbPass};";
 }
@@ -321,7 +321,7 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
 
 // Register ICrmDbContext interface with dynamic resolution
 builder.Services.AddScoped<IDbContextResolver, DynamicDbContextResolver>();
-builder.Services.AddScoped<ICrmDbContext>(provider => 
+builder.Services.AddScoped<ICrmDbContext>(provider =>
     provider.GetRequiredService<IDbContextResolver>().ResolveContext());
 
 // Register Services (backward compatibility)
@@ -505,7 +505,7 @@ using (var scope = app.Services.CreateScope())
     {
         // Check if database exists and has tables
         var canConnect = await db.Database.CanConnectAsync();
-        
+
         // For non-SQLite databases, use EnsureCreated for dev environment to avoid migration issues
         if (databaseProvider.ToLower() != "sqlite")
         {
@@ -544,7 +544,7 @@ using (var scope = app.Services.CreateScope())
             Log.Information("Creating new database...");
             await db.Database.EnsureCreatedAsync();
         }
-        
+
         // Apply any raw SQL migration files in CRM.Backend/migrations (useful for MySQL/MariaDB)
         try
         {
@@ -578,7 +578,7 @@ using (var scope = app.Services.CreateScope())
         // Seed data
         await DbSeed.SeedAsync(db);
         Log.Information("Database setup completed successfully");
-        
+
         // Seed master data (ZipCodes, ColorPalettes) if not already populated
         // This data persists across deployments in the database
         try
@@ -586,14 +586,14 @@ using (var scope = app.Services.CreateScope())
             var masterDataSeeder = scope.ServiceProvider.GetRequiredService<IMasterDataSeederService>();
             await masterDataSeeder.SeedIfEmptyAsync();
             var stats = await masterDataSeeder.GetStatsAsync();
-            Log.Information("Master data status: {ZipCodeCount} ZIP codes, {ColorPaletteCount} color palettes", 
+            Log.Information("Master data status: {ZipCodeCount} ZIP codes, {ColorPaletteCount} color palettes",
                 stats.ZipCodeCount, stats.ColorPaletteCount);
         }
         catch (Exception masterDataEx)
         {
             Log.Warning(masterDataEx, "Failed to seed master data - continuing without");
         }
-        
+
         // Auto-seed sample data if configured
         var autoSeedSampleData = builder.Configuration.GetValue<bool>("SampleData:AutoSeed", false);
         if (autoSeedSampleData)
@@ -602,10 +602,10 @@ using (var scope = app.Services.CreateScope())
             try
             {
                 var sampleSeeder = scope.ServiceProvider.GetRequiredService<SampleDataSeederService>();
-                
+
                 // Check if already seeded
                 var isSeeded = await sampleSeeder.IsSampleDataSeededAsync();
-                
+
                 if (!isSeeded)
                 {
                     Log.Information("Seeding production database with sample data...");

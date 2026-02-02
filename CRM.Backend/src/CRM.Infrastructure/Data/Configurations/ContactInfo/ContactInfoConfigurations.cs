@@ -29,19 +29,19 @@ public class AddressConfiguration : IEntityTypeConfiguration<Address>
         builder.Property(e => e.AddressXml).HasColumnType("TEXT");
         builder.Property(e => e.Latitude).HasPrecision(10, 6);
         builder.Property(e => e.Longitude).HasPrecision(10, 6);
-        
+
         // FK to ZipCode
         builder.HasOne(e => e.ZipCodeData)
             .WithMany(z => z.Addresses)
             .HasForeignKey(e => e.ZipCodeId)
             .OnDelete(DeleteBehavior.SetNull);
-            
+
         // FK to Locality
         builder.HasOne(e => e.LocalityData)
             .WithMany()
             .HasForeignKey(e => e.LocalityId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         builder.HasIndex(e => e.ZipCodeId);
         builder.HasIndex(e => e.LocalityId);
         builder.HasIndex(e => e.PostalCode);
@@ -83,7 +83,7 @@ public class ContactInfoLinkConfiguration : IEntityTypeConfiguration<ContactInfo
         builder.HasKey(e => e.Id);
         builder.HasIndex(e => new { e.OwnerType, e.OwnerId });
         builder.HasIndex(e => new { e.InfoKind, e.InfoId });
-        
+
         builder.HasOne(e => e.Address)
             .WithMany()
             .HasForeignKey(e => e.AddressId)

@@ -121,9 +121,9 @@ Respond ONLY with valid JSON in this exact format:
                 try
                 {
                     var analysisResult = JsonSerializer.Deserialize<EmailAnalysisResult>(
-                        response.Content, 
+                        response.Content,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     return Ok(new EmailAnalysisResponse
                     {
                         Success = true,
@@ -186,7 +186,7 @@ Respond ONLY with valid JSON in this exact format:
                 var customer = await _context.Customers
                     .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.Id == request.CustomerId.Value);
-                
+
                 if (customer != null)
                 {
                     customerContext = $"\n\nCustomer Context:\n- Company: {customer.Company}\n- Account Type: {customer.Category}\n- Industry: {customer.Industry}";
@@ -318,7 +318,7 @@ Generate 5 optimized subject line variations {purposeContext}.
 
 Consider:
 - Clarity and relevance
-- Urgency without being spammy  
+- Urgency without being spammy
 - Personalization opportunities
 - Optimal length (40-60 characters)
 - Action-oriented language
