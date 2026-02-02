@@ -17,6 +17,7 @@ import { DialogError, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { useProfile } from '../contexts/ProfileContext';
 import apiClient from '../services/apiClient';
+import logger from '../services/logger';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
@@ -739,7 +740,7 @@ function CampaignsPage() {
                 showRelated={['contacts', 'opportunities', 'activities']}
                 onEntityClick={(type, id) => {
                   handleCloseDialog();
-                  console.log(`Navigate to ${type} ${id}`);
+                  logger.debug(`Navigate to ${type} ${id}`);
                 }}
               />
             </TabPanel>

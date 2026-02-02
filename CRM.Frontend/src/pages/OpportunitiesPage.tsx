@@ -65,6 +65,7 @@ import {
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
+import logger from '../services/logger';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
@@ -238,15 +239,15 @@ function OpportunitiesPage() {
   // SignalR subscription for real-time updates
   useEntityTypeSubscription('Opportunity', {
     onCreated: useCallback(() => {
-      console.log('[SignalR] Opportunity created - refreshing list');
+      logger.debug('[SignalR] Opportunity created - refreshing list');
       fetchAllData();
     }, [fetchAllData]),
     onUpdated: useCallback(() => {
-      console.log('[SignalR] Opportunity updated - refreshing list');
+      logger.debug('[SignalR] Opportunity updated - refreshing list');
       fetchAllData();
     }, [fetchAllData]),
     onDeleted: useCallback(() => {
-      console.log('[SignalR] Opportunity deleted - refreshing list');
+      logger.debug('[SignalR] Opportunity deleted - refreshing list');
       fetchAllData();
     }, [fetchAllData]),
   });

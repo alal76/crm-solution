@@ -11,6 +11,7 @@ import {
   Subscriptions as SubscriptionIcon, Note as NoteIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import logger from '../services/logger';
 import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
 import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
@@ -230,15 +231,15 @@ function ProductsPage() {
   // SignalR subscription for real-time updates
   useEntityTypeSubscription('Product', {
     onCreated: useCallback(() => {
-      console.log('[SignalR] Product created - refreshing list');
+      logger.debug('[SignalR] Product created - refreshing list');
       fetchProducts();
     }, [fetchProducts]),
     onUpdated: useCallback(() => {
-      console.log('[SignalR] Product updated - refreshing list');
+      logger.debug('[SignalR] Product updated - refreshing list');
       fetchProducts();
     }, [fetchProducts]),
     onDeleted: useCallback(() => {
-      console.log('[SignalR] Product deleted - refreshing list');
+      logger.debug('[SignalR] Product deleted - refreshing list');
       fetchProducts();
     }, [fetchProducts]),
   });

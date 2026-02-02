@@ -26,6 +26,7 @@ import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import NotesTab from '../components/NotesTab';
 import apiClient from '../services/apiClient';
+import logger from '../services/logger';
 import logo from '../assets/logo.png';
 
 // ==================== TYPES ====================
@@ -879,7 +880,7 @@ function ContractsPage() {
                 showRelated={['accounts', 'contacts', 'quotes']}
                 onEntityClick={(type, id) => {
                   handleCloseDialog();
-                  console.log(`Navigate to ${type} ${id}`);
+                  logger.debug(`Navigate to ${type} ${id}`);
                 }}
               />
             </TabPanel>

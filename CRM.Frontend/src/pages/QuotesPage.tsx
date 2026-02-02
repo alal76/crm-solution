@@ -12,6 +12,7 @@ import {
   Print as PrintIcon, Link as LinkIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import logger from '../services/logger';
 import { TabPanel, DialogError, DialogSuccess, ActionButton, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { BaseEntity } from '../types';
@@ -716,7 +717,7 @@ function QuotesPage() {
                 showRelated={['accounts', 'contacts', 'opportunities']}
                 onEntityClick={(type, id) => {
                   handleCloseDialog();
-                  console.log(`Navigate to ${type} ${id}`);
+                  logger.debug(`Navigate to ${type} ${id}`);
                 }}
               />
             </TabPanel>

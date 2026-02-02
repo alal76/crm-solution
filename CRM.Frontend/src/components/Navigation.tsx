@@ -82,6 +82,7 @@ import { useBranding } from '../contexts/BrandingContext';
 import { getApiEndpoint } from '../config/ports';
 import UserSettingsDialog from './UserSettingsDialog';
 import logo from '../assets/logo.png';
+import logger from '../services/logger';
 import './Navigation.css';
 
 function NavigationContent() {
@@ -797,7 +798,7 @@ function NavigationContent() {
         onClose={() => setUserSettingsOpen(false)}
         onThemeChange={(theme) => {
           // Theme change handler - could trigger app-wide theme switch
-          console.log('Theme changed to:', theme);
+          logger.debug('Theme changed to:', theme);
           // Force page reload to apply theme (simple approach)
           // In a more sophisticated implementation, this would update a theme context
         }}

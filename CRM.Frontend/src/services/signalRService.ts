@@ -1,5 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 import { getApiBaseUrl } from '../config/ports';
+import logger from './logger';
 
 /**
  * SignalR connection manager for CRM real-time notifications.
@@ -64,7 +65,7 @@ class SignalRService {
 
       // Connect
       await this.connection.start();
-      console.log('SignalR connected to CRM notifications hub');
+      logger.debug('SignalR connected to CRM notifications hub');
       this.reconnectAttempts = 0;
       this.notifyConnectionState(this.connection.state);
       
@@ -85,7 +86,7 @@ class SignalRService {
     if (this.connection) {
       await this.connection.stop();
       this.connection = null;
-      console.log('SignalR disconnected');
+      logger.debug('SignalR disconnected');
     }
   }
 
@@ -97,17 +98,17 @@ class SignalRService {
 
     // Handle reconnection events
     this.connection.onreconnecting(() => {
-      console.log('SignalR reconnecting...');
+      logger.debug('SignalR reconnecting...');
       this.notifyConnectionState(signalR.HubConnectionState.Reconnecting);
     });
 
     this.connection.onreconnected(() => {
-      console.log('SignalR reconnected');
+      logger.debug('SignalR reconnected');
       this.notifyConnectionState(signalR.HubConnectionState.Connected);
     });
 
     this.connection.onclose(() => {
-      console.log('SignalR connection closed');
+      logger.debug('SignalR connection closed');
       this.notifyConnectionState(signalR.HubConnectionState.Disconnected);
     });
 
@@ -143,11 +144,11 @@ class SignalRService {
 
     this.connection.on('UserViewingRecord', (notification: UserEditingNotification) => {
       // Can be used to show who's viewing a record
-      console.log('User viewing record:', notification);
+      logger.debug('User viewing record:', notification);
     });
 
     this.connection.on('UserLeftRecord', (notification: UserEditingNotification) => {
-      console.log('User left record:', notification);
+      logger.debug('User left record:', notification);
     });
   }
 

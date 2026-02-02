@@ -94,6 +94,7 @@ import {
   Customer,
 } from '../services/apiService';
 import apiClient from '../services/apiClient';
+import logger from '../services/logger';
 
 interface Contact {
   id: number;
@@ -1379,7 +1380,7 @@ function ServiceRequestsPage() {
               onEntityClick={(type, id) => {
                 setOpenDialog(false);
                 setDialogTab(0);
-                console.log(`Navigate to ${type} ${id}`);
+                logger.debug(`Navigate to ${type} ${id}`);
               }}
             />
           )}
