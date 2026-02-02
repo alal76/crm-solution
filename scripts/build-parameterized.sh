@@ -387,11 +387,11 @@ main() {
     log_info "CRM Solution - Parameterized Build Script"
     log_info "=========================================="
     
-    # Load configuration
-    load_env_config
-    
-    # Parse arguments
+    # Parse arguments first to get BUILD_TYPE
     parse_args "$@"
+    
+    # Then load configuration (which will use BUILD_TYPE if set)
+    load_env_config
     
     # Display configuration
     log_info "Build Configuration:"
