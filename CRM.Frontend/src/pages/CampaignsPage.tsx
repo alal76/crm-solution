@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TabPanel } from '../components/common';
+import { TabPanel, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
@@ -11,7 +11,7 @@ import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Campaign as CampaignIcon, TrendingUp as TrendingUpIcon,
   Email as EmailIcon, Share as ShareIcon, Close as CloseIcon,
-  Note as NoteIcon
+  Note as NoteIcon, Link as LinkIcon
 } from '@mui/icons-material';
 import { DialogError, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
@@ -527,9 +527,14 @@ function CampaignsPage() {
               </TableBody>
             </Table>
             {campaigns.length === 0 && (
-              <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
-                No campaigns found. Create your first campaign to get started.
-              </Typography>
+              <EnhancedEmptyState
+                illustration="campaigns"
+                title="No campaigns yet"
+                description="Create your first marketing campaign to start tracking performance"
+                variant="no-data"
+                primaryActionLabel="Create Campaign"
+                onPrimaryAction={() => handleOpenDialog()}
+              />
             )}
           </CardContent>
         </Card>
@@ -537,15 +542,30 @@ function CampaignsPage() {
 
       {/* Enhanced Add/Edit Campaign Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ pb: 0 }}>{editingId ? 'Edit Campaign' : 'Add Campaign'}</DialogTitle>
+        <DialogHeader
+          mode={editingId ? 'edit' : 'create'}
+          entityType="campaign"
+          entityName={editingId ? formData.name : undefined}
+          entityId={editingId || undefined}
+          onClose={handleCloseDialog}
+          subtitle={editingId && formData.startDate ? `${formData.startDate} - ${formData.endDate || 'Ongoing'}` : undefined}
+          status={editingId && formData.status ? (CAMPAIGN_STATUSES.find(s => s.value === formData.status)?.label || undefined) : undefined}
+          statusColor={editingId && formData.status ? (
+            formData.status === 2 ? 'success' :
+            formData.status === 1 ? 'info' :
+            formData.status === 3 ? 'warning' :
+            formData.status === 4 ? 'default' : 'default'
+          ) : undefined}
+        />
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
-            <Tab label="Basic Info" />
-            <Tab label="Performance" />
-            <Tab label="Email Metrics" />
-            <Tab label="Social & A/B" />
-            <Tab label="Tracking" />
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Campaign dialog tabs">
+            <Tab label="Basic Info" id="campaign-tab-0" aria-controls="campaign-tabpanel-0" />
+            <Tab label="Performance" id="campaign-tab-1" aria-controls="campaign-tabpanel-1" />
+            <Tab label="Email Metrics" id="campaign-tab-2" aria-controls="campaign-tabpanel-2" />
+            <Tab label="Social & A/B" id="campaign-tab-3" aria-controls="campaign-tabpanel-3" />
+            <Tab label="Tracking" id="campaign-tab-4" aria-controls="campaign-tabpanel-4" />
+            {editingId && <Tab label="Related" icon={<LinkIcon fontSize="small" />} iconPosition="start" id="campaign-tab-5" aria-controls="campaign-tabpanel-5" />}
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={`campaign-tab-${editingId ? 6 : 5}`} aria-controls={`campaign-tabpanel-${editingId ? 6 : 5}`} />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
@@ -710,7 +730,23 @@ function CampaignsPage() {
             </Grid>
           </TabPanel>
 
-          <TabPanel value={dialogTab} index={5}>
+          {/* Related Entities Tab (only when editing) */}
+          {editingId && (
+            <TabPanel value={dialogTab} index={5}>
+              <RelatedEntitiesPanel
+                entityType="campaigns"
+                entityId={editingId}
+                showRelated={['contacts', 'opportunities', 'activities']}
+                onEntityClick={(type, id) => {
+                  handleCloseDialog();
+                  console.log(`Navigate to ${type} ${id}`);
+                }}
+              />
+            </TabPanel>
+          )}
+
+          {/* Notes Tab */}
+          <TabPanel value={dialogTab} index={editingId ? 6 : 5}>
             {editingId ? (
               <NotesTab
                 entityType="Campaign"

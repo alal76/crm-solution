@@ -17,9 +17,9 @@ import {
   Download as DownloadIcon, Upload as UploadIcon, Close as CloseIcon,
   Refresh as RefreshIcon, Description as ContractIcon,
   AttachFile as AttachIcon, Warning as WarningIcon,
-  Print as PrintIcon,
+  Print as PrintIcon, Link as LinkIcon, Note as NoteIcon,
 } from '@mui/icons-material';
-import { DialogError, ActionButton, TabPanel } from '../components/common';
+import { DialogError, ActionButton, TabPanel, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { useProfile } from '../contexts/ProfileContext';
 import LookupSelect from '../components/LookupSelect';
@@ -534,10 +534,15 @@ function ContractsPage() {
               <TableBody>
                 {filteredContracts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} align="center">
-                      <Typography color="text.secondary" py={4}>
-                        No contracts found. Create your first contract to get started!
-                      </Typography>
+                    <TableCell colSpan={9} sx={{ border: 0 }}>
+                      <EnhancedEmptyState
+                        illustration="contracts"
+                        title="No contracts yet"
+                        description="Create your first contract to start managing customer agreements"
+                        variant="no-data"
+                        primaryActionLabel="Create Contract"
+                        onPrimaryAction={() => handleOpenDialog()}
+                      />
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -618,21 +623,29 @@ function ContractsPage() {
 
       {/* Contract Editor Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
-        <DialogTitle>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Box display="flex" alignItems="center" gap={1}>
-              <ContractIcon />
-              {editingId ? 'Edit Contract' : 'Create New Contract'}
-            </Box>
-            <IconButton onClick={handleCloseDialog}><CloseIcon /></IconButton>
-          </Box>
-        </DialogTitle>
+        <DialogHeader
+          mode={editingId ? 'edit' : 'create'}
+          entityType="contract"
+          entityName={editingId ? formData.name || undefined : undefined}
+          entityId={editingId || undefined}
+          onClose={handleCloseDialog}
+          status={editingId && formData.status !== undefined ? 
+            (CONTRACT_STATUS_OPTIONS.find(s => s.value === formData.status)?.label || undefined) : undefined}
+          statusColor={editingId && formData.status !== undefined ? (
+            formData.status === ContractStatus.Active ? 'success' :
+            formData.status === ContractStatus.Approved ? 'info' :
+            formData.status === ContractStatus.PendingApproval ? 'warning' :
+            formData.status === ContractStatus.Expired ? 'error' :
+            formData.status === ContractStatus.Terminated ? 'error' : 'default'
+          ) : undefined}
+        />
         <DialogContent dividers>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} sx={{ mb: 2 }}>
-            <Tab label="Basic Info" />
-            <Tab label="Terms & Conditions" />
-            <Tab label="Related Records" />
-            {editingId && <Tab label="Notes" />}
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} sx={{ mb: 2 }} aria-label="Contract dialog tabs">
+            <Tab label="Basic Info" id="contract-tab-0" aria-controls="contract-tabpanel-0" />
+            <Tab label="Terms & Conditions" id="contract-tab-1" aria-controls="contract-tabpanel-1" />
+            <Tab label="Related Records" id="contract-tab-2" aria-controls="contract-tabpanel-2" />
+            {editingId && <Tab label="Related" icon={<LinkIcon fontSize="small" />} iconPosition="start" id="contract-tab-3" aria-controls="contract-tabpanel-3" />}
+            {editingId && <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={`contract-tab-${editingId ? 4 : 3}`} aria-controls={`contract-tabpanel-${editingId ? 4 : 3}`} />}
           </Tabs>
 
           <DialogError error={dialogApi.error} />
@@ -857,10 +870,25 @@ function ContractsPage() {
             </Grid>
           </TabPanel>
 
-          {/* Tab 3: Notes */}
+          {/* Tab 3: Related Entities (only when editing) */}
           {editingId && (
             <TabPanel value={dialogTab} index={3}>
-              <NotesTab entityType="Quote" entityId={editingId} />
+              <RelatedEntitiesPanel
+                entityType="contracts"
+                entityId={editingId}
+                showRelated={['accounts', 'contacts', 'quotes']}
+                onEntityClick={(type, id) => {
+                  handleCloseDialog();
+                  console.log(`Navigate to ${type} ${id}`);
+                }}
+              />
+            </TabPanel>
+          )}
+
+          {/* Tab 4: Notes */}
+          {editingId && (
+            <TabPanel value={dialogTab} index={4}>
+              <NotesTab entityType="Contract" entityId={editingId} entityName={formData.name || 'Contract'} />
             </TabPanel>
           )}
         </DialogContent>

@@ -17,6 +17,7 @@ export type EntityType =
   | 'Opportunity' 
   | 'Campaign' 
   | 'Quote' 
+  | 'Contract'
   | 'ServiceRequest' 
   | 'Product' 
   | 'Task' 

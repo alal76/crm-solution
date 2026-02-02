@@ -50,7 +50,14 @@ import { ContactInfoPanel } from '../components/ContactInfo';
 import NotesTab from '../components/NotesTab';
 import { BaseEntity } from '../types';
 import { useProfile } from '../contexts/ProfileContext';
-import { DialogError, DialogSuccess, ActionButton } from '../components/common';
+import { 
+  DialogError, 
+  DialogSuccess, 
+  ActionButton,
+  DialogHeader,
+  RelatedEntitiesPanel,
+  EnhancedEmptyState,
+} from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
@@ -661,6 +668,7 @@ function LeadsPage() {
                         onClick={() => handleDelete(lead.id)}
                         sx={{ color: '#B3261E' }}
                         title="Delete Lead"
+                        aria-label={`Delete lead ${lead.firstName} ${lead.lastName}`}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -670,8 +678,22 @@ function LeadsPage() {
               })}
               {filteredLeads.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                    <Typography color="textSecondary">No leads found. Add your first lead to get started.</Typography>
+                  <TableCell colSpan={8} align="center" sx={{ py: 0 }}>
+                    <EnhancedEmptyState
+                      illustration="leads"
+                      variant={searchText || searchFilters.length > 0 ? 'no-results' : 'no-data'}
+                      title={searchText || searchFilters.length > 0 ? 'No leads match your search' : undefined}
+                      primaryActionLabel={searchText || searchFilters.length > 0 ? 'Clear Filters' : 'Add Lead'}
+                      onPrimaryAction={() => {
+                        if (searchText || searchFilters.length > 0) {
+                          setSearchText('');
+                          setSearchFilters([]);
+                        } else {
+                          handleOpenDialog();
+                        }
+                      }}
+                      compact
+                    />
                   </TableCell>
                 </TableRow>
               )}
@@ -694,14 +716,22 @@ function LeadsPage() {
 
       {/* Add/Edit Lead Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, color: '#6750A4', pb: 0 }}>
-          {editingId ? 'Edit Lead' : 'Add Lead'}
-        </DialogTitle>
+        <DialogHeader
+          mode={editingId ? 'edit' : 'create'}
+          entityType="lead"
+          entityName={editingId ? `${formData.firstName} ${formData.lastName}` : undefined}
+          entityId={editingId || undefined}
+          onClose={handleCloseDialog}
+          subtitle={formData.company || formData.jobTitle}
+          status={formData.status ? LEAD_STATUSES.find(s => s.value === formData.status)?.label : undefined}
+          statusColor={formData.status ? LEAD_STATUSES.find(s => s.value === formData.status)?.text : undefined}
+        />
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
-            <Tab label="Lead Info" />
-            {editingId && <Tab label="Contact Info" icon={<ContactPhoneIcon fontSize="small" />} iconPosition="start" />}
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Lead dialog tabs">
+            <Tab label="Lead Info" id="lead-tab-0" aria-controls="lead-tabpanel-0" />
+            {editingId && <Tab label="Contact Info" icon={<ContactPhoneIcon fontSize="small" />} iconPosition="start" id="lead-tab-1" aria-controls="lead-tabpanel-1" />}
+            {editingId && <Tab label="Related" icon={<PersonAddIcon fontSize="small" />} iconPosition="start" id="lead-tab-2" aria-controls="lead-tabpanel-2" />}
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={editingId ? "lead-tab-3" : "lead-tab-1"} aria-controls={editingId ? "lead-tabpanel-3" : "lead-tabpanel-1"} />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 350 }}>
@@ -796,7 +826,7 @@ function LeadsPage() {
 
           {/* Contact Info Tab - Only when editing */}
           {editingId && dialogTab === 1 && (
-            <Box>
+            <Box role="tabpanel" id="lead-tabpanel-1" aria-labelledby="lead-tab-1">
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
                 Manage Contact Information
               </Typography>
@@ -812,9 +842,28 @@ function LeadsPage() {
             </Box>
           )}
 
-          {/* Notes Tab - Index depends on whether we're editing (has Contact Info tab) or adding */}
-          {((editingId && dialogTab === 2) || (!editingId && dialogTab === 1)) && (
-            <Box>
+          {/* Related Entities Tab - Only when editing */}
+          {editingId && dialogTab === 2 && (
+            <Box role="tabpanel" id="lead-tabpanel-2" aria-labelledby="lead-tab-2">
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                Related Records
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                View activities and related records linked to this lead.
+              </Typography>
+              <RelatedEntitiesPanel
+                entityType="lead"
+                entityId={editingId}
+                showRelated={['activities']}
+                compact
+                showAddButtons
+              />
+            </Box>
+          )}
+
+          {/* Notes Tab - Index depends on whether we're editing (has Contact Info + Related tabs) or adding */}
+          {((editingId && dialogTab === 3) || (!editingId && dialogTab === 1)) && (
+            <Box role="tabpanel" id={editingId ? "lead-tabpanel-3" : "lead-tabpanel-1"} aria-labelledby={editingId ? "lead-tab-3" : "lead-tab-1"}>
               {editingId ? (
                 <NotesTab
                   entityType="Lead"

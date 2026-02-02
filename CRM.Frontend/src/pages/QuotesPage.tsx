@@ -9,10 +9,10 @@ import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Description as QuoteIcon, Send as SendIcon, CheckCircle as AcceptIcon,
   Cancel as RejectIcon, Refresh as ReviseIcon, Note as NoteIcon,
-  Print as PrintIcon
+  Print as PrintIcon, Link as LinkIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
-import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
+import { TabPanel, DialogError, DialogSuccess, ActionButton, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
@@ -541,9 +541,19 @@ function QuotesPage() {
               </Table>
             </TableContainer>
             {quotes.length === 0 && (
-              <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
-                No quotes found. Create your first quote to get started.
-              </Typography>
+              <EnhancedEmptyState
+                illustration="quotes"
+                title={searchFilters.length > 0 ? "No quotes match your filters" : "No quotes yet"}
+                description={searchFilters.length > 0 
+                  ? "Try adjusting your filters to find what you're looking for"
+                  : "Create your first quote to start generating proposals for customers"
+                }
+                variant={searchFilters.length > 0 ? "no-results" : "no-data"}
+                primaryActionLabel="Create Quote"
+                onPrimaryAction={() => handleOpenDialog()}
+                secondaryActionLabel={searchFilters.length > 0 ? "Clear Filters" : undefined}
+                onSecondaryAction={searchFilters.length > 0 ? () => setSearchFilters([]) : undefined}
+              />
             )}
           </CardContent>
         </Card>
@@ -551,15 +561,31 @@ function QuotesPage() {
 
       {/* Add/Edit Quote Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ pb: 0 }}>{editingId ? 'Edit Quote' : 'Create Quote'}</DialogTitle>
+        <DialogHeader
+          mode={editingId ? 'edit' : 'create'}
+          entityType="quote"
+          entityName={editingId ? formData.title || undefined : undefined}
+          entityId={editingId || undefined}
+          onClose={handleCloseDialog}
+          status={editingId && formData.status !== undefined ? 
+            (QUOTE_STATUSES.find(s => s.value === formData.status)?.label || undefined) : undefined}
+          statusColor={editingId && formData.status !== undefined ? (
+            formData.status === 6 ? 'success' :
+            formData.status === 3 ? 'info' :
+            formData.status === 2 ? 'warning' :
+            formData.status === 7 ? 'error' :
+            formData.status === 8 ? 'error' : 'default'
+          ) : undefined}
+        />
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
-            <Tab label="Details" />
-            <Tab label="Line Items" />
-            <Tab label="Pricing" />
-            <Tab label="Addresses" />
-            <Tab label="Terms" />
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Quote dialog tabs">
+            <Tab label="Details" id="quote-tab-0" aria-controls="quote-tabpanel-0" />
+            <Tab label="Line Items" id="quote-tab-1" aria-controls="quote-tabpanel-1" />
+            <Tab label="Pricing" id="quote-tab-2" aria-controls="quote-tabpanel-2" />
+            <Tab label="Addresses" id="quote-tab-3" aria-controls="quote-tabpanel-3" />
+            <Tab label="Terms" id="quote-tab-4" aria-controls="quote-tabpanel-4" />
+            {editingId && <Tab label="Related" icon={<LinkIcon fontSize="small" />} iconPosition="start" id="quote-tab-5" aria-controls="quote-tabpanel-5" />}
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={`quote-tab-${editingId ? 6 : 5}`} aria-controls={`quote-tabpanel-${editingId ? 6 : 5}`} />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
@@ -681,7 +707,23 @@ function QuotesPage() {
             </Grid>
           </TabPanel>
 
-          <TabPanel value={dialogTab} index={5}>
+          {/* Related Entities Tab (only when editing) */}
+          {editingId && (
+            <TabPanel value={dialogTab} index={5}>
+              <RelatedEntitiesPanel
+                entityType="quotes"
+                entityId={editingId}
+                showRelated={['accounts', 'contacts', 'opportunities']}
+                onEntityClick={(type, id) => {
+                  handleCloseDialog();
+                  console.log(`Navigate to ${type} ${id}`);
+                }}
+              />
+            </TabPanel>
+          )}
+
+          {/* Notes Tab */}
+          <TabPanel value={dialogTab} index={editingId ? 6 : 5}>
             {editingId ? (
               <NotesTab
                 entityType="Quote"

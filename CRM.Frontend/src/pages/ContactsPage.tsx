@@ -52,6 +52,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CloseIcon from '@mui/icons-material/Close';
 import NoteIcon from '@mui/icons-material/Note';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
@@ -63,7 +64,15 @@ import { contactInfoService, EntityContactInfoDto, LinkedEmailDto, LinkedPhoneDt
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
 import { BaseEntity } from '../types';
-import { DialogError, DialogSuccess, ActionButton, StatusSnackbar } from '../components/common';
+import { 
+  DialogError, 
+  DialogSuccess, 
+  ActionButton, 
+  StatusSnackbar,
+  DialogHeader,
+  RelatedEntitiesPanel,
+  EnhancedEmptyState,
+} from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
@@ -786,9 +795,27 @@ function ContactsPage() {
                 showLastButton
               />
               {filteredContacts.length === 0 && !loading && (
-                <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
-                  No contacts found
-                </Typography>
+                <EnhancedEmptyState
+                  illustration="contacts"
+                  variant={searchText || searchFilters.length > 0 ? 'no-results' : 'no-data'}
+                  title={searchText || searchFilters.length > 0 ? 'No contacts match your search' : undefined}
+                  description={searchText || searchFilters.length > 0 
+                    ? 'Try adjusting your search criteria or clear filters to see all contacts.'
+                    : undefined
+                  }
+                  primaryActionLabel={searchText || searchFilters.length > 0 ? 'Clear Filters' : 'Add Contact'}
+                  onPrimaryAction={() => {
+                    if (searchText || searchFilters.length > 0) {
+                      setSearchText('');
+                      setSearchFilters([]);
+                    } else {
+                      handleAddContact();
+                    }
+                  }}
+                  showSearchHint={!!(searchText || searchFilters.length > 0)}
+                  searchValue={searchText}
+                  compact
+                />
               )}
             </CardContent>
           </Card>
@@ -797,22 +824,42 @@ function ContactsPage() {
 
       {/* Contact Form Dialog */}
       <Dialog open={openDialog} onClose={() => { dialogApi.clearError(); setOpenDialog(false); }} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {selectedContact ? 'Edit Contact' : 'Add New Contact'}
-        </DialogTitle>
+        <DialogHeader
+          mode={selectedContact ? 'edit' : 'create'}
+          entityType="contact"
+          entityName={selectedContact ? `${selectedContact.firstName} ${selectedContact.lastName}` : undefined}
+          entityId={selectedContact?.id}
+          onClose={() => { dialogApi.clearError(); setOpenDialog(false); }}
+          showMetadata={!!selectedContact}
+          createdAt={selectedContact?.dateAdded}
+          modifiedAt={selectedContact?.lastModified}
+          subtitle={selectedContact?.jobTitle || selectedContact?.company}
+        />
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
-            <Tab label="Basic Info" />
+          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Contact dialog tabs">
+            <Tab label="Basic Info" id="contact-tab-0" aria-controls="contact-tabpanel-0" />
             <Tab 
               label="Contact Info" 
               icon={<ContactPhoneIcon fontSize="small" />} 
               iconPosition="start"
               disabled={!selectedContact}
+              id="contact-tab-1"
+              aria-controls="contact-tabpanel-1"
+            />
+            <Tab 
+              label="Related" 
+              icon={<TrendingUpIcon fontSize="small" />} 
+              iconPosition="start"
+              disabled={!selectedContact}
+              id="contact-tab-2"
+              aria-controls="contact-tabpanel-2"
             />
             <Tab 
               label="Notes" 
               icon={<NoteIcon fontSize="small" />} 
               iconPosition="start"
+              id="contact-tab-3"
+              aria-controls="contact-tabpanel-3"
             />
           </Tabs>
         </Box>
@@ -936,7 +983,7 @@ function ContactsPage() {
 
           {/* Contact Info Tab - Only when editing */}
           {dialogTab === 1 && selectedContact && (
-            <Box>
+            <Box role="tabpanel" id="contact-tabpanel-1" aria-labelledby="contact-tab-1">
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
                 Manage Contact Information
               </Typography>
@@ -953,9 +1000,28 @@ function ContactsPage() {
             </Box>
           )}
 
+          {/* Related Entities Tab - Only when editing */}
+          {dialogTab === 2 && selectedContact && (
+            <Box role="tabpanel" id="contact-tabpanel-2" aria-labelledby="contact-tab-2">
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                Related Records
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                View and navigate to opportunities, accounts, and activities linked to this contact.
+              </Typography>
+              <RelatedEntitiesPanel
+                entityType="contact"
+                entityId={selectedContact.id}
+                showRelated={['accounts', 'opportunities', 'activities']}
+                compact
+                showAddButtons
+              />
+            </Box>
+          )}
+
           {/* Notes Tab */}
-          {dialogTab === 2 && (
-            <Box>
+          {dialogTab === 3 && (
+            <Box role="tabpanel" id="contact-tabpanel-3" aria-labelledby="contact-tab-3">
               {selectedContact ? (
                 <NotesTab
                   entityType="Contact"
