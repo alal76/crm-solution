@@ -48,11 +48,43 @@ load_env_config() {
     export DEPLOY_API="${DEPLOY_API:-true}"
     export DEPLOY_DATABASE="${DEPLOY_DATABASE:-true}"
     export DEPLOY_REDIS="${DEPLOY_REDIS:-true}"
+    export BUILD_TYPE="${BUILD_TYPE:-production}"
     export BUILD_OPTIMIZATION="${BUILD_OPTIMIZATION:-Release}"
     export SKIP_TESTS="${SKIP_TESTS:-false}"
     export DATABASE_PROVIDER="${DATABASE_PROVIDER:-mariadb}"
     
-    log_success "Configuration loaded: Architecture=${ARCHITECTURE_MODE}"
+    # Set build configuration based on build type
+    case "$BUILD_TYPE" in
+        dev)
+            export DOTNET_CONFIGURATION="Debug"
+            export ASPNETCORE_ENVIRONMENT="Dev"
+            export LOG_LEVEL="Debug"
+            ;;
+        test)
+            export DOTNET_CONFIGURATION="Debug"
+            export ASPNETCORE_ENVIRONMENT="Test"
+            export LOG_LEVEL="Debug"
+            ;;
+        integration)
+            export DOTNET_CONFIGURATION="Release"
+            export ASPNETCORE_ENVIRONMENT="Integration"
+            export LOG_LEVEL="Information"
+            ;;
+        production)
+            export DOTNET_CONFIGURATION="Release"
+            export ASPNETCORE_ENVIRONMENT="Production"
+            export LOG_LEVEL="Warning"
+            ;;
+        *)
+            log_warn "Unknown build type: $BUILD_TYPE, defaulting to production"
+            export BUILD_TYPE="production"
+            export DOTNET_CONFIGURATION="Release"
+            export ASPNETCORE_ENVIRONMENT="Production"
+            export LOG_LEVEL="Warning"
+            ;;
+    esac
+    
+    log_success "Configuration loaded: Architecture=${ARCHITECTURE_MODE}, BuildType=${BUILD_TYPE}"
 }
 
 # =============================================================================
@@ -67,6 +99,10 @@ parse_args() {
                 ;;
             --env|--environment)
                 export TARGET_ENV="$2"
+                shift 2
+                ;;
+            --build-type|--type)
+                export BUILD_TYPE="$2"
                 shift 2
                 ;;
             --skip-tests)
@@ -120,6 +156,7 @@ Parameterized build script for CRM Solution
 OPTIONS:
     --arch, --architecture MODE    Set architecture mode (monolithic|microservices)
     --env, --environment ENV       Target environment (development|staging|production)
+    --build-type, --type TYPE      Build type (dev|test|integration|production)
     --skip-tests                   Skip running tests
     --skip-frontend                Don't build frontend
     --skip-backend                 Don't build backend
@@ -129,15 +166,39 @@ OPTIONS:
     --push                         Push images to registry
     --help, -h                     Show this help message
 
+BUILD TYPES:
+    dev         - Development build with extensive logging for debugging
+                  * Debug configuration, verbose logging
+                  * Source maps enabled, no minification
+                  * All console statements retained
+                  
+    test        - Test build for QA with full instrumentation
+                  * Debug configuration with optimizations
+                  * Code coverage and performance monitoring enabled
+                  * Test hooks and instrumentation included
+                  
+    integration - Integration build focused on external integrations
+                  * Release configuration
+                  * API and middleware logging enabled
+                  * External integration tracing
+                  
+    production  - Production build - optimized and clean
+                  * Release configuration with aggressive optimization
+                  * Minimal logging (errors/warnings only)
+                  * Source maps disabled, console statements removed
+
 EXAMPLES:
     # Build monolithic architecture with defaults
     $0 --arch monolithic
     
-    # Build microservices for production
-    $0 --arch microservices --env production --push
+    # Build for development with verbose logging
+    $0 --build-type dev --arch microservices
     
-    # Build only frontend and backend
-    $0 --components frontend,backend
+    # Build for testing with full instrumentation
+    $0 --build-type test --env staging
+    
+    # Build for production deployment
+    $0 --build-type production --env production --push
     
     # Quick build without tests
     $0 --skip-tests --tag dev-$(date +%Y%m%d)
@@ -158,7 +219,7 @@ build_frontend() {
         return 0
     fi
     
-    log_info "Building React Frontend..."
+    log_info "Building React Frontend (Build Type: ${BUILD_TYPE})..."
     cd "$PROJECT_ROOT/CRM.Frontend"
     
     if [ ! -d "node_modules" ]; then
@@ -174,10 +235,27 @@ build_frontend() {
         npm test -- --coverage --watchAll=false --passWithNoTests || log_warn "Some tests failed"
     fi
     
-    log_info "Building production bundle..."
-    npm run build
+    log_info "Building production bundle for build type: ${BUILD_TYPE}..."
+    case "$BUILD_TYPE" in
+        dev)
+            npm run build:dev
+            ;;
+        test)
+            npm run build:test
+            ;;
+        integration)
+            npm run build:integration
+            ;;
+        production)
+            npm run build:production
+            ;;
+        *)
+            log_warn "Unknown build type, using default build"
+            npm run build
+            ;;
+    esac
     
-    log_success "Frontend build completed"
+    log_success "Frontend build completed (${BUILD_TYPE})"
 }
 
 build_backend() {
@@ -186,18 +264,18 @@ build_backend() {
         return 0
     fi
     
-    log_info "Building .NET Backend..."
+    log_info "Building .NET Backend (Build Type: ${BUILD_TYPE})..."
     cd "$PROJECT_ROOT/CRM.Backend"
     
     log_info "Restoring NuGet packages..."
     dotnet restore CRM.sln
     
-    log_info "Building solution..."
-    dotnet build CRM.sln -c "${BUILD_OPTIMIZATION}" --no-restore
+    log_info "Building solution with configuration: ${DOTNET_CONFIGURATION}..."
+    dotnet build CRM.sln -c "${DOTNET_CONFIGURATION}" --no-restore
     
     if [ "$SKIP_TESTS" != "true" ]; then
         log_info "Running backend tests..."
-        dotnet test tests/CRM.Tests.csproj --no-build -c "${BUILD_OPTIMIZATION}" || log_warn "Some tests failed"
+        dotnet test tests/CRM.Tests.csproj --no-build -c "${DOTNET_CONFIGURATION}" || log_warn "Some tests failed"
     fi
     
     log_success "Backend build completed"
@@ -281,7 +359,10 @@ ${GREEN}                    BUILD SUMMARY                                ${NC}
 ${GREEN}═════════════════════════════════════════════════════════════════${NC}
 
 Architecture:     ${ARCHITECTURE_MODE}
-Environment:      ${TARGET_ENV:-development}
+Build Type:       ${BUILD_TYPE}
+.NET Config:      ${DOTNET_CONFIGURATION}
+Environment:      ${ASPNETCORE_ENVIRONMENT}
+Target Env:       ${TARGET_ENV:-development}
 Optimization:     ${BUILD_OPTIMIZATION}
 Tests Run:        $([ "$SKIP_TESTS" == "true" ] && echo "No" || echo "Yes")
 
@@ -315,6 +396,9 @@ main() {
     # Display configuration
     log_info "Build Configuration:"
     log_info "  Architecture: ${ARCHITECTURE_MODE}"
+    log_info "  Build Type: ${BUILD_TYPE}"
+    log_info "  .NET Configuration: ${DOTNET_CONFIGURATION}"
+    log_info "  ASPNETCORE Environment: ${ASPNETCORE_ENVIRONMENT}"
     log_info "  Target Environment: ${TARGET_ENV:-development}"
     log_info "  Skip Tests: ${SKIP_TESTS}"
     

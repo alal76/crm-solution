@@ -82,6 +82,64 @@ components:
 # BUILD CONFIGURATION
 # =============================================================================
 build:
+  # Build type configuration
+  # Options: dev, test, integration, production
+  type: ${BUILD_TYPE:-production}
+  
+  # Build type definitions
+  types:
+    dev:
+      description: "Development build with extensive logging for debugging"
+      dotnet_configuration: Debug
+      log_level: Debug
+      source_maps: true
+      minification: false
+      console_removal: false
+      instrumentation: true
+      code_analysis: true
+      optimization_level: none
+      defines: "DEBUG;TRACE;VERBOSE_LOGGING"
+      
+    test:
+      description: "Test build for QA with full instrumentation"
+      dotnet_configuration: Debug
+      log_level: Debug
+      source_maps: true
+      minification: false
+      console_removal: false
+      instrumentation: full
+      code_coverage: true
+      performance_monitoring: true
+      code_analysis: true
+      optimization_level: basic
+      defines: "DEBUG;TRACE;ENABLE_TESTING;CODE_COVERAGE"
+      
+    integration:
+      description: "Integration build focused on external integrations"
+      dotnet_configuration: Release
+      log_level: Information
+      source_maps: true
+      minification: true
+      console_removal: false
+      instrumentation: api_focused
+      api_logging: verbose
+      middleware_logging: true
+      code_analysis: false
+      optimization_level: standard
+      defines: "TRACE;ENABLE_INTEGRATION;API_LOGGING"
+      
+    production:
+      description: "Production build - optimized and clean"
+      dotnet_configuration: Release
+      log_level: Warning
+      source_maps: false
+      minification: true
+      console_removal: true
+      instrumentation: minimal
+      code_analysis: false
+      optimization_level: aggressive
+      defines: "RELEASE"
+  
   # Build server location
   source: ${BUILD_SOURCE:-local}  # local, remote, cloud
   
