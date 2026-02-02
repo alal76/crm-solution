@@ -1,0 +1,20 @@
+# =============================================================================
+# CRM Solution - ConfigMap for Azure Deployment
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crm-config
+  namespace: crm
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:5000"
+  AllowedHosts: "*"
+  # CORS Configuration - use AllowedOrigins key as expected by Program.cs
+  AllowedOrigins: "http://20.245.40.183,https://20.245.40.183,http://localhost:3000"
+  # Redis Configuration
+  Redis__Configuration: "redis:6379"
+  # LLM Configuration - Local Ollama not available in minimal deployment
+  LLMProviders__DefaultProvider: "groq"
+  LLMProviders__EnableFallback: "true"
+  LLMProviders__LocalLLM__Enabled: "false"

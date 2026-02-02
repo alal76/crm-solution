@@ -3,9 +3,11 @@ using CRM.Api.Hubs;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace CRM.Tests.Controllers;
@@ -25,7 +27,23 @@ public class ProductsControllerTests
         _mockProductService = new Mock<IProductService>();
         _mockLogger = new Mock<ILogger<ProductsController>>();
         _mockNotificationService = new Mock<ICrmNotificationService>();
+        
+        // Setup default returns for notification service
+        _mockNotificationService.Setup(x => x.NotifyRecordCreatedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<object>(), It.IsAny<string?>()))
+            .Returns(Task.CompletedTask);
+        _mockNotificationService.Setup(x => x.NotifyRecordUpdatedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<object>(), It.IsAny<string?>()))
+            .Returns(Task.CompletedTask);
+        _mockNotificationService.Setup(x => x.NotifyRecordDeletedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>()))
+            .Returns(Task.CompletedTask);
+            
         _controller = new ProductsController(_mockProductService.Object, _mockLogger.Object, _mockNotificationService.Object);
+        
+        // Setup HttpContext with Response.Headers for ETag support
+        var httpContext = new DefaultHttpContext();
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
     }
 
     #region GetAll Tests

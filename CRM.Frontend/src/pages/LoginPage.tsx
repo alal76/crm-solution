@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { getApiUrl } from '../config/ports';
 import {
   Container,
   TextField,
@@ -286,18 +287,14 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const styles = useStyles();
 
-  // Helper function to get API URL
-  const getApiUrl = useCallback(() => {
-    return window.location.hostname === 'localhost'
-      ? 'http://localhost:5000/api'
-      : `http://${window.location.hostname}:5000/api`;
-  }, []);
+  // Get API URL from centralized config
+  const apiUrl = getApiUrl();
 
   // Load login settings (Quick Admin Login enabled status + branding)
   useEffect(() => {
     const loadLoginSettings = async () => {
       try {
-        const response = await fetch(`${getApiUrl()}/systemsettings/login-settings`);
+        const response = await fetch(`${apiUrl}/systemsettings/login-settings`);
         if (response.ok) {
           const data = await response.json();
           setQuickAdminLoginEnabled(data.quickAdminLoginEnabled ?? false);
@@ -314,7 +311,7 @@ const LoginPage: React.FC = () => {
       }
     };
     loadLoginSettings();
-  }, [getApiUrl]);
+  }, [apiUrl]);
 
   // Load saved email on mount
   useEffect(() => {

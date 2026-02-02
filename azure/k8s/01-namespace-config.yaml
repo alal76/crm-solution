@@ -1,0 +1,40 @@
+# =============================================================================
+# CRM Solution - Kubernetes Namespace and ConfigMaps
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crm
+  labels:
+    app: crm-solution
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crm-config
+  namespace: crm
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:5000"
+  AllowedHosts: "*"
+  # LLM Configuration - Updated with Azure LLM VM
+  LLMProviders__DefaultProvider: "local"
+  LLMProviders__EnableFallback: "true"
+  LLMProviders__LocalLLM__Enabled: "true"
+  LLMProviders__LocalLLM__DefaultModel: "olmo2:7b"
+  # Will be set dynamically via deployment
+  # LLMProviders__LocalLLM__BaseUrl: "http://<LLM_VM_IP>:11434"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: crm-secrets
+  namespace: crm
+type: Opaque
+stringData:
+  # These will be replaced during deployment
+  ConnectionStrings__DefaultConnection: "Server=mysql-crm-dev.mysql.database.azure.com;Database=crm_db;User=crmadmin;Password=PLACEHOLDER;SslMode=Required;"
+  Jwt__Secret: "PLACEHOLDER"
+  Jwt__Issuer: "CRM-Solution"
+  Jwt__Audience: "CRM-Users"
+  Jwt__ExpirationMinutes: "60"

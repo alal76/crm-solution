@@ -1,0 +1,15 @@
+# =============================================================================
+# CRM Solution - API Service (for frontend proxy)
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-api
+  namespace: crm
+spec:
+  selector:
+    app: crm-api
+  ports:
+    - port: 5000
+      targetPort: 5000
+  type: ClusterIP

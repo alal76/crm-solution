@@ -1,15 +1,15 @@
 {
   "major": 1,
-  "minor": 7,
-  "patch": 29,
+  "minor": 8,
+  "patch": 0,
   "lastUpdate": "2026-02-01",
-  "description": "CRM Solution v1.7.29 - Junction table improvements, LLM failover config, Tags/EntityTags enhancements",
+  "description": "CRM Solution v1.8.0 - Azure DevOps CI/CD, Bicep IaC, multi-environment deployment",
   "git": {
     "branch": "dev",
     "commit": "5666434"
   },
   "environment": "production",
   "architecture": "monolith",
-  "buildServer": "192.168.0.9",
-  "buildTime": "2026-02-01T10:00:00"
+  "buildServer": "azure-devops",
+  "buildTime": "2026-02-01T22:00:00"
 }

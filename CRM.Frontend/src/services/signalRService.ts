@@ -1,4 +1,5 @@
 import * as signalR from '@microsoft/signalr';
+import { getApiBaseUrl } from '../config/ports';
 
 /**
  * SignalR connection manager for CRM real-time notifications.
@@ -21,12 +22,8 @@ class SignalRService {
    * Get the SignalR hub URL based on current API endpoint
    */
   private getHubUrl(): string {
-    // Use the same base URL as the API
-    const apiUrl = process.env.REACT_APP_API_URL || 
-      (window.location.hostname === 'localhost' 
-        ? 'http://localhost:5000' 
-        : `${window.location.protocol}//${window.location.hostname}:5000`);
-    
+    // Use the same base URL as the API from centralized config
+    const apiUrl = getApiBaseUrl();
     return `${apiUrl}/hubs/notifications`;
   }
 

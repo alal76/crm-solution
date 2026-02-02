@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { getApiUrl } from '../../config/ports';
 import {
   Box,
   Typography,
@@ -255,16 +256,12 @@ function NavigationSettingsTab() {
   const [subcategoryDialogOpen, setSubcategoryDialogOpen] = useState(false);
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
 
-  const getApiUrl = () => {
-    return window.location.hostname === 'localhost'
-      ? 'http://localhost:5000/api'
-      : `http://${window.location.hostname}:5000/api`;
-  };
+  const apiUrl = getApiUrl();
 
   const loadSettings = useCallback(async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/systemsettings`, {
+      const response = await fetch(`${apiUrl}/systemsettings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -604,7 +601,7 @@ function NavigationSettingsTab() {
       };
       const navOrderConfig = JSON.stringify(configToSave);
 
-      const response = await fetch(`${getApiUrl()}/systemsettings/navigation/order`, {
+      const response = await fetch(`${apiUrl}/systemsettings/navigation/order`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,

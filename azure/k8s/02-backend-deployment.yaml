@@ -1,0 +1,69 @@
+# =============================================================================
+# CRM Solution - Backend API Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-api
+  namespace: crm
+  labels:
+    app: crm-api
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: crm-api
+  template:
+    metadata:
+      labels:
+        app: crm-api
+        tier: backend
+    spec:
+      containers:
+        - name: crm-api
+          image: ${ACR_LOGIN_SERVER}/crm-api:${IMAGE_TAG}
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: crm-config
+            - secretRef:
+                name: crm-secrets
+          env:
+            - name: LLMProviders__LocalLLM__BaseUrl
+              value: "http://${LLM_VM_IP}:11434"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      imagePullSecrets:
+        - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-api-service
+  namespace: crm
+spec:
+  selector:
+    app: crm-api
+  ports:
+    - port: 80
+      targetPort: 5000
+  type: ClusterIP

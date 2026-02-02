@@ -45,6 +45,7 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
+    "build:prod": "craco build && npm run validate:build",
     "build:analyze": "GENERATE_SOURCEMAP=true craco build && npx source-map-explorer 'build/static/js/*.js'",
     "build:fast": "GENERATE_SOURCEMAP=false CI=true craco build",
     "test": "craco test",
@@ -52,7 +53,10 @@
     "version:major": "node ../update-version.js major",
     "version:minor": "node ../update-version.js minor",
     "version:patch": "node ../update-version.js patch",
-    "clean": "rm -rf build node_modules/.cache"
+    "clean": "rm -rf build node_modules/.cache",
+    "validate:env": "node -e \"const fs=require('fs'); const env=fs.readFileSync('.env.production','utf8'); if(env.includes('REACT_APP_API_URL=http')) { console.error('ERROR: .env.production has hardcoded URL'); process.exit(1); } console.log('✓ .env.production is valid');\"",
+    "validate:build": "if grep -rE 'localhost:[0-9]{4}|192\\.168\\.[0-9]+\\.[0-9]+:[0-9]+' build/static/js/*.js 2>/dev/null | grep -v '//' | head -1; then echo 'ERROR: Hardcoded URLs in bundle'; exit 1; fi && echo '✓ Build validated'",
+    "prebuild": "npm run validate:env || true"
   },
   "eslintConfig": {
     "extends": [

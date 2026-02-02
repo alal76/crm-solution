@@ -1,7 +1,7 @@
 # CRM Solution - Testing Summary
 
-**Version:** 0.0.25  
-**Last Updated:** January 2025
+**Version:** 0.0.27  
+**Last Updated:** February 2026
 
 ---
 
@@ -14,13 +14,18 @@ The CRM Solution includes comprehensive testing at multiple levels:
 | **Backend Unit Tests** | `CRM.Backend/tests/` | xUnit, Moq, FluentAssertions |
 | **Frontend Unit Tests** | `CRM.Frontend/src/__tests__/` | Jest, React Testing Library |
 | **E2E Tests** | `e2e-tests/` | Playwright |
+| **Database BVT** | `CRM.Backend/tests/CRM.Tests.Integration/` | xUnit (requires live DB) |
 
 ---
 
 ## Backend Tests
 
-### Test Statistics
-- **Total Tests:** 700+
+### Test Statistics (v0.0.27)
+- **Total Unit Tests:** 891
+- **Passed:** 883
+- **Failed:** 0
+- **Skipped:** 8
+- **Integration Tests:** 36 (require live database)
 - **Framework:** xUnit 2.6.2
 - **Mocking:** Moq 4.20.70
 - **Assertions:** FluentAssertions 6.12.0

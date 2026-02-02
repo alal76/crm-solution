@@ -1,0 +1,64 @@
+# =============================================================================
+# CRM Solution - Frontend Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-frontend
+  namespace: crm
+  labels:
+    app: crm-frontend
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: crm-frontend
+  template:
+    metadata:
+      labels:
+        app: crm-frontend
+        tier: frontend
+    spec:
+      containers:
+        - name: crm-frontend
+          image: ${ACR_LOGIN_SERVER}/crm-frontend:${IMAGE_TAG}
+          ports:
+            - containerPort: 80
+          env:
+            - name: REACT_APP_API_URL
+              value: "https://${API_HOSTNAME}"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      imagePullSecrets:
+        - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crm-frontend-service
+  namespace: crm
+spec:
+  selector:
+    app: crm-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

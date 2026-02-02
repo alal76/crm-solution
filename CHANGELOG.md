@@ -5,6 +5,66 @@ All notable changes to CRM Solution will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.28] - 2026-02-01
+
+### Added - Azure DevOps & Cloud Deployment
+
+#### Azure Infrastructure as Code
+- Created `azure/main.bicep` - Complete Azure infrastructure definition
+- Resources: ACR, App Service, MySQL Flexible Server, Key Vault, App Insights
+- Environment support: dev, staging, prod with appropriate SKUs
+- Managed Identity for secure Key Vault access
+
+#### Azure DevOps CI/CD Pipeline
+- Created `azure-pipelines.yml` - Multi-stage pipeline
+- Stages: Build → Test → Docker Push → Deploy Staging → Deploy Production
+- Automatic triggers on main and dev branches
+- Test result publishing and artifact management
+
+#### Deployment Scripts
+- `azure/deploy.sh` - Bash deployment script for local/CLI deployment
+- `azure/parameters.dev.json` - Development environment parameters
+- `azure/parameters.prod.json` - Production environment parameters
+
+#### Documentation
+- `azure/AZURE_DEPLOYMENT.md` - Comprehensive deployment guide
+- Architecture diagrams, cost estimates, troubleshooting
+
+---
+
+## [0.0.27] - 2026-02-01
+
+### Fixed - Schema Consolidation & Test Fixes
+
+#### Customer → Account Deprecation (Complete)
+- Removed all 24 CS0618 deprecation warnings
+- Fixed references in: `Contact.cs`, `IOutputPorts.cs`, `DbSeed.cs`, `SampleDataSeederService.cs`, `InteractionsController.cs`
+- Added pragma suppression in `CrmDbContext.cs` for intentional backward-compat alias
+
+#### Schema Consolidation
+- Created `000_baseline_schema.sql` (61KB) - complete schema for fresh deployments
+- Updated `009_junction_table_improvements.sql` for incremental migrations
+- Deployment strategy: Fresh install uses 000 only; existing DBs use 001-009 incrementally
+
+#### Test Fixes (No Regressions)
+- Added `HttpContext` setup to controller tests for ETag support
+- Added notification service mock setup to prevent null task exceptions
+- Fixed `AuthenticationServiceTests.RegisterAsync` to use in-memory DbContext
+- Fixed `AIServiceHelper.GetDefaultModelForProvider` to handle empty string defaults
+- Fixed `AccountsController_ShouldHaveAccountsRouteAlias` test expectation
+
+#### BVT Enhancements
+- Created `DatabaseSchemaVerificationTests.cs` for Entity↔DB alignment verification
+- Tests verify all 95 DbSets have corresponding database tables
+- Requires live database connection (Category=DatabaseSchema)
+
+### Test Results
+- Unit Tests: **883 passed**, 0 failed
+- Integration Tests: 36 (require live database)
+- Build: 0 errors, 0 deprecation warnings
+
+---
+
 ## [0.0.26] - 2026-02-01
 
 ### Added

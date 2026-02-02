@@ -18,15 +18,23 @@ public static class AIServiceHelper
     {
         return provider?.ToLowerInvariant() switch
         {
-            "openai" => settings.OpenAI?.DefaultModel ?? "gpt-4o-mini",
-            "azure" => settings.Azure?.DefaultModel ?? "gpt-4o-mini",
-            "anthropic" => settings.Anthropic?.DefaultModel ?? "claude-3-5-sonnet-20241022",
-            "google" => settings.Google?.DefaultModel ?? "gemini-pro",
-            "deepseek" => settings.DeepSeek?.DefaultModel ?? "deepseek-chat",
-            "allenai" => settings.AllenAI?.DefaultModel ?? "allenai/OLMo-7B-Instruct",
-            "local" => settings.Local?.DefaultModel ?? "llama2",
+            "openai" => GetModelOrDefault(settings.OpenAI?.DefaultModel, "gpt-4o-mini"),
+            "azure" => GetModelOrDefault(settings.Azure?.DefaultModel, "gpt-4o-mini"),
+            "anthropic" => GetModelOrDefault(settings.Anthropic?.DefaultModel, "claude-3-5-sonnet-20241022"),
+            "google" => GetModelOrDefault(settings.Google?.DefaultModel, "gemini-pro"),
+            "deepseek" => GetModelOrDefault(settings.DeepSeek?.DefaultModel, "deepseek-chat"),
+            "allenai" => GetModelOrDefault(settings.AllenAI?.DefaultModel, "allenai/OLMo-7B-Instruct"),
+            "local" => GetModelOrDefault(settings.Local?.DefaultModel, "llama2"),
             _ => "gpt-4o-mini"
         };
+    }
+    
+    /// <summary>
+    /// Returns the model if not null or empty, otherwise returns the default
+    /// </summary>
+    private static string GetModelOrDefault(string? model, string defaultModel)
+    {
+        return string.IsNullOrWhiteSpace(model) ? defaultModel : model;
     }
 
     /// <summary>

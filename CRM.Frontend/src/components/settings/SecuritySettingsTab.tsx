@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiUrl } from '../../config/ports';
 import {
   Box,
   Typography,
@@ -105,11 +106,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const [keyFile, setKeyFile] = useState<File | null>(null);
   const [certPassword, setCertPassword] = useState('');
 
-  const getApiUrl = () => {
-    return window.location.hostname === 'localhost'
-      ? 'http://localhost:5000/api'
-      : `http://${window.location.hostname}:5000/api`;
-  };
+  const apiUrl = getApiUrl();
 
   useEffect(() => {
     loadTwoFactorStatus();
@@ -121,7 +118,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
     try {
       setSslLoading(true);
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/systemsettings/ssl/status`, {
+      const response = await fetch(`${apiUrl}/systemsettings/ssl/status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -139,7 +136,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const loadQuickAdminLoginStatus = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/systemsettings`, {
+      const response = await fetch(`${apiUrl}/systemsettings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -168,7 +165,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/systemsettings`, {
+      const response = await fetch(`${apiUrl}/systemsettings`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -196,7 +193,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/systemsettings`, {
+      const response = await fetch(`${apiUrl}/systemsettings`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -246,7 +243,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
         formData.append('password', certPassword);
       }
 
-      const response = await fetch(`${getApiUrl()}/systemsettings/ssl/upload`, {
+      const response = await fetch(`${apiUrl}/systemsettings/ssl/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -276,7 +273,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/systemsettings/ssl/toggle`, {
+      const response = await fetch(`${apiUrl}/systemsettings/ssl/toggle`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -309,7 +306,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/systemsettings/ssl`, {
+      const response = await fetch(`${apiUrl}/systemsettings/ssl`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -337,7 +334,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/systemsettings/ssl/generate`, {
+      const response = await fetch(`${apiUrl}/systemsettings/ssl/generate`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -367,7 +364,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const loadTwoFactorStatus = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/auth/me`, {
+      const response = await fetch(`${apiUrl}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -388,7 +385,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
     
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${getApiUrl()}/auth/2fa/setup`, {
+      const response = await fetch(`${apiUrl}/auth/2fa/setup`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -419,7 +416,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       const token = localStorage.getItem('accessToken');
       
       // First, enable 2FA with the secret
-      const enableResponse = await fetch(`${getApiUrl()}/auth/2fa/enable`, {
+      const enableResponse = await fetch(`${apiUrl}/auth/2fa/enable`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -436,7 +433,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       }
       
       // Verify the code
-      const verifyResponse = await fetch(`${getApiUrl()}/auth/2fa/verify`, {
+      const verifyResponse = await fetch(`${apiUrl}/auth/2fa/verify`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -473,7 +470,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       const token = localStorage.getItem('accessToken');
       
       // Verify code first
-      const verifyResponse = await fetch(`${getApiUrl()}/auth/2fa/verify`, {
+      const verifyResponse = await fetch(`${apiUrl}/auth/2fa/verify`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -489,7 +486,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       }
       
       // Disable 2FA
-      const response = await fetch(`${getApiUrl()}/auth/2fa/disable`, {
+      const response = await fetch(`${apiUrl}/auth/2fa/disable`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });

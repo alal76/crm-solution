@@ -36,18 +36,34 @@ export const getServicePorts = (): ServicePorts => {
  * @returns Full API base URL (without trailing slash)
  */
 export const getApiBaseUrl = (): string => {
+  // If explicit API URL is configured, use it
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+
   const ports = getServicePorts();
-  const isLocalhost = window.location.hostname === 'localhost' || 
-                      window.location.hostname === '127.0.0.1' ||
-                      window.location.hostname.startsWith('192.168.');
+  const hostname = window.location.hostname;
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+  const isPrivateNetwork = hostname.startsWith('192.168.') || 
+                           hostname.startsWith('10.') ||
+                           hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./);
   
-  if (isLocalhost) {
-    // Browser accessing from localhost - use external port
-    return `http://${window.location.hostname}:${ports.apiExternal}`;
+  if (isLocalhost || isPrivateNetwork) {
+    // Browser accessing from localhost or private network - use external port
+    return `http://${hostname}:${ports.apiExternal}`;
   }
   
-  // In Docker container or production - use internal service name
-  return process.env.REACT_APP_API_URL || `http://api:${ports.api}`;
+  // Production/Cloud deployment - use same origin (nginx proxies /api to backend)
+  // This allows the browser to make requests to the same host it loaded the page from
+  return window.location.origin;
+};
+
+/**
+ * Get the API URL with /api suffix
+ * @returns Full API URL (e.g., 'http://localhost:5000/api' or 'http://example.com/api')
+ */
+export const getApiUrl = (): string => {
+  return `${getApiBaseUrl()}/api`;
 };
 
 /**

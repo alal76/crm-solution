@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1.4
 # Multi-stage build for React frontend with optimized caching
 # Rebuild only triggers when source files actually change
+#
+# IMPORTANT: This Dockerfile does NOT set REACT_APP_API_URL.
+# The frontend auto-detects the API URL at runtime using window.location.origin.
+# This allows the same image to work on any deployment (Azure, AWS, on-prem, etc.)
 
 # ============================================
 # Stage 1: Dependencies (cached separately)
@@ -23,11 +27,13 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Accept build arguments
-ARG REACT_APP_API_URL
+# Accept build arguments - REACT_APP_API_URL should be EMPTY for production
+ARG REACT_APP_API_URL=
 ARG SOURCE_HASH
 
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
+# CRITICAL: Set REACT_APP_API_URL to empty for runtime detection
+# DO NOT pass a value here - the frontend will use window.location.origin
+ENV REACT_APP_API_URL=
 ENV CI=true
 ENV GENERATE_SOURCEMAP=false
 
@@ -43,20 +49,33 @@ COPY CRM.Frontend/public ./public
 COPY CRM.Frontend/tsconfig.json ./
 COPY CRM.Frontend/craco.config.js ./
 
+# Copy production environment file
+COPY CRM.Frontend/.env.production ./.env.production
+
 # Use webpack filesystem cache for incremental builds
+# IMPORTANT: Build with REACT_APP_API_URL empty for runtime detection
 RUN --mount=type=cache,target=/app/node_modules/.cache \
     export REACT_APP_VERSION=$(node -p "require('./package.json').version") && \
     export REACT_APP_BUILD_DATE=$(date -u +"%Y-%m-%d") && \
     echo "REACT_APP_VERSION=$REACT_APP_VERSION" >> .env && \
     echo "REACT_APP_BUILD_DATE=$REACT_APP_BUILD_DATE" >> .env && \
-    NODE_OPTIONS="--max_old_space_size=4096" npm run build
+    NODE_OPTIONS="--max_old_space_size=4096" npm run build && \
+    # Post-build validation: Check for hardcoded URLs \
+    echo "Validating build output..." && \
+    if grep -rE 'localhost:[0-9]{4}' build/static/js/*.js 2>/dev/null | grep -v '//' | head -1; then \
+        echo "ERROR: Found hardcoded localhost URLs in bundle" && exit 1; \
+    fi && \
+    if grep -rE '192\.168\.[0-9]+\.[0-9]+:[0-9]+' build/static/js/*.js 2>/dev/null | head -1; then \
+        echo "ERROR: Found hardcoded private IPs in bundle" && exit 1; \
+    fi && \
+    echo "Build validation passed"
 
 # ============================================
 # Stage 3: Production runtime (nginx - smaller & faster)
 # ============================================
 FROM nginx:alpine-slim AS production
 
-# Copy custom nginx config for SPA routing and caching
+# Copy custom nginx config for SPA routing and API proxying
 COPY docker/nginx-frontend.conf /etc/nginx/conf.d/default.conf
 
 # Copy built assets from builder
