@@ -206,10 +206,14 @@ const apiEndpoints: ApiEndpoint[] = [
   { method: 'PUT', path: '/api/dashboardconfig', description: 'Update dashboard configuration', auth: true, category: 'Dashboard' },
 
   // Workflows
-  { method: 'GET', path: '/api/workflow/definitions', description: 'Get workflow definitions', auth: true, category: 'Workflows' },
-  { method: 'POST', path: '/api/workflow/definitions', description: 'Create workflow definition', auth: true, category: 'Workflows' },
-  { method: 'GET', path: '/api/workflow/instances', description: 'Get workflow instances', auth: true, category: 'Workflows' },
-  { method: 'POST', path: '/api/workflow/instances/{id}/execute', description: 'Execute workflow', auth: true, category: 'Workflows' },
+  { method: 'GET', path: '/api/workflows', description: 'Get workflow definitions', auth: true, category: 'Workflows' },
+  { method: 'POST', path: '/api/workflows', description: 'Create workflow definition', auth: true, category: 'Workflows' },
+  { method: 'GET', path: '/api/workflows/instances', description: 'Get workflow instances', auth: true, category: 'Workflows' },
+  { method: 'POST', path: '/api/workflows/instances/{id}/execute', description: 'Execute workflow', auth: true, category: 'Workflows' },
+  { method: 'GET', path: '/api/workflows/config', description: 'Get workflow configuration', auth: true, category: 'Workflows' },
+  { method: 'GET', path: '/api/workflows/llm-settings', description: 'Get LLM provider settings', auth: true, category: 'Workflows' },
+  { method: 'PUT', path: '/api/workflows/llm-settings', description: 'Update LLM settings', auth: true, category: 'Workflows' },
+  { method: 'POST', path: '/api/workflows/llm-settings/reset', description: 'Reset LLM settings to defaults', auth: true, category: 'Workflows' },
 
   // Webhooks
   { method: 'GET', path: '/api/webhooks', description: 'Get registered webhooks', auth: true, category: 'Webhooks' },
