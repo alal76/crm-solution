@@ -3,9 +3,8 @@ import { Box, Typography, Paper } from '@mui/material';
 import { Business as BusinessIcon } from '@mui/icons-material';
 import logo from '../../assets/logo.png';
 
-// Note: The Company Branding Tab is complex and currently embedded in SettingsPage.tsx
-// For now, this page redirects to the main Settings page with the branding tab active
-// TODO: Extract CompanyBrandingTab to its own component file
+// Note: CompanyBrandingTab has been extracted to components/settings/CompanyBrandingTab.tsx
+// This page redirects to the main Settings page with the branding tab active
 
 const BrandingSettingsPage: React.FC = () => {
   React.useEffect(() => {
