@@ -407,8 +407,10 @@ crm-solution/
 | Document | Description |
 |----------|-------------|
 | [Architecture Overview](ARCHITECTURE_OVERVIEW.md) | High-level system design |
+| [Architecture Improvements Report](ARCHITECTURE_IMPROVEMENTS_REPORT.md) | Recent review and enhancements |
 | [Microservices Architecture](MICROSERVICES_ARCHITECTURE.md) | Service decomposition |
 | [Database Configuration](docs/architecture/DATABASE_CONFIGURATION.md) | Multi-database support |
+| [Architecture Decision Records](docs/architecture/decisions/README.md) | ADR framework and decisions |
 
 ### Deployment
 
@@ -434,6 +436,8 @@ crm-solution/
 | Document | Description |
 |----------|-------------|
 | [Development Guide](docs/DEVELOPMENT.md) | Local setup |
+| [Coding Standards](CODING_STANDARDS.md) | Coding guidelines and best practices |
+| [Security Best Practices](SECURITY_BEST_PRACTICES.md) | Security guidelines |
 | [How-To Guide](docs/HOWTO.md) | Common tasks |
 | [Testing Summary](TESTING_SUMMARY.md) | Test strategies |
 
@@ -603,17 +607,16 @@ dotnet test --collect:"XPlat Code Coverage"
 
 ---
 
-## 🔄 Recent Updates (v0.0.25)
+## 🔄 Recent Updates (v2.0.0 - In Progress)
 
-- ✅ Microservices architecture with 8 services
-- ✅ SignalR real-time notifications
-- ✅ Multi-user concurrent editing support
-- ✅ Campaign execution with A/B testing
-- ✅ Relationship management module
-- ✅ Notes system with rich text
-- ✅ Theme customization (light/dark)
-- ✅ LLM provider integration
-- ✅ Production deployment scripts
+- ✅ **Code Quality**: Comprehensive coding standards with automated enforcement
+- ✅ **Security**: Security headers middleware and rate limiting
+- ✅ **Tooling**: EditorConfig, Prettier, ESLint, StyleCop configured
+- ✅ **Documentation**: Architecture Decision Records (ADR) framework
+- ✅ **CI/CD**: Enhanced pipeline with linting and security checks
+- ✅ **Best Practices**: Security and coding standards guides
+- 🔄 TypeScript strict mode and type safety improvements (in progress)
+- 🔄 Frontend test coverage expansion (41% → 70% target)
 
 ---
 
