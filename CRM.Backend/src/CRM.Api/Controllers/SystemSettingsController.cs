@@ -22,17 +22,22 @@ public class SystemSettingsController : ControllerBase
     private readonly IDbContextResolver? _contextResolver;
     private readonly IDatabaseSyncService? _databaseSyncService;
     private readonly IWebHostEnvironment _environment;
+    private readonly IConfiguration _configuration;
+    private readonly string _defaultCertPassword;
 
     public SystemSettingsController(
         ISystemSettingsService settingsService, 
         ILogger<SystemSettingsController> logger,
         IWebHostEnvironment environment,
+        IConfiguration configuration,
         IDbContextResolver? contextResolver = null,
         IDatabaseSyncService? databaseSyncService = null)
     {
         _settingsService = settingsService;
         _logger = logger;
         _environment = environment;
+        _configuration = configuration;
+        _defaultCertPassword = configuration["SSL_CERT_PASSWORD"] ?? "CHANGE_IN_PRODUCTION";
         _contextResolver = contextResolver;
         _databaseSyncService = databaseSyncService;
     }
@@ -231,7 +236,7 @@ public class SystemSettingsController : ControllerBase
 
             var commonName = request?.CommonName ?? "localhost";
             var validityDays = request?.ValidityDays ?? 365;
-            var password = request?.Password ?? "CrmSslCert2024";
+            var password = request?.Password ?? _defaultCertPassword;
             var pfxPath = Path.Combine(certDir, "server.pfx");
             var crtPath = Path.Combine(certDir, "server.crt");
             var keyPath = Path.Combine(certDir, "server.key");
@@ -361,10 +366,10 @@ public class SystemSettingsController : ControllerBase
                     expiry = x509.NotAfter;
                     subject = x509.Subject;
                     
-                    // Re-export with standard password if different
-                    if (password != "CrmSslCert2024")
+                    // Re-export with configured password if different
+                    if (password != _defaultCertPassword)
                     {
-                        var pfxBytes = x509.Export(X509ContentType.Pfx, "CrmSslCert2024");
+                        var pfxBytes = x509.Export(X509ContentType.Pfx, _defaultCertPassword);
                         await System.IO.File.WriteAllBytesAsync(pfxPath, pfxBytes);
                     }
                 }
@@ -406,7 +411,7 @@ public class SystemSettingsController : ControllerBase
                     
                     // Export as PFX
                     pfxPath = Path.Combine(certDir, "server.pfx");
-                    var pfxBytes = x509.Export(X509ContentType.Pfx, "CrmSslCert2024");
+                    var pfxBytes = x509.Export(X509ContentType.Pfx, _defaultCertPassword);
                     await System.IO.File.WriteAllBytesAsync(pfxPath, pfxBytes);
                 }
                 catch (Exception ex)

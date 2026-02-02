@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: crm-api
-        image: 192.168.0.9:5000/crm-backend:latest
+        image: ${REGISTRY_HOST:-registry.local}:5000/crm-backend:latest  # Replace REGISTRY_HOST with your registry
         imagePullPolicy: Always
         ports:
         - containerPort: 5000

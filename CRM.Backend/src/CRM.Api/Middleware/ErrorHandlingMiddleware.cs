@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using CRM.Core.Exceptions;
+using System.Text.Json;
 
 namespace CRM.Api.Middleware;
 
@@ -9,6 +11,10 @@ public class ErrorHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ErrorHandlingMiddleware> _logger;
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
     {
@@ -21,6 +27,18 @@ public class ErrorHandlingMiddleware
         try
         {
             await _next(context);
+        }
+        catch (CrmException ex)
+        {
+            // Handle custom CRM exceptions with appropriate status codes
+            _logger.LogWarning(ex, "CRM exception {ErrorCode}: {Message} for request {Method} {Path}",
+                ex.ErrorCode, ex.Message, context.Request.Method, context.Request.Path);
+
+            context.Response.StatusCode = (int)ex.StatusCode;
+            context.Response.ContentType = "application/json";
+
+            var errorResponse = CreateErrorResponse(ex, context);
+            await context.Response.WriteAsync(JsonSerializer.Serialize(errorResponse, JsonOptions));
         }
         catch (DbUpdateConcurrencyException ex)
         {
@@ -51,8 +69,62 @@ public class ErrorHandlingMiddleware
             _logger.LogError(ex, "Unhandled exception occurred");
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new { message = "Internal server error" });
+            await context.Response.WriteAsJsonAsync(new { 
+                message = "Internal server error",
+                errorCode = "INTERNAL_ERROR",
+                timestamp = DateTime.UtcNow
+            });
         }
+    }
+
+    private static object CreateErrorResponse(CrmException ex, HttpContext context)
+    {
+        var baseResponse = new
+        {
+            message = ex.Message,
+            errorCode = ex.ErrorCode,
+            timestamp = DateTime.UtcNow,
+            path = context.Request.Path.Value
+        };
+
+        return ex switch
+        {
+            ValidationException validationEx => new
+            {
+                baseResponse.message,
+                baseResponse.errorCode,
+                baseResponse.timestamp,
+                baseResponse.path,
+                errors = validationEx.Errors
+            },
+            EntityNotFoundException notFoundEx => new
+            {
+                baseResponse.message,
+                baseResponse.errorCode,
+                baseResponse.timestamp,
+                baseResponse.path,
+                entityType = notFoundEx.EntityType,
+                entityId = notFoundEx.EntityId
+            },
+            RateLimitException rateLimitEx => new
+            {
+                baseResponse.message,
+                baseResponse.errorCode,
+                baseResponse.timestamp,
+                baseResponse.path,
+                retryAfterSeconds = rateLimitEx.RetryAfterSeconds
+            },
+            DuplicateEntityException duplicateEx => new
+            {
+                baseResponse.message,
+                baseResponse.errorCode,
+                baseResponse.timestamp,
+                baseResponse.path,
+                entityType = duplicateEx.EntityType,
+                duplicateIds = duplicateEx.DuplicateIds
+            },
+            _ => baseResponse
+        };
     }
 }
 
