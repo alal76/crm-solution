@@ -98,11 +98,11 @@ jobs:
     
     - name: Restore NuGet packages
       working-directory: CRM.Backend
-      run: dotnet restore
+      run: dotnet restore CRM.sln
     
     - name: Build solution
       working-directory: CRM.Backend
-      run: dotnet build -c Release --no-restore
+      run: dotnet build CRM.sln -c Release --no-restore
     
     - name: Run unit tests
       working-directory: CRM.Backend
@@ -192,7 +192,7 @@ jobs:
     
     - name: Run StyleCop analysis
       working-directory: CRM.Backend
-      run: dotnet restore && dotnet build -c Release || true
+      run: dotnet restore CRM.sln && dotnet build CRM.sln -c Release || true
 
   # ==========================================================================
   # SECURITY SCAN
