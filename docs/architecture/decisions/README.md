@@ -33,6 +33,7 @@ What becomes easier or more difficult to do because of this change?
 | [001](001-coding-standards-enforcement.md) | Coding Standards Enforcement | Accepted | 2026-02-02 |
 | [002](002-security-headers-middleware.md) | Security Headers Middleware | Accepted | 2026-02-02 |
 | [003](003-microservices-architecture.md) | Microservices Architecture | Accepted | 2026-02-02 |
+| [004](004-architecture-review-remediation.md) | Architecture Review & Remediation | Accepted | 2026-02-02 |
 
 ## Guidelines for New ADRs
 

@@ -39,7 +39,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configure Kestrel for HTTPS
 var sslCertPath = builder.Configuration["SSL_CERT_PATH"] ?? Path.Combine(Directory.GetCurrentDirectory(), "ssl", "server.pfx");
-var sslCertPassword = builder.Configuration["SSL_CERT_PASSWORD"] ?? "CrmSslCert2024";
+// SECURITY: SSL_CERT_PASSWORD must be set in production - see SECURITY_BEST_PRACTICES.md
+var sslCertPassword = builder.Configuration["SSL_CERT_PASSWORD"] 
+    ?? throw new InvalidOperationException("SSL_CERT_PASSWORD environment variable is required for HTTPS. Set it or use HTTP-only mode.");
 var httpsPort = int.TryParse(builder.Configuration["HTTPS_PORT"], out var hp) ? hp : 5001;
 var httpPort = int.TryParse(builder.Configuration["HTTP_PORT"], out var p) ? p : 5000;
 
@@ -271,7 +273,9 @@ if (string.IsNullOrWhiteSpace(connectionString) && (databaseProvider.ToLower() =
     var dbPort = builder.Configuration["DB_PORT"] ?? "3306";
     var dbName = builder.Configuration["DB_NAME"] ?? "crm_db";
     var dbUser = builder.Configuration["DB_USER"] ?? "crm_user";
-    var dbPass = builder.Configuration["DB_PASSWORD"] ?? builder.Configuration["DB_PASS"] ?? "crm_pass";
+    // SECURITY: DB_PASSWORD must be set in production - see SECURITY_BEST_PRACTICES.md
+    var dbPass = builder.Configuration["DB_PASSWORD"] ?? builder.Configuration["DB_PASS"] 
+        ?? (builder.Environment.IsDevelopment() ? "crm_pass" : throw new InvalidOperationException("DB_PASSWORD environment variable is required in production"));
     connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};Uid={dbUser};Pwd={dbPass};";
 }
 
