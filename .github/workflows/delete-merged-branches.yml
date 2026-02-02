@@ -21,6 +21,11 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: Fetch all branches
+        run: |
+          git fetch --all --unshallow 2>/dev/null || git fetch --all
+          git fetch origin main:refs/remotes/origin/main || true
+      
       - name: Configure Git
         run: |
           git config --global user.name "GitHub Actions"
