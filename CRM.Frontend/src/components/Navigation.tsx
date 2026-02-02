@@ -422,7 +422,7 @@ function NavigationContent() {
   // Get header color: user's custom color, or red for admin, or primary color
   const getHeaderColor = () => {
     if (user?.headerColor) return user.headerColor;
-    if (user?.role === 'Admin' || user?.role === 0 || user?.role === '0') return '#C62828';
+    if (user?.role === 'Admin' || String(user?.role) === '0') return '#C62828';
     return branding.primaryColor || '#6750A4';
   };
 
@@ -599,7 +599,7 @@ function NavigationContent() {
         {/* Render items grouped by category */}
         {categories.map((category: { id: string; label: string; order: number }, catIdx: number) => {
           // Skip admin category for non-admin users
-          if (category.id === 'admin' && !(user?.role === 'Admin' || user?.role === 0 || user?.role === '0' || hasPermission('canManageUsers'))) {
+          if (category.id === 'admin' && !(user?.role === 'Admin' || String(user?.role) === '0' || hasPermission('canManageUsers'))) {
             return null;
           }
           

@@ -360,12 +360,13 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     // Check group permissions first
     if (profile.groupPermissions && permission in profile.groupPermissions) {
-      return (profile.groupPermissions as any)[permission] || false;
+      const groupPerms = profile.groupPermissions;
+      return Boolean(groupPerms[permission as keyof GroupPermissions]);
     }
     
     // Fall back to legacy permissions
     if (permission in profile.permissions) {
-      return (profile.permissions as any)[permission] || false;
+      return Boolean(profile.permissions[permission as keyof UserPermissions]);
     }
     
     return false;
