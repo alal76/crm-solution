@@ -41,9 +41,13 @@ jobs:
       working-directory: CRM.Frontend
       run: npx tsc --noEmit
     
+    - name: Check code formatting
+      working-directory: CRM.Frontend
+      run: npm run format:check
+    
     - name: Run linter
       working-directory: CRM.Frontend
-      run: npm run lint --if-present || true
+      run: npm run lint
     
     - name: Run unit tests
       working-directory: CRM.Frontend
@@ -209,7 +213,11 @@ jobs:
     
     - name: Run ESLint
       working-directory: CRM.Frontend
-      run: npx eslint src --max-warnings 10 || true
+      run: npm run lint
+    
+    - name: Check Prettier formatting
+      working-directory: CRM.Frontend
+      run: npm run format:check
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v4

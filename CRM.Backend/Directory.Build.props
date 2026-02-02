@@ -1,0 +1,34 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- StyleCop rules -->
+    <NoWarn>$(NoWarn);SA1101;SA1633;SA1200;SA1201;SA1309;SA1600;SA1602;SA1614;SA1616;SA1649</NoWarn>
+    <!-- SA1101: Prefix local calls with this -->
+    <!-- SA1633: File must have header -->
+    <!-- SA1200: Using directive must appear within a namespace declaration -->
+    <!-- SA1201: Elements must appear in the correct order -->
+    <!-- SA1309: Field names must not begin with underscore -->
+    <!-- SA1600: Elements must be documented -->
+    <!-- SA1602: Enumeration items must be documented -->
+    <!-- SA1614: Element parameter documentation must have text -->
+    <!-- SA1616: Element return value documentation must have text -->
+    <!-- SA1649: File name must match type name -->
+  </PropertyGroup>
+</Project>

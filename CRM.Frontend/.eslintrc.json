@@ -25,6 +25,10 @@
   ],
   "rules": {
     "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unsafe-any": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-unused-vars": [
@@ -34,8 +38,13 @@
         "varsIgnorePattern": "^_"
       }
     ],
+    "@typescript-eslint/prefer-nullish-coalescing": "warn",
+    "@typescript-eslint/prefer-optional-chain": "warn",
+    "@typescript-eslint/no-non-null-assertion": "warn",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
+    "react/jsx-key": "error",
+    "react/no-array-index-key": "warn",
     "no-console": [
       "warn",
       {
@@ -45,7 +54,11 @@
     "prefer-const": "warn",
     "no-var": "error",
     "eqeqeq": ["error", "always"],
-    "no-implicit-coercion": "warn"
+    "no-implicit-coercion": "warn",
+    "no-nested-ternary": "warn",
+    "complexity": ["warn", 15],
+    "max-depth": ["warn", 4],
+    "max-lines-per-function": ["warn", { "max": 150, "skipBlankLines": true, "skipComments": true }]
   },
   "settings": {
     "react": {
