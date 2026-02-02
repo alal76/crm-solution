@@ -3,6 +3,22 @@
 // Add custom matchers from testing library
 import '@testing-library/jest-dom';
 
+// Import MSW server for API mocking
+import { server } from './mocks/server';
+import { resetAllFactories } from './mocks/factories';
+
+// Establish API mocking before all tests
+beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }));
+
+// Reset handlers and factories after each test
+afterEach(() => {
+  server.resetHandlers();
+  resetAllFactories();
+});
+
+// Clean up after all tests
+afterAll(() => server.close());
+
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -25,12 +41,12 @@ const localStorageMock = {
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.localStorage = localStorageMock as any;
+global.localStorage = localStorageMock as Storage;
 
 // Suppress console errors during tests (optional)
 const originalError = console.error;
 beforeAll(() => {
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     if (
       typeof args[0] === 'string' &&
       args[0].includes('Warning: ReactDOM.render')
