@@ -76,6 +76,7 @@ import {
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
+import logger from '../services/logger';
 
 interface SocialMediaLink {
   id: number;
@@ -265,15 +266,15 @@ function ContactsPage() {
   // SignalR subscription for real-time updates
   useEntityTypeSubscription('Contact', {
     onCreated: useCallback(() => {
-      console.log('[SignalR] Contact created - refreshing list');
+      logger.debug('[SignalR] Contact created - refreshing list');
       fetchContacts();
     }, [fetchContacts]),
     onUpdated: useCallback(() => {
-      console.log('[SignalR] Contact updated - refreshing list');
+      logger.debug('[SignalR] Contact updated - refreshing list');
       fetchContacts();
     }, [fetchContacts]),
     onDeleted: useCallback(() => {
-      console.log('[SignalR] Contact deleted - refreshing list');
+      logger.debug('[SignalR] Contact deleted - refreshing list');
       fetchContacts();
     }, [fetchContacts]),
   });

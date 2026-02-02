@@ -44,6 +44,7 @@ import {
   Note as NoteIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import logger from '../services/logger';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import { ContactInfoPanel } from '../components/ContactInfo';
@@ -201,15 +202,15 @@ function LeadsPage() {
   // SignalR subscription for real-time updates (Leads are stored as Contacts)
   useEntityTypeSubscription('Contact', {
     onCreated: useCallback(() => {
-      console.log('[SignalR] Contact/Lead created - refreshing list');
+      logger.debug('[SignalR] Contact/Lead created - refreshing list');
       fetchLeads();
     }, [fetchLeads]),
     onUpdated: useCallback(() => {
-      console.log('[SignalR] Contact/Lead updated - refreshing list');
+      logger.debug('[SignalR] Contact/Lead updated - refreshing list');
       fetchLeads();
     }, [fetchLeads]),
     onDeleted: useCallback(() => {
-      console.log('[SignalR] Contact/Lead deleted - refreshing list');
+      logger.debug('[SignalR] Contact/Lead deleted - refreshing list');
       fetchLeads();
     }, [fetchLeads]),
   });

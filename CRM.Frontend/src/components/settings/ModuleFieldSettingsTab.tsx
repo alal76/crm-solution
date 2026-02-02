@@ -55,6 +55,7 @@ import {
 } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import apiClient from '../../services/apiClient';
+import logger from '../../services/logger';
 import fieldMasterDataService, {
   FieldMasterDataLink,
   MasterDataSource,
@@ -194,7 +195,7 @@ const ModuleFieldSettingsTab: React.FC = () => {
   };
 
   const handleInitializeDefaults = async () => {
-    console.log('[ModuleFieldSettingsTab] Initialize Defaults clicked for module:', selectedModule);
+    logger.debug('[ModuleFieldSettingsTab] Initialize Defaults clicked for module:', selectedModule);
     
     if (!selectedModule) {
       setError('Please select a module first');
@@ -202,7 +203,7 @@ const ModuleFieldSettingsTab: React.FC = () => {
     }
 
     const confirmed = window.confirm(`Initialize default field configurations for ${selectedModule}? This will only work if no configurations exist.`);
-    console.log('[ModuleFieldSettingsTab] User confirmed:', confirmed);
+    logger.debug('[ModuleFieldSettingsTab] User confirmed:', confirmed);
     
     if (!confirmed) {
       return;
@@ -211,9 +212,9 @@ const ModuleFieldSettingsTab: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('[ModuleFieldSettingsTab] Calling API to initialize:', selectedModule);
+      logger.debug('[ModuleFieldSettingsTab] Calling API to initialize:', selectedModule);
       const response = await apiClient.post(`/modulefieldconfigurations/initialize/${selectedModule}`);
-      console.log('[ModuleFieldSettingsTab] API response:', response.data);
+      logger.debug('[ModuleFieldSettingsTab] API response:', response.data);
       setSuccess(`Default configurations initialized successfully for ${selectedModule}`);
       setTimeout(() => setSuccess(null), 5000);
       await loadFieldConfigurations();

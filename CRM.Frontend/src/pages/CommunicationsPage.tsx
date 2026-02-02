@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TabPanel } from '../components/common';
 import { BaseEntity } from '../types';
+import { createSafeHtml } from '../utils/sanitize';
 import {
   Box,
   Container,
@@ -917,7 +918,7 @@ function CommunicationsPage() {
               <Divider sx={{ my: 2 }} />
               <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
                 {messageDetails.htmlBody ? (
-                  <div dangerouslySetInnerHTML={{ __html: messageDetails.htmlBody }} />
+                  <div dangerouslySetInnerHTML={createSafeHtml(messageDetails.htmlBody)} />
                 ) : (
                   messageDetails.body
                 )}

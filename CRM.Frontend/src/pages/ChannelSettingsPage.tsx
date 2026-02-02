@@ -85,6 +85,7 @@ import {
   Description as SalutationIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import { createSafeHtml } from '../utils/sanitize';
 import logo from '../assets/logo.png';
 
 // Types
@@ -1181,7 +1182,7 @@ function ChannelSettingsPage() {
                   />
                   <CardContent>
                     <Paper variant="outlined" sx={{ p: 2, maxHeight: 150, overflow: 'auto' }}>
-                      <div dangerouslySetInnerHTML={{ __html: sig.signature }} />
+                      <div dangerouslySetInnerHTML={createSafeHtml(sig.signature)} />
                     </Paper>
                   </CardContent>
                 </Card>
@@ -1364,7 +1365,7 @@ function ChannelSettingsPage() {
               <Box>
                 <Typography variant="subtitle2" gutterBottom>Preview:</Typography>
                 <Paper variant="outlined" sx={{ p: 2 }}>
-                  <div dangerouslySetInnerHTML={{ __html: signatureForm.signature }} />
+                  <div dangerouslySetInnerHTML={createSafeHtml(signatureForm.signature)} />
                 </Paper>
               </Box>
             )}

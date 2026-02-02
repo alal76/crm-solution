@@ -56,6 +56,7 @@ import Toolbar from '@mui/material/Toolbar';
 import { getApiEndpoint } from '../../config/ports';
 import { DialogError, ActionButton } from '../common';
 import { useApiState } from '../../hooks/useApiState';
+import logger from '../../services/logger';
 
 interface Contact {
   id: number;
@@ -425,7 +426,7 @@ function UserManagementTab() {
       }
       
       const newContact = await response.json();
-      console.log('Created contact:', newContact);
+      logger.debug('Created contact:', newContact);
       
       // Close the contact dialog first
       setShowContactDialog(false);

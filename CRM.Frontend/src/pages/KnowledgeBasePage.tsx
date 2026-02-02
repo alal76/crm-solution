@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { createSafeHtml } from '../utils/sanitize';
 import {
   Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell,
   TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions,
@@ -827,7 +828,7 @@ function KnowledgeBasePage() {
               <Divider sx={{ my: 2 }} />
               <Box
                 sx={{ '& img': { maxWidth: '100%' }, '& pre': { bgcolor: 'grey.100', p: 2, borderRadius: 1, overflow: 'auto' } }}
-                dangerouslySetInnerHTML={{ __html: viewArticle.content }}
+                dangerouslySetInnerHTML={createSafeHtml(viewArticle.content)}
               />
               {viewArticle.tags && (
                 <Box mt={3}>

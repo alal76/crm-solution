@@ -45,6 +45,7 @@ import { useApiState } from '../hooks/useApiState';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
+import logger from '../services/logger';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
@@ -287,15 +288,15 @@ function CustomersPage() {
   // SignalR subscription for real-time updates
   useEntityTypeSubscription('Customer', {
     onCreated: useCallback(() => {
-      console.log('[SignalR] Customer created - refreshing list');
+      logger.debug('[SignalR] Customer created - refreshing list');
       fetchCustomers();
     }, [fetchCustomers]),
     onUpdated: useCallback(() => {
-      console.log('[SignalR] Customer updated - refreshing list');
+      logger.debug('[SignalR] Customer updated - refreshing list');
       fetchCustomers();
     }, [fetchCustomers]),
     onDeleted: useCallback(() => {
-      console.log('[SignalR] Customer deleted - refreshing list');
+      logger.debug('[SignalR] Customer deleted - refreshing list');
       fetchCustomers();
     }, [fetchCustomers]),
   });
@@ -1044,7 +1045,7 @@ function CustomersPage() {
                     onEntityClick={(type, id) => {
                       // Close dialog and navigate - in real app would use router
                       handleCloseDialog();
-                      console.log(`Navigate to ${type} ${id}`);
+                      logger.debug(`Navigate to ${type} ${id}`);
                     }}
                   />
                 </TabPanel>
