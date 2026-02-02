@@ -20,6 +20,53 @@ import React, { createContext, useState, useContext, useEffect, useCallback, use
 import axiosInstance from '../services/apiClient';
 import { debugLog, debugError } from '../utils/debug';
 import { getApiEndpoint } from '../config/ports';
+import { AxiosError } from 'axios';
+
+// User interface representing the authenticated user
+export interface AuthUser {
+  id: number;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  role?: string;
+  departmentId?: number;
+  departmentName?: string;
+  userProfileId?: number;
+  userProfileName?: string;
+  primaryGroupId?: number;
+  primaryGroupName?: string;
+  accessiblePages?: string[];
+  permissions?: Record<string, boolean>;
+  groupPermissions?: Record<string, boolean>;
+  headerColor?: string;
+  photoUrl?: string;
+}
+
+// Registration data interface
+export interface RegisterData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  confirmPassword?: string;
+}
+
+// Google OAuth interface
+interface GoogleOAuth {
+  accounts?: {
+    id?: {
+      initialize: (config: { client_id: string; callback: (response: { credential: string }) => void }) => void;
+      renderButton: (element: HTMLElement | null, options: { theme: string; size: string; width?: number }) => void;
+    };
+  };
+}
+
+// Axios error response structure
+interface ApiErrorResponse {
+  message?: string;
+  errors?: string[];
+}
 
 // Cookie utility functions
 const setCookie = (name: string, value: string, days: number = 30) => {
@@ -47,7 +94,7 @@ const deleteCookie = (name: string) => {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: any | null;
+  user: AuthUser | null;
   login: (email: string, password: string) => Promise<{
     requiresTwoFactor?: boolean;
     twoFactorToken?: string;
@@ -59,7 +106,7 @@ interface AuthContextType {
     daysUntilPasswordExpiration?: number;
   }>;
   verifyTwoFactor: (twoFactorToken: string, code: string) => Promise<void>;
-  register: (data: any) => Promise<{ requiresApproval?: boolean; message?: string } | void>;
+  register: (data: RegisterData) => Promise<{ requiresApproval?: boolean; message?: string } | void>;
   logout: () => void;
   googleLogin: (idToken: string) => Promise<void>;
   initiateMicrosoftLogin: () => void;
@@ -67,7 +114,7 @@ interface AuthContextType {
 
 declare global {
   interface Window {
-    google?: any;
+    google?: GoogleOAuth;
   }
 }
 
@@ -115,7 +162,7 @@ const hasValidSession = (): boolean => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Initialize isAuthenticated based on whether valid token exists (persists across refresh)
   const [isAuthenticated, setIsAuthenticated] = useState(() => hasValidSession());
-  const [user, setUser] = useState(() => {
+  const [user, setUser] = useState<AuthUser | null>(() => {
     // Try to restore user from cookie on initial load
     const savedUser = getCookie('crm_user_data');
     if (savedUser && hasValidSession()) {
@@ -362,12 +409,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { Authorization: `Bearer ${token}` }
       });
       debugLog('Current user fetched', { userId: response.data.id });
-      setUser(response.data);
-    } catch (error: any) {
+      setUser(response.data as AuthUser);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       debugError('Failed to fetch user', {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
+        error: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
       });
       localStorage.removeItem('accessToken');
       setIsAuthenticated(false);
@@ -450,13 +498,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('brandingReset');
       
       return {};
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       debugError('[AuthContext] Login failed', {
         email,
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        code: error.code,
+        message: axiosError.message,
+        status: axiosError.response?.status,
+        data: axiosError.response?.data,
+        code: axiosError.code,
       });
       throw error;
     }
@@ -494,15 +543,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('userProfile', JSON.stringify(profileData));
       setCookie('crm_user_profile', JSON.stringify(profileData), 30);
       
-      setUser(response.data);
+      setUser(response.data as AuthUser);
       setIsAuthenticated(true);
-    } catch (error: any) {
-      debugError('[AuthContext] 2FA verification failed', error.message);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      debugError('[AuthContext] 2FA verification failed', axiosError.message);
       throw error;
     }
   };
 
-  const register = async (data: any) => {
+  const register = async (data: RegisterData) => {
     try {
       const response = await axiosInstance.post('/auth/register', data);
       
@@ -538,11 +588,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('userProfile', JSON.stringify(profileData));
       setCookie('crm_user_profile', JSON.stringify(profileData), 30);
       
-      setUser(response.data);
+      setUser(response.data as AuthUser);
       setIsAuthenticated(true);
       
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       debugError('[AuthContext] Registration failed', error);
       throw error;
     }
@@ -581,9 +631,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('userProfile', JSON.stringify(profileData));
       setCookie('crm_user_profile', JSON.stringify(profileData), 30);
       
-      setUser(response.data);
+      setUser(response.data as AuthUser);
       setIsAuthenticated(true);
-    } catch (error) {
+    } catch (error: unknown) {
       debugError('[AuthContext] Google login failed', error);
       throw error;
     }

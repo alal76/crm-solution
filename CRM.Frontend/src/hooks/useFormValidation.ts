@@ -25,8 +25,8 @@ export interface ValidationRule {
   email?: boolean | string;
   /** URL validation */
   url?: boolean | string;
-  /** Custom validation function */
-  validate?: (value: any, formValues: Record<string, any>) => string | null | true;
+  /** Custom validation function - value is the field value, formValues are all form values */
+  validate?: <T extends Record<string, unknown>>(value: unknown, formValues: T) => string | null | true;
 }
 
 export type ValidationRules<T> = {
@@ -43,7 +43,7 @@ export interface UseFormValidationReturn<T> {
   /** Current form values */
   values: T;
   /** Set a single form value */
-  setValue: (name: keyof T, value: any) => void;
+  setValue: <K extends keyof T>(name: K, value: T[K]) => void;
   /** Set multiple form values */
   setValues: React.Dispatch<React.SetStateAction<T>>;
   /** Validation state for each field */
@@ -51,7 +51,7 @@ export interface UseFormValidationReturn<T> {
   /** Handle input change event */
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   /** Handle select change event */
-  handleSelectChange: (e: any) => void;
+  handleSelectChange: (e: React.ChangeEvent<HTMLSelectElement> | { target: { name: string; value: unknown } }) => void;
   /** Handle field blur - triggers validation */
   handleBlur: (name: keyof T) => void;
   /** Validate a single field */
@@ -62,7 +62,7 @@ export interface UseFormValidationReturn<T> {
   isFormValid: boolean;
   /** Get error props for TextField */
   getFieldProps: (name: keyof T) => {
-    value: any;
+    value: T[keyof T] | string;
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onBlur: () => void;
     error: boolean;
@@ -70,8 +70,8 @@ export interface UseFormValidationReturn<T> {
   };
   /** Get error props for Select fields */
   getSelectProps: (name: keyof T) => {
-    value: any;
-    onChange: (e: any) => void;
+    value: T[keyof T] | string;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement> | { target: { name: string; value: unknown } }) => void;
     onBlur: () => void;
     error: boolean;
   };
@@ -93,7 +93,7 @@ const URL_PATTERN = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/
 /**
  * useFormValidation - Hook for form validation with inline error display
  */
-export function useFormValidation<T extends Record<string, any>>(
+export function useFormValidation<T extends Record<string, unknown>>(
   initialValues: T,
   rules: ValidationRules<T>
 ): UseFormValidationReturn<T> {
@@ -110,7 +110,7 @@ export function useFormValidation<T extends Record<string, any>>(
   });
 
   // Validate a single field
-  const validateFieldValue = useCallback((name: keyof T, value: any): string | null => {
+  const validateFieldValue = useCallback((name: keyof T, value: unknown): string | null => {
     const rule = rules[name];
     if (!rule) return null;
 
@@ -240,7 +240,7 @@ export function useFormValidation<T extends Record<string, any>>(
   }, [validateFieldValue, validations]);
 
   // Handle select change
-  const handleSelectChange = useCallback((e: any) => {
+  const handleSelectChange = useCallback((e: React.ChangeEvent<HTMLSelectElement> | { target: { name: string; value: unknown } }) => {
     const name = e.target.name;
     const value = e.target.value;
     
@@ -293,7 +293,7 @@ export function useFormValidation<T extends Record<string, any>>(
   }, [values, originalValues]);
 
   // Set single value
-  const setValue = useCallback((name: keyof T, value: any) => {
+  const setValue = useCallback(<K extends keyof T>(name: K, value: T[K]) => {
     setValues(prev => ({ ...prev, [name]: value }));
   }, []);
 
