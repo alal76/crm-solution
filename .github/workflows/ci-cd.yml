@@ -316,8 +316,10 @@ jobs:
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
+      continue-on-error: true
       with:
         files: |
           backend-results/**/*.trx
         check_name: Test Results
         comment_title: Test Summary
+        action_fail_on_inconclusive: false
