@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -5,12 +21,12 @@ namespace CRM.Core.Entities;
 
 /// <summary>
 /// User roles for role-based access control (RBAC) in the CRM system.
-/// 
+///
 /// FUNCTIONAL VIEW:
 /// - Defines the permission levels available to users
 /// - Controls access to features, data, and administrative functions
 /// - Higher roles have broader access permissions
-/// 
+///
 /// TECHNICAL VIEW:
 /// - Stored as integer in database for efficiency
 /// - Role checking performed via middleware and service layer
@@ -22,22 +38,22 @@ public enum UserRole
     /// Full system access - can manage users, settings, and all data
     /// </summary>
     Admin = 0,
-    
+
     /// <summary>
     /// Department/team management access - can view reports and manage team members
     /// </summary>
     Manager = 1,
-    
+
     /// <summary>
     /// Sales user access - can manage customers, opportunities, and quotes
     /// </summary>
     Sales = 2,
-    
+
     /// <summary>
     /// Support access - can view customers and manage support interactions
     /// </summary>
     Support = 3,
-    
+
     /// <summary>
     /// Limited read-only access - can view but not modify data
     /// </summary>
@@ -46,13 +62,13 @@ public enum UserRole
 
 /// <summary>
 /// User entity representing authenticated users of the CRM system.
-/// 
+///
 /// FUNCTIONAL VIEW:
 /// - Represents employees, contractors, or partners using the CRM
 /// - Each user has credentials, role, and optional department assignment
 /// - Users can be linked to a Contact record for self-service scenarios
 /// - Supports two-factor authentication for enhanced security
-/// 
+///
 /// TECHNICAL VIEW:
 /// - Inherits from BaseEntity (Id, CreatedAt, UpdatedAt, IsDeleted)
 /// - Password stored as BCrypt hash, never in plain text
@@ -62,77 +78,77 @@ public enum UserRole
 public class User : BaseEntity
 {
     #region Authentication
-    
+
     /// <summary>Unique login identifier for the user</summary>
     [Required]
     [MaxLength(100)]
     public string Username { get; set; } = string.Empty;
-    
+
     /// <summary>User's email address - used for notifications and password reset</summary>
     [Required]
     [MaxLength(255)]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
-    
+
     /// <summary>User's first/given name</summary>
     [Required]
     [MaxLength(100)]
     public string FirstName { get; set; } = string.Empty;
-    
+
     /// <summary>User's last/family name</summary>
     [Required]
     [MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
-    
+
     /// <summary>BCrypt hashed password - never store plain text passwords</summary>
     [Required]
     public string PasswordHash { get; set; } = string.Empty;
-    
+
     /// <summary>User's role level (0=Admin, 1=Manager, 2=Sales, 3=Support, 4=Guest)</summary>
     [Range(0, 4)]
     public int Role { get; set; } = 0;
-    
+
     #endregion
-    
+
     /// <summary>
     /// Whether the user can currently log in
     /// </summary>
     public bool IsActive { get; set; } = true;
-    
+
     /// <summary>
     /// Last successful login timestamp
     /// </summary>
     public DateTime? LastLoginDate { get; set; }
 
     // === Two-Factor Authentication ===
-    
+
     /// <summary>
     /// Whether 2FA is enabled for this account
     /// </summary>
     public bool TwoFactorEnabled { get; set; } = false;
-    
+
     /// <summary>
     /// TOTP secret key for authenticator apps (Google Authenticator, Authy, etc.)
     /// </summary>
     public string? TwoFactorSecret { get; set; }
-    
+
     /// <summary>
     /// JSON array of one-time backup codes for 2FA recovery
     /// </summary>
     public string? BackupCodes { get; set; }
 
     // === Password Management ===
-    
+
     /// <summary>
     /// When the password was last changed (for password expiration policies)
     /// </summary>
     public DateTime? PasswordLastChangedAt { get; set; }
-    
+
     /// <summary>
     /// Flag indicating user must reset password on next login
     /// </summary>
     public bool MustResetPassword { get; set; } = false;
-    
+
     /// <summary>
     /// Flag indicating password has never been set (user created without password, e.g., by admin)
     /// When true, user must set up password on first login
@@ -140,76 +156,76 @@ public class User : BaseEntity
     public bool PasswordNeverSet { get; set; } = false;
 
     // === Password Reset ===
-    
+
     /// <summary>
     /// Token for password reset flow - expires after use
     /// </summary>
     public string? PasswordResetToken { get; set; }
-    
+
     /// <summary>
     /// Expiration time for password reset token
     /// </summary>
     public DateTime? PasswordResetTokenExpiry { get; set; }
 
     // === Email Verification ===
-    
+
     /// <summary>
     /// Whether the user's email has been verified
     /// </summary>
     public bool EmailVerified { get; set; } = false;
-    
+
     /// <summary>
     /// Token for email verification flow
     /// </summary>
     public string? EmailVerificationToken { get; set; }
 
     // === Refresh Token ===
-    
+
     /// <summary>
     /// Current refresh token for session renewal
     /// </summary>
     public string? RefreshToken { get; set; }
-    
+
     /// <summary>
     /// Expiration time for refresh token
     /// </summary>
     public DateTime? RefreshTokenExpiry { get; set; }
 
     // === Department and Profile Management ===
-    
+
     /// <summary>
     /// Foreign key to the user's department
     /// </summary>
     public int? DepartmentId { get; set; }
-    
+
     /// <summary>
     /// Foreign key to the user's profile (permissions, preferences)
     /// </summary>
     public int? UserProfileId { get; set; }
-    
+
     /// <summary>
     /// Optional link to a Contact record for unified identity
     /// </summary>
     public int? ContactId { get; set; }
-    
+
     /// <summary>
     /// Primary group for this user (required - every user belongs to a group)
     /// </summary>
     public int? PrimaryGroupId { get; set; }
 
     // === Customization ===
-    
+
     /// <summary>
     /// Custom header color for this user (hex format, e.g., #FF0000)
     /// Admin users default to red header
     /// </summary>
     public string? HeaderColor { get; set; }
-    
+
     /// <summary>
     /// URL to user's profile photo
     /// </summary>
     public string? PhotoUrl { get; set; }
-    
+
     /// <summary>
     /// User's theme preference: system, light, dark, or high-contrast
     /// Defaults to "system" to inherit from OS
@@ -257,27 +273,27 @@ public class User : BaseEntity
     public bool? CompactMode { get; set; }
 
     // === Navigation Properties ===
-    
+
     /// <summary>
     /// Navigation to user's department
     /// </summary>
     public virtual Department? Department { get; set; }
-    
+
     /// <summary>
     /// Navigation to user's profile
     /// </summary>
     public virtual UserProfile? UserProfile { get; set; }
-    
+
     /// <summary>
     /// Navigation to user's primary group
     /// </summary>
     public virtual UserGroup? PrimaryGroup { get; set; }
-    
+
     /// <summary>
     /// Group memberships for this user
     /// </summary>
     public virtual ICollection<UserGroupMember> GroupMemberships { get; set; } = new List<UserGroupMember>();
-    
+
     /// <summary>
     /// OAuth tokens for social login (Google, Microsoft, etc.)
     /// </summary>

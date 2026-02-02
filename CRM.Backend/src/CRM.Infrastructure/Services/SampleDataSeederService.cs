@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -17,7 +33,7 @@ public class SampleDataSeederService
     private readonly ICrmDbContext _context;
     private readonly ILogger<SampleDataSeederService> _logger;
     private readonly Random _random = new();
-    
+
     // Sample company and person name data
     private static readonly string[] CompanyPrefixes = { "Tech", "Global", "Digital", "Smart", "Cloud", "Cyber", "Data", "Info", "Net", "Soft", "Pro", "Prime", "Elite", "Advanced", "Modern", "Innovative", "Strategic", "Dynamic", "Unified", "Integrated" };
     private static readonly string[] CompanySuffixes = { "Solutions", "Systems", "Technologies", "Services", "Consulting", "Partners", "Group", "Corp", "Inc", "Labs", "Networks", "Dynamics", "Enterprises", "Associates", "Innovations" };
@@ -26,9 +42,9 @@ public class SampleDataSeederService
     private static readonly string[] Streets = { "Main St", "Oak Ave", "Technology Blvd", "Innovation Way", "Business Park Dr", "Corporate Center", "Commerce St", "Enterprise Rd", "Industrial Blvd", "Silicon Valley Way" };
     private static readonly string[] Cities = { "New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose", "Austin", "Seattle", "Denver", "Boston", "Atlanta", "Miami", "Portland", "Minneapolis", "Detroit", "Charlotte" };
     private static readonly string[] States = { "NY", "CA", "IL", "TX", "AZ", "PA", "TX", "CA", "TX", "CA", "TX", "WA", "CO", "MA", "GA", "FL", "OR", "MN", "MI", "NC" };
-    
+
     public SampleDataSeederService(
-        ICrmDbContext context, 
+        ICrmDbContext context,
         ILogger<SampleDataSeederService> logger)
     {
         _context = context;
@@ -41,11 +57,11 @@ public class SampleDataSeederService
     public async Task SeedAllSampleDataAsync()
     {
         _logger.LogInformation("Starting sample data seeding to production database...");
-        
+
         try
         {
             var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
-            
+
             // Check if sample data already exists
             var settings = await dbContext.SystemSettings.FirstOrDefaultAsync();
             if (settings == null)
@@ -68,12 +84,12 @@ public class SampleDataSeederService
             await SeedContactsToContextAsync(dbContext);
             await SeedLeadsToContextAsync(dbContext);
             await SeedOpportunitiesToContextAsync(dbContext);
-            
+
             // Update settings to mark sample data as seeded
             settings.SampleDataSeeded = true;
             settings.SampleDataLastSeeded = DateTime.UtcNow;
             await dbContext.SaveChangesAsync();
-            
+
             _logger.LogInformation("Sample data seeding completed successfully");
         }
         catch (Exception ex)
@@ -108,7 +124,7 @@ public class SampleDataSeederService
     private async Task SeedSampleUsersToContextAsync(CrmDbContext context)
     {
         _logger.LogInformation("Seeding sample users...");
-        
+
         // Check if demo users already exist
         var existingDemoUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "demo.admin");
         if (existingDemoUser != null)
@@ -120,7 +136,7 @@ public class SampleDataSeederService
         // Create user groups if they don't exist
         var groupNames = new[] { "Administrators", "Sales Team", "Support Team", "Marketing Team", "Management" };
         var groupIds = new Dictionary<string, int>();
-        
+
         foreach (var groupName in groupNames)
         {
             var existing = await context.UserGroups.FirstOrDefaultAsync(g => g.Name == groupName);
@@ -160,7 +176,7 @@ public class SampleDataSeederService
 
         // Password hash for "Admin@123"
         var passwordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123");
-        
+
         // Demo users data: (username, first, last, email, role, groupName)
         var demoUsers = new[]
         {
@@ -192,7 +208,7 @@ public class SampleDataSeederService
                 PrimaryGroupId = groupIds[groupName],
                 CreatedAt = DateTime.UtcNow
             };
-            
+
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
@@ -206,7 +222,7 @@ public class SampleDataSeederService
             };
             context.UserGroupMembers.Add(membership);
         }
-        
+
         await context.SaveChangesAsync();
         _logger.LogInformation("Seeded 10 sample users");
     }
@@ -226,7 +242,7 @@ public class SampleDataSeederService
     private async Task SeedProductsToContextAsync(CrmDbContext context)
     {
         _logger.LogInformation("Seeding sample products...");
-        
+
         var existingProducts = await context.Products.CountAsync();
         if (existingProducts >= 50)
         {
@@ -240,7 +256,7 @@ public class SampleDataSeederService
         // =============================================================================
         // HARDWARE PRODUCTS
         // =============================================================================
-        
+
         // End-User Computing
         var endUserComputing = new[]
         {
@@ -696,7 +712,7 @@ public class SampleDataSeederService
     private async Task SeedServiceRequestCategoriesToContextAsync(CrmDbContext context)
     {
         _logger.LogInformation("Seeding comprehensive service request categories and types...");
-        
+
         // Check if already seeded
         var existingTypes = await context.ServiceRequestTypes.CountAsync();
         if (existingTypes >= 50)
@@ -704,20 +720,20 @@ public class SampleDataSeederService
             _logger.LogInformation("Service request types already exist. Skipping...");
             return;
         }
-        
+
         // Clear existing data for fresh seed
         context.ServiceRequestTypes.RemoveRange(context.ServiceRequestTypes);
         context.ServiceRequestSubcategories.RemoveRange(context.ServiceRequestSubcategories);
         context.ServiceRequestCategories.RemoveRange(context.ServiceRequestCategories);
         await context.SaveChangesAsync();
-        
+
         // Dictionary to track categories and subcategories for relationships
         var categories = new Dictionary<string, ServiceRequestCategory>();
         var subcategories = new Dictionary<string, ServiceRequestSubcategory>();
-        
+
         // Define all service request type data
         var serviceRequestData = GetServiceRequestTypeData();
-        
+
         foreach (var data in serviceRequestData)
         {
             // Get or create category
@@ -735,7 +751,7 @@ public class SampleDataSeederService
                 await context.SaveChangesAsync();
                 categories[data.Category] = category;
             }
-            
+
             // Get or create subcategory
             var subcategoryKey = $"{data.Category}|{data.Subcategory}";
             if (!subcategories.TryGetValue(subcategoryKey, out var subcategory))
@@ -753,7 +769,7 @@ public class SampleDataSeederService
                 await context.SaveChangesAsync();
                 subcategories[subcategoryKey] = subcategory;
             }
-            
+
             // Create service request type
             var requestType = new ServiceRequestType
             {
@@ -772,11 +788,11 @@ public class SampleDataSeederService
             };
             context.ServiceRequestTypes.Add(requestType);
         }
-        
+
         await context.SaveChangesAsync();
         _logger.LogInformation($"Seeded {categories.Count} categories, {subcategories.Count} subcategories, and {serviceRequestData.Count} service request types");
     }
-    
+
     private static string GetCategoryDescription(string category) => category switch
     {
         "Hardware" => "Hardware repair, installation, upgrade, and maintenance services",
@@ -789,7 +805,7 @@ public class SampleDataSeederService
         "Data & Analytics" => "Business intelligence, data warehousing, and analytics services",
         _ => $"{category} services"
     };
-    
+
     private static List<ServiceRequestTypeData> GetServiceRequestTypeData()
     {
         return new List<ServiceRequestTypeData>
@@ -820,7 +836,7 @@ public class SampleDataSeederService
                 "Hardware Upgrade Workflow",
                 "Verify compatibility; Order components; Schedule installation; Perform upgrade; Test and validate",
                 "Upgrade completed and tested; Alternative solution provided if incompatible"),
-            
+
             // Hardware - Networking Equipment
             new("Hardware", "Networking Equipment", "Network Connectivity Loss", "Complaint",
                 "Network devices offline or intermittent connectivity issues",
@@ -847,7 +863,7 @@ public class SampleDataSeederService
                 "Hardware Port Repair Workflow",
                 "Test with different cable; Update drivers; Replace network module; Replace entire device; Reconfigure redundant path",
                 "Port repaired; Device replaced; Traffic rerouted to backup interface"),
-            
+
             // Hardware - Server Infrastructure
             new("Hardware", "Server Infrastructure", "Server Crash/Downtime", "Complaint",
                 "Server unexpectedly down or crashed requiring immediate attention",
@@ -874,7 +890,7 @@ public class SampleDataSeederService
                 "Virtualization Support Workflow",
                 "Check host resources; Optimize VM settings; Update hypervisor; Redistribute VMs; Add host capacity",
                 "VMs optimized; Resources balanced; Hypervisor updated"),
-            
+
             // Hardware - Data Center Equipment
             new("Hardware", "Data Center Equipment", "Cooling System Alert", "Complaint",
                 "Temperature warnings or HVAC system failures in data center",
@@ -896,7 +912,7 @@ public class SampleDataSeederService
                 "Rack Allocation Workflow",
                 "Survey available space; Plan layout; Schedule installation; Mount equipment; Cable management; Documentation",
                 "Equipment installed; Cabling completed; Documentation updated"),
-            
+
             // Hardware - Mobile & Telecommunications
             new("Hardware", "Mobile & Telecommunications", "Device Malfunction", "Complaint",
                 "Mobile device not functioning properly hardware defects",
@@ -913,7 +929,7 @@ public class SampleDataSeederService
                 "MDM Support Workflow",
                 "Verify credentials; Check MDM server; Factory reset device; Re-enroll device; Update MDM profile",
                 "Device successfully enrolled; Policies applied; User trained"),
-            
+
             // Hardware - Printing & Imaging
             new("Hardware", "Printing & Imaging", "Printer Offline/Not Printing", "Complaint",
                 "Printer shows offline or jobs stuck in queue",
@@ -940,7 +956,7 @@ public class SampleDataSeederService
                 "Scanner Support Workflow",
                 "Update scanner drivers; Test scanner software; Clean scanner glass; Replace scanner module; Reinstall software",
                 "Scanner operational; Software updated; Issue resolved"),
-            
+
             // Software - Operating Systems
             new("Software", "Operating Systems", "System Won't Boot", "Complaint",
                 "Operating system fails to start or stuck in boot loop",
@@ -967,7 +983,7 @@ public class SampleDataSeederService
                 "Update Troubleshooting Workflow",
                 "Clear update cache; Run troubleshooter; Manual download; Repair Windows components; Rollback update",
                 "Updates installed successfully; System stable; Update schedule optimized"),
-            
+
             // Software - Productivity & Collaboration
             new("Software", "Productivity & Collaboration", "Email Access Issues", "Complaint",
                 "Cannot access email account sync errors or login problems",
@@ -994,7 +1010,7 @@ public class SampleDataSeederService
                 "Collaboration Tools Support Workflow",
                 "Check audio/video settings; Update application; Test network; Verify permissions; Reinstall client; Optimize bandwidth",
                 "Meeting tools working; Audio/video tested; Network optimized"),
-            
+
             // Software - Security Software
             new("Software", "Security Software", "Antivirus Not Updating", "Complaint",
                 "Security definitions not updating or update failures",
@@ -1021,7 +1037,7 @@ public class SampleDataSeederService
                 "License Renewal Workflow",
                 "Generate renewal quote; Process payment; Apply new license; Verify activation; Update records",
                 "License renewed; Protection active; Next renewal scheduled"),
-            
+
             // Software - Business Applications
             new("Software", "Business Applications", "CRM/ERP Performance Issues", "Complaint",
                 "Business application running slow or timing out",
@@ -1048,7 +1064,7 @@ public class SampleDataSeederService
                 "Integration Support Workflow",
                 "Check API credentials; Verify endpoints; Review error logs; Update integration; Reconnect services; Test functionality",
                 "Integration restored; Data flowing; Monitoring enabled"),
-            
+
             // Software - Backup & Recovery
             new("Software", "Backup & Recovery", "Backup Job Failure", "Complaint",
                 "Scheduled backup failed or incomplete",
@@ -1070,7 +1086,7 @@ public class SampleDataSeederService
                 "Storage Management Workflow",
                 "Review retention policy; Delete old backups; Add storage; Implement tiering; Compress backups",
                 "Storage expanded; Old backups archived; Policy updated"),
-            
+
             // Cloud Services - IaaS
             new("Cloud Services", "IaaS", "Virtual Machine Not Starting", "Complaint",
                 "VM fails to start or stuck in provisioning state",
@@ -1092,7 +1108,7 @@ public class SampleDataSeederService
                 "Cloud Backup Workflow",
                 "Create snapshot; Verify snapshot; Test restoration; Schedule automated backups; Document retention policy",
                 "Snapshot created; Backup schedule configured; Policy documented"),
-            
+
             // Cloud Services - PaaS
             new("Cloud Services", "PaaS", "Database Connection Errors", "Complaint",
                 "Application cannot connect to cloud database",
@@ -1109,7 +1125,7 @@ public class SampleDataSeederService
                 "Database Migration Workflow",
                 "Plan migration; Backup data; Create target database; Migrate data; Test applications; Update connections; Cutover",
                 "Migration completed; Applications tested; Zero downtime achieved"),
-            
+
             // Cloud Services - SaaS
             new("Cloud Services", "SaaS", "User Provisioning Issues", "Complaint",
                 "New users not created or SSO not working",
@@ -1126,7 +1142,7 @@ public class SampleDataSeederService
                 "Data Export Workflow",
                 "Verify export permissions; Generate export; Format conversion; Deliver securely; Verify data completeness",
                 "Data exported; Format verified; Securely delivered"),
-            
+
             // Cloud Services - Hybrid & Multi-Cloud
             new("Cloud Services", "Hybrid & Multi-Cloud", "VPN Connection Failure", "Complaint",
                 "Site-to-site VPN down or intermittent connectivity",
@@ -1138,7 +1154,7 @@ public class SampleDataSeederService
                 "Hybrid Sync Workflow",
                 "Check sync service; Verify permissions; Review network; Clear sync cache; Manual sync; Update sync client",
                 "Sync operational; Data consistent; Monitoring configured"),
-            
+
             // Managed Services - Managed IT Services
             new("Managed Services", "Managed IT Services", "Routine Maintenance Request", "Request",
                 "Customer requests scheduled maintenance or health check",
@@ -1155,7 +1171,7 @@ public class SampleDataSeederService
                 "Alert Tuning Workflow",
                 "Review alert thresholds; Adjust sensitivity; Group alerts; Implement smart alerting; Reduce noise; Customize escalation",
                 "Alerts optimized; False positives reduced; Escalation tuned"),
-            
+
             // Managed Services - Managed Security Services
             new("Managed Services", "Managed Security Services", "Security Incident Alert", "Complaint",
                 "Security event detected requiring investigation",
@@ -1172,7 +1188,7 @@ public class SampleDataSeederService
                 "Security Reporting Workflow",
                 "Gather security data; Analyze vulnerabilities; Generate report; Review findings; Provide recommendations; Present to customer",
                 "Report delivered; Findings reviewed; Remediation plan created"),
-            
+
             // Managed Services - Managed Cloud Services
             new("Managed Services", "Managed Cloud Services", "Cloud Cost Alert", "Complaint",
                 "Unexpected cloud spending increase or budget exceeded",
@@ -1184,7 +1200,7 @@ public class SampleDataSeederService
                 "Architecture Review Workflow",
                 "Assess current state; Identify improvements; Recommend changes; Create roadmap; Implement changes; Validate results",
                 "Review completed; Recommendations delivered; Roadmap created"),
-            
+
             // Support & Maintenance - Help Desk Support
             new("Support & Maintenance", "Help Desk Support", "Password Reset Request", "Request",
                 "User locked out or forgot password",
@@ -1211,7 +1227,7 @@ public class SampleDataSeederService
                 "User Training Support Workflow",
                 "Understand requirement; Provide step-by-step guidance; Share documentation; Offer training resources; Follow up",
                 "User trained; Issue resolved; Documentation shared"),
-            
+
             // Support & Maintenance - On-Site Support
             new("Support & Maintenance", "On-Site Support", "Equipment Setup", "Request",
                 "New equipment needs on-site installation and configuration",
@@ -1223,14 +1239,14 @@ public class SampleDataSeederService
                 "On-Site Network Workflow",
                 "Travel to location; Diagnose issue; Test cables; Check switches; Replace hardware; Verify connectivity; Document resolution",
                 "Issue resolved on-site; Hardware replaced; Network operational"),
-            
+
             // Support & Maintenance - Remote Support
             new("Support & Maintenance", "Remote Support", "Remote Desktop Issues", "Complaint",
                 "Cannot connect remotely or remote tools not working",
                 "Remote Access Workflow",
                 "Check VPN status; Verify credentials; Test remote software; Configure firewall; Reinstall remote agent; Alternative access method",
                 "Remote access restored; Alternative provided; User connected"),
-            
+
             // Security Services - Security Assessments
             new("Security Services", "Security Assessments", "Vulnerability Scan Request", "Request",
                 "Customer requests security vulnerability assessment",
@@ -1242,14 +1258,14 @@ public class SampleDataSeederService
                 "Compliance Audit Workflow",
                 "Review requirements; Gather evidence; Assess controls; Identify gaps; Generate compliance report; Remediation recommendations",
                 "Audit completed; Gaps identified; Remediation roadmap delivered"),
-            
+
             // Security Services - Penetration Testing
             new("Security Services", "Penetration Testing", "Pentest Scheduling Request", "Request",
                 "Customer wants to schedule penetration testing",
                 "Pentest Scheduling Workflow",
                 "Define scope; Schedule test; Execute testing; Document findings; Provide executive summary; Retest after remediation",
                 "Pentest completed; Vulnerabilities documented; Retest scheduled"),
-            
+
             // Security Services - Incident Response
             new("Security Services", "Incident Response", "Security Breach Suspected", "Complaint",
                 "Potential security breach or compromise detected",
@@ -1261,7 +1277,7 @@ public class SampleDataSeederService
                 "Ransomware Response Workflow",
                 "Isolate infected systems; Identify ransomware variant; Attempt decryption; Restore from backup; Strengthen defenses; User training",
                 "Systems restored; Ransomware removed; Prevention enhanced"),
-            
+
             // Specialized Services - VoIP & UC
             new("Specialized Services", "VoIP & UC", "No Dial Tone", "Complaint",
                 "Phone not working or cannot make/receive calls",
@@ -1278,7 +1294,7 @@ public class SampleDataSeederService
                 "User Provisioning Workflow",
                 "Create extension; Configure voicemail; Assign phone; Program features; Test functionality; Train user",
                 "Extension active; Voicemail configured; User trained"),
-            
+
             // Specialized Services - Cabling Services
             new("Specialized Services", "Cabling Services", "Cable Run Request", "Request",
                 "New cable installation or additional network drops needed",
@@ -1290,7 +1306,7 @@ public class SampleDataSeederService
                 "Cable Testing Workflow",
                 "Test all runs; Generate test reports; Identify failures; Remediate issues; Provide certification documentation",
                 "Cables certified; Reports provided; Issues resolved"),
-            
+
             // Data & Analytics - Business Intelligence
             new("Data & Analytics", "Business Intelligence", "Report Not Loading", "Complaint",
                 "Dashboard or report failing to load or showing errors",
@@ -1302,7 +1318,7 @@ public class SampleDataSeederService
                 "Dashboard Development Workflow",
                 "Gather requirements; Design layout; Build dashboard; Connect data sources; Test functionality; Deploy; Train users",
                 "Dashboard delivered; Users trained; Refresh scheduled"),
-            
+
             // Data & Analytics - Data Warehousing
             new("Data & Analytics", "Data Warehousing", "ETL Job Failure", "Complaint",
                 "Data extraction transformation or loading process failed",
@@ -1316,16 +1332,16 @@ public class SampleDataSeederService
                 "Data quality improved; Validation rules added; Issues resolved")
         };
     }
-    
+
     // Helper class for service request type data
     private record ServiceRequestTypeData(
-        string Category, 
-        string Subcategory, 
-        string Name, 
-        string Type, 
-        string Description, 
-        string WorkflowName, 
-        string PossibleResolutions, 
+        string Category,
+        string Subcategory,
+        string Name,
+        string Type,
+        string Description,
+        string WorkflowName,
+        string PossibleResolutions,
         string FinalCustomerResolutions);
 
     /// <summary>
@@ -1343,7 +1359,7 @@ public class SampleDataSeederService
     private async Task SeedCustomersToContextAsync(CrmDbContext context)
     {
         _logger.LogInformation("Seeding sample customers...");
-        
+
         var existingCustomers = await context.Accounts.CountAsync();
         if (existingCustomers >= 50)
         {
@@ -1353,14 +1369,14 @@ public class SampleDataSeederService
 
         var customers = new List<Account>();
         var industries = new[] { "Technology", "Healthcare", "Finance", "Manufacturing", "Retail", "Education", "Legal", "Construction", "Media", "Transportation" };
-        
+
         // 70 Organization Customers
         for (int i = 1; i <= 70; i++)
         {
             var prefix = CompanyPrefixes[_random.Next(CompanyPrefixes.Length)];
             var suffix = CompanySuffixes[_random.Next(CompanySuffixes.Length)];
             var cityIndex = _random.Next(Cities.Length);
-            
+
             customers.Add(new Account
             {
                 Category = AccountCategory.Organization,
@@ -1388,7 +1404,7 @@ public class SampleDataSeederService
             var firstName = FirstNames[_random.Next(FirstNames.Length)];
             var lastName = LastNames[_random.Next(LastNames.Length)];
             var cityIndex = _random.Next(Cities.Length);
-            
+
             customers.Add(new Account
             {
                 Category = AccountCategory.Individual,
@@ -1428,7 +1444,7 @@ public class SampleDataSeederService
     private async Task SeedContactsToContextAsync(CrmDbContext context)
     {
         _logger.LogInformation("Seeding sample contacts...");
-        
+
         var existingContacts = await context.Contacts.CountAsync();
         if (existingContacts >= 50)
         {
@@ -1448,12 +1464,12 @@ public class SampleDataSeederService
         {
             // 2-4 contacts per organization
             var contactCount = _random.Next(2, 5);
-            
+
             for (int i = 0; i < contactCount; i++)
             {
                 var firstName = FirstNames[_random.Next(FirstNames.Length)];
                 var lastName = LastNames[_random.Next(LastNames.Length)];
-                
+
                 var contact = new CRM.Core.Models.Contact
                 {
                     FirstName = firstName,
@@ -1470,7 +1486,7 @@ public class SampleDataSeederService
                     Country = customer.Country,
                     ZipCode = customer.ZipCode,
                 };
-                
+
                 context.Contacts.Add(contact);
             }
         }
@@ -1495,7 +1511,7 @@ public class SampleDataSeederService
     private async Task SeedLeadsToContextAsync(CrmDbContext context)
     {
         _logger.LogInformation("Seeding sample leads...");
-        
+
         var existingLeads = await context.Leads.CountAsync();
         if (existingLeads >= 50)
         {
@@ -1518,7 +1534,7 @@ public class SampleDataSeederService
             var lastName = LastNames[_random.Next(LastNames.Length)];
             var status = leadStatuses[_random.Next(leadStatuses.Length)];
             var score = _random.Next(10, 100);
-            
+
             leads.Add(new Lead
             {
                 FirstName = firstName,
@@ -1548,7 +1564,7 @@ public class SampleDataSeederService
             var lastName = LastNames[_random.Next(LastNames.Length)];
             var status = leadStatuses[_random.Next(leadStatuses.Length)];
             var score = _random.Next(10, 80);
-            
+
             leads.Add(new Lead
             {
                 FirstName = firstName,
@@ -1586,7 +1602,7 @@ public class SampleDataSeederService
     private async Task SeedOpportunitiesToContextAsync(CrmDbContext context)
     {
         _logger.LogInformation("Seeding sample opportunities...");
-        
+
         var existingOpportunities = await context.Opportunities.CountAsync();
         if (existingOpportunities >= 50)
         {
@@ -1654,71 +1670,71 @@ public class SampleDataSeederService
     public async Task ClearSampleDataAsync()
     {
         _logger.LogInformation("Clearing sample data from production database...");
-        
+
         var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
-        
+
         // Clear all sample data tables in reverse dependency order
         // Preserves: ZipCodes, ColorPalettes, SystemSettings, non-demo Users
-        
+
         // Clear service requests first (depends on everything)
         var serviceRequests = await dbContext.ServiceRequests.ToListAsync();
         dbContext.ServiceRequests.RemoveRange(serviceRequests);
         await dbContext.SaveChangesAsync();
-        
+
         // Opportunities depend on Accounts
         var opportunities = await dbContext.Opportunities.ToListAsync();
         dbContext.Opportunities.RemoveRange(opportunities);
         await dbContext.SaveChangesAsync();
-        
+
         // Leads
         var leads = await dbContext.Leads.ToListAsync();
         dbContext.Leads.RemoveRange(leads);
         await dbContext.SaveChangesAsync();
-        
+
         // Contacts depend on Customers
         var contacts = await dbContext.Contacts.ToListAsync();
         dbContext.Contacts.RemoveRange(contacts);
         await dbContext.SaveChangesAsync();
-        
+
         // Customers/Accounts
         var customers = await dbContext.Accounts.ToListAsync();
         dbContext.Accounts.RemoveRange(customers);
         await dbContext.SaveChangesAsync();
-        
+
         // Service Request Types (depends on subcategories and categories)
         var types = await dbContext.ServiceRequestTypes.ToListAsync();
         dbContext.ServiceRequestTypes.RemoveRange(types);
         await dbContext.SaveChangesAsync();
-        
+
         // Service Request Subcategories (depends on categories)
         var subcategories = await dbContext.ServiceRequestSubcategories.ToListAsync();
         dbContext.ServiceRequestSubcategories.RemoveRange(subcategories);
         await dbContext.SaveChangesAsync();
-        
+
         // Service Request Categories
         var categories = await dbContext.ServiceRequestCategories.ToListAsync();
         dbContext.ServiceRequestCategories.RemoveRange(categories);
         await dbContext.SaveChangesAsync();
-        
+
         // Products
         var products = await dbContext.Products.ToListAsync();
         dbContext.Products.RemoveRange(products);
         await dbContext.SaveChangesAsync();
-        
+
         // Sample users (username starts with "demo." or "sample.")
         var sampleUsers = await dbContext.Users
             .Where(u => u.Username.StartsWith("demo.") || u.Username.StartsWith("sample."))
             .ToListAsync();
         dbContext.Users.RemoveRange(sampleUsers);
         await dbContext.SaveChangesAsync();
-        
+
         // Update settings if they exist
         var settings = await dbContext.SystemSettings.FirstOrDefaultAsync();
         if (settings != null)
         {
             settings.SampleDataSeeded = false;
         }
-        
+
         await dbContext.SaveChangesAsync();
         _logger.LogInformation("Sample data cleared from production database. Master data (ZipCodes, ColorPalettes) preserved.");
     }
@@ -1729,7 +1745,7 @@ public class SampleDataSeederService
     public async Task<SampleDataStats> GetSampleDataStatsAsync()
     {
         var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
-        
+
         return new SampleDataStats
         {
             ProductCount = await dbContext.Products.CountAsync(),

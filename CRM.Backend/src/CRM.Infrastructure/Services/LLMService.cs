@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -108,21 +124,21 @@ public class DeepSeekOptions
 public class AllenAIOptions
 {
     private string _apiKey = "";
-    
+
     /// <summary>Hugging Face API token (alias: HuggingFaceApiKey)</summary>
-    public string ApiKey 
-    { 
-        get => _apiKey; 
-        set => _apiKey = value; 
+    public string ApiKey
+    {
+        get => _apiKey;
+        set => _apiKey = value;
     }
-    
+
     /// <summary>Hugging Face API token (alias for ApiKey, for backwards compatibility)</summary>
-    public string HuggingFaceApiKey 
-    { 
-        get => _apiKey; 
-        set => _apiKey = value; 
+    public string HuggingFaceApiKey
+    {
+        get => _apiKey;
+        set => _apiKey = value;
     }
-    
+
     public string BaseUrl { get; set; } = "https://api-inference.huggingface.co/models";
     public string OLMoEndpoint { get; set; } = "https://api-inference.huggingface.co/models/allenai/OLMo-7B";
     public string TuluEndpoint { get; set; } = "https://api-inference.huggingface.co/models/allenai/tulu-2-7b";
@@ -260,24 +276,24 @@ public class LLMService : ILLMService
         return provider.ToLower() switch
         {
             "openai" => IsValidApiKey(_options.OpenAI.ApiKey),
-            "azure" or "azureopenai" => IsValidApiKey(_options.AzureOpenAI.Endpoint) && 
+            "azure" or "azureopenai" => IsValidApiKey(_options.AzureOpenAI.Endpoint) &&
                                         IsValidApiKey(_options.AzureOpenAI.ApiKey),
             "anthropic" => IsValidApiKey(_options.Anthropic.ApiKey),
-            "google" or "gemini" or "vertexai" => IsValidApiKey(_options.GoogleCloud.ApiKey) || 
+            "google" or "gemini" or "vertexai" => IsValidApiKey(_options.GoogleCloud.ApiKey) ||
                                                    IsValidApiKey(_options.GoogleCloud.ServiceAccountKeyPath),
-            "aws" or "bedrock" => _options.AWSBedrock.UseDefaultCredentials || 
-                                  (IsValidApiKey(_options.AWSBedrock.AccessKeyId) && 
+            "aws" or "bedrock" => _options.AWSBedrock.UseDefaultCredentials ||
+                                  (IsValidApiKey(_options.AWSBedrock.AccessKeyId) &&
                                    IsValidApiKey(_options.AWSBedrock.SecretAccessKey)),
             "deepseek" => IsValidApiKey(_options.DeepSeek.ApiKey),
-            "allenai" or "huggingface" or "ai2" => _options.AllenAI.Enabled && 
+            "allenai" or "huggingface" or "ai2" => _options.AllenAI.Enabled &&
                                                     IsValidApiKey(_options.AllenAI.ApiKey),
-            "local" or "ollama" or "lmstudio" or "vllm" => _options.LocalLLM.Enabled && 
+            "local" or "ollama" or "lmstudio" or "vllm" => _options.LocalLLM.Enabled &&
                                                            IsValidApiKey(_options.LocalLLM.BaseUrl),
             "custom" => IsValidApiKey(_options.CustomEndpoint.Url),
             _ => false
         };
     }
-    
+
     /// <summary>
     /// Checks if an API key or URL is valid (not empty and not an unresolved placeholder)
     /// </summary>
@@ -285,11 +301,11 @@ public class LLMService : ILLMService
     {
         if (string.IsNullOrWhiteSpace(value))
             return false;
-        
+
         // Check for unresolved environment variable placeholders like ${VAR:} or ${VAR:default}
         if (value.StartsWith("${") && value.Contains(":"))
             return false;
-        
+
         return true;
     }
 
@@ -455,7 +471,7 @@ public class LLMService : ILLMService
                 };
 
                 response.DurationMs = (DateTime.UtcNow - startTime).TotalMilliseconds;
-                
+
                 // Parse JSON if requested
                 if (request.JsonMode && response.Success)
                 {
@@ -475,7 +491,7 @@ public class LLMService : ILLMService
             {
                 lastException = ex;
                 _logger.LogWarning(ex, "LLM call to {Provider} failed, trying fallback", provider);
-                
+
                 if (!_options.EnableFallback) break;
             }
         }
@@ -543,7 +559,7 @@ public class LLMService : ILLMService
         };
 
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.OpenAI.ApiKey);
-        
+
         if (!string.IsNullOrEmpty(_options.OpenAI.Organization))
         {
             httpRequest.Headers.Add("OpenAI-Organization", _options.OpenAI.Organization);
@@ -699,7 +715,7 @@ public class LLMService : ILLMService
     private async Task<LLMResponse> CallGoogleCloudAsync(LLMRequest request, CancellationToken cancellationToken)
     {
         var model = request.Model.StartsWith("gemini") ? request.Model : _options.GoogleCloud.DefaultModel;
-        
+
         if (_options.GoogleCloud.UseVertexAI)
         {
             return await CallVertexAIAsync(request, model, cancellationToken);
@@ -714,7 +730,7 @@ public class LLMService : ILLMService
     {
         // Gemini API format
         var contents = new List<object>();
-        
+
         foreach (var msg in request.Messages ?? new List<LLMMessage>())
         {
             contents.Add(new
@@ -858,7 +874,7 @@ public class LLMService : ILLMService
             // Anthropic Claude format for Bedrock
             var messages = request.Messages?.Where(m => m.Role != "system").ToList() ?? new List<LLMMessage>();
             var systemMsg = request.Messages?.FirstOrDefault(m => m.Role == "system");
-            
+
             requestBody = new
             {
                 anthropic_version = "bedrock-2023-05-31",
@@ -985,7 +1001,7 @@ public class LLMService : ILLMService
     {
         // DeepSeek uses OpenAI-compatible API
         var model = request.Model?.StartsWith("deepseek") == true ? request.Model : _options.DeepSeek.DefaultModel;
-        
+
         var messages = request.Messages?.Select(m => new { role = m.Role, content = m.Content }).ToArray();
 
         var requestBody = new
@@ -1041,7 +1057,7 @@ public class LLMService : ILLMService
     {
         // Allen AI models are hosted on Hugging Face
         var model = !string.IsNullOrEmpty(request.Model) ? request.Model : _options.AllenAI.DefaultModel;
-        
+
         // Build the prompt from messages (Hugging Face text-generation expects a single prompt)
         var prompt = BuildPromptFromMessages(request.Messages);
 
@@ -1071,12 +1087,12 @@ public class LLMService : ILLMService
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Allen AI/Hugging Face API error: {StatusCode} - {Content}", response.StatusCode, content);
-            
+
             // Handle model loading (503 when model is cold)
             if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
             {
                 var errorDoc = JsonDocument.Parse(content);
-                if (errorDoc.RootElement.TryGetProperty("error", out var error) && 
+                if (errorDoc.RootElement.TryGetProperty("error", out var error) &&
                     error.GetString()?.Contains("loading") == true)
                 {
                     return new LLMResponse
@@ -1088,14 +1104,14 @@ public class LLMService : ILLMService
                     };
                 }
             }
-            
+
             throw new Exception($"Allen AI API error: {response.StatusCode}");
         }
 
         // Hugging Face returns an array of generated texts
         var jsonResponse = JsonDocument.Parse(content);
         string responseContent;
-        
+
         if (jsonResponse.RootElement.ValueKind == JsonValueKind.Array)
         {
             responseContent = jsonResponse.RootElement[0]
@@ -1131,7 +1147,7 @@ public class LLMService : ILLMService
             return "";
 
         var promptBuilder = new StringBuilder();
-        
+
         foreach (var message in messages)
         {
             switch (message.Role.ToLower())
@@ -1150,7 +1166,7 @@ public class LLMService : ILLMService
                     break;
             }
         }
-        
+
         promptBuilder.AppendLine("<|assistant|>");
         return promptBuilder.ToString();
     }
@@ -1216,7 +1232,7 @@ public class LLMService : ILLMService
         var root = doc.RootElement;
 
         var content = root.GetProperty("message").GetProperty("content").GetString() ?? "";
-        
+
         int promptTokens = 0, completionTokens = 0;
         if (root.TryGetProperty("prompt_eval_count", out var pec))
             promptTokens = pec.GetInt32();
@@ -1285,7 +1301,7 @@ public class LLMService : ILLMService
         var root = doc.RootElement;
 
         var content = root.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? "";
-        
+
         int promptTokens = 0, completionTokens = 0;
         if (root.TryGetProperty("usage", out var usage))
         {

@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 
 namespace CRM.Core.Interfaces;
@@ -14,7 +30,7 @@ public interface IZipCodeService
     /// <param name="countryCode">Optional country code (defaults to "US")</param>
     /// <returns>List of matching address details</returns>
     Task<IEnumerable<ZipCodeLookupResult>> LookupByPostalCodeAsync(string postalCode, string? countryCode = null);
-    
+
     /// <summary>
     /// Search for cities by name
     /// </summary>
@@ -23,20 +39,20 @@ public interface IZipCodeService
     /// <param name="limit">Maximum number of results</param>
     /// <returns>List of matching cities</returns>
     Task<IEnumerable<ZipCodeLookupResult>> SearchByCityAsync(string city, string? countryCode = null, int limit = 20);
-    
+
     /// <summary>
     /// Get all countries available in the database
     /// </summary>
     /// <returns>List of countries with codes</returns>
     Task<IEnumerable<CountryInfo>> GetCountriesAsync();
-    
+
     /// <summary>
     /// Get all states/provinces for a country
     /// </summary>
     /// <param name="countryCode">Country code</param>
     /// <returns>List of states/provinces</returns>
     Task<IEnumerable<StateInfo>> GetStatesAsync(string countryCode);
-    
+
     /// <summary>
     /// Get all cities in a state
     /// </summary>
@@ -44,7 +60,7 @@ public interface IZipCodeService
     /// <param name="stateCode">State code</param>
     /// <returns>List of cities</returns>
     Task<IEnumerable<string>> GetCitiesAsync(string countryCode, string stateCode);
-    
+
     /// <summary>
     /// Get postal codes for a city
     /// </summary>
@@ -53,7 +69,7 @@ public interface IZipCodeService
     /// <param name="city">City name</param>
     /// <returns>List of postal codes with location details</returns>
     Task<IEnumerable<ZipCodeLookupResult>> GetPostalCodesForCityAsync(string countryCode, string stateCode, string city);
-    
+
     /// <summary>
     /// Validate a postal code format for a specific country
     /// </summary>
@@ -61,32 +77,32 @@ public interface IZipCodeService
     /// <param name="countryCode">Country code</param>
     /// <returns>Validation result</returns>
     Task<ZipCodeValidationResult> ValidatePostalCodeAsync(string postalCode, string countryCode);
-    
+
     /// <summary>
     /// Get count of zip codes in the database
     /// </summary>
     /// <returns>Total count</returns>
     Task<int> GetZipCodeCountAsync();
-    
+
     /// <summary>
     /// Get total count of ZIP codes in the database
     /// </summary>
     /// <returns>Total count</returns>
     Task<int> GetTotalCountAsync();
-    
+
     /// <summary>
     /// Get count of distinct countries in the database
     /// </summary>
     /// <returns>Country count</returns>
     Task<int> GetCountryCountAsync();
-    
+
     /// <summary>
     /// Get localities (neighborhoods) for a postal code
     /// </summary>
     /// <param name="zipCodeId">ZipCode ID</param>
     /// <returns>List of localities</returns>
     Task<IEnumerable<LocalityInfo>> GetLocalitiesAsync(int zipCodeId);
-    
+
     /// <summary>
     /// Get localities by city
     /// </summary>
@@ -94,7 +110,7 @@ public interface IZipCodeService
     /// <param name="countryCode">Country code</param>
     /// <returns>List of localities</returns>
     Task<IEnumerable<LocalityInfo>> GetLocalitiesByCityAsync(string city, string countryCode);
-    
+
     /// <summary>
     /// Create a new user-defined locality
     /// </summary>

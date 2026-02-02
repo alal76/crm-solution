@@ -27,51 +27,51 @@ public class CampaignWorkflow : BaseEntity
     /// </summary>
     [Required]
     public int CampaignId { get; set; }
-    
+
     /// <summary>
     /// The workflow definition to use
     /// </summary>
     [Required]
     public int WorkflowDefinitionId { get; set; }
-    
+
     /// <summary>
     /// Type of workflow execution
     /// </summary>
     [Required]
     [MaxLength(50)]
     public string WorkflowType { get; set; } = "Sequential";
-    
+
     /// <summary>
     /// Trigger event (for trigger-based workflows)
     /// </summary>
     [MaxLength(100)]
     public string? TriggerEvent { get; set; }
-    
+
     /// <summary>
     /// Trigger conditions as JSON
     /// </summary>
     public string? TriggerConditions { get; set; }
-    
+
     /// <summary>
     /// Whether the workflow is active
     /// </summary>
     public bool IsActive { get; set; } = true;
-    
+
     /// <summary>
     /// Execution priority (lower = higher priority)
     /// </summary>
     public int Priority { get; set; } = 0;
-    
+
     /// <summary>
     /// Maximum executions per contact
     /// </summary>
     public int MaxExecutionsPerContact { get; set; } = 1;
-    
+
     /// <summary>
     /// Minimum hours between executions for same contact
     /// </summary>
     public int CooldownHours { get; set; } = 0;
-    
+
     // Navigation properties
     public virtual MarketingCampaign? Campaign { get; set; }
     public virtual WorkflowDefinition? WorkflowDefinition { get; set; }

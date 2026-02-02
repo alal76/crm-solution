@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Models;
 
 namespace CRM.Core.Entities;
@@ -29,67 +45,67 @@ public class AccountContact : BaseEntity
     /// The customer (organization) this contact is linked to
     /// </summary>
     public int AccountId { get; set; }
-    
+
     /// <summary>
     /// The contact ID from the Contacts module
     /// </summary>
     public int ContactId { get; set; }
-    
+
     /// <summary>
     /// Role of the contact within the account organization
     /// </summary>
     public AccountContactRole Role { get; set; } = AccountContactRole.Primary;
-    
+
     /// <summary>
     /// Whether this is the primary contact for the account
     /// </summary>
     public bool IsPrimaryContact { get; set; } = false;
-    
+
     /// <summary>
     /// Whether this contact can make purchasing decisions
     /// </summary>
     public bool IsDecisionMaker { get; set; } = false;
-    
+
     /// <summary>
     /// Whether this contact should receive billing communications
     /// </summary>
     public bool ReceivesBillingNotifications { get; set; } = false;
-    
+
     /// <summary>
     /// Whether this contact should receive marketing communications
     /// </summary>
     public bool ReceivesMarketingEmails { get; set; } = true;
-    
+
     /// <summary>
     /// Whether this contact should receive technical/support communications
     /// </summary>
     public bool ReceivesTechnicalUpdates { get; set; } = false;
-    
+
     /// <summary>
     /// Job title/position at the account organization (may differ from contact's own job title)
     /// </summary>
     public string? PositionAtAccount { get; set; }
-    
+
     /// <summary>
     /// Department within the account organization
     /// </summary>
     public string? DepartmentAtAccount { get; set; }
-    
+
     /// <summary>
     /// Start date of the relationship
     /// </summary>
     public DateTime? RelationshipStartDate { get; set; }
-    
+
     /// <summary>
     /// End date of the relationship (if no longer active)
     /// </summary>
     public DateTime? RelationshipEndDate { get; set; }
-    
+
     /// <summary>
     /// Additional notes about this contact's relationship with the account
     /// </summary>
     public string? Notes { get; set; }
-    
+
     // Navigation properties
     public Account? Account { get; set; }
     public Contact? Contact { get; set; }

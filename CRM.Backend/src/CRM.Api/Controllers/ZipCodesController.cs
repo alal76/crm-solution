@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -19,7 +35,7 @@ public class ZipCodesController : ControllerBase
     private readonly ILogger<ZipCodesController> _logger;
 
     public ZipCodesController(
-        IZipCodeService zipCodeService, 
+        IZipCodeService zipCodeService,
         ILogger<ZipCodesController> logger,
         IZipCodeImportService? zipCodeImportService = null)
     {
@@ -49,7 +65,7 @@ public class ZipCodesController : ControllerBase
     [HttpGet("lookup/{postalCode}")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> LookupByPostalCode(
-        string postalCode, 
+        string postalCode,
         [FromQuery] string? countryCode = null)
     {
         if (string.IsNullOrWhiteSpace(postalCode))
@@ -71,7 +87,7 @@ public class ZipCodesController : ControllerBase
     [HttpGet("search/city")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> SearchByCity(
-        [FromQuery] string city, 
+        [FromQuery] string city,
         [FromQuery] string? countryCode = null,
         [FromQuery] int limit = 20)
     {
@@ -285,7 +301,7 @@ public class ZipCodesController : ControllerBase
 
         _logger.LogInformation("Admin triggered ZIP code import from GeoNames (all countries)");
         var result = await _zipCodeImportService.ImportFromGeoNamesAsync();
-        
+
         if (result.Success)
         {
             return Ok(result);
@@ -319,7 +335,7 @@ public class ZipCodesController : ControllerBase
 
         _logger.LogInformation("Admin triggered ZIP code import from GeoNames for {Country}", countryCode);
         var result = await _zipCodeImportService.ImportCountryFromGeoNamesAsync(countryCode.ToUpperInvariant());
-        
+
         if (result.Success)
         {
             return Ok(result);
@@ -348,7 +364,7 @@ public class ZipCodesController : ControllerBase
 
         _logger.LogInformation("Admin triggered ZIP code import from GitHub: {Url}", request?.Url ?? "default");
         var result = await _zipCodeImportService.ImportFromGitHubAsync(request?.Url);
-        
+
         if (result.Success)
         {
             return Ok(result);
@@ -366,7 +382,7 @@ public class ZipCodesController : ControllerBase
     {
         var countryCount = await _zipCodeService.GetCountryCountAsync();
         var totalCount = await _zipCodeService.GetTotalCountAsync();
-        
+
         return Ok(new ZipCodeStats
         {
             TotalRecords = totalCount,

@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CRM.Core.Dtos;
@@ -274,7 +290,7 @@ public class FieldMasterDataService : IFieldMasterDataService
 
         // Check if value exists in master data
         var masterData = await GetMasterDataForFieldAsync(fieldConfigurationId, dependentValues, value, 1);
-        if (!masterData.Any(m => m.Value.Equals(value, StringComparison.OrdinalIgnoreCase) || 
+        if (!masterData.Any(m => m.Value.Equals(value, StringComparison.OrdinalIgnoreCase) ||
                                   m.Display.Equals(value, StringComparison.OrdinalIgnoreCase)))
         {
             return (false, link.ValidationMessage ?? "Value is not in the allowed list");
@@ -284,8 +300,8 @@ public class FieldMasterDataService : IFieldMasterDataService
     }
 
     private async Task<List<MasterDataLookupResultDto>> GetLookupCategoryDataAsync(
-        FieldMasterDataLinkDto link, 
-        string? searchTerm, 
+        FieldMasterDataLinkDto link,
+        string? searchTerm,
         int limit)
     {
         var category = await _context.LookupCategories
@@ -311,8 +327,8 @@ public class FieldMasterDataService : IFieldMasterDataService
         {
             Value = link.ValueField == "Key" ? i.Key : i.Value,
             Display = link.DisplayField == "Value" ? i.Value : i.Key,
-            Metadata = !string.IsNullOrEmpty(i.Meta) 
-                ? JsonSerializer.Deserialize<Dictionary<string, object>>(i.Meta) 
+            Metadata = !string.IsNullOrEmpty(i.Meta)
+                ? JsonSerializer.Deserialize<Dictionary<string, object>>(i.Meta)
                 : null
         }).ToList();
     }
@@ -381,7 +397,7 @@ public class FieldMasterDataService : IFieldMasterDataService
         // Apply search
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            query = query.Where(z => 
+            query = query.Where(z =>
                 (z.PostalCode != null && z.PostalCode.Contains(searchTerm)) ||
                 (z.City != null && z.City.Contains(searchTerm)) ||
                 (z.State != null && z.State.Contains(searchTerm)));

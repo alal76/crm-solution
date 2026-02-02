@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -22,12 +38,12 @@ public class JwtTokenService : IJwtTokenService
     public JwtTokenService(IConfiguration configuration)
     {
         _configuration = configuration;
-        _jwtSecret = configuration["Jwt:Secret"] 
+        _jwtSecret = configuration["Jwt:Secret"]
             ?? throw new InvalidOperationException("JWT Secret must be configured in appsettings.json or environment variables. Set 'Jwt:Secret' with a secure key at least 32 characters long.");
-        
+
         if (_jwtSecret.Length < 32)
             throw new InvalidOperationException("JWT Secret must be at least 32 characters long for security.");
-            
+
         _jwtIssuer = configuration["Jwt:Issuer"] ?? "CRMApp";
         _jwtAudience = configuration["Jwt:Audience"] ?? "CRMUsers";
         _jwtExpirationMinutes = int.Parse(configuration["Jwt:ExpirationMinutes"] ?? "60");

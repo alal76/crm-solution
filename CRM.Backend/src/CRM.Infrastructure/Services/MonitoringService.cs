@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -56,31 +72,31 @@ public enum DeploymentType
 public class MonitoringOptions
 {
     public const string SectionName = "Monitoring";
-    
+
     /// <summary>Deployment type: docker, kubernetes, vm, hybrid</summary>
     public string DeploymentType { get; set; } = "docker";
-    
+
     /// <summary>Build server hostname/IP</summary>
     public string BuildServer { get; set; } = "localhost";
-    
+
     /// <summary>Build server FQDN</summary>
     public string BuildServerFQDN { get; set; } = "";
-    
+
     /// <summary>Database provider: mariadb, mysql, sqlserver, postgresql, mongodb, oracle</summary>
     public string DatabaseProvider { get; set; } = "sqlserver";
-    
+
     /// <summary>Kubernetes namespace for pod discovery</summary>
     public string KubernetesNamespace { get; set; } = "crm-app";
-    
+
     /// <summary>Enable Kubernetes pod monitoring</summary>
     public bool EnableK8sMonitoring { get; set; } = false;
-    
+
     /// <summary>Enable Docker container monitoring</summary>
     public bool EnableDockerMonitoring { get; set; } = true;
-    
+
     /// <summary>Healthcheck timeout in seconds</summary>
     public int HealthCheckTimeoutSeconds { get; set; } = 5;
-    
+
     /// <summary>Cache duration for monitoring data in seconds</summary>
     public int CacheDurationSeconds { get; set; } = 30;
 }
@@ -295,28 +311,28 @@ public interface IMonitoringService
 {
     /// <summary>Detect and return infrastructure information</summary>
     Task<InfrastructureInfo> GetInfrastructureInfoAsync(CancellationToken ct = default);
-    
+
     /// <summary>Get system metrics (CPU, memory, disk, network)</summary>
     Task<SystemMetrics> GetSystemMetricsAsync(CancellationToken ct = default);
-    
+
     /// <summary>Get database-specific metrics</summary>
     Task<DatabaseMetrics> GetDatabaseMetricsAsync(CancellationToken ct = default);
-    
+
     /// <summary>Get health status of all services</summary>
     Task<List<ServiceHealth>> GetServiceHealthAsync(CancellationToken ct = default);
-    
+
     /// <summary>Get Docker container health (if applicable)</summary>
     Task<List<ContainerHealth>> GetContainerHealthAsync(CancellationToken ct = default);
-    
+
     /// <summary>Get Kubernetes pod health (if applicable)</summary>
     Task<List<PodHealth>> GetPodHealthAsync(CancellationToken ct = default);
-    
+
     /// <summary>Get all monitoring data in one call</summary>
     Task<MonitoringData> GetAllMonitoringDataAsync(CancellationToken ct = default);
-    
+
     /// <summary>Get active user sessions</summary>
     Task<List<UserSession>> GetActiveSessionsAsync(CancellationToken ct = default);
-    
+
     /// <summary>Get monitoring options</summary>
     MonitoringOptions GetMonitoringOptions();
 }
@@ -368,10 +384,10 @@ public class MonitoringService : IMonitoringService
             ActiveMonitors = new List<string>(),
             AvailableMonitors = GetAvailableMonitors()
         };
-        
+
         info.Database = await DetectDatabaseAsync(ct);
         info.ActiveMonitors = GetActiveMonitors(info);
-        
+
         return info;
     }
 
@@ -383,14 +399,14 @@ public class MonitoringService : IMonitoringService
         {
             return DeploymentType.Kubernetes;
         }
-        
+
         // Check if running in Docker
-        if (File.Exists("/.dockerenv") || 
+        if (File.Exists("/.dockerenv") ||
             Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
         {
             return DeploymentType.Docker;
         }
-        
+
         // Parse from configuration
         return _options.DeploymentType?.ToLowerInvariant() switch
         {
@@ -430,7 +446,7 @@ public class MonitoringService : IMonitoringService
         try
         {
             var connectionString = GetDatabaseConnectionString();
-            
+
             switch (provider)
             {
                 case DatabaseProviderType.SqlServer:
@@ -484,22 +500,22 @@ public class MonitoringService : IMonitoringService
     private List<string> GetActiveMonitors(InfrastructureInfo info)
     {
         var active = new List<string> { "system", "cpu", "memory", "disk", "network", "process", "services", "sessions" };
-        
+
         // Add database-specific monitor
         active.Add("database");
         active.Add(info.Database.Provider.ToString().ToLowerInvariant());
-        
+
         // Add deployment-specific monitors
         if (info.DeploymentType == DeploymentType.Docker || info.Host.IsDocker || _options.EnableDockerMonitoring)
         {
             active.Add("docker");
         }
-        
+
         if (info.DeploymentType == DeploymentType.Kubernetes || info.Host.IsKubernetes || _options.EnableK8sMonitoring)
         {
             active.Add("kubernetes");
         }
-        
+
         return active;
     }
 
@@ -510,7 +526,7 @@ public class MonitoringService : IMonitoringService
     public async Task<SystemMetrics> GetSystemMetricsAsync(CancellationToken ct = default)
     {
         var process = Process.GetCurrentProcess();
-        
+
         return new SystemMetrics
         {
             Timestamp = DateTime.UtcNow,
@@ -528,10 +544,10 @@ public class MonitoringService : IMonitoringService
         await Task.Delay(100, ct);
         process.Refresh();
         var endCpuTime = process.TotalProcessorTime;
-        
+
         var cpuUsedMs = (endCpuTime - startCpuTime).TotalMilliseconds;
         var cpuPercent = (cpuUsedMs / (100.0 * Environment.ProcessorCount)) * 100;
-        
+
         return new CpuMetrics
         {
             UsagePercent = Math.Min(100, Math.Max(0, cpuPercent)),
@@ -544,7 +560,7 @@ public class MonitoringService : IMonitoringService
     {
         var totalMemory = GetTotalPhysicalMemory();
         var workingSet = process.WorkingSet64;
-        
+
         return new MemoryMetrics
         {
             TotalMB = totalMemory / (1024 * 1024),
@@ -558,11 +574,11 @@ public class MonitoringService : IMonitoringService
     private DiskMetrics GetDiskMetrics()
     {
         var metrics = new DiskMetrics { Drives = new List<DiskInfo>() };
-        
+
         try
         {
             var drives = DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveType == DriveType.Fixed);
-            
+
             foreach (var drive in drives)
             {
                 var diskInfo = new DiskInfo
@@ -572,36 +588,36 @@ public class MonitoringService : IMonitoringService
                     TotalGB = drive.TotalSize / (1024 * 1024 * 1024),
                     FreeGB = drive.AvailableFreeSpace / (1024 * 1024 * 1024),
                     UsedGB = (drive.TotalSize - drive.AvailableFreeSpace) / (1024 * 1024 * 1024),
-                    UsagePercent = drive.TotalSize > 0 
-                        ? ((drive.TotalSize - drive.AvailableFreeSpace) * 100.0 / drive.TotalSize) 
+                    UsagePercent = drive.TotalSize > 0
+                        ? ((drive.TotalSize - drive.AvailableFreeSpace) * 100.0 / drive.TotalSize)
                         : 0
                 };
                 metrics.Drives.Add(diskInfo);
             }
-            
+
             metrics.TotalSpaceGB = metrics.Drives.Sum(d => d.TotalGB);
             metrics.UsedSpaceGB = metrics.Drives.Sum(d => d.UsedGB);
             metrics.FreeSpaceGB = metrics.Drives.Sum(d => d.FreeGB);
-            metrics.UsagePercent = metrics.TotalSpaceGB > 0 
-                ? (metrics.UsedSpaceGB * 100.0 / metrics.TotalSpaceGB) 
+            metrics.UsagePercent = metrics.TotalSpaceGB > 0
+                ? (metrics.UsedSpaceGB * 100.0 / metrics.TotalSpaceGB)
                 : 0;
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to get disk metrics");
         }
-        
+
         return metrics;
     }
 
     private NetworkMetrics GetNetworkMetrics()
     {
         var metrics = new NetworkMetrics { Interfaces = new List<NetworkInterfaceInfo>() };
-        
+
         try
         {
             var interfaces = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
-            
+
             foreach (var ni in interfaces.Where(n => n.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up))
             {
                 var stats = ni.GetIPv4Statistics();
@@ -609,7 +625,7 @@ public class MonitoringService : IMonitoringService
                     .Where(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     .Select(a => a.Address.ToString())
                     .FirstOrDefault();
-                
+
                 metrics.Interfaces.Add(new NetworkInterfaceInfo
                 {
                     Name = ni.Name,
@@ -618,7 +634,7 @@ public class MonitoringService : IMonitoringService
                     BytesReceived = stats.BytesReceived,
                     BytesSent = stats.BytesSent
                 });
-                
+
                 metrics.BytesReceived += stats.BytesReceived;
                 metrics.BytesSent += stats.BytesSent;
             }
@@ -627,14 +643,14 @@ public class MonitoringService : IMonitoringService
         {
             _logger.LogWarning(ex, "Failed to get network metrics");
         }
-        
+
         return metrics;
     }
 
     private ProcessMetrics GetProcessMetrics(Process process)
     {
         var uptime = DateTime.UtcNow - _startTime;
-        
+
         return new ProcessMetrics
         {
             ThreadCount = process.Threads.Count,
@@ -713,16 +729,16 @@ public class MonitoringService : IMonitoringService
         {
             await using var conn = new SqlConnection(connectionString);
             await conn.OpenAsync(ct);
-            
+
             info.IsConnected = true;
             info.Host = conn.DataSource ?? "";
-            
+
             var cmd = new SqlCommand(@"
-                SELECT 
+                SELECT
                     SERVERPROPERTY('ProductVersion') AS Version,
                     SERVERPROPERTY('Edition') AS Edition,
                     SERVERPROPERTY('Collation') AS Collation", conn);
-            
+
             await using var reader = await cmd.ExecuteReaderAsync(ct);
             if (await reader.ReadAsync(ct))
             {
@@ -766,28 +782,28 @@ public class MonitoringService : IMonitoringService
 
             // Get active connections
             var connCmd = new SqlCommand(@"
-                SELECT COUNT(*) FROM sys.dm_exec_sessions 
+                SELECT COUNT(*) FROM sys.dm_exec_sessions
                 WHERE is_user_process = 1", conn);
             var connCount = await connCmd.ExecuteScalarAsync(ct);
             metrics.ActiveConnections = Convert.ToInt32(connCount);
 
             // Get database size
             var sizeCmd = new SqlCommand(@"
-                SELECT SUM(size * 8.0 / 1024) AS SizeMB 
-                FROM sys.master_files 
+                SELECT SUM(size * 8.0 / 1024) AS SizeMB
+                FROM sys.master_files
                 WHERE database_id = DB_ID()", conn);
             var size = await sizeCmd.ExecuteScalarAsync(ct);
             metrics.DatabaseSizeMB = Convert.ToDouble(size ?? 0);
 
             // Get SQL Server specific metrics
             var perfCmd = new SqlCommand(@"
-                SELECT 
-                    (SELECT cntr_value FROM sys.dm_os_performance_counters 
+                SELECT
+                    (SELECT cntr_value FROM sys.dm_os_performance_counters
                      WHERE counter_name = 'Batch Requests/sec' AND instance_name = '') AS BatchRequests,
-                    (SELECT cntr_value FROM sys.dm_os_performance_counters 
+                    (SELECT cntr_value FROM sys.dm_os_performance_counters
                      WHERE counter_name = 'Buffer cache hit ratio' AND instance_name = '') AS CacheHitRatio,
                     (SELECT COUNT(*) FROM sys.dm_exec_requests WHERE status = 'running') AS ActiveQueries", conn);
-            
+
             try
             {
                 await using var reader = await perfCmd.ExecuteReaderAsync(ct);
@@ -826,10 +842,10 @@ public class MonitoringService : IMonitoringService
         {
             await using var conn = new MySqlConnection(connectionString);
             await conn.OpenAsync(ct);
-            
+
             info.IsConnected = true;
             info.Host = conn.DataSource ?? "";
-            
+
             var cmd = new MySqlCommand("SELECT VERSION() AS Version, @@collation_database AS Collation", conn);
             await using var reader = await cmd.ExecuteReaderAsync(ct);
             if (await reader.ReadAsync(ct))
@@ -879,8 +895,8 @@ public class MonitoringService : IMonitoringService
             }
 
             var sizeCmd = new MySqlCommand(@"
-                SELECT SUM(data_length + index_length) / 1024 / 1024 AS SizeMB 
-                FROM information_schema.tables 
+                SELECT SUM(data_length + index_length) / 1024 / 1024 AS SizeMB
+                FROM information_schema.tables
                 WHERE table_schema = DATABASE()", conn);
             var size = await sizeCmd.ExecuteScalarAsync(ct);
             metrics.DatabaseSizeMB = Convert.ToDouble(size ?? 0);
@@ -920,11 +936,11 @@ public class MonitoringService : IMonitoringService
         {
             await using var conn = new NpgsqlConnection(connectionString);
             await conn.OpenAsync(ct);
-            
+
             info.IsConnected = true;
             info.Host = conn.Host ?? "";
             info.Port = conn.Port;
-            
+
             var cmd = new NpgsqlCommand("SELECT version(), current_setting('server_encoding')", conn);
             await using var reader = await cmd.ExecuteReaderAsync(ct);
             if (await reader.ReadAsync(ct))
@@ -973,12 +989,12 @@ public class MonitoringService : IMonitoringService
 
             // Get PostgreSQL specific metrics
             var statsCmd = new NpgsqlCommand(@"
-                SELECT 
+                SELECT
                     xact_commit, xact_rollback, blks_read, blks_hit,
                     tup_returned, tup_fetched, tup_inserted, tup_updated, tup_deleted
-                FROM pg_stat_database 
+                FROM pg_stat_database
                 WHERE datname = current_database()", conn);
-            
+
             await using var reader = await statsCmd.ExecuteReaderAsync(ct);
             if (await reader.ReadAsync(ct))
             {
@@ -1006,24 +1022,24 @@ public class MonitoringService : IMonitoringService
     public async Task<List<ServiceHealth>> GetServiceHealthAsync(CancellationToken ct = default)
     {
         var services = new List<ServiceHealth>();
-        
+
         // API Server (self)
         services.Add(GetApiHealth());
-        
+
         // Database
         services.Add(await GetDatabaseHealthAsync(ct));
-        
+
         // Frontend
         var frontendUrl = _configuration["Frontend:Url"] ?? "http://localhost:3000";
         services.Add(await CheckHttpHealthAsync("CRM Frontend", "frontend", frontendUrl, ct));
-        
+
         return services;
     }
 
     private ServiceHealth GetApiHealth()
     {
         var uptime = DateTime.UtcNow - _startTime;
-        
+
         return new ServiceHealth
         {
             Name = "CRM API",
@@ -1046,7 +1062,7 @@ public class MonitoringService : IMonitoringService
     private async Task<ServiceHealth> GetDatabaseHealthAsync(CancellationToken ct)
     {
         var metrics = await GetDatabaseMetricsAsync(ct);
-        
+
         return new ServiceHealth
         {
             Name = $"Database ({metrics.ProviderName})",
@@ -1082,7 +1098,7 @@ public class MonitoringService : IMonitoringService
         {
             var response = await _httpClient.GetAsync(url, ct);
             sw.Stop();
-            
+
             health.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
             health.Status = response.IsSuccessStatusCode ? "healthy" : "degraded";
             health.Version = "1.0.0";
@@ -1103,24 +1119,24 @@ public class MonitoringService : IMonitoringService
     private string GetDatabaseHost()
     {
         var connectionString = GetDatabaseConnectionString();
-        
+
         // Parse different connection string formats
         if (connectionString.Contains("Server=", StringComparison.OrdinalIgnoreCase))
         {
             var match = System.Text.RegularExpressions.Regex.Match(
-                connectionString, @"Server=([^;]+)", 
+                connectionString, @"Server=([^;]+)",
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             return match.Success ? match.Groups[1].Value : "unknown";
         }
-        
+
         if (connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase))
         {
             var match = System.Text.RegularExpressions.Regex.Match(
-                connectionString, @"Host=([^;]+)", 
+                connectionString, @"Host=([^;]+)",
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             return match.Success ? match.Groups[1].Value : "unknown";
         }
-        
+
         return "unknown";
     }
 
@@ -1173,7 +1189,7 @@ public class MonitoringService : IMonitoringService
     private async Task<List<ContainerHealth>> GetDockerContainersAsync(CancellationToken ct)
     {
         var containers = new List<ContainerHealth>();
-        
+
         try
         {
             // Execute docker ps command
@@ -1204,7 +1220,7 @@ public class MonitoringService : IMonitoringService
                         ContainerName = parts[1],
                         Image = parts[2],
                         Status = status.Contains("up") ? "running" : "stopped",
-                        Health = status.Contains("healthy") ? "healthy" : 
+                        Health = status.Contains("healthy") ? "healthy" :
                                  status.Contains("unhealthy") ? "unhealthy" : "none",
                         Uptime = parts[3]
                     });
@@ -1225,7 +1241,7 @@ public class MonitoringService : IMonitoringService
 
     public async Task<List<PodHealth>> GetPodHealthAsync(CancellationToken ct = default)
     {
-        if (!_options.EnableK8sMonitoring && 
+        if (!_options.EnableK8sMonitoring &&
             Environment.GetEnvironmentVariable("KUBERNETES_SERVICE_HOST") == null)
         {
             return new List<PodHealth>();
@@ -1249,7 +1265,7 @@ public class MonitoringService : IMonitoringService
     private async Task<List<PodHealth>> GetKubernetePodsAsync(CancellationToken ct)
     {
         var pods = new List<PodHealth>();
-        
+
         try
         {
             var psi = new ProcessStartInfo
@@ -1316,7 +1332,7 @@ public class MonitoringService : IMonitoringService
     public async Task<MonitoringData> GetAllMonitoringDataAsync(CancellationToken ct = default)
     {
         var cacheKey = "monitoring:all";
-        
+
         var cached = await _cache.GetAsync<MonitoringData>(cacheKey, ct);
         if (cached != null) return cached;
 
@@ -1362,7 +1378,7 @@ public class MonitoringService : IMonitoringService
             }
         }
         catch { }
-        
+
         return 8L * 1024 * 1024 * 1024; // Default 8GB
     }
 

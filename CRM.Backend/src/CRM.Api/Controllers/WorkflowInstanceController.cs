@@ -84,8 +84,8 @@ public class WorkflowInstanceController : ControllerBase
                 CurrentNodeId = i.CurrentNodeId,
                 CurrentNodeName = i.CurrentNode?.Name,
                 TriggerEvent = i.TriggerEvent,
-                TriggeredByName = i.TriggeredBy != null 
-                    ? $"{i.TriggeredBy.FirstName} {i.TriggeredBy.LastName}" 
+                TriggeredByName = i.TriggeredBy != null
+                    ? $"{i.TriggeredBy.FirstName} {i.TriggeredBy.LastName}"
                     : null,
                 StartedAt = i.StartedAt,
                 CompletedAt = i.CompletedAt,
@@ -132,8 +132,8 @@ public class WorkflowInstanceController : ControllerBase
                 CurrentNodeName = instance.CurrentNode?.Name,
                 TriggerEvent = instance.TriggerEvent,
                 TriggeredById = instance.TriggeredById,
-                TriggeredByName = instance.TriggeredBy != null 
-                    ? $"{instance.TriggeredBy.FirstName} {instance.TriggeredBy.LastName}" 
+                TriggeredByName = instance.TriggeredBy != null
+                    ? $"{instance.TriggeredBy.FirstName} {instance.TriggeredBy.LastName}"
                     : null,
                 InputData = instance.InputData,
                 StateData = instance.StateData,
@@ -153,7 +153,7 @@ public class WorkflowInstanceController : ControllerBase
                 ParentInstanceId = instance.ParentInstanceId,
                 CreatedAt = instance.CreatedAt,
                 UpdatedAt = instance.UpdatedAt,
-                
+
                 // Include workflow graph for visualization
                 Nodes = instance.WorkflowVersion.Nodes.Select(n => new WorkflowNodeDto
                 {
@@ -170,7 +170,7 @@ public class WorkflowInstanceController : ControllerBase
                     IsStartNode = n.IsStartNode,
                     IsEndNode = n.IsEndNode
                 }).ToList(),
-                
+
                 Transitions = instance.WorkflowVersion.Transitions.Select(t => new WorkflowTransitionDto
                 {
                     Id = t.Id,
@@ -182,7 +182,7 @@ public class WorkflowInstanceController : ControllerBase
                     LineStyle = t.LineStyle,
                     Color = t.Color
                 }).ToList(),
-                
+
                 // Node execution history
                 NodeInstances = instance.NodeInstances
                     .OrderBy(ni => ni.ExecutionSequence)
@@ -202,7 +202,7 @@ public class WorkflowInstanceController : ControllerBase
                         ExecutionSequence = ni.ExecutionSequence,
                         WorkerId = ni.WorkerId
                     }).ToList(),
-                
+
                 // Pending tasks
                 Tasks = instance.Tasks
                     .Where(t => t.Status != WorkflowTaskStatus.Completed)
@@ -222,7 +222,7 @@ public class WorkflowInstanceController : ControllerBase
                         IsDeadLetter = t.IsDeadLetter,
                         CreatedAt = t.CreatedAt
                     }).ToList(),
-                
+
                 // Recent logs
                 RecentLogs = instance.Logs
                     .Take(50)
@@ -424,7 +424,7 @@ public class WorkflowInstanceController : ControllerBase
         {
             var userId = GetCurrentUserId();
             var roles = GetCurrentUserRoles();
-            
+
             var tasks = await _instanceService.GetHumanTasksForUserAsync(userId, roles);
 
             var result = tasks.Select(t => new HumanTaskDto
@@ -488,7 +488,7 @@ public class WorkflowInstanceController : ControllerBase
         {
             var task = await _context.WorkflowTasks.FindAsync(taskId);
             if (task == null) return NotFound(new { message = "Task not found" });
-            
+
             var userId = GetCurrentUserId();
             if (task.AssignedToId != userId)
                 return BadRequest(new { message = "Task not assigned to you" });
@@ -587,7 +587,7 @@ public class WorkflowInstanceController : ControllerBase
             var query = _context.WorkflowLogs
                 .Include(l => l.WorkflowNode)
                 .Include(l => l.User)
-                .Where(l => l.WorkflowInstance != null && 
+                .Where(l => l.WorkflowInstance != null &&
                            l.WorkflowInstance.WorkflowDefinitionId == definitionId)
                 .OrderByDescending(l => l.Timestamp)
                 .AsQueryable();
@@ -602,7 +602,7 @@ public class WorkflowInstanceController : ControllerBase
                 query = query.Where(l => l.Timestamp <= toDate.Value);
 
             var logs = await query.Skip(skip).Take(take).ToListAsync();
-            
+
             var result = logs.Select(l => new WorkflowAuditLogDto
             {
                 Id = l.Id,
@@ -617,7 +617,7 @@ public class WorkflowInstanceController : ControllerBase
                 Timestamp = l.Timestamp
             }).ToList();
 
-            return Ok(new { 
+            return Ok(new {
                 items = result,
                 hasMore = result.Count == take
             });
@@ -644,7 +644,7 @@ public class WorkflowInstanceController : ControllerBase
             var query = _context.WorkflowLogs
                 .Include(l => l.WorkflowNode)
                 .Include(l => l.User)
-                .Where(l => l.WorkflowInstance != null && 
+                .Where(l => l.WorkflowInstance != null &&
                            l.WorkflowInstance.WorkflowDefinitionId == definitionId)
                 .OrderByDescending(l => l.Timestamp)
                 .AsQueryable();
@@ -656,16 +656,16 @@ public class WorkflowInstanceController : ControllerBase
                 query = query.Where(l => l.Timestamp <= toDate.Value);
 
             var logs = await query.Take(10000).ToListAsync();
-            
+
             var csv = new System.Text.StringBuilder();
             csv.AppendLine("Timestamp,Event Type,Level,Message,Actor,Node,Worker ID,Duration (ms)");
-            
+
             foreach (var log in logs)
             {
                 var actor = log.User != null ? $"{log.User.FirstName} {log.User.LastName}" : "";
                 var node = log.WorkflowNode?.Name ?? "";
                 var message = (log.Message ?? "").Replace("\"", "\"\"");
-                
+
                 csv.AppendLine($"\"{log.Timestamp:yyyy-MM-dd HH:mm:ss}\",\"{log.Category}\",\"{log.Level}\",\"{message}\",\"{actor}\",\"{node}\",\"{log.WorkerId ?? ""}\",{log.DurationMs ?? 0}");
             }
 
@@ -734,8 +734,8 @@ public class WorkflowInstanceController : ControllerBase
                     Status = task.Status.ToString(),
                     StartedAt = task.PickedAt,
                     CompletedAt = task.CompletedAt,
-                    DurationMs = task.CompletedAt.HasValue && task.PickedAt.HasValue 
-                        ? (long)(task.CompletedAt.Value - task.PickedAt.Value).TotalMilliseconds 
+                    DurationMs = task.CompletedAt.HasValue && task.PickedAt.HasValue
+                        ? (long)(task.CompletedAt.Value - task.PickedAt.Value).TotalMilliseconds
                         : null,
                     IsSkipped = false,
                     ErrorMessage = task.ErrorMessage,
@@ -800,15 +800,15 @@ public class WorkflowInstanceController : ControllerBase
                 Failed = await query.CountAsync(i => i.Status == WorkflowInstanceStatus.Failed),
                 Cancelled = await query.CountAsync(i => i.Status == WorkflowInstanceStatus.Cancelled),
                 TimedOut = await query.CountAsync(i => i.Status == WorkflowInstanceStatus.TimedOut),
-                
+
                 // Average completion time (in minutes)
                 AverageCompletionTimeMinutes = await query
-                    .Where(i => i.Status == WorkflowInstanceStatus.Completed && 
+                    .Where(i => i.Status == WorkflowInstanceStatus.Completed &&
                                i.StartedAt != null && i.CompletedAt != null)
                     .Select(i => (double)((i.CompletedAt!.Value - i.StartedAt!.Value).TotalMinutes))
                     .DefaultIfEmpty(0)
                     .AverageAsync(),
-                
+
                 // Status breakdown by workflow
                 ByWorkflow = await query
                     .GroupBy(i => new { i.WorkflowDefinitionId, i.WorkflowDefinition.Name })

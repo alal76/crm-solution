@@ -31,7 +31,6 @@
     "react-icons": "^4.12.0",
     "react-router-dom": "^6.18.0",
     "recharts": "^2.10.3",
-    "yup": "^1.3.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -40,20 +39,26 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/dompurify": "^3.0.5",
     "@types/jest": "^30.0.0",
+    "@types/lodash": "^4.17.23",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "babel-plugin-transform-remove-console": "^6.9.4",
+    "jest-junit": "^16.0.0",
     "msw": "^1.3.5",
     "react-scripts": "5.0.1",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "scripts": {
     "start": "craco start",
     "build": "craco build",
     "build:prod": "craco build && npm run validate:build",
-    "build:analyze": "GENERATE_SOURCEMAP=true craco build && npx source-map-explorer 'build/static/js/*.js'",
+    "build:analyze": "ANALYZE=true craco build",
+    "build:analyze:json": "ANALYZE_JSON=true craco build",
     "build:fast": "GENERATE_SOURCEMAP=false CI=true craco build",
     "test": "craco test",
+    "test:coverage": "craco test --coverage --watchAll=false",
+    "test:ci": "craco test --coverage --watchAll=false --ci --reporters=default --reporters=jest-junit",
     "eject": "react-scripts eject",
     "version:major": "node ../update-version.js major",
     "version:minor": "node ../update-version.js minor",

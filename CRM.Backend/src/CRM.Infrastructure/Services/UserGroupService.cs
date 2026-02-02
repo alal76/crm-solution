@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -9,7 +25,7 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Service for user group management.
-/// 
+///
 /// HEXAGONAL ARCHITECTURE:
 /// - Implements IUserGroupInputPort (primary/driving port)
 /// - Implements IUserGroupService (backward compatibility)
@@ -60,7 +76,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             throw;
         }
     }
-    
+
     private static UserGroupDto MapToDto(UserGroup g)
     {
         return new UserGroupDto
@@ -75,7 +91,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             IsSystemAdmin = g.IsSystemAdmin,
             CreatedAt = g.CreatedAt,
             MemberCount = g.Members.Count,
-            
+
             // Menu Permissions
             CanAccessDashboard = g.CanAccessDashboard,
             CanAccessCustomers = g.CanAccessCustomers,
@@ -94,52 +110,52 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             CanAccessReports = g.CanAccessReports,
             CanAccessSettings = g.CanAccessSettings,
             CanAccessUserManagement = g.CanAccessUserManagement,
-            
+
             // Entity CRUD
             CanCreateCustomers = g.CanCreateCustomers,
             CanEditCustomers = g.CanEditCustomers,
             CanDeleteCustomers = g.CanDeleteCustomers,
             CanViewAllCustomers = g.CanViewAllCustomers,
-            
+
             CanCreateContacts = g.CanCreateContacts,
             CanEditContacts = g.CanEditContacts,
             CanDeleteContacts = g.CanDeleteContacts,
-            
+
             CanCreateLeads = g.CanCreateLeads,
             CanEditLeads = g.CanEditLeads,
             CanDeleteLeads = g.CanDeleteLeads,
             CanConvertLeads = g.CanConvertLeads,
-            
+
             CanCreateOpportunities = g.CanCreateOpportunities,
             CanEditOpportunities = g.CanEditOpportunities,
             CanDeleteOpportunities = g.CanDeleteOpportunities,
             CanCloseOpportunities = g.CanCloseOpportunities,
-            
+
             CanCreateProducts = g.CanCreateProducts,
             CanEditProducts = g.CanEditProducts,
             CanDeleteProducts = g.CanDeleteProducts,
             CanManagePricing = g.CanManagePricing,
-            
+
             CanCreateCampaigns = g.CanCreateCampaigns,
             CanEditCampaigns = g.CanEditCampaigns,
             CanDeleteCampaigns = g.CanDeleteCampaigns,
             CanLaunchCampaigns = g.CanLaunchCampaigns,
-            
+
             CanCreateQuotes = g.CanCreateQuotes,
             CanEditQuotes = g.CanEditQuotes,
             CanDeleteQuotes = g.CanDeleteQuotes,
             CanApproveQuotes = g.CanApproveQuotes,
-            
+
             CanCreateTasks = g.CanCreateTasks,
             CanEditTasks = g.CanEditTasks,
             CanDeleteTasks = g.CanDeleteTasks,
             CanAssignTasks = g.CanAssignTasks,
-            
+
             CanCreateWorkflows = g.CanCreateWorkflows,
             CanEditWorkflows = g.CanEditWorkflows,
             CanDeleteWorkflows = g.CanDeleteWorkflows,
             CanActivateWorkflows = g.CanActivateWorkflows,
-            
+
             // Data Access
             DataAccessScope = g.DataAccessScope,
             CanExportData = g.CanExportData,
@@ -148,7 +164,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             CanBulkDelete = g.CanBulkDelete
         };
     }
-    
+
     private static void MapFromRequest(UserGroup group, CreateUserGroupRequest request)
     {
         group.Name = request.Name;
@@ -158,7 +174,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         group.DisplayOrder = request.DisplayOrder;
         group.HeaderColor = request.HeaderColor;
         group.IsSystemAdmin = request.IsSystemAdmin;
-        
+
         // Menu Permissions
         group.CanAccessDashboard = request.CanAccessDashboard;
         group.CanAccessCustomers = request.CanAccessCustomers;
@@ -177,52 +193,52 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         group.CanAccessReports = request.CanAccessReports;
         group.CanAccessSettings = request.CanAccessSettings;
         group.CanAccessUserManagement = request.CanAccessUserManagement;
-        
+
         // Entity CRUD
         group.CanCreateCustomers = request.CanCreateCustomers;
         group.CanEditCustomers = request.CanEditCustomers;
         group.CanDeleteCustomers = request.CanDeleteCustomers;
         group.CanViewAllCustomers = request.CanViewAllCustomers;
-        
+
         group.CanCreateContacts = request.CanCreateContacts;
         group.CanEditContacts = request.CanEditContacts;
         group.CanDeleteContacts = request.CanDeleteContacts;
-        
+
         group.CanCreateLeads = request.CanCreateLeads;
         group.CanEditLeads = request.CanEditLeads;
         group.CanDeleteLeads = request.CanDeleteLeads;
         group.CanConvertLeads = request.CanConvertLeads;
-        
+
         group.CanCreateOpportunities = request.CanCreateOpportunities;
         group.CanEditOpportunities = request.CanEditOpportunities;
         group.CanDeleteOpportunities = request.CanDeleteOpportunities;
         group.CanCloseOpportunities = request.CanCloseOpportunities;
-        
+
         group.CanCreateProducts = request.CanCreateProducts;
         group.CanEditProducts = request.CanEditProducts;
         group.CanDeleteProducts = request.CanDeleteProducts;
         group.CanManagePricing = request.CanManagePricing;
-        
+
         group.CanCreateCampaigns = request.CanCreateCampaigns;
         group.CanEditCampaigns = request.CanEditCampaigns;
         group.CanDeleteCampaigns = request.CanDeleteCampaigns;
         group.CanLaunchCampaigns = request.CanLaunchCampaigns;
-        
+
         group.CanCreateQuotes = request.CanCreateQuotes;
         group.CanEditQuotes = request.CanEditQuotes;
         group.CanDeleteQuotes = request.CanDeleteQuotes;
         group.CanApproveQuotes = request.CanApproveQuotes;
-        
+
         group.CanCreateTasks = request.CanCreateTasks;
         group.CanEditTasks = request.CanEditTasks;
         group.CanDeleteTasks = request.CanDeleteTasks;
         group.CanAssignTasks = request.CanAssignTasks;
-        
+
         group.CanCreateWorkflows = request.CanCreateWorkflows;
         group.CanEditWorkflows = request.CanEditWorkflows;
         group.CanDeleteWorkflows = request.CanDeleteWorkflows;
         group.CanActivateWorkflows = request.CanActivateWorkflows;
-        
+
         // Data Access
         group.DataAccessScope = request.DataAccessScope;
         group.CanExportData = request.CanExportData;

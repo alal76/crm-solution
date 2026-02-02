@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -22,22 +38,22 @@ namespace CRM.Infrastructure.Services;
 public class RedisCacheOptions
 {
     public const string SectionName = "Redis";
-    
+
     /// <summary>Redis connection string (e.g., "localhost:6379")</summary>
     public string ConnectionString { get; set; } = "localhost:6379";
-    
+
     /// <summary>Instance name prefix for all cache keys</summary>
     public string InstanceName { get; set; } = "crm_";
-    
+
     /// <summary>Whether Redis caching is enabled</summary>
     public bool Enabled { get; set; } = true;
-    
+
     /// <summary>Default cache duration in minutes</summary>
     public int DefaultExpirationMinutes { get; set; } = 30;
-    
+
     /// <summary>Duration for short-lived cache items (minutes)</summary>
     public int ShortExpirationMinutes { get; set; } = 5;
-    
+
     /// <summary>Duration for long-lived cache items (minutes)</summary>
     public int LongExpirationMinutes { get; set; } = 120;
 }
@@ -49,22 +65,22 @@ public interface IRedisCacheService
 {
     /// <summary>Get a cached item by key</summary>
     Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class;
-    
+
     /// <summary>Set a cached item with default expiration</summary>
     Task SetAsync<T>(string key, T value, CancellationToken cancellationToken = default) where T : class;
-    
+
     /// <summary>Set a cached item with custom expiration</summary>
     Task SetAsync<T>(string key, T value, TimeSpan expiration, CancellationToken cancellationToken = default) where T : class;
-    
+
     /// <summary>Get or create a cached item</summary>
     Task<T?> GetOrSetAsync<T>(string key, Func<Task<T>> factory, TimeSpan? expiration = null, CancellationToken cancellationToken = default) where T : class;
-    
+
     /// <summary>Remove a cached item</summary>
     Task RemoveAsync(string key, CancellationToken cancellationToken = default);
-    
+
     /// <summary>Remove all cached items with a key prefix</summary>
     Task RemoveByPrefixAsync(string prefix, CancellationToken cancellationToken = default);
-    
+
     /// <summary>Check if Redis is available</summary>
     Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);
 }
@@ -109,7 +125,7 @@ public class RedisCacheService : IRedisCacheService
         {
             var fullKey = GetFullKey(key);
             var data = await _cache.GetStringAsync(fullKey, cancellationToken);
-            
+
             if (string.IsNullOrEmpty(data))
             {
                 return null;
@@ -137,7 +153,7 @@ public class RedisCacheService : IRedisCacheService
         {
             var fullKey = GetFullKey(key);
             var data = JsonSerializer.Serialize(value, _jsonOptions);
-            
+
             var options = new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = expiration,
@@ -145,7 +161,7 @@ public class RedisCacheService : IRedisCacheService
             };
 
             await _cache.SetStringAsync(fullKey, data, options, cancellationToken);
-            
+
             // Track key for prefix-based removal
             lock (KeysLock)
             {
@@ -191,7 +207,7 @@ public class RedisCacheService : IRedisCacheService
         {
             var fullKey = GetFullKey(key);
             await _cache.RemoveAsync(fullKey, cancellationToken);
-            
+
             lock (KeysLock)
             {
                 RegisteredKeys.Remove(fullKey);
@@ -213,7 +229,7 @@ public class RedisCacheService : IRedisCacheService
         {
             var fullPrefix = GetFullKey(prefix);
             List<string> keysToRemove;
-            
+
             lock (KeysLock)
             {
                 keysToRemove = RegisteredKeys
@@ -249,7 +265,7 @@ public class RedisCacheService : IRedisCacheService
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(5)
             }, cancellationToken);
-            
+
             var result = await _cache.GetStringAsync(testKey, cancellationToken);
             return result == "ok";
         }
@@ -364,7 +380,7 @@ public class FallbackCacheService : IRedisCacheService
         {
             _redisAvailable = await _redisCache.IsAvailableAsync(cancellationToken);
             _lastRedisCheck = DateTime.UtcNow;
-            
+
             if (_redisAvailable)
             {
                 _logger.LogInformation("Redis connection restored");

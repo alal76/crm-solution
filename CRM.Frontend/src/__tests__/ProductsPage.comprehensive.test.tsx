@@ -21,7 +21,28 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock products data
-const mockProducts = [
+const mockProducts: Array<{
+  id: number;
+  name: string;
+  sku: string;
+  description: string;
+  price: number;
+  cost: number;
+  category: string;
+  subcategory: string;
+  type: string;
+  isActive: boolean;
+  stockQuantity: number | null;
+  reorderLevel: number | null;
+  unitOfMeasure: string;
+  taxable: boolean;
+  taxRate: number;
+  vendor: string;
+  imageUrl: string | null;
+  createdAt: string;
+  modifiedAt: string;
+  isDeleted: boolean;
+}> = [
   {
     id: 1,
     name: 'Enterprise License',

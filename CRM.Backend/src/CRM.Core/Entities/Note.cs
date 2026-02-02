@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.ComponentModel.DataAnnotations.Schema;
 using CRM.Core.Models;
 
@@ -39,24 +55,24 @@ public class Note : BaseEntity
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
     public string? Summary { get; set; }
-    
+
     // Classification
     public NoteType NoteType { get; set; } = NoteType.General;
     public NoteVisibility Visibility { get; set; } = NoteVisibility.Team;
     public bool IsPinned { get; set; } = false;
     public bool IsImportant { get; set; } = false;
-    
+
     // Polymorphic entity attachment (primary method for associating notes)
     /// <summary>
     /// Entity type this note is attached to: Customer, Contact, Lead, Opportunity, Campaign, Quote, ServiceRequest, Product, Task, Interaction
     /// </summary>
     public string? EntityType { get; set; }
-    
+
     /// <summary>
     /// The ID of the entity this note is attached to
     /// </summary>
     public int? EntityId { get; set; }
-    
+
     // Legacy relationships (kept for backward compatibility, prefer EntityType+EntityId)
     [Column("CustomerId")]
     public int? AccountId { get; set; }
@@ -69,25 +85,25 @@ public class Note : BaseEntity
     public int? LeadId { get; set; }
     public int? ServiceRequestId { get; set; }
     public int? QuoteId { get; set; }
-    
+
     // Authorship
     public int? CreatedByUserId { get; set; }
     public int? LastModifiedByUserId { get; set; }
-    
+
     // Classification
     public string? Tags { get; set; }
     public string? Category { get; set; }
-    
+
     // Attachments
     public string? Attachments { get; set; } // JSON array of file URLs
-    
+
     // Mentions & Links
     public string? MentionedUsers { get; set; } // JSON array of user IDs
     public string? RelatedNotes { get; set; } // JSON array of note IDs
-    
+
     // Custom Fields
     public string? CustomFields { get; set; }
-    
+
     // Context information (set from application context when note was created)
     public string? ContextPath { get; set; } // URL path where note was created
 

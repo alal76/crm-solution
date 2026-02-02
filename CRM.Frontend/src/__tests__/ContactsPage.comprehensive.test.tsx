@@ -363,7 +363,8 @@ describe('ContactsPage - Customer Linking', () => {
   });
 
   it('should link contact to customer', () => {
-    let contact = { ...mockContacts[2], accountId: null };
+    const baseContact = mockContacts[2];
+    let contact = { ...baseContact, accountId: null as number | null };
     const linkToCustomer = (accountId: number) => {
       contact = { ...contact, accountId };
     };
@@ -373,7 +374,7 @@ describe('ContactsPage - Customer Linking', () => {
   });
 
   it('should unlink contact from customer', () => {
-    let contact = { ...mockContacts[0] };
+    let contact = { ...mockContacts[0], accountId: mockContacts[0].accountId as number | null };
     const unlinkFromCustomer = () => {
       contact = { ...contact, accountId: null };
     };

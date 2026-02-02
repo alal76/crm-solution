@@ -50,95 +50,95 @@ public class CampaignABTest : BaseEntity
     /// </summary>
     [Required]
     public int CampaignId { get; set; }
-    
+
     /// <summary>
     /// Name of the test
     /// </summary>
     [Required]
     [MaxLength(255)]
     public string TestName { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Type of test (subject line, content, etc.)
     /// </summary>
     [Required]
     [MaxLength(50)]
     public string TestType { get; set; } = "SubjectLine";
-    
+
     /// <summary>
     /// Metric to measure
     /// </summary>
     [Required]
     [MaxLength(50)]
     public string TestMetric { get; set; } = "OpenRate";
-    
+
     /// <summary>
     /// Traffic split as JSON: {"A": 50, "B": 50}
     /// </summary>
     public string? TrafficSplit { get; set; }
-    
+
     /// <summary>
     /// Sample size for the test
     /// </summary>
     public int? SampleSize { get; set; }
-    
+
     /// <summary>
     /// Sample percentage of total audience
     /// </summary>
     public decimal? SamplePercentage { get; set; }
-    
+
     /// <summary>
     /// Variant configurations as JSON
     /// </summary>
     public string? VariantConfigs { get; set; }
-    
+
     /// <summary>
     /// The winning variant (A, B, C, etc.)
     /// </summary>
     [MaxLength(10)]
     public string? WinnerVariant { get; set; }
-    
+
     /// <summary>
     /// Criteria for selecting winner as JSON
     /// </summary>
     public string? WinningCriteria { get; set; }
-    
+
     /// <summary>
     /// Statistical confidence level percentage
     /// </summary>
     public decimal? ConfidenceLevel { get; set; }
-    
+
     /// <summary>
     /// When the test started
     /// </summary>
     public DateTime? TestStartedAt { get; set; }
-    
+
     /// <summary>
     /// When the test completed
     /// </summary>
     public DateTime? TestCompletedAt { get; set; }
-    
+
     /// <summary>
     /// When the winner was deployed
     /// </summary>
     public DateTime? WinnerDeployedAt { get; set; }
-    
+
     /// <summary>
     /// Automatically select winner
     /// </summary>
     public bool AutoSelectWinner { get; set; } = false;
-    
+
     /// <summary>
     /// Hours after which to auto-select winner
     /// </summary>
     public int? AutoWinnerAfterHours { get; set; }
-    
+
     /// <summary>
     /// Current status
     /// </summary>
     [MaxLength(50)]
     public string Status { get; set; } = "Draft";
-    
+
     // Navigation property
     public virtual MarketingCampaign? Campaign { get; set; }
 }

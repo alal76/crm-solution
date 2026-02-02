@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -14,9 +30,9 @@ public abstract class FunctionalTestBase : IAsyncLifetime
     protected HttpClient Client { get; private set; } = null!;
     protected string? AuthToken { get; private set; }
     protected bool ApiAvailable { get; private set; }
-    
+
     protected virtual string BaseUrl => Environment.GetEnvironmentVariable("CRM_API_URL") ?? "http://localhost:5000";
-    
+
     public virtual async Task InitializeAsync()
     {
         Client = new HttpClient
@@ -24,7 +40,7 @@ public abstract class FunctionalTestBase : IAsyncLifetime
             BaseAddress = new Uri(BaseUrl),
             Timeout = TimeSpan.FromSeconds(10)
         };
-        
+
         // Check if API is available - don't throw, just mark as unavailable
         try
         {
@@ -42,7 +58,7 @@ public abstract class FunctionalTestBase : IAsyncLifetime
         Client?.Dispose();
         return Task.CompletedTask;
     }
-    
+
     /// <summary>
     /// Skip the test if API is not available. Returns true if API is available.
     /// Tests should call this and return early if false.
@@ -56,7 +72,7 @@ public abstract class FunctionalTestBase : IAsyncLifetime
         }
         return true;
     }
-    
+
     /// <summary>
     /// Authenticate with the API and get a JWT token.
     /// Returns false if API unavailable or authentication fails.
@@ -64,28 +80,28 @@ public abstract class FunctionalTestBase : IAsyncLifetime
     protected async Task<bool> AuthenticateAsync(string email = "abhi.lal@gmail.com", string password = "Admin@123")
     {
         if (!ApiAvailable) return false;
-        
+
         var response = await Client.PostAsJsonAsync("/api/auth/login", new
         {
             email,
             password
         });
-        
+
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
             if (result?.AccessToken != null)
             {
                 AuthToken = result.AccessToken;
-                Client.DefaultRequestHeaders.Authorization = 
+                Client.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AuthToken);
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /// <summary>
     /// Asserts that a response indicates success.
     /// Only asserts if API is available.
@@ -93,10 +109,10 @@ public abstract class FunctionalTestBase : IAsyncLifetime
     protected void AssertSuccess(HttpResponseMessage response)
     {
         if (!ApiAvailable) return;
-        Assert.True(response.IsSuccessStatusCode, 
+        Assert.True(response.IsSuccessStatusCode,
             $"Expected success but got {response.StatusCode}: {response.ReasonPhrase}");
     }
-    
+
     /// <summary>
     /// Asserts that a response has a specific status code.
     /// Only asserts if API is available.
@@ -106,7 +122,7 @@ public abstract class FunctionalTestBase : IAsyncLifetime
         if (!ApiAvailable) return;
         Assert.Equal(expected, response.StatusCode);
     }
-    
+
     private record LoginResponse(string AccessToken, string RefreshToken, DateTime ExpiresAt);
 }
 

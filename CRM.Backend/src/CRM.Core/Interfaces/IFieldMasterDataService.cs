@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 
@@ -12,51 +28,51 @@ public interface IFieldMasterDataService
     /// Get all master data links for a field
     /// </summary>
     Task<List<FieldMasterDataLinkDto>> GetLinksForFieldAsync(int fieldConfigurationId);
-    
+
     /// <summary>
     /// Get all master data links for a module
     /// </summary>
     Task<Dictionary<int, List<FieldMasterDataLinkDto>>> GetLinksForModuleAsync(string moduleName);
-    
+
     /// <summary>
     /// Get a single link by ID
     /// </summary>
     Task<FieldMasterDataLinkDto?> GetLinkByIdAsync(int id);
-    
+
     /// <summary>
     /// Create a new master data link
     /// </summary>
     Task<FieldMasterDataLinkDto> CreateLinkAsync(CreateFieldMasterDataLinkDto dto);
-    
+
     /// <summary>
     /// Update an existing link
     /// </summary>
     Task<FieldMasterDataLinkDto> UpdateLinkAsync(int id, CreateFieldMasterDataLinkDto dto);
-    
+
     /// <summary>
     /// Delete a link
     /// </summary>
     Task<bool> DeleteLinkAsync(int id);
-    
+
     /// <summary>
     /// Get all available master data sources
     /// </summary>
     Task<List<MasterDataSourceDto>> GetAvailableSourcesAsync();
-    
+
     /// <summary>
     /// Get master data values for a field (for dropdown population)
     /// </summary>
     Task<List<MasterDataLookupResultDto>> GetMasterDataForFieldAsync(
-        int fieldConfigurationId, 
+        int fieldConfigurationId,
         Dictionary<string, string>? dependentValues = null,
         string? searchTerm = null,
         int limit = 100);
-    
+
     /// <summary>
     /// Validate a value against field's master data configuration
     /// </summary>
     Task<(bool IsValid, string? ErrorMessage)> ValidateValueAsync(
-        int fieldConfigurationId, 
+        int fieldConfigurationId,
         string value,
         Dictionary<string, string>? dependentValues = null);
 }

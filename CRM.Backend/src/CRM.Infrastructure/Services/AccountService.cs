@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -7,12 +23,12 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Account service implementation providing CRUD operations for Account entities.
-/// 
+///
 /// HEXAGONAL ARCHITECTURE:
 /// - Implements IAccountInputPort (primary/driving port)
 /// - Implements IAccountService (backward compatibility)
 /// - Uses IRepository pattern for data access (secondary/driven ports)
-/// 
+///
 /// FUNCTIONAL VIEW:
 /// This service handles all account-related business operations including:
 /// - Creating Individual and Organization accounts
@@ -20,13 +36,13 @@ namespace CRM.Infrastructure.Services;
 /// - Linking contacts to organization accounts
 /// - Searching and filtering accounts by various criteria
 /// - Soft-deleting accounts (preserves data for audit/recovery)
-/// 
+///
 /// TECHNICAL VIEW:
 /// - Uses IRepository pattern for data access abstraction
 /// - Maps between Account entities and AccountDto for API responses
 /// - Supports async/await pattern for non-blocking database operations
 /// - Integrates with IContactsService for contact management
-/// 
+///
 /// PATTERN:
 /// [Controller] → [IAccountInputPort] → [AccountService] → [IRepository] → [Database]
 /// </summary>
@@ -78,7 +94,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     /// <summary>
     /// Retrieves a single account by their unique identifier.
-    /// 
+    ///
     /// FUNCTIONAL: Returns account details including contact links for organizations.
     /// TECHNICAL: Filters out soft-deleted records, maps to DTO.
     /// </summary>
@@ -89,13 +105,13 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         var account = await _accountRepository.GetByIdAsync(id);
         if (account == null || account.IsDeleted)
             return null;
-            
+
         return await MapToDto(account);
     }
 
     /// <summary>
     /// Retrieves all active (non-deleted) accounts.
-    /// 
+    ///
     /// FUNCTIONAL: Returns complete account list for dashboards and reports.
     /// TECHNICAL: Filters IsDeleted flag, maps each entity to DTO.
     /// </summary>
@@ -104,7 +120,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     {
         var accounts = await _accountRepository.GetAllAsync();
         var activeAccounts = accounts.Where(c => !c.IsDeleted).ToList();
-        
+
         var dtos = new List<AccountDto>();
         foreach (var account in activeAccounts)
         {
@@ -115,7 +131,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     /// <summary>
     /// Searches accounts by name, email, or company name.
-    /// 
+    ///
     /// FUNCTIONAL: Allows users to find accounts quickly using partial matches.
     /// TECHNICAL: Uses case-insensitive Contains() for flexible matching.
     /// </summary>
@@ -131,7 +147,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
                 c.Company.Contains(searchTerm)
             )
         );
-        
+
         var dtos = new List<AccountDto>();
         foreach (var account in accounts)
         {
@@ -142,7 +158,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     /// <summary>
     /// Creates a new account record.
-    /// 
+    ///
     /// FUNCTIONAL: Supports both Individual (name-based) and Organization (company-based) accounts.
     /// TECHNICAL: Maps DTO to entity, persists to database, returns created record.
     /// </summary>
@@ -310,7 +326,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             await _contactInfoLinkRepository.SaveAsync();
         }
 
-        
+
 
         return await MapToDto(account);
     }
@@ -408,7 +424,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
         await _accountRepository.UpdateAsync(account);
         await _accountRepository.SaveAsync();
-        
+
         // If inline contact fields were updated, materialize them into normalized tables
         if (dto.Address != null || dto.City != null || dto.Country != null)
         {
@@ -564,7 +580,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
         account.IsDeleted = true;
         account.UpdatedAt = DateTime.UtcNow;
-        
+
         await _accountRepository.UpdateAsync(account);
         await _accountRepository.SaveAsync();
         return true;
@@ -572,9 +588,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     public async Task<IEnumerable<AccountDto>> GetIndividualAccountsAsync()
     {
-        var accounts = await _accountRepository.FindAsync(c => 
+        var accounts = await _accountRepository.FindAsync(c =>
             !c.IsDeleted && c.Category == AccountCategory.Individual);
-        
+
         var dtos = new List<AccountDto>();
         foreach (var account in accounts)
         {
@@ -585,9 +601,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     public async Task<IEnumerable<AccountDto>> GetOrganizationAccountsAsync()
     {
-        var accounts = await _accountRepository.FindAsync(c => 
+        var accounts = await _accountRepository.FindAsync(c =>
             !c.IsDeleted && c.Category == AccountCategory.Organization);
-        
+
         var dtos = new List<AccountDto>();
         foreach (var account in accounts)
         {
@@ -608,7 +624,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             return null;
 
         // Check if already linked
-        var existingLinks = await _accountContactRepository.FindAsync(cc => 
+        var existingLinks = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && cc.ContactId == dto.ContactId && !cc.IsDeleted);
         if (existingLinks.Any())
             return null;
@@ -616,7 +632,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         // If this is primary contact, unset others
         if (dto.IsPrimaryContact)
         {
-            var otherPrimary = await _accountContactRepository.FindAsync(cc => 
+            var otherPrimary = await _accountContactRepository.FindAsync(cc =>
                 cc.AccountId == accountId && cc.IsPrimaryContact && !cc.IsDeleted);
             foreach (var other in otherPrimary)
             {
@@ -658,9 +674,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     public async Task<bool> UnlinkContactFromAccountAsync(int accountId, int contactId)
     {
-        var links = await _accountContactRepository.FindAsync(cc => 
+        var links = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && cc.ContactId == contactId && !cc.IsDeleted);
-        
+
         var link = links.FirstOrDefault();
         if (link == null)
             return false;
@@ -668,7 +684,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         link.IsDeleted = true;
         link.RelationshipEndDate = DateTime.UtcNow;
         link.UpdatedAt = DateTime.UtcNow;
-        
+
         await _accountContactRepository.UpdateAsync(link);
         await _accountContactRepository.SaveAsync();
 
@@ -686,9 +702,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     public async Task<AccountContactDto?> UpdateAccountContactAsync(int accountId, int contactId, UpdateAccountContactDto dto)
     {
-        var links = await _accountContactRepository.FindAsync(cc => 
+        var links = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && cc.ContactId == contactId && !cc.IsDeleted);
-        
+
         var link = links.FirstOrDefault();
         if (link == null)
             return null;
@@ -709,14 +725,14 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             if (dto.IsPrimaryContact.Value && !link.IsPrimaryContact)
             {
                 // Unset other primary contacts
-                var otherPrimary = await _accountContactRepository.FindAsync(cc => 
+                var otherPrimary = await _accountContactRepository.FindAsync(cc =>
                     cc.AccountId == accountId && cc.IsPrimaryContact && cc.Id != link.Id && !cc.IsDeleted);
                 foreach (var other in otherPrimary)
                 {
                     other.IsPrimaryContact = false;
                     await _accountContactRepository.UpdateAsync(other);
                 }
-                
+
                 // Update account's primary contact
                 var account = await _accountRepository.GetByIdAsync(accountId);
                 if (account != null)
@@ -738,9 +754,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     public async Task<IEnumerable<AccountContactDto>> GetAccountContactsAsync(int accountId)
     {
-        var links = await _accountContactRepository.FindAsync(cc => 
+        var links = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && !cc.IsDeleted);
-        
+
         var dtos = new List<AccountContactDto>();
         foreach (var link in links)
         {
@@ -752,15 +768,15 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     public async Task<bool> SetPrimaryContactAsync(int accountId, int contactId)
     {
-        var links = await _accountContactRepository.FindAsync(cc => 
+        var links = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && cc.ContactId == contactId && !cc.IsDeleted);
-        
+
         var link = links.FirstOrDefault();
         if (link == null)
             return false;
 
         // Unset all other primary contacts
-        var allLinks = await _accountContactRepository.FindAsync(cc => 
+        var allLinks = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && !cc.IsDeleted);
         foreach (var l in allLinks)
         {
@@ -834,9 +850,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     public async Task<IEnumerable<AccountDto>> GetAccountsByAssignedUserAsync(int userId)
     {
-        var accounts = await _accountRepository.FindAsync(c => 
+        var accounts = await _accountRepository.FindAsync(c =>
             !c.IsDeleted && c.AssignedToUserId == userId);
-        
+
         var dtos = new List<AccountDto>();
         foreach (var account in accounts)
         {
@@ -847,9 +863,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     public async Task<IEnumerable<AccountDto>> GetAccountsByLifecycleStageAsync(AccountLifecycleStage stage)
     {
-        var accounts = await _accountRepository.FindAsync(c => 
+        var accounts = await _accountRepository.FindAsync(c =>
             !c.IsDeleted && c.LifecycleStage == stage);
-        
+
         var dtos = new List<AccountDto>();
         foreach (var account in accounts)
         {
@@ -860,9 +876,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     public async Task<IEnumerable<AccountDto>> GetAccountsByPriorityAsync(AccountPriority priority)
     {
-        var accounts = await _accountRepository.FindAsync(c => 
+        var accounts = await _accountRepository.FindAsync(c =>
             !c.IsDeleted && c.Priority == priority);
-        
+
         var dtos = new List<AccountDto>();
         foreach (var account in accounts)
         {
@@ -881,16 +897,16 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
         if (account.Category == AccountCategory.Organization)
         {
-            var contacts = await _accountContactRepository.FindAsync(cc => 
+            var contacts = await _accountContactRepository.FindAsync(cc =>
                 cc.AccountId == account.Id && !cc.IsDeleted);
             contactCount = contacts.Count();
-            
+
             contactDtos = new List<AccountContactDto>();
             foreach (var cc in contacts)
             {
                 var contact = await _contactsService.GetByIdAsync(cc.ContactId);
                 contactDtos.Add(MapAccountContactToDto(cc, contact));
-                
+
                 if (cc.IsPrimaryContact && contact != null)
                 {
                     primaryContactName = $"{contact.FirstName} {contact.LastName}";
@@ -1027,7 +1043,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             DisplayName = account.DisplayName,
             Contacts = contactDtos,
             ContactCount = contactCount,
-            
+
             // === Normalized Contact Info Collections ===
             EmailAddresses = await _contactInfoService.GetEmailAddressesAsync(EntityType.Account, account.Id),
             PhoneNumbers = await _contactInfoService.GetPhoneNumbersAsync(EntityType.Account, account.Id),

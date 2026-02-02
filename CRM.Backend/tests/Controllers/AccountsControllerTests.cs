@@ -32,12 +32,12 @@ namespace CRM.Tests.Controllers;
 
 /// <summary>
 /// Unit tests for AccountsController
-/// 
+///
 /// FUNCTIONAL VIEW:
 /// - Tests all customer management API endpoints
 /// - Validates correct HTTP status codes for various scenarios
 /// - Ensures proper error handling for invalid requests
-/// 
+///
 /// TECHNICAL VIEW:
 /// - Uses Moq to mock IAccountService dependency
 /// - Tests controller action methods in isolation
@@ -55,7 +55,7 @@ public class AccountsControllerTests
         _mockCustomerService = new Mock<IAccountService>();
         _mockLogger = new Mock<ILogger<AccountsController>>();
         _mockNotificationService = new Mock<ICrmNotificationService>();
-        
+
         // Setup default returns for notification service to prevent null task exceptions
         _mockNotificationService.Setup(x => x.NotifyRecordCreatedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<object>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
@@ -63,9 +63,9 @@ public class AccountsControllerTests
             .Returns(Task.CompletedTask);
         _mockNotificationService.Setup(x => x.NotifyRecordDeletedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
-            
+
         _controller = new AccountsController(_mockCustomerService.Object, _mockLogger.Object, _mockNotificationService.Object);
-        
+
         // Setup HttpContext with Response.Headers for ETag support
         var httpContext = new DefaultHttpContext();
         _controller.ControllerContext = new ControllerContext
@@ -78,7 +78,7 @@ public class AccountsControllerTests
 
     /// <summary>
     /// Verifies GetAll returns 200 OK with list of customers
-    /// 
+    ///
     /// FUNCTIONAL: API should return all customers when GET /api/accounts is called
     /// TECHNICAL: Returns OkObjectResult with IEnumerable<AccountDto>
     /// </summary>
@@ -130,7 +130,7 @@ public class AccountsControllerTests
 
     /// <summary>
     /// Verifies GetById returns 200 OK with customer when found
-    /// 
+    ///
     /// FUNCTIONAL: API should return specific customer when GET /api/accounts/{id} is called
     /// TECHNICAL: Returns OkObjectResult with AccountDto
     /// </summary>
@@ -139,11 +139,11 @@ public class AccountsControllerTests
     {
         // Arrange
         var accountId = 1;
-        var account = new AccountDto 
-        { 
-            Id = 1, 
-            FirstName = "John", 
-            LastName = "Doe", 
+        var account = new AccountDto
+        {
+            Id = 1,
+            FirstName = "John",
+            LastName = "Doe",
             Email = "john@example.com",
             Category = "Individual"
         };
@@ -164,7 +164,7 @@ public class AccountsControllerTests
 
     /// <summary>
     /// Verifies GetById returns 404 Not Found when customer doesn't exist
-    /// 
+    ///
     /// FUNCTIONAL: API should return 404 when customer ID is not found
     /// TECHNICAL: Returns NotFoundObjectResult
     /// </summary>
@@ -240,7 +240,7 @@ public class AccountsControllerTests
 
     /// <summary>
     /// Verifies Search returns matching customers
-    /// 
+    ///
     /// FUNCTIONAL: Users can search customers by name, email, or company
     /// TECHNICAL: GET /api/accounts/search/{searchTerm}
     /// </summary>
@@ -271,7 +271,7 @@ public class AccountsControllerTests
 
     /// <summary>
     /// Verifies Create returns 201 Created with new customer
-    /// 
+    ///
     /// FUNCTIONAL: API should create new customer and return 201
     /// TECHNICAL: POST /api/accounts returns CreatedAtActionResult
     /// </summary>
@@ -539,11 +539,11 @@ public class AccountsControllerTests
             .ToList();
 
         // Assert - Should have at least 1 route with api/[controller] pattern
-        routeAttributes.Should().HaveCountGreaterOrEqualTo(1, 
+        routeAttributes.Should().HaveCountGreaterOrEqualTo(1,
             "Controller should have a route attribute");
-        
+
         var routeTemplates = routeAttributes.Select(r => r.Template).ToList();
-        routeTemplates.Should().Contain("api/[controller]", 
+        routeTemplates.Should().Contain("api/[controller]",
             "Controller should have standard api/[controller] route");
     }
 

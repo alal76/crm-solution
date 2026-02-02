@@ -166,8 +166,8 @@ public class DuplicatesController : ControllerBase
         }
 
         // Set user ID from claims - check multiple claim types for compatibility
-        var userIdClaim = User.FindFirst("sub") 
-            ?? User.FindFirst("UserId") 
+        var userIdClaim = User.FindFirst("sub")
+            ?? User.FindFirst("UserId")
             ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)
             ?? User.FindFirst("nameid");
         if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))

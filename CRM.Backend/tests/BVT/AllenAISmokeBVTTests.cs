@@ -338,10 +338,10 @@ public class AllenAISmokeBVTTests
         // Arrange
         var settings = new LLMSettingsDto
         {
-            AllenAI = new LLMProviderSettingsDto 
-            { 
-                IsConfigured = true, 
-                Enabled = true 
+            AllenAI = new LLMProviderSettingsDto
+            {
+                IsConfigured = true,
+                Enabled = true
             }
         };
 
@@ -428,7 +428,7 @@ public class AllenAISmokeBVTTests
         // Act & Assert - Valid status transitions
         model.Status = AIModelStatus.Trained;
         model.Status.Should().Be(AIModelStatus.Trained);
-        
+
         model.Status = AIModelStatus.Active;
         model.Status.Should().Be(AIModelStatus.Active);
     }

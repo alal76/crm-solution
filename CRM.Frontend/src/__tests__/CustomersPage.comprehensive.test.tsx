@@ -86,7 +86,7 @@ const mockCustomers = [
 
 const mockApiClient = {
   get: jest.fn().mockResolvedValue({ data: mockCustomers }),
-  post: jest.fn().mockResolvedValue({ data: { id: 4, ...mockCustomers[0] } }),
+  post: jest.fn().mockResolvedValue({ data: { ...mockCustomers[0], id: 4 } }),
   put: jest.fn().mockResolvedValue({ data: { success: true } }),
   delete: jest.fn().mockResolvedValue({ data: { success: true } }),
 };

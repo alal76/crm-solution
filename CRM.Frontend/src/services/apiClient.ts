@@ -3,9 +3,9 @@ import { debugLog, debugError } from '../utils/debug';
 import { getApiBaseUrl, getServicePorts } from '../config/ports';
 
 // Determine API URL at runtime to ensure window is available
-let API_URL: string;
+let API_URL: string = '/api';
 
-const initializeApiUrl = () => {
+const initializeApiUrl = (): void => {
   const ports = getServicePorts();
   const API_BASE_URL = getApiBaseUrl();
   API_URL = `${API_BASE_URL}/api`;
@@ -18,7 +18,7 @@ if (typeof window !== 'undefined') {
 }
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: API_URL || '/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

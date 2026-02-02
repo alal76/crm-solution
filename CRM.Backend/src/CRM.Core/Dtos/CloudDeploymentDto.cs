@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 
 namespace CRM.Core.Dtos;
@@ -56,47 +72,47 @@ public class TestProviderConnectionRequest
     /// Existing provider ID to test, or 0 to test new credentials
     /// </summary>
     public int ProviderId { get; set; }
-    
+
     /// <summary>
     /// Provider type for testing new credentials without saved provider
     /// </summary>
     public string? ProviderType { get; set; }
-    
+
     /// <summary>
     /// Access key or Client ID
     /// </summary>
     public string? AccessKeyId { get; set; }
-    
+
     /// <summary>
     /// Secret key or Client Secret
     /// </summary>
     public string? SecretAccessKey { get; set; }
-    
+
     /// <summary>
     /// Azure Tenant ID
     /// </summary>
     public string? TenantId { get; set; }
-    
+
     /// <summary>
     /// Azure Subscription ID
     /// </summary>
     public string? SubscriptionId { get; set; }
-    
+
     /// <summary>
     /// GCP Project ID
     /// </summary>
     public string? ProjectId { get; set; }
-    
+
     /// <summary>
     /// Region to test
     /// </summary>
     public string? Region { get; set; }
-    
+
     /// <summary>
     /// Endpoint for on-premises
     /// </summary>
     public string? Endpoint { get; set; }
-    
+
     /// <summary>
     /// Additional configuration parameters
     /// </summary>
@@ -129,39 +145,39 @@ public class CloudDeploymentDto
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    
+
     // Provider info
     public int CloudProviderId { get; set; }
     public string ProviderName { get; set; } = string.Empty;
     public string ProviderType { get; set; } = string.Empty;
-    
+
     // Target
     public string? ClusterName { get; set; }
     public string? Namespace { get; set; }
     public string? ResourceGroup { get; set; }
-    
+
     // Versions
     public string? BackendVersion { get; set; }
     public string? FrontendVersion { get; set; }
-    
+
     // Endpoints
     public string? FrontendUrl { get; set; }
     public string? ApiUrl { get; set; }
     public string? DomainName { get; set; }
     public bool SslEnabled { get; set; }
-    
+
     // Resources
     public int CpuUnits { get; set; }
     public int MemoryMb { get; set; }
     public int Replicas { get; set; }
-    
+
     // Status
     public string Status { get; set; } = string.Empty;
     public string HealthStatus { get; set; } = string.Empty;
     public DateTime? LastHealthCheck { get; set; }
     public DateTime? DeployedAt { get; set; }
     public string? LastError { get; set; }
-    
+
     public DateTime CreatedAt { get; set; }
     public int AttemptCount { get; set; }
 }
@@ -171,28 +187,28 @@ public class CreateDeploymentRequest
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int CloudProviderId { get; set; }
-    
+
     // Target configuration
     public string? ClusterName { get; set; }
     public string? Namespace { get; set; }
     public string? ResourceGroup { get; set; }
     public string? VpcId { get; set; }
     public List<string>? SubnetIds { get; set; }
-    
+
     // Images
     public string? BackendImage { get; set; }
     public string? FrontendImage { get; set; }
     public string? DatabaseImage { get; set; }
-    
+
     // Domain and SSL
     public string? DomainName { get; set; }
     public bool SslEnabled { get; set; } = true;
-    
+
     // Resources
     public int CpuUnits { get; set; } = 256;
     public int MemoryMb { get; set; } = 512;
     public int Replicas { get; set; } = 1;
-    
+
     // Environment variables
     public Dictionary<string, string>? EnvironmentVariables { get; set; }
 }
@@ -244,24 +260,24 @@ public class DeploymentAttemptDto
     public string DeploymentName { get; set; } = string.Empty;
     public string AttemptNumber { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
-    
+
     // Build info
     public string? GitCommitHash { get; set; }
     public string? GitBranch { get; set; }
     public string? BuildNumber { get; set; }
     public string? BackendImageTag { get; set; }
     public string? FrontendImageTag { get; set; }
-    
+
     // Timing
     public DateTime StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public int? DurationSeconds { get; set; }
-    
+
     // Logs
     public string? BuildLog { get; set; }
     public string? DeployLog { get; set; }
     public string? ErrorMessage { get; set; }
-    
+
     // Trigger
     public int? TriggeredByUserId { get; set; }
     public string? TriggeredByUser { get; set; }
@@ -294,17 +310,17 @@ public class HealthCheckDto
     public string DeploymentName { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public DateTime CheckedAt { get; set; }
-    
+
     // Component health
     public bool? ApiHealthy { get; set; }
     public bool? FrontendHealthy { get; set; }
     public bool? DatabaseHealthy { get; set; }
-    
+
     // Response times
     public int? ApiResponseTimeMs { get; set; }
     public int? FrontendResponseTimeMs { get; set; }
     public int? DatabaseResponseTimeMs { get; set; }
-    
+
     // Details
     public string? ApiResponse { get; set; }
     public string? FrontendResponse { get; set; }
@@ -321,11 +337,11 @@ public class HealthCheckResult
     public bool Success { get; set; }
     public string OverallStatus { get; set; } = string.Empty;
     public DateTime CheckedAt { get; set; }
-    
+
     public ComponentHealth Api { get; set; } = new();
     public ComponentHealth Frontend { get; set; } = new();
     public ComponentHealth Database { get; set; } = new();
-    
+
     public string? Message { get; set; }
 }
 
@@ -349,7 +365,7 @@ public class DeploymentDashboardDto
     public int RunningDeployments { get; set; }
     public int HealthyDeployments { get; set; }
     public int FailedDeployments { get; set; }
-    
+
     public List<DeploymentSummaryDto> RecentDeployments { get; set; } = new();
     public List<DeploymentAttemptListDto> RecentAttempts { get; set; } = new();
     public List<HealthCheckDto> RecentHealthChecks { get; set; } = new();

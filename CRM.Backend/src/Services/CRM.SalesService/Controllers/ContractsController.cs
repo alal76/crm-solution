@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -47,7 +63,7 @@ public class ContractsController : ControllerBase
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAll(
-        [FromQuery] int page = 1, 
+        [FromQuery] int page = 1,
         [FromQuery] int pageSize = 25,
         [FromQuery] string? status = null,
         [FromQuery] string? contractType = null,
@@ -551,8 +567,8 @@ public class ContractsController : ControllerBase
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Renewed contract {ContractId} with new contract {NewContractId}", id, newContract.Id);
-            return Ok(new { 
-                message = "Contract renewed successfully", 
+            return Ok(new {
+                message = "Contract renewed successfully",
                 newContractId = newContract.Id,
                 newContractNumber = newContract.ContractNumber
             });
@@ -586,7 +602,7 @@ public class ContractsController : ControllerBase
                 return BadRequest(new { message = "No file provided" });
 
             // Validate file type
-            var allowedTypes = new[] { "application/pdf", "application/msword", 
+            var allowedTypes = new[] { "application/pdf", "application/msword",
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document" };
             if (!allowedTypes.Contains(file.ContentType))
                 return BadRequest(new { message = "Only PDF and Word documents are allowed" });
@@ -615,7 +631,7 @@ public class ContractsController : ControllerBase
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Uploaded file for contract {ContractId}", id);
-            return Ok(new { 
+            return Ok(new {
                 message = "File uploaded successfully",
                 fileName = contract.ContractFileName,
                 fileUrl = contract.ContractFileUrl
@@ -645,14 +661,14 @@ public class ContractsController : ControllerBase
             if (string.IsNullOrEmpty(contract.ContractFileUrl))
                 return NotFound(new { message = "No file attached to this contract" });
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", 
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
                 contract.ContractFileUrl.TrimStart('/'));
 
             if (!System.IO.File.Exists(filePath))
                 return NotFound(new { message = "File not found on server" });
 
             var bytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(bytes, contract.ContractFileMimeType ?? "application/octet-stream", 
+            return File(bytes, contract.ContractFileMimeType ?? "application/octet-stream",
                 contract.ContractFileName ?? "contract.pdf");
         }
         catch (Exception ex)
@@ -725,7 +741,7 @@ public class ContractsController : ControllerBase
                     DraftContracts = g.Count(c => c.Status == ContractStatus.Draft),
                     ExpiredContracts = g.Count(c => c.Status == ContractStatus.Expired),
                     TotalValue = g.Where(c => c.Status == ContractStatus.Active).Sum(c => c.Value),
-                    ExpiringThisMonth = g.Count(c => c.Status == ContractStatus.Active && 
+                    ExpiringThisMonth = g.Count(c => c.Status == ContractStatus.Active &&
                         c.EndDate <= DateTime.UtcNow.AddDays(30)),
                     RenewedContracts = g.Count(c => c.Status == ContractStatus.Renewed)
                 })

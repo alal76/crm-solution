@@ -89,10 +89,10 @@ public class WorkflowService
     {
         workflow.CreatedAt = DateTime.UtcNow;
         workflow.CurrentVersion = 1;
-        
+
         _context.WorkflowDefinitions.Add(workflow);
         await _context.SaveChangesAsync();
-        
+
         // Create initial draft version
         var version = new WorkflowVersion
         {
@@ -102,10 +102,10 @@ public class WorkflowService
             Status = WorkflowVersionStatus.Draft,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         _context.WorkflowVersions.Add(version);
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Created workflow definition {WorkflowId}: {Name}", workflow.Id, workflow.Name);
         return workflow;
     }
@@ -147,7 +147,7 @@ public class WorkflowService
         workflow.IsDeleted = true;
         workflow.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Deleted workflow definition {WorkflowId}", id);
         return true;
     }
@@ -159,14 +159,14 @@ public class WorkflowService
     {
         var workflow = await _context.WorkflowDefinitions.FindAsync(id);
         var version = await _context.WorkflowVersions.FindAsync(versionId);
-        
+
         if (workflow == null || version == null || version.WorkflowDefinitionId != id) return false;
 
         // Deactivate any currently active version
         var activeVersions = await _context.WorkflowVersions
             .Where(v => v.WorkflowDefinitionId == id && v.Status == WorkflowVersionStatus.Active)
             .ToListAsync();
-        
+
         foreach (var av in activeVersions)
         {
             av.Status = WorkflowVersionStatus.Deprecated;
@@ -176,7 +176,7 @@ public class WorkflowService
         // Activate the new version
         version.Status = WorkflowVersionStatus.Active;
         version.PublishedAt = DateTime.UtcNow;
-        
+
         workflow.Status = WorkflowStatus.Active;
         workflow.CurrentVersion = version.VersionNumber;
         workflow.UpdatedAt = DateTime.UtcNow;
@@ -197,7 +197,7 @@ public class WorkflowService
         workflow.Status = WorkflowStatus.Paused;
         workflow.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Paused workflow {WorkflowId}", id);
         return true;
     }
@@ -377,7 +377,7 @@ public class WorkflowService
         node.CreatedAt = DateTime.UtcNow;
         _context.WorkflowNodes.Add(node);
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Added node {NodeKey} to version {VersionId}", node.NodeKey, node.WorkflowVersionId);
         return node;
     }
@@ -390,7 +390,7 @@ public class WorkflowService
         var node = await _context.WorkflowNodes
             .Include(n => n.WorkflowVersion)
             .FirstOrDefaultAsync(n => n.Id == nodeId);
-            
+
         if (node == null) return null;
         if (node.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
             throw new InvalidOperationException("Can only update nodes in draft versions");
@@ -427,7 +427,7 @@ public class WorkflowService
         var node = await _context.WorkflowNodes
             .Include(n => n.WorkflowVersion)
             .FirstOrDefaultAsync(n => n.Id == nodeId);
-            
+
         if (node == null) return false;
         if (node.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
             throw new InvalidOperationException("Can only delete nodes from draft versions");
@@ -437,11 +437,11 @@ public class WorkflowService
             .Where(t => t.SourceNodeId == nodeId || t.TargetNodeId == nodeId)
             .ToListAsync();
         _context.WorkflowTransitions.RemoveRange(transitions);
-        
+
         node.IsDeleted = true;
         node.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Deleted node {NodeId}", nodeId);
         return true;
     }
@@ -480,7 +480,7 @@ public class WorkflowService
         transition.CreatedAt = DateTime.UtcNow;
         _context.WorkflowTransitions.Add(transition);
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Added transition from {Source} to {Target}", transition.SourceNodeId, transition.TargetNodeId);
         return transition;
     }
@@ -493,7 +493,7 @@ public class WorkflowService
         var transition = await _context.WorkflowTransitions
             .Include(t => t.WorkflowVersion)
             .FirstOrDefaultAsync(t => t.Id == transitionId);
-            
+
         if (transition == null) return null;
         if (transition.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
             throw new InvalidOperationException("Can only update transitions in draft versions");
@@ -523,7 +523,7 @@ public class WorkflowService
         var transition = await _context.WorkflowTransitions
             .Include(t => t.WorkflowVersion)
             .FirstOrDefaultAsync(t => t.Id == transitionId);
-            
+
         if (transition == null) return false;
         if (transition.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
             throw new InvalidOperationException("Can only delete transitions from draft versions");
@@ -531,7 +531,7 @@ public class WorkflowService
         transition.IsDeleted = true;
         transition.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Deleted transition {TransitionId}", transitionId);
         return true;
     }

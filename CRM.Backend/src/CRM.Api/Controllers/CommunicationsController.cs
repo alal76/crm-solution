@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
@@ -298,7 +314,7 @@ public class CommunicationsController : ControllerBase
                 return NotFound(new { message = "Channel not found" });
 
             var testResult = await TestChannelConnectionAsync(channel);
-            
+
             if (testResult.Success)
             {
                 channel.Status = ChannelStatus.Connected;
@@ -310,7 +326,7 @@ public class CommunicationsController : ControllerBase
                 channel.Status = ChannelStatus.Error;
                 channel.LastError = testResult.ErrorMessage;
             }
-            
+
             await _context.SaveChangesAsync();
 
             return Ok(new { success = testResult.Success, message = testResult.Message, details = testResult.Details });
@@ -318,7 +334,7 @@ public class CommunicationsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error testing channel {ChannelId}", id);
-            
+
             var channel = await _context.CommunicationChannels.FindAsync(id);
             if (channel != null)
             {
@@ -368,13 +384,13 @@ public class CommunicationsController : ControllerBase
             // if (!string.IsNullOrEmpty(channel.SmtpUsername))
             //     client.Credentials = new NetworkCredential(channel.SmtpUsername, channel.SmtpPassword);
             // await client.ConnectAsync();
-            
-            _logger.LogInformation("Email channel {ChannelId} connection test: SMTP server {Server}:{Port}", 
+
+            _logger.LogInformation("Email channel {ChannelId} connection test: SMTP server {Server}:{Port}",
                 channel.Id, channel.SmtpServer, channel.SmtpPort);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "Email channel configured correctly",
                 Details = new { server = channel.SmtpServer, port = channel.SmtpPort, ssl = channel.SmtpUseSsl }
             };
@@ -398,13 +414,13 @@ public class CommunicationsController : ControllerBase
         {
             // In production, would call WhatsApp Business API to verify credentials:
             // var response = await _httpClient.GetAsync($"https://graph.facebook.com/v18.0/{channel.WhatsAppPhoneNumberId}?access_token={channel.AccessToken}");
-            
-            _logger.LogInformation("WhatsApp channel {ChannelId} connection test: Phone ID {PhoneId}", 
+
+            _logger.LogInformation("WhatsApp channel {ChannelId} connection test: Phone ID {PhoneId}",
                 channel.Id, channel.WhatsAppPhoneNumberId);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "WhatsApp Business API credentials validated",
                 Details = new { phoneNumberId = channel.WhatsAppPhoneNumberId, businessAccountId = channel.WhatsAppBusinessAccountId }
             };
@@ -428,12 +444,12 @@ public class CommunicationsController : ControllerBase
         {
             // In production, would verify OAuth credentials with Twitter API:
             // var response = await _httpClient.GetAsync("https://api.twitter.com/2/users/me", authHeaders);
-            
+
             _logger.LogInformation("Twitter channel {ChannelId} connection test validated", channel.Id);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "Twitter API credentials validated",
                 Details = new { hasAccessToken = !string.IsNullOrEmpty(channel.AccessToken) }
             };
@@ -457,13 +473,13 @@ public class CommunicationsController : ControllerBase
         {
             // In production, would verify page access token:
             // var response = await _httpClient.GetAsync($"https://graph.facebook.com/v18.0/{channel.SocialAccountId}?access_token={channel.PageAccessToken}");
-            
-            _logger.LogInformation("Facebook channel {ChannelId} connection test: Page ID {PageId}", 
+
+            _logger.LogInformation("Facebook channel {ChannelId} connection test: Page ID {PageId}",
                 channel.Id, channel.SocialAccountId);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "Facebook Page credentials validated",
                 Details = new { pageId = channel.SocialAccountId, username = channel.SocialUsername }
             };
@@ -488,12 +504,12 @@ public class CommunicationsController : ControllerBase
             // In production, would verify Twilio/SMS provider credentials:
             // var client = new TwilioClient(channel.ApiKey, channel.ApiSecret);
             // await client.ValidateAsync();
-            
+
             _logger.LogInformation("SMS channel {ChannelId} connection test validated", channel.Id);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "SMS API credentials validated",
                 Details = new { provider = "configured" }
             };
@@ -517,12 +533,12 @@ public class CommunicationsController : ControllerBase
         {
             // In production, would verify LinkedIn OAuth token:
             // var response = await _httpClient.GetAsync("https://api.linkedin.com/v2/me", authHeaders);
-            
+
             _logger.LogInformation("LinkedIn channel {ChannelId} connection test validated", channel.Id);
 
-            return new ChannelTestResult 
-            { 
-                Success = true, 
+            return new ChannelTestResult
+            {
+                Success = true,
                 Message = "LinkedIn API credentials validated",
                 Details = new { tokenExpires = channel.TokenExpiresAt?.ToString("O") }
             };
@@ -591,11 +607,11 @@ public class CommunicationsController : ControllerBase
             // await client.SendMailAsync(mailMessage);
 
             _logger.LogInformation("Email sent to {ToAddress} via {Server}", message.ToAddress, channel.SmtpServer);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"email_{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"email_{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)
@@ -620,11 +636,11 @@ public class CommunicationsController : ControllerBase
             // var response = await _httpClient.PostAsync($"https://graph.facebook.com/v18.0/{channel.WhatsAppPhoneNumberId}/messages", JsonContent.Create(payload));
 
             _logger.LogInformation("WhatsApp message sent to {ToAddress}", message.ToAddress);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"wamid.{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"wamid.{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)
@@ -649,11 +665,11 @@ public class CommunicationsController : ControllerBase
             // var response = await _httpClient.PostAsync("https://api.twitter.com/2/dm_conversations/with/:participant_id/messages", ...);
 
             _logger.LogInformation("Twitter DM sent to {ToAddress}", message.ToAddress);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"tw_{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"tw_{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)
@@ -678,11 +694,11 @@ public class CommunicationsController : ControllerBase
             // var response = await _httpClient.PostAsync($"https://graph.facebook.com/v18.0/me/messages?access_token={channel.PageAccessToken}", JsonContent.Create(payload));
 
             _logger.LogInformation("Facebook message sent to {ToAddress}", message.ToAddress);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"mid.{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"mid.{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)
@@ -707,11 +723,11 @@ public class CommunicationsController : ControllerBase
             // var smsMessage = await MessageResource.CreateAsync(to: new PhoneNumber(message.ToAddress), from: new PhoneNumber(channel.FromAddress), body: message.Body);
 
             _logger.LogInformation("SMS sent to {ToAddress}", message.ToAddress);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"SM{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"SM{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)
@@ -736,11 +752,11 @@ public class CommunicationsController : ControllerBase
             // var response = await _httpClient.PostAsync("https://api.linkedin.com/v2/messages", ...);
 
             _logger.LogInformation("LinkedIn message sent to {ToAddress}", message.ToAddress);
-            
-            return new MessageSendResult 
-            { 
-                Success = true, 
-                ExternalMessageId = $"li_{Guid.NewGuid():N}" 
+
+            return new MessageSendResult
+            {
+                Success = true,
+                ExternalMessageId = $"li_{Guid.NewGuid():N}"
             };
         }
         catch (Exception ex)

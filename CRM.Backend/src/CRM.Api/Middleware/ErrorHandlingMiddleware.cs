@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using Microsoft.EntityFrameworkCore;
 using CRM.Core.Exceptions;
 using System.Text.Json;
@@ -43,12 +59,12 @@ public class ErrorHandlingMiddleware
         catch (DbUpdateConcurrencyException ex)
         {
             // Handle optimistic concurrency conflicts
-            _logger.LogWarning(ex, "Concurrency conflict detected for request {Method} {Path}", 
+            _logger.LogWarning(ex, "Concurrency conflict detected for request {Method} {Path}",
                 context.Request.Method, context.Request.Path);
-            
+
             context.Response.StatusCode = StatusCodes.Status409Conflict;
             context.Response.ContentType = "application/json";
-            
+
             var conflictResponse = new ConcurrencyConflictResponse
             {
                 Message = "The record was modified by another user. Please refresh and try again.",
@@ -61,7 +77,7 @@ public class ErrorHandlingMiddleware
                     State = e.State.ToString()
                 }).ToList()
             };
-            
+
             await context.Response.WriteAsJsonAsync(conflictResponse);
         }
         catch (Exception ex)
@@ -69,7 +85,7 @@ public class ErrorHandlingMiddleware
             _logger.LogError(ex, "Unhandled exception occurred");
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new { 
+            await context.Response.WriteAsJsonAsync(new {
                 message = "Internal server error",
                 errorCode = "INTERNAL_ERROR",
                 timestamp = DateTime.UtcNow

@@ -201,9 +201,9 @@ function OpportunitiesPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [bulkFormData, setBulkFormData] = useState({
-    stage: '' as string | number,
-    probability: '' as string | number,
-    pricingModel: '' as string | number,
+    stage: '',
+    probability: '',
+    pricingModel: '',
     region: '' as string,
   });
   

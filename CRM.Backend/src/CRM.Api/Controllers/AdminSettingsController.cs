@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
@@ -437,7 +453,7 @@ public class AdminSettingsController : ControllerBase
 
             var fileBytes = await _backupService.DownloadBackupAsync(id);
             var fileName = $"{backup.BackupName}.sql";
-            
+
             return File(fileBytes, "application/octet-stream", fileName);
         }
         catch (FileNotFoundException)
@@ -475,7 +491,7 @@ public class AdminSettingsController : ControllerBase
 
             using var stream = file.OpenReadStream();
             var backup = await _backupService.UploadBackupAsync(stream, file.FileName, int.Parse(userId), request);
-            
+
             return CreatedAtAction(nameof(GetBackup), new { id = backup.Id }, backup);
         }
         catch (Exception ex)
@@ -503,7 +519,7 @@ public class AdminSettingsController : ControllerBase
 
             using var stream = file.OpenReadStream();
             await _backupService.RestoreFromFileAsync(stream, file.FileName, int.Parse(userId));
-            
+
             return Ok(new { message = "Database restore from uploaded file initiated successfully" });
         }
         catch (Exception ex)

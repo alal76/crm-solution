@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
@@ -11,7 +27,7 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Contact service implementation.
-/// 
+///
 /// HEXAGONAL ARCHITECTURE:
 /// - Implements IContactInputPort (primary/driving port)
 /// - Implements IContactsService (backward compatibility)
@@ -81,8 +97,8 @@ public class ContactsService : IContactsService, IContactInputPort
         if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
             throw new ArgumentException("First name and last name are required");
 
-        var contactType = Enum.TryParse<ContactType>(request.ContactType, true, out var type) 
-            ? type 
+        var contactType = Enum.TryParse<ContactType>(request.ContactType, true, out var type)
+            ? type
             : ContactType.Other;
 
         var contact = new Contact
@@ -493,7 +509,7 @@ public class ContactsService : IContactsService, IContactInputPort
                     Handle = l.Handle
                 })
                 .ToList(),
-            
+
             // === Normalized Contact Info Collections ===
             EmailAddresses = await _contactInfoService.GetEmailAddressesAsync(EntityType.Contact, contact.Id),
             PhoneNumbers = await _contactInfoService.GetPhoneNumbersAsync(EntityType.Contact, contact.Id),

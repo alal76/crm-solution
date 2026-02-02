@@ -24,7 +24,7 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// REST API Controller for Account management operations.
-/// 
+///
 /// FUNCTIONAL VIEW:
 /// This controller provides HTTP endpoints for:
 /// - Viewing and searching accounts (individuals and organizations)
@@ -32,13 +32,13 @@ namespace CRM.Api.Controllers;
 /// - Updating account information
 /// - Linking contacts to organization accounts
 /// - Soft-deleting accounts
-/// 
+///
 /// TECHNICAL VIEW:
 /// - Uses IAccountService for business logic (dependency injected)
 /// - All endpoints require authentication (JWT Bearer token)
 /// - Returns standardized JSON responses with appropriate HTTP status codes
 /// - Implements proper error handling with logging
-/// 
+///
 /// API ROUTES:
 /// - GET    /api/accounts              - Get all accounts
 /// - GET    /api/accounts/{id}         - Get account by ID
@@ -71,7 +71,7 @@ public class AccountsController : ControllerBase
 
     /// <summary>
     /// Get all accounts (both individuals and organizations).
-    /// 
+    ///
     /// FUNCTIONAL: Returns list of all active accounts for dashboard views.
     /// TECHNICAL: Filters out soft-deleted records, returns 200 OK with array.
     /// </summary>
@@ -96,7 +96,7 @@ public class AccountsController : ControllerBase
 
     /// <summary>
     /// Get a specific account by their unique ID.
-    /// 
+    ///
     /// FUNCTIONAL: Returns detailed account information for viewing/editing.
     /// TECHNICAL: Returns 404 if account not found or deleted.
     /// </summary>
@@ -126,7 +126,7 @@ public class AccountsController : ControllerBase
 
     /// <summary>
     /// Get only individual (non-organization) accounts.
-    /// 
+    ///
     /// FUNCTIONAL: Filters to show only person-type accounts.
     /// TECHNICAL: Filters by AccountCategory.Individual.
     /// </summary>
@@ -150,7 +150,7 @@ public class AccountsController : ControllerBase
 
     /// <summary>
     /// Get only organization (company) accounts.
-    /// 
+    ///
     /// FUNCTIONAL: Filters to show only company-type accounts.
     /// TECHNICAL: Filters by AccountCategory.Organization.
     /// </summary>

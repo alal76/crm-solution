@@ -33,7 +33,7 @@ public class RelationshipService
     public async Task<List<RelationshipTypeDto>> GetRelationshipTypesAsync(bool includeInactive = false)
     {
         var query = _context.RelationshipTypes.Where(t => !t.IsDeleted);
-        
+
         if (!includeInactive)
             query = query.Where(t => t.IsActive);
 
@@ -234,7 +234,7 @@ public class RelationshipService
         // Validate customers exist
         var sourceExists = await _context.Accounts.AnyAsync(c => c.Id == dto.SourceAccountId && !c.IsDeleted);
         var targetExists = await _context.Accounts.AnyAsync(c => c.Id == dto.TargetAccountId && !c.IsDeleted);
-        
+
         if (!sourceExists || !targetExists)
             throw new InvalidOperationException("Source or target customer does not exist");
 
@@ -276,7 +276,7 @@ public class RelationshipService
         {
             var reverseType = await _context.RelationshipTypes
                 .FirstOrDefaultAsync(t => t.TypeName == relType.ReverseTypeName && !t.IsDeleted);
-                
+
             if (reverseType != null)
             {
                 var reverseRelationship = new AccountRelationship
@@ -303,7 +303,7 @@ public class RelationshipService
             }
         }
 
-        _logger.LogInformation("Created relationship between customer {Source} and {Target}", 
+        _logger.LogInformation("Created relationship between customer {Source} and {Target}",
             dto.SourceAccountId, dto.TargetAccountId);
 
         return await GetRelationshipAsync(relationship.Id) ?? throw new Exception("Failed to retrieve created relationship");
@@ -426,7 +426,7 @@ public class RelationshipService
         if (centralCustomer == null)
             return new RelationshipMapVisualizationDto();
 
-        await BuildMapRecursive(centralCustomerId, depth, nodes, edges, processedRelationships, 
+        await BuildMapRecursive(centralCustomerId, depth, nodes, edges, processedRelationships,
             includeTypeIds, minStrength, true);
 
         return new RelationshipMapVisualizationDto
@@ -497,7 +497,7 @@ public class RelationshipService
             });
 
             var nextCustomerId = rel.SourceAccountId == customerId ? rel.TargetAccountId : rel.SourceAccountId;
-            await BuildMapRecursive(nextCustomerId, remainingDepth - 1, nodes, edges, 
+            await BuildMapRecursive(nextCustomerId, remainingDepth - 1, nodes, edges,
                 processedRelationships, includeTypeIds, minStrength, false);
         }
 
@@ -616,7 +616,7 @@ public class RelationshipService
     private AccountRelationshipDto MapToDto(AccountRelationship rel, int? perspectiveCustomerId = null)
     {
         var isReverse = perspectiveCustomerId.HasValue && rel.TargetAccountId == perspectiveCustomerId;
-        
+
         return new AccountRelationshipDto
         {
             Id = rel.Id,
@@ -657,7 +657,7 @@ public class RelationshipService
         Description = interaction.Description,
         InteractionDate = interaction.InteractionDate,
         DurationMinutes = interaction.DurationMinutes,
-        ParticipantContactIds = !string.IsNullOrEmpty(interaction.ParticipantContactIds) 
+        ParticipantContactIds = !string.IsNullOrEmpty(interaction.ParticipantContactIds)
             ? JsonSerializer.Deserialize<List<int>>(interaction.ParticipantContactIds) : null,
         ParticipantUserIds = !string.IsNullOrEmpty(interaction.ParticipantUserIds)
             ? JsonSerializer.Deserialize<List<int>>(interaction.ParticipantUserIds) : null,

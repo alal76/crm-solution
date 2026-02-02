@@ -26,7 +26,7 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// REST API Controller for Account management operations.
-/// 
+///
 /// FUNCTIONAL VIEW:
 /// This controller provides HTTP endpoints for:
 /// - Viewing and searching accounts (individuals and organizations)
@@ -34,13 +34,13 @@ namespace CRM.Api.Controllers;
 /// - Updating account information
 /// - Linking contacts to organization accounts
 /// - Soft-deleting accounts
-/// 
+///
 /// TECHNICAL VIEW:
 /// - Uses IAccountService for business logic (dependency injected)
 /// - All endpoints require authentication (JWT Bearer token)
 /// - Returns standardized JSON responses with appropriate HTTP status codes
 /// - Implements proper error handling with logging
-/// 
+///
 /// API ROUTES:
 /// - GET    /api/accounts              - Get all accounts
 /// - GET    /api/accounts/{id}         - Get account by ID
@@ -51,7 +51,7 @@ namespace CRM.Api.Controllers;
 /// - PUT    /api/accounts/{id}         - Update account
 /// - DELETE /api/accounts/{id}         - Delete account
 /// - POST   /api/accounts/{id}/contacts - Link contact to organization
-/// 
+///
 /// INDUSTRY STANDARD ALIAS:
 /// All routes are also available under /api/accounts for industry-standard naming.
 /// </summary>
@@ -71,7 +71,7 @@ public class AccountsController : ControllerBase
     /// <param name="logger">Logger for error and audit logging</param>
     /// <param name="notificationService">Service for SignalR real-time notifications</param>
     public AccountsController(
-        IAccountService accountService, 
+        IAccountService accountService,
         ILogger<AccountsController> logger,
         ICrmNotificationService notificationService)
     {
@@ -82,7 +82,7 @@ public class AccountsController : ControllerBase
 
     /// <summary>
     /// Get all accounts (both individuals and organizations).
-    /// 
+    ///
     /// FUNCTIONAL: Returns list of all active accounts for dashboard views.
     /// TECHNICAL: Filters out soft-deleted records, returns 200 OK with array.
     /// </summary>
@@ -107,7 +107,7 @@ public class AccountsController : ControllerBase
 
     /// <summary>
     /// Get a specific account by their unique ID.
-    /// 
+    ///
     /// FUNCTIONAL: Returns detailed account information for viewing/editing.
     /// TECHNICAL: Returns 404 if account not found or deleted.
     ///            Returns ETag header for optimistic concurrency control.
@@ -130,17 +130,17 @@ public class AccountsController : ControllerBase
             var account = await _accountService.GetAccountByIdAsync(id);
             if (account == null)
                 return NotFound(new { message = "Account not found" });
-            
+
             // Generate ETag from RowVersion
             var etag = ETagHelper.GenerateETag(account.RowVersion);
-            
+
             // Check If-None-Match for cache validation
             if (!string.IsNullOrEmpty(ifNoneMatch) && !ETagHelper.IsNoneMatch(ifNoneMatch, account.RowVersion))
             {
                 Response.Headers.ETag = etag;
                 return StatusCode(StatusCodes.Status304NotModified);
             }
-            
+
             Response.Headers.ETag = etag;
             return Ok(account);
         }
@@ -153,7 +153,7 @@ public class AccountsController : ControllerBase
 
     /// <summary>
     /// Get only individual (non-organization) accounts.
-    /// 
+    ///
     /// FUNCTIONAL: Filters to show only person-type accounts.
     /// TECHNICAL: Filters by AccountCategory.Individual.
     /// </summary>
@@ -177,7 +177,7 @@ public class AccountsController : ControllerBase
 
     /// <summary>
     /// Get only organization (company) accounts.
-    /// 
+    ///
     /// FUNCTIONAL: Filters to show only company-type accounts.
     /// TECHNICAL: Filters by AccountCategory.Organization.
     /// </summary>
@@ -298,11 +298,11 @@ public class AccountsController : ControllerBase
             }
 
             var account = await _accountService.CreateAccountAsync(dto);
-            
+
             // Notify connected clients about the new account
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
             await _notificationService.NotifyRecordCreatedAsync("Account", account.Id, account, userId);
-            
+
             return CreatedAtAction(nameof(GetById), new { id = account.Id }, account);
         }
         catch (Exception ex)
@@ -314,7 +314,7 @@ public class AccountsController : ControllerBase
 
     /// <summary>
     /// Update a account.
-    /// 
+    ///
     /// FUNCTIONAL: Updates account information with conflict detection.
     /// TECHNICAL: Supports If-Match header for optimistic concurrency control.
     ///            Returns 409 Conflict if the record was modified by another user.
@@ -334,7 +334,7 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateAccountDto dto, 
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateAccountDto dto,
         [FromHeader(Name = "If-Match")] string? ifMatch = null)
     {
         try
@@ -345,26 +345,26 @@ public class AccountsController : ControllerBase
                 var currentAccount = await _accountService.GetAccountByIdAsync(id);
                 if (currentAccount == null)
                     return NotFound(new { message = "Account not found" });
-                    
+
                 if (!ETagHelper.IsMatch(ifMatch, currentAccount.RowVersion))
                 {
-                    return StatusCode(StatusCodes.Status412PreconditionFailed, new 
-                    { 
+                    return StatusCode(StatusCodes.Status412PreconditionFailed, new
+                    {
                         message = "The record has been modified by another user. Please refresh and try again.",
                         conflictType = "ETagMismatch",
                         currentETag = ETagHelper.GenerateETag(currentAccount.RowVersion)
                     });
                 }
             }
-            
+
             var account = await _accountService.UpdateAccountAsync(id, dto);
             if (account == null)
                 return NotFound(new { message = "Account not found" });
-            
+
             // Notify connected clients about the update
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
             await _notificationService.NotifyRecordUpdatedAsync("Account", id, account, userId);
-            
+
             // Return new ETag in response
             Response.Headers.ETag = ETagHelper.GenerateETag(account.RowVersion);
             return Ok(account);
@@ -389,11 +389,11 @@ public class AccountsController : ControllerBase
             var result = await _accountService.DeleteAccountAsync(id);
             if (!result)
                 return NotFound(new { message = "Account not found" });
-            
+
             // Notify connected clients about the deletion
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
             await _notificationService.NotifyRecordDeletedAsync("Account", id, userId);
-            
+
             return Ok(new { message = "Account deleted successfully" });
         }
         catch (Exception ex)

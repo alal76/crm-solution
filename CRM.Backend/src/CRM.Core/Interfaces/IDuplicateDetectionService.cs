@@ -15,19 +15,19 @@ public class DuplicateCheckResult
 {
     /// <summary>Whether any duplicates were found</summary>
     public bool HasDuplicates => Duplicates.Any();
-    
+
     /// <summary>List of potential duplicate matches</summary>
     public List<DuplicateMatch> Duplicates { get; set; } = new();
-    
+
     /// <summary>The rule that was applied for detection</summary>
     public DuplicateRuleInfo? AppliedRule { get; set; }
-    
+
     /// <summary>Recommended action based on the rule</summary>
     public string RecommendedAction { get; set; } = "Warn";
-    
+
     /// <summary>Total records scanned</summary>
     public int RecordsScanned { get; set; }
-    
+
     /// <summary>Time taken for detection in milliseconds</summary>
     public long DetectionTimeMs { get; set; }
 }
@@ -50,16 +50,16 @@ public class DuplicateMatch
 {
     /// <summary>ID of the matching record</summary>
     public int RecordId { get; set; }
-    
+
     /// <summary>Type of entity (Lead, Contact, Account)</summary>
     public string EntityType { get; set; } = string.Empty;
-    
+
     /// <summary>Overall match score (0-100)</summary>
     public int MatchScore { get; set; }
-    
+
     /// <summary>Field-by-field comparison details</summary>
     public Dictionary<string, FieldComparison> FieldComparisons { get; set; } = new();
-    
+
     /// <summary>Summary of the record for display</summary>
     public RecordSummary? RecordSummary { get; set; }
 }
@@ -71,25 +71,25 @@ public class FieldComparison
 {
     /// <summary>Name of the field</summary>
     public string FieldName { get; set; } = string.Empty;
-    
+
     /// <summary>Display label for the field</summary>
     public string DisplayName { get; set; } = string.Empty;
-    
+
     /// <summary>Value from the new record</summary>
     public string? NewValue { get; set; }
-    
+
     /// <summary>Value from the existing record</summary>
     public string? ExistingValue { get; set; }
-    
+
     /// <summary>Whether the values match according to the rule</summary>
     public bool IsMatch { get; set; }
-    
+
     /// <summary>Weight of this field in scoring</summary>
     public int MatchWeight { get; set; }
-    
+
     /// <summary>Type of matching used</summary>
     public string MatchType { get; set; } = "Exact";
-    
+
     /// <summary>Similarity percentage for fuzzy matches</summary>
     public int? SimilarityPercent { get; set; }
 }

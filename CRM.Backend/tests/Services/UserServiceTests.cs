@@ -46,10 +46,10 @@ public class UserServiceTests : IDisposable
         var options = new DbContextOptionsBuilder<CrmDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-        
+
         _dbContext = new CrmDbContext(options, null);
         _mockLogger = new Mock<ILogger<UserService>>();
-        
+
         _service = new UserService(_dbContext, _mockLogger.Object);
     }
 
@@ -187,7 +187,7 @@ public class UserServiceTests : IDisposable
         result.FirstName.Should().Be("New");
         result.LastName.Should().Be("User");
         result.IsActive.Should().BeTrue();
-        
+
         // Verify user was created in database
         var createdUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == "newuser@example.com");
         createdUser.Should().NotBeNull();
@@ -251,7 +251,7 @@ public class UserServiceTests : IDisposable
         var user = CreateTestUser(1, "testuser");
         await _dbContext.Users.AddAsync(user);
         await _dbContext.SaveChangesAsync();
-        
+
         var updateDto = new UserDto
         {
             Id = 1,

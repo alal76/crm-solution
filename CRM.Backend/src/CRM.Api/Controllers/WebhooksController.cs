@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
@@ -86,7 +102,7 @@ public class WebhooksController : ControllerBase
             _context.CommunicationMessages.Add(message);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Created interaction {InteractionId} and message {MessageId} from web form", 
+            _logger.LogInformation("Created interaction {InteractionId} and message {MessageId} from web form",
                 interaction.Id, message.Id);
 
             return Ok(new IngestResultDto
@@ -223,7 +239,7 @@ public class WebhooksController : ControllerBase
             message.LinkedEntityId = interaction.Id;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Created email message {MessageId} and interaction {InteractionId}", 
+            _logger.LogInformation("Created email message {MessageId} and interaction {InteractionId}",
                 message.Id, interaction.Id);
 
             return Ok(new IngestResultDto
@@ -384,7 +400,7 @@ public class WebhooksController : ControllerBase
                     return Unauthorized("Invalid verification token");
                 }
             }
-            
+
             _logger.LogInformation("Webhook verification request verified successfully");
             return Ok(hubChallenge);
         }
@@ -400,8 +416,8 @@ public class WebhooksController : ControllerBase
         // Check if token matches any configured channel's webhook secret or verification token
         var hasMatchingSecret = await _context.CommunicationChannels
             .Where(c => c.IsEnabled && !c.IsDeleted)
-            .Where(c => c.WebhookSecret == token || 
-                       c.ApiSecret == token || 
+            .Where(c => c.WebhookSecret == token ||
+                       c.ApiSecret == token ||
                        c.WhatsAppVerifyToken == token)
             .AnyAsync();
 
@@ -413,7 +429,7 @@ public class WebhooksController : ControllerBase
     #region Helper Methods
 
     private async Task<ActionResult<IngestResultDto>> IngestSocialMediaMessage(
-        SocialMediaMessageDto dto, 
+        SocialMediaMessageDto dto,
         ChannelType channelType,
         InteractionType interactionType)
     {
@@ -427,10 +443,10 @@ public class WebhooksController : ControllerBase
 
             if (channel == null)
             {
-                return BadRequest(new IngestResultDto 
-                { 
-                    Success = false, 
-                    Message = $"{channelType} channel not configured" 
+                return BadRequest(new IngestResultDto
+                {
+                    Success = false,
+                    Message = $"{channelType} channel not configured"
                 });
             }
 
@@ -523,14 +539,14 @@ public class WebhooksController : ControllerBase
         {
             var normalizedPhone = NormalizePhone(phone);
             var customer = await _context.Customers
-                .Where(c => (c.Phone == phone || c.Phone == normalizedPhone || 
+                .Where(c => (c.Phone == phone || c.Phone == normalizedPhone ||
                            c.MobilePhone == phone || c.MobilePhone == normalizedPhone) && !c.IsDeleted)
                 .FirstOrDefaultAsync();
             if (customer != null)
                 return (customer.Id, null);
 
             var contact = await _context.Contacts
-                .Where(c => c.PhonePrimary == phone || c.PhonePrimary == normalizedPhone || 
+                .Where(c => c.PhonePrimary == phone || c.PhonePrimary == normalizedPhone ||
                            c.PhoneMobile == phone || c.PhoneMobile == normalizedPhone)
                 .FirstOrDefaultAsync();
             if (contact != null)

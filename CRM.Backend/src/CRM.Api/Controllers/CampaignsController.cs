@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -75,20 +91,20 @@ public class CampaignsController : ControllerBase
             {
                 return BadRequest(ModelState);
             }
-            
+
             // Business validation: End date must be after start date
-            if (campaign.EndDate.HasValue && campaign.StartDate.HasValue && 
+            if (campaign.EndDate.HasValue && campaign.StartDate.HasValue &&
                 campaign.EndDate.Value < campaign.StartDate.Value)
             {
                 return BadRequest(new { message = "End date cannot be before start date" });
             }
-            
+
             // Business validation: Budget cannot be negative
             if (campaign.Budget < 0)
             {
                 return BadRequest(new { message = "Budget cannot be negative" });
             }
-            
+
             var id = await _campaignService.CreateCampaignAsync(campaign);
             return CreatedAtAction(nameof(GetById), new { id }, campaign);
         }
@@ -112,20 +128,20 @@ public class CampaignsController : ControllerBase
             {
                 return BadRequest(ModelState);
             }
-            
+
             // Business validation: End date must be after start date
-            if (campaign.EndDate.HasValue && campaign.StartDate.HasValue && 
+            if (campaign.EndDate.HasValue && campaign.StartDate.HasValue &&
                 campaign.EndDate.Value < campaign.StartDate.Value)
             {
                 return BadRequest(new { message = "End date cannot be before start date" });
             }
-            
+
             // Business validation: Budget cannot be negative
             if (campaign.Budget < 0)
             {
                 return BadRequest(new { message = "Budget cannot be negative" });
             }
-            
+
             campaign.Id = id;
             await _campaignService.UpdateCampaignAsync(campaign);
             return NoContent();

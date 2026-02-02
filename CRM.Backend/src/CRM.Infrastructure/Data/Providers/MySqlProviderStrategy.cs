@@ -10,7 +10,7 @@ namespace CRM.Infrastructure.Data.Providers;
 /// <summary>
 /// MySQL-specific database provider strategy.
 /// Supports: Standalone, MySQL Group Replication/InnoDB Cluster (Clustered), MySQL HeatWave (Hyperscale).
-/// 
+///
 /// Handles:
 /// - BINARY(8) with concurrency token for optimistic concurrency (no native rowversion)
 /// - TEXT/LONGTEXT for large text fields
@@ -18,31 +18,31 @@ namespace CRM.Infrastructure.Data.Providers;
 /// </summary>
 public class MySqlProviderStrategy : DatabaseProviderStrategyBase
 {
-    public MySqlProviderStrategy(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone) 
+    public MySqlProviderStrategy(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone)
         : base(deploymentMode)
     {
     }
-    
+
     public override string ProviderName => "mysql";
-    
+
     public override string LongTextColumnType => "LONGTEXT";
-    
+
     public override string TextColumnType => "TEXT";
-    
+
     public override string JsonColumnType => "JSON"; // MySQL 5.7+ has native JSON
-    
+
     public override string GuidColumnType => "CHAR(36)"; // UUID stored as string
-    
+
     public override string TimestampColumnType => "DATETIME(6)"; // Microsecond precision
-    
+
     public override bool SupportsNativeJson => true; // MySQL 5.7+
-    
+
     public override bool SupportsNativeGuid => false; // Stored as CHAR(36)
-    
+
     public override bool SupportsSequences => false; // Uses AUTO_INCREMENT
-    
+
     public override DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.Cascade;
-    
+
     public override int RecommendedBatchSize => _deploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => 100,
@@ -50,7 +50,7 @@ public class MySqlProviderStrategy : DatabaseProviderStrategyBase
         DatabaseDeploymentMode.Hyperscale => 1000, // HeatWave optimized for analytics
         _ => 100
     };
-    
+
     public override void ConfigureRowVersion(ModelBuilder modelBuilder, IMutableEntityType entityType)
     {
         var rowVersionProperty = entityType.FindProperty("RowVersion");
@@ -64,7 +64,7 @@ public class MySqlProviderStrategy : DatabaseProviderStrategyBase
                 .ValueGeneratedOnAddOrUpdate();
         }
     }
-    
+
     public override void ApplyPostConfiguration(ModelBuilder modelBuilder)
     {
         // MySQL: Set string column types to prevent row size issues
@@ -92,20 +92,20 @@ public class MySqlProviderStrategy : DatabaseProviderStrategyBase
             }
         }
     }
-    
+
     public override string OptimizeConnectionString(string baseConnectionString)
     {
         var optimizations = _deploymentMode switch
         {
-            DatabaseDeploymentMode.Standalone => 
+            DatabaseDeploymentMode.Standalone =>
                 ";CharSet=utf8mb4;SslMode=Preferred",
-            DatabaseDeploymentMode.Clustered => 
+            DatabaseDeploymentMode.Clustered =>
                 ";CharSet=utf8mb4;SslMode=Required;ConnectionTimeout=15;DefaultCommandTimeout=30",
-            DatabaseDeploymentMode.Hyperscale => 
+            DatabaseDeploymentMode.Hyperscale =>
                 ";CharSet=utf8mb4;SslMode=Required;ConnectionTimeout=30;DefaultCommandTimeout=120;MaximumPoolSize=200",
             _ => ""
         };
-        
+
         return baseConnectionString.TrimEnd(';') + optimizations;
     }
 }
@@ -113,7 +113,7 @@ public class MySqlProviderStrategy : DatabaseProviderStrategyBase
 /// <summary>
 /// MariaDB-specific database provider strategy.
 /// Supports: Standalone, Galera Cluster (Clustered), MariaDB ColumnStore (Hyperscale).
-/// 
+///
 /// Differences from MySQL:
 /// - Better JSON handling with JSON_TABLE (10.6+)
 /// - System-versioned tables for temporal data
@@ -122,32 +122,32 @@ public class MySqlProviderStrategy : DatabaseProviderStrategyBase
 /// </summary>
 public class MariaDbProviderStrategy : DatabaseProviderStrategyBase
 {
-    public MariaDbProviderStrategy(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone) 
+    public MariaDbProviderStrategy(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone)
         : base(deploymentMode)
     {
     }
-    
+
     public override string ProviderName => "mariadb";
-    
+
     public override string LongTextColumnType => "LONGTEXT";
-    
+
     public override string TextColumnType => "TEXT";
-    
+
     // MariaDB 10.2+ supports JSON as an alias for LONGTEXT with validation
     public override string JsonColumnType => "JSON";
-    
+
     public override string GuidColumnType => "CHAR(36)";
-    
+
     public override string TimestampColumnType => "DATETIME(6)";
-    
+
     public override bool SupportsNativeJson => true; // MariaDB 10.2+ (stored as LONGTEXT with validation)
-    
+
     public override bool SupportsNativeGuid => false;
-    
+
     public override bool SupportsSequences => true; // MariaDB 10.3+ supports sequences
-    
+
     public override DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.Cascade;
-    
+
     public override int RecommendedBatchSize => _deploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => 100,
@@ -155,7 +155,7 @@ public class MariaDbProviderStrategy : DatabaseProviderStrategyBase
         DatabaseDeploymentMode.Hyperscale => 5000, // ColumnStore is optimized for bulk operations
         _ => 100
     };
-    
+
     public override ConnectionPoolSettings ConnectionPoolSettings => _deploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => ConnectionPoolSettings.Standalone,
@@ -180,7 +180,7 @@ public class MariaDbProviderStrategy : DatabaseProviderStrategyBase
         },
         _ => ConnectionPoolSettings.Standalone
     };
-    
+
     public override void ConfigureRowVersion(ModelBuilder modelBuilder, IMutableEntityType entityType)
     {
         var rowVersionProperty = entityType.FindProperty("RowVersion");
@@ -195,7 +195,7 @@ public class MariaDbProviderStrategy : DatabaseProviderStrategyBase
                 .ValueGeneratedOnAddOrUpdate();
         }
     }
-    
+
     public override void ApplyPostConfiguration(ModelBuilder modelBuilder)
     {
         // MariaDB: Same row size limitations as MySQL
@@ -221,26 +221,26 @@ public class MariaDbProviderStrategy : DatabaseProviderStrategyBase
                 }
             }
         }
-        
+
         // For Galera Cluster: No additional model configuration needed
         // For ColumnStore: Would typically use a different storage engine per table
     }
-    
+
     public override string OptimizeConnectionString(string baseConnectionString)
     {
         var optimizations = _deploymentMode switch
         {
-            DatabaseDeploymentMode.Standalone => 
+            DatabaseDeploymentMode.Standalone =>
                 ";CharSet=utf8mb4;SslMode=Preferred",
-            DatabaseDeploymentMode.Clustered => 
+            DatabaseDeploymentMode.Clustered =>
                 // Galera-specific: Short timeouts for quick failover, wsrep_sync_wait for read-your-writes
                 ";CharSet=utf8mb4;SslMode=Required;ConnectionTimeout=10;DefaultCommandTimeout=30",
-            DatabaseDeploymentMode.Hyperscale => 
+            DatabaseDeploymentMode.Hyperscale =>
                 // ColumnStore: Longer timeouts for analytical queries
                 ";CharSet=utf8mb4;SslMode=Required;ConnectionTimeout=30;DefaultCommandTimeout=600",
             _ => ""
         };
-        
+
         return baseConnectionString.TrimEnd(';') + optimizations;
     }
 }
@@ -252,9 +252,9 @@ public class MariaDbProviderStrategy : DatabaseProviderStrategyBase
 public class MariaDbGaleraStrategy : MariaDbProviderStrategy
 {
     public MariaDbGaleraStrategy() : base(DatabaseDeploymentMode.Clustered) { }
-    
+
     public new string ProviderName => "mariadb-galera";
-    
+
     // Galera works best with smaller transactions due to certification
     public override int RecommendedBatchSize => 50;
 }
@@ -266,9 +266,9 @@ public class MariaDbGaleraStrategy : MariaDbProviderStrategy
 public class MariaDbColumnStoreStrategy : MariaDbProviderStrategy
 {
     public MariaDbColumnStoreStrategy() : base(DatabaseDeploymentMode.Hyperscale) { }
-    
+
     public new string ProviderName => "mariadb-columnstore";
-    
+
     // ColumnStore is optimized for bulk inserts
     public override int RecommendedBatchSize => 10000;
 }
