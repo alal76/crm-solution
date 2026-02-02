@@ -83,3 +83,8 @@ export interface FieldConfiguration {
   minValue?: number;
   maxValue?: number;
 }
+
+// Export new type modules
+export * from './permissions';
+export * from './forms';
+export * from './entities';
