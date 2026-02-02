@@ -21,6 +21,7 @@ using CRM.Core.Entities.Reports;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
+using CRM.Infrastructure.Data.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -334,45 +335,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Get database provider - check both configuration and actual provider
-        // Handle null configuration gracefully for unit tests
+        // Use Strategy Pattern for database provider-specific configurations
+        var factory = new DatabaseProviderStrategyFactory(_configuration);
         var databaseProvider = _configuration?["DatabaseProvider"]?.ToLower() ?? "mariadb";
+        var providerStrategy = factory.CreateStrategy(databaseProvider, Database.ProviderName);
         
-        // Also check if we're using SQL Server based on the actual provider
-        var isSqlServer = databaseProvider == "sqlserver" || 
-                          Database.ProviderName?.Contains("SqlServer", StringComparison.OrdinalIgnoreCase) == true;
-        
-        // Database-agnostic column types for large text fields
-        var longTextType = isSqlServer ? "nvarchar(max)" : "LONGTEXT";
-        var textType = isSqlServer ? "nvarchar(max)" : "TEXT";
+        // Get provider-specific column types for use in configurations
+        var longTextType = providerStrategy.LongTextColumnType;
+        var textType = providerStrategy.TextColumnType;
 
         // Configure RowVersion for all entities that inherit from BaseEntity
-        // This enables optimistic concurrency control
+        // This enables optimistic concurrency control using the provider strategy
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
             {
-                var rowVersionProperty = entityType.FindProperty("RowVersion");
-                if (rowVersionProperty != null)
-                {
-                    if (isSqlServer)
-                    {
-                        // SQL Server uses native rowversion
-                        modelBuilder.Entity(entityType.ClrType)
-                            .Property("RowVersion")
-                            .IsRowVersion();
-                    }
-                    else
-                    {
-                        // MariaDB/MySQL: Use TIMESTAMP with ON UPDATE for optimistic concurrency
-                        // Store as binary(8) for compatibility
-                        modelBuilder.Entity(entityType.ClrType)
-                            .Property("RowVersion")
-                            .HasColumnType("BINARY(8)")
-                            .IsConcurrencyToken()
-                            .ValueGeneratedOnAddOrUpdate();
-                    }
-                }
+                providerStrategy.ConfigureRowVersion(modelBuilder, entityType);
             }
         }
 
@@ -2876,49 +2854,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
         
-        // SQL Server specific: disable cascade deletes to avoid "multiple cascade paths" errors
-        // This MUST be at the end after all entity configurations
-        // For SQL Server, we set ALL foreign keys to Restrict/NoAction to avoid any cascade issues
-        if (isSqlServer)
-        {
-            foreach (var relationship in modelBuilder.Model.GetEntityTypes()
-                .SelectMany(e => e.GetForeignKeys()))
-            {
-                // SQL Server doesn't support cascade delete on multiple paths
-                relationship.DeleteBehavior = DeleteBehavior.NoAction;
-            }
-        }
-        
-        // FINAL STEP: For MySQL/MariaDB, set string column types to prevent row size issues
-        // This MUST be at the very end to override any other configurations
-        // Without this, Pomelo uses LONGTEXT which counts against the 65535 byte row limit
-        if (databaseProvider == "mysql" || databaseProvider == "mariadb")
-        {
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-            {
-                foreach (var property in entityType.GetProperties())
-                {
-                    if (property.ClrType == typeof(string))
-                    {
-                        // Only set column type if not already explicitly configured
-                        var columnType = property.GetColumnType();
-                        if (columnType == null || columnType.Equals("longtext", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var maxLength = property.GetMaxLength();
-                            if (maxLength == null || maxLength > 4000)
-                            {
-                                // Use TEXT type for large/unlimited strings
-                                property.SetColumnType("TEXT");
-                            }
-                            else
-                            {
-                                // Use VARCHAR for smaller strings
-                                property.SetColumnType($"VARCHAR({maxLength})");
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // Apply provider-specific post-configuration using the Strategy Pattern
+        // For SQL Server: Sets all FKs to NoAction to avoid cascade path issues
+        // For MySQL/MariaDB: Converts LONGTEXT columns to TEXT to avoid row size limits
+        providerStrategy.ApplyPostConfiguration(modelBuilder);
     }
 }
