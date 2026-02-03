@@ -117,7 +117,7 @@ We've packed enterprise-grade capabilities without the enterprise-grade complexi
 - **25+ REST API Controllers** - Full-featured API surface
 - **50+ React Components** - Reusable, tested UI components
 - **8 Microservices** - Domain-driven service decomposition
-- **100% Test Coverage Goals** - E2E, integration, and unit tests
+- **Comprehensive Testing** - E2E, integration, and unit tests
 
 ---
 
@@ -174,6 +174,8 @@ This is a **hobby side project** and **ongoing experiment** in modern software a
 
 **Note:** This is a weekend project built to explore what's possible with modern tooling. While production-capable, it's primarily a learning platform and architectural showcase.
 
+**Security Note:** Configure secure credentials before deployment. See the [Security Best Practices](SECURITY_BEST_PRACTICES.md) guide for production setup instructions.
+
 ---
 
 ## 🚀 Quick Start
@@ -194,7 +196,7 @@ docker compose -f docker/docker-compose.yml up -d
 # Swagger:  http://localhost:5000/swagger
 ```
 
-Default credentials: `abhi.lal@gmail.com` / `Admin@123`
+**Initial Setup:** On first run, the system will seed a default admin account. See the [README](README.md#default-login-credentials) for initial login details.
 
 ---
 
