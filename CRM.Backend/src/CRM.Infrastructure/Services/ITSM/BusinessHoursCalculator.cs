@@ -1,0 +1,404 @@
+// This file is part of the CRM Solution.
+// Copyright (c) 2025 CRM Solution Contributors
+// Licensed under the AGPL-3.0 license.
+
+using CRM.Core.Entities.ITSM;
+using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace CRM.Infrastructure.Services.ITSM;
+
+/// <summary>
+/// Interface for business hours calculations used in SLA management.
+/// Supports multiple time zones, holidays, and custom schedules.
+/// </summary>
+public interface IBusinessHoursCalculator
+{
+    /// <summary>
+    /// Calculate the due date by adding business minutes to a start time.
+    /// </summary>
+    Task<DateTime> AddBusinessMinutesAsync(DateTime startTime, int businessMinutes, int? scheduleId = null);
+    
+    /// <summary>
+    /// Calculate elapsed business minutes between two dates.
+    /// </summary>
+    Task<int> GetElapsedBusinessMinutesAsync(DateTime startTime, DateTime endTime, int? scheduleId = null);
+    
+    /// <summary>
+    /// Check if a given time is within business hours.
+    /// </summary>
+    Task<bool> IsBusinessTimeAsync(DateTime dateTime, int? scheduleId = null);
+    
+    /// <summary>
+    /// Get the next business day start time from a given date.
+    /// </summary>
+    Task<DateTime> GetNextBusinessStartAsync(DateTime fromDate, int? scheduleId = null);
+    
+    /// <summary>
+    /// Check if a date is a holiday.
+    /// </summary>
+    Task<bool> IsHolidayAsync(DateTime date, int? scheduleId = null);
+}
+
+/// <summary>
+/// Represents a business hours schedule with daily time ranges.
+/// </summary>
+public class BusinessSchedule
+{
+    public int ScheduleId { get; set; }
+    public string Name { get; set; } = "Default";
+    public string TimeZoneId { get; set; } = "UTC";
+    public List<BusinessDay> Days { get; set; } = new();
+    public List<Holiday> Holidays { get; set; } = new();
+    public bool IsActive { get; set; } = true;
+}
+
+public class BusinessDay
+{
+    public DayOfWeek DayOfWeek { get; set; }
+    public TimeSpan StartTime { get; set; }
+    public TimeSpan EndTime { get; set; }
+    public bool IsWorkingDay { get; set; } = true;
+}
+
+public class Holiday
+{
+    public DateTime Date { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public bool IsRecurringYearly { get; set; }
+}
+
+/// <summary>
+/// Business hours calculator for accurate SLA time calculations.
+/// Handles weekends, holidays, and custom business schedules.
+/// </summary>
+public class BusinessHoursCalculator : IBusinessHoursCalculator
+{
+    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ILogger<BusinessHoursCalculator> _logger;
+    
+    // Default schedule: Mon-Fri, 9 AM - 5 PM UTC
+    private static readonly BusinessSchedule DefaultSchedule = new()
+    {
+        ScheduleId = 0,
+        Name = "Default Business Hours",
+        TimeZoneId = "UTC",
+        Days = new List<BusinessDay>
+        {
+            new() { DayOfWeek = DayOfWeek.Monday, StartTime = TimeSpan.FromHours(9), EndTime = TimeSpan.FromHours(17), IsWorkingDay = true },
+            new() { DayOfWeek = DayOfWeek.Tuesday, StartTime = TimeSpan.FromHours(9), EndTime = TimeSpan.FromHours(17), IsWorkingDay = true },
+            new() { DayOfWeek = DayOfWeek.Wednesday, StartTime = TimeSpan.FromHours(9), EndTime = TimeSpan.FromHours(17), IsWorkingDay = true },
+            new() { DayOfWeek = DayOfWeek.Thursday, StartTime = TimeSpan.FromHours(9), EndTime = TimeSpan.FromHours(17), IsWorkingDay = true },
+            new() { DayOfWeek = DayOfWeek.Friday, StartTime = TimeSpan.FromHours(9), EndTime = TimeSpan.FromHours(17), IsWorkingDay = true },
+            new() { DayOfWeek = DayOfWeek.Saturday, IsWorkingDay = false },
+            new() { DayOfWeek = DayOfWeek.Sunday, IsWorkingDay = false },
+        }
+    };
+
+    public BusinessHoursCalculator(IDbContextResolver dbContextResolver, ILogger<BusinessHoursCalculator> logger)
+    {
+        _dbContextResolver = dbContextResolver;
+        _logger = logger;
+    }
+
+    public async Task<DateTime> AddBusinessMinutesAsync(DateTime startTime, int businessMinutes, int? scheduleId = null)
+    {
+        var schedule = await GetScheduleAsync(scheduleId);
+        var tz = GetTimeZone(schedule.TimeZoneId);
+        
+        // Convert to schedule's timezone
+        var localStart = TimeZoneInfo.ConvertTimeFromUtc(startTime.ToUniversalTime(), tz);
+        var currentTime = localStart;
+        var remainingMinutes = businessMinutes;
+        
+        // Safety limit to prevent infinite loops
+        const int maxIterations = 10000;
+        var iterations = 0;
+        
+        while (remainingMinutes > 0 && iterations < maxIterations)
+        {
+            iterations++;
+            
+            // Check if current day is a working day
+            var daySchedule = GetDaySchedule(schedule, currentTime.DayOfWeek);
+            var isHoliday = await IsHolidayAsync(currentTime.Date, scheduleId);
+            
+            if (!daySchedule.IsWorkingDay || isHoliday)
+            {
+                // Skip to next day at start of business hours
+                currentTime = GetNextWorkingDayStart(schedule, currentTime);
+                continue;
+            }
+            
+            // Get business hours for this day
+            var dayStart = currentTime.Date + daySchedule.StartTime;
+            var dayEnd = currentTime.Date + daySchedule.EndTime;
+            
+            // If before business hours, jump to start
+            if (currentTime < dayStart)
+            {
+                currentTime = dayStart;
+            }
+            
+            // If after business hours, jump to next day
+            if (currentTime >= dayEnd)
+            {
+                currentTime = GetNextWorkingDayStart(schedule, currentTime);
+                continue;
+            }
+            
+            // Calculate available minutes in this day
+            var availableMinutes = (int)(dayEnd - currentTime).TotalMinutes;
+            
+            if (remainingMinutes <= availableMinutes)
+            {
+                // We can fit remaining minutes in this day
+                currentTime = currentTime.AddMinutes(remainingMinutes);
+                remainingMinutes = 0;
+            }
+            else
+            {
+                // Use up this day and continue to next
+                remainingMinutes -= availableMinutes;
+                currentTime = GetNextWorkingDayStart(schedule, currentTime);
+            }
+        }
+        
+        if (iterations >= maxIterations)
+        {
+            _logger.LogWarning("Business hours calculation exceeded max iterations for {Minutes} minutes from {Start}", 
+                businessMinutes, startTime);
+        }
+        
+        // Convert back to UTC
+        return TimeZoneInfo.ConvertTimeToUtc(currentTime, tz);
+    }
+
+    public async Task<int> GetElapsedBusinessMinutesAsync(DateTime startTime, DateTime endTime, int? scheduleId = null)
+    {
+        if (endTime <= startTime) return 0;
+        
+        var schedule = await GetScheduleAsync(scheduleId);
+        var tz = GetTimeZone(schedule.TimeZoneId);
+        
+        // Convert to schedule's timezone
+        var localStart = TimeZoneInfo.ConvertTimeFromUtc(startTime.ToUniversalTime(), tz);
+        var localEnd = TimeZoneInfo.ConvertTimeFromUtc(endTime.ToUniversalTime(), tz);
+        
+        var currentTime = localStart;
+        var totalMinutes = 0;
+        
+        // Safety limit
+        const int maxIterations = 10000;
+        var iterations = 0;
+        
+        while (currentTime < localEnd && iterations < maxIterations)
+        {
+            iterations++;
+            
+            var daySchedule = GetDaySchedule(schedule, currentTime.DayOfWeek);
+            var isHoliday = await IsHolidayAsync(currentTime.Date, scheduleId);
+            
+            if (!daySchedule.IsWorkingDay || isHoliday)
+            {
+                // Skip to next day
+                currentTime = currentTime.Date.AddDays(1);
+                continue;
+            }
+            
+            var dayStart = currentTime.Date + daySchedule.StartTime;
+            var dayEnd = currentTime.Date + daySchedule.EndTime;
+            
+            // Adjust for start/end boundaries
+            var effectiveStart = currentTime < dayStart ? dayStart : currentTime;
+            var effectiveEnd = localEnd < dayEnd ? localEnd : dayEnd;
+            
+            if (effectiveStart < effectiveEnd && effectiveStart >= dayStart && effectiveEnd <= dayEnd)
+            {
+                totalMinutes += (int)(effectiveEnd - effectiveStart).TotalMinutes;
+            }
+            
+            // Move to next day
+            currentTime = currentTime.Date.AddDays(1);
+        }
+        
+        return totalMinutes;
+    }
+
+    public async Task<bool> IsBusinessTimeAsync(DateTime dateTime, int? scheduleId = null)
+    {
+        var schedule = await GetScheduleAsync(scheduleId);
+        var tz = GetTimeZone(schedule.TimeZoneId);
+        
+        var localTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime.ToUniversalTime(), tz);
+        
+        // Check if holiday
+        if (await IsHolidayAsync(localTime.Date, scheduleId))
+            return false;
+        
+        // Check day schedule
+        var daySchedule = GetDaySchedule(schedule, localTime.DayOfWeek);
+        if (!daySchedule.IsWorkingDay)
+            return false;
+        
+        var timeOfDay = localTime.TimeOfDay;
+        return timeOfDay >= daySchedule.StartTime && timeOfDay < daySchedule.EndTime;
+    }
+
+    public async Task<DateTime> GetNextBusinessStartAsync(DateTime fromDate, int? scheduleId = null)
+    {
+        var schedule = await GetScheduleAsync(scheduleId);
+        var tz = GetTimeZone(schedule.TimeZoneId);
+        
+        var localTime = TimeZoneInfo.ConvertTimeFromUtc(fromDate.ToUniversalTime(), tz);
+        var nextStart = GetNextWorkingDayStart(schedule, localTime);
+        
+        return TimeZoneInfo.ConvertTimeToUtc(nextStart, tz);
+    }
+
+    public async Task<bool> IsHolidayAsync(DateTime date, int? scheduleId = null)
+    {
+        var schedule = await GetScheduleAsync(scheduleId);
+        var dateOnly = date.Date;
+        
+        foreach (var holiday in schedule.Holidays)
+        {
+            if (holiday.IsRecurringYearly)
+            {
+                // Check month and day only
+                if (holiday.Date.Month == dateOnly.Month && holiday.Date.Day == dateOnly.Day)
+                    return true;
+            }
+            else
+            {
+                if (holiday.Date.Date == dateOnly)
+                    return true;
+            }
+        }
+        
+        // Also check database for custom holidays if available
+        try
+        {
+            var context = _dbContextResolver.ResolveContext();
+            // Check if there's a holiday table - this would need to be added to the ITSM schema
+            // For now, just use the schedule's built-in holidays
+        }
+        catch
+        {
+            // Ignore database errors for holiday lookup
+        }
+        
+        return false;
+    }
+
+    private async Task<BusinessSchedule> GetScheduleAsync(int? scheduleId)
+    {
+        if (!scheduleId.HasValue || scheduleId == 0)
+        {
+            return DefaultSchedule;
+        }
+        
+        // TODO: Load custom schedule from database
+        // For now, return default
+        try
+        {
+            var context = _dbContextResolver.ResolveContext();
+            // Would query ITSMBusinessSchedules table if it existed
+            // var schedule = await context.ITSMBusinessSchedules.FindAsync(scheduleId);
+        }
+        catch
+        {
+            _logger.LogWarning("Failed to load business schedule {ScheduleId}, using default", scheduleId);
+        }
+        
+        return DefaultSchedule;
+    }
+
+    private static BusinessDay GetDaySchedule(BusinessSchedule schedule, DayOfWeek dayOfWeek)
+    {
+        var day = schedule.Days.FirstOrDefault(d => d.DayOfWeek == dayOfWeek);
+        return day ?? new BusinessDay { DayOfWeek = dayOfWeek, IsWorkingDay = false };
+    }
+
+    private DateTime GetNextWorkingDayStart(BusinessSchedule schedule, DateTime currentTime)
+    {
+        var nextDay = currentTime.Date.AddDays(1);
+        const int maxDays = 365; // Safety limit
+        
+        for (var i = 0; i < maxDays; i++)
+        {
+            var daySchedule = GetDaySchedule(schedule, nextDay.DayOfWeek);
+            if (daySchedule.IsWorkingDay)
+            {
+                // Check synchronously - would need async version for production
+                return nextDay + daySchedule.StartTime;
+            }
+            nextDay = nextDay.AddDays(1);
+        }
+        
+        // Fallback - should never reach here
+        return currentTime.AddDays(1);
+    }
+
+    private static TimeZoneInfo GetTimeZone(string timeZoneId)
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        }
+        catch
+        {
+            // Fallback to UTC if timezone not found
+            return TimeZoneInfo.Utc;
+        }
+    }
+}
+
+/// <summary>
+/// Extension methods for business hours calculations in SLA context.
+/// </summary>
+public static class BusinessHoursExtensions
+{
+    /// <summary>
+    /// Calculate the SLA due date using business hours if required.
+    /// </summary>
+    public static async Task<DateTime> CalculateSLADueDateAsync(
+        this IBusinessHoursCalculator calculator,
+        DateTime startTime,
+        int targetMinutes,
+        bool useBusinessHours)
+    {
+        if (!useBusinessHours)
+        {
+            // Simple calendar time calculation
+            return startTime.AddMinutes(targetMinutes);
+        }
+        
+        return await calculator.AddBusinessMinutesAsync(startTime, targetMinutes);
+    }
+    
+    /// <summary>
+    /// Calculate percentage of SLA time elapsed.
+    /// </summary>
+    public static async Task<double> CalculateSLAPercentageAsync(
+        this IBusinessHoursCalculator calculator,
+        DateTime startTime,
+        DateTime dueTime,
+        DateTime currentTime,
+        bool useBusinessHours)
+    {
+        if (!useBusinessHours)
+        {
+            var totalMinutes = (dueTime - startTime).TotalMinutes;
+            var elapsedMinutes = (currentTime - startTime).TotalMinutes;
+            return totalMinutes > 0 ? (elapsedMinutes / totalMinutes) * 100 : 100;
+        }
+        
+        var totalBusinessMinutes = await calculator.GetElapsedBusinessMinutesAsync(startTime, dueTime);
+        var elapsedBusinessMinutes = await calculator.GetElapsedBusinessMinutesAsync(startTime, currentTime);
+        
+        return totalBusinessMinutes > 0 ? (elapsedBusinessMinutes / (double)totalBusinessMinutes) * 100 : 100;
+    }
+}

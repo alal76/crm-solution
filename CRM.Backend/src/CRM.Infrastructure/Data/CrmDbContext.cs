@@ -16,6 +16,7 @@
 
 using CRM.Core.Entities;
 using CRM.Core.Entities.AI;
+using ITSM = CRM.Core.Entities.ITSM; // Alias for ITSM entities to avoid conflicts
 using CRM.Core.Entities.KnowledgeBase;
 using CRM.Core.Entities.Reports;
 using CRM.Core.Entities.Workflow;
@@ -156,7 +157,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<WorkflowLog> WorkflowLogs { get; set; }
 
     // Relationship Management entities
-    public DbSet<RelationshipType> RelationshipTypes { get; set; }
+    public DbSet<CRM.Core.Entities.RelationshipType> RelationshipTypes { get; set; }
     public DbSet<AccountRelationship> AccountRelationships { get; set; }
     public DbSet<RelationshipInteraction> RelationshipInteractions { get; set; }
     public DbSet<AccountHealthSnapshot> AccountHealthSnapshots { get; set; }
@@ -290,6 +291,58 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<SLAInstance> SLAInstances { get; set; }
     public DbSet<BusinessHours> BusinessHoursConfigs { get; set; }
     public DbSet<EscalationRule> EscalationRules { get; set; }
+
+    // =============================================================================
+    // ITSM Module Entities (Incident, Problem, Change, CMDB, Knowledge, Catalog)
+    // =============================================================================
+    
+    // Incident Management
+    public DbSet<ITSM.Incident> Incidents { get; set; }
+    public DbSet<ITSM.IncidentComment> IncidentComments { get; set; }
+    public DbSet<ITSM.IncidentAttachment> IncidentAttachments { get; set; }
+    public DbSet<ITSM.IncidentHistory> IncidentHistory { get; set; }
+    
+    // Problem Management
+    public DbSet<ITSM.Problem> Problems { get; set; }
+    public DbSet<ITSM.ProblemIncident> ProblemIncidents { get; set; }
+    public DbSet<ITSM.ProblemTask> ProblemTasks { get; set; }
+    public DbSet<ITSM.ProblemComment> ProblemComments { get; set; }
+    public DbSet<ITSM.ProblemAttachment> ProblemAttachments { get; set; }
+    
+    // SLA Management (Enhanced)
+    public DbSet<ITSM.SLAPolicy> ITSMSLAPolicies { get; set; }
+    public DbSet<ITSM.SLAInstance> ITSMSLAInstances { get; set; }
+    public DbSet<ITSM.BusinessHoursSchedule> BusinessHoursSchedules { get; set; }
+    
+    // CMDB
+    public DbSet<ITSM.ConfigurationItem> ConfigurationItems { get; set; }
+    public DbSet<ITSM.CIRelationship> CIRelationships { get; set; }
+    public DbSet<ITSM.Service> Services { get; set; }
+    public DbSet<ITSM.ServiceCI> ServiceCIs { get; set; }
+    
+    // Change Management
+    public DbSet<ITSM.Change> Changes { get; set; }
+    public DbSet<ITSM.ChangeApproval> ChangeApprovals { get; set; }
+    public DbSet<ITSM.ChangeBlackout> ChangeBlackouts { get; set; }
+    public DbSet<ITSM.ChangeImpactedCI> ChangeImpactedCIs { get; set; }
+    public DbSet<ITSM.ChangeTask> ChangeTasks { get; set; }
+    public DbSet<ITSM.ChangeComment> ChangeComments { get; set; }
+    public DbSet<ITSM.ChangeAttachment> ChangeAttachments { get; set; }
+    
+    // Knowledge Management (Enhanced)
+    public DbSet<ITSM.KnowledgeArticle> ITSMKnowledgeArticles { get; set; }
+    public DbSet<ITSM.ArticleRelationship> ArticleRelationships { get; set; }
+    public DbSet<ITSM.ArticleIncident> ArticleIncidents { get; set; }
+    public DbSet<ITSM.ArticleFeedback> ITSMArticleFeedback { get; set; }
+    public DbSet<ITSM.ArticleAttachment> ArticleAttachments { get; set; }
+    
+    // Service Catalog
+    public DbSet<ITSM.CatalogCategory> CatalogCategories { get; set; }
+    public DbSet<ITSM.CatalogItem> CatalogItems { get; set; }
+    public DbSet<ITSM.CatalogVariable> CatalogVariables { get; set; }
+    public DbSet<ITSM.CatalogRequest> CatalogRequests { get; set; }
+    public DbSet<ITSM.CatalogRequestApproval> CatalogRequestApprovals { get; set; }
+    public DbSet<ITSM.CatalogRequestComment> CatalogRequestComments { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

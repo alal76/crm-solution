@@ -80,6 +80,7 @@ const ContractsPage = lazy(() => import('./pages/ContractsPage'));
 const LeadsPage = lazy(() => import('./pages/LeadsPage'));
 const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
 const CampaignExecutionPage = lazy(() => import('./pages/CampaignExecutionPage'));
+const EmailTemplatesPage = lazy(() => import('./pages/EmailTemplatesPage'));
 
 // ----------------------------------------------------------------------------
 // Service Module - Lazy Loaded
@@ -88,6 +89,41 @@ const ServiceRequestsPage = lazy(() => import('./pages/ServiceRequestsPage'));
 const ServiceRequestSettingsPage = lazy(() => import('./pages/ServiceRequestSettingsPage'));
 const KnowledgeBasePage = lazy(() => import('./pages/KnowledgeBasePage'));
 const ServicesPage = lazy(() => import('./pages/ServicesPage'));
+
+// ----------------------------------------------------------------------------
+// ITSM Module - Lazy Loaded
+// ----------------------------------------------------------------------------
+const ITSMOverviewPage = lazy(() => import('./pages/itsm/ITSMOverviewPage'));
+const ITSMMetricsPage = lazy(() => import('./pages/itsm/ITSMMetricsPage'));
+const IncidentListPage = lazy(() => import('./pages/itsm/IncidentListPage'));
+const IncidentFormPage = lazy(() => import('./pages/itsm/IncidentFormPage'));
+const IncidentDetailPage = lazy(() => import('./pages/itsm/IncidentDetailPage'));
+const ProblemListPage = lazy(() => import('./pages/itsm/ProblemListPage'));
+const ProblemFormPage = lazy(() => import('./pages/itsm/ProblemFormPage'));
+const ProblemDetailPage = lazy(() => import('./pages/itsm/ProblemDetailPage'));
+const CMDBListPage = lazy(() => import('./pages/itsm/CMDBListPage'));
+const CMDBFormPage = lazy(() => import('./pages/itsm/CMDBFormPage'));
+const CMDBDetailPage = lazy(() => import('./pages/itsm/CMDBDetailPage'));
+const CMDBRelationshipMapPage = lazy(() => import('./pages/itsm/CMDBRelationshipMapPage'));
+const CMDBImpactAnalysisPage = lazy(() => import('./pages/itsm/CMDBImpactAnalysisPage'));
+const ChangeListPage = lazy(() => import('./pages/itsm/ChangeListPage'));
+const ChangeFormPage = lazy(() => import('./pages/itsm/ChangeFormPage'));
+const ChangeDetailPage = lazy(() => import('./pages/itsm/ChangeDetailPage'));
+const ChangeApprovalPage = lazy(() => import('./pages/itsm/ChangeApprovalPage'));
+const ChangeCalendarPage = lazy(() => import('./pages/itsm/ChangeCalendarPage'));
+const KnowledgeBaseListPage = lazy(() => import('./pages/itsm/KnowledgeBaseListPage'));
+const KnowledgeArticleDetailPage = lazy(() => import('./pages/itsm/KnowledgeArticleDetailPage'));
+const KnowledgeArticleEditorPage = lazy(() => import('./pages/itsm/KnowledgeArticleEditorPage'));
+const KnowledgeArticleApprovalPage = lazy(() => import('./pages/itsm/KnowledgeArticleApprovalPage'));
+const ServiceCatalogPage = lazy(() => import('./pages/itsm/ServiceCatalogPage'));
+const ServiceCatalogAdminPage = lazy(() => import('./pages/itsm/ServiceCatalogAdminPage'));
+const ServiceCatalogRequestListPage = lazy(() => import('./pages/itsm/ServiceCatalogRequestListPage'));
+const ServiceCatalogRequestDetailPage = lazy(() => import('./pages/itsm/ServiceCatalogRequestDetailPage'));
+const ServiceCatalogRequestCreatePage = lazy(() => import('./pages/itsm/ServiceCatalogRequestCreatePage'));
+const SLADashboardPage = lazy(() => import('./pages/itsm/SLADashboardPage'));
+const SLAPolicyListPage = lazy(() => import('./pages/itsm/SLAPolicyListPage'));
+const SLAPolicyFormPage = lazy(() => import('./pages/itsm/SLAPolicyFormPage'));
+const SLAInstanceListPage = lazy(() => import('./pages/itsm/SLAInstanceListPage'));
 
 // ----------------------------------------------------------------------------
 // Customer Module - Lazy Loaded
@@ -276,6 +312,16 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Campaigns">
                       <CampaignsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/email-templates"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Campaigns">
+                      <EmailTemplatesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
@@ -498,6 +544,415 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <ChannelSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* ITSM Routes */}
+              <Route
+                path="/itsm"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ITSMOverviewPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/metrics"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ITSMMetricsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/itsm/incidents"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <IncidentListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/incidents/create"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <IncidentFormPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/incidents/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <IncidentDetailPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/incidents"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <IncidentListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/incidents/create"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <IncidentFormPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/incidents/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <IncidentDetailPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/itsm/problems"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ProblemListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/problems/create"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ProblemFormPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/problems/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ProblemDetailPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/problems/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ProblemFormPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/itsm/cmdb"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <CMDBListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/cmdb/create"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <CMDBFormPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/cmdb/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <CMDBDetailPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/cmdb/:id/relationships"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <CMDBRelationshipMapPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/cmdb/:id/impact"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <CMDBImpactAnalysisPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/itsm/changes"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ChangeListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/changes/create"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ChangeFormPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/changes/calendar"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ChangeCalendarPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/changes/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ChangeDetailPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/changes/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ChangeFormPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/changes/:id/approval"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ChangeApprovalPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/itsm/knowledge"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <KnowledgeBaseListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/knowledge/editor"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <KnowledgeArticleEditorPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/knowledge/approvals"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <KnowledgeArticleApprovalPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/knowledge/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <KnowledgeArticleDetailPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/knowledge"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <KnowledgeBaseListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/knowledge/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <KnowledgeArticleDetailPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/itsm/catalog"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ServiceCatalogPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/catalog/admin"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ServiceCatalogAdminPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/catalog/requests"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ServiceCatalogRequestListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/catalog/requests/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ServiceCatalogRequestDetailPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/catalog/:id/request"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ServiceCatalogRequestCreatePage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/catalog"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ServiceCatalogPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/catalog/:id/request"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ServiceCatalogRequestCreatePage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/itsm/sla"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <SLADashboardPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/sla/policies"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <SLAPolicyListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/sla/policies/create"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <SLAPolicyFormPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/sla/instances"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <SLAInstanceListPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

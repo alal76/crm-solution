@@ -21,6 +21,7 @@ interface GroupPermissions {
   canAccessNotes: boolean;
   canAccessWorkflows: boolean;
   canAccessServiceRequests: boolean;
+  canAccessITSM: boolean;
   canAccessReports: boolean;
   canAccessSettings: boolean;
   canAccessUserManagement: boolean;
@@ -96,6 +97,7 @@ interface ModuleStatus {
   dashboardEnabled: boolean;
   communicationsEnabled?: boolean;
   interactionsEnabled?: boolean;
+  itsmEnabled?: boolean;
 }
 
 // Legacy permissions interface for backward compatibility
@@ -169,6 +171,7 @@ const defaultGroupPermissions: GroupPermissions = {
   canAccessNotes: false,
   canAccessWorkflows: false,
   canAccessServiceRequests: false,
+  canAccessITSM: false,
   canAccessReports: false,
   canAccessSettings: false,
   canAccessUserManagement: false,
@@ -318,7 +321,16 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       'Communications': { enabled: modules.communicationsEnabled ?? true, permitted: true },
       'Interactions': { enabled: modules.interactionsEnabled ?? true, permitted: true },
       'Settings': { enabled: true, permitted: groupPerms.canAccessSettings },
-      'User Management': { enabled: true, permitted: groupPerms.canAccessUserManagement }
+      'User Management': { enabled: true, permitted: groupPerms.canAccessUserManagement },
+      'ITSMOverview': { enabled: modules.itsmEnabled ?? true, permitted: groupPerms.canAccessITSM },
+      'ITSMIncidents': { enabled: modules.itsmEnabled ?? true, permitted: groupPerms.canAccessITSM },
+      'ITSMProblems': { enabled: modules.itsmEnabled ?? true, permitted: groupPerms.canAccessITSM },
+      'ITSMChanges': { enabled: modules.itsmEnabled ?? true, permitted: groupPerms.canAccessITSM },
+      'ITSMCMDB': { enabled: modules.itsmEnabled ?? true, permitted: groupPerms.canAccessITSM },
+      'ITSMKnowledge': { enabled: modules.itsmEnabled ?? true, permitted: groupPerms.canAccessITSM },
+      'ITSMCatalog': { enabled: modules.itsmEnabled ?? true, permitted: groupPerms.canAccessITSM },
+      'ITSMSLA': { enabled: modules.itsmEnabled ?? true, permitted: groupPerms.canAccessITSM },
+      'ITSMMetrics': { enabled: modules.itsmEnabled ?? true, permitted: groupPerms.canAccessITSM }
     };
     
     const access = menuMap[menuName];

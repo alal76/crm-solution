@@ -42,6 +42,9 @@ import {
   ContactPhone as ContactPhoneIcon,
   Close as CloseIcon,
   Note as NoteIcon,
+  TrendingUp as TrendingUpIcon,
+  Psychology as PsychologyIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logger from '../services/logger';
@@ -87,15 +90,42 @@ interface Lead extends BaseEntity {
   firstName: string;
   lastName: string;
   emailPrimary: string;
+  email?: string;
   phonePrimary: string;
+  phone?: string;
   company: string;
+  companyName?: string;
   jobTitle: string;
+  title?: string;
   source: string;
   status: string;
   notes: string;
   dateAdded: string;
   contactType: number;
+  // AI scoring fields
+  score?: number;
+  fitScore?: number;
+  engagementScore?: number;
 }
+
+// Helper to get score color based on value
+const getScoreColor = (score: number | undefined): string => {
+  if (!score || score === 0) return '#9E9E9E';
+  if (score >= 80) return '#2E7D32';
+  if (score >= 60) return '#06A77D';
+  if (score >= 40) return '#ED6C02';
+  if (score >= 20) return '#EF6C00';
+  return '#D32F2F';
+};
+
+const getScoreLabel = (score: number | undefined): string => {
+  if (!score || score === 0) return 'Not scored';
+  if (score >= 80) return 'Hot';
+  if (score >= 60) return 'Warm';
+  if (score >= 40) return 'Mild';
+  if (score >= 20) return 'Cool';
+  return 'Cold';
+};
 
 interface LeadFormData {
   firstName: string;
@@ -156,7 +186,18 @@ function LeadsPage() {
   // API state for dialog operations
   const dialogApi = useApiState({ successTimeout: 3000 });
   const bulkApi = useApiState({ successTimeout: 3000 });
+  const convertApi = useApiState({ successTimeout: 3000 });
   const { hasPermission } = useProfile();
+  
+  // Lead conversion dialog state
+  const [convertDialogOpen, setConvertDialogOpen] = useState(false);
+  const [convertingLead, setConvertingLead] = useState<Lead | null>(null);
+  const [convertFormData, setConvertFormData] = useState({
+    createOpportunity: false,
+    opportunityName: '',
+    estimatedValue: '',
+    expectedCloseDate: '',
+  });
   
   // Fetch leads function (defined early for SignalR callbacks)
   const fetchLeads = useCallback(async () => {
@@ -436,6 +477,93 @@ function LeadsPage() {
     }
   };
 
+  // Open conversion dialog
+  const handleOpenConvertDialog = (lead: Lead) => {
+    setConvertingLead(lead);
+    setConvertFormData({
+      createOpportunity: false,
+      opportunityName: `${lead.company || lead.firstName} - Opportunity`,
+      estimatedValue: '',
+      expectedCloseDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days out
+    });
+    convertApi.clearError();
+    setConvertDialogOpen(true);
+  };
+
+  const handleCloseConvertDialog = () => {
+    setConvertDialogOpen(false);
+    setConvertingLead(null);
+    convertApi.clearError();
+  };
+
+  const handleConvertLead = async () => {
+    if (!convertingLead) return;
+
+    const result = await convertApi.execute(async () => {
+      // 1. Create account/customer from lead data
+      const accountResponse = await apiClient.post('/accounts', {
+        firstName: convertingLead.firstName,
+        lastName: convertingLead.lastName,
+        company: convertingLead.company || `${convertingLead.firstName}'s Company`,
+        legalName: convertingLead.company,
+        industry: 'Other',
+        lifecycleStage: 1, // Customer
+        notes: `Converted from lead. ${convertingLead.notes}`,
+      });
+
+      const accountId = accountResponse.data.id;
+      let opportunityId = null;
+
+      // 2. Optionally create opportunity
+      if (convertFormData.createOpportunity) {
+        const oppResponse = await apiClient.post('/opportunities', {
+          name: convertFormData.opportunityName,
+          accountId: accountId,
+          stage: 0, // Prospecting
+          probability: 20,
+          amount: parseFloat(convertFormData.estimatedValue) || 0,
+          currency: 'USD',
+          expectedCloseDate: convertFormData.expectedCloseDate || null,
+          leadId: convertingLead.id,
+        });
+        opportunityId = oppResponse.data.id;
+      }
+
+      // 3. Update lead status to converted
+      const notesWithMeta = JSON.stringify({
+        source: convertingLead.source,
+        status: 'converted',
+        notes: convertingLead.notes,
+      });
+
+      await apiClient.put(`/contacts/${convertingLead.id}`, {
+        firstName: convertingLead.firstName,
+        lastName: convertingLead.lastName,
+        emailPrimary: convertingLead.emailPrimary,
+        phonePrimary: convertingLead.phonePrimary,
+        company: convertingLead.company,
+        jobTitle: convertingLead.jobTitle,
+        contactType: 2,
+        notes: notesWithMeta,
+      });
+
+      return { accountId, opportunityId };
+    }, convertFormData.createOpportunity 
+      ? 'Lead converted to account with opportunity!'
+      : 'Lead converted to account successfully!');
+
+    if (result) {
+      handleCloseConvertDialog();
+      fetchLeads();
+      setSuccessMessage(
+        convertFormData.createOpportunity
+          ? `Lead converted! Account #${result.accountId} and Opportunity #${result.opportunityId} created.`
+          : `Lead converted! Account #${result.accountId} created.`
+      );
+      setTimeout(() => setSuccessMessage(null), 5000);
+    }
+  };
+
   const handleConvertToCustomer = async (lead: Lead) => {
     if (window.confirm(`Convert ${lead.firstName} ${lead.lastName} to a Customer?`)) {
       try {
@@ -476,6 +604,60 @@ function LeadsPage() {
         setError(err.response?.data?.message || 'Failed to convert lead');
         console.error('Error converting lead:', err);
       }
+    }
+  };
+
+  // AI Lead Scoring
+  const [scoringLeadId, setScoringLeadId] = useState<number | null>(null);
+
+  const handleScoreLead = async (leadId: number) => {
+    try {
+      setScoringLeadId(leadId);
+      const response = await apiClient.post(`/ai/leads/${leadId}/score`);
+      if (response.data.success && response.data.score) {
+        // Update local lead with new score
+        setLeads(prev => prev.map(l => 
+          l.id === leadId 
+            ? { ...l, score: response.data.score.score }
+            : l
+        ));
+        setSuccessMessage(`Lead scored: ${response.data.score.score}/100`);
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        setError('Failed to score lead - AI service may not be configured');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to score lead');
+    } finally {
+      setScoringLeadId(null);
+    }
+  };
+
+  const handleBatchScoreLeads = async () => {
+    if (selectedIds.length === 0) return;
+    
+    try {
+      setLoading(true);
+      const response = await apiClient.post('/ai/leads/batch-score', { leadIds: selectedIds });
+      if (response.data.success) {
+        // Update leads with new scores
+        const scoresMap = new Map<number, number>(
+          response.data.scores?.map((s: { leadId: number; score: number }) => [s.leadId, s.score] as [number, number]) || []
+        );
+        setLeads(prev => prev.map(l => 
+          scoresMap.has(l.id)
+            ? { ...l, score: scoresMap.get(l.id) as number }
+            : l
+        ));
+        setSuccessMessage(`Scored ${response.data.scoredCount} leads`);
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        setError('Failed to batch score leads');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to batch score leads');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -544,6 +726,15 @@ function LeadsPage() {
               <Button
                 variant="contained"
                 size="small"
+                startIcon={<PsychologyIcon />}
+                onClick={handleBatchScoreLeads}
+                sx={{ backgroundColor: '#1976D2', color: 'white', '&:hover': { backgroundColor: '#1565C0' } }}
+              >
+                AI Score
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
                 onClick={handleOpenBulkDialog}
                 sx={{ backgroundColor: 'white', color: 'primary.main', '&:hover': { backgroundColor: 'grey.100' } }}
               >
@@ -585,6 +776,7 @@ function LeadsPage() {
                   <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Company</TableCell>
                   <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Source</TableCell>
                   <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Score</TableCell>
                   <TableCell sx={{ fontWeight: 600, color: '#6750A4' }}>Date Added</TableCell>
                   <TableCell sx={{ fontWeight: 600, color: '#6750A4' }} align="center">
                     Actions
@@ -643,17 +835,56 @@ function LeadsPage() {
                         />
                       </TableCell>
                       <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Box
+                            sx={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: '50%',
+                              backgroundColor: getScoreColor(lead.score) + '20',
+                              border: `2px solid ${getScoreColor(lead.score)}`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 700,
+                              fontSize: '0.7rem',
+                              color: getScoreColor(lead.score),
+                            }}
+                          >
+                            {lead.score ?? '—'}
+                          </Box>
+                          <Typography variant="caption" sx={{ color: getScoreColor(lead.score), fontWeight: 500 }}>
+                            {getScoreLabel(lead.score)}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
                         {lead.dateAdded ? new Date(lead.dateAdded).toLocaleDateString() : '—'}
                       </TableCell>
                       <TableCell align="center">
                         {lead.status !== 'converted' && (
                           <IconButton
                             size="small"
-                            onClick={() => handleConvertToCustomer(lead)}
-                            sx={{ color: '#06A77D' }}
-                            title="Convert to Customer"
+                            onClick={() => handleScoreLead(lead.id)}
+                            sx={{ color: '#1976D2' }}
+                            title="AI Score Lead"
+                            disabled={scoringLeadId === lead.id}
                           >
-                            <PersonAddIcon fontSize="small" />
+                            {scoringLeadId === lead.id ? (
+                              <CircularProgress size={16} />
+                            ) : (
+                              <PsychologyIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        )}
+                        {lead.status !== 'converted' && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleOpenConvertDialog(lead)}
+                            sx={{ color: '#06A77D' }}
+                            title="Convert to Account"
+                          >
+                            <TrendingUpIcon fontSize="small" />
                           </IconButton>
                         )}
                         <IconButton
@@ -679,7 +910,7 @@ function LeadsPage() {
               })}
               {filteredLeads.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 0 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 0 }}>
                     <EnhancedEmptyState
                       illustration="leads"
                       variant={searchText || searchFilters.length > 0 ? 'no-results' : 'no-data'}
@@ -957,6 +1188,108 @@ function LeadsPage() {
             loading={bulkApi.loading}
             onClick={handleBulkUpdate}
             color="primary"
+          />
+        </DialogActions>
+      </Dialog>
+
+      {/* Lead Conversion Dialog */}
+      <Dialog open={convertDialogOpen} onClose={handleCloseConvertDialog} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TrendingUpIcon sx={{ color: '#06A77D' }} />
+          Convert Lead to Account
+        </DialogTitle>
+        <DialogContent>
+          <DialogError 
+            error={convertApi.error} 
+            onClose={convertApi.clearError}
+          />
+          {convertingLead && (
+            <Box sx={{ mb: 3 }}>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Converting: <strong>{convertingLead.firstName} {convertingLead.lastName}</strong>
+                {convertingLead.company && ` (${convertingLead.company})`}
+              </Alert>
+              
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                This will:
+              </Typography>
+              <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 2 }}>
+                <li>Create a new Account from lead information</li>
+                <li>Mark the lead as "Converted"</li>
+                {convertFormData.createOpportunity && <li>Create a new Opportunity linked to the account</li>}
+              </Typography>
+
+              <Box sx={{ 
+                p: 2, 
+                border: '1px solid #E0E0E0', 
+                borderRadius: 2,
+                bgcolor: '#FAFAFA',
+                mb: 2 
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Checkbox
+                    checked={convertFormData.createOpportunity}
+                    onChange={(e) => setConvertFormData(prev => ({ 
+                      ...prev, 
+                      createOpportunity: e.target.checked 
+                    }))}
+                    sx={{ p: 0, mr: 1 }}
+                  />
+                  <Typography variant="subtitle2">
+                    Also create an Opportunity
+                  </Typography>
+                </Box>
+
+                <Collapse in={convertFormData.createOpportunity}>
+                  <Stack spacing={2}>
+                    <TextField
+                      label="Opportunity Name"
+                      size="small"
+                      fullWidth
+                      value={convertFormData.opportunityName}
+                      onChange={(e) => setConvertFormData(prev => ({ 
+                        ...prev, 
+                        opportunityName: e.target.value 
+                      }))}
+                    />
+                    <TextField
+                      label="Estimated Value ($)"
+                      size="small"
+                      fullWidth
+                      type="number"
+                      value={convertFormData.estimatedValue}
+                      onChange={(e) => setConvertFormData(prev => ({ 
+                        ...prev, 
+                        estimatedValue: e.target.value 
+                      }))}
+                      InputProps={{ inputProps: { min: 0 } }}
+                    />
+                    <TextField
+                      label="Expected Close Date"
+                      size="small"
+                      fullWidth
+                      type="date"
+                      value={convertFormData.expectedCloseDate}
+                      onChange={(e) => setConvertFormData(prev => ({ 
+                        ...prev, 
+                        expectedCloseDate: e.target.value 
+                      }))}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Stack>
+                </Collapse>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConvertDialog}>Cancel</Button>
+          <ActionButton
+            label="Convert Lead"
+            loading={convertApi.loading}
+            onClick={handleConvertLead}
+            color="success"
+            variant="contained"
           />
         </DialogActions>
       </Dialog>
