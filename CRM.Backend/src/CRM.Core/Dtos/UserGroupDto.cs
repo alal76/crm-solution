@@ -47,6 +47,7 @@ public class UserGroupDto
     public bool CanAccessNotes { get; set; }
     public bool CanAccessWorkflows { get; set; }
     public bool CanAccessServiceRequests { get; set; }
+    public bool CanAccessITSM { get; set; }
     public bool CanAccessReports { get; set; }
     public bool CanAccessSettings { get; set; }
     public bool CanAccessUserManagement { get; set; }
@@ -132,6 +133,7 @@ public class CreateUserGroupRequest
     public bool CanAccessNotes { get; set; } = false;
     public bool CanAccessWorkflows { get; set; } = false;
     public bool CanAccessServiceRequests { get; set; } = false;
+    public bool CanAccessITSM { get; set; } = false;
     public bool CanAccessReports { get; set; } = false;
     public bool CanAccessSettings { get; set; } = false;
     public bool CanAccessUserManagement { get; set; } = false;

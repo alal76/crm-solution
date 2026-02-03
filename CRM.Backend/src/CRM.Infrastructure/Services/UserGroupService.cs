@@ -107,6 +107,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             CanAccessNotes = g.CanAccessNotes,
             CanAccessWorkflows = g.CanAccessWorkflows,
             CanAccessServiceRequests = g.CanAccessServiceRequests,
+            CanAccessITSM = g.CanAccessITSM,
             CanAccessReports = g.CanAccessReports,
             CanAccessSettings = g.CanAccessSettings,
             CanAccessUserManagement = g.CanAccessUserManagement,
@@ -190,6 +191,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         group.CanAccessNotes = request.CanAccessNotes;
         group.CanAccessWorkflows = request.CanAccessWorkflows;
         group.CanAccessServiceRequests = request.CanAccessServiceRequests;
+        group.CanAccessITSM = request.CanAccessITSM;
         group.CanAccessReports = request.CanAccessReports;
         group.CanAccessSettings = request.CanAccessSettings;
         group.CanAccessUserManagement = request.CanAccessUserManagement;

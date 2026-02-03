@@ -158,6 +158,7 @@ public class GroupPermissionsDto
     public bool CanAccessNotes { get; set; }
     public bool CanAccessWorkflows { get; set; }
     public bool CanAccessServiceRequests { get; set; }
+    public bool CanAccessITSM { get; set; }
     public bool CanAccessReports { get; set; }
     public bool CanAccessSettings { get; set; }
     public bool CanAccessUserManagement { get; set; }

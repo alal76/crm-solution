@@ -81,6 +81,29 @@ public interface ICrmDbContext
     // LLM Settings
     DbSet<LLMProviderSetting> LLMProviderSettings { get; }
 
+    // ITSM Module
+    DbSet<CRM.Core.Entities.ITSM.Incident> Incidents { get; }
+    DbSet<CRM.Core.Entities.ITSM.IncidentComment> IncidentComments { get; }
+    DbSet<CRM.Core.Entities.ITSM.IncidentHistory> IncidentHistory { get; }
+    DbSet<CRM.Core.Entities.ITSM.Problem> Problems { get; }
+    DbSet<CRM.Core.Entities.ITSM.ProblemIncident> ProblemIncidents { get; }
+    DbSet<CRM.Core.Entities.ITSM.SLAPolicy> ITSMSLAPolicies { get; }
+    DbSet<CRM.Core.Entities.ITSM.SLAInstance> ITSMSLAInstances { get; }
+    DbSet<CRM.Core.Entities.ITSM.BusinessHoursSchedule> BusinessHoursSchedules { get; }
+    DbSet<CRM.Core.Entities.ITSM.ConfigurationItem> ConfigurationItems { get; }
+    DbSet<CRM.Core.Entities.ITSM.CIRelationship> CIRelationships { get; }
+    DbSet<CRM.Core.Entities.ITSM.Service> Services { get; }
+    DbSet<CRM.Core.Entities.ITSM.ServiceCI> ServiceCIs { get; }
+    DbSet<CRM.Core.Entities.ITSM.Change> Changes { get; }
+    DbSet<CRM.Core.Entities.ITSM.ChangeApproval> ChangeApprovals { get; }
+    DbSet<CRM.Core.Entities.ITSM.ChangeBlackout> ChangeBlackouts { get; }
+    DbSet<CRM.Core.Entities.ITSM.ChangeImpactedCI> ChangeImpactedCIs { get; }
+    DbSet<CRM.Core.Entities.ITSM.KnowledgeArticle> ITSMKnowledgeArticles { get; }
+    DbSet<CRM.Core.Entities.ITSM.ArticleFeedback> ITSMArticleFeedback { get; }
+    DbSet<CRM.Core.Entities.ITSM.CatalogCategory> CatalogCategories { get; }
+    DbSet<CRM.Core.Entities.ITSM.CatalogItem> CatalogItems { get; }
+    DbSet<CRM.Core.Entities.ITSM.CatalogRequest> CatalogRequests { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

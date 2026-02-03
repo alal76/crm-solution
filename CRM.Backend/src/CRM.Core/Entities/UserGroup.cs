@@ -187,6 +187,11 @@ public class UserGroup : BaseEntity
     public bool CanAccessServiceRequests { get; set; } = false;
 
     /// <summary>
+    /// FUNCTIONAL: Whether members can see ITSM module (Incidents, Problems, Changes, CMDB, Knowledge, Catalog, SLA)
+    /// </summary>
+    public bool CanAccessITSM { get; set; } = false;
+
+    /// <summary>
     /// FUNCTIONAL: Whether members can see Reports
     /// </summary>
     public bool CanAccessReports { get; set; } = false;
