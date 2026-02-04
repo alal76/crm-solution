@@ -178,3 +178,84 @@ public class FormSubmissionConfiguration : IEntityTypeConfiguration<FormSubmissi
         builder.HasKey(e => e.Id);
     }
 }
+
+/// <summary>
+/// Entity configuration for LandingPage.
+/// </summary>
+public class LandingPageConfiguration : IEntityTypeConfiguration<LandingPage>
+{
+    public void Configure(EntityTypeBuilder<LandingPage> builder)
+    {
+        builder.HasKey(e => e.Id);
+
+        builder.Property(e => e.Name)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(e => e.Slug)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.HasIndex(e => e.Slug)
+            .IsUnique();
+
+        builder.HasIndex(e => e.Status);
+
+        builder.HasIndex(e => new { e.Status, e.IsActive });
+
+        builder.HasOne(e => e.FormDefinition)
+            .WithMany()
+            .HasForeignKey(e => e.FormDefinitionId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.Campaign)
+            .WithMany()
+            .HasForeignKey(e => e.CampaignId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(e => e.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+/// <summary>
+/// Entity configuration for LandingPageBlock.
+/// </summary>
+public class LandingPageBlockConfiguration : IEntityTypeConfiguration<LandingPageBlock>
+{
+    public void Configure(EntityTypeBuilder<LandingPageBlock> builder)
+    {
+        builder.HasKey(e => e.Id);
+
+        builder.HasIndex(e => new { e.LandingPageId, e.SortOrder });
+
+        builder.HasOne(e => e.LandingPage)
+            .WithMany(lp => lp.Blocks)
+            .HasForeignKey(e => e.LandingPageId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+/// <summary>
+/// Entity configuration for LandingPageVisit.
+/// </summary>
+public class LandingPageVisitConfiguration : IEntityTypeConfiguration<LandingPageVisit>
+{
+    public void Configure(EntityTypeBuilder<LandingPageVisit> builder)
+    {
+        builder.HasKey(e => e.Id);
+
+        builder.HasIndex(e => e.LandingPageId);
+
+        builder.HasIndex(e => e.VisitedAt);
+
+        builder.HasIndex(e => new { e.LandingPageId, e.VisitorId });
+
+        builder.HasOne(e => e.LandingPage)
+            .WithMany(lp => lp.Visits)
+            .HasForeignKey(e => e.LandingPageId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

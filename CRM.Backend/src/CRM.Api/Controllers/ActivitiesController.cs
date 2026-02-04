@@ -281,4 +281,191 @@ public class ActivitiesController : ControllerBase
 
         return Ok(stats);
     }
+
+    #region Event Attendees
+
+    /// <summary>
+    /// Get attendees for an activity/event
+    /// </summary>
+    [HttpGet("{activityId}/attendees")]
+    public async Task<ActionResult<IEnumerable<EventAttendee>>> GetActivityAttendees(int activityId)
+    {
+        var activity = await _context.Activities.FindAsync(activityId);
+        if (activity == null)
+            return NotFound("Activity not found");
+
+        var attendees = await _context.EventAttendees
+            .Where(a => a.ActivityId == activityId)
+            .OrderByDescending(a => a.IsOrganizer)
+            .ThenBy(a => a.AttendeeType)
+            .ToListAsync();
+
+        return Ok(attendees);
+    }
+
+    /// <summary>
+    /// Add an attendee to an activity/event
+    /// </summary>
+    [HttpPost("{activityId}/attendees")]
+    public async Task<ActionResult<EventAttendee>> AddAttendee(int activityId, [FromBody] EventAttendeeCreateDto dto)
+    {
+        var activity = await _context.Activities.FindAsync(activityId);
+        if (activity == null)
+            return NotFound("Activity not found");
+
+        var attendee = new EventAttendee
+        {
+            ActivityId = activityId,
+            AttendeeType = dto.AttendeeType,
+            AttendeeId = dto.AttendeeId,
+            ResponseStatus = AttendeeResponseStatus.NotResponded,
+            IsOrganizer = dto.IsOrganizer,
+            IsRequired = dto.IsRequired,
+            Role = dto.Role,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.EventAttendees.Add(attendee);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetAttendee), new { activityId, attendeeId = attendee.Id }, attendee);
+    }
+
+    /// <summary>
+    /// Get a specific attendee
+    /// </summary>
+    [HttpGet("{activityId}/attendees/{attendeeId}")]
+    public async Task<ActionResult<EventAttendee>> GetAttendee(int activityId, int attendeeId)
+    {
+        var attendee = await _context.EventAttendees
+            .FirstOrDefaultAsync(a => a.Id == attendeeId && a.ActivityId == activityId);
+
+        if (attendee == null)
+            return NotFound();
+
+        return Ok(attendee);
+    }
+
+    /// <summary>
+    /// Update attendee response status
+    /// </summary>
+    [HttpPatch("{activityId}/attendees/{attendeeId}/respond")]
+    public async Task<ActionResult<EventAttendee>> UpdateAttendeeResponse(
+        int activityId,
+        int attendeeId,
+        [FromBody] AttendeeResponseDto dto)
+    {
+        var attendee = await _context.EventAttendees
+            .FirstOrDefaultAsync(a => a.Id == attendeeId && a.ActivityId == activityId);
+
+        if (attendee == null)
+            return NotFound();
+
+        attendee.ResponseStatus = dto.ResponseStatus;
+        attendee.RespondedAt = DateTime.UtcNow;
+        attendee.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(attendee);
+    }
+
+    /// <summary>
+    /// Mark attendee as attended/not attended (for completed events)
+    /// </summary>
+    [HttpPatch("{activityId}/attendees/{attendeeId}/attendance")]
+    public async Task<ActionResult<EventAttendee>> UpdateAttendance(
+        int activityId,
+        int attendeeId,
+        [FromBody] AttendanceDto dto)
+    {
+        var attendee = await _context.EventAttendees
+            .FirstOrDefaultAsync(a => a.Id == attendeeId && a.ActivityId == activityId);
+
+        if (attendee == null)
+            return NotFound();
+
+        attendee.DidAttend = dto.DidAttend;
+        attendee.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(attendee);
+    }
+
+    /// <summary>
+    /// Remove an attendee from an activity/event
+    /// </summary>
+    [HttpDelete("{activityId}/attendees/{attendeeId}")]
+    public async Task<IActionResult> RemoveAttendee(int activityId, int attendeeId)
+    {
+        var attendee = await _context.EventAttendees
+            .FirstOrDefaultAsync(a => a.Id == attendeeId && a.ActivityId == activityId);
+
+        if (attendee == null)
+            return NotFound();
+
+        _context.EventAttendees.Remove(attendee);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Get all events a user/contact/lead is attending
+    /// </summary>
+    [HttpGet("attendee/{attendeeType}/{attendeeId:int}/events")]
+    public async Task<ActionResult<IEnumerable<Activity>>> GetEventsForAttendee(
+        AttendeeType attendeeType,
+        int attendeeId,
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null)
+    {
+        var query = _context.EventAttendees
+            .Include(ea => ea.Activity)
+            .Where(ea => ea.AttendeeType == attendeeType && ea.AttendeeId == attendeeId);
+
+        if (fromDate.HasValue)
+            query = query.Where(ea => ea.Activity!.ActivityDate >= fromDate);
+
+        if (toDate.HasValue)
+            query = query.Where(ea => ea.Activity!.ActivityDate <= toDate);
+
+        var activities = await query
+            .Select(ea => ea.Activity!)
+            .OrderByDescending(a => a.ActivityDate)
+            .ToListAsync();
+
+        return Ok(activities);
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// DTO for creating a new event attendee
+/// </summary>
+public class EventAttendeeCreateDto
+{
+    public AttendeeType AttendeeType { get; set; }
+    public int AttendeeId { get; set; }
+    public bool IsOrganizer { get; set; }
+    public bool IsRequired { get; set; } = true;
+    public string? Role { get; set; }
+}
+
+/// <summary>
+/// DTO for updating attendee response
+/// </summary>
+public class AttendeeResponseDto
+{
+    public AttendeeResponseStatus ResponseStatus { get; set; }
+}
+
+/// <summary>
+/// DTO for updating attendance
+/// </summary>
+public class AttendanceDto
+{
+    public bool DidAttend { get; set; }
 }

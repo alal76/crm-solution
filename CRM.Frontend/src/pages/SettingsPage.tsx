@@ -48,12 +48,16 @@ import MonitoringDashboard from './admin/MonitoringDashboard';
 import MasterDataSettingsTab from '../components/settings/MasterDataSettingsTab';
 import FeatureManagementTab from '../components/settings/FeatureManagementTab';
 import CompanyBrandingTab from '../components/settings/CompanyBrandingTab';
+import CalendarIntegrationTab from '../components/settings/CalendarIntegrationTab';
+import EmailIntegrationTab from '../components/settings/EmailIntegrationTab';
 import logo from '../assets/logo.png';
 import {
   Cloud as CloudIcon,
   Monitor as MonitorIcon,
   Storage as MasterDataIcon,
   ToggleOn as FeatureToggleIcon,
+  CalendarMonth as CalendarIcon,
+  Email as EmailIcon,
 } from '@mui/icons-material';
 
 interface SettingsTab {
@@ -176,6 +180,18 @@ function SettingsPage() {
           label: 'Modules & Fields',
           icon: <ModuleIcon sx={{ fontSize: 20 }} />,
           component: <ModuleFieldSettingsTab />,
+        },
+        {
+          id: 'calendar-integrations',
+          label: 'Calendar Integrations',
+          icon: <CalendarIcon sx={{ fontSize: 20 }} />,
+          component: <CalendarIntegrationTab />,
+        },
+        {
+          id: 'email-integrations',
+          label: 'Email Integrations',
+          icon: <EmailIcon sx={{ fontSize: 20 }} />,
+          component: <EmailIntegrationTab />,
         },
         {
           id: 'servicerequests',

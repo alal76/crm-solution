@@ -142,4 +142,5 @@ public class Activity : BaseEntity
     public Opportunity? Opportunity { get; set; }
     public MarketingCampaign? Campaign { get; set; }
     public Product? Product { get; set; }
+    public ICollection<EventAttendee> Attendees { get; set; } = new List<EventAttendee>();
 }

@@ -224,6 +224,7 @@ function NavigationContent() {
     'campaigns': { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', menuName: 'Campaigns' },
     'email-templates': { label: 'Email Templates', icon: EmailIcon, path: '/email-templates', menuName: 'EmailTemplates' },
     'campaign-execution': { label: 'Campaign Execution', icon: CampaignExecutionIcon, path: '/campaign-execution', menuName: 'CampaignExecution' },
+    'landing-pages': { label: 'Landing Pages', icon: ViewQuiltIcon, path: '/landing-pages', menuName: 'LandingPages' },
     'relationships': { label: 'Relationships', icon: RelationshipsIcon, path: '/relationships', menuName: 'Relationships' },
     'quotes': { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
     'my-queue': { label: 'My Queue', icon: TaskIcon, path: '/my-queue', menuName: 'MyQueue' },
@@ -265,7 +266,7 @@ function NavigationContent() {
   // Default order for nav items
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'customers', 'customer-overview', 'contacts', 'relationships', 'leads', 'opportunities',
-    'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'quotes',
+    'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'quotes',
     'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics',
     'my-queue', 'activities', 'notes', 'communications', 'interactions'
   ], []);
@@ -336,6 +337,7 @@ function NavigationContent() {
     { id: 'itsm-sla', order: 37, visible: true, category: 'itsm' },
     { id: 'itsm-metrics', order: 38, visible: true, category: 'itsm' },
     { id: 'campaigns', order: 9, visible: true, category: 'sales' },
+    { id: 'landing-pages', order: 9.5, visible: true, category: 'sales' },
     { id: 'quotes', order: 10, visible: true, category: 'sales' },
     { id: 'my-queue', order: 11, visible: true, category: 'productivity' },
     { id: 'activities', order: 12, visible: true, category: 'productivity' },

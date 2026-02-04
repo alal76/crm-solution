@@ -75,6 +75,17 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Quote> Quotes { get; set; }
     public DbSet<QuoteLineItem> QuoteLineItems { get; set; }
     public DbSet<Activity> Activities { get; set; }
+    public DbSet<EventAttendee> EventAttendees { get; set; }
+
+    // Calendar Integration entities (G4)
+    public DbSet<CalendarIntegration> CalendarIntegrations { get; set; }
+    public DbSet<CalendarSyncLog> CalendarSyncLogs { get; set; }
+    public DbSet<CalendarEventMapping> CalendarEventMappings { get; set; }
+
+    // Email Integration entities (G5)
+    public DbSet<EmailIntegration> EmailIntegrations { get; set; }
+    public DbSet<EmailSyncLog> EmailSyncLogs { get; set; }
+    public DbSet<EmailMessageMapping> EmailMessageMappings { get; set; }
 
     // Contact info entities
     public DbSet<Address> Addresses { get; set; }
@@ -189,12 +200,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<CreditApplication> CreditApplications { get; set; }
 
     // =============================================================================
-    // Lead Management Entities (Routing, Duplicate Detection)
+    // Lead Management Entities (Routing, Scoring, Duplicate Detection)
     // =============================================================================
     public DbSet<LeadRoutingRule> LeadRoutingRules { get; set; }
     public DbSet<LeadRoutingCriteria> LeadRoutingCriteria { get; set; }
     public DbSet<LeadRoutingTarget> LeadRoutingTargets { get; set; }
     public DbSet<LeadRoutingLog> LeadRoutingLogs { get; set; }
+    public DbSet<LeadScoreRule> LeadScoreRules { get; set; }
     public DbSet<DuplicateRule> DuplicateRules { get; set; }
     public DbSet<DuplicateMatchField> DuplicateMatchFields { get; set; }
     public DbSet<DuplicateCandidate> DuplicateCandidates { get; set; }
@@ -215,6 +227,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<FormDefinition> FormDefinitions { get; set; }
     public DbSet<FormField> FormFields { get; set; }
     public DbSet<FormSubmission> FormSubmissions { get; set; }
+    public DbSet<LandingPage> LandingPages { get; set; }
+    public DbSet<LandingPageBlock> LandingPageBlocks { get; set; }
+    public DbSet<LandingPageVisit> LandingPageVisits { get; set; }
     public DbSet<AttributionSetting> AttributionSettings { get; set; }
     public DbSet<CampaignTouchpoint> CampaignTouchpoints { get; set; }
     public DbSet<CampaignAttributionSummary> CampaignAttributionSummaries { get; set; }

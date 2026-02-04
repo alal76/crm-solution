@@ -446,6 +446,22 @@ var workflowWorkerOptions = new WorkflowWorkerOptions
 builder.Services.AddSingleton(workflowWorkerOptions);
 builder.Services.AddHostedService<WorkflowWorkerService>();
 
+// Lead Score Decay Background Service - applies inactivity decay to lead scores
+builder.Services.AddLeadScoreDecayService();
+
+// Calendar Sync Service - OAuth2 integration with Google/Outlook calendars (G4)
+builder.Services.Configure<CalendarSyncOptions>(builder.Configuration.GetSection(CalendarSyncOptions.SectionName));
+builder.Services.AddScoped<ICalendarSyncService, CalendarSyncService>();
+builder.Services.AddHostedService<CalendarSyncHostedService>();
+
+// Email Sync Service - IMAP/OAuth sync for unified inbox (G5)
+builder.Services.Configure<EmailSyncOptions>(builder.Configuration.GetSection(EmailSyncOptions.SectionName));
+builder.Services.AddScoped<IEmailSyncService, EmailSyncService>();
+builder.Services.AddHostedService<EmailSyncHostedService>();
+
+// Landing Page Service - Visual landing page builder (G6)
+builder.Services.AddScoped<ILandingPageService, LandingPageService>();
+
 // HEXAGONAL ARCHITECTURE - Register Input Ports (Primary/Driving Ports)
 // These allow controllers to depend on ports instead of concrete services
 builder.Services.AddScoped<IAccountInputPort, AccountService>();
