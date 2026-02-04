@@ -3,6 +3,7 @@
 // Phase 1 Week 5: Added BuiltInSearchProvider registration
 // Phase 1 Week 6: Added MeilisearchProvider registration
 // Phase 1 Week 7: Added AlgoliaProvider registration
+// Phase 2 Week 8: Added BuiltInNotificationProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -89,8 +90,12 @@ public static class ProviderServiceExtensions
         services.AddScoped<ISearchPort, BuiltInSearchProvider>();
         services.AddScoped<BuiltInSearchProvider>();
         
+        // Phase 2: Notification Provider - BuiltInNotificationProvider
+        // Basic SMTP email support with stubs for SMS, Push, In-App
+        services.AddScoped<INotificationPort, BuiltInNotificationProvider>();
+        services.AddScoped<BuiltInNotificationProvider>();
+        
         // Note: Remaining BuiltIn providers will be created in subsequent phases:
-        // - Phase 2: BuiltInNotificationProvider  
         // - Phase 3: BuiltInChatProvider
         // - Phase 4: BuiltInSignatureProvider
         // - Phase 5: BuiltInAnalyticsProvider
