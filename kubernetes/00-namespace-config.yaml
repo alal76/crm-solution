@@ -10,9 +10,64 @@ metadata:
   namespace: crm-app
 data:
   ASPNETCORE_ENVIRONMENT: "Production"
-  DatabaseProvider: "sqlite"
+  DatabaseProvider: "mariadb"
   NODE_ENV: "production"
   REACT_APP_API_URL: "http://crm-api:5000/api"
+  
+  # Feature Management - Provider Selection
+  FeatureManagement__UseExternalChat: "false"
+  FeatureManagement__UseExternalSearch: "false"
+  FeatureManagement__UseExternalNotifications: "false"
+  FeatureManagement__UseExternalAnalytics: "false"
+  FeatureManagement__UseExternalSignatures: "false"
+  FeatureManagement__UseExternalAI: "false"
+  FeatureManagement__UseExternalIntegrations: "false"
+  
+  # Feature Management - Module Toggles
+  FeatureManagement__EnableITSM: "true"
+  FeatureManagement__EnableMarketing: "true"
+  FeatureManagement__EnableCustomerPortal: "false"
+  FeatureManagement__EnablePartnerPortal: "false"
+  FeatureManagement__EnableKnowledgeBase: "true"
+  
+  # Feature Management - Feature Rollout
+  FeatureManagement__NewSearchExperience: "false"
+  FeatureManagement__AIAssistant: "true"
+  FeatureManagement__RealTimeNotifications: "true"
+  FeatureManagement__AdvancedWorkflows: "true"
+  
+  # Provider Types (BuiltIn, Chatwoot, Meilisearch, etc.)
+  Providers__Chat__Type: "BuiltIn"
+  Providers__Search__Type: "BuiltIn"
+  Providers__Notifications__Type: "BuiltIn"
+  Providers__Analytics__Type: "BuiltIn"
+  Providers__Signatures__Type: "BuiltIn"
+  Providers__Integrations__Type: "BuiltIn"
+  Providers__Compliance__Type: "BuiltIn"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crm-provider-config
+  namespace: crm-app
+data:
+  # External Provider Configuration (use when UseExternal* = true)
+  # Chatwoot (Chat Provider)
+  Providers__Chat__Chatwoot__AccountId: "1"
+  Providers__Chat__Chatwoot__InboxId: "1"
+  
+  # Meilisearch (Search Provider)
+  Providers__Search__Meilisearch__Url: "http://meilisearch:7700"
+  Providers__Search__Meilisearch__IndexPrefix: "crm_"
+  
+  # Superset (Analytics Provider)
+  Providers__Analytics__Superset__GuestTokenEnabled: "true"
+  
+  # DocuSeal (Signatures Provider)
+  Providers__Signatures__DocuSeal__Url: "http://docuseal:3001"
+  
+  # N8n (Integrations Provider)
+  Providers__Integrations__N8n__Url: "http://n8n:5678"
 ---
 apiVersion: v1
 kind: Secret
@@ -24,4 +79,29 @@ stringData:
   JWT_SECRET: "your-super-secret-key-that-is-at-least-32-characters-long!!!"
   JWT_ISSUER: "CRMApp"
   JWT_AUDIENCE: "CRMUsers"
-  DB_CONNECTION_STRING: "Data Source=/data/crm.db"
+  DB_CONNECTION_STRING: "Server=mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Prod2024;"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: crm-provider-secrets
+  namespace: crm-app
+type: Opaque
+stringData:
+  # External Provider API Keys (populate when using external providers)
+  # Chatwoot
+  CHATWOOT_API_KEY: ""
+  # Meilisearch
+  MEILISEARCH_API_KEY: ""
+  # Novu (Notifications)
+  NOVU_API_KEY: ""
+  # SendGrid
+  SENDGRID_API_KEY: ""
+  # Superset
+  SUPERSET_PASSWORD: ""
+  # DocuSeal
+  DOCUSEAL_API_KEY: ""
+  # N8n
+  N8N_API_KEY: ""
+  # Fides (Compliance)
+  FIDES_API_KEY: ""

@@ -2826,6 +2826,44 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
+        // ArticleRelationship configuration (ITSM self-referencing many-to-many for related articles)
+        modelBuilder.Entity<ITSM.ArticleRelationship>(entity =>
+        {
+            entity.HasKey(e => e.RelationshipId);
+            entity.HasIndex(e => e.ArticleId);
+            entity.HasIndex(e => e.RelatedArticleId);
+            entity.HasIndex(e => new { e.ArticleId, e.RelatedArticleId }).IsUnique();
+
+            entity.HasOne(e => e.Article)
+                .WithMany(a => a.RelatedArticles)
+                .HasForeignKey(e => e.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.RelatedArticle)
+                .WithMany()
+                .HasForeignKey(e => e.RelatedArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // CIRelationship configuration (CMDB self-referencing many-to-many for CI dependencies)
+        modelBuilder.Entity<ITSM.CIRelationship>(entity =>
+        {
+            entity.HasKey(e => e.RelationshipId);
+            entity.HasIndex(e => e.ParentCIId);
+            entity.HasIndex(e => e.ChildCIId);
+            entity.HasIndex(e => new { e.ParentCIId, e.ChildCIId, e.RelationshipType }).IsUnique();
+
+            entity.HasOne(e => e.ParentCI)
+                .WithMany(ci => ci.ChildRelationships)
+                .HasForeignKey(e => e.ParentCIId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.ChildCI)
+                .WithMany(ci => ci.ParentRelationships)
+                .HasForeignKey(e => e.ChildCIId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         // SLAPolicy configuration
         modelBuilder.Entity<SLAPolicy>(entity =>
         {

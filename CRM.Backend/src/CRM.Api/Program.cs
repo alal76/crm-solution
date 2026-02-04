@@ -28,6 +28,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.FeatureManagement;
+using CRM.Infrastructure.DependencyInjection;
 using AspNetCoreRateLimit;
 using Serilog;
 using System.Text;
@@ -85,6 +87,18 @@ builder.Host.UseSerilog();
 
 // Add caching services
 builder.Services.AddMemoryCache();
+
+// Add Feature Management
+// Enables deployment-time provider selection via FeatureManagement configuration
+// See: docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md Section 17
+builder.Services.AddFeatureManagement(builder.Configuration.GetSection("FeatureManagement"));
+Log.Information("Feature Management configured - Provider selection flags loaded");
+
+// Add Pluggable Providers
+// Registers all provider factories and enables runtime provider selection
+// See: docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md Section 17
+builder.Services.AddPluggableProviders(builder.Configuration);
+Log.Information("Pluggable Providers configured - Factory pattern enabled for provider resolution");
 
 // Configure Redis cache
 var redisConfig = builder.Configuration.GetSection("Redis");
