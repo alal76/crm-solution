@@ -1,15 +1,18 @@
 // Part of the Pluggable Architecture implementation
 // Phase 0 Week 4: DI Registration Extensions
 // Phase 1 Week 5: Added BuiltInSearchProvider registration
+// Phase 1 Week 6: Added MeilisearchProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Factories;
 using CRM.Infrastructure.Providers.BuiltIn;
+using CRM.Infrastructure.Providers.Meilisearch;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -133,17 +136,22 @@ public static class ProviderServiceExtensions
         var meilisearchConfig = config.GetSection("Meilisearch");
         if (!string.IsNullOrEmpty(meilisearchConfig["Url"]))
         {
-            // Will be registered when MeilisearchProvider is implemented in Phase 1
-            // services.Configure<MeilisearchConfiguration>(meilisearchConfig);
-            // services.AddHttpClient<MeilisearchProvider>(...);
+            // Register Meilisearch configuration and provider
+            services.Configure<MeilisearchConfiguration>(meilisearchConfig);
+            services.AddScoped<MeilisearchProvider>();
+            services.AddScoped<MeilisearchHealthCheck>();
+            
+            // Register as ISearchPort for factory resolution
+            services.AddScoped<ISearchPort, MeilisearchProvider>();
         }
         
         // Algolia
         var algoliaConfig = config.GetSection("Algolia");
         if (!string.IsNullOrEmpty(algoliaConfig["ApplicationId"]))
         {
-            // Will be registered when AlgoliaProvider is implemented in Phase 1
+            // Will be registered when AlgoliaProvider is implemented in Phase 1 Week 7
             // services.Configure<AlgoliaConfiguration>(algoliaConfig);
+            // services.AddScoped<AlgoliaProvider>();
         }
     }
     
