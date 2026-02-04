@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -46,26 +62,26 @@ public interface IDbCacheService
     Task<Department?> GetDepartmentByIdAsync(int id, CancellationToken ct = default);
     Task<Department?> GetDepartmentByCodeAsync(string code, CancellationToken ct = default);
     Task InvalidateDepartmentsAsync(CancellationToken ct = default);
-    
+
     // User Groups
     Task<IEnumerable<UserGroup>> GetUserGroupsAsync(CancellationToken ct = default);
     Task<UserGroup?> GetUserGroupByIdAsync(int id, CancellationToken ct = default);
     Task InvalidateUserGroupsAsync(CancellationToken ct = default);
-    
+
     // Lookups
     Task<IEnumerable<LookupCategory>> GetLookupCategoriesAsync(CancellationToken ct = default);
     Task<IEnumerable<LookupItem>> GetLookupItemsAsync(string categoryName, CancellationToken ct = default);
     Task InvalidateLookupsAsync(CancellationToken ct = default);
-    
+
     // Products
     Task<IEnumerable<Product>> GetProductsAsync(CancellationToken ct = default);
     Task InvalidateProductsAsync(CancellationToken ct = default);
-    
+
     // Module Field Configurations
     Task<IEnumerable<ModuleFieldConfiguration>> GetModuleFieldConfigsAsync(CancellationToken ct = default);
     Task<IEnumerable<ModuleFieldConfiguration>> GetModuleFieldConfigsByModuleAsync(string moduleName, CancellationToken ct = default);
     Task InvalidateModuleFieldConfigsAsync(CancellationToken ct = default);
-    
+
     // Cache Management
     Task InvalidateAllAsync(CancellationToken ct = default);
     Task WarmupCacheAsync(CancellationToken ct = default);
@@ -240,7 +256,7 @@ public class DbCacheService : IDbCacheService
                     .Include(c => c.Items.Where(i => i.IsActive))
                     .FirstOrDefaultAsync(c => c.Name == categoryName && c.IsActive, ct);
 
-                var items = category?.Items?.OrderBy(i => i.SortOrder).ToList() 
+                var items = category?.Items?.OrderBy(i => i.SortOrder).ToList()
                     ?? new List<LookupItem>();
                 return new CacheWrapper<LookupItem> { Items = items };
             },
@@ -347,7 +363,7 @@ public class DbCacheService : IDbCacheService
     public async Task WarmupCacheAsync(CancellationToken ct = default)
     {
         _logger.LogInformation("Warming up database cache");
-        
+
         try
         {
             // Load frequently accessed data into cache
@@ -356,7 +372,7 @@ public class DbCacheService : IDbCacheService
             await GetLookupCategoriesAsync(ct);
             await GetModuleFieldConfigsAsync(ct);
             await GetProductsAsync(ct);
-            
+
             _logger.LogInformation("Database cache warmup completed");
         }
         catch (Exception ex)

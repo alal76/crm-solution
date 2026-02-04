@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 namespace CRM.Core.Dtos;
 
 /// <summary>
@@ -6,9 +22,9 @@ namespace CRM.Core.Dtos;
 public class SystemSettingsDto
 {
     public int Id { get; set; }
-    
+
     #region Module Enable/Disable
-    
+
     public bool CustomersEnabled { get; set; }
     public bool ContactsEnabled { get; set; }
     public bool LeadsEnabled { get; set; }
@@ -26,11 +42,11 @@ public class SystemSettingsDto
     public bool EmailEnabled { get; set; }
     public bool WhatsAppEnabled { get; set; }
     public bool SocialMediaEnabled { get; set; }
-    
+
     #endregion
-    
+
     #region Company/Branding
-    
+
     public string CompanyName { get; set; } = string.Empty;
     public string? CompanyLogoUrl { get; set; }
     public string? CompanyLoginLogoUrl { get; set; }
@@ -43,116 +59,116 @@ public class SystemSettingsDto
     public int? SelectedPaletteId { get; set; }
     public string? SelectedPaletteName { get; set; }
     public DateTime? PalettesLastRefreshed { get; set; }
-    
+
     #endregion
-    
+
     #region Security Settings
-    
+
     public bool RequireTwoFactor { get; set; }
     public int MinPasswordLength { get; set; }
     public int SessionTimeoutMinutes { get; set; }
     public bool AllowUserRegistration { get; set; }
     public bool RequireApprovalForNewUsers { get; set; }
     public bool QuickAdminLoginEnabled { get; set; }
-    
+
     #endregion
-    
+
     #region Social Login - Google
-    
+
     public bool GoogleAuthEnabled { get; set; }
     public string? GoogleClientId { get; set; }
     public string? GoogleClientSecret { get; set; }
-    
+
     #endregion
-    
+
     #region Social Login - Microsoft Account
-    
+
     public bool MicrosoftAuthEnabled { get; set; }
     public string? MicrosoftClientId { get; set; }
     public string? MicrosoftClientSecret { get; set; }
     public string? MicrosoftTenantId { get; set; }
-    
+
     #endregion
-    
+
     #region Social Login - Azure Active Directory
-    
+
     public bool AzureAdAuthEnabled { get; set; }
     public string? AzureAdClientId { get; set; }
     public string? AzureAdClientSecret { get; set; }
     public string? AzureAdTenantId { get; set; }
     public string? AzureAdAuthority { get; set; }
-    
+
     #endregion
-    
+
     #region Social Login - LinkedIn
-    
+
     public bool LinkedInAuthEnabled { get; set; }
     public string? LinkedInClientId { get; set; }
     public string? LinkedInClientSecret { get; set; }
-    
+
     #endregion
-    
+
     #region Social Login - Facebook
-    
+
     public bool FacebookAuthEnabled { get; set; }
     public string? FacebookAppId { get; set; }
     public string? FacebookAppSecret { get; set; }
-    
+
     #endregion
-    
+
     #region Feature Flags
-    
+
     public bool ApiAccessEnabled { get; set; }
     public bool EmailNotificationsEnabled { get; set; }
     public bool AuditLoggingEnabled { get; set; }
-    
+
     #endregion
-    
+
     #region Database Provider Features
-    
+
     public bool MariaDbEnabled { get; set; }
     public bool PostgreSqlEnabled { get; set; }
     public bool SqlServerEnabled { get; set; }
     public bool SqliteEnabled { get; set; }
     public bool MySqlEnabled { get; set; }
     public string ActiveDatabaseProvider { get; set; } = "mariadb";
-    
+
     #endregion
-    
+
     #region Navigation Settings
-    
+
     public string? NavOrderConfig { get; set; }
-    
+
     #endregion
-    
+
     #region SSL/TLS Settings
-    
+
     public bool HttpsEnabled { get; set; }
     public string? SslCertificatePath { get; set; }
     public string? SslPrivateKeyPath { get; set; }
     public DateTime? SslCertificateExpiry { get; set; }
     public string? SslCertificateSubject { get; set; }
     public bool ForceHttpsRedirect { get; set; }
-    
+
     #endregion
-    
+
     #region Sample Data Settings
-    
+
     public bool SampleDataSeeded { get; set; }
     public DateTime? SampleDataLastSeeded { get; set; }
-    
+
     #endregion
-    
+
     #region Customization
-    
+
     public string DateFormat { get; set; } = "yyyy-MM-dd";
     public string TimeFormat { get; set; } = "HH:mm:ss";
     public string DefaultCurrency { get; set; } = "USD";
     public string DefaultTimezone { get; set; } = "UTC";
     public string DefaultLanguage { get; set; } = "en";
-    
+
     #endregion
-    
+
     public DateTime LastModified { get; set; }
     public int? ModifiedByUserId { get; set; }
 }
@@ -180,7 +196,7 @@ public class UpdateSystemSettingsRequest
     public bool? EmailEnabled { get; set; }
     public bool? WhatsAppEnabled { get; set; }
     public bool? SocialMediaEnabled { get; set; }
-    
+
     // Company/Branding
     public string? CompanyName { get; set; }
     public string? CompanyLogoUrl { get; set; }
@@ -193,7 +209,7 @@ public class UpdateSystemSettingsRequest
     public bool? UseGroupHeaderColor { get; set; }
     public int? SelectedPaletteId { get; set; }
     public string? SelectedPaletteName { get; set; }
-    
+
     // Security Settings
     public bool? RequireTwoFactor { get; set; }
     public int? MinPasswordLength { get; set; }
@@ -201,40 +217,40 @@ public class UpdateSystemSettingsRequest
     public bool? AllowUserRegistration { get; set; }
     public bool? RequireApprovalForNewUsers { get; set; }
     public bool? QuickAdminLoginEnabled { get; set; }
-    
+
     // Social Login - Google
     public bool? GoogleAuthEnabled { get; set; }
     public string? GoogleClientId { get; set; }
     public string? GoogleClientSecret { get; set; }
-    
+
     // Social Login - Microsoft Account
     public bool? MicrosoftAuthEnabled { get; set; }
     public string? MicrosoftClientId { get; set; }
     public string? MicrosoftClientSecret { get; set; }
     public string? MicrosoftTenantId { get; set; }
-    
+
     // Social Login - Azure Active Directory
     public bool? AzureAdAuthEnabled { get; set; }
     public string? AzureAdClientId { get; set; }
     public string? AzureAdClientSecret { get; set; }
     public string? AzureAdTenantId { get; set; }
     public string? AzureAdAuthority { get; set; }
-    
+
     // Social Login - LinkedIn
     public bool? LinkedInAuthEnabled { get; set; }
     public string? LinkedInClientId { get; set; }
     public string? LinkedInClientSecret { get; set; }
-    
+
     // Social Login - Facebook
     public bool? FacebookAuthEnabled { get; set; }
     public string? FacebookAppId { get; set; }
     public string? FacebookAppSecret { get; set; }
-    
+
     // Feature Flags
     public bool? ApiAccessEnabled { get; set; }
     public bool? EmailNotificationsEnabled { get; set; }
     public bool? AuditLoggingEnabled { get; set; }
-    
+
     // Database Provider Features
     public bool? MariaDbEnabled { get; set; }
     public bool? PostgreSqlEnabled { get; set; }
@@ -242,10 +258,10 @@ public class UpdateSystemSettingsRequest
     public bool? SqliteEnabled { get; set; }
     public bool? MySqlEnabled { get; set; }
     public string? ActiveDatabaseProvider { get; set; }
-    
+
     // Navigation Settings
     public string? NavOrderConfig { get; set; }
-    
+
     // SSL/TLS Settings
     public bool? HttpsEnabled { get; set; }
     public string? SslCertificatePath { get; set; }
@@ -253,11 +269,11 @@ public class UpdateSystemSettingsRequest
     public DateTime? SslCertificateExpiry { get; set; }
     public string? SslCertificateSubject { get; set; }
     public bool? ForceHttpsRedirect { get; set; }
-    
+
     // Sample Data Settings
     public bool? SampleDataSeeded { get; set; }
     public DateTime? SampleDataLastSeeded { get; set; }
-    
+
     // Customization
     public string? DateFormat { get; set; }
     public string? TimeFormat { get; set; }

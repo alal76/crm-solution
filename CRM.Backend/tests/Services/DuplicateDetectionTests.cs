@@ -145,23 +145,23 @@ public class DuplicateDetectionTests
             MatchThreshold = 70,
             MatchFields = new List<DuplicateMatchField>
             {
-                new DuplicateMatchField 
-                { 
-                    FieldName = "Email", 
-                    MatchType = MatchTypeEntity.Exact, 
-                    Weight = 40 
+                new DuplicateMatchField
+                {
+                    FieldName = "Email",
+                    MatchType = MatchTypeEntity.Exact,
+                    Weight = 40
                 },
-                new DuplicateMatchField 
-                { 
-                    FieldName = "CompanyName", 
-                    MatchType = MatchTypeEntity.Fuzzy, 
-                    Weight = 30 
+                new DuplicateMatchField
+                {
+                    FieldName = "CompanyName",
+                    MatchType = MatchTypeEntity.Fuzzy,
+                    Weight = 30
                 },
-                new DuplicateMatchField 
-                { 
-                    FieldName = "Phone", 
-                    MatchType = MatchTypeEntity.Normalized, 
-                    Weight = 30 
+                new DuplicateMatchField
+                {
+                    FieldName = "Phone",
+                    MatchType = MatchTypeEntity.Normalized,
+                    Weight = 30
                 }
             }
         };
@@ -704,8 +704,8 @@ public class DuplicateDetectionTests
             },
             FieldPreviews = new Dictionary<string, FieldMergePreview>
             {
-                { "Email", new FieldMergePreview 
-                    { 
+                { "Email", new FieldMergePreview
+                    {
                         FieldName = "Email",
                         FinalValue = "john@example.com",
                         SourceRecordId = 1

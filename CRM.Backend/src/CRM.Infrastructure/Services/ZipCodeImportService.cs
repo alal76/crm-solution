@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -26,22 +42,22 @@ public interface IZipCodeImportService
     /// Import ZIP codes from GeoNames all countries file
     /// </summary>
     Task<ZipCodeImportResult> ImportFromGeoNamesAsync(CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Import ZIP codes for a specific country from GeoNames
     /// </summary>
     Task<ZipCodeImportResult> ImportCountryFromGeoNamesAsync(string countryCode, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Import ZIP codes from a GitHub repository
     /// </summary>
     Task<ZipCodeImportResult> ImportFromGitHubAsync(string? repositoryUrl = null, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Get import status and statistics
     /// </summary>
     Task<ZipCodeImportStatus> GetImportStatusAsync();
-    
+
     /// <summary>
     /// Check if an import is currently running
     /// </summary>
@@ -79,14 +95,14 @@ public class ZipCodeImportService : IZipCodeImportService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<ZipCodeImportService> _logger;
     private readonly IResilienceService? _resilienceService;
-    
+
     // GeoNames URLs
     private const string GEONAMES_ALL_COUNTRIES_URL = "https://download.geonames.org/export/zip/allCountries.zip";
     private const string GEONAMES_COUNTRY_URL_TEMPLATE = "https://download.geonames.org/export/zip/{0}.zip";
-    
+
     // Default GitHub URL for CRM ZIP code data
     private const string DEFAULT_GITHUB_URL = "https://raw.githubusercontent.com/abhilal/crm-zipcode-data/main/data/zipcodes.json";
-    
+
     // Import state
     private bool _isRunning = false;
     private int _totalRecords = 0;
@@ -94,7 +110,7 @@ public class ZipCodeImportService : IZipCodeImportService
     private string? _currentSource;
     private string? _currentCountry;
     private ZipCodeImportResult? _lastResult;
-    
+
     // Country code to name mapping
     private static readonly Dictionary<string, string> CountryNames = new()
     {
@@ -165,10 +181,10 @@ public class ZipCodeImportService : IZipCodeImportService
 
             using var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromMinutes(30);
-            
+
             // Download the ZIP file with resilience if available
             _logger.LogInformation("Downloading {Url}...", GEONAMES_ALL_COUNTRIES_URL);
-            
+
             List<ZipCode> records;
             if (_resilienceService != null)
             {
@@ -197,7 +213,7 @@ public class ZipCodeImportService : IZipCodeImportService
             var result = await ImportRecordsAsync(records, cancellationToken);
             result.Source = "GeoNames (allCountries.zip)";
             result.Duration = DateTime.UtcNow - startTime;
-            
+
             _lastResult = result;
             return result;
         }
@@ -246,7 +262,7 @@ public class ZipCodeImportService : IZipCodeImportService
 
             using var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromMinutes(10);
-            
+
             _logger.LogInformation("Downloading {Url}...", url);
             using var response = await client.GetAsync(url, cancellationToken);
             response.EnsureSuccessStatusCode();
@@ -260,7 +276,7 @@ public class ZipCodeImportService : IZipCodeImportService
             var result = await ImportRecordsAsync(records, cancellationToken);
             result.Source = $"GeoNames ({countryCode}.zip)";
             result.Duration = DateTime.UtcNow - startTime;
-            
+
             _lastResult = result;
             return result;
         }
@@ -308,7 +324,7 @@ public class ZipCodeImportService : IZipCodeImportService
 
             using var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromMinutes(10);
-            
+
             var response = await client.GetAsync(url, cancellationToken);
             response.EnsureSuccessStatusCode();
 
@@ -353,7 +369,7 @@ public class ZipCodeImportService : IZipCodeImportService
             var result = await ImportRecordsAsync(zipCodes, cancellationToken);
             result.Source = $"GitHub ({url})";
             result.Duration = DateTime.UtcNow - startTime;
-            
+
             _lastResult = result;
             return result;
         }
@@ -379,7 +395,7 @@ public class ZipCodeImportService : IZipCodeImportService
     private async Task<List<ZipCode>> ParseGeoNamesZipAsync(Stream zipStream, CancellationToken cancellationToken)
     {
         var records = new List<ZipCode>();
-        
+
         using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
         foreach (var entry in archive.Entries)
         {
@@ -391,7 +407,7 @@ public class ZipCodeImportService : IZipCodeImportService
             while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
             {
                 if (cancellationToken.IsCancellationRequested) break;
-                
+
                 var parts = line.Split('\t');
                 if (parts.Length < 10) continue;
 
@@ -433,7 +449,7 @@ public class ZipCodeImportService : IZipCodeImportService
     {
         var result = new ZipCodeImportResult { Success = true };
         const int batchSize = 5000;
-        
+
         try
         {
             // Get existing postal codes for deduplication
@@ -441,11 +457,11 @@ public class ZipCodeImportService : IZipCodeImportService
             var existingCodes = await _context.ZipCodes
                 .Select(z => new { z.CountryCode, z.PostalCode })
                 .ToListAsync(cancellationToken);
-            
+
             var existingSet = existingCodes
                 .Select(x => $"{x.CountryCode}:{x.PostalCode}")
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
-            
+
             _logger.LogInformation("Found {Count:N0} existing ZIP codes", existingSet.Count);
 
             // Filter to only new records
@@ -454,7 +470,7 @@ public class ZipCodeImportService : IZipCodeImportService
                 .ToList();
 
             result.RecordsSkipped = records.Count - newRecords.Count;
-            _logger.LogInformation("Importing {New:N0} new records, skipping {Skip:N0} existing", 
+            _logger.LogInformation("Importing {New:N0} new records, skipping {Skip:N0} existing",
                 newRecords.Count, result.RecordsSkipped);
 
             // Batch insert
@@ -470,11 +486,11 @@ public class ZipCodeImportService : IZipCodeImportService
                 result.RecordsImported += batch.Count;
 
                 _currentCountry = batch.LastOrDefault()?.CountryCode;
-                
+
                 if ((i / batchSize) % 10 == 0)
                 {
-                    _logger.LogInformation("Import progress: {Processed:N0}/{Total:N0} ({Percent:F1}%)", 
-                        _processedRecords, newRecords.Count, 
+                    _logger.LogInformation("Import progress: {Processed:N0}/{Total:N0} ({Percent:F1}%)",
+                        _processedRecords, newRecords.Count,
                         newRecords.Count > 0 ? (_processedRecords * 100.0 / newRecords.Count) : 100);
                 }
             }
@@ -504,8 +520,8 @@ public class ZipCodeImportService : IZipCodeImportService
     private static string GetCountryName(string? countryCode)
     {
         if (string.IsNullOrEmpty(countryCode)) return "Unknown";
-        return CountryNames.TryGetValue(countryCode.ToUpperInvariant(), out var name) 
-            ? name 
+        return CountryNames.TryGetValue(countryCode.ToUpperInvariant(), out var name)
+            ? name
             : countryCode;
     }
 

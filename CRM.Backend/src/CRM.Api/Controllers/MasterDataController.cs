@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -24,8 +40,8 @@ public class MasterDataController : ControllerBase
     private readonly IMasterDataSeederService _masterDataSeeder;
 
     public MasterDataController(
-        ICrmDbContext context, 
-        CrmDbContext dbContext, 
+        ICrmDbContext context,
+        CrmDbContext dbContext,
         ILogger<MasterDataController> logger,
         IMasterDataSeederService masterDataSeeder)
     {
@@ -57,8 +73,8 @@ public class MasterDataController : ControllerBase
                     populated = stats.ColorPalettesPopulated
                 },
                 allPopulated = stats.ZipCodesPopulated && stats.ColorPalettesPopulated,
-                message = stats.ZipCodesPopulated && stats.ColorPalettesPopulated 
-                    ? "All master data is populated and will persist across deployments." 
+                message = stats.ZipCodesPopulated && stats.ColorPalettesPopulated
+                    ? "All master data is populated and will persist across deployments."
                     : "Some master data needs to be seeded. Data persists in the database across deployments."
             });
         }
@@ -136,10 +152,10 @@ public class MasterDataController : ControllerBase
         {
             var zipCodesCount = 0;
             try { zipCodesCount = await _dbContext.ZipCodes.CountAsync(); } catch { }
-            
+
             var serviceRequestCategoriesCount = 0;
             try { serviceRequestCategoriesCount = await _context.ServiceRequestCategories.CountAsync(); } catch { }
-            
+
             var serviceRequestTypesCount = 0;
             try { serviceRequestTypesCount = await _context.ServiceRequestTypes.CountAsync(); } catch { }
 
@@ -471,7 +487,7 @@ public class MasterDataController : ControllerBase
         {
             // Limit page size to prevent excessive data transfer
             pageSize = Math.Min(pageSize, 100);
-            
+
             var query = _dbContext.ZipCodes.AsNoTracking().AsQueryable();
 
             // Apply country filter first (most selective)
@@ -484,12 +500,12 @@ public class MasterDataController : ControllerBase
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchTerm = search.Trim();
-                
+
                 // For postal code searches, use StartsWith for better index usage
                 if (searchTerm.Length <= 10 && searchTerm.All(c => char.IsLetterOrDigit(c) || c == '-' || c == ' '))
                 {
                     // Likely a postal code search - use prefix matching
-                    query = query.Where(z => 
+                    query = query.Where(z =>
                         z.PostalCode.StartsWith(searchTerm) ||
                         z.City.StartsWith(searchTerm) ||
                         (z.State != null && z.State.StartsWith(searchTerm)) ||
@@ -499,7 +515,7 @@ public class MasterDataController : ControllerBase
                 {
                     // Full text search for longer terms
                     var searchLower = searchTerm.ToLower();
-                    query = query.Where(z => 
+                    query = query.Where(z =>
                         z.PostalCode.ToLower().Contains(searchLower) ||
                         z.City.ToLower().Contains(searchLower) ||
                         (z.State != null && z.State.ToLower().Contains(searchLower)));
@@ -508,7 +524,7 @@ public class MasterDataController : ControllerBase
 
             // Get total count using a more efficient approach
             var totalCount = await query.CountAsync();
-            
+
             // Use efficient ordering based on filters applied
             IOrderedQueryable<ZipCode> orderedQuery;
             if (!string.IsNullOrWhiteSpace(search))
@@ -526,7 +542,7 @@ public class MasterDataController : ControllerBase
                 // Default: order by country, state, city
                 orderedQuery = query.OrderBy(z => z.CountryCode).ThenBy(z => z.State).ThenBy(z => z.City);
             }
-            
+
             var items = await orderedQuery
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -570,12 +586,12 @@ public class MasterDataController : ControllerBase
 
             limit = Math.Min(limit, 50); // Cap at 50 results
             var searchTerm = q.Trim();
-            
+
             var query = _dbContext.ZipCodes.AsNoTracking();
 
             // Optimized search using StartsWith for better index usage
             var items = await query
-                .Where(z => 
+                .Where(z =>
                     z.PostalCode.StartsWith(searchTerm) ||
                     z.City.StartsWith(searchTerm))
                 .OrderBy(z => z.PostalCode.StartsWith(searchTerm) ? 0 : 1)

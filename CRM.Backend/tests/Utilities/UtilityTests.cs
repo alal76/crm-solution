@@ -31,8 +31,8 @@ public class UtilityTests
     public void Email_ValidationPattern(string email, bool expected)
     {
         // Simple email validation
-        var isValid = !string.IsNullOrEmpty(email) && 
-                      email.Contains("@") && 
+        var isValid = !string.IsNullOrEmpty(email) &&
+                      email.Contains("@") &&
                       email.IndexOf("@") > 0 &&
                       email.IndexOf("@") < email.Length - 1;
         isValid.Should().Be(expected);

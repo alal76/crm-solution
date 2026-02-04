@@ -26,7 +26,7 @@ spec:
       serviceAccountName: crm-frontend
       containers:
       - name: crm-frontend
-        image: 192.168.0.9:5000/crm-frontend:latest
+        image: ${REGISTRY_HOST:-registry.local}:5000/crm-frontend:latest  # Replace REGISTRY_HOST
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
@@ -37,7 +37,7 @@ spec:
             name: crm-config
         env:
         - name: REACT_APP_API_URL
-          value: "http://192.168.0.9:5000/api"
+          value: "/api"  # Use relative URL with ingress routing
         resources:
           requests:
             memory: "256Mi"

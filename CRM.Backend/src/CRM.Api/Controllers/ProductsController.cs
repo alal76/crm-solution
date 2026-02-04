@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Api.Hubs;
@@ -16,7 +32,7 @@ public class ProductsController : ControllerBase
     private readonly ICrmNotificationService _notificationService;
 
     public ProductsController(
-        IProductService productService, 
+        IProductService productService,
         ILogger<ProductsController> logger,
         ICrmNotificationService notificationService)
     {
@@ -95,10 +111,10 @@ public class ProductsController : ControllerBase
     {
         try
         {
-            var serviceTypes = new[] { 
-                ProductType.Service, 
-                ProductType.Consulting, 
-                ProductType.ManagedService, 
+            var serviceTypes = new[] {
+                ProductType.Service,
+                ProductType.Consulting,
+                ProductType.ManagedService,
                 ProductType.ProfessionalServices,
                 ProductType.Training,
                 ProductType.SupportContract
@@ -121,11 +137,11 @@ public class ProductsController : ControllerBase
         {
             var id = await _productService.CreateProductAsync(product);
             product.Id = id;
-            
+
             // Notify connected clients about the new product
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
             await _notificationService.NotifyRecordCreatedAsync("Product", id, product, userId);
-            
+
             return CreatedAtAction(nameof(GetById), new { id }, product);
         }
         catch (Exception ex)
@@ -142,11 +158,11 @@ public class ProductsController : ControllerBase
         {
             product.Id = id;
             await _productService.UpdateProductAsync(product);
-            
+
             // Notify connected clients about the update
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
             await _notificationService.NotifyRecordUpdatedAsync("Product", id, product, userId);
-            
+
             return NoContent();
         }
         catch (Exception ex)
@@ -162,11 +178,11 @@ public class ProductsController : ControllerBase
         try
         {
             await _productService.DeleteProductAsync(id);
-            
+
             // Notify connected clients about the deletion
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
             await _notificationService.NotifyRecordDeletedAsync("Product", id, userId);
-            
+
             return NoContent();
         }
         catch (Exception ex)

@@ -136,7 +136,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
           setStates([]);
           setCities([]);
           setPostalCodes([]);
-          const data = await zipCodeService.getStates(formData.countryCode);
+          const data = await zipCodeService.getStates(formData.countryCode!);
           setStates(data);
         } catch (err) {
           console.error('Error loading states:', err);
@@ -157,7 +157,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
           setLoadingCities(true);
           setCities([]);
           setPostalCodes([]);
-          const data = await zipCodeService.getCities(formData.countryCode, selectedState.stateCode);
+          const data = await zipCodeService.getCities(formData.countryCode!, selectedState.stateCode);
           setCities(data);
         } catch (err) {
           console.error('Error loading cities:', err);
@@ -176,7 +176,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
       const loadPostalCodes = async () => {
         try {
           setLoadingPostalCodes(true);
-          const data = await zipCodeService.getPostalCodes(formData.countryCode, selectedState.stateCode, formData.city);
+          const data = await zipCodeService.getPostalCodes(formData.countryCode!, selectedState.stateCode, formData.city);
           setPostalCodes(data);
         } catch (err) {
           console.error('Error loading postal codes:', err);
@@ -217,7 +217,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
         name: newLocalityName.trim(),
         city: formData.city,
         stateCode: selectedState?.stateCode || formData.state,
-        countryCode: formData.countryCode,
+        countryCode: formData.countryCode || 'US',
         zipCodeId: formData.zipCodeId,
       });
       setLocalities([...localities, locality]);
@@ -272,7 +272,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
 
   const handlePostalCodeChange = (value: string) => {
     setFormData({ ...formData, postalCode: value });
-    validatePostalCode(value, formData.countryCode);
+    validatePostalCode(value, formData.countryCode || 'US');
     lookupPostalCode(value, formData.countryCode || undefined);
   };
 

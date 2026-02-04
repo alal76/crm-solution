@@ -533,4 +533,82 @@ test.describe('BVT - Build Verification Tests', () => {
       expect(response.ok()).toBeTruthy();
     });
   });
+
+  test.describe('BVT-14: ITSM Phase 4 Critical Path', () => {
+    // Webhooks
+    test('BVT-14-001: List webhook subscriptions', async ({ request }) => {
+      const response = await request.get(`${API_URL}/api/itsm/webhooks/subscriptions`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      expect(response.status()).toBeLessThan(500);
+    });
+
+    test('BVT-14-002: Get webhook event types', async ({ request }) => {
+      const response = await request.get(`${API_URL}/api/itsm/webhooks/event-types`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      expect(response.status()).toBeLessThan(500);
+    });
+
+    // Email-to-Ticket
+    test('BVT-14-003: Get email parsing config', async ({ request }) => {
+      const response = await request.get(`${API_URL}/api/itsm/email/config`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      expect(response.status()).toBeLessThan(500);
+    });
+
+    // Dashboard
+    test('BVT-14-004: Get ITSM dashboard metrics', async ({ request }) => {
+      const response = await request.get(`${API_URL}/api/itsm/dashboard/metrics`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      expect(response.status()).toBeLessThan(500);
+    });
+
+    test('BVT-14-005: Get incident trends', async ({ request }) => {
+      const response = await request.get(`${API_URL}/api/itsm/dashboard/incident-trends`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      expect(response.status()).toBeLessThan(500);
+    });
+
+    test('BVT-14-006: Get SLA compliance', async ({ request }) => {
+      const response = await request.get(`${API_URL}/api/itsm/dashboard/sla-compliance`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      expect(response.status()).toBeLessThan(500);
+    });
+
+    test('BVT-14-007: Get executive summary', async ({ request }) => {
+      const response = await request.get(`${API_URL}/api/itsm/dashboard/executive-summary`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      expect(response.status()).toBeLessThan(500);
+    });
+
+    // Monitoring Integration
+    test('BVT-14-008: Get monitoring sources', async ({ request }) => {
+      const response = await request.get(`${API_URL}/api/itsm/monitoring/sources`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      expect(response.status()).toBeLessThan(500);
+    });
+
+    // CI/CD Integration
+    test('BVT-14-009: Get registered pipelines', async ({ request }) => {
+      const response = await request.get(`${API_URL}/api/itsm/cicd/pipelines`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      expect(response.status()).toBeLessThan(500);
+    });
+
+    // Chatbot
+    test('BVT-14-010: Get chatbot quick actions', async ({ request }) => {
+      const response = await request.get(`${API_URL}/api/itsm/chatbot/quick-actions`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      expect(response.status()).toBeLessThan(500);
+    });
+  });
 });

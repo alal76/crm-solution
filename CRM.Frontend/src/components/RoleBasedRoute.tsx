@@ -105,8 +105,13 @@ function RoleBasedRoute({
 
   // Check permission
   if (requiredPermission) {
-    const permissionKey = requiredPermission as any;
-    if (!hasPermission(permissionKey)) {
+    // Cast to expected permission key type - requiredPermission should match UserPermissions or GroupPermissions keys
+    type PermissionKey = 'canCreateCustomers' | 'canEditCustomers' | 'canDeleteCustomers' | 
+      'canCreateOpportunities' | 'canEditOpportunities' | 'canDeleteOpportunities' |
+      'canCreateProducts' | 'canEditProducts' | 'canDeleteProducts' |
+      'canManageCampaigns' | 'canViewReports' | 'canManageUsers';
+    
+    if (!hasPermission(requiredPermission as PermissionKey)) {
       return (
         <Box sx={{ p: 4 }}>
           <Alert severity="error">

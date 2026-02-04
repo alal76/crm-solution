@@ -4,10 +4,17 @@
     "!src/**/*.d.ts",
     "!src/index.tsx",
     "!src/reportWebVitals.ts",
-    "!src/**/*.stories.tsx"
+    "!src/**/*.stories.tsx",
+    "!src/__tests__/**"
   ],
   "coveragePathIgnorePatterns": [
     "/node_modules/"
+  ],
+  "coverageReporters": [
+    "text",
+    "lcov",
+    "cobertura",
+    "html"
   ],
   "coverageThreshold": {
     "global": {

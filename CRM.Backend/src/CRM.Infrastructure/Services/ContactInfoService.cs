@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -37,7 +53,7 @@ public class ContactInfoService : IContactInfoService
     {
         var address = await _context.Addresses
             .FirstOrDefaultAsync(a => a.Id == addressId && !a.IsDeleted);
-        
+
         return address == null ? null : MapToAddressDto(address);
     }
 
@@ -112,9 +128,9 @@ public class ContactInfoService : IContactInfoService
 
         // Check for existing link
         var existingLink = await _context.EntityAddressLinks
-            .FirstOrDefaultAsync(l => l.EntityType == entityType 
-                && l.EntityId == dto.EntityId 
-                && l.AddressId == addressId 
+            .FirstOrDefaultAsync(l => l.EntityType == entityType
+                && l.EntityId == dto.EntityId
+                && l.AddressId == addressId
                 && l.AddressType == addressType);
 
         if (existingLink != null)
@@ -206,7 +222,7 @@ public class ContactInfoService : IContactInfoService
             var links = await _context.EntityAddressLinks
                 .Where(l => l.AddressId == addressId)
                 .ToListAsync();
-            
+
             foreach (var link in links)
             {
                 link.IsDeleted = true;
@@ -221,10 +237,10 @@ public class ContactInfoService : IContactInfoService
         await UnsetPrimaryAddressesAsync(entityType, entityId, addressType);
 
         var link = await _context.EntityAddressLinks
-            .FirstOrDefaultAsync(l => l.EntityType == entityType 
-                && l.EntityId == entityId 
-                && l.AddressId == addressId 
-                && l.AddressType == addressType 
+            .FirstOrDefaultAsync(l => l.EntityType == entityType
+                && l.EntityId == entityId
+                && l.AddressId == addressId
+                && l.AddressType == addressType
                 && !l.IsDeleted);
 
         if (link != null)
@@ -237,10 +253,10 @@ public class ContactInfoService : IContactInfoService
     private async Task UnsetPrimaryAddressesAsync(EntityType entityType, int entityId, AddressType addressType)
     {
         var primaryLinks = await _context.EntityAddressLinks
-            .Where(l => l.EntityType == entityType 
-                && l.EntityId == entityId 
-                && l.AddressType == addressType 
-                && l.IsPrimary 
+            .Where(l => l.EntityType == entityType
+                && l.EntityId == entityId
+                && l.AddressType == addressType
+                && l.IsPrimary
                 && !l.IsDeleted)
             .ToListAsync();
 
@@ -271,7 +287,7 @@ public class ContactInfoService : IContactInfoService
     {
         var phone = await _context.PhoneNumbers
             .FirstOrDefaultAsync(p => p.Id == phoneId && !p.IsDeleted);
-        
+
         return phone == null ? null : MapToPhoneDto(phone);
     }
 
@@ -336,9 +352,9 @@ public class ContactInfoService : IContactInfoService
         }
 
         var existingLink = await _context.EntityPhoneLinks
-            .FirstOrDefaultAsync(l => l.EntityType == entityType 
-                && l.EntityId == dto.EntityId 
-                && l.PhoneId == phoneId 
+            .FirstOrDefaultAsync(l => l.EntityType == entityType
+                && l.EntityId == dto.EntityId
+                && l.PhoneId == phoneId
                 && l.PhoneType == phoneType);
 
         if (existingLink != null)
@@ -423,7 +439,7 @@ public class ContactInfoService : IContactInfoService
             var links = await _context.EntityPhoneLinks
                 .Where(l => l.PhoneId == phoneId)
                 .ToListAsync();
-            
+
             foreach (var link in links)
             {
                 link.IsDeleted = true;
@@ -438,9 +454,9 @@ public class ContactInfoService : IContactInfoService
         await UnsetPrimaryPhonesAsync(entityType, entityId);
 
         var link = await _context.EntityPhoneLinks
-            .FirstOrDefaultAsync(l => l.EntityType == entityType 
-                && l.EntityId == entityId 
-                && l.PhoneId == phoneId 
+            .FirstOrDefaultAsync(l => l.EntityType == entityType
+                && l.EntityId == entityId
+                && l.PhoneId == phoneId
                 && !l.IsDeleted);
 
         if (link != null)
@@ -496,7 +512,7 @@ public class ContactInfoService : IContactInfoService
     {
         var email = await _context.EmailAddresses
             .FirstOrDefaultAsync(e => e.Id == emailId && !e.IsDeleted);
-        
+
         return email == null ? null : MapToEmailDto(email);
     }
 
@@ -504,7 +520,7 @@ public class ContactInfoService : IContactInfoService
     {
         var emailEntity = await _context.EmailAddresses
             .FirstOrDefaultAsync(e => e.Email.ToLower() == email.ToLower() && !e.IsDeleted);
-        
+
         return emailEntity == null ? null : MapToEmailDto(emailEntity);
     }
 
@@ -580,9 +596,9 @@ public class ContactInfoService : IContactInfoService
         }
 
         var existingLink = await _context.EntityEmailLinks
-            .FirstOrDefaultAsync(l => l.EntityType == entityType 
-                && l.EntityId == dto.EntityId 
-                && l.EmailId == emailId 
+            .FirstOrDefaultAsync(l => l.EntityType == entityType
+                && l.EntityId == dto.EntityId
+                && l.EmailId == emailId
                 && l.EmailType == emailType);
 
         if (existingLink != null)
@@ -664,7 +680,7 @@ public class ContactInfoService : IContactInfoService
             var links = await _context.EntityEmailLinks
                 .Where(l => l.EmailId == emailId)
                 .ToListAsync();
-            
+
             foreach (var link in links)
             {
                 link.IsDeleted = true;
@@ -679,9 +695,9 @@ public class ContactInfoService : IContactInfoService
         await UnsetPrimaryEmailsAsync(entityType, entityId);
 
         var link = await _context.EntityEmailLinks
-            .FirstOrDefaultAsync(l => l.EntityType == entityType 
-                && l.EntityId == entityId 
-                && l.EmailId == emailId 
+            .FirstOrDefaultAsync(l => l.EntityType == entityType
+                && l.EntityId == entityId
+                && l.EmailId == emailId
                 && !l.IsDeleted);
 
         if (link != null)
@@ -740,7 +756,7 @@ public class ContactInfoService : IContactInfoService
     {
         var account = await _context.SocialMediaAccounts
             .FirstOrDefaultAsync(s => s.Id == socialMediaId && !s.IsDeleted);
-        
+
         return account == null ? null : MapToSocialMediaDto(account);
     }
 
@@ -807,8 +823,8 @@ public class ContactInfoService : IContactInfoService
         }
 
         var existingLink = await _context.EntitySocialMediaLinks
-            .FirstOrDefaultAsync(l => l.EntityType == entityType 
-                && l.EntityId == dto.EntityId 
+            .FirstOrDefaultAsync(l => l.EntityType == entityType
+                && l.EntityId == dto.EntityId
                 && l.SocialMediaAccountId == socialMediaId);
 
         if (existingLink != null)
@@ -895,7 +911,7 @@ public class ContactInfoService : IContactInfoService
             var links = await _context.EntitySocialMediaLinks
                 .Where(l => l.SocialMediaAccountId == socialMediaId)
                 .ToListAsync();
-            
+
             foreach (var link in links)
             {
                 link.IsDeleted = true;
@@ -910,9 +926,9 @@ public class ContactInfoService : IContactInfoService
         await UnsetPrimarySocialMediaAsync(entityType, entityId);
 
         var link = await _context.EntitySocialMediaLinks
-            .FirstOrDefaultAsync(l => l.EntityType == entityType 
-                && l.EntityId == entityId 
-                && l.SocialMediaAccountId == socialMediaId 
+            .FirstOrDefaultAsync(l => l.EntityType == entityType
+                && l.EntityId == entityId
+                && l.SocialMediaAccountId == socialMediaId
                 && !l.IsDeleted);
 
         if (link != null)

@@ -318,8 +318,8 @@ public class WorkflowController : ControllerBase
                 ChangeLog = version.ChangeLog,
                 Status = version.Status.ToString(),
                 PublishedAt = version.PublishedAt,
-                PublishedByName = version.PublishedBy != null 
-                    ? $"{version.PublishedBy.FirstName} {version.PublishedBy.LastName}" 
+                PublishedByName = version.PublishedBy != null
+                    ? $"{version.PublishedBy.FirstName} {version.PublishedBy.LastName}"
                     : null,
                 CanvasLayout = version.CanvasLayout,
                 CreatedAt = version.CreatedAt,
@@ -623,7 +623,7 @@ public class WorkflowController : ControllerBase
             var transition = await _context.WorkflowTransitions.FindAsync(transitionId);
             if (transition == null) return NotFound(new { message = "Transition not found" });
 
-            if (!string.IsNullOrEmpty(dto.ConditionType) && 
+            if (!string.IsNullOrEmpty(dto.ConditionType) &&
                 Enum.TryParse<TransitionConditionType>(dto.ConditionType, out var conditionType))
                 transition.ConditionType = conditionType;
 
@@ -725,9 +725,9 @@ public class WorkflowController : ControllerBase
     public IActionResult GetNodeTypes()
     {
         var types = Enum.GetValues<WorkflowNodeType>()
-            .Select(t => new 
-            { 
-                value = t.ToString(), 
+            .Select(t => new
+            {
+                value = t.ToString(),
                 label = GetNodeTypeLabel(t),
                 icon = GetDefaultIconForNodeType(t),
                 color = GetDefaultColorForNodeType(t)

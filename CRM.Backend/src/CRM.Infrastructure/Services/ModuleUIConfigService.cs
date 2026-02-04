@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -42,7 +58,7 @@ public class ModuleUIConfigService
     {
         var config = await _context.ModuleUIConfigs
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
-        
+
         return config != null ? MapToDto(config) : null;
     }
 
@@ -252,7 +268,7 @@ public class ModuleUIConfigService
 
         // Update tabs config
         moduleConfig.TabsConfig = JsonSerializer.Serialize(dto.Tabs, _jsonOptions);
-        
+
         // Update linked entities config
         moduleConfig.LinkedEntitiesConfig = JsonSerializer.Serialize(dto.LinkedEntities, _jsonOptions);
         moduleConfig.UpdatedAt = DateTime.UtcNow;
@@ -272,7 +288,7 @@ public class ModuleUIConfigService
                 field.IsRequired = fieldUpdate.IsRequired;
                 field.DisplayOrder = fieldUpdate.DisplayOrder;
                 field.GridSize = fieldUpdate.GridSize;
-                
+
                 if (!string.IsNullOrEmpty(fieldUpdate.FieldType))
                     field.FieldType = fieldUpdate.FieldType;
                 if (!string.IsNullOrEmpty(fieldUpdate.FieldLabel))
@@ -287,7 +303,7 @@ public class ModuleUIConfigService
         }
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Saved complete configuration for module {ModuleName}: {TabCount} tabs, {FieldCount} fields, {LinkCount} linked entities", 
+        _logger.LogInformation("Saved complete configuration for module {ModuleName}: {TabCount} tabs, {FieldCount} fields, {LinkCount} linked entities",
             moduleName, dto.Tabs.Count, dto.Fields.Count, dto.LinkedEntities.Count);
 
         return await GetCompleteModuleConfigAsync(moduleName);

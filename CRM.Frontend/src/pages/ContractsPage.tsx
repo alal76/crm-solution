@@ -714,7 +714,7 @@ function ContractsPage() {
                   name="accountId"
                   label="Account *"
                   entityType="account"
-                  value={formData.accountId}
+                  value={formData.accountId ?? ''}
                   onChange={(val) => setFormData(prev => ({ ...prev, accountId: val as number | null }))}
                 />
               </Grid>
@@ -723,7 +723,7 @@ function ContractsPage() {
                   name="contactId"
                   label="Contact"
                   entityType="contact"
-                  value={formData.contactId}
+                  value={formData.contactId ?? ''}
                   onChange={(val) => setFormData(prev => ({ ...prev, contactId: val as number | null }))}
                 />
               </Grid>
@@ -858,7 +858,7 @@ function ContractsPage() {
                   name="opportunityId"
                   label="Related Opportunity"
                   entityType="opportunity"
-                  value={formData.opportunityId}
+                  value={formData.opportunityId ?? ''}
                   onChange={(val) => setFormData(prev => ({ ...prev, opportunityId: val as number | null }))}
                 />
               </Grid>

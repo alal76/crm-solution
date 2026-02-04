@@ -13,20 +13,20 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// REST API Controller for News and Social Media feeds.
-/// 
+///
 /// FUNCTIONAL VIEW:
 /// This controller provides HTTP endpoints for:
 /// - Fetching news articles about a company/customer
 /// - Fetching social media posts from linked accounts
 /// - Combined feeds for 360° customer view
-/// 
+///
 /// TECHNICAL VIEW:
 /// - Uses INewsSocialService for external API integration
 /// - Integrates with NewsAPI.org for news articles
 /// - Integrates with Twitter/X API for tweets
 /// - Integrates with LinkedIn API for company posts
 /// - Caches results to reduce API calls
-/// 
+///
 /// API ROUTES:
 /// - GET    /api/news-social/{customerId}          - Get feeds for customer
 /// - GET    /api/news-social/news?companyName=...  - Get news only

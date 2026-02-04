@@ -1,0 +1,83 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - img [ref=e12]
+          - heading "Welcome Back" [level=1] [ref=e14]
+          - paragraph [ref=e15]: Sign in to continue to your CRM
+        - generic [ref=e16]:
+          - alert [ref=e20]:
+            - img [ref=e22]
+            - generic [ref=e24]: An error occurred during login
+            - button "Close" [ref=e26] [cursor=pointer]:
+              - img [ref=e27]
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - generic [ref=e31]: Email or Username
+              - generic [ref=e32]:
+                - img [ref=e34]
+                - textbox "Email or Username" [ref=e36]:
+                  - /placeholder: you@company.com
+                  - text: admin@crm.local
+                - group:
+                  - generic: Email or Username
+            - generic [ref=e37]:
+              - generic [ref=e38]: Password
+              - generic [ref=e39]:
+                - img [ref=e41]
+                - textbox "Password" [ref=e43]:
+                  - /placeholder: ••••••••
+                  - text: Admin@123
+                - button "Show password" [ref=e45] [cursor=pointer]:
+                  - img [ref=e46]
+                - group:
+                  - generic: Password
+            - generic [ref=e48]:
+              - generic [ref=e49] [cursor=pointer]:
+                - generic [ref=e50]:
+                  - checkbox "Remember me" [ref=e51]
+                  - img [ref=e52]
+                - paragraph [ref=e54]: Remember me
+              - link "Forgot password?" [ref=e55] [cursor=pointer]:
+                - /url: /password-reset
+            - button "Sign In" [ref=e56] [cursor=pointer]: Sign In
+          - paragraph [ref=e58]:
+            - text: Don't have an account?
+            - link "Create one" [ref=e59] [cursor=pointer]:
+              - /url: /register
+      - generic [ref=e62]:
+        - img [ref=e63]
+        - heading "YOUR LOGO" [level=6] [ref=e65]
+        - paragraph [ref=e66]: Upload via Settings → System
+    - generic [ref=e67]: © 2026 CRM System. All rights reserved.
+  - contentinfo [ref=e68]:
+    - generic [ref=e69]:
+      - generic [ref=e70]:
+        - generic [ref=e71]: CRM System
+        - generic [ref=e72]: "|"
+        - 'generic "API: N/A | Frontend: N/A | DB: 0 ZIPs" [ref=e73]': v1.7.26
+        - generic [ref=e74]: "|"
+        - 'generic "Branch: dev" [ref=e75]': "#5666434"
+      - generic [ref=e77]:
+        - generic [ref=e78]: ●
+        - generic [ref=e79]: API
+        - generic [ref=e80]: ●
+        - generic [ref=e81]: DB
+        - generic [ref=e82]: ○
+        - generic "AI Service Unavailable" [ref=e83]: AI
+      - generic [ref=e84]:
+        - link "About" [ref=e85] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e86]: "|"
+        - link "Help" [ref=e87] [cursor=pointer]:
+          - /url: /help
+        - generic [ref=e88]: "|"
+        - link "Licenses" [ref=e89] [cursor=pointer]:
+          - /url: /licenses
+        - generic [ref=e90]: "|"
+        - generic [ref=e91]: © 2026 Abhishek Lal - AGPL-3.0
+```

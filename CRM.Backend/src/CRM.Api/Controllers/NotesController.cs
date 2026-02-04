@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
@@ -21,11 +37,11 @@ public class NoteDto
     public NoteVisibility Visibility { get; set; } = NoteVisibility.Team;
     public bool IsPinned { get; set; } = false;
     public bool IsImportant { get; set; } = false;
-    
+
     // Polymorphic entity attachment
     public string? EntityType { get; set; }
     public int? EntityId { get; set; }
-    
+
     // Legacy FK fields
     public int? AccountId { get; set; }
     public int? ContactId { get; set; }
@@ -35,7 +51,7 @@ public class NoteDto
     public int? LeadId { get; set; }
     public int? ServiceRequestId { get; set; }
     public int? QuoteId { get; set; }
-    
+
     public string? Tags { get; set; }
     public string? Category { get; set; }
     public string? Attachments { get; set; }
@@ -67,7 +83,7 @@ public class NoteResponseDto
     public string? ContextPath { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     // Permissions for current user
     public bool CanEdit { get; set; }
     public bool CanDelete { get; set; }
@@ -98,7 +114,7 @@ public class NotesController : ControllerBase
     private readonly CrmDbContext _context;
     private readonly ILogger<NotesController> _logger;
     private readonly NormalizationService _normalization;
-    
+
     // Roles that can edit/delete any note
     private static readonly string[] AdminRoles = { "SystemAdmin", "Admin", "NotesAdmin", "Manager" };
 
@@ -111,7 +127,7 @@ public class NotesController : ControllerBase
 
     private int GetCurrentUserId()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? User.FindFirst("sub")?.Value
             ?? User.FindFirst("userId")?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;
@@ -120,18 +136,18 @@ public class NotesController : ControllerBase
     private async Task<bool> HasAdminRole(int userId)
     {
         if (userId == 0) return false;
-        
+
         var user = await _context.Users
             .Include(u => u.PrimaryGroup)
             .FirstOrDefaultAsync(u => u.Id == userId);
-        
+
         if (user == null) return false;
-        
+
         // Check user group name
         var groupName = user.PrimaryGroup?.Name ?? "";
         if (AdminRoles.Any(r => groupName.Contains(r, StringComparison.OrdinalIgnoreCase)))
             return true;
-        
+
         // Check user's role claim
         var roleClaims = User.FindAll(ClaimTypes.Role).Select(c => c.Value);
         return roleClaims.Any(r => AdminRoles.Contains(r, StringComparer.OrdinalIgnoreCase));
@@ -141,14 +157,14 @@ public class NotesController : ControllerBase
     {
         var isCreator = note.CreatedByUserId == currentUserId;
         var isAdmin = await HasAdminRole(currentUserId);
-        
+
         return (CanEdit: isCreator || isAdmin, CanDelete: isCreator || isAdmin);
     }
 
     private async Task<NoteResponseDto> MapToResponseDto(Note note, int currentUserId)
     {
         var (canEdit, canDelete) = await GetPermissions(note, currentUserId);
-        
+
         return new NoteResponseDto
         {
             Id = note.Id,
@@ -162,12 +178,12 @@ public class NotesController : ControllerBase
             EntityType = note.EntityType,
             EntityId = note.EntityId,
             CreatedByUserId = note.CreatedByUserId,
-            CreatedByUserName = note.CreatedByUser != null 
-                ? $"{note.CreatedByUser.FirstName} {note.CreatedByUser.LastName}".Trim() 
+            CreatedByUserName = note.CreatedByUser != null
+                ? $"{note.CreatedByUser.FirstName} {note.CreatedByUser.LastName}".Trim()
                 : null,
             LastModifiedByUserId = note.LastModifiedByUserId,
-            LastModifiedByUserName = note.LastModifiedByUser != null 
-                ? $"{note.LastModifiedByUser.FirstName} {note.LastModifiedByUser.LastName}".Trim() 
+            LastModifiedByUserName = note.LastModifiedByUser != null
+                ? $"{note.LastModifiedByUser.FirstName} {note.LastModifiedByUser.LastName}".Trim()
                 : null,
             Tags = note.Tags,
             Category = note.Category,
@@ -199,7 +215,7 @@ public class NotesController : ControllerBase
         [FromQuery] bool? pinned = null)
     {
         var currentUserId = GetCurrentUserId();
-        
+
         var query = _context.Notes
             .Include(n => n.CreatedByUser)
             .Include(n => n.LastModifiedByUser)
@@ -209,7 +225,7 @@ public class NotesController : ControllerBase
         // Filter by polymorphic EntityType + EntityId
         if (!string.IsNullOrEmpty(entityType) && entityId.HasValue)
         {
-            query = query.Where(n => 
+            query = query.Where(n =>
                 (n.EntityType == entityType && n.EntityId == entityId) ||
                 // Also check legacy FK fields
                 (entityType.ToLower() == "customer" && n.AccountId == entityId) ||
@@ -242,10 +258,10 @@ public class NotesController : ControllerBase
             if (productId.HasValue)
                 query = query.Where(n => n.ProductId == productId || (n.EntityType == "Product" && n.EntityId == productId));
         }
-        
+
         if (noteType.HasValue)
             query = query.Where(n => n.NoteType == noteType);
-        
+
         if (pinned == true)
             query = query.Where(n => n.IsPinned);
 
@@ -261,7 +277,7 @@ public class NotesController : ControllerBase
             if (!string.IsNullOrWhiteSpace(nt)) note.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
             if (!string.IsNullOrWhiteSpace(cf)) note.CustomFields = cf;
-            
+
             results.Add(await MapToResponseDto(note, currentUserId));
         }
 
@@ -275,7 +291,7 @@ public class NotesController : ControllerBase
     public async Task<ActionResult<NoteResponseDto>> GetNote(int id)
     {
         var currentUserId = GetCurrentUserId();
-        
+
         var note = await _context.Notes
             .Include(n => n.CreatedByUser)
             .Include(n => n.LastModifiedByUser)
@@ -299,7 +315,7 @@ public class NotesController : ControllerBase
     public async Task<ActionResult<NoteResponseDto>> CreateNote(NoteDto dto)
     {
         var currentUserId = GetCurrentUserId();
-        
+
         var note = new Note
         {
             Title = dto.Title,
@@ -353,7 +369,7 @@ public class NotesController : ControllerBase
             .FirstOrDefaultAsync(n => n.Id == note.Id);
 
         _logger.LogInformation("Note {NoteId} created by user {UserId}: {Title}", note!.Id, currentUserId, note.Title);
-        
+
         return CreatedAtAction(nameof(GetNote), new { id = note.Id }, await MapToResponseDto(note, currentUserId));
     }
 
@@ -368,7 +384,7 @@ public class NotesController : ControllerBase
 
         var currentUserId = GetCurrentUserId();
         var existingNote = await _context.Notes.FindAsync(id);
-        
+
         if (existingNote == null || existingNote.IsDeleted)
             return NotFound();
 
@@ -396,7 +412,7 @@ public class NotesController : ControllerBase
         existingNote.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Note {NoteId} updated by user {UserId}", id, currentUserId);
         return NoContent();
     }
@@ -409,7 +425,7 @@ public class NotesController : ControllerBase
     {
         var currentUserId = GetCurrentUserId();
         var note = await _context.Notes.FindAsync(id);
-        
+
         if (note == null || note.IsDeleted)
             return NotFound();
 
@@ -442,7 +458,7 @@ public class NotesController : ControllerBase
         var note = await _context.Notes
             .Include(n => n.CreatedByUser)
             .FirstOrDefaultAsync(n => n.Id == id && !n.IsDeleted);
-            
+
         if (note == null)
             return NotFound();
 
@@ -463,7 +479,7 @@ public class NotesController : ControllerBase
         var note = await _context.Notes
             .Include(n => n.CreatedByUser)
             .FirstOrDefaultAsync(n => n.Id == id && !n.IsDeleted);
-            
+
         if (note == null)
             return NotFound();
 
@@ -482,7 +498,7 @@ public class NotesController : ControllerBase
     {
         var currentUserId = GetCurrentUserId();
         var normalizedType = entityType.ToLower();
-        
+
         var query = _context.Notes
             .Include(n => n.CreatedByUser)
             .Include(n => n.LastModifiedByUser)
@@ -517,7 +533,7 @@ public class NotesController : ControllerBase
             if (!string.IsNullOrWhiteSpace(nt)) note.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
             if (!string.IsNullOrWhiteSpace(cf)) note.CustomFields = cf;
-            
+
             results.Add(await MapToResponseDto(note, currentUserId));
         }
 
@@ -531,7 +547,7 @@ public class NotesController : ControllerBase
     public async Task<ActionResult<int>> GetNoteCountByEntity(string entityType, int entityId)
     {
         var normalizedType = entityType.ToLower();
-        
+
         var query = _context.Notes.Where(n => !n.IsDeleted).AsQueryable();
 
         var count = normalizedType switch
@@ -549,7 +565,7 @@ public class NotesController : ControllerBase
 
         return Ok(count);
     }
-    
+
     /// <summary>
     /// Quick add note from context (e.g., from chatbot flyout)
     /// </summary>
@@ -557,7 +573,7 @@ public class NotesController : ControllerBase
     public async Task<ActionResult<NoteResponseDto>> QuickAddNote([FromBody] QuickNoteDto dto)
     {
         var currentUserId = GetCurrentUserId();
-        
+
         var note = new Note
         {
             Title = dto.Title ?? $"Note - {DateTime.UtcNow:g}",
@@ -595,9 +611,9 @@ public class NotesController : ControllerBase
             .Include(n => n.CreatedByUser)
             .FirstOrDefaultAsync(n => n.Id == note.Id);
 
-        _logger.LogInformation("Quick note {NoteId} created by user {UserId} for {EntityType} {EntityId}", 
+        _logger.LogInformation("Quick note {NoteId} created by user {UserId} for {EntityType} {EntityId}",
             note!.Id, currentUserId, dto.EntityType, dto.EntityId);
-        
+
         return CreatedAtAction(nameof(GetNote), new { id = note.Id }, await MapToResponseDto(note, currentUserId));
     }
 }

@@ -159,7 +159,7 @@ public class CustomerServiceTests
         };
 
         // Act
-        var searchResult = accounts.Where(c => 
+        var searchResult = accounts.Where(c =>
             c.LastName?.Contains("Doe", StringComparison.OrdinalIgnoreCase) ?? false);
 
         // Assert
@@ -196,7 +196,7 @@ public class CustomerServiceTests
         };
 
         // Act
-        var activeCustomers = accounts.Where(c => 
+        var activeCustomers = accounts.Where(c =>
             c.LifecycleStage == AccountLifecycleStage.Active);
 
         // Assert
@@ -233,7 +233,7 @@ public class CustomerServiceTests
         };
 
         // Act
-        var highPriorityCustomers = accounts.Where(c => 
+        var highPriorityCustomers = accounts.Where(c =>
             c.Priority == AccountPriority.High);
 
         // Assert

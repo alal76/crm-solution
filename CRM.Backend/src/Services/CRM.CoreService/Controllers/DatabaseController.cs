@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -44,7 +60,7 @@ public class DatabaseController : ControllerBase
             var tables = await GetTableStatisticsAsync();
             var views = await GetViewStatisticsAsync();
             var indexes = await GetIndexStatisticsAsync();
-            
+
             var status = new DatabaseStatusDto
             {
                 CurrentProvider = providerInfo.ProviderName,
@@ -143,7 +159,7 @@ public class DatabaseController : ControllerBase
                     Message = $"Invalid connection parameters: {validationError}"
                 });
             }
-            
+
             var result = await TestDatabaseConnectionAsync(request);
             return Ok(result);
         }
@@ -262,9 +278,9 @@ public class DatabaseController : ControllerBase
         {
             var connection = _context.Database.GetDbConnection();
             await connection.OpenAsync();
-            
+
             info.Engine = connection.GetType().Name.Replace("Connection", "");
-            
+
             // Get version based on provider
             switch (provider)
             {
@@ -422,7 +438,7 @@ public class DatabaseController : ControllerBase
             await using (connection)
             {
                 await connection.OpenAsync();
-                
+
                 // Get version info
                 using var cmd = connection.CreateCommand();
                 cmd.CommandText = request.Provider.ToLower() switch
@@ -432,9 +448,9 @@ public class DatabaseController : ControllerBase
                     "sqlserver" => "SELECT @@VERSION",
                     _ => "SELECT 1"
                 };
-                
+
                 var version = await cmd.ExecuteScalarAsync();
-                
+
                 result.Success = true;
                 result.Message = "Connection successful";
                 result.ServerVersion = version?.ToString()?.Split('\n').FirstOrDefault() ?? "Unknown";
@@ -461,11 +477,11 @@ public class DatabaseController : ControllerBase
             var connectionString = $"mongodb://{encodedUser}:{encodedPassword}@{request.Host}:{request.Port}/{request.Database}";
             var client = new MongoDB.Driver.MongoClient(connectionString);
             var database = client.GetDatabase(request.Database);
-            
+
             // Ping the database
             var command = new MongoDB.Bson.BsonDocument("ping", 1);
             await database.RunCommandAsync<MongoDB.Bson.BsonDocument>(command);
-            
+
             result.Success = true;
             result.Message = "Connection successful";
             result.ServerVersion = "MongoDB";
@@ -521,7 +537,7 @@ public class DatabaseController : ControllerBase
     private async Task CreateSchemaOnTargetAsync(DatabaseMigrationRequest request)
     {
         var connectionString = BuildConnectionString(request);
-        
+
         DbConnection connection = request.TargetProvider.ToLower() switch
         {
             "mysql" or "mariadb" => new MySqlConnector.MySqlConnection(connectionString),
@@ -533,7 +549,7 @@ public class DatabaseController : ControllerBase
         await using (connection)
         {
             await connection.OpenAsync();
-            
+
             // For now, we'll use EF Core to create the schema
             // This is a simplified implementation - a full implementation would
             // generate and execute proper DDL statements
@@ -548,9 +564,9 @@ public class DatabaseController : ControllerBase
         // 1. Read all data from current database
         // 2. Transform data as needed
         // 3. Insert into target database
-        
+
         _logger.LogInformation("Data migration initiated to {Provider}", request.TargetProvider);
-        
+
         // Return count of records that would be migrated
         var count = 0;
         count += await _context.Users.CountAsync();
@@ -559,7 +575,7 @@ public class DatabaseController : ControllerBase
         count += await _context.Leads.CountAsync();
         count += await _context.Products.CountAsync();
         count += await _context.Opportunities.CountAsync();
-        
+
         return count;
     }
 
@@ -623,7 +639,7 @@ Then restart the API container:
             var backupName = request.BackupName ?? $"backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
             var backupDir = Path.Combine(_environment.ContentRootPath, "backups");
             Directory.CreateDirectory(backupDir);
-            
+
             var backupPath = "";
             long fileSize = 0;
             var backupInstructions = "";
@@ -637,21 +653,21 @@ Then restart the API container:
                     var connInfo = GetConnectionInfo();
                     // Never include actual credentials in backup instructions
                     backupInstructions = $"mysqldump -h {connInfo.Host} -P {connInfo.Port} -u <username> -p <database_name> > {backupPath}";
-                    
+
                     // Try to execute mysqldump if available
                     try
                     {
                         var connection = _context.Database.GetDbConnection();
                         if (connection.State != System.Data.ConnectionState.Open)
                             await connection.OpenAsync();
-                            
+
                         // Create SQL dump by querying table structures and data
                         await using var writer = new StreamWriter(backupPath);
                         await writer.WriteLineAsync($"-- CRM Database Backup - {provider}");
                         await writer.WriteLineAsync($"-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
                         await writer.WriteLineAsync($"-- Database: {connInfo.Database}");
                         await writer.WriteLineAsync();
-                        
+
                         // Get tables using parameterized query
                         using var cmd = connection.CreateCommand();
                         cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
@@ -659,14 +675,14 @@ Then restart the API container:
                         dbParam.ParameterName = "@dbName";
                         dbParam.Value = connInfo.Database;
                         cmd.Parameters.Add(dbParam);
-                        
+
                         var tables = new List<string>();
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
                             while (await reader.ReadAsync())
                                 tables.Add(reader.GetString(0));
                         }
-                        
+
                         await writer.WriteLineAsync($"-- Tables: {string.Join(", ", tables)}");
                         await writer.WriteLineAsync("-- Note: Use mysqldump for complete backup with all data");
                         fileSize = new FileInfo(backupPath).Length;
@@ -677,7 +693,7 @@ Then restart the API container:
                         fileSize = new FileInfo(backupPath).Length;
                     }
                     break;
-                    
+
                 case "postgresql":
                     backupPath = Path.Combine(backupDir, $"{backupName}.sql");
                     var pgConn = GetConnectionInfo();
@@ -685,7 +701,7 @@ Then restart the API container:
                     await System.IO.File.WriteAllTextAsync(backupPath, $"-- PostgreSQL Backup\n-- Command: {backupInstructions}\n-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
                     fileSize = new FileInfo(backupPath).Length;
                     break;
-                    
+
                 case "sqlserver":
                     backupPath = Path.Combine(backupDir, $"{backupName}.bak");
                     var sqlConn = GetConnectionInfo();
@@ -694,7 +710,7 @@ Then restart the API container:
                         var connection = _context.Database.GetDbConnection();
                         if (connection.State != System.Data.ConnectionState.Open)
                             await connection.OpenAsync();
-                        
+
                         using var cmd = connection.CreateCommand();
                         cmd.CommandText = $"BACKUP DATABASE [{sqlConn.Database}] TO DISK = '{backupPath}' WITH FORMAT, INIT, NAME = '{backupName}'";
                         await cmd.ExecuteNonQueryAsync();
@@ -708,7 +724,7 @@ Then restart the API container:
                         fileSize = new FileInfo(backupPath).Length;
                     }
                     break;
-                    
+
                 case "oracle":
                     backupPath = Path.Combine(backupDir, $"{backupName}.dmp");
                     var oraConn = GetConnectionInfo();
@@ -716,7 +732,7 @@ Then restart the API container:
                     await System.IO.File.WriteAllTextAsync(backupPath, $"-- Oracle Data Pump Backup\n-- Command: {backupInstructions}\n-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
                     fileSize = new FileInfo(backupPath).Length;
                     break;
-                    
+
                 default: // SQLite
                     backupPath = Path.Combine(backupDir, $"{backupName}.db");
                     var sourcePath = Path.Combine(_environment.ContentRootPath, "data", "crm.db");
@@ -805,7 +821,7 @@ Then restart the API container:
 
             var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
             var connection = _context.Database.GetDbConnection();
-            
+
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
 
@@ -823,26 +839,26 @@ Then restart the API container:
                         dbParam.ParameterName = "@dbName";
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
-                        
+
                         var tables = new List<string>();
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
                             while (await reader.ReadAsync())
                                 tables.Add(reader.GetString(0));
                         }
-                        
+
                         // Table names from information_schema are safe to use
                         foreach (var table in tables)
                         {
                             // Validate table name contains only safe characters
                             if (!IsValidIdentifier(table)) continue;
-                            
+
                             using var optimizeCmd = connection.CreateCommand();
                             optimizeCmd.CommandText = $"OPTIMIZE TABLE `{table}`";
                             await optimizeCmd.ExecuteNonQueryAsync();
                             result.Operations.Add($"OPTIMIZE TABLE {table} completed");
                         }
-                        
+
                         if (tables.Any(t => IsValidIdentifier(t)))
                         {
                             using var analyzeCmd = connection.CreateCommand();
@@ -852,7 +868,7 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 case "postgresql":
                     using (var cmd = connection.CreateCommand())
                     {
@@ -861,7 +877,7 @@ Then restart the API container:
                         result.Operations.Add("VACUUM ANALYZE completed - database optimized and statistics updated");
                     }
                     break;
-                    
+
                 case "sqlserver":
                     // Update statistics for all tables
                     using (var cmd = connection.CreateCommand())
@@ -879,7 +895,7 @@ Then restart the API container:
                         result.Operations.Add("SHRINKDATABASE completed - unused space released");
                     }
                     break;
-                    
+
                 case "oracle":
                     // Oracle: Gather statistics
                     using (var cmd = connection.CreateCommand())
@@ -889,7 +905,7 @@ Then restart the API container:
                         result.Operations.Add("GATHER_SCHEMA_STATS completed - statistics updated");
                     }
                     break;
-                    
+
                 default: // SQLite
                     await _context.Database.ExecuteSqlRawAsync("VACUUM");
                     result.Operations.Add("VACUUM completed - database file optimized");
@@ -928,7 +944,7 @@ Then restart the API container:
 
             var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
             var connection = _context.Database.GetDbConnection();
-            
+
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
 
@@ -944,14 +960,14 @@ Then restart the API container:
                         dbParam.ParameterName = "@dbName";
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
-                        
+
                         var tables = new List<string>();
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
                             while (await reader.ReadAsync())
                                 tables.Add(reader.GetString(0));
                         }
-                        
+
                         foreach (var table in tables.Where(IsValidIdentifier))
                         {
                             using var analyzeCmd = connection.CreateCommand();
@@ -962,7 +978,7 @@ Then restart the API container:
                     }
                     result.Command = "ANALYZE TABLE";
                     break;
-                    
+
                 case "postgresql":
                     using (var cmd = connection.CreateCommand())
                     {
@@ -972,7 +988,7 @@ Then restart the API container:
                         result.TablesAnalyzed.Add("All tables");
                     }
                     break;
-                    
+
                 case "sqlserver":
                     using (var cmd = connection.CreateCommand())
                     {
@@ -982,7 +998,7 @@ Then restart the API container:
                         result.TablesAnalyzed.Add("All tables");
                     }
                     break;
-                    
+
                 case "oracle":
                     using (var cmd = connection.CreateCommand())
                     {
@@ -992,7 +1008,7 @@ Then restart the API container:
                         result.TablesAnalyzed.Add("All tables");
                     }
                     break;
-                    
+
                 default: // SQLite
                     await _context.Database.ExecuteSqlRawAsync("ANALYZE");
                     result.Command = "ANALYZE";
@@ -1105,7 +1121,7 @@ Then restart the API container:
 
             var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
             var connection = _context.Database.GetDbConnection();
-            
+
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
 
@@ -1123,19 +1139,19 @@ Then restart the API container:
                         dbParam.ParameterName = "@dbName";
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
-                        
+
                         var tables = new List<string>();
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
                             while (await reader.ReadAsync())
                                 tables.Add(reader.GetString(0));
                         }
-                        
+
                         foreach (var table in tables)
                         {
                             // Validate table name
                             if (!IsValidIdentifier(table)) continue;
-                            
+
                             using var repairCmd = connection.CreateCommand();
                             repairCmd.CommandText = $"ALTER TABLE `{table}` ENGINE=InnoDB";
                             await repairCmd.ExecuteNonQueryAsync();
@@ -1143,7 +1159,7 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 case "postgresql":
                     // PostgreSQL: REINDEX DATABASE
                     using (var cmd = connection.CreateCommand())
@@ -1154,7 +1170,7 @@ Then restart the API container:
                         result.Operations.Add("REINDEX DATABASE completed - all indexes rebuilt");
                     }
                     break;
-                    
+
                 case "sqlserver":
                     // SQL Server: Rebuild all indexes
                     using (var cmd = connection.CreateCommand())
@@ -1168,7 +1184,7 @@ Then restart the API container:
                         result.Operations.Add("All indexes rebuilt successfully");
                     }
                     break;
-                    
+
                 case "oracle":
                     // Oracle: Rebuild all indexes
                     using (var cmd = connection.CreateCommand())
@@ -1184,7 +1200,7 @@ Then restart the API container:
                         result.Operations.Add("All indexes rebuilt successfully");
                     }
                     break;
-                    
+
                 default: // SQLite
                     await _context.Database.ExecuteSqlRawAsync("REINDEX");
                     result.Operations.Add("REINDEX completed - all indexes rebuilt");
@@ -1323,7 +1339,7 @@ Then restart the API container:
 
             var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
             var connection = _context.Database.GetDbConnection();
-            
+
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
 
@@ -1344,21 +1360,21 @@ Then restart the API container:
                         cmd.CommandText = "SET FOREIGN_KEY_CHECKS = 0";
                         await cmd.ExecuteNonQueryAsync();
                     }
-                    
+
                     foreach (var table in tablesToClear)
                     {
                         using var delCmd = connection.CreateCommand();
                         delCmd.CommandText = $"TRUNCATE TABLE `{table}`";
                         try { await delCmd.ExecuteNonQueryAsync(); } catch { /* Table may not exist */ }
                     }
-                    
+
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = "SET FOREIGN_KEY_CHECKS = 1";
                         await cmd.ExecuteNonQueryAsync();
                     }
                     break;
-                    
+
                 case "postgresql":
                     // Use TRUNCATE with CASCADE
                     foreach (var table in tablesToClear)
@@ -1368,7 +1384,7 @@ Then restart the API container:
                         try { await delCmd.ExecuteNonQueryAsync(); } catch { /* Table may not exist */ }
                     }
                     break;
-                    
+
                 case "sqlserver":
                     // Delete in reverse order due to foreign keys
                     foreach (var table in tablesToClear)
@@ -1378,7 +1394,7 @@ Then restart the API container:
                         try { await delCmd.ExecuteNonQueryAsync(); } catch { /* Table may not exist */ }
                     }
                     break;
-                    
+
                 case "oracle":
                     // Disable constraints, truncate, re-enable
                     foreach (var table in tablesToClear)
@@ -1388,7 +1404,7 @@ Then restart the API container:
                         try { await delCmd.ExecuteNonQueryAsync(); } catch { /* Table may not exist */ }
                     }
                     break;
-                    
+
                 default: // SQLite
                     foreach (var table in tablesToClear)
                     {
@@ -1420,7 +1436,7 @@ Then restart the API container:
         try
         {
             _logger.LogInformation("Database reseed initiated");
-            
+
             // Force reseed module field configurations
             if (_context is CrmDbContext dbContext)
             {
@@ -1432,7 +1448,7 @@ Then restart the API container:
                 _logger.LogWarning("Could not cast context to CrmDbContext for reseeding");
                 return StatusCode(500, new { message = "Database context type mismatch" });
             }
-            
+
             return Ok(new { message = "Database reseeded successfully" });
         }
         catch (Exception ex)
@@ -1449,7 +1465,7 @@ Then restart the API container:
     public ActionResult<List<DatabaseProviderDto>> GetSupportedProviders()
     {
         var currentProvider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
-        
+
         var providers = new List<DatabaseProviderDto>
         {
             new() { Name = "SQLite", Code = "sqlite", Description = "Lightweight embedded database", IsCurrentProvider = currentProvider == "sqlite" },
@@ -1485,7 +1501,7 @@ Then restart the API container:
                     {
                         var dbName = GetConnectionInfo().Database;
                         var query = @"
-                            SELECT 
+                            SELECT
                                 kcu.CONSTRAINT_NAME as ConstraintName,
                                 kcu.TABLE_NAME as SourceTable,
                                 kcu.COLUMN_NAME as SourceColumn,
@@ -1494,10 +1510,10 @@ Then restart the API container:
                                 rc.DELETE_RULE as OnDelete,
                                 rc.UPDATE_RULE as OnUpdate
                             FROM information_schema.KEY_COLUMN_USAGE kcu
-                            INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS rc 
-                                ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME 
+                            INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS rc
+                                ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
                                 AND kcu.CONSTRAINT_SCHEMA = rc.CONSTRAINT_SCHEMA
-                            WHERE kcu.TABLE_SCHEMA = @dbName 
+                            WHERE kcu.TABLE_SCHEMA = @dbName
                                 AND kcu.REFERENCED_TABLE_NAME IS NOT NULL";
 
                         if (!string.IsNullOrEmpty(tableName))
@@ -1542,7 +1558,7 @@ Then restart the API container:
                     using (var cmd = connection.CreateCommand())
                     {
                         var query = @"
-                            SELECT 
+                            SELECT
                                 tc.constraint_name as ConstraintName,
                                 tc.table_name as SourceTable,
                                 kcu.column_name as SourceColumn,
@@ -1551,13 +1567,13 @@ Then restart the API container:
                                 rc.delete_rule as OnDelete,
                                 rc.update_rule as OnUpdate
                             FROM information_schema.table_constraints tc
-                            JOIN information_schema.key_column_usage kcu 
-                                ON tc.constraint_name = kcu.constraint_name 
+                            JOIN information_schema.key_column_usage kcu
+                                ON tc.constraint_name = kcu.constraint_name
                                 AND tc.table_schema = kcu.table_schema
-                            JOIN information_schema.constraint_column_usage ccu 
-                                ON ccu.constraint_name = tc.constraint_name 
+                            JOIN information_schema.constraint_column_usage ccu
+                                ON ccu.constraint_name = tc.constraint_name
                                 AND ccu.table_schema = tc.table_schema
-                            JOIN information_schema.referential_constraints rc 
+                            JOIN information_schema.referential_constraints rc
                                 ON tc.constraint_name = rc.constraint_name
                             WHERE tc.constraint_type = 'FOREIGN KEY'";
 
@@ -1646,12 +1662,12 @@ Then restart the API container:
     private async Task<string> GetDatabaseSizeAsync()
     {
         var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
-        
+
         try
         {
             var connection = _context.Database.GetDbConnection();
             await connection.OpenAsync();
-            
+
             switch (provider)
             {
                 case "mysql":
@@ -1669,7 +1685,7 @@ Then restart the API container:
                             return FormatFileSize(Convert.ToInt64(result));
                     }
                     break;
-                    
+
                 case "postgresql":
                     using (var cmd = connection.CreateCommand())
                     {
@@ -1679,7 +1695,7 @@ Then restart the API container:
                             return FormatFileSize(Convert.ToInt64(result));
                     }
                     break;
-                    
+
                 case "sqlserver":
                     using (var cmd = connection.CreateCommand())
                     {
@@ -1689,7 +1705,7 @@ Then restart the API container:
                             return FormatFileSize(Convert.ToInt64(result));
                     }
                     break;
-                    
+
                 default: // SQLite
                     var dbPath = Path.Combine(_environment.ContentRootPath, "data", "crm.db");
                     if (System.IO.File.Exists(dbPath))
@@ -1699,7 +1715,7 @@ Then restart the API container:
                     }
                     break;
             }
-            
+
             return "Unknown";
         }
         catch (Exception ex)
@@ -1736,7 +1752,7 @@ Then restart the API container:
             var connection = _context.Database.GetDbConnection();
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
-            
+
             switch (provider)
             {
                 case "mysql":
@@ -1745,19 +1761,19 @@ Then restart the API container:
                     {
                         var dbName = GetConnectionInfo().Database;
                         cmd.CommandText = @"
-                            SELECT 
+                            SELECT
                                 TABLE_NAME as TableName,
                                 TABLE_ROWS as RowCount,
                                 ROUND(AVG_ROW_LENGTH) as AvgRowLength,
                                 ROUND(DATA_LENGTH + INDEX_LENGTH) as TotalSize
-                            FROM information_schema.TABLES 
+                            FROM information_schema.TABLES
                             WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'
                             ORDER BY TABLE_NAME";
                         var dbParam = cmd.CreateParameter();
                         dbParam.ParameterName = "@dbName";
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
-                        
+
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
                         {
@@ -1771,18 +1787,18 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 case "postgresql":
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
-                            SELECT 
+                            SELECT
                                 relname as TableName,
                                 n_live_tup as RowCount,
                                 pg_total_relation_size(quote_ident(relname)) as TotalSize
                             FROM pg_stat_user_tables
                             ORDER BY relname";
-                        
+
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
                         {
@@ -1795,12 +1811,12 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 case "sqlserver":
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
-                            SELECT 
+                            SELECT
                                 t.NAME AS TableName,
                                 p.rows AS RowCount,
                                 SUM(a.total_pages) * 8 * 1024 AS TotalSize
@@ -1811,7 +1827,7 @@ Then restart the API container:
                             WHERE t.is_ms_shipped = 0
                             GROUP BY t.Name, p.Rows
                             ORDER BY t.Name";
-                        
+
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
                         {
@@ -1824,7 +1840,7 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 default: // SQLite - use entity counts
                     tables.Add(new TableStatDto { Name = "Users", RecordCount = await _context.Users.CountAsync(u => !u.IsDeleted) });
                     tables.Add(new TableStatDto { Name = "UserGroups", RecordCount = await _context.UserGroups.CountAsync(g => !g.IsDeleted) });
@@ -1862,7 +1878,7 @@ Then restart the API container:
             var connection = _context.Database.GetDbConnection();
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
-            
+
             switch (provider)
             {
                 case "mysql":
@@ -1871,14 +1887,14 @@ Then restart the API container:
                     {
                         var dbName = GetConnectionInfo().Database;
                         cmd.CommandText = @"
-                            SELECT TABLE_NAME, VIEW_DEFINITION 
-                            FROM information_schema.VIEWS 
+                            SELECT TABLE_NAME, VIEW_DEFINITION
+                            FROM information_schema.VIEWS
                             WHERE TABLE_SCHEMA = @dbName";
                         var dbParam = cmd.CreateParameter();
                         dbParam.ParameterName = "@dbName";
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
-                        
+
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
                         {
@@ -1890,15 +1906,15 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 case "postgresql":
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
-                            SELECT viewname, LEFT(definition, 100) || '...' 
-                            FROM pg_views 
+                            SELECT viewname, LEFT(definition, 100) || '...'
+                            FROM pg_views
                             WHERE schemaname = 'public'";
-                        
+
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
                         {
@@ -1910,14 +1926,14 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 case "sqlserver":
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
                             SELECT name, LEFT(OBJECT_DEFINITION(object_id), 100) + '...'
                             FROM sys.views";
-                        
+
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
                         {
@@ -1929,7 +1945,7 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 default: // SQLite
                     using (var cmd = connection.CreateCommand())
                     {
@@ -1965,7 +1981,7 @@ Then restart the API container:
             var connection = _context.Database.GetDbConnection();
             if (connection.State != System.Data.ConnectionState.Open)
                 await connection.OpenAsync();
-            
+
             switch (provider)
             {
                 case "mysql":
@@ -1974,13 +1990,13 @@ Then restart the API container:
                     {
                         var dbName = GetConnectionInfo().Database;
                         cmd.CommandText = @"
-                            SELECT 
+                            SELECT
                                 INDEX_NAME,
                                 TABLE_NAME,
                                 GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) as Columns,
                                 IF(NON_UNIQUE = 0, 1, 0) as IsUnique,
                                 IF(INDEX_NAME = 'PRIMARY', 1, 0) as IsPrimary
-                            FROM information_schema.STATISTICS 
+                            FROM information_schema.STATISTICS
                             WHERE TABLE_SCHEMA = @dbName
                             GROUP BY INDEX_NAME, TABLE_NAME, NON_UNIQUE
                             ORDER BY TABLE_NAME, INDEX_NAME";
@@ -1988,7 +2004,7 @@ Then restart the API container:
                         dbParam.ParameterName = "@dbName";
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
-                        
+
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
                         {
@@ -2003,12 +2019,12 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 case "postgresql":
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
-                            SELECT 
+                            SELECT
                                 i.relname as IndexName,
                                 t.relname as TableName,
                                 array_to_string(array_agg(a.attname), ', ') as Columns,
@@ -2021,7 +2037,7 @@ Then restart the API container:
                             WHERE t.relkind = 'r' AND t.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
                             GROUP BY i.relname, t.relname, ix.indisunique, ix.indisprimary
                             ORDER BY t.relname, i.relname";
-                        
+
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
                         {
@@ -2036,12 +2052,12 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 case "sqlserver":
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
-                            SELECT 
+                            SELECT
                                 i.name as IndexName,
                                 t.name as TableName,
                                 STRING_AGG(c.name, ', ') WITHIN GROUP (ORDER BY ic.key_ordinal) as Columns,
@@ -2054,7 +2070,7 @@ Then restart the API container:
                             WHERE i.name IS NOT NULL
                             GROUP BY i.name, t.name, i.is_unique, i.is_primary_key
                             ORDER BY t.name, i.name";
-                        
+
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
                         {
@@ -2069,15 +2085,15 @@ Then restart the API container:
                         }
                     }
                     break;
-                    
+
                 default: // SQLite
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
-                            SELECT name, tbl_name, sql 
-                            FROM sqlite_master 
+                            SELECT name, tbl_name, sql
+                            FROM sqlite_master
                             WHERE type='index' AND name NOT LIKE 'sqlite_%'";
-                        
+
                         using var reader = await cmd.ExecuteReaderAsync();
                         while (await reader.ReadAsync())
                         {
@@ -2129,7 +2145,7 @@ Then restart the API container:
     {
         if (string.IsNullOrEmpty(identifier) || identifier.Length > 128)
             return false;
-        
+
         // Allow only alphanumeric characters and underscores
         return System.Text.RegularExpressions.Regex.IsMatch(identifier, @"^[a-zA-Z_][a-zA-Z0-9_]*$");
     }
@@ -2140,42 +2156,42 @@ Then restart the API container:
     private static bool ValidateConnectionParameters(DatabaseConnectionRequest request, out string? error)
     {
         error = null;
-        
+
         // Validate hostname (allow localhost, IP addresses, and hostnames)
         if (string.IsNullOrWhiteSpace(request.Host) || request.Host.Length > 255)
         {
             error = "Invalid hostname";
             return false;
         }
-        
+
         // Basic hostname validation
         if (!System.Text.RegularExpressions.Regex.IsMatch(request.Host, @"^[a-zA-Z0-9.\-_]+$"))
         {
             error = "Hostname contains invalid characters";
             return false;
         }
-        
+
         // Validate port range
         if (request.Port < 1 || request.Port > 65535)
         {
             error = "Port must be between 1 and 65535";
             return false;
         }
-        
+
         // Validate database name
         if (string.IsNullOrWhiteSpace(request.Database) || !IsValidIdentifier(request.Database))
         {
             error = "Invalid database name";
             return false;
         }
-        
+
         // Validate user ID (basic check)
         if (string.IsNullOrWhiteSpace(request.UserId) || request.UserId.Length > 128)
         {
             error = "Invalid user ID";
             return false;
         }
-        
+
         return true;
     }
 

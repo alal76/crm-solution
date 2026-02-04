@@ -283,10 +283,10 @@ function ActivitiesPage() {
                     <TimelineItem key={activity.id}>
                       <TimelineOppositeContent sx={{ flex: 0.2, minWidth: 120 }}>
                         <Typography variant="caption" color="textSecondary">
-                          {formatTimeAgo(activity.createdAt)}
+                          {formatTimeAgo(activity.createdAt || '')}
                         </Typography>
                         <Typography variant="caption" color="textSecondary" display="block">
-                          {new Date(activity.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(activity.createdAt || 0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </Typography>
                       </TimelineOppositeContent>
                       <TimelineSeparator>

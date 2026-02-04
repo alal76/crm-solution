@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -43,16 +59,16 @@ namespace CRM.Infrastructure.Migrations
                 SET @dbname = DATABASE();
                 SET @tablename = 'CustomerContacts';
                 SET @constraintname = 'FK_CustomerContacts_Contacts_ContactId';
-                
+
                 SET @preparedStatement = (SELECT IF(
-                    (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS 
-                     WHERE CONSTRAINT_SCHEMA = @dbname 
-                     AND TABLE_NAME = @tablename 
+                    (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+                     WHERE CONSTRAINT_SCHEMA = @dbname
+                     AND TABLE_NAME = @tablename
                      AND CONSTRAINT_NAME = @constraintname) = 0,
                     'ALTER TABLE CustomerContacts ADD CONSTRAINT FK_CustomerContacts_Contacts_ContactId FOREIGN KEY (ContactId) REFERENCES Contacts(Id) ON DELETE CASCADE',
                     'SELECT 1'
                 ));
-                
+
                 PREPARE stmt FROM @preparedStatement;
                 EXECUTE stmt;
                 DEALLOCATE PREPARE stmt;

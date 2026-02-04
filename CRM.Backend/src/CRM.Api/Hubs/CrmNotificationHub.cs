@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
@@ -6,7 +22,7 @@ namespace CRM.Api.Hubs;
 /// <summary>
 /// SignalR Hub for real-time CRM notifications.
 /// Enables multi-user collaboration by broadcasting record changes.
-/// 
+///
 /// FEATURES:
 /// - Subscribe to specific record updates
 /// - Receive notifications when records are modified by other users
@@ -17,36 +33,36 @@ namespace CRM.Api.Hubs;
 public class CrmNotificationHub : Hub
 {
     private readonly ILogger<CrmNotificationHub> _logger;
-    
+
     public CrmNotificationHub(ILogger<CrmNotificationHub> logger)
     {
         _logger = logger;
     }
-    
+
     /// <summary>
     /// Called when a client connects to the hub.
     /// </summary>
     public override async Task OnConnectedAsync()
     {
         var userId = Context.User?.FindFirst("sub")?.Value ?? Context.User?.FindFirst("userId")?.Value;
-        _logger.LogInformation("User {UserId} connected to CRM notifications hub. ConnectionId: {ConnectionId}", 
+        _logger.LogInformation("User {UserId} connected to CRM notifications hub. ConnectionId: {ConnectionId}",
             userId, Context.ConnectionId);
-        
+
         await base.OnConnectedAsync();
     }
-    
+
     /// <summary>
     /// Called when a client disconnects from the hub.
     /// </summary>
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = Context.User?.FindFirst("sub")?.Value ?? Context.User?.FindFirst("userId")?.Value;
-        _logger.LogInformation("User {UserId} disconnected from CRM notifications hub. ConnectionId: {ConnectionId}", 
+        _logger.LogInformation("User {UserId} disconnected from CRM notifications hub. ConnectionId: {ConnectionId}",
             userId, Context.ConnectionId);
-        
+
         await base.OnDisconnectedAsync(exception);
     }
-    
+
     /// <summary>
     /// Subscribe to updates for a specific entity record.
     /// Clients call this when they open an entity for viewing/editing.
@@ -57,10 +73,10 @@ public class CrmNotificationHub : Hub
     {
         var groupName = GetRecordGroupName(entityType, entityId);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-        
-        _logger.LogDebug("Connection {ConnectionId} subscribed to {GroupName}", 
+
+        _logger.LogDebug("Connection {ConnectionId} subscribed to {GroupName}",
             Context.ConnectionId, groupName);
-        
+
         // Notify others that a user is viewing this record
         await Clients.OthersInGroup(groupName).SendAsync("UserViewingRecord", new
         {
@@ -71,7 +87,7 @@ public class CrmNotificationHub : Hub
             Timestamp = DateTime.UtcNow
         });
     }
-    
+
     /// <summary>
     /// Unsubscribe from updates for a specific entity record.
     /// Clients call this when they close an entity or navigate away.
@@ -82,10 +98,10 @@ public class CrmNotificationHub : Hub
     {
         var groupName = GetRecordGroupName(entityType, entityId);
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-        
-        _logger.LogDebug("Connection {ConnectionId} unsubscribed from {GroupName}", 
+
+        _logger.LogDebug("Connection {ConnectionId} unsubscribed from {GroupName}",
             Context.ConnectionId, groupName);
-        
+
         // Notify others that a user stopped viewing this record
         await Clients.OthersInGroup(groupName).SendAsync("UserLeftRecord", new
         {
@@ -96,7 +112,7 @@ public class CrmNotificationHub : Hub
             Timestamp = DateTime.UtcNow
         });
     }
-    
+
     /// <summary>
     /// Subscribe to all updates for an entity type.
     /// Useful for list views that need to know about new/deleted records.
@@ -106,11 +122,11 @@ public class CrmNotificationHub : Hub
     {
         var groupName = GetEntityTypeGroupName(entityType);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-        
-        _logger.LogDebug("Connection {ConnectionId} subscribed to entity type {EntityType}", 
+
+        _logger.LogDebug("Connection {ConnectionId} subscribed to entity type {EntityType}",
             Context.ConnectionId, entityType);
     }
-    
+
     /// <summary>
     /// Unsubscribe from all updates for an entity type.
     /// </summary>
@@ -119,11 +135,11 @@ public class CrmNotificationHub : Hub
     {
         var groupName = GetEntityTypeGroupName(entityType);
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-        
-        _logger.LogDebug("Connection {ConnectionId} unsubscribed from entity type {EntityType}", 
+
+        _logger.LogDebug("Connection {ConnectionId} unsubscribed from entity type {EntityType}",
             Context.ConnectionId, entityType);
     }
-    
+
     /// <summary>
     /// Notify clients that a user is actively editing a record.
     /// Provides visual feedback to other users viewing the same record.
@@ -133,7 +149,7 @@ public class CrmNotificationHub : Hub
     public async Task StartEditing(string entityType, int entityId)
     {
         var groupName = GetRecordGroupName(entityType, entityId);
-        
+
         await Clients.OthersInGroup(groupName).SendAsync("UserEditingRecord", new
         {
             EntityType = entityType,
@@ -144,7 +160,7 @@ public class CrmNotificationHub : Hub
             IsEditing = true
         });
     }
-    
+
     /// <summary>
     /// Notify clients that a user stopped editing a record.
     /// </summary>
@@ -153,7 +169,7 @@ public class CrmNotificationHub : Hub
     public async Task StopEditing(string entityType, int entityId)
     {
         var groupName = GetRecordGroupName(entityType, entityId);
-        
+
         await Clients.OthersInGroup(groupName).SendAsync("UserEditingRecord", new
         {
             EntityType = entityType,
@@ -164,12 +180,12 @@ public class CrmNotificationHub : Hub
             IsEditing = false
         });
     }
-    
+
     // Helper methods for group names
-    private static string GetRecordGroupName(string entityType, int entityId) 
+    private static string GetRecordGroupName(string entityType, int entityId)
         => $"record:{entityType.ToLowerInvariant()}:{entityId}";
-    
-    private static string GetEntityTypeGroupName(string entityType) 
+
+    private static string GetEntityTypeGroupName(string entityType)
         => $"entitytype:{entityType.ToLowerInvariant()}";
 }
 
@@ -183,12 +199,12 @@ public interface ICrmNotificationService
     /// Notify subscribers that a record was created.
     /// </summary>
     Task NotifyRecordCreatedAsync(string entityType, int entityId, object record, string? createdByUserId = null);
-    
+
     /// <summary>
     /// Notify subscribers that a record was updated.
     /// </summary>
     Task NotifyRecordUpdatedAsync(string entityType, int entityId, object record, string? updatedByUserId = null);
-    
+
     /// <summary>
     /// Notify subscribers that a record was deleted.
     /// </summary>
@@ -202,7 +218,7 @@ public class CrmNotificationService : ICrmNotificationService
 {
     private readonly IHubContext<CrmNotificationHub> _hubContext;
     private readonly ILogger<CrmNotificationService> _logger;
-    
+
     public CrmNotificationService(
         IHubContext<CrmNotificationHub> hubContext,
         ILogger<CrmNotificationService> logger)
@@ -210,7 +226,7 @@ public class CrmNotificationService : ICrmNotificationService
         _hubContext = hubContext;
         _logger = logger;
     }
-    
+
     public async Task NotifyRecordCreatedAsync(string entityType, int entityId, object record, string? createdByUserId = null)
     {
         var notification = new
@@ -222,14 +238,14 @@ public class CrmNotificationService : ICrmNotificationService
             UserId = createdByUserId,
             Timestamp = DateTime.UtcNow
         };
-        
+
         // Notify entity type subscribers (list views)
         var entityTypeGroup = $"entitytype:{entityType.ToLowerInvariant()}";
         await _hubContext.Clients.Group(entityTypeGroup).SendAsync("RecordCreated", notification);
-        
+
         _logger.LogDebug("Sent RecordCreated notification for {EntityType}:{EntityId}", entityType, entityId);
     }
-    
+
     public async Task NotifyRecordUpdatedAsync(string entityType, int entityId, object record, string? updatedByUserId = null)
     {
         var notification = new
@@ -241,18 +257,18 @@ public class CrmNotificationService : ICrmNotificationService
             UserId = updatedByUserId,
             Timestamp = DateTime.UtcNow
         };
-        
+
         // Notify record subscribers (detail/edit views)
         var recordGroup = $"record:{entityType.ToLowerInvariant()}:{entityId}";
         await _hubContext.Clients.Group(recordGroup).SendAsync("RecordUpdated", notification);
-        
+
         // Notify entity type subscribers (list views)
         var entityTypeGroup = $"entitytype:{entityType.ToLowerInvariant()}";
         await _hubContext.Clients.Group(entityTypeGroup).SendAsync("RecordUpdated", notification);
-        
+
         _logger.LogDebug("Sent RecordUpdated notification for {EntityType}:{EntityId}", entityType, entityId);
     }
-    
+
     public async Task NotifyRecordDeletedAsync(string entityType, int entityId, string? deletedByUserId = null)
     {
         var notification = new
@@ -263,15 +279,15 @@ public class CrmNotificationService : ICrmNotificationService
             UserId = deletedByUserId,
             Timestamp = DateTime.UtcNow
         };
-        
+
         // Notify record subscribers (detail/edit views)
         var recordGroup = $"record:{entityType.ToLowerInvariant()}:{entityId}";
         await _hubContext.Clients.Group(recordGroup).SendAsync("RecordDeleted", notification);
-        
+
         // Notify entity type subscribers (list views)
         var entityTypeGroup = $"entitytype:{entityType.ToLowerInvariant()}";
         await _hubContext.Clients.Group(entityTypeGroup).SendAsync("RecordDeleted", notification);
-        
+
         _logger.LogDebug("Sent RecordDeleted notification for {EntityType}:{EntityId}", entityType, entityId);
     }
 }

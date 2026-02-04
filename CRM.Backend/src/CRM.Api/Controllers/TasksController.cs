@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
@@ -46,19 +62,19 @@ public class TasksController : ControllerBase
 
         if (customerId.HasValue)
             query = query.Where(t => t.AccountId == customerId);
-        
+
         if (opportunityId.HasValue)
             query = query.Where(t => t.OpportunityId == opportunityId);
-        
+
         if (assignedToUserId.HasValue)
             query = query.Where(t => t.AssignedToUserId == assignedToUserId);
-        
+
         if (status.HasValue)
             query = query.Where(t => t.Status == status);
-        
+
         if (priority.HasValue)
             query = query.Where(t => t.Priority == priority);
-        
+
         if (overdue == true)
             query = query.Where(t => t.DueDate < DateTime.UtcNow && t.Status != CrmTaskStatus.Completed);
 
@@ -251,7 +267,7 @@ public class TasksController : ControllerBase
             else
             {
                 // Regular users see only tasks assigned to their groups with pending status
-                query = query.Where(t => 
+                query = query.Where(t =>
                     (t.AssignedToGroupId.HasValue && userGroupIds.Contains(t.AssignedToGroupId.Value)) ||
                     (t.AssignedToUserId.HasValue && t.AssignedToUserId == userId))
                     .Where(t => t.Status != CrmTaskStatus.Completed && t.Status != CrmTaskStatus.Cancelled)
@@ -289,7 +305,7 @@ public class TasksController : ControllerBase
                 t.AssignedToUserId,
                 AssignedToUserName = t.AssignedToUser != null ? $"{t.AssignedToUser.FirstName} {t.AssignedToUser.LastName}" : null,
                 t.AssignedToGroupId,
-                AssignedToGroupName = t.AssignedToGroupId.HasValue && groupNames.ContainsKey(t.AssignedToGroupId.Value) 
+                AssignedToGroupName = t.AssignedToGroupId.HasValue && groupNames.ContainsKey(t.AssignedToGroupId.Value)
                     ? groupNames[t.AssignedToGroupId.Value] : null,
                 t.Tags,
                 t.Category,

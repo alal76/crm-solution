@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 namespace CRM.Core.Dtos;
 
 using CRM.Core.Entities;
@@ -32,7 +48,7 @@ public class CommunicationChannelDto
     public string Status { get; set; } = string.Empty;
     public bool IsEnabled { get; set; }
     public bool IsDefault { get; set; }
-    
+
     // Email settings
     public string? SmtpServer { get; set; }
     public int? SmtpPort { get; set; }
@@ -43,19 +59,19 @@ public class CommunicationChannelDto
     public bool ImapUseSsl { get; set; }
     public string? FromEmail { get; set; }
     public string? FromName { get; set; }
-    
+
     // WhatsApp settings
     public string? WhatsAppBusinessAccountId { get; set; }
     public string? WhatsAppPhoneNumberId { get; set; }
-    
+
     // Social settings
     public string? SocialAccountId { get; set; }
     public string? SocialUsername { get; set; }
-    
+
     // Webhook
     public string? WebhookUrl { get; set; }
     public bool WebhookEnabled { get; set; }
-    
+
     public DateTime? LastConnectedAt { get; set; }
     public string? LastError { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -70,7 +86,7 @@ public class CommunicationChannelCreateDto
     public string Name { get; set; } = string.Empty;
     public bool IsEnabled { get; set; } = true;
     public bool IsDefault { get; set; } = false;
-    
+
     // Credentials
     public string? ApiKey { get; set; }
     public string? ApiSecret { get; set; }
@@ -78,7 +94,7 @@ public class CommunicationChannelCreateDto
     public string? ClientSecret { get; set; }
     public string? AccessToken { get; set; }
     public string? RefreshToken { get; set; }
-    
+
     // Email settings
     public string? SmtpServer { get; set; }
     public int? SmtpPort { get; set; }
@@ -90,12 +106,12 @@ public class CommunicationChannelCreateDto
     public bool ImapUseSsl { get; set; } = true;
     public string? FromEmail { get; set; }
     public string? FromName { get; set; }
-    
+
     // WhatsApp settings
     public string? WhatsAppBusinessAccountId { get; set; }
     public string? WhatsAppPhoneNumberId { get; set; }
     public string? WhatsAppVerifyToken { get; set; }
-    
+
     // Social settings
     public string? SocialAccountId { get; set; }
     public string? SocialUsername { get; set; }
@@ -127,7 +143,7 @@ public class CommunicationMessageListDto
     public DateTime? SentAt { get; set; }
     public DateTime? ReceivedAt { get; set; }
     public DateTime CreatedAt { get; set; }
-    
+
     // Linked entities
     public int? AccountId { get; set; }
     public string? CustomerName { get; set; }
@@ -144,28 +160,28 @@ public class CommunicationMessageDto
     public int ChannelId { get; set; }
     public string ChannelType { get; set; } = string.Empty;
     public string ChannelName { get; set; } = string.Empty;
-    
+
     public string? Subject { get; set; }
     public string? Body { get; set; }
     public string? HtmlBody { get; set; }
-    
+
     public string Direction { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string Priority { get; set; } = string.Empty;
-    
+
     public string? FromAddress { get; set; }
     public string? FromName { get; set; }
     public string? ToAddress { get; set; }
     public string? ToName { get; set; }
     public List<string>? CcAddresses { get; set; }
     public List<string>? BccAddresses { get; set; }
-    
+
     public int AttachmentCount { get; set; }
     public List<MessageAttachmentDto>? Attachments { get; set; }
-    
+
     public string? ConversationId { get; set; }
     public int? ParentMessageId { get; set; }
-    
+
     // Linked entities
     public int? AccountId { get; set; }
     public string? CustomerName { get; set; }
@@ -173,28 +189,28 @@ public class CommunicationMessageDto
     public string? ContactName { get; set; }
     public int? LeadId { get; set; }
     public int? OpportunityId { get; set; }
-    
+
     // Timestamps
     public DateTime? SentAt { get; set; }
     public DateTime? DeliveredAt { get; set; }
     public DateTime? ReadAt { get; set; }
     public DateTime? ReceivedAt { get; set; }
     public DateTime CreatedAt { get; set; }
-    
+
     // Tracking
     public int OpenCount { get; set; }
     public int ClickCount { get; set; }
-    
+
     // Social media specific
     public bool IsPublicPost { get; set; }
     public int LikeCount { get; set; }
     public int ShareCount { get; set; }
     public int CommentCount { get; set; }
-    
+
     public bool IsRead { get; set; }
     public bool IsStarred { get; set; }
     public bool IsArchived { get; set; }
-    
+
     public string? ErrorMessage { get; set; }
 }
 
@@ -223,24 +239,24 @@ public class SendMessageDto
     public List<string>? CcAddresses { get; set; }
     public List<string>? BccAddresses { get; set; }
     public string Priority { get; set; } = "Normal";
-    
+
     // Scheduling
     public DateTime? ScheduledAt { get; set; }
-    
+
     // Tracking
     public bool TrackOpens { get; set; } = true;
     public bool TrackClicks { get; set; } = true;
-    
+
     // Template
     public int? EmailTemplateId { get; set; }
     public Dictionary<string, string>? MergeFields { get; set; }
-    
+
     // Linked entities
     public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? LeadId { get; set; }
     public int? OpportunityId { get; set; }
-    
+
     // Threading
     public int? ParentMessageId { get; set; }
     public string? ConversationId { get; set; }
@@ -255,7 +271,7 @@ public class SocialPostDto
     public string Body { get; set; } = string.Empty;
     public List<string>? MediaUrls { get; set; }
     public DateTime? ScheduledAt { get; set; }
-    
+
     // For replies/retweets
     public string? InReplyToId { get; set; }
     public bool IsRetweet { get; set; } = false;
@@ -274,7 +290,7 @@ public class WhatsAppMessageDto
     public string? MediaUrl { get; set; }
     public string? TemplateName { get; set; }
     public Dictionary<string, string>? TemplateParameters { get; set; }
-    
+
     // Linked entities
     public int? AccountId { get; set; }
     public int? ContactId { get; set; }
@@ -366,7 +382,7 @@ public class ConversationListDto
     public DateTime? LastMessageAt { get; set; }
     public bool IsStarred { get; set; }
     public bool IsPinned { get; set; }
-    
+
     // Linked entities
     public int? AccountId { get; set; }
     public string? CustomerName { get; set; }
@@ -385,25 +401,25 @@ public class ConversationDto
     public string? Subject { get; set; }
     public string Status { get; set; } = string.Empty;
     public string Priority { get; set; } = string.Empty;
-    
+
     public string? ParticipantAddress { get; set; }
     public string? ParticipantName { get; set; }
-    
+
     public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? LeadId { get; set; }
     public int? AssignedToUserId { get; set; }
-    
+
     public int MessageCount { get; set; }
     public int UnreadCount { get; set; }
     public DateTime? FirstMessageAt { get; set; }
     public DateTime? LastMessageAt { get; set; }
-    
+
     public List<string>? Tags { get; set; }
     public bool IsStarred { get; set; }
     public bool IsMuted { get; set; }
     public bool IsPinned { get; set; }
-    
+
     public List<CommunicationMessageListDto>? Messages { get; set; }
 }
 
@@ -422,7 +438,7 @@ public class CommunicationStatsDto
     public int UnreadCount { get; set; }
     public int OpenConversations { get; set; }
     public int PendingMessages { get; set; }
-    
+
     public ChannelStatsDto? EmailStats { get; set; }
     public ChannelStatsDto? WhatsAppStats { get; set; }
     public ChannelStatsDto? TwitterStats { get; set; }

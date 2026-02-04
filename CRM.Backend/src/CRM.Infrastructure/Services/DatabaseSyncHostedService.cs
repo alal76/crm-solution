@@ -31,7 +31,7 @@ public class DatabaseSyncHostedService : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("=== CRM Database Sync BVT Starting ===");
-        
+
         try
         {
             // Run the sync check
@@ -41,7 +41,7 @@ public class DatabaseSyncHostedService : IHostedService
             if (result.Success)
             {
                 _logger.LogInformation("BVT PASSED: Database sync check completed successfully");
-                
+
                 foreach (var message in result.Messages)
                 {
                     _logger.LogInformation("  {Message}", message);

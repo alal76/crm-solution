@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +31,7 @@ public static class DatabaseExtensions
     /// Configure MariaDB/MySQL database connection
     /// </summary>
     public static IServiceCollection AddMariaDbContext<TContext>(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration configuration,
         string connectionStringName = "DefaultConnection") where TContext : DbContext
     {
@@ -25,9 +41,9 @@ public static class DatabaseExtensions
         var envDbName = Environment.GetEnvironmentVariable("DB_NAME");
         var envDbUser = Environment.GetEnvironmentVariable("DB_USER");
         var envDbPass = Environment.GetEnvironmentVariable("DB_PASSWORD");
-        
+
         string connectionString;
-        
+
         // If DB_USER is set (from Kubernetes secret or environment), build connection string from env vars
         if (!string.IsNullOrWhiteSpace(envDbUser))
         {
@@ -44,7 +60,7 @@ public static class DatabaseExtensions
         else
         {
             // Fall back to connection string from configuration - no hardcoded password fallback
-            connectionString = configuration.GetConnectionString(connectionStringName) 
+            connectionString = configuration.GetConnectionString(connectionStringName)
                 ?? throw new InvalidOperationException(
                     $"Database connection string '{connectionStringName}' is required. " +
                     "Set via ConnectionStrings:DefaultConnection in appsettings.json or DB_* environment variables.");
@@ -63,7 +79,7 @@ public static class DatabaseExtensions
         });
 
         // Register ICrmDbContext interface - required by Repository<T>
-        services.AddScoped<ICrmDbContext>(provider => provider.GetRequiredService<TContext>() as ICrmDbContext 
+        services.AddScoped<ICrmDbContext>(provider => provider.GetRequiredService<TContext>() as ICrmDbContext
             ?? throw new InvalidOperationException("TContext must implement ICrmDbContext"));
 
         return services;

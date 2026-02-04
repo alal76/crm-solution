@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SixLabors.ImageSharp;
@@ -17,11 +33,11 @@ public class FileUploadController : ControllerBase
 {
     private readonly ILogger<FileUploadController> _logger;
     private readonly IWebHostEnvironment _environment;
-    
+
     // Allowed image extensions
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
     private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
-    
+
     // Logo size constants
     private const int NavLogoSize = 150;
     private const int LoginLogoWidth = 400;
@@ -174,7 +190,7 @@ public class FileUploadController : ControllerBase
 
             // Load and resize image
             using var image = await Image.LoadAsync(inputStream);
-            
+
             int targetHeight;
             if (height.HasValue)
             {
@@ -205,7 +221,7 @@ public class FileUploadController : ControllerBase
             // Create data URL (always PNG after resize)
             var dataUrl = $"data:image/png;base64,{base64}";
 
-            _logger.LogInformation("File uploaded and resized to {Width}x{Height}: {FileName}, original size: {OriginalSize} bytes, new size: {NewSize} bytes", 
+            _logger.LogInformation("File uploaded and resized to {Width}x{Height}: {FileName}, original size: {OriginalSize} bytes, new size: {NewSize} bytes",
                 width, targetHeight, file.FileName, file.Length, bytes.Length);
 
             return Ok(new FileUploadResponse
@@ -245,7 +261,7 @@ public class FileUploadController : ControllerBase
             }
 
             var fullPath = Path.Combine(_environment.ContentRootPath, "wwwroot", safePath);
-            
+
             if (System.IO.File.Exists(fullPath))
             {
                 System.IO.File.Delete(fullPath);

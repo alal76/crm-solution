@@ -621,7 +621,7 @@ export const ActionPropertiesPanel: React.FC<ActionPropertiesPanelProps> = ({
                   <Select
                     value={config.taskPriority || 'Medium'}
                     label="Priority"
-                    onChange={(e) => updateConfig({ taskPriority: e.target.value as 'low' | 'normal' | 'high' | 'urgent' })}
+                    onChange={(e) => updateConfig({ taskPriority: e.target.value as 'Low' | 'Medium' | 'High' | 'Critical' })}
                     disabled={readonly}
                   >
                     <MenuItem value="Low">Low</MenuItem>

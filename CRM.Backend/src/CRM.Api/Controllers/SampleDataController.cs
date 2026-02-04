@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,9 +51,9 @@ public class SampleDataController : ControllerBase
         {
             var isSeeded = await _seederService.IsSampleDataSeededAsync();
             var stats = await _seederService.GetSampleDataStatsAsync();
-            
-            return Ok(new 
-            { 
+
+            return Ok(new
+            {
                 isSeeded,
                 statistics = new
                 {
@@ -51,8 +67,8 @@ public class SampleDataController : ControllerBase
                     opportunities = stats.OpportunityCount,
                     sampleUsers = stats.SampleUserCount
                 },
-                message = isSeeded 
-                    ? "Sample data is seeded in the database" 
+                message = isSeeded
+                    ? "Sample data is seeded in the database"
                     : "No sample data has been seeded yet"
             });
         }
@@ -74,9 +90,9 @@ public class SampleDataController : ControllerBase
             _logger.LogInformation("Starting sample data seeding...");
             await _seederService.SeedAllSampleDataAsync();
             var stats = await _seederService.GetSampleDataStatsAsync();
-            
-            return Ok(new 
-            { 
+
+            return Ok(new
+            {
                 message = "Sample data seeded successfully",
                 success = true,
                 statistics = new
@@ -243,10 +259,10 @@ public class SampleDataController : ControllerBase
         {
             _logger.LogInformation("Clearing sample data while preserving master data...");
             await _seederService.ClearSampleDataAsync();
-            return Ok(new 
-            { 
-                message = "Sample data cleared successfully. Master data (ZipCodes, ColorPalettes) preserved.", 
-                success = true 
+            return Ok(new
+            {
+                message = "Sample data cleared successfully. Master data (ZipCodes, ColorPalettes) preserved.",
+                success = true
             });
         }
         catch (Exception ex)

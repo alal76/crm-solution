@@ -191,7 +191,7 @@ function NotesPage() {
       // Pinned notes first, then by date
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
     });
 
   if (loading) {
@@ -343,7 +343,7 @@ function NotesPage() {
                           </Box>
                         </Tooltip>
                         <Typography variant="caption" color="textSecondary">
-                          {new Date(note.createdAt).toLocaleDateString()}
+                          {new Date(note.createdAt || 0).toLocaleDateString()}
                         </Typography>
                       </Box>
                     </Box>

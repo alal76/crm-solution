@@ -731,7 +731,7 @@ public class CampaignAnalytics
 {
     public int CampaignId { get; set; }
     public string CampaignName { get; set; } = string.Empty;
-    
+
     // Counts
     public int TotalRecipients { get; set; }
     public int TotalSent { get; set; }

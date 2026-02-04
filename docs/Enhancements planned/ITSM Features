@@ -1,0 +1,2305 @@
+Comprehensive Guide: IT Service Management Implementation in ServiceNow and Leading ITSM Platforms
+Table of Contents
+1. Executive Overview
+2. Core ITSM Architecture
+3. Incident Management
+4. Service Request Management
+5. Problem Management
+6. Change Management
+7. Knowledge Management
+8. Asset and Configuration Management (CMDB)
+9. Service Catalog
+10. Service Level Management (SLAs)
+11. User Portal (Self-Service)
+12. Automation and Orchestration
+13. Reporting and Analytics
+14. Integration Capabilities
+15. IT Operations Management (ITOM)
+16. Detailed Data Models
+
+1. Executive Overview
+1.1 What Leading ITSM Platforms Do
+ServiceNow, BMC Remedy, Cherwell, Jira Service Management, and Freshservice implement comprehensive IT Service Management based on ITIL (Information Technology Infrastructure Library) best practices:
+* Incident Management - Restore normal service operation as quickly as possible
+* Service Request Management - Handle user requests for information, access, or standard changes
+* Problem Management - Identify and resolve root causes of recurring incidents
+* Change Management - Control the lifecycle of all changes to minimize disruption
+* Knowledge Management - Capture, organize, and share information
+* Asset Management - Track hardware, software, and configuration items (CIs)
+* Service Catalog - User-friendly catalog of available IT services
+* SLA Management - Monitor and ensure service level agreements are met
+* Self-Service Portal - Enable users to resolve issues and submit requests without agent intervention
+1.2 Core Philosophy
+Modern ITSM platforms follow these principles:
+1. ITIL Alignment - Based on ITIL framework for IT service management
+2. Service-Centric - Focus on delivering value through services
+3. Automation First - Automate repetitive tasks and workflows
+4. Self-Service - Empower users to help themselves
+5. Continuous Improvement - Metrics and feedback drive process enhancement
+6. Integration - Connect with monitoring, deployment, and business tools
+7. Configuration Management - Maintain accurate CMDB for impact analysis
+8. Collaboration - Teams work together across departments
+1.3 ITIL Framework Overview
+Service Operation:
+* Incident Management
+* Request Fulfillment
+* Problem Management
+* Access Management
+* Event Management
+Service Transition:
+* Change Management
+* Release Management
+* Knowledge Management
+* Configuration Management
+Service Design:
+* Service Catalog Management
+* Service Level Management
+* Availability Management
+* Capacity Management
+Continual Service Improvement:
+* Reporting and Analytics
+* Process Optimization
+* Feedback Loops
+
+2. Core ITSM Architecture
+2.1 Data Model Hierarchy
+User (End User)
+* Represents people who use IT services
+* May submit incidents, requests, and access self-service
+* Contains: Name, email, department, location, manager
+User Group (Department/Team)
+* Logical grouping of users
+* Used for routing and permissions
+* Contains: Name, manager, members
+Assignment Group (Support Team)
+* IT support teams that resolve issues
+* Examples: Desktop Support, Network Team, Database Admins
+* Contains: Name, manager, members, skill sets
+Configuration Item (CI)
+* Any component that needs to be managed to deliver IT services
+* Examples: Servers, applications, network devices, databases
+* Relationships between CIs form the CMDB
+* Contains: Name, type, status, owner, location, relationships
+Service
+* IT service offered to users
+* Examples: Email Service, VPN Access, Software Development Environment
+* Contains: Name, description, owner, SLA, catalog items
+Incident
+* Unplanned interruption or reduction in quality of service
+* Linked to affected user and CI
+* Contains: Description, priority, status, assigned group, resolution
+Service Request
+* User request for information, access, or standard change
+* Pre-approved and standardized
+* Contains: Type, item requested, approval status, fulfillment tasks
+Problem
+* Root cause of one or more incidents
+* Investigation to prevent future incidents
+* Contains: Description, root cause, workaround, related incidents
+Change
+* Addition, modification, or removal of anything that could affect services
+* Follows approval workflow
+* Contains: Description, type, risk, implementation plan, approvers
+Knowledge Article
+* Documented solutions and information
+* Searchable by users and agents
+* Contains: Title, content, category, tags, attachments
+2.2 Relationship Structure
+User (End User)
+    ↓
+Incident / Service Request
+    ↓
+Assignment Group (Support Team)
+    ↓
+Resolution / Fulfillment
+    ↓ (if recurring issues)
+Problem
+    ↓ (permanent fix)
+Change
+    ↓
+Knowledge Article (lessons learned)
+
+Configuration Items (CMDB)
+    ↓ (relationships)
+Service Dependencies
+    ↓ (impact analysis)
+Incident/Problem/Change
+2.3 Database Design Principles
+Base Tables:
+* All major objects inherit from base "Task" table
+* Common fields: number, short_description, state, priority, assigned_to, created, updated
+* Incidents, Requests, Problems, Changes all extend Task
+CMDB Structure:
+* CI base class with specialized subclasses
+* Relationships table for CI connections
+* Dependency mapping for impact analysis
+Audit and History:
+* Track all field changes
+* Who changed what, when
+* Full audit trail for compliance
+
+3. Incident Management
+3.1 Incident Lifecycle
+Incident States:
+1. New - Just submitted, not yet assigned
+2. Assigned - Assigned to support group
+3. In Progress - Agent actively working on it
+4. On Hold - Waiting for information or external party
+5. Resolved - Solution provided, awaiting user confirmation
+6. Closed - User confirmed resolution or auto-closed after X days
+3.2 Incident Fields (Standard Implementation)
+Identifying Information:
+* Number (auto-generated: INC0001234)
+* Short Description (required, 160 chars)
+* Description (detailed information, rich text)
+* Caller (User who reported, required)
+* Contact Type (Phone, Email, Walk-in, Self-Service, Monitoring)
+* Opened At (timestamp)
+* Opened By (user who created record)
+Classification:
+* Category (Hardware, Software, Network, Database, Security, etc.)
+* Subcategory (Desktop, Laptop, Printer, etc.)
+* Configuration Item (affected device/application)
+* Service (affected IT service)
+Prioritization:
+* Impact (High, Medium, Low - how many users affected)
+* Urgency (High, Medium, Low - how quickly needs resolution)
+* Priority (auto-calculated from Impact × Urgency matrix)
+    * P1 (Critical): High Impact + High Urgency
+    * P2 (High): High Impact + Medium Urgency OR Medium Impact + High Urgency
+    * P3 (Medium): Medium Impact + Medium Urgency
+    * P4 (Low): Low Impact OR Low Urgency
+Assignment:
+* Assignment Group (support team, required when assigned)
+* Assigned To (individual agent)
+* Escalation Level (0, 1, 2, 3 for management escalation)
+Resolution:
+* State (New, Assigned, In Progress, On Hold, Resolved, Closed)
+* Resolution Code (Solved Remotely, Solved at Desk, Hardware Repair, User Error, etc.)
+* Resolution Notes (how it was fixed)
+* Resolved At (timestamp)
+* Resolved By (user)
+* Closed At (timestamp)
+* Closed By (user)
+SLA Fields:
+* SLA Breach (boolean - has SLA been violated)
+* Time to Respond (deadline for first response)
+* Time to Resolve (deadline for resolution)
+* Business Elapsed Time (time spent in active states)
+Additional Fields:
+* Location (user's physical location)
+* Company (for multi-tenant systems)
+* Upon Approval (for incidents requiring approval)
+* Upon Reject (action if approval denied)
+* Parent Incident (for related/duplicate incidents)
+* Problem (linked problem if root cause identified)
+* Change Request (linked change if fix requires change)
+3.3 Incident Routing and Assignment
+Automatic Assignment Rules:
+Rule 1: Category-Based Routing
+IF Category = "Network" 
+  THEN Assign to "Network Support Team"
+  
+IF Category = "Desktop" AND Subcategory = "Printer"
+  THEN Assign to "Desktop Support - Printing"
+  
+IF Category = "Application" AND CI = "SAP"
+  THEN Assign to "SAP Support Team"
+Rule 2: Priority-Based Routing
+IF Priority = "P1" (Critical)
+  THEN Assign to "Major Incident Team"
+  AND Create conference bridge
+  AND Notify IT Manager
+  AND Update status page
+  
+IF Priority = "P2" 
+  THEN Assign to senior engineers in appropriate group
+Rule 3: VIP User Routing
+IF Caller is VIP (C-level, SVP)
+  THEN Increase Priority by 1 level
+  AND Assign to "VIP Support Team"
+  AND Notify support manager
+Rule 4: Location-Based Routing
+IF Location = "New York Office"
+  THEN Assign to "NY Support Team"
+  
+IF Location = "London Office"
+  THEN Assign to "EMEA Support Team"
+Rule 5: Skills-Based Routing
+IF Subcategory = "SQL Server"
+  THEN Assign to agent with "SQL Database" skill
+  
+IF Description contains "Azure" OR "AWS"
+  THEN Assign to agent with "Cloud Infrastructure" skill
+Round Robin Assignment:
+* Within assignment group, distribute evenly
+* Consider agent availability and current workload
+* Respect work schedules (don't assign during off-hours)
+3.4 Major Incident Management
+Major Incident Triggers:
+* P1 priority incidents
+* Multiple users affected (>100 users)
+* Critical service down (email, ERP, etc.)
+* Security breach
+* Data loss
+Major Incident Process:
+1. Declaration: Major Incident Manager notified
+2. Assembly: Form incident response team (bridge call)
+3. Communication:
+    * Notify stakeholders
+    * Update status page
+    * Send regular updates (every 30 minutes)
+4. Investigation: Root cause analysis
+5. Resolution: Implement fix or workaround
+6. Review: Post-incident review within 48 hours
+7. Documentation: Capture lessons learned
+Major Incident Fields:
+* Major Incident (boolean checkbox)
+* Bridge Number (conference call details)
+* Status Page Updated (boolean)
+* Communication Sent (timestamps of updates)
+* Incident Commander (lead person)
+* Post-Incident Review Scheduled (date/time)
+3.5 Incident Escalation
+Functional Escalation (to higher skill level):
+Tier 1 (Help Desk) 
+  ↓ (after 2 hours or 2 reassignments)
+Tier 2 (Desktop/App Support)
+  ↓ (after 4 hours or complex issue)
+Tier 3 (Engineering/Vendor)
+Hierarchical Escalation (to management):
+Trigger: SLA breach imminent (within 25% of deadline)
+Actions:
+  1. Notify Assignment Group Manager
+  2. If no response in 30 min → Notify IT Director
+  3. If P1 and no resolution in 2 hours → Notify CIO
+3.6 SLA Tracking
+Response SLA:
+* P1: 15 minutes
+* P2: 1 hour
+* P3: 4 hours
+* P4: 8 hours (next business day)
+Resolution SLA:
+* P1: 4 hours
+* P2: 8 hours
+* P3: 3 business days
+* P4: 5 business days
+SLA Calculations:
+* Business hours only (M-F, 8am-6pm) for P3/P4
+* 24/7 for P1/P2
+* Pause SLA when state = "On Hold" (awaiting user)
+* Resume SLA when state changes back to "In Progress"
+SLA Breach Handling:
+When SLA at 75%: Warning notification to agent
+When SLA at 90%: Escalate to manager
+When SLA breached: 
+  - Flag incident
+  - Automatic escalation to management
+  - Report in SLA dashboard
+  - Require root cause for breach
+3.7 Incident Closure
+Closure Requirements:
+* Resolution code selected (required)
+* Resolution notes entered (min 50 characters)
+* Time worked logged
+* Caller satisfied (rating provided or auto-close after 3 days)
+Auto-Closure Rules:
+IF State = "Resolved" 
+  AND Days since resolution >= 3
+  AND No response from user
+THEN 
+  Set State = "Closed"
+  Set Closed Code = "Auto-closed - No response"
+Reopen Logic:
+IF Incident closed < 7 days ago
+  AND User reports same issue
+THEN
+  Reopen incident (change state back to "In Progress")
+  Add note: "Reopened by user"
+  Notify assigned agent
+ELSE
+  Create new incident
+  Link to original as "Related"
+
+4. Service Request Management
+4.1 Request Types
+Common Request Categories:
+* Access Requests: New user account, password reset, permission change, application access
+* Hardware Requests: New laptop, monitor, keyboard, phone
+* Software Requests: Install application, software license, upgrade
+* Information Requests: Report request, documentation, status inquiry
+* Standard Changes: Pre-approved routine changes (add user to group, schedule backup)
+4.2 Service Request Fields
+Core Fields:
+* Number (auto-generated: REQ0001234)
+* Short Description
+* Requested For (user who will receive the service, may differ from Opened By)
+* Opened By (person who submitted)
+* Category/Subcategory
+* Configuration Item (if applicable)
+Request Specific Fields:
+* Request Type (Access, Hardware, Software, Information)
+* Catalog Item (if from service catalog)
+* Price (if catalog item has cost)
+* Requested Delivery Date
+* Special Instructions
+Approval Fields:
+* Approval Status (Not Yet Requested, Requested, Approved, Rejected)
+* Approvers (list of approvers required)
+* Approval History (audit trail)
+Fulfillment Fields:
+* Fulfillment Group (team that will fulfill)
+* Fulfillment Tasks (checklist of steps)
+* Task States (Not Started, In Progress, Complete)
+State Workflow:
+1. Pending Approval - Awaiting manager/budget approval
+2. Approved - Approved, ready for fulfillment
+3. Rejected - Request denied
+4. Work in Progress - Being fulfilled
+5. Closed Complete - Successfully fulfilled
+6. Closed Incomplete - Could not fulfill
+7. Closed Cancelled - User cancelled request
+4.3 Service Catalog Integration
+Catalog Items:
+* Name (e.g., "Request New Laptop")
+* Description
+* Category (Hardware, Software, Access)
+* Icon/Image
+* Price (optional)
+* Availability (all users, specific departments)
+* Workflow (approval + fulfillment process)
+* Variables (form fields to collect info)
+Request Variable Examples:
+Laptop Request Variables:
+* Laptop Type (dropdown: Standard, Performance, Developer)
+* Required Accessories (checkboxes: Extra Monitor, Docking Station, Mouse, Keyboard)
+* Business Justification (text area, required)
+* Delivery Location (reference to location table)
+* Urgency (dropdown: Standard, Urgent)
+Software Access Variables:
+* Application Name (dropdown of available applications)
+* License Type (dropdown: Named User, Concurrent)
+* Access Level (dropdown: Read-Only, Contributor, Admin)
+* Manager Approval Required (auto-calculated based on access level)
+* Cost Center (reference to department)
+4.4 Approval Workflows
+Single Approver:
+Request Type: Software Installation (free)
+Approval Flow:
+  1. Direct Manager → Approve/Reject
+  If Approved → Route to Desktop Support
+  If Rejected → Close request, notify user
+Multi-Level Approval:
+Request Type: New Laptop ($2000)
+Approval Flow:
+  1. Direct Manager → Approve/Reject
+  If Approved AND Cost > $1000:
+    2. IT Director → Approve/Reject
+  If Approved AND Cost > $5000:
+    3. CFO → Approve/Reject
+  All Approved → Route to Procurement
+  Any Rejected → Close request, notify user
+Parallel Approval:
+Request Type: Database Admin Access
+Approval Flow:
+  1a. Direct Manager (concurrent)
+  1b. Database Team Lead (concurrent)
+  1c. Security Team (concurrent)
+  All Must Approve → Route to Database Team for provisioning
+  Any Rejection → Close request
+Conditional Approval:
+Request Type: VPN Access
+Approval Flow:
+  IF User is Employee:
+    1. Direct Manager only
+  IF User is Contractor:
+    1. Hiring Manager
+    2. IT Security
+    3. Legal (if international contractor)
+4.5 Fulfillment Tasks
+Automated Task Creation: When request approved, auto-create fulfillment tasks:
+Example: New Employee Onboarding Request
+Parent Request: REQ0012345 - New Employee Setup for John Doe
+
+Generated Tasks:
+  Task 1: Create Active Directory account
+    - Assigned to: Identity Management Team
+    - Planned Duration: 30 minutes
+    
+  Task 2: Provision email account
+    - Assigned to: Email Admin Team
+    - Depends on: Task 1 (sequential)
+    - Planned Duration: 15 minutes
+    
+  Task 3: Order laptop
+    - Assigned to: Procurement
+    - Depends on: None (can run parallel)
+    - Planned Duration: 2 days
+    
+  Task 4: Configure laptop with standard software
+    - Assigned to: Desktop Support
+    - Depends on: Task 1, Task 3
+    - Planned Duration: 2 hours
+    
+  Task 5: Grant application access (Salesforce, Jira)
+    - Assigned to: Application Admins
+    - Depends on: Task 1
+    - Planned Duration: 1 hour
+    
+  Task 6: Schedule orientation
+    - Assigned to: HR
+    - Depends on: None (parallel)
+    - Planned Duration: N/A (manual)
+
+Request auto-closes when all tasks complete
+4.6 Self-Service Portal
+Portal Features:
+* Browse service catalog by category
+* Search catalog items
+* Submit requests directly
+* Track request status
+* Approve pending approvals
+* View request history
+* Check knowledge base
+Popular Items Widget:
+* Most requested items
+* Recently requested by user
+* Recommended based on department
+
+5. Problem Management
+5.1 Problem Lifecycle
+Problem States:
+1. New - Problem identified
+2. Assess - Analyzing scope and impact
+3. Root Cause Analysis - Investigating underlying cause
+4. Fix in Progress - Developing permanent solution
+5. Resolved - Solution implemented
+6. Closed - Confirmed working, no recurrence
+5.2 Problem Fields
+Core Fields:
+* Number (auto-generated: PRB0001234)
+* Short Description
+* Description (detailed problem statement)
+* Category/Subcategory
+* Configuration Item (affected system)
+* Priority (based on frequency and impact of related incidents)
+Analysis Fields:
+* Root Cause (text area - documented cause)
+* Workaround (temporary solution while permanent fix in progress)
+* Related Incidents (list of incidents caused by this problem)
+* Related Changes (changes implementing the fix)
+* Known Error (boolean - root cause confirmed)
+Investigation Fields:
+* Problem Investigator (assigned analyst)
+* Problem Manager (manager overseeing)
+* Root Cause Analysis Due Date
+* Investigation Notes (rich text log)
+Resolution Fields:
+* Solution (permanent fix description)
+* Resolution Code
+* Resolved At/By
+* Fix Verified (boolean)
+* Knowledge Article (link to KB article created from solution)
+5.3 Problem Identification
+Proactive Problem Identification:
+* Trend analysis (multiple similar incidents)
+* Monitoring alerts (repeated errors in logs)
+* Vendor bulletins (security vulnerabilities)
+Reactive Problem Identification:
+* Major incident post-review
+* User reports of recurring issues
+* Multiple incidents with same symptoms
+Automatic Problem Creation:
+IF Count of incidents with same CI + same Category >= 5 in 7 days
+THEN
+  Create Problem record
+  Link all incidents to problem
+  Assign to Problem Management team
+  Notify Problem Manager
+5.4 Root Cause Analysis
+RCA Techniques Documented:
+* 5 Whys
+* Fishbone Diagram (Ishikawa)
+* Fault Tree Analysis
+* Timeline Analysis
+RCA Template in Problem Record:
+Problem Statement:
+  Users unable to access SharePoint intermittently
+
+What happened:
+  SharePoint site became unresponsive 3 times in past week
+  
+When did it happen:
+  - 3/15 at 2:45 PM for 25 minutes
+  - 3/17 at 10:20 AM for 15 minutes  
+  - 3/19 at 3:10 PM for 30 minutes
+
+Who was affected:
+  All users (500+ people)
+
+Where did it happen:
+  SharePoint production server SPRD01
+
+Root Cause (5 Whys):
+  1. Why did SharePoint become unresponsive? → IIS app pool crashed
+  2. Why did app pool crash? → Memory exhaustion
+  3. Why memory exhaustion? → Memory leak in custom web part
+  4. Why memory leak? → Event handler not properly disposed
+  5. Why not disposed? → Developer didn't follow best practices
+
+Root Cause:
+  Custom web part code does not properly dispose of SharePoint objects, causing memory leak
+
+Corrective Action:
+  1. Immediate: Restart app pool nightly (workaround)
+  2. Short-term: Increase server memory from 16GB to 32GB
+  3. Long-term: Fix web part code, deploy via change control
+
+Preventive Action:
+  - Implement code review checklist for disposal patterns
+  - Add monitoring alert for app pool memory > 80%
+  - Schedule web part code audit quarterly
+5.5 Known Error Database (KEDB)
+Known Error Record:
+* Problem Number (linked)
+* Symptoms (how it manifests)
+* Workaround (temporary fix)
+* Root Cause (confirmed cause)
+* Permanent Fix (if available)
+* Status (Workaround Available, Fix in Progress, Fix Released)
+Search and Match:
+* When new incident created, search KEDB for similar symptoms
+* Suggest known errors to agents
+* Apply documented workaround
+* Link incident to problem
+
+6. Change Management
+6.1 Change Types
+Standard Change:
+* Pre-approved, low risk, routine
+* Follows established procedure
+* Examples: Password reset, add user to group, schedule backup
+* Minimal or no approval required
+* Can be automated
+Normal Change:
+* Requires assessment and approval
+* Follows standard CAB (Change Advisory Board) process
+* Examples: Server patch, application upgrade, network config change
+* Risk assessment required
+* Implementation plan and backout plan required
+Emergency Change:
+* Urgent, can't wait for normal process
+* Required to fix major incident or security issue
+* Expedited approval (Emergency CAB)
+* Implemented ASAP
+* Retrospective approval possible
+6.2 Change Fields
+Identification:
+* Number (auto-generated: CHG0001234)
+* Short Description
+* Description (detailed change description)
+* Type (Standard, Normal, Emergency)
+* Category (Hardware, Software, Network, Security, etc.)
+* Configuration Item (what's being changed)
+* Service (affected IT service)
+Planning:
+* Change Requestor (person requesting)
+* Assigned To (change coordinator/implementer)
+* Implementation Group (team performing change)
+* Planned Start Date/Time
+* Planned End Date/Time
+* Maintenance Window (if during scheduled maintenance)
+* Estimated Duration
+Risk Assessment:
+* Risk (High, Medium, Low)
+* Impact (High, Medium, Low - scope of users/systems affected)
+* Risk Assessment Notes
+* Risk Mitigation Plan
+Implementation:
+* Implementation Plan (step-by-step instructions)
+* Backout Plan (rollback procedure if it fails)
+* Testing Plan (how to verify success)
+* Change Implementation Notes (log during implementation)
+Approval:
+* Approval Status (Requested, Approved, Rejected)
+* CAB Members (approvers)
+* CAB Date (when discussed)
+* Approval History
+State Workflow:
+1. New - Just created
+2. Assess - Risk and impact analysis
+3. Authorize - Pending CAB approval
+4. Scheduled - Approved, scheduled for implementation
+5. Implement - Being executed
+6. Review - Post-implementation review
+7. Closed - Complete and reviewed
+Closure:
+* Actual Start/End Time
+* Change Success (boolean)
+* Closure Code (Successful, Successful with Issues, Unsuccessful, Backed Out)
+* Closure Notes
+* Post-Implementation Review Notes
+6.3 Change Advisory Board (CAB)
+CAB Membership:
+* CAB Chair (Change Manager)
+* IT Management representatives
+* Application owners
+* Infrastructure representatives
+* Security representative
+* Business representatives
+CAB Meeting Cadence:
+* Weekly for normal changes
+* Daily for emergency changes (as needed)
+* Monthly for major changes (requires business approval)
+CAB Approval Process:
+Change submitted
+  ↓
+Risk assessment completed
+  ↓
+Sent to CAB for review
+  ↓
+CAB discusses in weekly meeting
+  ↓
+Decision: Approve / Reject / Request More Info
+  ↓
+If Approved:
+  - Schedule for implementation
+  - Notify implementer
+  - Update change calendar
+If Rejected:
+  - Notify requestor with reason
+  - Close change
+If More Info:
+  - Return to requestor for additional details
+  - Re-submit to next CAB
+Emergency CAB (eCAB):
+Emergency change created (linked to P1 incident)
+  ↓
+Notify eCAB members via SMS/email
+  ↓
+Conference call convened within 30 minutes
+  ↓
+Quick review (10-15 minutes):
+  - What's the issue?
+  - What's the proposed change?
+  - What's the risk of making the change?
+  - What's the risk of NOT making the change?
+  - What's the backout plan?
+  ↓
+Decision: Approve / Reject
+  ↓
+If Approved: Implement immediately
+  ↓
+Post-implementation review within 24 hours
+6.4 Change Calendar
+Calendar Features:
+* Visual timeline of all scheduled changes
+* Filter by type, category, assignment group
+* Conflict detection (multiple changes on same CI)
+* Blackout periods (freeze windows - no changes allowed)
+* Maintenance windows (pre-approved change windows)
+Blackout Periods:
+* Financial year-end (no changes 2 weeks before, 1 week after)
+* Holiday periods (Thanksgiving week, Christmas/New Year)
+* Major business events (annual conference, earnings calls)
+* Peak business periods (retail: Black Friday, tax: April)
+Change Collision Detection:
+IF New change scheduled for CI "Database PROD-SQL-01"
+  AND Existing change already scheduled for same CI
+  AND Time windows overlap
+THEN
+  Alert change coordinator: "Conflict detected"
+  Require manual review and approval
+  Options: Reschedule one change, combine changes, proceed with both
+6.5 Change Success Metrics
+KPIs Tracked:
+* Change Success Rate: (Successful changes / Total changes) × 100%
+    * Target: 95%+
+* Emergency Change Rate: (Emergency changes / Total changes) × 100%
+    * Target: <5%
+* Standard Change Automation: Percentage of standard changes fully automated
+    * Target: 80%+
+* Change-Caused Incidents: Number of incidents caused by failed changes
+    * Target: Minimize
+* Mean Time to Implement: Average time from approval to completion
+    * Target: Within planned duration
+Post-Implementation Review:
+* Conducted within 48 hours of change completion
+* Compare planned vs. actual times
+* Document lessons learned
+* Update change procedure if needed
+* Create knowledge article for successful complex changes
+
+7. Knowledge Management
+7.1 Knowledge Article Structure
+Article Types:
+* How-To: Step-by-step instructions (e.g., "How to reset your password")
+* Troubleshooting: Diagnostic steps (e.g., "VPN connection troubleshooting")
+* Reference: Information articles (e.g., "Supported software list")
+* FAQ: Common questions and answers
+* Known Error: Solutions to known problems
+7.2 Knowledge Article Fields
+Content Fields:
+* Number (auto-generated: KB0001234)
+* Title (SEO-friendly, clear title)
+* Short Description (summary, used in search results)
+* Article Body (rich text with images, videos, code blocks)
+* Category (Hardware, Software, Network, etc.)
+* Subcategory
+* Tags (keywords for search)
+* Related Articles (links to similar articles)
+* Related Incidents/Problems (links to tickets)
+Metadata:
+* Author (person who wrote article)
+* Owner (person responsible for accuracy)
+* Published Date
+* Last Updated Date
+* Version (track revisions)
+* Review Date (when should be reviewed for accuracy)
+* Expiration Date (when article should be retired)
+Publishing Workflow:
+* Draft (being written)
+* Review (sent for peer/manager review)
+* Approved (ready to publish)
+* Published (visible to intended audience)
+* Retired (no longer accurate, archived)
+Audience:
+* Internal (IT staff only)
+* External (end users can see in self-service portal)
+* Public (visible on public website)
+Usage Metrics:
+* View Count
+* Helpful Count (thumbs up)
+* Not Helpful Count (thumbs down)
+* Attached to Incidents (how many times used to resolve)
+* Comments/Feedback
+7.3 Knowledge-Centered Service (KCS)
+Capture:
+* Create articles during incident resolution
+* Template: Problem + Solution
+* Link article to incident for validation
+Structure:
+* Consistent formatting
+* Clear title (includes keywords)
+* Step-by-step instructions
+* Screenshots or videos
+* Prerequisites listed
+* Expected outcome stated
+Reuse:
+* Search knowledge base while working on incident
+* Attach article to incident when used
+* Track article effectiveness (did it solve the issue?)
+Improve:
+* Flag article as "needs update" if inaccurate
+* Review article feedback (helpful/not helpful votes)
+* Update based on new information
+* Retire outdated articles
+Review Cycle:
+Every 90 days:
+  - Review articles with low helpful rating (<60%)
+  - Review articles with high view count (>100 views)
+  - Review articles with no recent usage
+  - Update or retire as needed
+7.4 Knowledge Base Search
+Search Features:
+* Full-text search across all articles
+* Fuzzy matching (typo-tolerant)
+* Keyword highlighting
+* Filters (category, date, author)
+* Sort by relevance, views, date
+Search Integration:
+* Search results appear in incident form (as agent types description)
+* Suggested articles based on category and keywords
+* "Related Articles" widget on incident page
+AI-Powered Search:
+* Natural language queries ("My email isn't working")
+* Semantic search (understand intent, not just keywords)
+* Learning from usage (articles that solve incidents rank higher)
+
+8. Asset and Configuration Management (CMDB)
+8.1 Configuration Items (CIs)
+CI Types:
+* Hardware: Servers, laptops, desktops, phones, tablets, network devices, printers
+* Software: Operating systems, applications, databases, licenses
+* Virtual: Virtual machines, containers, cloud instances
+* Network: Routers, switches, firewalls, load balancers
+* Facilities: Data centers, server rooms, UPS systems
+* Services: Business services, IT services, applications
+* Documents: SLA documents, contracts, diagrams
+* Personnel: Key personnel (service owners, admins)
+8.2 CI Fields
+Identification:
+* CI Name (unique identifier)
+* CI Type (Server, Application, Network Device, etc.)
+* Serial Number / Asset Tag
+* Model Number
+* Manufacturer
+* Version / Build Number
+Ownership:
+* Owner (business owner)
+* Support Group (IT team responsible)
+* Managed By (primary admin)
+* Used By (department or users)
+Status:
+* Operational Status (Operational, Non-Operational, Under Repair, Retired)
+* Environment (Production, Development, Test, Staging)
+* Criticality (Business Critical, High, Medium, Low)
+Location:
+* Physical Location (data center, building, floor, rack)
+* Logical Location (subnet, domain, OU)
+Financial:
+* Purchase Date
+* Purchase Cost
+* Vendor
+* Warranty Expiration
+* Lease Expiration
+* Depreciation Schedule
+Technical:
+* IP Address (for network devices)
+* MAC Address
+* Operating System
+* CPU / RAM / Disk
+* Last Discovered Date (auto-populated by discovery tools)
+Relationships:
+* Runs On (VM runs on host server)
+* Depends On (application depends on database)
+* Provides Service To (service relies on CI)
+* Connected To (network topology)
+* Installed On (software on hardware)
+8.3 CMDB Relationships
+Relationship Types:
+* Parent-Child: VM → Host Server
+* Runs On: Application → Server
+* Depends On: E-commerce Website → Payment Gateway → Database
+* Connected To: Switch Port 24 → Router Port 5
+* Installed On: Microsoft Office → Laptop
+* Uses: User → Laptop
+Service Dependency Map:
+Email Service (Business Service)
+  ├── Runs On → Exchange Server Cluster (Application)
+  │   ├── Runs On → EXCH-SVR-01 (Server)
+  │   │   ├── Runs On → VMware Host 1 (Physical Server)
+  │   │   └── Connected To → SAN Storage Array (Storage)
+  │   ├── Runs On → EXCH-SVR-02 (Server)
+  │   │   ├── Runs On → VMware Host 2 (Physical Server)
+  │   │   └── Connected To → SAN Storage Array (Storage)
+  │   └── Depends On → Active Directory (Application)
+  │       └── Runs On → AD-SVR-01 (Server)
+  ├── Depends On → Load Balancer (Network Device)
+  └── Depends On → Internet Connection (Network Service)
+Impact Analysis:
+Query: "If Database Server PROD-SQL-01 fails, what is impacted?"
+
+Result:
+  Direct Impact:
+    - Salesforce Application (runs on this DB)
+    - Finance Application (runs on this DB)
+    - Reporting Service (depends on this DB)
+  
+  Downstream Impact:
+    - CRM Service (depends on Salesforce)
+    - Order Processing Service (depends on Finance App)
+    - Executive Dashboard (depends on Reporting Service)
+  
+  Affected Users: ~500 users
+  Business Impact: HIGH - Sales and Finance operations stopped
+8.4 Asset Lifecycle Management
+Lifecycle States:
+1. Ordered - Purchased, not yet received
+2. In Stock - Received, in inventory
+3. Deployed - Assigned to user or in production
+4. In Repair - Being serviced
+5. Retired - No longer in use
+6. Disposed - Physically destroyed or sold
+Automated Asset Tracking:
+* Discovery tools scan network and update CMDB
+* Integration with procurement system (auto-create CIs from purchase orders)
+* Integration with disposal process (track asset retirement)
+Asset Audit:
+* Quarterly physical verification of assets
+* Compare CMDB to physical inventory
+* Reconcile discrepancies (missing, surplus, incorrect data)
+
+9. Service Catalog
+9.1 Catalog Structure
+Catalog Categories:
+* Access Management (accounts, permissions)
+* Hardware & Devices (laptops, phones, monitors)
+* Software & Applications (licenses, installations)
+* Collaboration Tools (email, Teams, Zoom)
+* IT Infrastructure (servers, databases, network)
+* Facilities (parking, building access)
+* HR Services (onboarding, offboarding)
+9.2 Catalog Item Fields
+Display:
+* Item Name
+* Short Description (one sentence)
+* Long Description (detailed information)
+* Icon / Image
+* Category
+* Availability (All Users, Specific Departments, VIPs only)
+* Featured (show on homepage)
+Workflow:
+* Fulfillment Workflow (what happens after submission)
+* Approval Workflow (who must approve)
+* Delivery Task Template (auto-create tasks)
+Pricing (if applicable):
+* Price
+* Recurring Cost (monthly fee)
+* Cost Center to Charge
+Variables (Form Fields):
+* Input fields needed from user
+* Field types: Text, Number, Dropdown, Checkbox, Date, Lookup, etc.
+* Mandatory/Optional
+* Default values
+* Validation rules
+SLA:
+* Expected Delivery Time (e.g., "2 business days")
+* Priority (for routing)
+9.3 Variable Sets (Reusable Form Fields)
+Common Variable Sets:
+User Information Set:
+* First Name
+* Last Name
+* Email
+* Department
+* Location
+Approval Information Set:
+* Manager
+* Business Justification
+* Urgency
+Asset Details Set:
+* Make/Model
+* Serial Number
+* Asset Tag
+Configuration Set:
+* Operating System
+* RAM Configuration
+* Hard Drive Size
+9.4 Catalog Item Examples
+Example 1: Request New Laptop
+Variables:
+* Laptop Type (Dropdown): Standard, Performance, Developer, Executive
+* Required Accessories (Checkboxes): Extra Monitor, Docking Station, Wireless Mouse, Wireless Keyboard, Laptop Bag
+* Operating System (Dropdown): Windows 11, macOS
+* Business Justification (Text Area, Required)
+* Needed By Date (Date Picker)
+* Shipping Location (Location Lookup)
+Workflow:
+1. User submits request
+2. Auto-populate Manager from user record
+3. Send to Manager for approval
+4. If Cost > $2000 → Send to IT Director for approval
+5. If Approved → Create fulfillment tasks:
+    * Task 1: Order laptop (Procurement)
+    * Task 2: Configure with standard software (Desktop Support)
+    * Task 3: Ship to user location (Procurement)
+6. When all tasks complete → Close request, send notification to user
+Price: $1200 - $3000 (depending on type) Expected Delivery: 5-7 business days
+Example 2: Request Application Access (Salesforce)
+Variables:
+* User to Receive Access (User Lookup, defaults to requester)
+* License Type (Dropdown): Salesforce Platform, Sales Cloud, Service Cloud
+* Profile/Role (Dropdown): Read-Only, Standard User, System Administrator
+* Business Need (Text Area, Required)
+* Access Duration (Dropdown): Permanent, 30 days, 60 days, 90 days, Custom
+* If Custom → End Date (Date Picker)
+Workflow:
+1. Submit request
+2. Manager approval (auto)
+3. If Profile = "System Administrator" → Security Team approval
+4. If Approved → Auto-assign to Salesforce Admin team
+5. Task: Provision user in Salesforce
+6. Task: Send login instructions to user
+7. If Temporary Access → Schedule auto-disable task for end date
+8. Close request
+Price: $150/month (charged to department cost center) Expected Delivery: 4 hours
+Example 3: Password Reset (Standard Change)
+Variables:
+* Username (Text, defaults to requester's username)
+* Send Password to Email (Checkbox, default true)
+* Send Password to SMS (Checkbox, default false)
+Workflow:
+1. Submit request
+2. No approval needed (standard change)
+3. Auto-execute:
+    * Generate temp password
+    * Reset password in Active Directory
+    * Send email/SMS with temp password
+    * Require password change on next login
+4. Auto-close request
+Price: Free Expected Delivery: 5 minutes (automated)
+
+10. Service Level Management (SLAs)
+10.1 SLA Structure
+SLA Definition:
+* Name (e.g., "Incident Resolution SLA - P1")
+* Type (Incident, Request, Change, Problem)
+* Conditions (When does this SLA apply? Priority=P1, Category=Critical)
+* Schedule (Business Hours or 24/7)
+* Target (4 hours for P1 incidents)
+SLA Stages:
+* Target: The goal time (e.g., 4 hours)
+* Warning: Alert before breach (e.g., at 75% = 3 hours)
+* Breach: SLA violated
+10.2 SLA Definitions by Priority
+Incident Resolution SLAs:
+Priority	Response Time	Resolution Time	Schedule
+P1 (Critical)	15 minutes	4 hours	24/7
+P2 (High)	1 hour	8 hours	24/7
+P3 (Medium)	4 hours	3 business days	Business Hours
+P4 (Low)	8 hours	5 business days	Business Hours
+Request Fulfillment SLAs:
+Request Type	Approval Time	Fulfillment Time	Schedule
+Standard (automated)	N/A	4 hours	24/7
+Hardware	1 business day	5 business days	Business Hours
+Software	4 hours	2 business days	Business Hours
+Access (basic)	4 hours	8 hours	Business Hours
+Access (privileged)	1 business day	2 business days	Business Hours
+Change SLAs:
+Change Type	CAB Approval	Implementation
+Standard	Pre-approved	Per schedule
+Normal	5 business days	Per plan
+Emergency	30 minutes (eCAB)	Immediate
+10.3 SLA Pause Conditions
+When to Pause SLA:
+* Incident/Request state = "On Hold"
+* Awaiting User Response
+* Awaiting Vendor Response
+* Awaiting Third-Party
+When to Resume SLA:
+* State changes from "On Hold" back to active state
+* User responds
+* External dependency resolved
+Example:
+Incident INC0012345 created at 9:00 AM (P2 - 8 hour resolution SLA)
+Resolution Due: 5:00 PM (same day)
+
+10:30 AM - Agent requests info from user, sets state to "Awaiting Info"
+  → SLA PAUSED at 1.5 hours elapsed, 6.5 hours remaining
+
+2:00 PM - User responds, agent sets state back to "In Progress"
+  → SLA RESUMED with 6.5 hours remaining
+  → New Due Time: 8:30 PM (2:00 PM + 6.5 hours)
+
+If user had not responded by 5:00 PM original due time, incident would NOT breach
+Breach would occur at 8:30 PM if still unresolved
+10.4 SLA Breach Handling
+Automated Actions on Breach:
+1. Flag record with SLA Breach indicator (red)
+2. Send notification to assignment group manager
+3. Create escalation record
+4. Add to breach report
+5. Require breach justification note
+Breach Retrospective:
+* Weekly review of all breaches
+* Categorize breach reasons:
+    * Insufficient resources
+    * Complexity underestimated
+    * Awaiting vendor (should have been escalated sooner)
+    * Agent error (forgot to work on it)
+    * Process gap
+* Action plans to prevent recurrence
+10.5 SLA Reporting
+SLA Dashboards:
+* SLA Compliance Rate (% within SLA)
+* Breaches by Category
+* Breaches by Assignment Group
+* Average Time to Resolution vs. Target
+* Current At-Risk Tickets (nearing breach)
+KPIs:
+* SLA Achievement Rate: (Tickets within SLA / Total Tickets) × 100%
+    * Target: 95%+
+* Average Breach Time: How long past deadline when breaches occur
+    * Target: Minimize
+* Repeat Breach Offenders: Tickets breached multiple times due to reassignment
+    * Target: Zero
+
+11. User Portal (Self-Service)
+11.1 Portal Features
+Homepage:
+* Service Catalog (featured items)
+* Knowledge Base Search
+* Recent Requests/Incidents
+* Announcements (system outages, maintenance windows)
+* Popular Articles
+My Requests:
+* View all incidents and requests
+* Filter by status (Open, Resolved, Closed)
+* Sort by date, priority
+* Click to view details and updates
+Submit Incident:
+* Simplified form (Category, Description, Attachments)
+* Search-as-you-type knowledge suggestions
+* "Did this article solve your problem?" (deflect ticket creation)
+Approvals:
+* Pending approvals queue
+* One-click approve/reject
+* Add approval comments
+* Delegate to another approver
+Knowledge Base:
+* Browse by category
+* Search (with filters)
+* View article
+* Rate article (helpful/not helpful)
+* Comment on article
+Notifications:
+* Unread notification count
+* Recent updates on my tickets
+* Approval requests
+* Knowledge article published in topics I follow
+11.2 Ticket Deflection
+Smart Suggestions:
+User types: "Can't connect to WiFi"
+
+System suggests:
+  📄 Knowledge Article: "WiFi Troubleshooting Guide" (4.5⭐, 98% helpful)
+  📄 Knowledge Article: "How to forget and reconnect to WiFi network" (4.2⭐, 87% helpful)
+  
+  "Did one of these articles solve your problem?"
+  [Yes, I'm all set] [No, I need to create an incident]
+  
+If user clicks "Yes, I'm all set":
+  - Track knowledge deflection metric
+  - Ask user to rate the article
+  - Close interaction
+  
+If user clicks "No, I need to create an incident":
+  - Proceed to incident form
+  - Pre-populate category and description
+  - Attach suggested articles for agent reference
+Deflection Metrics:
+* Deflection Rate = (Knowledge views / Total portal interactions) × 100%
+* Target: 30%+ of portal interactions result in knowledge view instead of ticket
+
+12. Automation and Orchestration
+12.1 Workflow Automation
+Business Rules (triggers on database operations):
+Trigger: Before Insert on Incident table
+Condition: Priority is empty
+Action: 
+  Calculate priority from impact and urgency
+  Set priority field
+Workflow Activities (multi-step processes):
+Workflow: "Laptop Provisioning"
+Trigger: Request approved for catalog item "New Laptop"
+
+Activities:
+  1. Create procurement task
+     - Assign to: Procurement Team
+     - Subject: Order laptop for {{requested_for}}
+     
+  2. Wait for procurement task completion
+  
+  3. Create configuration task
+     - Assign to: Desktop Support
+     - Subject: Configure laptop for {{requested_for}}
+     - Wait for completion
+     
+  4. Create shipping task
+     - Assign to: Procurement
+     - Subject: Ship laptop to {{delivery_location}}
+     - Wait for completion
+     
+  5. Send notification to user
+     - Email template: "Your laptop has shipped"
+     
+  6. Close request
+Scheduled Jobs:
+Job: "Auto-Close Resolved Incidents"
+Schedule: Daily at 2:00 AM
+Logic:
+  Find all incidents where:
+    - State = "Resolved"
+    - Resolved date >= 3 days ago
+    - State hasn't changed in 3 days
+  Action:
+    - Set state = "Closed"
+    - Set close code = "Auto-closed - No response"
+    - Set closed by = "System"
+12.2 IT Operations Automation
+Event Management (monitoring integration):
+Event received from monitoring tool:
+  Source: Nagios
+  CI: PROD-WEB-01
+  Event: CPU utilization > 90%
+  Severity: Warning
+
+Automated Actions:
+  1. Check if incident already exists for this CI + event type
+  2. If no existing incident:
+     - Create incident automatically
+     - Set priority based on CI criticality
+     - Set category = "Performance"
+     - Set description = "High CPU detected on {{CI}}"
+     - Assign to appropriate team based on CI
+  3. If existing incident:
+     - Add note to incident with timestamp
+     - Increase urgency if multiple events
+  4. If severity = Critical:
+     - Create P1 incident
+     - Trigger major incident process
+  5. When event clears:
+     - Add note: "CPU returned to normal"
+     - Suggest resolution to agent
+Auto-Remediation:
+Trigger: High memory alert on web server
+
+Automated Response:
+  1. SSH to server
+  2. Run diagnostic: Check top memory consumers
+  3. If known process leak (e.g., defunct tomcat process):
+     - Restart service
+     - Verify service back online
+     - Create incident (auto-resolved)
+     - Log action taken
+  4. If unknown issue:
+     - Collect diagnostics (heap dump, thread dump)
+     - Create incident
+     - Assign to engineering team
+     - Attach diagnostic files
+  5. Send notification of action taken
+12.3 Integration Hub (iPaaS)
+Pre-Built Integrations:
+* Active Directory (user provisioning)
+* Azure AD / Okta (SSO)
+* JIRA (sync development work)
+* Slack / Teams (notifications)
+* AWS / Azure (cloud resource management)
+* Monitoring tools (Nagios, Datadog, New Relic)
+* Deployment tools (Jenkins, Ansible, Terraform)
+Custom Integration Example - Slack Notification:
+Trigger: Incident priority = P1
+Action: Send Slack message
+
+Integration Flow:
+  1. Get incident details (number, description, assigned_to)
+  2. Build Slack message:
+     {
+       "text": "🚨 P1 Incident Created",
+       "blocks": [
+         {
+           "type": "section",
+           "text": {
+             "type": "mrkdwn",
+             "text": "*Incident:* INC0012345\n*Description:* Email service down\n*Assigned:* Network Team"
+           }
+         },
+         {
+           "type": "actions",
+           "elements": [
+             {
+               "type": "button",
+               "text": "View Incident",
+               "url": "https://instance.service-now.com/incident?sys_id=xxx"
+             }
+           ]
+         }
+       ]
+     }
+  3. POST to Slack webhook
+  4. Log integration activity
+
+13. Reporting and Analytics
+13.1 Standard Reports
+Incident Reports:
+* Open Incidents by Priority
+* Incidents by Category
+* Incidents by Assignment Group
+* Mean Time to Resolve (MTTR) by Priority
+* Reopened Incidents
+* Incidents Breaching SLA
+* Incident Volume Trend (daily, weekly, monthly)
+Request Reports:
+* Open Requests by Type
+* Request Fulfillment Time
+* Approval Cycle Time
+* Most Requested Catalog Items
+* Request Volume by Department
+Problem Reports:
+* Open Problems by Priority
+* Problems by Root Cause Category
+* Incident-to-Problem Ratio
+* Known Errors
+* Problem Resolution Time
+Change Reports:
+* Changes by Type (Standard, Normal, Emergency)
+* Emergency Change Rate
+* Change Success Rate
+* Changes by Risk Level
+* Unauthorized Changes (detected changes not in CMDB)
+* Change Volume by Time Period
+SLA Reports:
+* SLA Compliance by Priority
+* SLA Breaches by Group
+* SLA Performance Trend
+* At-Risk Tickets (approaching breach)
+Asset Reports:
+* Assets by Type
+* Assets by Location
+* Assets Approaching Warranty Expiration
+* Software License Utilization
+* Unallocated Assets (in stock)
+Knowledge Reports:
+* Most Viewed Articles
+* Least Helpful Articles (low rating)
+* Articles Needing Review (past review date)
+* Articles by Category
+* Knowledge Deflection Rate
+13.2 Dashboard Examples
+Service Desk Manager Dashboard:
+* Open Incidents by Priority (gauge chart)
+* SLA Compliance This Month (percentage, trend)
+* Incidents by Category (pie chart)
+* MTTR by Priority (bar chart)
+* Top 10 Open Incidents (table)
+* Team Performance (table: agent, open tickets, avg resolution time)
+IT Leadership Dashboard:
+* Service Availability (uptime %)
+* Incident Volume Trend (6 months, line chart)
+* Change Success Rate (gauge)
+* Problem Management Effectiveness (incident-to-problem ratio)
+* Major Incidents This Month (count)
+* Top Services by Incident Volume (bar chart)
+Agent Dashboard (Personal):
+* My Open Incidents (count)
+* My Tasks Due Today (list)
+* My Pending Approvals (count)
+* My SLA At-Risk Tickets (list with countdown timer)
+* My Avg Resolution Time This Month (metric)
+* My CSAT Score (customer satisfaction, metric)
+Business Service Dashboard:
+* Email Service Health (green/yellow/red)
+* Open Incidents Affecting Email (count, list)
+* Planned Changes to Email Infrastructure (upcoming)
+* Email Service Availability This Month (%)
+* Incidents Trend (6 months)
+* Related Problems (open, list)
+13.3 Custom Report Builder
+Report Types:
+* List: Simple tabular data
+* Bar Chart: Compare values across categories
+* Pie Chart: Show proportions
+* Line Chart: Trends over time
+* Pivot Table: Multi-dimensional analysis
+* Gauge: Single metric with target
+Report Builder Features:
+* Drag-and-drop fields
+* Filter builder (complex conditions with AND/OR)
+* Grouping and aggregation (sum, count, avg, min, max)
+* Calculated fields (e.g., Age = Today - Created Date)
+* Drill-down capability
+* Scheduled email delivery (daily, weekly, monthly)
+* Export to PDF, Excel, CSV
+13.4 Performance Analytics
+Automated Insights:
+* Anomaly detection (unusual spike in incident volume)
+* Trend prediction (forecasted ticket volume next month)
+* Comparison to historical average
+* Identify outliers (tickets taking 10× longer than average)
+Benchmarking:
+* Compare performance to industry standards
+* Compare team performance to organizational average
+* Identify top performers and opportunities for improvement
+
+14. Integration Capabilities
+14.1 Common Integrations
+Identity Management:
+* Active Directory (user sync, authentication)
+* Azure AD / Okta (SSO, user provisioning)
+* LDAP (authentication)
+Monitoring and Alerting:
+* Nagios, Zabbix, PRTG (event creation)
+* Datadog, New Relic, Dynatrace (APM alerts)
+* Splunk (log analysis, event correlation)
+Cloud Platforms:
+* AWS (EC2, S3, RDS management)
+* Azure (VM management, subscriptions)
+* GCP (Compute Engine, Cloud SQL)
+Collaboration:
+* Slack (notifications, chatops)
+* Microsoft Teams (notifications, approvals)
+* Zoom (incident war rooms)
+Development Tools:
+* JIRA (sync development work, link changes to stories)
+* GitHub / GitLab (link commits to changes)
+* Jenkins (trigger deployments from changes)
+ITSM Tools:
+* BMC Remedy (data migration)
+* Jira Service Management (integration)
+* Cherwell (data sync)
+14.2 API Architecture
+REST API:
+* Full CRUD operations on all tables
+* Query with filters, sorting, pagination
+* Bulk operations (import/update many records)
+* OAuth 2.0 authentication
+* Rate limiting (configurable per user/integration)
+API Example - Create Incident:
+POST /api/now/table/incident
+Content-Type: application/json
+Authorization: Bearer {token}
+
+{
+  "caller_id": "user123",
+  "short_description": "Cannot print to HP LaserJet on 3rd floor",
+  "description": "User reports printer is offline. Checked and power is on.",
+  "category": "Hardware",
+  "subcategory": "Printer",
+  "urgency": "3",
+  "impact": "3",
+  "assignment_group": "desktop_support"
+}
+
+Response:
+{
+  "result": {
+    "sys_id": "abc123...",
+    "number": "INC0012345",
+    "state": "1",
+    "priority": "4",
+    ...
+  }
+}
+Webhooks (outbound notifications):
+Configure webhook to fire when:
+  - Incident priority = P1 created
+  
+Webhook sends POST to:
+  https://company.com/api/alerts
+
+Payload:
+{
+  "event": "incident.created",
+  "incident_number": "INC0012345",
+  "priority": "1",
+  "description": "Email service down",
+  "assigned_group": "Network Team",
+  "url": "https://instance.service-now.com/incident?sys_id=..."
+}
+14.3 Email Integration
+Inbound Email (create incidents/requests from email):
+User sends email to: support@company.com
+
+Email Parser:
+  - From address → Caller
+  - Subject → Short Description
+  - Body → Description
+  - Attachments → Attached to incident
+  
+Auto-create incident:
+  - Number: INC0012346
+  - Auto-assign based on keywords in subject/body
+  - Send auto-reply with incident number
+  
+Reply-to address: INC0012346@company.com
+  - Any replies automatically added as comments
+Outbound Email (notifications):
+Trigger: Incident assigned to agent
+
+Email template:
+  To: {{assigned_to.email}}
+  Subject: Incident {{number}} assigned to you - {{short_description}}
+  
+  Body:
+    Hi {{assigned_to.first_name}},
+    
+    Incident {{number}} has been assigned to you.
+    
+    Priority: {{priority}}
+    Caller: {{caller.name}}
+    Description: {{description}}
+    
+    Please respond within {{sla.response_time}}.
+    
+    View incident: {{incident_url}}
+
+15. IT Operations Management (ITOM)
+15.1 Discovery
+Auto-Discovery:
+* Network scan (IP ranges)
+* Agent-based discovery (installed on servers)
+* Cloud discovery (AWS, Azure, GCP)
+* Application discovery (detect installed software)
+* Dependency mapping (application relationships)
+Discovery Schedule:
+* Full discovery: Weekly
+* Incremental discovery: Daily
+* Cloud discovery: Hourly (for dynamic environments)
+Discovery Output:
+* Auto-create/update CIs in CMDB
+* Detect new devices
+* Detect changed configurations
+* Detect retired devices
+* Map relationships
+15.2 Event Management
+Event Sources:
+* Monitoring tools (Nagios, Datadog, etc.)
+* Syslog (network devices, servers)
+* Application logs
+* Cloud platform events (AWS CloudWatch, Azure Monitor)
+* SNMP traps
+Event Processing:
+1. Event received
+2. Normalize (convert to standard format)
+3. Correlate (group related events)
+4. Deduplicate (filter duplicate events)
+5. Enrich (add CI details from CMDB)
+6. Apply rules:
+   - IF event severity = Critical AND CI = Business Critical
+     THEN Create P1 incident
+   - IF event matches known error pattern
+     THEN Create incident, assign to team, attach KB article
+   - IF event = informational
+     THEN Log only, don't create incident
+7. Create incident (if needed)
+8. Close event when incident resolved
+Event Correlation:
+Events received:
+  1. Router CORE-RTR-01: Interface down
+  2. Switch FL3-SW-05: Connection lost to router
+  3. Server WEB-SVR-12: Network unreachable
+  4. Server WEB-SVR-13: Network unreachable
+  5. Server WEB-SVR-14: Network unreachable
+
+Correlation:
+  Root cause: Router interface down
+  Symptoms: All downstream devices lost connectivity
+  
+Action:
+  Create single incident for router (root cause)
+  Link all other events as related
+  Don't create separate incidents for each server
+  
+Incident:
+  INC0012347 - Router CORE-RTR-01 interface down
+  Impact: 3 web servers unreachable
+  Priority: P1 (Business Critical CI)
+15.3 Orchestration
+Runbook Automation:
+* Automate repetitive tasks
+* Pre-approved workflows
+* Error handling and rollback
+* Logging and audit trail
+Example Runbook - Server Provisioning:
+Inputs:
+  - Server Name
+  - Operating System
+  - RAM
+  - CPU Cores
+  - Disk Size
+  - Environment (Dev/Test/Prod)
+  - Application Owner
+
+Steps:
+  1. Create VM in vCenter
+     - Specify resources
+     - Select template based on OS
+     - Assign to appropriate cluster
+     
+  2. Configure networking
+     - Request IP from IPAM
+     - Assign to VM
+     - Configure DNS
+     
+  3. Install monitoring agent
+     - SSH to server
+     - Download agent
+     - Install and configure
+     
+  4. Apply security baseline
+     - Run hardening script
+     - Configure firewall rules
+     - Enable logging
+     
+  5. Create CI in CMDB
+     - Populate fields
+     - Link to application CI
+     - Set owner
+     
+  6. Update documentation
+     - Add to server inventory
+     - Create knowledge article
+     
+  7. Notify owner
+     - Send email with connection details
+     - Attach access instructions
+
+Outputs:
+  - Server IP address
+  - CMDB CI ID
+  - Monitoring dashboard URL
+
+Error Handling:
+  - If step fails, rollback previous steps
+  - Create incident for manual intervention
+  - Log all actions for audit
+
+16. Detailed Data Models
+16.1 User Table Schema
+sys_user (users)
+  - sys_id (UUID, primary key)
+  - user_name (string, unique, indexed)
+  - first_name (string, required)
+  - last_name (string, required)
+  - email (string, required, unique, indexed)
+  - phone (string)
+  - mobile_phone (string)
+  - department (reference to sys_user_group, indexed)
+  - location (reference to cmn_location, indexed)
+  - manager (reference to sys_user)
+  - title (string)
+  - employee_number (string, unique)
+  - active (boolean, default true)
+  - vip (boolean, default false)
+  - ldap_server (reference to ldap_server_config)
+  - password_hash (string, encrypted)
+  - password_needs_reset (boolean)
+  - failed_login_attempts (integer, default 0)
+  - locked_out (boolean, default false)
+  - last_login (datetime)
+  - time_zone (string, default 'UTC')
+  - date_format (string)
+  - sys_created_on (datetime, auto)
+  - sys_created_by (reference to sys_user, auto)
+  - sys_updated_on (datetime, auto)
+  - sys_updated_by (reference to sys_user, auto)
+16.2 Incident Table Schema
+incident (extends task table)
+  - sys_id (UUID, primary key)
+  - number (string, auto-generated "INC0001234", unique, indexed)
+  - short_description (string, 160 chars, required)
+  - description (text, rich text)
+  
+  - caller_id (reference to sys_user, required, indexed)
+  - opened_by (reference to sys_user, required, auto)
+  - opened_at (datetime, auto, indexed)
+  
+  - contact_type (choice: phone, email, walk-in, self-service, monitoring)
+  
+  - category (choice, indexed)
+  - subcategory (choice, dependent on category)
+  - cmdb_ci (reference to cmdb_ci, indexed)
+  - business_service (reference to cmdb_ci_service)
+  
+  - impact (choice: 1-High, 2-Medium, 3-Low, required)
+  - urgency (choice: 1-High, 2-Medium, 3-Low, required)
+  - priority (choice: 1-Critical, 2-High, 3-Medium, 4-Low, auto-calculated, indexed)
+  
+  - state (choice, required, indexed):
+      1 - New
+      2 - In Progress
+      3 - On Hold
+      6 - Resolved
+      7 - Closed
+      8 - Canceled
+  
+  - assignment_group (reference to sys_user_group, indexed)
+  - assigned_to (reference to sys_user, indexed)
+  - escalation (integer, default 0)
+  
+  - location (reference to cmn_location)
+  - company (reference to core_company)
+  
+  - parent_incident (reference to incident, for related/duplicate)
+  - problem_id (reference to problem)
+  - rfc (reference to change_request, for related changes)
+  
+  - resolved_at (datetime)
+  - resolved_by (reference to sys_user)
+  - close_code (choice)
+  - close_notes (text)
+  - closed_at (datetime)
+  - closed_by (reference to sys_user)
+  
+  - reopen_count (integer, default 0)
+  - reassignment_count (integer, default 0)
+  
+  - sla_due (datetime, indexed)
+  - made_sla (boolean)
+  - sla_breach (boolean, indexed)
+  
+  - comments (journal field, for updates)
+  - work_notes (journal field, internal only)
+  - comments_and_work_notes (journal field, combined)
+  
+  - caused_by (reference to change_request)
+  - resolved_by_change (reference to change_request)
+  
+  - notify (choice: 1-Do Not Notify, 2-Send Email, 3-Send Email and SMS)
+  
+  - sys_created_on (datetime, auto, indexed)
+  - sys_created_by (reference to sys_user, auto)
+  - sys_updated_on (datetime, auto)
+  - sys_updated_by (reference to sys_user, auto)
+  - sys_mod_count (integer, auto, counts updates)
+  
+  - correlation_id (string, for event correlation)
+  - correlation_display (string)
+  
+  - child_incidents (integer, count of related child incidents)
+16.3 Service Request (sc_request) Table Schema
+sc_request (service request - extends task)
+  - sys_id (UUID, primary key)
+  - number (string, auto-generated "REQ0001234", unique, indexed)
+  - short_description (string, 160 chars, required)
+  - description (text)
+  
+  - opened_by (reference to sys_user, required, auto)
+  - requested_for (reference to sys_user, required, indexed)
+  - opened_at (datetime, auto, indexed)
+  
+  - request_state (choice, indexed):
+      -5 - Pending Approval
+      -4 - Rejected
+      -3 - Cancelled
+      -2 - Draft
+      -1 - Awaiting Information
+      1 - Approved
+      2 - Work in Progress
+      3 - Closed Complete
+      4 - Closed Incomplete
+      7 - Closed Cancelled
+  
+  - approval (choice):
+      not requested
+      requested
+      approved
+      rejected
+  
+  - stage (choice):
+      request_approved
+      fulfillment
+      delivery
+      closed
+  
+  - category (choice)
+  - subcategory (choice)
+  
+  - priority (choice: 1-4, indexed)
+  - impact (choice: 1-3)
+  - urgency (choice: 1-3)
+  
+  - assignment_group (reference to sys_user_group, indexed)
+  - assigned_to (reference to sys_user, indexed)
+  
+  - delivery_address (string)
+  - location (reference to cmn_location)
+  - company (reference to core_company)
+  
+  - price (currency)
+  - special_instructions (text)
+  
+  - due_date (date, indexed)
+  - delivery_date (date)
+  
+  - parent (reference to sc_request, for requests with multiple items)
+  
+  - active (boolean, default true)
+  - closed_at (datetime)
+  - closed_by (reference to sys_user)
+  
+  - comments (journal field)
+  - work_notes (journal field)
+  
+  - sys_created_on (datetime, auto, indexed)
+  - sys_created_by (reference to sys_user, auto)
+  - sys_updated_on (datetime, auto)
+  - sys_updated_by (reference to sys_user, auto)
+16.4 Problem Table Schema
+problem (extends task)
+  - sys_id (UUID, primary key)
+  - number (string, auto-generated "PRB0001234", unique, indexed)
+  - short_description (string, 160 chars, required)
+  - description (text, rich text)
+  
+  - opened_by (reference to sys_user, required, auto)
+  - opened_at (datetime, auto, indexed)
+  
+  - category (choice, indexed)
+  - subcategory (choice)
+  - cmdb_ci (reference to cmdb_ci, indexed)
+  - business_service (reference to cmdb_ci_service)
+  
+  - impact (choice: 1-High, 2-Medium, 3-Low, required)
+  - urgency (choice: 1-High, 2-Medium, 3-Low, required)
+  - priority (choice: 1-4, auto-calculated, indexed)
+  
+  - state (choice, required, indexed):
+      1 - New
+      2 - Assess
+      3 - Root Cause Analysis
+      4 - Fix in Progress
+      6 - Resolved
+      7 - Closed
+      8 - Cancelled
+  
+  - assignment_group (reference to sys_user_group, indexed)
+  - assigned_to (reference to sys_user, indexed)
+  
+  - problem_investigator (reference to sys_user)
+  - problem_manager (reference to sys_user)
+  
+  - known_error (boolean, default false, indexed)
+  - workaround (text, rich text)
+  - workaround_communicated (boolean)
+  
+  - root_cause (text, rich text)
+  - fix_notes (text)
+  - resolution_code (choice)
+  
+  - related_incidents (reference list, incidents caused by this problem)
+  - duplicate_of (reference to problem)
+  - first_reported (datetime)
+  - last_reported (datetime)
+  
+  - major_problem (boolean, default false)
+  - review_outcome (text)
+  
+  - resolved_at (datetime)
+  - resolved_by (reference to sys_user)
+  - closed_at (datetime)
+  - closed_by (reference to sys_user)
+  
+  - rfc (reference to change_request, change implementing fix)
+  - knowledge (reference to kb_knowledge, knowledge article created)
+  
+  - comments (journal field)
+  - work_notes (journal field)
+  
+  - sys_created_on (datetime, auto, indexed)
+  - sys_created_by (reference to sys_user, auto)
+  - sys_updated_on (datetime, auto)
+  - sys_updated_by (reference to sys_user, auto)
+16.5 Change Request Table Schema
+change_request (extends task)
+  - sys_id (UUID, primary key)
+  - number (string, auto-generated "CHG0001234", unique, indexed)
+  - short_description (string, 160 chars, required)
+  - description (text, rich text)
+  
+  - requested_by (reference to sys_user, required)
+  - opened_by (reference to sys_user, required, auto)
+  - opened_at (datetime, auto, indexed)
+  
+  - type (choice, indexed):
+      standard - Standard
+      normal - Normal
+      emergency - Emergency
+  
+  - category (choice, indexed)
+  - subcategory (choice)
+  - cmdb_ci (reference to cmdb_ci, indexed)
+  - business_service (reference to cmdb_ci_service)
+  
+  - impact (choice: 1-High, 2-Medium, 3-Low, required)
+  - risk (choice: 1-High, 2-Medium, 3-Low, 4-Very Low, required, indexed)
+  - priority (choice: 1-4, indexed)
+  
+  - state (choice, required, indexed):
+      -5 - New
+      -4 - Assess
+      -3 - Authorize
+      -2 - Scheduled
+      -1 - Implement
+      0 - Review
+      3 - Closed
+      4 - Cancelled
+  
+  - assignment_group (reference to sys_user_group, indexed)
+  - assigned_to (reference to sys_user, indexed)
+  
+  - change_implementer (reference to sys_user)
+  - implementation_group (reference to sys_user_group)
+  
+  - approval (choice):
+      not yet requested
+      requested
+      approved
+      rejected
+  
+  - cab_date (datetime)
+  - cab_delegate (reference to sys_user)
+  - cab_recommendation (text)
+  
+  - start_date (datetime, indexed)
+  - end_date (datetime, indexed)
+  - planned_start_date (datetime)
+  - planned_end_date (datetime)
+  - work_start (datetime)
+  - work_end (datetime)
+  
+  - outside_maintenance_schedule (boolean)
+  - maintenance_schedule (reference to cmn_schedule)
+  
+  - implementation_plan (text, rich text, required for normal/emergency)
+  - backout_plan (text, rich text, required for normal/emergency)
+  - test_plan (text, rich text)
+  
+  - risk_assessment (text)
+  - risk_impact_analysis (text)
+  
+  - justification (text)
+  - reason (choice)
+  
+  - close_code (choice):
+      successful
+      successful_with_issues
+      unsuccessful
+      cancelled
+  - close_notes (text)
+  - closed_at (datetime)
+  - closed_by (reference to sys_user)
+  
+  - review_date (datetime)
+  - review_status (choice)
+  - review_comments (text)
+  
+  - conflict_status (choice):
+      not_checked
+      no_conflict
+      conflict
+  - conflicted_change (reference to change_request)
+  
+  - production_system (boolean, default false)
+  - unauthorized (boolean, default false)
+  
+  - phase (choice):
+      requested
+      planning
+      approved
+      scheduled
+      implementing
+      complete
+  
+  - phase_state (choice):
+      open
+      pending
+      complete
+  
+  - affected_cis (reference list to cmdb_ci)
+  - impacted_services (reference list to cmdb_ci_service)
+  
+  - parent (reference to change_request, for related changes)
+  - problems (reference list to problem, problems this change fixes)
+  - related_incidents (reference list to incident)
+  
+  - comments (journal field)
+  - work_notes (journal field)
+  
+  - sys_created_on (datetime, auto, indexed)
+  - sys_created_by (reference to sys_user, auto)
+  - sys_updated_on (datetime, auto)
+  - sys_updated_by (reference to sys_user, auto)
+16.6 Configuration Item (CMDB) Base Table Schema
+cmdb_ci (configuration item - base class)
+  - sys_id (UUID, primary key)
+  - name (string, required, indexed)
+  - asset_tag (string, unique, indexed)
+  - serial_number (string, indexed)
+  
+  - sys_class_name (string, indexed, polymorphic type identifier)
+  
+  - operational_status (choice, indexed):
+      1 - Operational
+      2 - Non-Operational
+      3 - Repair in Progress
+      4 - Retired
+      6 - DR Standby
+  
+  - install_status (choice):
+      1 - Implemented
+      2 - On Order
+      3 - In Stock
+      6 - Installed
+      7 - Retired
+  
+  - model_id (reference to cmdb_model)
+  - manufacturer (reference to core_company)
+  - vendor (reference to core_company)
+  
+  - owned_by (reference to sys_user)
+  - managed_by (reference to sys_user)
+  - supported_by (reference to sys_user_group)
+  - support_group (reference to sys_user_group)
+  
+  - location (reference to cmn_location, indexed)
+  - department (reference to sys_user_group)
+  - company (reference to core_company, indexed)
+  - cost_center (reference to cmn_cost_center)
+  
+  - category (string, indexed)
+  - subcategory (string)
+  
+  - environment (choice):
+      production
+      development
+      test
+      staging
+      disaster_recovery
+  
+  - criticality (choice, indexed):
+      1 - Business Critical
+      2 - High
+      3 - Medium
+      4 - Low
+  
+  - classification (choice):
+      production
+      non_production
+      lab_dev
+      staging
+  
+  - u_business_service (reference to cmdb_ci_service, indexed)
+  
+  - purchase_date (date)
+  - install_date (date)
+  - po_number (string)
+  - cost (currency)
+  - warranty_expiration (date, indexed)
+  - lease_expiration (date, indexed)
+  
+  - ip_address (string, indexed)
+  - mac_address (string, indexed)
+  - dns_domain (string)
+  
+  - attributes (text, JSON for extensibility)
+  
+  - first_discovered (datetime)
+  - last_discovered (datetime, indexed)
+  - discovery_source (choice)
+  
+  - comments (text)
+  
+  - sys_created_on (datetime, auto, indexed)
+  - sys_created_by (reference to sys_user, auto)
+  - sys_updated_on (datetime, auto)
+  - sys_updated_by (reference to sys_user, auto)
+
+
+cmdb_ci_server (extends cmdb_ci)
+  - os (string)
+  - os_version (string)
+  - cpu_count (integer)
+  - cpu_speed (decimal)
+  - cpu_type (string)
+  - ram (integer, MB)
+  - disk_space (decimal, GB)
+  - virtual (boolean)
+  - host_server (reference to cmdb_ci_server, if virtual)
+
+
+cmdb_ci_computer (extends cmdb_ci)
+  - os (string)
+  - os_version (string)
+  - cpu_count (integer)
+  - cpu_speed (decimal)
+  - ram (integer, MB)
+  - disk_space (decimal, GB)
+  - form_factor (choice: desktop, laptop, tablet)
+  - assigned_to (reference to sys_user)
+
+
+cmdb_ci_service (business or IT service - extends cmdb_ci)
+  - service_classification (choice):
+      business_service
+      technical_service
+      application_service
+  - service_level_requirement (reference to sla)
+  - service_owner (reference to sys_user)
+  - business_unit (reference to business_unit)
+  - version (string)
+  - service_status (choice: design, transition, operation, retired)
+  - used_for (choice: production, staging, qa, development)
+
+
+cmdb_rel_ci (CI relationships)
+  - sys_id (UUID, primary key)
+  - parent (reference to cmdb_ci, required, indexed)
+  - child (reference to cmdb_ci, required, indexed)
+  - type (reference to cmdb_rel_type, required, indexed)
+      Examples: Runs On, Depends On, Connects To, Installed On, Provides Service To
+  - port (string, for network connections)
+  - connection_strength (integer, 1-100, for dependency mapping)
+  - sys_created_on (datetime, auto)
+16.7 Knowledge Base Table Schema
+kb_knowledge (knowledge article)
+  - sys_id (UUID, primary key)
+  - number (string, auto-generated "KB0001234", unique, indexed)
+  - short_description (string, 160 chars, required, indexed)
+  - text (text, rich text, article body, required)
+  
+  - author (reference to sys_user, required)
+  - kb_knowledge_base (reference to kb_knowledge_base, required, indexed)
+  - kb_category (reference to kb_category, required, indexed)
+  
+  - workflow_state (choice, indexed):
+      draft
+      review
+      pending
+      published
+      retired
+  
+  - published (datetime, indexed)
+  - valid_to (datetime, expiration date, indexed)
+  
+  - article_type (choice):
+      text
+      how_to
+      problem_solution
+      reference
+      FAQ
+  
+  - topic (choice or reference to kb_topic)
+  
+  - rating (choice: 1-5 stars)
+  - view_count (integer, default 0)
+  - useful_count (integer, default 0, thumbs up)
+  - not_useful_count (integer, default 0, thumbs down)
+  - feedback_count (integer, number of comments)
+  
+  - meta_description (string, 255 chars, for SEO)
+  - meta_keywords (string, comma-separated)
+  - article_tags (string, comma-separated tags)
+  
+  - roles (reference list to sys_user_role, who can view)
+  - can_read_user_criteria (string, additional view restrictions)
+  
+  - flagged (boolean, default false, flagged for review)
+  - flag_reason (text)
+  
+  - retired_reason (text)
+  - replacement_article (reference to kb_knowledge)
+  
+  - related_articles (reference list to kb_knowledge)
+  - related_incidents (reference list to incident)
+  - related_problems (reference list to problem)
+  
+  - version (integer, default 1)
+  - version_history (reference list to kb_knowledge_version)
+  
+  - latest_review_date (date)
+  - review_frequency (integer, days)
+  - next_review_date (date, indexed)
+  
+  - attachments_count (integer)
+  
+  - disable_commenting (boolean, default false)
+  - disable_suggesting (boolean, default false)
+  
+  - sys_created_on (datetime, auto, indexed)
+  - sys_created_by (reference to sys_user, auto)
+  - sys_updated_on (datetime, auto)
+  - sys_updated_by (reference to sys_user, auto)
+16.8 Task SLA Table Schema
+task_sla (SLA tracking for tasks)
+  - sys_id (UUID, primary key)
+  - number (string, auto-generated)
+  
+  - task (reference to task, indexed, can be incident, request, etc.)
+  - sla (reference to sla_definition, required, indexed)
+  
+  - schedule (reference to cmn_schedule, business hours schedule)
+  
+  - start_time (datetime, when SLA started, indexed)
+  - end_time (datetime, when SLA target is)
+  - duration (duration field, calculated)
+  
+  - business_duration (duration, time in business hours)
+  - business_percentage (decimal, % of business time elapsed)
+  - business_time_left (duration)
+  
+  - pause_time (datetime, when SLA paused)
+  - pause_duration (duration, total time paused)
+  
+  - stage (choice, indexed):
+      in_progress
+      paused
+      completed
+      cancelled
+  
+  - has_breached (boolean, indexed)
+  - breach_time (datetime, when breach occurred)
+  
+  - breach (boolean, final status)
+  - made_sla (boolean, met SLA target)
+  
+  - active (boolean, indexed)
+  
+  - sys_created_on (datetime, auto)
+  - sys_updated_on (datetime, auto)
+
+
+sla_definition (SLA definitions)
+  - sys_id (UUID, primary key)
+  - name (string, required, unique)
+  - active (boolean, default true)
+  
+  - collection (string, table name: incident, sc_request, etc.)
+  - condition (string, encoded query, when does this SLA apply)
+  
+  - schedule (reference to cmn_schedule)
+  
+  - duration (duration field, target time, required)
+  - duration_type (choice: until_resolved, until_first_response)
+  
+  - priority (integer, if multiple SLAs match, highest priority wins)
+  
+  - workflow (reference to wf_workflow, optional workflow to execute)
+  
+  - stop_condition (string, when to stop SLA clock)
+  - pause_condition (string, when to pause SLA clock)
+  - reset_condition (string, when to reset SLA clock)
+  
+  - sla_type (choice: resolution, response, approval)
+  
+  - sys_created_on (datetime, auto)
+  - sys_updated_on (datetime, auto)
+
+Summary: Key Implementation Requirements
+Core Processes (ITIL Aligned)
+1. Incident Management: Restore service ASAP, track to resolution, SLA monitoring
+2. Service Request Management: Catalog-driven requests, approval workflows, task automation
+3. Problem Management: Root cause analysis, known error database, permanent fixes
+4. Change Management: Risk-assessed changes, CAB approval, implementation tracking
+5. Knowledge Management: Capture solutions, self-service deflection, continuous improvement
+6. CMDB: Maintain accurate CI data, relationship mapping, impact analysis
+7. Service Catalog: User-friendly service offerings, standardized requests
+8. SLA Management: Define targets, track compliance, escalate breaches
+9. Self-Service Portal: Enable users to resolve issues without agent help
+Technical Foundations
+1. Task Hierarchy: Base task table extended by incidents, requests, problems, changes
+2. CMDB Relationships: Parent-child, dependencies, connections for impact analysis
+3. Workflow Engine: Business rules, automated assignment, multi-step processes
+4. SLA Engine: Track multiple SLAs, pause/resume, breach notifications
+5. Integration Framework: REST APIs, webhooks, monitoring tool connectors
+6. Automation: Runbooks, orchestration, auto-remediation, event correlation
+7. Reporting: Dashboards, custom reports, KPI tracking, trending
+Implementation Phases
+Phase 1: Foundation
+* User management, authentication, RBAC
+* Core tables (users, groups, locations, companies)
+* Basic incident management
+* Assignment rules and routing
+Phase 2: Core ITSM
+* Service request management
+* Service catalog with workflows
+* SLA definitions and tracking
+* Knowledge base
+Phase 3: Advanced Processes
+* Problem management
+* Change management (CAB, approvals)
+* CMDB with discovery
+* Asset lifecycle management
+Phase 4: Automation
+* Event management
+* Workflow automation
+* Orchestration and runbooks
+* Integration with monitoring tools
+Phase 5: Self-Service and Analytics
+* User portal with catalog
+* Knowledge deflection
+* Advanced dashboards
+* Performance analytics
+
+This guide provides a comprehensive blueprint for implementing an enterprise-grade ITSM platform aligned with ITIL best practices, similar to ServiceNow and other leading service management systems.

@@ -38,86 +38,86 @@ public class AccountRelationship : BaseEntity
     /// </summary>
     [Required]
     public int SourceAccountId { get; set; }
-    
+
     /// <summary>
     /// The target (to) customer/account
     /// </summary>
     [Required]
     public int TargetAccountId { get; set; }
-    
+
     /// <summary>
     /// The type of relationship
     /// </summary>
     [Required]
     public int RelationshipTypeId { get; set; }
-    
+
     /// <summary>
     /// Current status of the relationship
     /// </summary>
     [MaxLength(50)]
     public string Status { get; set; } = "Active";
-    
+
     /// <summary>
     /// Strength score 0-100
     /// </summary>
     public int StrengthScore { get; set; } = 50;
-    
+
     /// <summary>
     /// Strategic importance level
     /// </summary>
     [MaxLength(50)]
     public string StrategicImportance { get; set; } = "Medium";
-    
+
     /// <summary>
     /// When the relationship started
     /// </summary>
     public DateTime? RelationshipStartDate { get; set; }
-    
+
     /// <summary>
     /// When the relationship ended (if terminated)
     /// </summary>
     public DateTime? RelationshipEndDate { get; set; }
-    
+
     /// <summary>
     /// Last review date
     /// </summary>
     public DateTime? LastReviewedDate { get; set; }
-    
+
     /// <summary>
     /// Next scheduled review
     /// </summary>
     public DateTime? NextReviewDate { get; set; }
-    
+
     /// <summary>
     /// Annual revenue impact of this relationship
     /// </summary>
     public decimal? AnnualRevenueImpact { get; set; }
-    
+
     /// <summary>
     /// Cost savings from this relationship
     /// </summary>
     public decimal? CostSavings { get; set; }
-    
+
     /// <summary>
     /// Description of the relationship
     /// </summary>
     public string? Description { get; set; }
-    
+
     /// <summary>
     /// Additional notes
     /// </summary>
     public string? Notes { get; set; }
-    
+
     /// <summary>
     /// Terms and conditions
     /// </summary>
     public string? TermsConditions { get; set; }
-    
+
     /// <summary>
     /// User who last updated this record
     /// </summary>
     public int? UpdatedBy { get; set; }
-    
+
     // Navigation properties
     public virtual Account? SourceAccount { get; set; }
     public virtual Account? TargetAccount { get; set; }

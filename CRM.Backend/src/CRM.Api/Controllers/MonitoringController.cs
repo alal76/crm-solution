@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -86,12 +102,12 @@ public class MonitoringController : ControllerBase
         try
         {
             var dbReady = await _context.Database.CanConnectAsync(ct);
-            
+
             if (dbReady)
             {
                 return Ok(new { status = "ready", database = "connected", timestamp = DateTime.UtcNow });
             }
-            
+
             return StatusCode(503, new { status = "not-ready", database = "disconnected", timestamp = DateTime.UtcNow });
         }
         catch (Exception ex)
@@ -112,7 +128,7 @@ public class MonitoringController : ControllerBase
         {
             var options = _monitoringService.GetMonitoringOptions();
             var infra = await _monitoringService.GetInfrastructureInfoAsync(ct);
-            
+
             return Ok(new EnvironmentInfo
             {
                 DeploymentType = infra.DeploymentTypeName,
@@ -146,13 +162,13 @@ public class MonitoringController : ControllerBase
             var uptimeKumaHost = _configuration.GetValue<string>("Monitoring:UptimeKumaHost", "uptime-kuma");
             var uptimeKumaPort = _configuration.GetValue<int>("Monitoring:UptimeKumaPort", 3001);
             var statusPageSlug = _configuration.GetValue<string>("Monitoring:StatusPageSlug", "crm-status");
-            
+
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(5);
-            
+
             // Try to get heartbeat data from status page
             var heartbeatUrl = $"http://{uptimeKumaHost}:{uptimeKumaPort}/api/status-page/heartbeat/{statusPageSlug}";
-            
+
             try
             {
                 var response = await client.GetAsync(heartbeatUrl, ct);
@@ -160,7 +176,7 @@ public class MonitoringController : ControllerBase
                 {
                     var content = await response.Content.ReadAsStringAsync(ct);
                     var heartbeatData = JsonSerializer.Deserialize<JsonElement>(content);
-                    
+
                     return Ok(new
                     {
                         status = "connected",
@@ -174,13 +190,13 @@ public class MonitoringController : ControllerBase
             {
                 _logger.LogDebug(ex, "Could not fetch status page heartbeat");
             }
-            
+
             // Fallback: just check if Uptime Kuma is reachable
             try
             {
                 var pingUrl = $"http://{uptimeKumaHost}:{uptimeKumaPort}/";
                 var pingResponse = await client.GetAsync(pingUrl, ct);
-                
+
                 return Ok(new
                 {
                     status = pingResponse.IsSuccessStatusCode ? "online" : "degraded",
@@ -224,13 +240,13 @@ public class MonitoringController : ControllerBase
         {
             var portainerHost = _configuration.GetValue<string>("Monitoring:PortainerHost", "portainer");
             var portainerPort = _configuration.GetValue<int>("Monitoring:PortainerPort", 9000);
-            
+
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(5);
-            
+
             // Get Portainer version/status (public endpoint)
             var statusUrl = $"http://{portainerHost}:{portainerPort}/api/status";
-            
+
             try
             {
                 var response = await client.GetAsync(statusUrl, ct);
@@ -238,7 +254,7 @@ public class MonitoringController : ControllerBase
                 {
                     var content = await response.Content.ReadAsStringAsync(ct);
                     var statusData = JsonSerializer.Deserialize<JsonElement>(content);
-                    
+
                     return Ok(new
                     {
                         status = "connected",
@@ -247,7 +263,7 @@ public class MonitoringController : ControllerBase
                         timestamp = DateTime.UtcNow
                     });
                 }
-                
+
                 return Ok(new
                 {
                     status = "degraded",
@@ -287,9 +303,9 @@ public class MonitoringController : ControllerBase
     {
         var uptimeKumaTask = GetUptimeKumaStatusInternal(ct);
         var portainerTask = GetPortainerStatusInternal(ct);
-        
+
         await Task.WhenAll(uptimeKumaTask, portainerTask);
-        
+
         return Ok(new
         {
             uptimeKuma = await uptimeKumaTask,
@@ -310,13 +326,13 @@ public class MonitoringController : ControllerBase
             var uptimeKumaHost = _configuration.GetValue<string>("Monitoring:UptimeKumaHost", "uptime-kuma");
             var uptimeKumaPort = _configuration.GetValue<int>("Monitoring:UptimeKumaPort", 3001);
             var statusPageSlug = _configuration.GetValue<string>("Monitoring:StatusPageSlug", "crm-status");
-            
+
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(10);
-            
+
             // Get heartbeat data from status page (public endpoint)
             var heartbeatUrl = $"http://{uptimeKumaHost}:{uptimeKumaPort}/api/status-page/heartbeat/{statusPageSlug}";
-            
+
             try
             {
                 var response = await client.GetAsync(heartbeatUrl, ct);
@@ -324,9 +340,9 @@ public class MonitoringController : ControllerBase
                 {
                     var content = await response.Content.ReadAsStringAsync(ct);
                     var data = JsonSerializer.Deserialize<JsonElement>(content);
-                    
+
                     var monitors = new List<object>();
-                    
+
                     // Parse heartbeatList from response
                     if (data.TryGetProperty("heartbeatList", out var heartbeatList))
                     {
@@ -334,7 +350,7 @@ public class MonitoringController : ControllerBase
                         {
                             var monitorId = monitorProp.Name;
                             var heartbeats = monitorProp.Value;
-                            
+
                             // Get latest heartbeat
                             if (heartbeats.GetArrayLength() > 0)
                             {
@@ -350,7 +366,7 @@ public class MonitoringController : ControllerBase
                             }
                         }
                     }
-                    
+
                     // Get uptime data
                     var uptimeData = new Dictionary<string, object>();
                     if (data.TryGetProperty("uptimeList", out var uptimeList))
@@ -360,7 +376,7 @@ public class MonitoringController : ControllerBase
                             uptimeData[prop.Name] = prop.Value.GetDouble();
                         }
                     }
-                    
+
                     return Ok(new
                     {
                         connected = true,
@@ -375,7 +391,7 @@ public class MonitoringController : ControllerBase
             {
                 _logger.LogDebug(ex, "Could not fetch Uptime Kuma monitors");
             }
-            
+
             return Ok(new
             {
                 connected = false,
@@ -407,18 +423,18 @@ public class MonitoringController : ControllerBase
         {
             var portainerHost = _configuration.GetValue<string>("Monitoring:PortainerHost", "portainer");
             var portainerPort = _configuration.GetValue<int>("Monitoring:PortainerPort", 9000);
-            
+
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(5);
-            
+
             // Get basic Portainer status (version info is public)
             var response = await client.GetAsync($"http://{portainerHost}:{portainerPort}/api/status", ct);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync(ct);
                 var statusData = JsonSerializer.Deserialize<JsonElement>(content);
-                
+
                 return Ok(new
                 {
                     connected = true,
@@ -428,7 +444,7 @@ public class MonitoringController : ControllerBase
                     timestamp = DateTime.UtcNow
                 });
             }
-            
+
             return Ok(new
             {
                 connected = false,
@@ -453,12 +469,12 @@ public class MonitoringController : ControllerBase
         {
             var uptimeKumaHost = _configuration.GetValue<string>("Monitoring:UptimeKumaHost", "uptime-kuma");
             var uptimeKumaPort = _configuration.GetValue<int>("Monitoring:UptimeKumaPort", 3001);
-            
+
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(5);
-            
+
             var response = await client.GetAsync($"http://{uptimeKumaHost}:{uptimeKumaPort}/", ct);
-            
+
             return new
             {
                 status = response.IsSuccessStatusCode ? "online" : "degraded",
@@ -478,13 +494,13 @@ public class MonitoringController : ControllerBase
         {
             var portainerHost = _configuration.GetValue<string>("Monitoring:PortainerHost", "portainer");
             var portainerPort = _configuration.GetValue<int>("Monitoring:PortainerPort", 9000);
-            
+
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(5);
-            
+
             var response = await client.GetAsync($"http://{portainerHost}:{portainerPort}/api/status", ct);
             string? version = null;
-            
+
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync(ct);
@@ -492,7 +508,7 @@ public class MonitoringController : ControllerBase
                 if (data.TryGetProperty("Version", out var v))
                     version = v.GetString();
             }
-            
+
             return new
             {
                 status = response.IsSuccessStatusCode ? "online" : "degraded",
@@ -522,10 +538,10 @@ public class MonitoringController : ControllerBase
         {
             _logger.LogInformation("Fetching all monitoring data");
             var data = await _monitoringService.GetAllMonitoringDataAsync(ct);
-            
+
             // Add active sessions from database
             data.ActiveSessions = await GetActiveSessionsFromDb(ct);
-            
+
             return Ok(data);
         }
         catch (Exception ex)
@@ -699,7 +715,7 @@ public class MonitoringController : ControllerBase
             var dbHealthy = await _context.Database.CanConnectAsync(ct);
             var options = _monitoringService.GetMonitoringOptions();
             var system = await _monitoringService.GetSystemMetricsAsync(ct);
-            
+
             return Ok(new
             {
                 status = dbHealthy ? "healthy" : "degraded",
@@ -737,7 +753,7 @@ public class MonitoringController : ControllerBase
     private async Task<List<UserSession>> GetActiveSessionsFromDb(CancellationToken ct)
     {
         var recentThreshold = DateTime.UtcNow.AddHours(-24);
-        
+
         try
         {
             var users = await _context.Users
