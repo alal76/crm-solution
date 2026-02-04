@@ -3,10 +3,10 @@
 
 // Incident Management
 export { SLACountdownWidget } from './SLACountdownWidget';
-export type { SLACountdownWidgetProps, SLAInfo } from './SLACountdownWidget';
+export type { SLACountdownWidgetProps, SLAInstanceData, SLAStatus } from './SLACountdownWidget';
 
 export { ImpactUrgencyMatrix } from './ImpactUrgencyMatrix';
-export type { ImpactUrgencyMatrixProps, PriorityResult } from './ImpactUrgencyMatrix';
+export type { ImpactUrgencyMatrixProps, ImpactLevel, UrgencyLevel, PriorityLevel } from './ImpactUrgencyMatrix';
 
 export { IncidentTimeline } from './IncidentTimeline';
 export type { IncidentTimelineProps, TimelineActivity, ActivityType } from './IncidentTimeline';
@@ -16,14 +16,14 @@ export type { SLABreachAlertProps, SLABreachBannerProps, SLABreachInfo, BreachTy
 
 // Problem Management
 export { RootCauseAnalysisTemplate } from './RootCauseAnalysisTemplate';
-export type { RootCauseAnalysisTemplateProps, RCAData, WhyStep } from './RootCauseAnalysisTemplate';
+export type { RootCauseAnalysisTemplateProps, RootCauseAnalysis, WhyStep } from './RootCauseAnalysisTemplate';
 
 export { RelatedIncidentsWidget } from './RelatedIncidentsWidget';
 export type { RelatedIncidentsWidgetProps, RelatedIncident } from './RelatedIncidentsWidget';
 
 // Change Management
 export { ApprovalWorkflowPanel } from './ApprovalWorkflowPanel';
-export type { ApprovalWorkflowPanelProps, ApprovalStep, ApprovalLevel } from './ApprovalWorkflowPanel';
+export type { ApprovalWorkflowPanelProps, ApprovalStep, ApprovalStatus, Approver } from './ApprovalWorkflowPanel';
 
 export { RiskAssessmentForm } from './RiskAssessmentForm';
 export type { RiskAssessmentFormProps, RiskFactor, RiskAnswer, RiskAssessmentResult, RiskLevel } from './RiskAssessmentForm';
@@ -33,10 +33,10 @@ export type { ChangeConflictDetectorProps, ChangeConflict, ConflictingChange, Co
 
 // Knowledge Base
 export { ArticleSuggestions } from './ArticleSuggestions';
-export type { ArticleSuggestionsProps, SuggestedArticle } from './ArticleSuggestions';
+export type { ArticleSuggestionsProps, SuggestedArticle, ArticleType } from './ArticleSuggestions';
 
 export { ArticleFeedbackWidget } from './ArticleFeedbackWidget';
-export type { ArticleFeedbackWidgetProps, ArticleFeedback, FeedbackRating } from './ArticleFeedbackWidget';
+export type { ArticleFeedbackWidgetProps, FeedbackStats } from './ArticleFeedbackWidget';
 
 // Service Catalog
 export { CatalogCategoryBrowser } from './CatalogCategoryBrowser';
@@ -47,7 +47,13 @@ export type { CatalogRequestFormProps, CatalogItemDetails, FormField, FieldType,
 
 // CMDB / Configuration Management
 export { RelationshipDiagram } from './RelationshipDiagram';
-export type { RelationshipDiagramProps, CINode, CIRelationship as RelDiagramRelationship } from './RelationshipDiagram';
+export type { 
+  RelationshipDiagramProps, 
+  ConfigurationItemNode,
+  CIRelationship as RelDiagramRelationship,
+  CIType as RelDiagramCIType,
+  RelationshipType as RelDiagramRelType
+} from './RelationshipDiagram';
 
 export { ServiceMap } from './ServiceMap';
 export type { ServiceMapProps, ServiceNode, ServiceStatus, ServiceType } from './ServiceMap';

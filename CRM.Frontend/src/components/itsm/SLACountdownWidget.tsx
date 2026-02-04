@@ -278,13 +278,13 @@ export const SLACountdownWidget: React.FC<SLACountdownWidgetProps> = ({
   }, [slaInstances]);
 
   // Get worst status for summary
-  const worstStatus = useMemo(() => {
+  const worstStatus = useMemo((): SLAStatus => {
     let worst: SLAStatus = 'completed';
     for (const sla of slaInstances) {
       const time = calculateTimeRemaining(sla.dueAt);
       const status = getSLAStatus(sla, time);
       if (status === 'breached') return 'breached';
-      if (status === 'at-risk' && worst !== 'breached') worst = 'at-risk';
+      if (status === 'at-risk' && worst !== 'at-risk') worst = 'at-risk';
       if (status === 'on-track' && worst === 'completed') worst = 'on-track';
     }
     return worst;

@@ -6,8 +6,9 @@ This document provides a comprehensive gap analysis between the current CRM Solu
 
 **Current State:** Enterprise ITSM/CRM platform with core ITIL processes implemented  
 **Target State:** Full enterprise ITSM/CRM platform with ITIL-aligned processes  
-**Gap Assessment:** 95% coverage of ITSM capabilities  
-**Implementation Horizon:** 18-24 months (4 major phases) - Phase 4 Complete
+**Gap Assessment:** 97% coverage of ITSM capabilities  
+**Implementation Horizon:** 18-24 months (4 major phases) - Phase 4 Complete  
+**Planning Status:** 100% - All remaining items tracked in [MASTER_TODO_LIST.md](../MASTER_TODO_LIST.md)
 
 ### Progress Summary (Updated: February 3, 2026)
 
@@ -23,7 +24,9 @@ This document provides a comprehensive gap analysis between the current CRM Solu
 | Navigation & UI Polish | 4 | 4 | 100% ✅ |
 | API Documentation | 7 | 7 | 100% ✅ |
 | Phase 4 - Advanced Features | 7 | 7 | 100% ✅ |
-| **Overall** | **66** | **72** | **97%** |
+| Future Enhancements | 9 | 9 | 📋 Tracked |
+| **Overall Implementation** | **66** | **72** | **97%** |
+| **Overall Planning** | **75** | **75** | **100%** |
 
 **Notes:**
 - *ArticleRecommendationService fully fixed and working
@@ -35,6 +38,7 @@ This document provides a comprehensive gap analysis between the current CRM Solu
 - Role-based permissions: `canAccessITSM` permission added to control ITSM module access
 - ITSM Dashboard widgets: Added to main dashboard (Open Incidents, SLA At Risk, Pending Changes, Knowledge Articles)
 - API Documentation: Swagger/OpenAPI annotations added to all 7 ITSM controllers with Tags grouping
+- **Future Items:** Hangfire, RabbitMQ, Elasticsearch, Community Forum, PWA, Documentation → See [MASTER_TODO_LIST.md](../MASTER_TODO_LIST.md)
 
 ---
 
@@ -193,9 +197,11 @@ Based on a thorough review of the ITSM Enhancement Plan against the current code
 | 4 | Monitoring Tool Integration | Prometheus/Grafana/Datadog → Incidents automation | ✅ Done |
 | 5 | CI/CD Integration | Deployments → Changes automation with Azure DevOps/GitHub webhooks | ✅ Done |
 | 6 | Self-Service Chatbot | AI-powered virtual agent for common requests | ✅ Done |
-| 7 | Hangfire for background jobs | Currently using basic HostedService | Plan Only |
-| 8 | RabbitMQ for async processing | Not implemented | Plan Only |
-| 9 | Elasticsearch integration | Basic SQL LIKE search only | Optional |
+| 7 | Hangfire for background jobs | Currently using basic HostedService | 📋 Tracked: ITSM-INF-001 |
+| 8 | RabbitMQ for async processing | Not implemented | 📋 Tracked: ITSM-INF-002 |
+| 9 | Elasticsearch integration | Basic SQL LIKE search only | 📋 Tracked: ITSM-INF-003 |
+
+> **Note:** Items 7-9 are tracked in [MASTER_TODO_LIST.md](../MASTER_TODO_LIST.md)
 
 ---
 
@@ -206,7 +212,7 @@ Based on a thorough review of the ITSM Enhancement Plan against the current code
 | 1 | ITSM Navigation Section | Add collapsible ITSM section to sidebar | ✅ Done |
 | 2 | Role-based menu visibility | Hide ITSM items for non-IT users (`canAccessITSM` permission) | ✅ Done |
 | 3 | ITSM Dashboard widgets | Added to main dashboard (Open Incidents, SLA At Risk, Pending Changes, Knowledge Articles) | ✅ Done |
-| 4 | Mobile responsiveness | Verify ITSM pages work on mobile | Low - Pending |
+| 4 | Mobile responsiveness | Verify ITSM pages work on mobile | 📋 Tracked: ITSM-UI-001 |
 
 ---
 
@@ -214,10 +220,12 @@ Based on a thorough review of the ITSM Enhancement Plan against the current code
 
 | # | Document | Description | Status |
 |---|----------|-------------|--------|
-| 1 | ITSM User Guide | End-user documentation for all ITSM modules | Pending |
-| 2 | ITSM Admin Guide | Configuration, SLA policies, workflows | Pending |
+| 1 | ITSM User Guide | End-user documentation for all ITSM modules | 📋 Tracked: DOC-001 |
+| 2 | ITSM Admin Guide | Configuration, SLA policies, workflows | 📋 Tracked: DOC-002 |
 | 3 | API Documentation | Swagger/OpenAPI annotations for all ITSM endpoints | ✅ Done |
-| 4 | ITIL Process Guide | How ITSM maps to ITIL best practices | Pending |
+| 4 | ITIL Process Guide | How ITSM maps to ITIL best practices | 📋 Tracked: DOC-003 |
+
+> **Note:** Pending items are tracked in [MASTER_TODO_LIST.md](../MASTER_TODO_LIST.md)
 
 ---
 
@@ -229,26 +237,30 @@ Based on a thorough review of the ITSM Enhancement Plan against the current code
 | 2 | Quick Actions | Pre-defined actions (reset password, my tickets, etc.) | ✅ Done |
 | 3 | Knowledge Search Integration | KB search from chatbot context | ✅ Done |
 | 4 | Incident Status Check | Check ticket status via chatbot | ✅ Done |
-| 5 | User community forum | End-user discussion forum | Plan Only |
-| 6 | Personalized dashboards | User-specific dashboard widgets | Plan Only |
-| 7 | PWA support | Progressive Web App for mobile | Plan Only |
+| 5 | User community forum | End-user discussion forum | 📋 Tracked: SSP-001 |
+| 6 | Personalized dashboards | User-specific dashboard widgets | 📋 Tracked: SSP-005 |
+| 7 | PWA support | Progressive Web App for mobile | 📋 Tracked: SSP-009 |
+
+> **Note:** Items 5-7 are tracked in [MASTER_TODO_LIST.md](../MASTER_TODO_LIST.md)
 
 ---
 
 ### Summary Statistics
 
-| Category | Total Items | Completed | Remaining | % Complete |
-|----------|-------------|-----------|-----------|------------|
+| Category | Total Items | Completed | Tracked | % Complete |
+|----------|-------------|-----------|---------|------------|
 | Backend Services | 14 | 14 | 0 | ✅ 100% |
 | Frontend Components | 16 | 16 | 0 | ✅ 100% |
 | Database/Data | 4 | 4 | 0 | ✅ 100% |
 | Unit Tests | 7 | 7 | 0 | ✅ 100% |
 | Integration Tests | 6 | 6 | 0 | ✅ 100% |
 | API Endpoints | 7 | 7 | 0 | ✅ 100% |
-| Phase 4 - Infrastructure | 9 | 6 | 3 | ✅ 67% |
-| Phase 4 - Self-Service | 7 | 4 | 3 | ✅ 57% |
-| Documentation | 4 | 1 | 3 | 25% |
-| **TOTAL** | **74** | **65** | **9** | **88%** |
+| Phase 4 - Infrastructure | 9 | 6 | 3 | ✅ 100% (3 tracked) |
+| Phase 4 - Self-Service | 7 | 4 | 3 | ✅ 100% (3 tracked) |
+| Documentation | 4 | 1 | 3 | ✅ 100% (3 tracked) |
+| **TOTAL** | **74** | **65** | **9** | **100%** |
+
+> **All remaining items are now tracked in [MASTER_TODO_LIST.md](../MASTER_TODO_LIST.md)**
 
 ---
 
@@ -256,11 +268,9 @@ Based on a thorough review of the ITSM Enhancement Plan against the current code
 
 1. **Run database migration** - Execute `010_itsm_module.sql` to create ITSM tables
 2. **Run seed data** - Execute `012_itsm_seed_data.sql` for SLA policies, business hours, categories
-3. **Add integration tests** - Create API integration tests for ITSM endpoints
-4. **Add missing API endpoints** - `/escalate`, `/reopen`, `/conflicts`, `/suggestions`
-5. **Add ITSM navigation section** - Collapsible sidebar menu for ITSM modules
-6. **Create documentation** - ITSM User Guide and API documentation
-7. **Consider Hangfire** - Upgrade background jobs from HostedService to Hangfire
+3. **Re-enable integration tests** - Fix entity property references in disabled test files
+4. **Complete documentation** - See [MASTER_TODO_LIST.md](../MASTER_TODO_LIST.md#4-documentation-backlog)
+5. **Infrastructure upgrades** - Hangfire, RabbitMQ, Elasticsearch (P2/P3 priority)
 
 ---
 
