@@ -7,6 +7,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- Allow test project to access internal members -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="CRM.Tests" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Algolia.Search" Version="7.11.0" />
     <PackageReference Include="Meilisearch" Version="0.15.0" />
