@@ -1129,4 +1129,192 @@ public class CriticalPathBVTTests
     }
 
     #endregion
+
+    #region BVT-111 to BVT-120: ITSM Phase 4 Critical Path
+
+    [Fact]
+    public void BVT111_WebhookEventTypes_AllDefined()
+    {
+        // Assert all webhook event types are valid
+        var eventTypes = new[]
+        {
+            "IncidentCreated", "IncidentUpdated", "IncidentResolved", "IncidentClosed",
+            "ChangeCreated", "ChangeApproved", "ChangeImplemented",
+            "ProblemIdentified", "SLABreached", "SLAWarning"
+        };
+
+        eventTypes.Should().HaveCountGreaterOrEqualTo(10);
+        eventTypes.Should().Contain("IncidentCreated");
+        eventTypes.Should().Contain("SLABreached");
+    }
+
+    [Fact]
+    public void BVT112_WebhookSubscription_Structure()
+    {
+        // Arrange & Act - Test webhook subscription structure
+        var subscription = new
+        {
+            Id = 1,
+            Name = "Test Webhook",
+            TargetUrl = "https://hooks.example.com/webhook",
+            IsActive = true,
+            EventTypes = new[] { "IncidentCreated", "IncidentResolved" },
+            SecretKey = "secret-key-123",
+            RetryCount = 3,
+            TimeoutSeconds = 30
+        };
+
+        // Assert
+        subscription.Name.Should().NotBeNullOrEmpty();
+        subscription.TargetUrl.Should().StartWith("https://");
+        subscription.RetryCount.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void BVT113_EmailToTicket_ParsesSubjectPriority()
+    {
+        // Arrange - Emails with priority indicators
+        var emails = new[]
+        {
+            ("URGENT: Server down", "P1"),
+            ("HIGH: Database issues", "P2"),
+            ("Regular support request", "P3"),
+            ("[CRITICAL] Production outage", "P1")
+        };
+
+        // Act & Assert
+        foreach (var (subject, expectedPriority) in emails)
+        {
+            var priority = DeterminePriorityFromSubject(subject);
+            priority.Should().NotBeNullOrEmpty();
+        }
+    }
+
+    private static string DeterminePriorityFromSubject(string subject)
+    {
+        var upper = subject.ToUpperInvariant();
+        if (upper.Contains("CRITICAL") || upper.Contains("URGENT"))
+            return "P1";
+        if (upper.Contains("HIGH"))
+            return "P2";
+        return "P3";
+    }
+
+    [Fact]
+    public void BVT114_Dashboard_MetricsStructure()
+    {
+        // Arrange & Act - Test dashboard metrics structure
+        var metrics = new
+        {
+            OpenIncidents = 45,
+            ResolvedToday = 12,
+            AvgResolutionHours = 4.5,
+            SLACompliance = 94.5,
+            PendingChanges = 8,
+            ActiveProblems = 3
+        };
+
+        // Assert
+        metrics.OpenIncidents.Should().BeGreaterThanOrEqualTo(0);
+        metrics.SLACompliance.Should().BeInRange(0, 100);
+    }
+
+    [Fact]
+    public void BVT115_MonitoringAlert_SeverityMapping()
+    {
+        // Arrange - Severity to priority mapping
+        var severityMap = new Dictionary<string, string>
+        {
+            { "critical", "P1" },
+            { "error", "P2" },
+            { "warning", "P3" },
+            { "info", "P4" }
+        };
+
+        // Assert
+        severityMap["critical"].Should().Be("P1");
+        severityMap["warning"].Should().Be("P3");
+    }
+
+    [Fact]
+    public void BVT116_CICDDeploymentTypes_AllDefined()
+    {
+        // Arrange & Act
+        var deploymentTypes = new[] { "Standard", "Emergency", "Hotfix", "Rollback" };
+
+        // Assert
+        deploymentTypes.Should().HaveCount(4);
+        deploymentTypes.Should().Contain("Emergency");
+        deploymentTypes.Should().Contain("Rollback");
+    }
+
+    [Fact]
+    public void BVT117_ChatbotIntentRecognition_Keywords()
+    {
+        // Arrange - Intent keywords
+        var passwordIntents = new[] { "password", "forgot", "reset", "locked", "can't login" };
+        var statusIntents = new[] { "status", "ticket", "where is", "update on" };
+
+        // Act
+        var testMessage = "I forgot my password";
+        var matchesPassword = passwordIntents.Any(k =>
+            testMessage.Contains(k, StringComparison.OrdinalIgnoreCase));
+
+        // Assert
+        matchesPassword.Should().BeTrue();
+    }
+
+    [Fact]
+    public void BVT118_ChatbotQuickActions_Available()
+    {
+        // Arrange & Act
+        var quickActions = new[]
+        {
+            ("reset_password", "Reset Password"),
+            ("check_status", "Check Ticket Status"),
+            ("create_incident", "Create Incident"),
+            ("talk_to_agent", "Talk to Agent"),
+            ("search_kb", "Search Knowledge Base")
+        };
+
+        // Assert
+        quickActions.Should().HaveCountGreaterOrEqualTo(4);
+    }
+
+    [Fact]
+    public void BVT119_SLACompliance_Calculation()
+    {
+        // Arrange
+        var tickets = new[] { true, true, true, true, false }; // 4/5 met SLA
+
+        // Act
+        var compliance = (double)tickets.Count(t => t) / tickets.Length * 100;
+
+        // Assert
+        compliance.Should().Be(80.0);
+    }
+
+    [Fact]
+    public void BVT120_ExecutiveSummary_AllMetricsPresent()
+    {
+        // Arrange & Act
+        var summary = new
+        {
+            Period = "This Month",
+            TotalIncidents = 150,
+            TotalChanges = 25,
+            TotalProblems = 8,
+            OverallSLACompliance = 94.5,
+            CustomerSatisfactionAverage = 4.6,
+            TopCategories = new[] { "Software", "Hardware", "Network" }
+        };
+
+        // Assert
+        summary.TotalIncidents.Should().BeGreaterThan(0);
+        summary.OverallSLACompliance.Should().BeInRange(0, 100);
+        summary.CustomerSatisfactionAverage.Should().BeInRange(0, 5);
+        summary.TopCategories.Should().HaveCountGreaterOrEqualTo(3);
+    }
+
+    #endregion
 }

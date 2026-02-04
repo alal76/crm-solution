@@ -427,31 +427,33 @@ const FormFieldRenderer: React.FC<{
     case 'file':
       return (
         <FormControl fullWidth error={!!error}>
-          <Button
-            variant="outlined"
-            component="label"
-            startIcon={<AttachIcon />}
-          >
-            {field.label}
-            <input
-              type="file"
-              hidden
-              onChange={(e) => {
-                const files = e.target.files;
-                if (files && files.length > 0) {
-                  onChange(files[0]);
-                }
-              }}
-            />
-          </Button>
-          {value && (
-            <Typography variant="caption" sx={{ mt: 1 }}>
-              Selected: {(value as File).name}
-            </Typography>
-          )}
-          {(error || field.description) && (
-            <FormHelperText>{error || field.description}</FormHelperText>
-          )}
+          <>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<AttachIcon />}
+            >
+              {field.label}
+              <input
+                type="file"
+                hidden
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files && files.length > 0) {
+                    onChange(files[0]);
+                  }
+                }}
+              />
+            </Button>
+            {value && (
+              <Typography variant="caption" sx={{ mt: 1 }}>
+                Selected: {(value as File).name}
+              </Typography>
+            )}
+            {(error || field.description) && (
+              <FormHelperText>{error || field.description}</FormHelperText>
+            )}
+          </>
         </FormControl>
       );
 
