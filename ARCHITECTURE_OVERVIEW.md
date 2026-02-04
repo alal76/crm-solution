@@ -148,6 +148,100 @@ Both architectures share the same codebase and database schema, allowing organiz
 | **Migrations** | Database schema versioning |
 | **Query Filters** | Soft delete, multi-tenancy |
 
+### Pluggable Architecture (Provider Pattern)
+
+**Technology**: Microsoft.FeatureManagement + Strategy/Factory Pattern
+
+The CRM implements a pluggable architecture that allows operators to swap external service providers at deployment time. This follows the **Hexagonal Architecture** (Ports & Adapters) pattern.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        PLUGGABLE PROVIDER ARCHITECTURE                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  CRM.Core/Ports/Output/Providers/       (Port Interfaces)               │
+│  ├── ISearchPort.cs                     - Search abstraction            │
+│  ├── IChatPort.cs                       - Chat/messaging abstraction    │
+│  ├── INotificationPort.cs               - Notification abstraction      │
+│  ├── IAnalyticsPort.cs                  - Analytics/BI abstraction      │
+│  ├── ISignaturePort.cs                  - E-signature abstraction       │
+│  ├── IAIPort.cs                         - AI/LLM abstraction            │
+│  └── IIntegrationPort.cs                - Integration platform          │
+│                                                                          │
+│  CRM.Infrastructure/Factories/          (Provider Factories)            │
+│  ├── SearchProviderFactory.cs           - Resolves ISearchPort          │
+│  ├── ChatProviderFactory.cs             - Resolves IChatPort            │
+│  ├── NotificationProviderFactory.cs     - Resolves INotificationPort    │
+│  ├── AnalyticsProviderFactory.cs        - Resolves IAnalyticsPort       │
+│  ├── SignatureProviderFactory.cs        - Resolves ISignaturePort       │
+│  ├── AIProviderFactory.cs               - Resolves IAIPort              │
+│  ├── IntegrationProviderFactory.cs      - Resolves IIntegrationPort     │
+│  └── AdapterRegistry.cs                 - Health monitoring             │
+│                                                                          │
+│  CRM.Infrastructure/Providers/          (Provider Implementations)      │
+│  ├── BuiltIn/                           - Default implementations       │
+│  ├── Meilisearch/                       - Meilisearch search provider   │
+│  ├── Algolia/                           - Algolia search provider       │
+│  ├── Chatwoot/                          - Chatwoot chat provider        │
+│  ├── Intercom/                          - Intercom chat provider        │
+│  ├── Novu/                              - Novu notification provider    │
+│  ├── Twilio/                            - Twilio SMS/voice provider     │
+│  ├── DocuSeal/                          - DocuSeal signature provider   │
+│  ├── DocuSign/                          - DocuSign signature provider   │
+│  └── Superset/                          - Apache Superset analytics     │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Configuration via Feature Flags**:
+
+```json
+{
+  "FeatureManagement": {
+    "UseExternalSearch": false,
+    "UseExternalChat": false,
+    "UseExternalNotifications": false
+  },
+  "Providers": {
+    "Search": { "Type": "Meilisearch" },
+    "Chat": { "Type": "Chatwoot" },
+    "Notifications": { "Type": "Novu" }
+  }
+}
+```
+
+**Factory Resolution Pattern**:
+
+```csharp
+// Consumers inject the port interface directly
+public class SearchController(ISearchPort searchPort)
+{
+    public async Task<IActionResult> Search(string query)
+    {
+        var results = await searchPort.SearchAsync(new SearchRequest { Query = query });
+        return Ok(results);
+    }
+}
+
+// Factory resolves the correct implementation based on configuration
+services.AddScoped<ISearchPort>(sp => 
+    sp.GetRequiredService<IProviderFactory<ISearchPort>>().GetProvider());
+```
+
+**Supported Provider Categories**:
+
+| Category | BuiltIn | OSS Options | SaaS Options |
+|----------|---------|-------------|--------------|
+| Search | SQL LIKE | Meilisearch, Typesense | Algolia, Elastic Cloud |
+| Chat | (stub) | Chatwoot, Rocket.Chat | Intercom, Zendesk |
+| Notifications | Email only | Novu | Twilio, SendGrid |
+| Analytics | Basic reports | Apache Superset, Metabase | Power BI, Looker |
+| E-Signatures | Manual workflow | DocuSeal | DocuSign, Adobe Sign |
+| AI/LLM | Ollama (local) | - | OpenAI, Azure OpenAI, Anthropic |
+| Integrations | Webhooks | n8n | Zapier, Make |
+
+For detailed implementation guidance, see [ADR-001: Pluggable Architecture Strategy](docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md).
+
 ---
 
 ## Monolithic Architecture

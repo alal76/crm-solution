@@ -85,6 +85,41 @@ services:
       - Monitoring__EnableK8sMonitoring=${ENABLE_K8S_MONITORING:-false}
       - Monitoring__DatabaseProvider=${DATABASE_PROVIDER:-mariadb}
       - Frontend__Url=${FRONTEND_URL:-http://localhost}
+      # Feature Management - Provider Selection (false = BuiltIn, true = External)
+      - FeatureManagement__UseExternalChat=${USE_EXTERNAL_CHAT:-false}
+      - FeatureManagement__UseExternalSearch=${USE_EXTERNAL_SEARCH:-false}
+      - FeatureManagement__UseExternalNotifications=${USE_EXTERNAL_NOTIFICATIONS:-false}
+      - FeatureManagement__UseExternalAnalytics=${USE_EXTERNAL_ANALYTICS:-false}
+      - FeatureManagement__UseExternalSignatures=${USE_EXTERNAL_SIGNATURES:-false}
+      - FeatureManagement__UseExternalAI=${USE_EXTERNAL_AI:-false}
+      - FeatureManagement__UseExternalIntegrations=${USE_EXTERNAL_INTEGRATIONS:-false}
+      # Feature Management - Module Toggles
+      - FeatureManagement__EnableITSM=${ENABLE_ITSM:-true}
+      - FeatureManagement__EnableMarketing=${ENABLE_MARKETING:-true}
+      - FeatureManagement__EnableCustomerPortal=${ENABLE_CUSTOMER_PORTAL:-false}
+      - FeatureManagement__EnablePartnerPortal=${ENABLE_PARTNER_PORTAL:-false}
+      - FeatureManagement__EnableKnowledgeBase=${ENABLE_KNOWLEDGE_BASE:-true}
+      # Feature Management - Feature Rollout
+      - FeatureManagement__NewSearchExperience=${NEW_SEARCH_EXPERIENCE:-false}
+      - FeatureManagement__AIAssistant=${AI_ASSISTANT:-true}
+      - FeatureManagement__RealTimeNotifications=${REALTIME_NOTIFICATIONS:-true}
+      - FeatureManagement__AdvancedWorkflows=${ADVANCED_WORKFLOWS:-true}
+      # Provider Configuration - Types
+      - Providers__Chat__Type=${PROVIDER_CHAT_TYPE:-BuiltIn}
+      - Providers__Search__Type=${PROVIDER_SEARCH_TYPE:-BuiltIn}
+      - Providers__Notifications__Type=${PROVIDER_NOTIFICATIONS_TYPE:-BuiltIn}
+      - Providers__Analytics__Type=${PROVIDER_ANALYTICS_TYPE:-BuiltIn}
+      - Providers__Signatures__Type=${PROVIDER_SIGNATURES_TYPE:-BuiltIn}
+      - Providers__Integrations__Type=${PROVIDER_INTEGRATIONS_TYPE:-BuiltIn}
+      # External Provider Endpoints (optional - when External=true)
+      - Providers__Chat__Chatwoot__BaseUrl=${CHATWOOT_BASE_URL:-}
+      - Providers__Chat__Chatwoot__ApiKey=${CHATWOOT_API_KEY:-}
+      - Providers__Search__Meilisearch__Url=${MEILISEARCH_URL:-http://meilisearch:7700}
+      - Providers__Search__Meilisearch__ApiKey=${MEILISEARCH_API_KEY:-}
+      - Providers__Notifications__Novu__ApiKey=${NOVU_API_KEY:-}
+      - Providers__Analytics__Superset__Url=${SUPERSET_URL:-http://superset:8088}
+      - Providers__Signatures__DocuSeal__Url=${DOCUSEAL_URL:-http://docuseal:3001}
+      - Providers__Integrations__N8n__Url=${N8N_URL:-http://n8n:5678}
     volumes:
       - api-data:/app/data
     depends_on:

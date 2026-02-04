@@ -1,0 +1,148 @@
+// CRM Solution - Notification Provider Factory
+// Phase 0 Week 3 Task 3.4: Factory for resolving notification providers
+// Part of the Pluggable Architecture implementation
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
+using CRM.Core.Ports.Output.Providers;
+using CRM.Core.Features;
+using CRM.Core.Interfaces;
+
+namespace CRM.Infrastructure.Factories;
+
+/// <summary>
+/// Factory for resolving notification provider implementations.
+/// Supports runtime switching between BuiltIn, Novu, Twilio, SendGrid, OneSignal, and AWS SNS.
+/// </summary>
+public class NotificationProviderFactory : IProviderFactory<INotificationPort>
+{
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IFeatureManager _featureManager;
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<NotificationProviderFactory> _logger;
+
+    public NotificationProviderFactory(
+        IServiceProvider serviceProvider,
+        IFeatureManager featureManager,
+        IConfiguration configuration,
+        ILogger<NotificationProviderFactory> logger)
+    {
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _featureManager = featureManager ?? throw new ArgumentNullException(nameof(featureManager));
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    /// <inheritdoc />
+    public INotificationPort GetProvider()
+    {
+        var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalNotifications)
+            .GetAwaiter().GetResult();
+        
+        if (!useExternal)
+        {
+            _logger.LogDebug("Feature flag disabled. Using BuiltIn notification provider");
+            return GetBuiltInProvider();
+        }
+
+        var providerType = _configuration["Providers:Notifications:Type"] ?? ProviderTypes.Notifications.BuiltIn;
+        _logger.LogDebug("Resolving notification provider: {ProviderType}", providerType);
+        
+        try
+        {
+            return GetProvider(providerType);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to resolve {ProviderType}. Falling back to BuiltIn", providerType);
+            return GetBuiltInProvider();
+        }
+    }
+
+    /// <inheritdoc />
+    public INotificationPort GetProvider(string providerName)
+    {
+        if (string.IsNullOrWhiteSpace(providerName))
+        {
+            throw new ArgumentException("Provider name cannot be null or empty", nameof(providerName));
+        }
+
+        _logger.LogDebug("Resolving notification provider by name: {ProviderName}", providerName);
+        
+        return providerName.ToLowerInvariant() switch
+        {
+            "builtin" => GetBuiltInProvider(),
+            "novu" => GetProviderOrFallback<INotificationPort>("NovuProvider"),
+            "twilio" => GetProviderOrFallback<INotificationPort>("TwilioProvider"),
+            "sendgrid" => GetProviderOrFallback<INotificationPort>("SendGridProvider"),
+            "onesignal" => GetProviderOrFallback<INotificationPort>("OneSignalProvider"),
+            "awssns" => GetProviderOrFallback<INotificationPort>("AwsSnsProvider"),
+            _ => throw new InvalidOperationException($"Unknown notification provider: {providerName}")
+        };
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<string> GetAvailableProviders()
+    {
+        return new[]
+        {
+            ProviderTypes.Notifications.BuiltIn,
+            ProviderTypes.Notifications.Novu,
+            ProviderTypes.Notifications.Twilio,
+            ProviderTypes.Notifications.SendGrid,
+            ProviderTypes.Notifications.OneSignal,
+            ProviderTypes.Notifications.AwsSns
+        };
+    }
+
+    /// <inheritdoc />
+    public string GetActiveProviderName()
+    {
+        var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalNotifications)
+            .GetAwaiter().GetResult();
+        
+        if (!useExternal)
+        {
+            return ProviderTypes.Notifications.BuiltIn;
+        }
+        
+        return _configuration["Providers:Notifications:Type"] ?? ProviderTypes.Notifications.BuiltIn;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> IsProviderAvailableAsync(string providerName)
+    {
+        try
+        {
+            var provider = GetProvider(providerName);
+            return await provider.IsAvailableAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Provider {ProviderName} is not available", providerName);
+            return false;
+        }
+    }
+
+    private INotificationPort GetBuiltInProvider()
+    {
+        return GetProviderOrFallback<INotificationPort>("BuiltInNotificationProvider");
+    }
+
+    private TPort GetProviderOrFallback<TPort>(string providerTypeName) where TPort : class
+    {
+        var providers = _serviceProvider.GetServices<TPort>();
+        
+        foreach (var provider in providers)
+        {
+            if (provider.GetType().Name.Equals(providerTypeName, StringComparison.OrdinalIgnoreCase))
+            {
+                return provider;
+            }
+        }
+
+        throw new InvalidOperationException($"Provider {providerTypeName} is not registered. Ensure it is configured in appsettings and registered in DI.");
+    }
+}
