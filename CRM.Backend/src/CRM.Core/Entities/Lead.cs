@@ -84,11 +84,25 @@ public class Lead : BaseEntity
     /// <summary>Combined lead score (fit + engagement)</summary>
     public int Score { get; set; } = 0;
 
+    /// <summary>Alias for Score - combined lead score for scoring rules</summary>
+    [NotMapped]
+    public int LeadScore
+    {
+        get => Score;
+        set => Score = value;
+    }
+
     /// <summary>Fit score based on company size, industry, persona match</summary>
     public int FitScore { get; set; } = 0;
 
     /// <summary>Engagement score based on opens, clicks, page visits, content downloads</summary>
     public int EngagementScore { get; set; } = 0;
+
+    /// <summary>Last time lead score was decayed due to inactivity</summary>
+    public DateTime? LastScoreDecayDate { get; set; }
+
+    /// <summary>Last time any activity was recorded for this lead</summary>
+    public DateTime? LastActivityDate { get; set; }
 
     #endregion
 

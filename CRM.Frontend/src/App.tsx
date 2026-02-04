@@ -81,6 +81,7 @@ const LeadsPage = lazy(() => import('./pages/LeadsPage'));
 const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
 const CampaignExecutionPage = lazy(() => import('./pages/CampaignExecutionPage'));
 const EmailTemplatesPage = lazy(() => import('./pages/EmailTemplatesPage'));
+const LandingPagesPage = lazy(() => import('./pages/LandingPagesPage'));
 
 // ----------------------------------------------------------------------------
 // Service Module - Lazy Loaded
@@ -484,6 +485,16 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <FormBuilderPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/landing-pages"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <LandingPagesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
