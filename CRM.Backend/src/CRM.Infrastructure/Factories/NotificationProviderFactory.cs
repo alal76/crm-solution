@@ -1,6 +1,7 @@
 // CRM Solution - Notification Provider Factory
 // Phase 0 Week 3 Task 3.4: Factory for resolving notification providers
 // Phase 2 Week 9: Added NovuProvider resolution
+// Phase 2 Week 10: Added TwilioProvider and SendGridProvider resolution
 // Part of the Pluggable Architecture implementation
 
 using Microsoft.Extensions.Configuration;
@@ -11,6 +12,8 @@ using CRM.Core.Ports.Output.Providers;
 using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Providers.Novu;
+using CRM.Infrastructure.Providers.Twilio;
+using CRM.Infrastructure.Providers.SendGrid;
 
 namespace CRM.Infrastructure.Factories;
 
