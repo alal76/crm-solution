@@ -2,6 +2,7 @@ volumes:
   db-data:
   api-data:
   redis-data:
+  meilisearch-data:
 services:
   # Database Tier (MariaDB - Hosts both production and demo databases)
   mariadb:
@@ -36,6 +37,26 @@ services:
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  # Meilisearch (Full-Text Search Engine)
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: crm-meilisearch
+    ports:
+      - "${MEILISEARCH_EXTERNAL_PORT:-7700}:7700"
+    volumes:
+      - meilisearch-data:/meili_data
+    environment:
+      - MEILI_MASTER_KEY=${MEILISEARCH_API_KEY:-masterKey123}
+      - MEILI_ENV=${MEILISEARCH_ENV:-development}
+      - MEILI_NO_ANALYTICS=true
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7700/health"]
       interval: 10s
       timeout: 5s
       retries: 5
