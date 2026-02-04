@@ -123,7 +123,7 @@ public class PerformanceTests : IAsyncLifetime
         var endpoints = new[]
         {
             "/api/accounts",
-            "/api/contacts", 
+            "/api/contacts",
             "/api/opportunities",
             "/api/leads",
             "/api/campaigns"
@@ -140,7 +140,7 @@ public class PerformanceTests : IAsyncLifetime
             rampUpSeconds: 30);
 
         Assert.True(result.SuccessRate >= 95.0, $"Success rate {result.SuccessRate}% is below 95% under stress");
-        
+
         _output.WriteLine($"Max concurrent users: {result.ConcurrentUsers}");
         _output.WriteLine($"Total requests: {result.TotalRequests}");
         _output.WriteLine($"Success rate: {result.SuccessRate:F1}%");
@@ -225,7 +225,7 @@ public class PerformanceTests : IAsyncLifetime
             concurrentUsers: 1,
             requestsPerUser: 10);
 
-        Assert.True(result.AvgResponseTimeMs <= 500, 
+        Assert.True(result.AvgResponseTimeMs <= 500,
             $"Average response time {result.AvgResponseTimeMs}ms exceeds 500ms baseline");
     }
 

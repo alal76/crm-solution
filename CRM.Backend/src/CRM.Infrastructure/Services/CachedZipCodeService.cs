@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -64,7 +80,7 @@ public class CachedZipCodeService : IZipCodeService
     public async Task<IEnumerable<StateInfo>> GetStatesAsync(string countryCode)
     {
         var cacheKey = $"{StatesPrefix}{countryCode.ToUpperInvariant()}";
-        
+
         return await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = StatesCacheExpiration;
@@ -77,7 +93,7 @@ public class CachedZipCodeService : IZipCodeService
     public async Task<IEnumerable<string>> GetCitiesAsync(string countryCode, string stateCode)
     {
         var cacheKey = $"{CitiesPrefix}{countryCode.ToUpperInvariant()}:{stateCode.ToUpperInvariant()}";
-        
+
         return await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = CitiesCacheExpiration;
@@ -90,7 +106,7 @@ public class CachedZipCodeService : IZipCodeService
     public async Task<IEnumerable<ZipCodeLookupResult>> GetPostalCodesForCityAsync(string countryCode, string stateCode, string city)
     {
         var cacheKey = $"{PostalCodesPrefix}{countryCode.ToUpperInvariant()}:{stateCode.ToUpperInvariant()}:{city.ToLowerInvariant()}";
-        
+
         return await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = PostalCodesCacheExpiration;
@@ -103,7 +119,7 @@ public class CachedZipCodeService : IZipCodeService
     public async Task<IEnumerable<ZipCodeLookupResult>> LookupByPostalCodeAsync(string postalCode, string? countryCode = null)
     {
         var cacheKey = $"{LookupPrefix}{postalCode.ToUpperInvariant()}:{countryCode?.ToUpperInvariant() ?? "ALL"}";
-        
+
         return await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = LookupCacheExpiration;
@@ -122,7 +138,7 @@ public class CachedZipCodeService : IZipCodeService
     public async Task<ZipCodeValidationResult> ValidatePostalCodeAsync(string postalCode, string countryCode)
     {
         var cacheKey = $"{ValidationPrefix}{postalCode.ToUpperInvariant()}:{countryCode.ToUpperInvariant()}";
-        
+
         return await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = LookupCacheExpiration;
@@ -174,11 +190,11 @@ public class CachedZipCodeService : IZipCodeService
     public void ClearCache()
     {
         _logger.LogInformation("Clearing zip code cache");
-        
+
         // Note: IMemoryCache doesn't have a Clear method, so we need to
         // remove specific keys or use a different approach.
         // For now, we'll rely on expiration.
-        
+
         // Remove known fixed keys
         _cache.Remove(CountriesCacheKey);
     }

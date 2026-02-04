@@ -50,6 +50,9 @@ import {
   Refresh as RefreshIcon,
   Settings as SettingsIcon,
   Inventory as ProductIcon,
+  BugReport as IncidentIcon,
+  Warning as SLAWarningIcon,
+  SwapHoriz as ChangeIcon,
 } from '@mui/icons-material';
 import {
   LineChart,
@@ -95,6 +98,9 @@ const iconMap: Record<string, React.ElementType> = {
   Help: HelpIcon,
   Assignment: AssignmentIcon,
   Inventory: ProductIcon,
+  BugReport: IncidentIcon,
+  Warning: SLAWarningIcon,
+  SwapHoriz: ChangeIcon,
 };
 
 // Stage names for display
@@ -657,6 +663,14 @@ function DashboardPage() {
       { title: 'Total Revenue', value: formatCurrency(totalRevenue), icon: ShoppingCartIcon, color: '#F57C00', link: '/opportunities', menuKey: 'Opportunities' },
     ];
 
+    // ITSM dashboard widgets (shown when user has ITSM access)
+    const itsmStats = [
+      { title: 'Open Incidents', value: '-', icon: IncidentIcon, color: '#B3261E', link: '/itsm/incidents', menuKey: 'ITSMIncidents', subtitle: 'View all open incidents' },
+      { title: 'SLA At Risk', value: '-', icon: SLAWarningIcon, color: '#F57C00', link: '/itsm/sla', menuKey: 'ITSMSLA', subtitle: 'Approaching breach' },
+      { title: 'Pending Changes', value: '-', icon: ChangeIcon, color: '#6750A4', link: '/itsm/changes', menuKey: 'ITSMChanges', subtitle: 'Awaiting approval' },
+      { title: 'Knowledge Articles', value: '-', icon: HelpIcon, color: '#0092BC', link: '/itsm/knowledge', menuKey: 'ITSMKnowledge', subtitle: 'Published articles' },
+    ];
+
     // Build pipeline trend from opportunities
     const monthData: Record<string, number> = {};
     const now = new Date();
@@ -698,6 +712,27 @@ function DashboardPage() {
             </Grid>
           ))}
         </Grid>
+
+        {/* ITSM Dashboard Section - Only shown if user has ITSM access */}
+        {canAccessMenu('ITSMIncidents') && (
+          <>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, mt: 2, color: '#49454F' }}>
+              IT Service Management
+            </Typography>
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+              {itsmStats.map((stat, index) => (
+                <Grid item xs={12} sm={6} md={3} key={`itsm-${index}`}>
+                  <StatCard
+                    {...stat}
+                    loading={loading}
+                    clickable={canAccessMenu(stat.menuKey)}
+                    onClick={() => canAccessMenu(stat.menuKey) && navigate(stat.link)}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </>
+        )}
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>

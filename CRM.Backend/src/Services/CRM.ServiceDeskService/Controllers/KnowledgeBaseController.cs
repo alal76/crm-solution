@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -86,7 +102,7 @@ public class KnowledgeBaseController : ControllerBase
             if (!string.IsNullOrEmpty(search))
             {
                 var searchLower = search.ToLower();
-                query = query.Where(a => 
+                query = query.Where(a =>
                     a.Title.ToLower().Contains(searchLower) ||
                     (a.Summary != null && a.Summary.ToLower().Contains(searchLower)) ||
                     (a.Keywords != null && a.Keywords.ToLower().Contains(searchLower)));
@@ -333,7 +349,7 @@ public class KnowledgeBaseController : ControllerBase
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Created knowledge article {ArticleId} - {Title}", article.Id, article.Title);
-            return CreatedAtAction(nameof(GetArticle), new { id = article.Id }, 
+            return CreatedAtAction(nameof(GetArticle), new { id = article.Id },
                 new { article.Id, article.ArticleNumber, article.Title, article.Slug });
         }
         catch (Exception ex)
@@ -365,7 +381,7 @@ public class KnowledgeBaseController : ControllerBase
             if (request.Summary != null) article.Summary = request.Summary;
             if (request.Content != null) article.Content = request.Content;
             if (request.ContentFormat != null) article.ContentFormat = request.ContentFormat;
-            
+
             if (request.Status != null && Enum.TryParse<ArticleStatus>(request.Status, true, out var status))
             {
                 if (status == ArticleStatus.Published && article.Status != ArticleStatus.Published)
@@ -374,13 +390,13 @@ public class KnowledgeBaseController : ControllerBase
                 }
                 article.Status = status;
             }
-            
+
             if (request.Visibility != null && Enum.TryParse<ArticleVisibility>(request.Visibility, true, out var visibility))
                 article.Visibility = visibility;
-            
+
             if (request.ArticleType != null && Enum.TryParse<ArticleType>(request.ArticleType, true, out var type))
                 article.ArticleType = type;
-            
+
             if (request.CategoryId.HasValue) article.CategoryId = request.CategoryId;
             if (request.Tags != null) article.TagsJson = request.Tags;
             if (request.Keywords != null) article.Keywords = request.Keywords;
@@ -654,7 +670,7 @@ public class KnowledgeBaseController : ControllerBase
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Created knowledge category {CategoryId} - {Name}", category.Id, category.Name);
-            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, 
+            return CreatedAtAction(nameof(GetCategory), new { id = category.Id },
                 new { category.Id, category.Name, category.Slug });
         }
         catch (Exception ex)
@@ -751,7 +767,7 @@ public class KnowledgeBaseController : ControllerBase
             var searchLower = query.ToLower();
             var articles = await _context.KnowledgeArticles
                 .Include(a => a.Category)
-                .Where(a => a.Status == ArticleStatus.Published && 
+                .Where(a => a.Status == ArticleStatus.Published &&
                            a.Visibility == ArticleVisibility.Public &&
                            !a.IsDeleted &&
                            (a.Title.ToLower().Contains(searchLower) ||

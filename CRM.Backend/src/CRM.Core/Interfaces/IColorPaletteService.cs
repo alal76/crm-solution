@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -21,42 +37,42 @@ public interface IColorPaletteService
     /// Get all cached color palettes
     /// </summary>
     Task<IEnumerable<ColorPaletteDto>> GetAllAsync();
-    
+
     /// <summary>
     /// Get palettes by category
     /// </summary>
     Task<IEnumerable<ColorPaletteDto>> GetByCategoryAsync(string category);
-    
+
     /// <summary>
     /// Get all unique categories
     /// </summary>
     Task<IEnumerable<string>> GetCategoriesAsync();
-    
+
     /// <summary>
     /// Refresh palettes from GitHub repository
     /// </summary>
     Task<int> RefreshFromGitHubAsync();
-    
+
     /// <summary>
     /// Get palette count
     /// </summary>
     Task<int> GetCountAsync();
-    
+
     /// <summary>
     /// Search palettes by name
     /// </summary>
     Task<IEnumerable<ColorPaletteDto>> SearchAsync(string searchTerm, int limit = 50);
-    
+
     /// <summary>
     /// Create a user-defined custom palette
     /// </summary>
     Task<ColorPaletteDto> CreateCustomPaletteAsync(CreateCustomPaletteRequest request, int userId);
-    
+
     /// <summary>
     /// Delete a user-defined custom palette
     /// </summary>
     Task<bool> DeleteCustomPaletteAsync(int paletteId, int userId);
-    
+
     /// <summary>
     /// Get user-defined palettes
     /// </summary>

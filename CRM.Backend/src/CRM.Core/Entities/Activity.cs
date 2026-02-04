@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities;
 
@@ -15,7 +31,7 @@ public enum ActivityType
     MeetingCompleted = 5,
     ChatMessage = 6,
     SMSSent = 7,
-    
+
     // CRM Actions
     CustomerCreated = 10,
     CustomerUpdated = 11,
@@ -24,34 +40,34 @@ public enum ActivityType
     OpportunityWon = 14,
     OpportunityLost = 15,
     OpportunityStageChanged = 16,
-    
+
     // Documents
     QuoteCreated = 20,
     QuoteSent = 21,
     QuoteAccepted = 22,
     QuoteRejected = 23,
-    
+
     // Tasks
     TaskCreated = 30,
     TaskCompleted = 31,
     TaskOverdue = 32,
-    
+
     // Notes
     NoteAdded = 40,
     NoteUpdated = 41,
-    
+
     // Campaigns
     CampaignLaunched = 50,
     CampaignCompleted = 51,
     LeadCaptured = 52,
-    
+
     // System
     OwnerChanged = 60,
     TagsChanged = 61,
     StatusChanged = 62,
     FileUploaded = 63,
     FileDeleted = 64,
-    
+
     // Custom
     Other = 99
 }
@@ -66,26 +82,26 @@ public class Activity : BaseEntity
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? Details { get; set; } // JSON for additional details
-    
+
     // Timing
     public DateTime ActivityDate { get; set; } = DateTime.UtcNow;
     public int? DurationMinutes { get; set; }
-    
+
     // Actor
     public int? UserId { get; set; }
     public string? UserName { get; set; } // Denormalized for display
     public string? UserEmail { get; set; }
-    
+
     // Related Entity (polymorphic)
     public string? EntityType { get; set; } // Customer, Opportunity, Contact, etc.
     public int? EntityId { get; set; }
     public string? EntityName { get; set; } // Denormalized for display
-    
+
     // Secondary Related Entity
     public string? SecondaryEntityType { get; set; }
     public int? SecondaryEntityId { get; set; }
     public string? SecondaryEntityName { get; set; }
-    
+
     // Specific Relationships (for querying)
     [Column("CustomerId")]
     public int? AccountId { get; set; }
@@ -97,26 +113,26 @@ public class Activity : BaseEntity
     public int? QuoteId { get; set; }
     public int? InteractionId { get; set; }
     public int? NoteId { get; set; }
-    
+
     // Changes (for update activities)
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
     public string? FieldsChanged { get; set; } // JSON array of changed field names
-    
+
     // Visibility
     public bool IsSystem { get; set; } = false; // System-generated vs user action
     public bool IsPrivate { get; set; } = false;
     public bool IsImportant { get; set; } = false;
-    
+
     // Classification
     public string? Tags { get; set; }
     public string? Category { get; set; }
-    
+
     // Metadata
     public string? IpAddress { get; set; }
     public string? UserAgent { get; set; }
     public string? Source { get; set; } // API, Web, Mobile, Import, etc.
-    
+
     // Custom Fields
     public string? CustomFields { get; set; }
 

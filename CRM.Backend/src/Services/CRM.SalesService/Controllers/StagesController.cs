@@ -42,7 +42,7 @@ public class StagesController : ControllerBase
                     Probability = GetStageProbability(stage),
                     Color = GetStageColor(stage),
                     Order = (int)stage,
-                    IsClosedStage = stage == OpportunityStage.ClosedWon || 
+                    IsClosedStage = stage == OpportunityStage.ClosedWon ||
                                     stage == OpportunityStage.ClosedLost
                 })
                 .OrderBy(s => s.Order)
@@ -80,7 +80,7 @@ public class StagesController : ControllerBase
                 Probability = GetStageProbability(stage),
                 Color = GetStageColor(stage),
                 Order = id,
-                IsClosedStage = stage == OpportunityStage.ClosedWon || 
+                IsClosedStage = stage == OpportunityStage.ClosedWon ||
                                 stage == OpportunityStage.ClosedLost
             });
         }
@@ -99,9 +99,9 @@ public class StagesController : ControllerBase
     {
         try
         {
-            var closedStages = new[] 
-            { 
-                OpportunityStage.ClosedWon, 
+            var closedStages = new[]
+            {
+                OpportunityStage.ClosedWon,
                 OpportunityStage.ClosedLost
             };
 

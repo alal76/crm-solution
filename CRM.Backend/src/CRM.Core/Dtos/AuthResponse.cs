@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 namespace CRM.Core.Dtos;
 
 /// <summary>
@@ -25,73 +41,73 @@ public class AuthResponse
     public List<string> AccessiblePages { get; set; } = new();
     public UserPermissions Permissions { get; set; } = new();
     public GroupPermissionsDto? GroupPermissions { get; set; }
-    
+
     /// <summary>
     /// Custom header color for this user (hex format)
     /// </summary>
     public string? HeaderColor { get; set; }
-    
+
     /// <summary>
     /// URL to user's profile photo
     /// </summary>
     public string? PhotoUrl { get; set; }
-    
+
     /// <summary>
     /// User's preferred theme: system, light, dark, or high-contrast
     /// Defaults to "system" to inherit from OS
     /// </summary>
     public string ThemePreference { get; set; } = "system";
-    
+
     /// <summary>
     /// Whether 2FA verification is required to complete login
     /// </summary>
     public bool RequiresTwoFactor { get; set; } = false;
-    
+
     /// <summary>
     /// Whether 2FA is enabled for this user (for profile display)
     /// </summary>
     public bool TwoFactorEnabled { get; set; } = false;
-    
+
     /// <summary>
     /// Temporary token for 2FA verification (only set when RequiresTwoFactor is true)
     /// </summary>
     public string? TwoFactorToken { get; set; }
-    
+
     /// <summary>
     /// Whether the user needs to set up a password (first-time login with no password set)
     /// </summary>
     public bool RequiresPasswordSetup { get; set; } = false;
-    
+
     /// <summary>
     /// Whether the user's password has expired
     /// </summary>
     public bool PasswordExpired { get; set; } = false;
-    
+
     /// <summary>
     /// Whether the user is in the password expiration warning period
     /// </summary>
     public bool PasswordExpirationWarning { get; set; } = false;
-    
+
     /// <summary>
     /// Number of days until password expires (only set when PasswordExpirationWarning is true)
     /// </summary>
     public int? DaysUntilPasswordExpiration { get; set; }
-    
+
     /// <summary>
     /// Whether the user must change password on this login (e.g., admin forced reset)
     /// </summary>
     public bool MustChangePassword { get; set; } = false;
-    
+
     /// <summary>
     /// Temporary token for password setup/change (only set when RequiresPasswordSetup or PasswordExpired is true)
     /// </summary>
     public string? PasswordSetupToken { get; set; }
-    
+
     /// <summary>
     /// Whether the registration requires admin approval
     /// </summary>
     public bool RequiresApproval { get; set; } = false;
-    
+
     /// <summary>
     /// General message for the response (e.g., pending approval message)
     /// </summary>
@@ -126,7 +142,7 @@ public class UserPermissions
 public class GroupPermissionsDto
 {
     public bool IsSystemAdmin { get; set; }
-    
+
     // Menu Access
     public bool CanAccessDashboard { get; set; } = true;
     public bool CanAccessCustomers { get; set; }
@@ -142,55 +158,56 @@ public class GroupPermissionsDto
     public bool CanAccessNotes { get; set; }
     public bool CanAccessWorkflows { get; set; }
     public bool CanAccessServiceRequests { get; set; }
+    public bool CanAccessITSM { get; set; }
     public bool CanAccessReports { get; set; }
     public bool CanAccessSettings { get; set; }
     public bool CanAccessUserManagement { get; set; }
-    
+
     // CRUD Permissions
     public bool CanCreateCustomers { get; set; }
     public bool CanEditCustomers { get; set; }
     public bool CanDeleteCustomers { get; set; }
     public bool CanViewAllCustomers { get; set; }
-    
+
     public bool CanCreateContacts { get; set; }
     public bool CanEditContacts { get; set; }
     public bool CanDeleteContacts { get; set; }
-    
+
     public bool CanCreateLeads { get; set; }
     public bool CanEditLeads { get; set; }
     public bool CanDeleteLeads { get; set; }
     public bool CanConvertLeads { get; set; }
-    
+
     public bool CanCreateOpportunities { get; set; }
     public bool CanEditOpportunities { get; set; }
     public bool CanDeleteOpportunities { get; set; }
     public bool CanCloseOpportunities { get; set; }
-    
+
     public bool CanCreateProducts { get; set; }
     public bool CanEditProducts { get; set; }
     public bool CanDeleteProducts { get; set; }
     public bool CanManagePricing { get; set; }
-    
+
     public bool CanCreateCampaigns { get; set; }
     public bool CanEditCampaigns { get; set; }
     public bool CanDeleteCampaigns { get; set; }
     public bool CanLaunchCampaigns { get; set; }
-    
+
     public bool CanCreateQuotes { get; set; }
     public bool CanEditQuotes { get; set; }
     public bool CanDeleteQuotes { get; set; }
     public bool CanApproveQuotes { get; set; }
-    
+
     public bool CanCreateTasks { get; set; }
     public bool CanEditTasks { get; set; }
     public bool CanDeleteTasks { get; set; }
     public bool CanAssignTasks { get; set; }
-    
+
     public bool CanCreateWorkflows { get; set; }
     public bool CanEditWorkflows { get; set; }
     public bool CanDeleteWorkflows { get; set; }
     public bool CanActivateWorkflows { get; set; }
-    
+
     // Data Access
     public string DataAccessScope { get; set; } = "own";
     public bool CanExportData { get; set; }

@@ -1,0 +1,1389 @@
+Comprehensive Prompt for Coding LLM: Build a Complete CRM System
+Project Overview
+Build a complete, production-ready Customer Relationship Management (CRM) system that implements the full marketing-to-sales lifecycle, similar to Salesforce, HubSpot, or Microsoft Dynamics 365. The system should handle lead capture, marketing automation, sales pipeline management, and customer relationship tracking.
+
+Technical Stack Requirements
+Backend
+* Framework: Node.js with Express.js OR Python with Django/Flask OR Ruby on Rails
+* Database: PostgreSQL (preferred) or MySQL
+* ORM: Sequelize (Node.js), SQLAlchemy (Python), or ActiveRecord (Rails)
+* API: RESTful API architecture with comprehensive endpoints
+* Authentication: JWT-based authentication with role-based access control (RBAC)
+* Email Service: Integration with SendGrid, AWS SES, or similar
+* Job Queue: Bull (Node.js) or Celery (Python) for background jobs
+* Cache: Redis for caching and session management
+Frontend
+* Framework: React with TypeScript OR Vue.js 3 OR Next.js
+* State Management: Redux Toolkit, Zustand, or Pinia (Vue)
+* UI Components: Material-UI, Ant Design, or Tailwind CSS with Headless UI
+* Forms: React Hook Form or Formik with Yup validation
+* Charts: Chart.js, Recharts, or D3.js for analytics dashboards
+* Drag-and-Drop: React DnD or Vue Draggable for Kanban pipeline views
+* Rich Text Editor: TipTap or Quill for email templates and notes
+Additional Services
+* File Storage: AWS S3, Google Cloud Storage, or local storage with multer
+* Real-time Updates: Socket.io or WebSockets for live notifications
+* Search: Elasticsearch (optional but recommended for large datasets)
+* Testing: Jest, Mocha, or Pytest with comprehensive test coverage
+
+Database Schema
+Implement the following database tables with proper relationships, indexes, and constraints:
+1. Users Table
+users
+  - id (UUID, primary key)
+  - email (string, unique, required, indexed)
+  - password_hash (string, required)
+  - first_name (string, required)
+  - last_name (string, required)
+  - role (enum: 'admin', 'sales_manager', 'sales_rep', 'marketing', 'support')
+  - is_active (boolean, default true)
+  - phone (string)
+  - avatar_url (string)
+  - timezone (string, default 'UTC')
+  - created_at (timestamp)
+  - updated_at (timestamp)
+  - last_login_at (timestamp)
+2. Leads Table
+leads
+  - id (UUID, primary key)
+  - first_name (string, required)
+  - last_name (string, required)
+  - email (string, required, indexed)
+  - phone (string)
+  - mobile (string)
+  - company (string, required)
+  - title (string)
+  - website (string)
+  - street (string)
+  - city (string)
+  - state (string)
+  - postal_code (string)
+  - country (string)
+  - lead_source (enum: 'web', 'referral', 'trade_show', 'cold_call', 'partner', 'other')
+  - lead_status (enum: 'new', 'contacted', 'qualified', 'unqualified', 'converted')
+  - rating (enum: 'hot', 'warm', 'cold')
+  - lead_score (integer, default 0, range 0-100)
+  - industry (string)
+  - employee_count (string)
+  - annual_revenue (decimal)
+  - owner_id (UUID, foreign key to users.id, indexed)
+  - is_converted (boolean, default false)
+  - converted_at (timestamp)
+  - converted_account_id (UUID, foreign key to accounts.id)
+  - converted_contact_id (UUID, foreign key to contacts.id)
+  - converted_opportunity_id (UUID, foreign key to opportunities.id)
+  - description (text)
+  - created_at (timestamp, indexed)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+  - last_activity_at (timestamp, indexed)
+3. Accounts Table
+accounts
+  - id (UUID, primary key)
+  - account_name (string, required, indexed)
+  - account_number (string, unique, auto-generated)
+  - parent_account_id (UUID, foreign key to accounts.id, nullable, indexed)
+  - type (enum: 'prospect', 'customer', 'partner', 'former_customer', 'competitor')
+  - industry (string, indexed)
+  - website (string)
+  - phone (string)
+  - fax (string)
+  - billing_street (string)
+  - billing_city (string)
+  - billing_state (string)
+  - billing_postal_code (string)
+  - billing_country (string)
+  - shipping_street (string)
+  - shipping_city (string)
+  - shipping_state (string)
+  - shipping_postal_code (string)
+  - shipping_country (string)
+  - annual_revenue (decimal)
+  - employee_count (integer)
+  - owner_id (UUID, foreign key to users.id, indexed)
+  - customer_priority (enum: 'high', 'medium', 'low')
+  - sla (enum: 'gold', 'silver', 'bronze', 'none')
+  - description (text)
+  - created_at (timestamp, indexed)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+4. Contacts Table
+contacts
+  - id (UUID, primary key)
+  - account_id (UUID, foreign key to accounts.id, required, indexed)
+  - first_name (string, required)
+  - last_name (string, required)
+  - email (string, required, indexed)
+  - phone (string)
+  - mobile (string)
+  - fax (string)
+  - title (string)
+  - department (string)
+  - reports_to_id (UUID, foreign key to contacts.id, nullable)
+  - assistant_name (string)
+  - assistant_phone (string)
+  - mailing_street (string)
+  - mailing_city (string)
+  - mailing_state (string)
+  - mailing_postal_code (string)
+  - mailing_country (string)
+  - birthdate (date)
+  - lead_source (string)
+  - do_not_call (boolean, default false)
+  - has_opted_out_email (boolean, default false)
+  - owner_id (UUID, foreign key to users.id, indexed)
+  - description (text)
+  - created_at (timestamp, indexed)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+  - last_activity_at (timestamp, indexed)
+5. Opportunities Table
+opportunities
+  - id (UUID, primary key)
+  - opportunity_name (string, required, indexed)
+  - account_id (UUID, foreign key to accounts.id, required, indexed)
+  - amount (decimal, required)
+  - close_date (date, required, indexed)
+  - stage (enum: 'prospecting', 'qualification', 'needs_analysis', 'proposal', 'negotiation', 'closed_won', 'closed_lost', required)
+  - probability (integer, default based on stage, range 0-100)
+  - type (enum: 'new_business', 'existing_upgrade', 'existing_renewal', 'existing_downgrade')
+  - lead_source (string)
+  - next_step (string)
+  - owner_id (UUID, foreign key to users.id, indexed)
+  - forecast_category (enum: 'pipeline', 'best_case', 'commit', 'omitted', 'closed')
+  - is_closed (boolean, auto-calculated)
+  - is_won (boolean, auto-calculated)
+  - loss_reason (string, for closed_lost)
+  - competitor (string)
+  - description (text)
+  - created_at (timestamp, indexed)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+  - last_activity_at (timestamp)
+6. Products Table
+products
+  - id (UUID, primary key)
+  - product_name (string, required, indexed)
+  - product_code (string, unique, indexed)
+  - product_family (string, indexed)
+  - description (text)
+  - is_active (boolean, default true)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+7. Price_Books Table
+price_books
+  - id (UUID, primary key)
+  - name (string, required)
+  - is_active (boolean, default true)
+  - is_standard (boolean, default false, unique where true)
+  - description (string)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+8. Price_Book_Entries Table
+price_book_entries
+  - id (UUID, primary key)
+  - price_book_id (UUID, foreign key to price_books.id, indexed)
+  - product_id (UUID, foreign key to products.id, indexed)
+  - unit_price (decimal, required)
+  - is_active (boolean, default true)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+  - UNIQUE constraint on (price_book_id, product_id)
+9. Opportunity_Line_Items Table
+opportunity_line_items
+  - id (UUID, primary key)
+  - opportunity_id (UUID, foreign key to opportunities.id, required, indexed)
+  - price_book_entry_id (UUID, foreign key to price_book_entries.id, required)
+  - product_id (UUID, foreign key to products.id, required)
+  - quantity (decimal, default 1, required)
+  - unit_price (decimal, required)
+  - discount (decimal, default 0)
+  - total_price (decimal, auto-calculated: quantity * unit_price * (1 - discount/100))
+  - description (string)
+  - service_date (date)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+10. Tasks Table
+tasks
+  - id (UUID, primary key)
+  - subject (string, required)
+  - status (enum: 'not_started', 'in_progress', 'completed', 'deferred', 'waiting', default 'not_started')
+  - priority (enum: 'high', 'normal', 'low', default 'normal')
+  - due_date (date, indexed)
+  - assigned_to_id (UUID, foreign key to users.id, required, indexed)
+  - related_to_type (string, e.g., 'account', 'opportunity', 'lead')
+  - related_to_id (UUID, polymorphic, indexed)
+  - contact_id (UUID, foreign key to contacts.id, nullable)
+  - lead_id (UUID, foreign key to leads.id, nullable)
+  - description (text)
+  - task_type (enum: 'call', 'email', 'follow_up', 'demo', 'proposal', 'other')
+  - reminder_datetime (timestamp)
+  - created_at (timestamp, indexed)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+  - completed_at (timestamp)
+11. Events Table
+events
+  - id (UUID, primary key)
+  - subject (string, required)
+  - start_datetime (timestamp, required, indexed)
+  - end_datetime (timestamp, required)
+  - duration (integer, auto-calculated in minutes)
+  - location (string)
+  - is_all_day (boolean, default false)
+  - assigned_to_id (UUID, foreign key to users.id, required, indexed)
+  - related_to_type (string)
+  - related_to_id (UUID, polymorphic, indexed)
+  - contact_id (UUID, foreign key to contacts.id, nullable)
+  - lead_id (UUID, foreign key to leads.id, nullable)
+  - description (text)
+  - event_type (enum: 'call', 'meeting', 'demo', 'conference', 'training', 'other')
+  - show_as (enum: 'busy', 'free', 'out_of_office')
+  - created_at (timestamp)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+12. Event_Attendees Table
+event_attendees
+  - id (UUID, primary key)
+  - event_id (UUID, foreign key to events.id, indexed)
+  - attendee_type (string: 'user', 'contact', 'lead')
+  - attendee_id (UUID, polymorphic)
+  - response_status (enum: 'accepted', 'declined', 'tentative', 'not_responded')
+  - UNIQUE constraint on (event_id, attendee_type, attendee_id)
+13. Campaigns Table
+campaigns
+  - id (UUID, primary key)
+  - campaign_name (string, required, indexed)
+  - campaign_type (enum: 'email', 'webinar', 'conference', 'trade_show', 'direct_mail', 'advertisement', 'content', 'social_media', 'referral', 'other')
+  - status (enum: 'planned', 'in_progress', 'completed', 'aborted')
+  - start_date (date, indexed)
+  - end_date (date, indexed)
+  - parent_campaign_id (UUID, foreign key to campaigns.id, nullable)
+  - expected_revenue (decimal)
+  - budgeted_cost (decimal)
+  - actual_cost (decimal)
+  - expected_response_percent (decimal)
+  - num_sent (integer, default 0)
+  - owner_id (UUID, foreign key to users.id, indexed)
+  - description (text)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+14. Campaign_Members Table
+campaign_members
+  - id (UUID, primary key)
+  - campaign_id (UUID, foreign key to campaigns.id, required, indexed)
+  - lead_id (UUID, foreign key to leads.id, nullable)
+  - contact_id (UUID, foreign key to contacts.id, nullable)
+  - status (string, default 'sent')
+  - first_responded_date (date)
+  - created_at (timestamp, indexed)
+  - updated_at (timestamp)
+  - UNIQUE constraint on (campaign_id, lead_id) where lead_id is not null
+  - UNIQUE constraint on (campaign_id, contact_id) where contact_id is not null
+  - CHECK: lead_id or contact_id must be populated (not both null)
+15. Email_Templates Table
+email_templates
+  - id (UUID, primary key)
+  - template_name (string, required, unique, indexed)
+  - subject (string, required)
+  - body_html (text, required)
+  - body_plain (text)
+  - template_type (enum: 'marketing', 'sales', 'support', 'system')
+  - is_active (boolean, default true)
+  - owner_id (UUID, foreign key to users.id)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+16. Email_Messages Table
+email_messages
+  - id (UUID, primary key)
+  - from_address (string, required)
+  - to_addresses (jsonb, required, array of emails)
+  - cc_addresses (jsonb, array of emails)
+  - bcc_addresses (jsonb, array of emails)
+  - subject (string, required)
+  - body_html (text)
+  - body_plain (text, required)
+  - related_to_type (string)
+  - related_to_id (UUID, polymorphic, indexed)
+  - lead_id (UUID, foreign key to leads.id, nullable)
+  - contact_id (UUID, foreign key to contacts.id, nullable)
+  - sent_at (timestamp, indexed)
+  - opened_at (timestamp)
+  - clicked_at (timestamp)
+  - bounced_at (timestamp)
+  - status (enum: 'draft', 'queued', 'sent', 'opened', 'clicked', 'bounced', 'failed')
+  - template_id (UUID, foreign key to email_templates.id, nullable)
+  - campaign_id (UUID, foreign key to campaigns.id, nullable)
+  - tracking_id (UUID, unique, for tracking opens/clicks)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id, indexed)
+17. Notes Table
+notes
+  - id (UUID, primary key)
+  - title (string)
+  - body (text, required)
+  - related_to_type (string, required)
+  - related_to_id (UUID, required, polymorphic, indexed)
+  - is_private (boolean, default false)
+  - created_at (timestamp, indexed)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id, indexed)
+18. Attachments Table
+attachments
+  - id (UUID, primary key)
+  - file_name (string, required)
+  - file_type (string, mime type)
+  - file_size (integer, bytes)
+  - file_url (string, S3 URL or local path)
+  - related_to_type (string, required)
+  - related_to_id (UUID, required, polymorphic, indexed)
+  - created_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+19. Workflow_Rules Table
+workflow_rules
+  - id (UUID, primary key)
+  - rule_name (string, required, unique)
+  - object_type (enum: 'lead', 'account', 'contact', 'opportunity', 'task')
+  - trigger_type (enum: 'created', 'updated', 'created_or_updated')
+  - criteria (jsonb, stored conditions for when to trigger)
+  - is_active (boolean, default true)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+20. Workflow_Actions Table
+workflow_actions
+  - id (UUID, primary key)
+  - workflow_rule_id (UUID, foreign key to workflow_rules.id, indexed)
+  - action_type (enum: 'email_alert', 'field_update', 'task_creation', 'webhook')
+  - action_config (jsonb, configuration for the action)
+  - execution_order (integer, for multiple actions on same rule)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+21. Dashboards Table
+dashboards
+  - id (UUID, primary key)
+  - dashboard_name (string, required)
+  - description (text)
+  - owner_id (UUID, foreign key to users.id, indexed)
+  - is_public (boolean, default false)
+  - layout_config (jsonb, stores widget positions and sizes)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+22. Dashboard_Widgets Table
+dashboard_widgets
+  - id (UUID, primary key)
+  - dashboard_id (UUID, foreign key to dashboards.id, indexed)
+  - widget_type (enum: 'chart', 'metric', 'table', 'funnel')
+  - widget_config (jsonb, chart type, data source, filters)
+  - position_x (integer)
+  - position_y (integer)
+  - width (integer)
+  - height (integer)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+23. Reports Table
+reports
+  - id (UUID, primary key)
+  - report_name (string, required)
+  - report_type (enum: 'tabular', 'summary', 'matrix')
+  - object_type (string, main object for report)
+  - columns (jsonb, array of fields to display)
+  - filters (jsonb, filter conditions)
+  - grouping (jsonb, grouping configuration)
+  - sorting (jsonb, sort configuration)
+  - owner_id (UUID, foreign key to users.id)
+  - is_public (boolean, default false)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+24. Lead_Score_Rules Table
+lead_score_rules
+  - id (UUID, primary key)
+  - rule_name (string, required)
+  - rule_type (enum: 'demographic', 'behavioral', 'negative', 'decay')
+  - criteria (jsonb, conditions for when to apply)
+  - points (integer, can be positive or negative)
+  - is_active (boolean, default true)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+25. Web_Forms Table
+web_forms
+  - id (UUID, primary key)
+  - form_name (string, required)
+  - form_fields (jsonb, array of field configurations)
+  - submit_url (string, webhook URL)
+  - redirect_url (string, thank you page URL)
+  - is_active (boolean, default true)
+  - embed_code (text, auto-generated)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+  - created_by_id (UUID, foreign key to users.id)
+26. Audit_Logs Table
+audit_logs
+  - id (UUID, primary key)
+  - user_id (UUID, foreign key to users.id, indexed)
+  - action (string, 'create', 'update', 'delete', 'view')
+  - object_type (string, indexed)
+  - object_id (UUID, indexed)
+  - changes (jsonb, before/after values for updates)
+  - ip_address (string)
+  - user_agent (string)
+  - created_at (timestamp, indexed)
+
+Core Features to Implement
+1. Lead Management
+Lead Capture:
+* Web-to-Lead forms (embeddable forms with JavaScript)
+* Manual lead entry with duplicate detection
+* CSV/Excel bulk import with field mapping
+* API endpoint for third-party integrations
+* Automatic lead assignment based on rules (round-robin, territory, scoring)
+Lead Scoring:
+* Demographic scoring (job title, company size, industry, revenue)
+* Behavioral scoring (email opens, clicks, website visits, downloads)
+* Negative scoring (personal emails, competitors, unqualified titles)
+* Score decay for inactive leads
+* Automatic re-scoring when data changes
+* Grade calculation (A, B, C, D based on score ranges)
+Lead Assignment:
+* Round-robin distribution
+* Territory-based (geography, industry, company size)
+* Score-based (high-score leads to senior reps)
+* Queue management
+* Automatic re-assignment for inactive leads
+Lead Conversion:
+* Convert lead to Account/Contact/Opportunity
+* Match existing accounts or create new
+* Transfer all activities and notes
+* Mark lead as converted (read-only)
+* Conversion reporting
+2. Marketing Automation
+Email Campaign System:
+* Drag-and-drop email builder with templates
+* Merge field support ({{first_name}}, {{company}}, etc.)
+* Dynamic content blocks based on recipient data
+* A/B testing (subject lines, content)
+* Schedule sends or send immediately
+* Timezone optimization
+Drip Campaigns:
+* Multi-step automated email sequences
+* Time-based triggers (wait 2 days, then send)
+* Behavior-based triggers (if opened, send A; else send B)
+* Exit criteria (e.g., if lead converts, exit campaign)
+* Visual campaign builder (flowchart interface)
+Landing Pages:
+* Landing page builder with templates
+* Form integration with progressive profiling
+* A/B testing capability
+* Thank you page redirect
+* Tracking pixel integration
+Campaign Analytics:
+* Open rate, click-through rate, conversion rate
+* Unsubscribe and bounce tracking
+* Campaign ROI calculation
+* Multi-touch attribution
+* Heat maps for link clicks
+Lead Nurturing Workflows:
+* Trigger workflows based on lead score, status, or activity
+* Automated task creation for sales follow-up
+* Email sequences based on behavior
+* Workflow analytics and optimization
+3. Opportunity Management
+Sales Pipeline:
+* Kanban board view by stage
+* Drag-and-drop to move opportunities
+* Filters (owner, date range, amount, product)
+* Weighted pipeline view (amount × probability)
+* Pipeline trend analysis
+Opportunity Detail Management:
+* Add/edit products and line items
+* Quote generation (PDF)
+* Discount management
+* Split commission tracking
+* Opportunity team collaboration
+Stage Management:
+* Customizable sales stages
+* Required fields per stage (e.g., proposal attached in proposal stage)
+* Probability auto-set by stage (overridable)
+* Stage duration tracking
+* Alerts for stalled deals
+Win/Loss Analysis:
+* Required loss reason for closed lost
+* Competitor tracking
+* Win/loss reporting
+* Pattern analysis (why we win/lose)
+4. Contact and Account Management
+360-Degree View:
+* Complete interaction history timeline
+* Related opportunities, cases, activities
+* Email thread history
+* Files and documents
+* Team member notes
+Account Hierarchy:
+* Parent-child relationships
+* Corporate structure visualization
+* Roll-up reporting (sum all child opportunities)
+* Hierarchical views
+Contact Relationships:
+* Org chart (reports to)
+* Multiple account associations
+* Contact roles on opportunities (decision maker, influencer, etc.)
+Activity Tracking:
+* Log calls, emails, meetings automatically
+* Sync with Gmail/Outlook
+* Calendar integration
+* Activity timeline view
+* Activity reminders
+5. Sales Forecasting
+Forecast Categories:
+* Pipeline, Best Case, Commit, Omitted, Closed
+* Manager override capability
+* Forecast hierarchy (rep → manager → VP → exec)
+Forecast Reporting:
+* Forecast vs. quota
+* Forecast vs. actual
+* Forecast accuracy trends
+* Pipeline coverage ratios
+* Weekly snapshot comparisons
+Quota Management:
+* Individual quotas by period
+* Team quota roll-ups
+* Quota attainment tracking
+* Pace indicators (on track, ahead, behind)
+6. Reporting and Dashboards
+Standard Reports:
+* Lead conversion rate
+* Pipeline by stage
+* Closed revenue (won and lost)
+* Sales activity (by rep)
+* Campaign performance
+* Lead source ROI
+Custom Report Builder:
+* Drag-and-drop field selection
+* Filter builder with AND/OR logic
+* Grouping and summarization
+* Formulas and calculated fields
+* Cross-object reporting
+* Export to CSV/Excel/PDF
+Dashboard Builder:
+* Drag-and-drop widget layout
+* Chart types: bar, line, pie, donut, funnel, gauge
+* Real-time data refresh
+* Filter controls
+* Drill-down capability
+* Share dashboards with teams
+Analytics:
+* Sales velocity (average time in each stage)
+* Win rate by product, rep, region
+* Average deal size trends
+* Lead response time
+* Email engagement metrics
+7. Workflow Automation
+Workflow Rules:
+* Trigger on create, update, or specific field change
+* Criteria builder (IF conditions)
+* Actions: email alert, field update, task creation, webhook
+* Time-based triggers (wait X days, then execute)
+Examples to Implement:
+* High-value deal alert (Amount > $100k → email VP)
+* Lead follow-up reminder (Lead created → wait 1 hour → create task)
+* Stale opportunity alert (Close date passed, stage not closed)
+* Lead nurture enrollment (Lead score > 70 → add to campaign)
+* Automatic lead assignment (New lead → assign to queue)
+Approval Processes:
+* Multi-step approvals
+* Parallel or sequential approval paths
+* Auto-approve rules (if discount < 10%)
+* Approval history tracking
+* Email notifications
+8. Email Integration
+Bi-Directional Sync:
+* Sync emails from Gmail/Outlook to CRM
+* Send emails from CRM interface
+* Automatic email logging to related records
+* Thread grouping
+Email Tracking:
+* Open tracking (when and how many times)
+* Click tracking (which links clicked)
+* Real-time notifications to sender
+* Email engagement scoring
+Templates:
+* Email template library
+* Merge fields with record data
+* Attach files/documents
+* Save as draft or send immediately
+* Schedule send for later
+9. Mobile App (Responsive Web or Native-like PWA)
+Mobile Features:
+* View and edit all records
+* Create new leads, contacts, tasks
+* Log calls and meetings
+* Check-in at customer locations (GPS)
+* Offline mode with sync
+* Push notifications
+Mobile-Optimized Views:
+* Touch-friendly interface
+* Swipe gestures
+* Quick actions (call, email, navigate)
+* Voice-to-text for notes
+* Camera for document scanning
+10. Integration and API
+RESTful API:
+* Full CRUD operations on all objects
+* Query endpoints with filtering, sorting, pagination
+* Bulk operations (create/update/delete multiple records)
+* Webhook subscriptions
+* Rate limiting (e.g., 10,000 calls/day per user)
+OAuth 2.0 Authentication:
+* API key generation
+* Refresh tokens
+* Scope-based permissions
+Webhooks:
+* Subscribe to record changes (created, updated, deleted)
+* Real-time notifications to external systems
+* Retry logic for failed deliveries
+* Webhook logs
+
+User Interface Requirements
+1. Navigation
+Top Navigation Bar:
+* Logo/home link
+* Global search (search across all objects)
+* Create menu (quick create lead, contact, task, etc.)
+* Notifications dropdown
+* User menu (profile, settings, logout)
+Object Tabs:
+* Leads, Accounts, Contacts, Opportunities, Campaigns, Reports, Dashboards
+* Active tab highlighted
+* Recent items dropdown per object
+Sidebar (Optional):
+* Quick links to saved views
+* Recent items
+* Favorites
+2. List Views
+Features:
+* Data table with sortable columns
+* Inline editing (click to edit)
+* Multi-select checkboxes for bulk actions
+* Filters and saved views
+* Pagination or infinite scroll
+* Export to CSV
+Bulk Actions:
+* Mass edit fields
+* Mass delete
+* Change owner
+* Add to campaign
+* Send mass email
+Filters:
+* Quick filters (My Leads, All Leads, etc.)
+* Advanced filter builder
+* Save custom views
+* Share views with team
+3. Record Detail Pages
+Layout:
+* Header with record name, status, owner
+* Quick action buttons (Edit, Delete, Clone, Convert)
+* Tab navigation (Details, Related, Activity, Notes)
+* Edit mode (inline editing or modal)
+Related Lists:
+* Show related records (e.g., Opportunities on Account page)
+* Inline create new related record
+* Sortable and filterable
+* Pagination
+Activity Timeline:
+* Chronological feed of all activities
+* Email threads, calls, meetings, notes
+* Filter by activity type
+* Infinite scroll
+4. Forms
+Create/Edit Forms:
+* Single-column layout for better UX
+* Left-aligned labels above fields
+* Required field indicators (red asterisk)
+* Field validation with helpful error messages
+* Inline help text (question mark icon with tooltip)
+* Save, Save & New, Cancel buttons
+Form Sections:
+* Collapsible sections to organize fields
+* Example: Lead Information, Address Information, Description
+* Visual separators between sections
+Field Types:
+* Text inputs (single line, multi-line, rich text)
+* Dropdowns (single select, multi-select)
+* Checkboxes and radio buttons
+* Date pickers
+* Lookup/autocomplete (select related records)
+* Currency and number inputs with proper formatting
+* File upload (drag-and-drop)
+5. Dashboard
+Layout:
+* Grid-based layout (12-column grid)
+* Drag-and-drop widget repositioning
+* Resize widgets
+* Add/remove widgets
+* Responsive (mobile-friendly)
+Widget Types:
+* Metric cards (single number with trend)
+* Charts (bar, line, pie, donut)
+* Tables (top 10 lists)
+* Funnels (conversion visualization)
+* Activity feeds
+Interactivity:
+* Click to drill down
+* Filter entire dashboard (date range, owner, etc.)
+* Refresh button
+* Export dashboard to PDF
+6. Kanban Board (Pipeline View)
+Features:
+* Columns for each sales stage
+* Cards showing opportunity key details (name, amount, close date)
+* Drag-and-drop between stages
+* Add new opportunity from any column
+* Click card to open detail view
+* Filters (owner, product, date range)
+* Sum of opportunity amounts per column
+Card Details:
+* Opportunity name
+* Account name
+* Amount (formatted currency)
+* Close date
+* Owner avatar/name
+* Visual indicators (overdue in red, high value with icon)
+7. Global Search
+Features:
+* Search bar always visible in top nav
+* Type-ahead suggestions as user types
+* Search across all objects (leads, accounts, contacts, etc.)
+* Recent searches
+* Advanced search option (filter by object, field)
+Results Page:
+* Group results by object type
+* Show top 5 of each type
+* View all results for a type
+* Highlight matching text
+8. Notifications
+Types:
+* Task reminders
+* Opportunity stage changes
+* High-value deal alerts
+* Email opened/clicked notifications
+* Workflow action notifications
+* Mentions in comments (@username)
+Display:
+* Notification icon with badge count
+* Dropdown list of recent notifications
+* Mark as read
+* Link to related record
+* Settings to configure notification preferences
+
+Key Technical Implementation Details
+1. Lead Scoring System
+Implementation:
+// Example: Calculate lead score whenever lead is created or updated
+async function calculateLeadScore(leadId) {
+  const lead = await Lead.findById(leadId);
+  const scoringRules = await LeadScoreRule.findAll({ where: { is_active: true } });
+  
+  let score = 0;
+  
+  for (const rule of scoringRules) {
+    if (evaluateCriteria(lead, rule.criteria)) {
+      score += rule.points;
+    }
+  }
+  
+  // Apply score decay (reduce score for inactive leads)
+  const daysSinceActivity = getDaysSince(lead.last_activity_at);
+  if (daysSinceActivity > 30) {
+    const weeksInactive = Math.floor(daysSinceActivity / 7);
+    score -= (weeksInactive * 5); // -5 points per week
+  }
+  
+  // Ensure score stays within 0-100
+  score = Math.max(0, Math.min(100, score));
+  
+  // Determine grade
+  let grade;
+  if (score >= 80) grade = 'A';
+  else if (score >= 60) grade = 'B';
+  else if (score >= 40) grade = 'C';
+  else grade = 'D';
+  
+  await lead.update({ lead_score: score, grade: grade });
+  
+  // Trigger workflow if score crosses threshold
+  if (score >= 70 && lead.lead_status === 'new') {
+    await assignToSalesRep(leadId);
+  }
+}
+2. Email Tracking
+Implementation:
+// Generate tracking pixel for email opens
+function generateTrackingPixel(emailId) {
+  const trackingId = generateUUID();
+  await EmailMessage.update(
+    { tracking_id: trackingId },
+    { where: { id: emailId } }
+  );
+  
+  return `<img src="${API_URL}/track/open/${trackingId}" width="1" height="1" alt="" />`;
+}
+
+// Track link clicks
+function wrapLinksWithTracking(htmlContent, trackingId) {
+  return htmlContent.replace(
+    /<a href="([^"]+)"/g,
+    `<a href="${API_URL}/track/click/${trackingId}?url=$1"`
+  );
+}
+
+// API endpoints
+app.get('/track/open/:trackingId', async (req, res) => {
+  const { trackingId } = req.params;
+  await EmailMessage.update(
+    { 
+      opened_at: new Date(),
+      status: 'opened'
+    },
+    { 
+      where: { 
+        tracking_id: trackingId,
+        opened_at: null // Only update first open
+      } 
+    }
+  );
+  
+  // Return 1x1 transparent pixel
+  res.sendFile('pixel.png');
+});
+
+app.get('/track/click/:trackingId', async (req, res) => {
+  const { trackingId } = req.params;
+  const { url } = req.query;
+  
+  await EmailMessage.update(
+    { 
+      clicked_at: new Date(),
+      status: 'clicked'
+    },
+    { where: { tracking_id: trackingId } }
+  );
+  
+  // Redirect to actual URL
+  res.redirect(url);
+});
+3. Workflow Automation Engine
+Implementation:
+// Trigger workflow on record change
+async function executeWorkflows(objectType, action, recordId, oldValues, newValues) {
+  const workflows = await WorkflowRule.findAll({
+    where: {
+      object_type: objectType,
+      is_active: true,
+      trigger_type: [action, 'created_or_updated']
+    },
+    include: [{ model: WorkflowAction, as: 'actions' }]
+  });
+  
+  for (const workflow of workflows) {
+    // Evaluate criteria
+    if (evaluateCriteria(newValues, workflow.criteria)) {
+      // Execute actions in order
+      const sortedActions = workflow.actions.sort((a, b) => 
+        a.execution_order - b.execution_order
+      );
+      
+      for (const action of sortedActions) {
+        await executeWorkflowAction(action, recordId, newValues);
+      }
+    }
+  }
+}
+
+async function executeWorkflowAction(action, recordId, recordData) {
+  switch (action.action_type) {
+    case 'email_alert':
+      await sendEmailAlert(action.action_config, recordData);
+      break;
+      
+    case 'field_update':
+      await updateRecordField(recordId, action.action_config);
+      break;
+      
+    case 'task_creation':
+      await createTask(action.action_config, recordId);
+      break;
+      
+    case 'webhook':
+      await triggerWebhook(action.action_config, recordData);
+      break;
+  }
+}
+4. Lead Assignment (Round Robin)
+Implementation:
+// Round-robin lead assignment
+async function assignLeadRoundRobin(leadId, queueName) {
+  const queue = await LeadQueue.findOne({ 
+    where: { name: queueName },
+    include: [{ model: User, as: 'members' }]
+  });
+  
+  // Get last assigned user
+  const lastAssignment = await Lead.findOne({
+    where: { queue_id: queue.id },
+    order: [['assigned_at', 'DESC']],
+    limit: 1
+  });
+  
+  // Get next user in queue
+  const lastIndex = lastAssignment 
+    ? queue.members.findIndex(u => u.id === lastAssignment.owner_id)
+    : -1;
+  
+  const nextIndex = (lastIndex + 1) % queue.members.length;
+  const nextUser = queue.members[nextIndex];
+  
+  // Assign lead
+  await Lead.update(
+    { 
+      owner_id: nextUser.id,
+      assigned_at: new Date()
+    },
+    { where: { id: leadId } }
+  );
+  
+  // Notify user
+  await sendNotification(nextUser.id, `New lead assigned: ${lead.name}`);
+}
+5. Duplicate Detection
+Implementation:
+// Check for duplicate leads before creating
+async function checkDuplicateLeads(email, company) {
+  const duplicates = await Lead.findAll({
+    where: {
+      [Op.or]: [
+        { email: email },
+        {
+          [Op.and]: [
+            { company: company },
+            { 
+              last_name: sequelize.where(
+                sequelize.fn('LOWER', sequelize.col('last_name')),
+                'LIKE',
+                `%${lastName.toLowerCase()}%`
+              )
+            }
+          ]
+        }
+      ]
+    }
+  });
+  
+  return duplicates.length > 0 ? duplicates : null;
+}
+
+// Merge duplicate records
+async function mergeDuplicates(winnerId, loserIds) {
+  const transaction = await sequelize.transaction();
+  
+  try {
+    // Update all related records to point to winner
+    await Activity.update(
+      { related_to_id: winnerId },
+      { 
+        where: { 
+          related_to_id: { [Op.in]: loserIds },
+          related_to_type: 'lead'
+        },
+        transaction
+      }
+    );
+    
+    await Note.update(
+      { related_to_id: winnerId },
+      { 
+        where: { 
+          related_to_id: { [Op.in]: loserIds },
+          related_to_type: 'lead'
+        },
+        transaction
+      }
+    );
+    
+    // Delete duplicate records
+    await Lead.destroy({
+      where: { id: { [Op.in]: loserIds } },
+      transaction
+    });
+    
+    await transaction.commit();
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+}
+6. Report Generation
+Implementation:
+// Dynamic report query builder
+async function generateReport(reportConfig) {
+  const { object_type, columns, filters, grouping, sorting } = reportConfig;
+  
+  // Build query
+  let query = {
+    attributes: columns,
+    where: buildWhereClause(filters),
+    order: buildOrderClause(sorting)
+  };
+  
+  // Add grouping if specified
+  if (grouping) {
+    query.group = grouping.fields;
+    query.attributes = [
+      ...grouping.fields,
+      ...buildAggregations(grouping.aggregations)
+    ];
+  }
+  
+  // Execute query
+  const Model = getModel(object_type);
+  const results = await Model.findAll(query);
+  
+  // Format results
+  return formatReportResults(results, reportConfig);
+}
+
+function buildWhereClause(filters) {
+  const where = {};
+  
+  for (const filter of filters) {
+    const { field, operator, value } = filter;
+    
+    switch (operator) {
+      case 'equals':
+        where[field] = value;
+        break;
+      case 'not_equals':
+        where[field] = { [Op.ne]: value };
+        break;
+      case 'greater_than':
+        where[field] = { [Op.gt]: value };
+        break;
+      case 'less_than':
+        where[field] = { [Op.lt]: value };
+        break;
+      case 'contains':
+        where[field] = { [Op.like]: `%${value}%` };
+        break;
+      case 'starts_with':
+        where[field] = { [Op.like]: `${value}%` };
+        break;
+      case 'in':
+        where[field] = { [Op.in]: value };
+        break;
+    }
+  }
+  
+  return where;
+}
+7. Calendar Sync (Google Calendar/Outlook)
+Implementation:
+// Sync CRM events to Google Calendar
+async function syncToGoogleCalendar(userId) {
+  const user = await User.findById(userId);
+  const oauth2Client = getGoogleOAuth2Client(user.google_refresh_token);
+  
+  const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+  
+  // Get events created/updated since last sync
+  const events = await Event.findAll({
+    where: {
+      assigned_to_id: userId,
+      updated_at: { [Op.gte]: user.last_calendar_sync }
+    }
+  });
+  
+  for (const event of events) {
+    const googleEvent = {
+      summary: event.subject,
+      description: event.description,
+      start: { dateTime: event.start_datetime },
+      end: { dateTime: event.end_datetime },
+      location: event.location
+    };
+    
+    if (event.google_calendar_id) {
+      // Update existing
+      await calendar.events.update({
+        calendarId: 'primary',
+        eventId: event.google_calendar_id,
+        resource: googleEvent
+      });
+    } else {
+      // Create new
+      const response = await calendar.events.insert({
+        calendarId: 'primary',
+        resource: googleEvent
+      });
+      
+      await event.update({ google_calendar_id: response.data.id });
+    }
+  }
+  
+  await user.update({ last_calendar_sync: new Date() });
+}
+8. Data Export
+Implementation:
+// Export list view to CSV
+async function exportToCSV(objectType, filters, columns) {
+  const Model = getModel(objectType);
+  
+  const records = await Model.findAll({
+    attributes: columns,
+    where: buildWhereClause(filters),
+    raw: true
+  });
+  
+  // Convert to CSV
+  const json2csv = require('json2csv').parse;
+  const csv = json2csv(records, { fields: columns });
+  
+  return csv;
+}
+
+// Export to Excel
+async function exportToExcel(objectType, filters, columns) {
+  const XLSX = require('xlsx');
+  
+  const records = await getRecords(objectType, filters, columns);
+  
+  const worksheet = XLSX.utils.json_to_sheet(records);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, objectType);
+  
+  return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+}
+
+Security Requirements
+1. Authentication and Authorization
+User Authentication:
+* Email/password with bcrypt hashing (min 10 salt rounds)
+* JWT tokens with 1-hour expiration
+* Refresh tokens with 30-day expiration
+* Two-factor authentication (TOTP) option
+* Password reset via email
+* Account lockout after 5 failed login attempts
+Role-Based Access Control (RBAC):
+Roles:
+- Admin: Full access to all data and settings
+- Sales Manager: Access to team's data, can reassign records
+- Sales Rep: Access to own data and accounts they own
+- Marketing: Access to leads, campaigns, can create contacts
+- Support: Read-only access to accounts/contacts, can create cases
+
+Permissions per object:
+- Create, Read, Update, Delete
+- View All (see all records regardless of ownership)
+- Modify All (edit all records)
+- Transfer (change ownership)
+Object-Level Security:
+* Users can only see records they own by default
+* Sharing rules to grant additional access
+* Team sharing (manager sees team's records)
+* Manual sharing (share specific record with user)
+Field-Level Security:
+* Hide sensitive fields from certain roles
+* Read-only fields (e.g., created_at, system fields)
+* Required fields based on user profile
+2. Data Protection
+Encryption:
+* HTTPS/TLS for all communications
+* Database encryption at rest
+* Encrypted file storage
+* Encrypt sensitive fields (SSN, credit cards) with AES-256
+Data Privacy:
+* GDPR compliance (right to be forgotten, data export)
+* Email unsubscribe handling
+* Data retention policies
+* Audit logs for data access and changes
+API Security:
+* Rate limiting (per user, per IP)
+* API key rotation
+* IP whitelisting option
+* CORS configuration
+3. Audit Trail
+Track All Changes:
+* Who created/updated/deleted each record
+* Before and after values for updates
+* Login history
+* Failed login attempts
+* API calls
+* Report runs
+* Export activities
+
+Performance Optimization
+1. Database Optimization
+Indexing:
+* Index foreign keys
+* Index commonly queried fields (email, status, owner_id, created_at)
+* Compound indexes for common filter combinations
+* Full-text indexes for search fields
+Query Optimization:
+* Use database-level pagination (LIMIT/OFFSET)
+* Eager loading to avoid N+1 queries
+* Connection pooling
+* Query result caching (Redis)
+2. Caching Strategy
+Redis Caching:
+* Cache frequently accessed records (30-minute TTL)
+* Cache user sessions
+* Cache report results (5-minute TTL)
+* Cache dropdown values (picklists)
+* Invalidate cache on record updates
+3. Background Jobs
+Job Queue:
+* Email sending (process asynchronously)
+* Lead scoring calculations
+* Report generation for large datasets
+* Data imports/exports
+* Workflow executions
+* Scheduled reminders
+4. Frontend Optimization
+Performance:
+* Code splitting and lazy loading
+* Image optimization and lazy loading
+* Debounce search inputs (300ms delay)
+* Virtual scrolling for long lists (react-window)
+* Memoization for expensive calculations
+* Service worker for offline capability (PWA)
+
+Testing Requirements
+1. Unit Tests
+Coverage:
+* All business logic functions (scoring, assignment, etc.)
+* API endpoints (request/response validation)
+* Database models (validation, relationships)
+* Target: 80%+ code coverage
+Example Tests:
+describe('Lead Scoring', () => {
+  it('should calculate score based on demographic rules', async () => {
+    const lead = await createTestLead({ title: 'CEO', company_size: '1000+' });
+    const score = await calculateLeadScore(lead.id);
+    expect(score).toBeGreaterThan(50);
+  });
+  
+  it('should apply negative scoring for personal emails', async () => {
+    const lead = await createTestLead({ email: 'test@gmail.com' });
+    const score = await calculateLeadScore(lead.id);
+    expect(score).toBeLessThan(50);
+  });
+});
+2. Integration Tests
+Test:
+* API endpoints with authentication
+* Database transactions
+* Email sending
+* File uploads
+* Webhook deliveries
+* Calendar sync
+3. End-to-End Tests
+User Flows:
+* Complete lead-to-opportunity conversion flow
+* Email campaign creation and sending
+* Pipeline drag-and-drop
+* Report creation and export
+* Use Cypress or Playwright
+
+Deployment
+1. Environment Setup
+Environments:
+* Development (local)
+* Staging (pre-production testing)
+* Production
+Environment Variables:
+DATABASE_URL
+REDIS_URL
+JWT_SECRET
+SENDGRID_API_KEY
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+S3_BUCKET_NAME
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+2. CI/CD Pipeline
+Automated:
+* Run tests on every commit
+* Build and deploy to staging on merge to develop
+* Deploy to production on merge to main (with approval)
+* Database migrations
+* Asset compilation
+3. Monitoring
+Implement:
+* Error tracking (Sentry)
+* Performance monitoring (New Relic, DataDog)
+* Uptime monitoring (Pingdom)
+* Log aggregation (LogRocket, Papertrail)
+
+Documentation
+1. API Documentation
+Generate with Swagger/OpenAPI:
+* All endpoints documented
+* Request/response examples
+* Authentication requirements
+* Rate limits
+2. User Documentation
+Create:
+* Getting Started guide
+* Feature tutorials (with screenshots)
+* Video walkthroughs
+* FAQ
+* Best practices
+3. Admin Documentation
+Include:
+* System setup and configuration
+* User management
+* Security settings
+* Backup and restore procedures
+* Troubleshooting guide
+
+Success Criteria
+The CRM system will be considered complete when:
+1. ✅ All core objects (Lead, Account, Contact, Opportunity, etc.) are fully CRUD operational
+2. ✅ Lead scoring and assignment automation works end-to-end
+3. ✅ Email campaigns can be created, sent, and tracked
+4. ✅ Sales pipeline Kanban board with drag-and-drop is functional
+5. ✅ Reporting and dashboard system generates accurate data
+6. ✅ Workflow automation executes on triggers
+7. ✅ Email and calendar integration syncs bi-directionally
+8. ✅ Mobile-responsive interface works on phones and tablets
+9. ✅ API is documented and tested
+10. ✅ System handles 1000+ records per object without performance degradation
+11. ✅ Security features (RBAC, encryption, audit logs) are implemented
+12. ✅ Test coverage is 80%+
+
+Additional Considerations
+Phase 2 Features (Future Enhancements)
+* AI-powered lead scoring (machine learning model)
+* Predictive analytics (deal likelihood, churn prediction)
+* Advanced email personalization (AI-generated content)
+* Conversational AI chatbot for customer support
+* Social media integration (LinkedIn, Twitter)
+* Document generation (contracts, proposals)
+* E-signature integration (DocuSign)
+* Customer portal (self-service)
+* Advanced territory management
+* Customizable page layouts (drag-and-drop)
+* Multi-currency support
+* Multi-language support
+
+Final Notes
+This is a comprehensive, production-ready CRM system. Start with core functionality (Phase 1 from the implementation guide) and iterate. Focus on:
+1. Solid data model - Get the database schema right first
+2. Clean API design - RESTful, well-documented
+3. Intuitive UI - Follow the UX best practices from the UX testing guide
+4. Automation - Make the system do the work for users
+5. Performance - Optimize queries and use caching
+6. Security - Implement RBAC and audit trails from day one
+Good luck building your CRM system! 🚀

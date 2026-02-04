@@ -29,7 +29,7 @@ spec:
       serviceAccountName: crm-api
       containers:
       - name: crm-api
-        image: 192.168.0.9:5000/crm-api:latest
+        image: ${REGISTRY_HOST:-registry.local}:5000/crm-api:latest  # Replace REGISTRY_HOST
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000

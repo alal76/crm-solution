@@ -137,9 +137,9 @@ public class MergeService : IMergeService
 
             // Determine which records to restore
             var membersToRestore = request.SpecificRecordsToRestore != null
-                ? mergeGroup.Members.Where(m => 
-                    request.SpecificRecordsToRestore.Contains(m.RecordId) && 
-                    !m.IsMaster && 
+                ? mergeGroup.Members.Where(m =>
+                    request.SpecificRecordsToRestore.Contains(m.RecordId) &&
+                    !m.IsMaster &&
                     m.Status == MergeGroupMemberStatus.Merged)
                 : mergeGroup.Members.Where(m => !m.IsMaster && m.Status == MergeGroupMemberStatus.Merged);
 
@@ -305,8 +305,8 @@ public class MergeService : IMergeService
             IsMaster = m.IsMaster,
             Status = m.Status.ToString(),
             MergedAt = m.MergedAt,
-            RecordSnapshot = m.RecordSnapshot != null 
-                ? JsonSerializer.Deserialize<object>(m.RecordSnapshot) 
+            RecordSnapshot = m.RecordSnapshot != null
+                ? JsonSerializer.Deserialize<object>(m.RecordSnapshot)
                 : null
         });
     }
@@ -443,7 +443,7 @@ public class MergeService : IMergeService
                 {
                     var value = await GetFieldValueFromRecordAsync(recordId, entityType, field, cancellationToken);
                     fieldsUsed[field] = value ?? "";
-                    
+
                     // Apply value to master
                     await SetFieldValueOnRecordAsync(masterRecordId, entityType, field, value, cancellationToken);
                 }

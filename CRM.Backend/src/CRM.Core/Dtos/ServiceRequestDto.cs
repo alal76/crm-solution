@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -226,7 +242,7 @@ public class ServiceRequestDto
     public string TicketNumber { get; set; } = string.Empty;
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
-    
+
     // Channel & Status
     public ServiceRequestChannel Channel { get; set; }
     public string ChannelName { get; set; } = string.Empty;
@@ -234,13 +250,13 @@ public class ServiceRequestDto
     public string StatusName { get; set; } = string.Empty;
     public ServiceRequestPriority Priority { get; set; }
     public string PriorityName { get; set; } = string.Empty;
-    
+
     // Categorization
     public int? CategoryId { get; set; }
     public string? CategoryName { get; set; }
     public int? SubcategoryId { get; set; }
     public string? SubcategoryName { get; set; }
-    
+
     // Customer & Contact
     public int? CustomerId { get; set; }
     public string? CustomerName { get; set; }
@@ -249,7 +265,7 @@ public class ServiceRequestDto
     public string? RequesterName { get; set; }
     public string? RequesterEmail { get; set; }
     public string? RequesterPhone { get; set; }
-    
+
     // Assignment
     public int? AssignedToUserId { get; set; }
     public string? AssignedToUserName { get; set; }
@@ -257,12 +273,12 @@ public class ServiceRequestDto
     public string? AssignedToGroupName { get; set; }
     public int? CreatedByUserId { get; set; }
     public string? CreatedByUserName { get; set; }
-    
+
     // Workflow
     public int? WorkflowId { get; set; }
     public string? WorkflowName { get; set; }
     public string? CurrentWorkflowStep { get; set; }
-    
+
     // SLA
     public DateTime? ResponseDueDate { get; set; }
     public DateTime? ResolutionDueDate { get; set; }
@@ -271,19 +287,19 @@ public class ServiceRequestDto
     public DateTime? ClosedDate { get; set; }
     public bool ResponseSlaBreached { get; set; }
     public bool ResolutionSlaBreached { get; set; }
-    
+
     // Channel-specific
     public string? ExternalReferenceId { get; set; }
     public string? SourcePhoneNumber { get; set; }
     public string? SourceEmailAddress { get; set; }
-    
+
     // Resolution
     public string? ResolutionSummary { get; set; }
     public string? ResolutionCode { get; set; }
     public string? RootCause { get; set; }
     public int? SatisfactionRating { get; set; }
     public string? CustomerFeedback { get; set; }
-    
+
     // Related entities
     public int? RelatedOpportunityId { get; set; }
     public string? RelatedOpportunityName { get; set; }
@@ -291,7 +307,7 @@ public class ServiceRequestDto
     public string? RelatedProductName { get; set; }
     public int? ParentServiceRequestId { get; set; }
     public string? ParentTicketNumber { get; set; }
-    
+
     // Additional
     public string? Tags { get; set; }
     public string? InternalNotes { get; set; }
@@ -300,7 +316,7 @@ public class ServiceRequestDto
     public bool IsVipCustomer { get; set; }
     public decimal? EstimatedEffortHours { get; set; }
     public decimal? ActualEffortHours { get; set; }
-    
+
     // Computed
     public bool IsOpen { get; set; }
     public double AgeInHours { get; set; }
@@ -308,14 +324,14 @@ public class ServiceRequestDto
     public double? TimeToResolutionHours { get; set; }
     public bool IsResponseSlaAtRisk { get; set; }
     public bool IsResolutionSlaAtRisk { get; set; }
-    
+
     // Timestamps
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     // Custom fields
     public List<ServiceRequestCustomFieldValueDto> CustomFieldValues { get; set; } = new();
-    
+
     // Child requests count
     public int ChildRequestCount { get; set; }
 }
@@ -326,42 +342,42 @@ public class CreateServiceRequestDto
     public string? Description { get; set; }
     public ServiceRequestChannel Channel { get; set; } = ServiceRequestChannel.SelfServicePortal;
     public ServiceRequestPriority Priority { get; set; } = ServiceRequestPriority.Medium;
-    
+
     // Categorization
     public int? CategoryId { get; set; }
     public int? SubcategoryId { get; set; }
-    
+
     // Customer & Contact
     public int? CustomerId { get; set; }
     public int? ContactId { get; set; }
     public string? RequesterName { get; set; }
     public string? RequesterEmail { get; set; }
     public string? RequesterPhone { get; set; }
-    
+
     // Assignment
     public int? AssignedToUserId { get; set; }
     public int? AssignedToGroupId { get; set; }
-    
+
     // Workflow
     public int? WorkflowId { get; set; }
-    
+
     // Channel-specific
     public string? ExternalReferenceId { get; set; }
     public string? SourcePhoneNumber { get; set; }
     public string? SourceEmailAddress { get; set; }
     public string? ConversationId { get; set; }
-    
+
     // Related entities
     public int? RelatedOpportunityId { get; set; }
     public int? RelatedProductId { get; set; }
     public int? ParentServiceRequestId { get; set; }
-    
+
     // Additional
     public string? Tags { get; set; }
     public string? InternalNotes { get; set; }
     public bool IsVipCustomer { get; set; }
     public decimal? EstimatedEffortHours { get; set; }
-    
+
     // Custom field values
     public List<SetCustomFieldValueDto>? CustomFieldValues { get; set; }
 }
@@ -373,47 +389,47 @@ public class UpdateServiceRequestDto
     public ServiceRequestChannel Channel { get; set; }
     public ServiceRequestStatus Status { get; set; }
     public ServiceRequestPriority Priority { get; set; }
-    
+
     // Categorization
     public int? CategoryId { get; set; }
     public int? SubcategoryId { get; set; }
-    
+
     // Customer & Contact
     public int? CustomerId { get; set; }
     public int? ContactId { get; set; }
     public string? RequesterName { get; set; }
     public string? RequesterEmail { get; set; }
     public string? RequesterPhone { get; set; }
-    
+
     // Assignment
     public int? AssignedToUserId { get; set; }
     public int? AssignedToGroupId { get; set; }
-    
+
     // Workflow
     public int? WorkflowId { get; set; }
     public string? CurrentWorkflowStep { get; set; }
-    
+
     // SLA
     public DateTime? ResponseDueDate { get; set; }
     public DateTime? ResolutionDueDate { get; set; }
-    
+
     // Resolution
     public string? ResolutionSummary { get; set; }
     public string? ResolutionCode { get; set; }
     public string? RootCause { get; set; }
-    
+
     // Related entities
     public int? RelatedOpportunityId { get; set; }
     public int? RelatedProductId { get; set; }
     public int? ParentServiceRequestId { get; set; }
-    
+
     // Additional
     public string? Tags { get; set; }
     public string? InternalNotes { get; set; }
     public bool IsVipCustomer { get; set; }
     public decimal? EstimatedEffortHours { get; set; }
     public decimal? ActualEffortHours { get; set; }
-    
+
     // Custom field values
     public List<SetCustomFieldValueDto>? CustomFieldValues { get; set; }
 }
@@ -512,18 +528,18 @@ public class ServiceRequestTypeDto
     public string? Tags { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     // Parsed arrays for convenience
-    public List<string> PossibleResolutionsList => 
-        string.IsNullOrEmpty(PossibleResolutions) ? new List<string>() : 
+    public List<string> PossibleResolutionsList =>
+        string.IsNullOrEmpty(PossibleResolutions) ? new List<string>() :
         PossibleResolutions.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-    
-    public List<string> FinalCustomerResolutionsList => 
-        string.IsNullOrEmpty(FinalCustomerResolutions) ? new List<string>() : 
+
+    public List<string> FinalCustomerResolutionsList =>
+        string.IsNullOrEmpty(FinalCustomerResolutions) ? new List<string>() :
         FinalCustomerResolutions.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-    
-    public List<string> TagsList => 
-        string.IsNullOrEmpty(Tags) ? new List<string>() : 
+
+    public List<string> TagsList =>
+        string.IsNullOrEmpty(Tags) ? new List<string>() :
         Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 }
 
@@ -599,7 +615,7 @@ public class ServiceRequestStatisticsDto
     public double AverageResolutionTimeHours { get; set; }
     public double AverageFirstResponseTimeHours { get; set; }
     public double CustomerSatisfactionAverage { get; set; }
-    
+
     public Dictionary<string, int> ByChannel { get; set; } = new();
     public Dictionary<string, int> ByCategory { get; set; } = new();
     public Dictionary<string, int> ByPriority { get; set; } = new();

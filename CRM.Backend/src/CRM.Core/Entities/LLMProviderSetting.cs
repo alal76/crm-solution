@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -14,7 +30,7 @@ namespace CRM.Core.Entities;
 /// Stores LLM provider configuration settings in the database.
 /// Allows administrators to configure AI/LLM settings from the UI.
 /// API keys and secrets are NOT stored here - they come from environment variables.
-/// 
+///
 /// TECHNICAL VIEW:
 /// ===============
 /// Key-value store for LLM settings that can be modified at runtime.
@@ -27,27 +43,27 @@ public class LLMProviderSetting : BaseEntity
     /// Unique key for the setting (e.g., "DefaultProvider", "OpenAI.DefaultModel")
     /// </summary>
     public string SettingKey { get; set; } = "";
-    
+
     /// <summary>
     /// Value stored as string, parsed based on ValueType
     /// </summary>
     public string SettingValue { get; set; } = "";
-    
+
     /// <summary>
     /// Type hint for parsing: string, integer, decimal, boolean, json
     /// </summary>
     public string ValueType { get; set; } = "string";
-    
+
     /// <summary>
     /// Category for grouping: general, provider.openai, provider.anthropic, etc.
     /// </summary>
     public string Category { get; set; } = "general";
-    
+
     /// <summary>
     /// Human-readable description of the setting
     /// </summary>
     public string? Description { get; set; }
-    
+
     /// <summary>
     /// Whether this value is encrypted (for future use with non-secret sensitive data)
     /// </summary>
@@ -62,18 +78,18 @@ public class LLMSettingsDto
     public string DefaultProvider { get; set; } = "local";
     public bool EnableFallback { get; set; } = true;
     public List<string> FallbackOrder { get; set; } = new() { "local", "openai", "azure", "anthropic", "google", "deepseek", "allenai" };
-    
+
     /// <summary>
     /// Computed fallback order containing only configured providers.
     /// If no providers are configured with API keys, only 'local' will be included.
     /// </summary>
     public List<string> EffectiveFallbackOrder { get; set; } = new();
-    
+
     public int DefaultMaxTokens { get; set; } = 1000;
     public double DefaultTemperature { get; set; } = 0.7;
     public int TimeoutSeconds { get; set; } = 60;
     public int MaxRetries { get; set; } = 3;
-    
+
     public LLMProviderSettingsDto OpenAI { get; set; } = new();
     public LLMProviderSettingsDto Azure { get; set; } = new();
     public LLMProviderSettingsDto Anthropic { get; set; } = new();
@@ -113,7 +129,7 @@ public class UpdateLLMSettingsRequest
     public double? DefaultTemperature { get; set; }
     public int? TimeoutSeconds { get; set; }
     public int? MaxRetries { get; set; }
-    
+
     public Dictionary<string, LLMProviderUpdateDto>? Providers { get; set; }
 }
 

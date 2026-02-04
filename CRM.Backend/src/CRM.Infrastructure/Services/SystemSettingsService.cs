@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -9,7 +25,7 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Service for managing system settings.
-/// 
+///
 /// HEXAGONAL ARCHITECTURE:
 /// - Implements ISystemSettingsInputPort (primary/driving port)
 /// - Implements ISystemSettingsService (backward compatibility)
@@ -34,7 +50,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
         try
         {
             var settings = await _context.SystemSettings.FirstOrDefaultAsync();
-            
+
             if (settings == null)
             {
                 // Create default settings
@@ -42,7 +58,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
                 _context.SystemSettings.Add(settings);
                 await _context.SaveChangesAsync();
             }
-            
+
             return MapToDto(settings);
         }
         catch (Exception ex)
@@ -60,7 +76,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
         try
         {
             var settings = await _context.SystemSettings.FirstOrDefaultAsync();
-            
+
             return new ModuleStatusDto
             {
                 CustomersEnabled = settings?.CustomersEnabled ?? true,
@@ -96,13 +112,13 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
         try
         {
             var settings = await _context.SystemSettings.FirstOrDefaultAsync();
-            
+
             if (settings == null)
             {
                 settings = new SystemSettings();
                 _context.SystemSettings.Add(settings);
             }
-            
+
             // Apply updates (only update non-null values)
             if (request.CustomersEnabled.HasValue) settings.CustomersEnabled = request.CustomersEnabled.Value;
             if (request.ContactsEnabled.HasValue) settings.ContactsEnabled = request.ContactsEnabled.Value;
@@ -121,7 +137,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             if (request.EmailEnabled.HasValue) settings.EmailEnabled = request.EmailEnabled.Value;
             if (request.WhatsAppEnabled.HasValue) settings.WhatsAppEnabled = request.WhatsAppEnabled.Value;
             if (request.SocialMediaEnabled.HasValue) settings.SocialMediaEnabled = request.SocialMediaEnabled.Value;
-            
+
             if (!string.IsNullOrEmpty(request.CompanyName)) settings.CompanyName = request.CompanyName;
             if (request.CompanyLogoUrl != null) settings.CompanyLogoUrl = request.CompanyLogoUrl;
             if (request.CompanyLoginLogoUrl != null) settings.CompanyLoginLogoUrl = request.CompanyLoginLogoUrl;
@@ -133,18 +149,18 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             if (request.UseGroupHeaderColor.HasValue) settings.UseGroupHeaderColor = request.UseGroupHeaderColor.Value;
             if (request.SelectedPaletteId.HasValue) settings.SelectedPaletteId = request.SelectedPaletteId.Value;
             if (request.SelectedPaletteName != null) settings.SelectedPaletteName = request.SelectedPaletteName;
-            
+
             if (request.RequireTwoFactor.HasValue) settings.RequireTwoFactor = request.RequireTwoFactor.Value;
             if (request.MinPasswordLength.HasValue) settings.MinPasswordLength = request.MinPasswordLength.Value;
             if (request.SessionTimeoutMinutes.HasValue) settings.SessionTimeoutMinutes = request.SessionTimeoutMinutes.Value;
             if (request.AllowUserRegistration.HasValue) settings.AllowUserRegistration = request.AllowUserRegistration.Value;
             if (request.RequireApprovalForNewUsers.HasValue) settings.RequireApprovalForNewUsers = request.RequireApprovalForNewUsers.Value;
             if (request.QuickAdminLoginEnabled.HasValue) settings.QuickAdminLoginEnabled = request.QuickAdminLoginEnabled.Value;
-            
+
             if (request.ApiAccessEnabled.HasValue) settings.ApiAccessEnabled = request.ApiAccessEnabled.Value;
             if (request.EmailNotificationsEnabled.HasValue) settings.EmailNotificationsEnabled = request.EmailNotificationsEnabled.Value;
             if (request.AuditLoggingEnabled.HasValue) settings.AuditLoggingEnabled = request.AuditLoggingEnabled.Value;
-            
+
             // Database provider settings - only one can be active at a time
             if (request.ActiveDatabaseProvider != null)
             {
@@ -156,10 +172,10 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
                 settings.SqliteEnabled = request.ActiveDatabaseProvider.Equals("sqlite", StringComparison.OrdinalIgnoreCase);
                 settings.MySqlEnabled = request.ActiveDatabaseProvider.Equals("mysql", StringComparison.OrdinalIgnoreCase);
             }
-            
+
             // Navigation settings
             if (request.NavOrderConfig != null) settings.NavOrderConfig = request.NavOrderConfig;
-            
+
             // SSL/TLS settings
             if (request.HttpsEnabled.HasValue) settings.HttpsEnabled = request.HttpsEnabled.Value;
             if (request.SslCertificatePath != null) settings.SslCertificatePath = request.SslCertificatePath;
@@ -167,30 +183,30 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             if (request.SslCertificateExpiry.HasValue) settings.SslCertificateExpiry = request.SslCertificateExpiry.Value;
             if (request.SslCertificateSubject != null) settings.SslCertificateSubject = request.SslCertificateSubject;
             if (request.ForceHttpsRedirect.HasValue) settings.ForceHttpsRedirect = request.ForceHttpsRedirect.Value;
-            
+
             // Sample data settings
             if (request.SampleDataSeeded.HasValue) settings.SampleDataSeeded = request.SampleDataSeeded.Value;
             if (request.SampleDataLastSeeded.HasValue) settings.SampleDataLastSeeded = request.SampleDataLastSeeded.Value;
-            
+
             if (!string.IsNullOrEmpty(request.DateFormat)) settings.DateFormat = request.DateFormat;
             if (!string.IsNullOrEmpty(request.TimeFormat)) settings.TimeFormat = request.TimeFormat;
             if (!string.IsNullOrEmpty(request.DefaultCurrency)) settings.DefaultCurrency = request.DefaultCurrency;
             if (!string.IsNullOrEmpty(request.DefaultTimezone)) settings.DefaultTimezone = request.DefaultTimezone;
             if (!string.IsNullOrEmpty(request.DefaultLanguage)) settings.DefaultLanguage = request.DefaultLanguage;
-            
+
             if (!string.IsNullOrEmpty(request.DateFormat)) settings.DateFormat = request.DateFormat;
             if (!string.IsNullOrEmpty(request.TimeFormat)) settings.TimeFormat = request.TimeFormat;
             if (!string.IsNullOrEmpty(request.DefaultCurrency)) settings.DefaultCurrency = request.DefaultCurrency;
             if (!string.IsNullOrEmpty(request.DefaultTimezone)) settings.DefaultTimezone = request.DefaultTimezone;
             if (!string.IsNullOrEmpty(request.DefaultLanguage)) settings.DefaultLanguage = request.DefaultLanguage;
-            
+
             settings.LastModified = DateTime.UtcNow;
             settings.ModifiedByUserId = modifiedByUserId;
-            
+
             await _context.SaveChangesAsync();
-            
+
             _logger.LogInformation("System settings updated by user {UserId}", modifiedByUserId);
-            
+
             return MapToDto(settings);
         }
         catch (Exception ex)
@@ -205,7 +221,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
         return new SystemSettingsDto
         {
             Id = settings.Id,
-            
+
             CustomersEnabled = settings.CustomersEnabled,
             ContactsEnabled = settings.ContactsEnabled,
             LeadsEnabled = settings.LeadsEnabled,
@@ -223,7 +239,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             EmailEnabled = settings.EmailEnabled,
             WhatsAppEnabled = settings.WhatsAppEnabled,
             SocialMediaEnabled = settings.SocialMediaEnabled,
-            
+
             CompanyName = settings.CompanyName,
             CompanyLogoUrl = settings.CompanyLogoUrl,
             CompanyLoginLogoUrl = settings.CompanyLoginLogoUrl,
@@ -236,36 +252,36 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             SelectedPaletteId = settings.SelectedPaletteId,
             SelectedPaletteName = settings.SelectedPaletteName,
             PalettesLastRefreshed = settings.PalettesLastRefreshed,
-            
+
             RequireTwoFactor = settings.RequireTwoFactor,
             MinPasswordLength = settings.MinPasswordLength,
             SessionTimeoutMinutes = settings.SessionTimeoutMinutes,
             AllowUserRegistration = settings.AllowUserRegistration,
             RequireApprovalForNewUsers = settings.RequireApprovalForNewUsers,
             QuickAdminLoginEnabled = settings.QuickAdminLoginEnabled,
-            
+
             ApiAccessEnabled = settings.ApiAccessEnabled,
             EmailNotificationsEnabled = settings.EmailNotificationsEnabled,
             AuditLoggingEnabled = settings.AuditLoggingEnabled,
-            
+
             NavOrderConfig = settings.NavOrderConfig,
-            
+
             HttpsEnabled = settings.HttpsEnabled,
             SslCertificatePath = settings.SslCertificatePath,
             SslPrivateKeyPath = settings.SslPrivateKeyPath,
             SslCertificateExpiry = settings.SslCertificateExpiry,
             SslCertificateSubject = settings.SslCertificateSubject,
             ForceHttpsRedirect = settings.ForceHttpsRedirect,
-            
+
             SampleDataSeeded = settings.SampleDataSeeded,
             SampleDataLastSeeded = settings.SampleDataLastSeeded,
-            
+
             DateFormat = settings.DateFormat,
             TimeFormat = settings.TimeFormat,
             DefaultCurrency = settings.DefaultCurrency,
             DefaultTimezone = settings.DefaultTimezone,
             DefaultLanguage = settings.DefaultLanguage,
-            
+
             LastModified = settings.LastModified,
             ModifiedByUserId = settings.ModifiedByUserId
         };

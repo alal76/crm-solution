@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Api.Hubs;
@@ -16,7 +32,7 @@ public class ContactsController : ControllerBase
     private readonly ICrmNotificationService _notificationService;
 
     public ContactsController(
-        IContactsService contactsService, 
+        IContactsService contactsService,
         ILogger<ContactsController> logger,
         ICrmNotificationService notificationService)
     {
@@ -107,10 +123,10 @@ public class ContactsController : ControllerBase
 
             var currentUser = User.FindFirst("sub")?.Value ?? "System";
             var contact = await _contactsService.CreateAsync(request, currentUser);
-            
+
             // Notify connected clients about the new contact
             await _notificationService.NotifyRecordCreatedAsync("Contact", contact.Id, contact, currentUser);
-            
+
             return CreatedAtAction(nameof(GetContactById), new { id = contact.Id }, contact);
         }
         catch (ArgumentException ex)
@@ -142,10 +158,10 @@ public class ContactsController : ControllerBase
 
             var currentUser = User.FindFirst("sub")?.Value ?? "System";
             var contact = await _contactsService.UpdateAsync(id, request, currentUser);
-            
+
             // Notify connected clients about the update
             await _notificationService.NotifyRecordUpdatedAsync("Contact", id, contact, currentUser);
-            
+
             return Ok(contact);
         }
         catch (InvalidOperationException ex)
@@ -172,11 +188,11 @@ public class ContactsController : ControllerBase
         try
         {
             await _contactsService.DeleteAsync(id);
-            
+
             // Notify connected clients about the deletion
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
             await _notificationService.NotifyRecordDeletedAsync("Contact", id, userId);
-            
+
             return Ok(new { message = $"Contact with ID {id} deleted successfully" });
         }
         catch (InvalidOperationException ex)

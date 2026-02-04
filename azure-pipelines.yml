@@ -35,6 +35,11 @@ variables:
   # Resource Group
   resourceGroup: 'crm-solution-rg'
   location: 'eastus'
+  
+  # SonarCloud configuration
+  sonarCloudOrganization: '$(SONARCLOUD_ORG)'  # Set in pipeline variables
+  sonarCloudProjectKey: '$(SONARCLOUD_PROJECT_KEY)'  # Set in pipeline variables
+  sonarCloudServiceConnection: 'SonarCloud-CRM'  # Service connection name
 
 stages:
   # ============================================================
@@ -68,17 +73,22 @@ stages:
               arguments: '--configuration $(buildConfiguration) --no-restore'
               
           - task: DotNetCoreCLI@2
-            displayName: 'Run Unit Tests'
+            displayName: 'Run Unit Tests with Coverage'
             inputs:
               command: 'test'
               projects: 'CRM.Backend/tests/CRM.Tests.csproj'
-              arguments: '--configuration $(buildConfiguration) --no-build --filter "Category!=Integration&Category!=DatabaseSchema" --logger trx --results-directory $(Build.ArtifactStagingDirectory)/TestResults'
+              arguments: '--configuration $(buildConfiguration) --no-build --filter "Category!=Integration&Category!=DatabaseSchema" --collect:"XPlat Code Coverage" --results-directory $(Build.ArtifactStagingDirectory)/TestResults'
               
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
             inputs:
               testResultsFormat: 'VSTest'
               testResultsFiles: '$(Build.ArtifactStagingDirectory)/TestResults/*.trx'
+
+          - task: PublishCodeCoverageResults@2
+            displayName: 'Publish Code Coverage'
+            inputs:
+              summaryFileLocation: '$(Build.ArtifactStagingDirectory)/TestResults/**/coverage.cobertura.xml'
               
           - task: DotNetCoreCLI@2
             displayName: 'Publish API'
@@ -111,6 +121,27 @@ stages:
             
           - script: |
               cd CRM.Frontend
+              npm test -- --coverage --watchAll=false --ci --reporters=default --reporters=jest-junit
+            displayName: 'Run Frontend Tests with Coverage'
+            env:
+              CI: 'true'
+              JEST_JUNIT_OUTPUT_DIR: '$(Build.ArtifactStagingDirectory)/TestResults'
+              
+          - task: PublishTestResults@2
+            displayName: 'Publish Frontend Test Results'
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '$(Build.ArtifactStagingDirectory)/TestResults/junit.xml'
+            condition: succeededOrFailed()
+            
+          - task: PublishCodeCoverageResults@2
+            displayName: 'Publish Frontend Coverage'
+            inputs:
+              summaryFileLocation: 'CRM.Frontend/coverage/cobertura-coverage.xml'
+            condition: succeededOrFailed()
+            
+          - script: |
+              cd CRM.Frontend
               npm run build
             displayName: 'Build React App'
             env:
@@ -121,6 +152,80 @@ stages:
             inputs:
               PathtoPublish: 'CRM.Frontend/build'
               ArtifactName: 'frontend'
+
+      # SonarCloud Analysis Job
+      - job: SonarCloudAnalysis
+        displayName: 'SonarCloud Code Analysis'
+        condition: and(succeeded(), ne(variables['SONARCLOUD_ORG'], ''))
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UseDotNet@2
+            displayName: 'Install .NET SDK'
+            inputs:
+              version: $(dotnetVersion)
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          # Prepare SonarCloud Analysis
+          - task: SonarCloudPrepare@3
+            displayName: 'Prepare SonarCloud Analysis'
+            inputs:
+              SonarCloud: $(sonarCloudServiceConnection)
+              organization: $(sonarCloudOrganization)
+              scannerMode: 'CLI'
+              configMode: 'manual'
+              cliProjectKey: $(sonarCloudProjectKey)
+              cliProjectName: 'CRM Solution'
+              cliSources: 'CRM.Backend/src,CRM.Frontend/src'
+              extraProperties: |
+                sonar.cs.opencover.reportsPaths=$(Build.ArtifactStagingDirectory)/TestResults/**/coverage.cobertura.xml
+                sonar.javascript.lcov.reportPaths=CRM.Frontend/coverage/lcov.info
+                sonar.typescript.lcov.reportPaths=CRM.Frontend/coverage/lcov.info
+                sonar.exclusions=**/node_modules/**,**/obj/**,**/bin/**,**/*.spec.ts,**/*.test.tsx,**/migrations/**
+
+          # Build and test backend for coverage data
+          - task: DotNetCoreCLI@2
+            displayName: 'Restore NuGet packages'
+            inputs:
+              command: 'restore'
+              projects: 'CRM.Backend/CRM.sln'
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Build Solution'
+            inputs:
+              command: 'build'
+              projects: 'CRM.Backend/CRM.sln'
+              arguments: '--configuration $(buildConfiguration) --no-restore'
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Run Tests with Coverage'
+            inputs:
+              command: 'test'
+              projects: 'CRM.Backend/tests/CRM.Tests.csproj'
+              arguments: '--configuration $(buildConfiguration) --no-build --filter "Category!=Integration&Category!=DatabaseSchema" --collect:"XPlat Code Coverage" --results-directory $(Build.ArtifactStagingDirectory)/TestResults'
+
+          # Build and test frontend for coverage data
+          - script: |
+              cd CRM.Frontend
+              npm ci
+              npm test -- --coverage --watchAll=false --ci
+            displayName: 'Run Frontend Tests with Coverage'
+            env:
+              CI: 'true'
+
+          # Run SonarCloud Analysis
+          - task: SonarCloudAnalyze@3
+            displayName: 'Run SonarCloud Analysis'
+
+          # Publish Quality Gate Result
+          - task: SonarCloudPublish@3
+            displayName: 'Publish SonarCloud Results'
+            inputs:
+              pollingTimeoutSec: '300'
 
   # ============================================================
   # STAGE 2: BUILD DOCKER IMAGES

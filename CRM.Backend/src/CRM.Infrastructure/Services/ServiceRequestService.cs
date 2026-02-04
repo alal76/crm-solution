@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -28,7 +44,7 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Service implementation for managing service requests.
-/// 
+///
 /// HEXAGONAL ARCHITECTURE:
 /// - Implements IServiceRequestInputPort (primary/driving port)
 /// - Implements IServiceRequestService (backward compatibility)
@@ -261,7 +277,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
             var search = filter.SearchTerm.ToLower();
-            query = query.Where(sr => 
+            query = query.Where(sr =>
                 sr.TicketNumber.ToLower().Contains(search) ||
                 sr.Subject.ToLower().Contains(search) ||
                 (sr.Description != null && sr.Description.ToLower().Contains(search)) ||
@@ -299,12 +315,12 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         if (filter.IsOpen.HasValue)
         {
             if (filter.IsOpen.Value)
-                query = query.Where(sr => sr.Status != ServiceRequestStatus.Closed && 
-                                          sr.Status != ServiceRequestStatus.Cancelled && 
+                query = query.Where(sr => sr.Status != ServiceRequestStatus.Closed &&
+                                          sr.Status != ServiceRequestStatus.Cancelled &&
                                           sr.Status != ServiceRequestStatus.Resolved);
             else
-                query = query.Where(sr => sr.Status == ServiceRequestStatus.Closed || 
-                                          sr.Status == ServiceRequestStatus.Cancelled || 
+                query = query.Where(sr => sr.Status == ServiceRequestStatus.Closed ||
+                                          sr.Status == ServiceRequestStatus.Cancelled ||
                                           sr.Status == ServiceRequestStatus.Resolved);
         }
 
@@ -443,7 +459,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         if (dto.SubcategoryId.HasValue)
         {
             entity.Subcategory = await _context.ServiceRequestSubcategories.FindAsync(dto.SubcategoryId.Value);
-            
+
             // Apply default priority from subcategory if not set
             if (dto.Priority == ServiceRequestPriority.Medium && entity.Subcategory?.DefaultPriority.HasValue == true)
             {
@@ -624,7 +640,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Updated service request {TicketNumber} status from {OldStatus} to {NewStatus}", 
+        _logger.LogInformation("Updated service request {TicketNumber} status from {OldStatus} to {NewStatus}",
             entity.TicketNumber, oldStatus, newStatus);
 
         return await GetServiceRequestByIdAsync(id) ?? throw new InvalidOperationException();
@@ -712,15 +728,15 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.ReopenCount++;
         entity.ResolvedDate = null;
         entity.ClosedDate = null;
-        entity.InternalNotes = string.IsNullOrEmpty(entity.InternalNotes) 
-            ? $"Reopened: {reason}" 
+        entity.InternalNotes = string.IsNullOrEmpty(entity.InternalNotes)
+            ? $"Reopened: {reason}"
             : $"{entity.InternalNotes}\n\nReopened: {reason}";
         entity.LastModifiedByUserId = reopenedByUserId;
         entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Reopened service request {TicketNumber}. Reopen count: {ReopenCount}", 
+        _logger.LogInformation("Reopened service request {TicketNumber}. Reopen count: {ReopenCount}",
             entity.TicketNumber, entity.ReopenCount);
 
         return await GetServiceRequestByIdAsync(id) ?? throw new InvalidOperationException();
@@ -733,15 +749,15 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
         entity.Status = ServiceRequestStatus.Escalated;
         entity.EscalationLevel++;
-        entity.InternalNotes = string.IsNullOrEmpty(entity.InternalNotes) 
-            ? $"Escalated (Level {entity.EscalationLevel}): {reason}" 
+        entity.InternalNotes = string.IsNullOrEmpty(entity.InternalNotes)
+            ? $"Escalated (Level {entity.EscalationLevel}): {reason}"
             : $"{entity.InternalNotes}\n\nEscalated (Level {entity.EscalationLevel}): {reason}";
         entity.LastModifiedByUserId = escalatedByUserId;
         entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Escalated service request {TicketNumber} to level {Level}", 
+        _logger.LogInformation("Escalated service request {TicketNumber} to level {Level}",
             entity.TicketNumber, entity.EscalationLevel);
 
         return await GetServiceRequestByIdAsync(id) ?? throw new InvalidOperationException();
@@ -816,7 +832,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var existingValues = await _context.ServiceRequestCustomFieldValues
             .Where(v => v.ServiceRequestId == serviceRequestId)
             .ToListAsync();
-        
+
         _context.ServiceRequestCustomFieldValues.RemoveRange(existingValues);
 
         // Add new values
@@ -867,8 +883,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
         return value.CustomFieldDefinition.FieldType switch
         {
-            CustomFieldType.Text or CustomFieldType.TextArea or CustomFieldType.Email or 
-            CustomFieldType.Phone or CustomFieldType.Url or CustomFieldType.Dropdown or 
+            CustomFieldType.Text or CustomFieldType.TextArea or CustomFieldType.Email or
+            CustomFieldType.Phone or CustomFieldType.Url or CustomFieldType.Dropdown or
             CustomFieldType.MultiSelect => value.TextValue,
             CustomFieldType.Number or CustomFieldType.Decimal => value.NumericValue,
             CustomFieldType.Date or CustomFieldType.DateTime => value.DateValue,
@@ -892,7 +908,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Submitted feedback for service request {TicketNumber}: Rating {Rating}", 
+        _logger.LogInformation("Submitted feedback for service request {TicketNumber}: Rating {Rating}",
             entity.TicketNumber, rating);
 
         return await GetServiceRequestByIdAsync(id) ?? throw new InvalidOperationException();
@@ -910,20 +926,20 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var stats = new ServiceRequestStatisticsDto
         {
             TotalRequests = await requests.CountAsync(),
-            OpenRequests = await requests.CountAsync(sr => 
-                sr.Status != ServiceRequestStatus.Closed && 
-                sr.Status != ServiceRequestStatus.Cancelled && 
+            OpenRequests = await requests.CountAsync(sr =>
+                sr.Status != ServiceRequestStatus.Closed &&
+                sr.Status != ServiceRequestStatus.Cancelled &&
                 sr.Status != ServiceRequestStatus.Resolved),
             NewRequests = await requests.CountAsync(sr => sr.Status == ServiceRequestStatus.New),
             InProgressRequests = await requests.CountAsync(sr => sr.Status == ServiceRequestStatus.InProgress),
-            PendingRequests = await requests.CountAsync(sr => 
-                sr.Status == ServiceRequestStatus.PendingCustomer || 
+            PendingRequests = await requests.CountAsync(sr =>
+                sr.Status == ServiceRequestStatus.PendingCustomer ||
                 sr.Status == ServiceRequestStatus.PendingInternal),
             EscalatedRequests = await requests.CountAsync(sr => sr.Status == ServiceRequestStatus.Escalated),
             ResolvedToday = await requests.CountAsync(sr => sr.ResolvedDate.HasValue && sr.ResolvedDate.Value.Date == today),
             CreatedToday = await requests.CountAsync(sr => sr.CreatedAt.Date == today),
             SlaBreachedCount = await requests.CountAsync(sr => sr.ResponseSlaBreached || sr.ResolutionSlaBreached),
-            SlaAtRiskCount = await requests.CountAsync(sr => 
+            SlaAtRiskCount = await requests.CountAsync(sr =>
                 (!sr.FirstResponseDate.HasValue && sr.ResponseDueDate.HasValue && sr.ResponseDueDate.Value <= DateTime.UtcNow.AddHours(2)) ||
                 (!sr.ResolvedDate.HasValue && sr.ResolutionDueDate.HasValue && sr.ResolutionDueDate.Value <= DateTime.UtcNow.AddHours(4)))
         };
@@ -991,9 +1007,9 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
     public async Task<int> GetOpenRequestsCountAsync()
     {
         return await _context.ServiceRequests
-            .Where(sr => !sr.IsDeleted && 
-                         sr.Status != ServiceRequestStatus.Closed && 
-                         sr.Status != ServiceRequestStatus.Cancelled && 
+            .Where(sr => !sr.IsDeleted &&
+                         sr.Status != ServiceRequestStatus.Closed &&
+                         sr.Status != ServiceRequestStatus.Cancelled &&
                          sr.Status != ServiceRequestStatus.Resolved)
             .CountAsync();
     }

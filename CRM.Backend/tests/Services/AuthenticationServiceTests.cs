@@ -33,14 +33,14 @@ namespace CRM.Tests.Services;
 
 /// <summary>
 /// Unit tests for AuthenticationService
-/// 
+///
 /// FUNCTIONAL VIEW:
 /// Tests cover authentication operations including:
 /// - User login and registration
 /// - Password validation
 /// - Two-factor authentication
 /// - Token generation and validation
-/// 
+///
 /// TECHNICAL VIEW:
 /// - Uses InMemory database for testing
 /// - Uses mock repositories and services
@@ -63,7 +63,7 @@ public class AuthenticationServiceTests : IDisposable
         var options = new DbContextOptionsBuilder<CrmDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-        
+
         _dbContext = new CrmDbContext(options, null);
 
         _mockUserRepo = new Mock<IRepository<User>>();

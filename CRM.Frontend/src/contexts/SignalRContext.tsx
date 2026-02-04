@@ -30,13 +30,13 @@ const getAccessToken = (): string | null => {
 export function SignalRProvider({ children }: SignalRProviderProps) {
   const { isAuthenticated } = useAuth();
   const [connectionState, setConnectionState] = useState<HubConnectionState>(
-    signalRService.getConnectionState()
+    signalRService.getConnectionState() ?? HubConnectionState.Disconnected
   );
 
   // Poll connection state (SignalR doesn't have a reliable state change event)
   useEffect(() => {
     const intervalId = setInterval(() => {
-      const currentState = signalRService.getConnectionState();
+      const currentState = signalRService.getConnectionState() ?? HubConnectionState.Disconnected;
       setConnectionState(prev => {
         if (prev !== currentState) {
           return currentState;
@@ -54,12 +54,12 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
     if (isAuthenticated && token) {
       signalRService.connect(token).then(success => {
         if (success) {
-          setConnectionState(signalRService.getConnectionState());
+          setConnectionState(signalRService.getConnectionState() ?? HubConnectionState.Disconnected);
         }
       });
     } else {
       signalRService.disconnect().then(() => {
-        setConnectionState(signalRService.getConnectionState());
+        setConnectionState(signalRService.getConnectionState() ?? HubConnectionState.Disconnected);
       });
     }
 
@@ -72,13 +72,13 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
     const token = getAccessToken();
     if (!token) return false;
     const success = await signalRService.connect(token);
-    setConnectionState(signalRService.getConnectionState());
+    setConnectionState(signalRService.getConnectionState() ?? HubConnectionState.Disconnected);
     return success;
   }, []);
 
   const disconnect = useCallback(async (): Promise<void> => {
     await signalRService.disconnect();
-    setConnectionState(signalRService.getConnectionState());
+    setConnectionState(signalRService.getConnectionState() ?? HubConnectionState.Disconnected);
   }, []);
 
   const value: SignalRContextValue = {

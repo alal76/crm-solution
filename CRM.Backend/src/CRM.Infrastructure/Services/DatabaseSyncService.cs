@@ -51,7 +51,7 @@ public class DatabaseSyncService : IDatabaseSyncService
     public async Task<DatabaseSyncResult> RunSyncCheckAsync()
     {
         var result = new DatabaseSyncResult();
-        
+
         try
         {
             using var scope = _serviceProvider.CreateScope();
@@ -121,7 +121,7 @@ public class DatabaseSyncService : IDatabaseSyncService
             if (!initialCounts.TryGetValue(result.Key, out var initialCount) || initialCount == 0)
             {
                 added += result.Value;
-                _logger.LogInformation("Added {Count} field configs for module {Module} to production", 
+                _logger.LogInformation("Added {Count} field configs for module {Module} to production",
                     result.Value, result.Key);
             }
         }

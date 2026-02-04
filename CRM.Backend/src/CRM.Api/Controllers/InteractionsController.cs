@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Core.Models;
 using CRM.Infrastructure.Data;
@@ -293,7 +309,7 @@ public class InteractionsController : ControllerBase
     /// </summary>
     [HttpPost("{id}/create-service-request")]
     public async Task<ActionResult<ServiceRequest>> CreateServiceRequestFromInteraction(
-        int id, 
+        int id,
         [FromBody] CreateServiceRequestFromInteractionRequest request)
     {
         try
@@ -310,19 +326,19 @@ public class InteractionsController : ControllerBase
 
             // Determine priority
             var priority = ServiceRequestPriority.Medium;
-            if (!string.IsNullOrEmpty(request.Priority) && 
+            if (!string.IsNullOrEmpty(request.Priority) &&
                 Enum.TryParse<ServiceRequestPriority>(request.Priority, true, out var parsedPriority))
             {
                 priority = parsedPriority;
             }
-            
+
             // If expediting, increase priority
             if (request.Expedite && priority < ServiceRequestPriority.Urgent)
             {
                 priority = priority == ServiceRequestPriority.Medium ? ServiceRequestPriority.High : ServiceRequestPriority.Urgent;
             }
 
-            var description = request.CopyInteractionDescription 
+            var description = request.CopyInteractionDescription
                 ? $"{request.Description}\n\n--- From Interaction ---\n{interaction.Description}".Trim()
                 : request.Description ?? "";
 
@@ -345,14 +361,14 @@ public class InteractionsController : ControllerBase
             await _context.SaveChangesAsync();
 
             // Update interaction with linked service request
-            interaction.CustomFields = System.Text.Json.JsonSerializer.Serialize(new 
-            { 
-                LinkedServiceRequestId = serviceRequest.Id 
+            interaction.CustomFields = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                LinkedServiceRequestId = serviceRequest.Id
             });
             interaction.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Created service request {ServiceRequestId} from interaction {InteractionId}", 
+            _logger.LogInformation("Created service request {ServiceRequestId} from interaction {InteractionId}",
                 serviceRequest.Id, interaction.Id);
 
             return CreatedAtAction(nameof(GetInteraction), new { id = serviceRequest.Id }, serviceRequest);
@@ -369,7 +385,7 @@ public class InteractionsController : ControllerBase
     /// </summary>
     [HttpPost("{id}/create-contact")]
     public async Task<ActionResult> CreateContactFromInteraction(
-        int id, 
+        int id,
         [FromBody] CreateContactFromInteractionRequest request)
     {
         try
@@ -424,7 +440,7 @@ public class InteractionsController : ControllerBase
             interaction.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Created contact {ContactId} from interaction {InteractionId}", 
+            _logger.LogInformation("Created contact {ContactId} from interaction {InteractionId}",
                 contact.Id, interaction.Id);
 
             return Ok(new { contactId = contact.Id, customerId = customerId });
@@ -552,10 +568,10 @@ public class InteractionsController : ControllerBase
     public async Task<ActionResult<IEnumerable<Interaction>>> GetNeedsAttention([FromQuery] int limit = 50)
     {
         var now = DateTime.UtcNow;
-        
+
         var interactions = await _context.Interactions
             .Include(i => i.Account)
-            .Where(i => 
+            .Where(i =>
                 // Unlinked to customer
                 (i.AccountId <= 0) ||
                 // Follow-up overdue

@@ -427,7 +427,7 @@ public class CampaignExecutionController : ControllerBase
     private static string GetDeviceType(string userAgent)
     {
         if (string.IsNullOrEmpty(userAgent)) return "unknown";
-        
+
         var ua = userAgent.ToLower();
         if (ua.Contains("mobile") || ua.Contains("android") || ua.Contains("iphone"))
             return "mobile";
@@ -439,7 +439,7 @@ public class CampaignExecutionController : ControllerBase
     private static string GetBrowser(string userAgent)
     {
         if (string.IsNullOrEmpty(userAgent)) return "unknown";
-        
+
         var ua = userAgent.ToLower();
         if (ua.Contains("chrome")) return "Chrome";
         if (ua.Contains("firefox")) return "Firefox";

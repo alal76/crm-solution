@@ -33,16 +33,16 @@ public class InstrumentationMiddleware
     {
         var requestId = Guid.NewGuid().ToString("N")[..8];
         var stopwatch = Stopwatch.StartNew();
-        
+
         // Start activity for distributed tracing
         using var activity = InstrumentationService.StartActivity(
             $"HTTP {context.Request.Method} {context.Request.Path}",
             ActivityKind.Server);
-        
+
         activity?.SetTag("http.method", context.Request.Method);
         activity?.SetTag("http.url", context.Request.Path);
         activity?.SetTag("http.request_id", requestId);
-        
+
         // Add request ID to response headers for tracing
         context.Response.Headers["X-Request-Id"] = requestId;
         context.Response.Headers["X-Trace-Id"] = activity?.TraceId.ToString() ?? requestId;
@@ -68,14 +68,14 @@ public class InstrumentationMiddleware
             }
             else
             {
-                _logger.LogInformation("[{RequestId}] → {Method} {Path}", 
+                _logger.LogInformation("[{RequestId}] → {Method} {Path}",
                     requestId, context.Request.Method, context.Request.Path);
             }
 
             await _next(context);
 
             stopwatch.Stop();
-            
+
             // Record metrics
             InstrumentationService.RecordMetric("http.request.duration_ms", stopwatch.ElapsedMilliseconds);
             InstrumentationService.RecordMetric($"http.request.{context.Response.StatusCode}", 1);
@@ -107,11 +107,11 @@ public class InstrumentationMiddleware
         catch (Exception ex)
         {
             stopwatch.Stop();
-            
+
             activity?.SetTag("error", true);
             activity?.SetTag("error.type", ex.GetType().Name);
             activity?.SetTag("error.message", ex.Message);
-            
+
             InstrumentationService.RecordMetric("http.request.errors", 1);
 
             _logger.LogError(ex,

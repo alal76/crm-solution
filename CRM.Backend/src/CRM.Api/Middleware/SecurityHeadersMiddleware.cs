@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -37,7 +53,7 @@ public class SecurityHeadersMiddleware
         context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
 
         // Content-Security-Policy: Restricts resource loading
-        context.Response.Headers["Content-Security-Policy"] = 
+        context.Response.Headers["Content-Security-Policy"] =
             "default-src 'self'; " +
             "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
@@ -47,7 +63,7 @@ public class SecurityHeadersMiddleware
             "frame-ancestors 'self';";
 
         // Permissions-Policy: Controls browser features
-        context.Response.Headers["Permissions-Policy"] = 
+        context.Response.Headers["Permissions-Policy"] =
             "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()";
 
         // Strict-Transport-Security: Enforces HTTPS (only in production)

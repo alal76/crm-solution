@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using CRM.Core.Entities;
@@ -12,12 +28,12 @@ namespace CRM.Infrastructure.Services;
 public class ContactInfoValidationService : IContactInfoValidationService
 {
     private readonly ILogger<ContactInfoValidationService> _logger;
-    
+
     // Email regex - RFC 5322 compliant simplified version
     private static readonly Regex EmailRegex = new(
         @"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    
+
     // Phone number patterns by country
     private static readonly Dictionary<string, (string Pattern, string Format)> PhonePatterns = new()
     {
@@ -34,7 +50,7 @@ public class ContactInfoValidationService : IContactInfoValidationService
         { "BR", (@"^(\+?55)?[-.\s]?\(?[1-9]{2}\)?[-.\s]?9?\d{4}[-.\s]?\d{4}$", "+55 (XX) XXXXX-XXXX") },
         { "MX", (@"^(\+?52)?[-.\s]?\(?[1-9]\d{2}\)?[-.\s]?\d{3}[-.\s]?\d{4}$", "+52 XXX XXX XXXX") },
     };
-    
+
     // Social media URL patterns for extracting handles
     private static readonly Dictionary<SocialMediaPlatform, (string UrlPattern, string HandlePattern, string BaseUrl)> SocialMediaPatterns = new()
     {
@@ -71,12 +87,12 @@ public class ContactInfoValidationService : IContactInfoValidationService
             @"^[a-zA-Z0-9_]{5,32}$",
             "https://t.me/") },
     };
-    
+
     public ContactInfoValidationService(ILogger<ContactInfoValidationService> logger)
     {
         _logger = logger;
     }
-    
+
     /// <inheritdoc />
     public async Task<ValidationResult> ValidateEmailAsync(string email, bool checkMxRecords = false)
     {
@@ -84,55 +100,55 @@ public class ContactInfoValidationService : IContactInfoValidationService
         {
             return ValidationResult.Failure("Email address is required");
         }
-        
+
         email = email.Trim().ToLowerInvariant();
-        
+
         // Basic format validation
         if (!EmailRegex.IsMatch(email))
         {
             return ValidationResult.Failure("Invalid email format");
         }
-        
+
         // Length check
         if (email.Length > 254)
         {
             return ValidationResult.Failure("Email address is too long (max 254 characters)");
         }
-        
+
         var parts = email.Split('@');
         if (parts.Length != 2)
         {
             return ValidationResult.Failure("Invalid email format");
         }
-        
+
         var localPart = parts[0];
         var domain = parts[1];
-        
+
         // Local part length check
         if (localPart.Length > 64)
         {
             return ValidationResult.Failure("Local part of email is too long (max 64 characters)");
         }
-        
+
         // Domain validation
         if (domain.Length > 253)
         {
             return ValidationResult.Failure("Domain part of email is too long");
         }
-        
+
         // Check for common typos in popular domains
         var typoCheck = CheckDomainTypos(domain);
         if (typoCheck != null)
         {
             return ValidationResult.Failure($"Did you mean {localPart}@{typoCheck}?");
         }
-        
+
         // Check for disposable email domains
         if (IsDisposableEmail(domain))
         {
             return ValidationResult.Failure("Disposable email addresses are not allowed");
         }
-        
+
         // MX record check (optional, async)
         if (checkMxRecords)
         {
@@ -150,10 +166,10 @@ public class ContactInfoValidationService : IContactInfoValidationService
                 // Don't fail if MX check fails, just log it
             }
         }
-        
+
         return ValidationResult.Success(email);
     }
-    
+
     /// <inheritdoc />
     public Task<ValidationResult> ValidatePhoneNumberAsync(string phoneNumber, string countryCode = "US")
     {
@@ -161,13 +177,13 @@ public class ContactInfoValidationService : IContactInfoValidationService
         {
             return Task.FromResult(ValidationResult.Failure("Phone number is required"));
         }
-        
+
         // Normalize country code
         countryCode = countryCode.ToUpperInvariant();
-        
+
         // Remove common formatting characters for validation
         var normalized = Regex.Replace(phoneNumber.Trim(), @"[\s\-\.\(\)]", "");
-        
+
         // Check if we have a pattern for this country
         if (PhonePatterns.TryGetValue(countryCode, out var pattern))
         {
@@ -186,13 +202,13 @@ public class ContactInfoValidationService : IContactInfoValidationService
                     "Invalid phone number format. Please include country code and 7-15 digits."));
             }
         }
-        
+
         // Format the phone number
         var formatted = FormatPhoneNumber(phoneNumber, countryCode);
-        
+
         return Task.FromResult(ValidationResult.Success(formatted));
     }
-    
+
     /// <inheritdoc />
     public Task<ValidationResult> ValidateSocialMediaAccountAsync(string handleOrUrl, SocialMediaPlatform platform)
     {
@@ -200,9 +216,9 @@ public class ContactInfoValidationService : IContactInfoValidationService
         {
             return Task.FromResult(ValidationResult.Failure("Social media handle or URL is required"));
         }
-        
+
         handleOrUrl = handleOrUrl.Trim();
-        
+
         // Handle "Other" platform - just validate it looks reasonable
         if (platform == SocialMediaPlatform.Other)
         {
@@ -212,15 +228,15 @@ public class ContactInfoValidationService : IContactInfoValidationService
             }
             return Task.FromResult(ValidationResult.Success(handleOrUrl));
         }
-        
+
         if (!SocialMediaPatterns.TryGetValue(platform, out var patterns))
         {
             // Unknown platform, just accept it
             return Task.FromResult(ValidationResult.Success(handleOrUrl));
         }
-        
+
         string? handle;
-        
+
         // Check if it's a URL
         if (handleOrUrl.Contains("://") || handleOrUrl.Contains(".com") || handleOrUrl.Contains(".me"))
         {
@@ -238,31 +254,31 @@ public class ContactInfoValidationService : IContactInfoValidationService
             // It's a handle - remove @ if present
             handle = handleOrUrl.TrimStart('@');
         }
-        
+
         // Validate handle format
         if (!Regex.IsMatch(handle, patterns.HandlePattern))
         {
             return Task.FromResult(ValidationResult.Failure(
                 $"Invalid {platform} handle format. Handle: @{handle}"));
         }
-        
+
         // Generate full profile URL
         var profileUrl = GenerateProfileUrl(handle, platform);
-        
+
         var result = ValidationResult.Success(handle);
         result.Details["ProfileUrl"] = profileUrl ?? "";
         result.Details["Handle"] = handle;
-        
+
         return Task.FromResult(result);
     }
-    
+
     /// <inheritdoc />
     public string FormatPhoneNumber(string phoneNumber, string countryCode = "US")
     {
         // Remove all non-digits except leading +
         var hasPlus = phoneNumber.TrimStart().StartsWith("+");
         var digits = Regex.Replace(phoneNumber, @"[^\d]", "");
-        
+
         // Format based on country
         switch (countryCode.ToUpperInvariant())
         {
@@ -271,11 +287,11 @@ public class ContactInfoValidationService : IContactInfoValidationService
                 // Remove leading 1 if present
                 if (digits.StartsWith("1") && digits.Length == 11)
                     digits = digits[1..];
-                
+
                 if (digits.Length == 10)
                     return $"+1 ({digits[..3]}) {digits[3..6]}-{digits[6..]}";
                 break;
-                
+
             case "GB":
             case "UK":
                 if (digits.StartsWith("44"))
@@ -285,7 +301,7 @@ public class ContactInfoValidationService : IContactInfoValidationService
                 if (digits.Length >= 10)
                     return $"+44 {digits[..4]} {digits[4..]}";
                 break;
-                
+
             case "IN":
                 if (digits.StartsWith("91"))
                     digits = digits[2..];
@@ -293,42 +309,42 @@ public class ContactInfoValidationService : IContactInfoValidationService
                     return $"+91 {digits[..5]} {digits[5..]}";
                 break;
         }
-        
+
         // Default formatting: just add + if needed
         return hasPlus ? $"+{digits}" : digits;
     }
-    
+
     /// <inheritdoc />
     public string? ExtractSocialMediaHandle(string url, SocialMediaPlatform platform)
     {
         if (string.IsNullOrWhiteSpace(url))
             return null;
-            
+
         if (!SocialMediaPatterns.TryGetValue(platform, out var patterns))
             return url.TrimStart('@');
-            
+
         var match = Regex.Match(url, patterns.UrlPattern, RegexOptions.IgnoreCase);
         if (match.Success && match.Groups.Count >= 2)
             return match.Groups[1].Value;
-            
+
         // Might be just a handle
         return url.TrimStart('@');
     }
-    
+
     /// <inheritdoc />
     public string? GenerateProfileUrl(string handle, SocialMediaPlatform platform)
     {
         if (string.IsNullOrWhiteSpace(handle))
             return null;
-            
+
         handle = handle.TrimStart('@');
-        
+
         if (!SocialMediaPatterns.TryGetValue(platform, out var patterns))
             return null;
-            
+
         return patterns.BaseUrl + handle;
     }
-    
+
     private static string? CheckDomainTypos(string domain)
     {
         var typos = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -346,10 +362,10 @@ public class ContactInfoValidationService : IContactInfoValidationService
             { "yahooo.com", "yahoo.com" },
             { "yhoo.com", "yahoo.com" },
         };
-        
+
         return typos.TryGetValue(domain, out var correct) ? correct : null;
     }
-    
+
     private static bool IsDisposableEmail(string domain)
     {
         // Common disposable email domains
@@ -359,10 +375,10 @@ public class ContactInfoValidationService : IContactInfoValidationService
             "throwaway.email", "fakeinbox.com", "trashmail.com", "yopmail.com",
             "sharklasers.com", "guerrillamailblock.com", "temp-mail.org", "dispostable.com"
         };
-        
+
         return disposable.Contains(domain);
     }
-    
+
     private static async Task<bool> CheckMxRecordsAsync(string domain)
     {
         try

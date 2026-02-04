@@ -16,11 +16,13 @@
 
 using CRM.Core.Entities;
 using CRM.Core.Entities.AI;
+using ITSM = CRM.Core.Entities.ITSM; // Alias for ITSM entities to avoid conflicts
 using CRM.Core.Entities.KnowledgeBase;
 using CRM.Core.Entities.Reports;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
+using CRM.Infrastructure.Data.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -55,35 +57,35 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<UserApprovalRequest> UserApprovalRequests { get; set; }
     public DbSet<DatabaseBackup> DatabaseBackups { get; set; }
     public DbSet<BackupSchedule> BackupSchedules { get; set; }
-    
+
     // Contact entities (using Models.Contact - legacy)
     public DbSet<Contact> Contacts { get; set; }
     public DbSet<SocialMediaLink> SocialMediaLinks { get; set; }
-    
+
     // Lead entity
     public DbSet<Lead> Leads { get; set; }
     public DbSet<LeadProductInterest> LeadProductInterests { get; set; }
-    
+
     // Opportunity junction table
     public DbSet<OpportunityProduct> OpportunityProducts { get; set; }
-    
+
     // New comprehensive entities
     public DbSet<CrmTask> CrmTasks { get; set; }
     public DbSet<Note> Notes { get; set; }
     public DbSet<Quote> Quotes { get; set; }
     public DbSet<QuoteLineItem> QuoteLineItems { get; set; }
     public DbSet<Activity> Activities { get; set; }
-    
+
     // Contact info entities
     public DbSet<Address> Addresses { get; set; }
     public DbSet<ContactDetail> ContactDetails { get; set; }
     public DbSet<SocialAccount> SocialAccounts { get; set; }
-    
+
     // Consolidated contact info entities (new)
     public DbSet<PhoneNumber> PhoneNumbers { get; set; }
     public DbSet<EmailAddress> EmailAddresses { get; set; }
     public DbSet<SocialMediaAccount> SocialMediaAccounts { get; set; }
-    
+
     // Contact info junction tables
     public DbSet<EntityAddressLink> EntityAddressLinks { get; set; }
     public DbSet<EntityPhoneLink> EntityPhoneLinks { get; set; }
@@ -92,12 +94,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ContactInfoLink> ContactInfoLinks { get; set; }
     public DbSet<LookupCategory> LookupCategories { get; set; }
     public DbSet<LookupItem> LookupItems { get; set; }
-    
+
     // Normalization helper tables
     public DbSet<CRM.Core.Entities.Tag> Tags { get; set; }
     public DbSet<CRM.Core.Entities.EntityTag> EntityTags { get; set; }
     public DbSet<CRM.Core.Entities.CustomField> CustomFields { get; set; }
-    
+
     // Service Request entities
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
     public DbSet<ServiceRequestCategory> ServiceRequestCategories { get; set; }
@@ -105,45 +107,45 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ServiceRequestType> ServiceRequestTypes { get; set; }
     public DbSet<ServiceRequestCustomFieldDefinition> ServiceRequestCustomFieldDefinitions { get; set; }
     public DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; set; }
-    
+
     // System settings
     public DbSet<SystemSettings> SystemSettings { get; set; }
-    
+
     // Color palettes
     public DbSet<ColorPalette> ColorPalettes { get; set; }
-    
+
     // LLM Provider Settings
     public DbSet<LLMProviderSetting> LLMProviderSettings { get; set; }
-    
+
     // Module field configurations
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
         public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; set; }
-    
+
     // Communication entities
     public DbSet<CommunicationChannel> CommunicationChannels { get; set; }
     public DbSet<CommunicationMessage> CommunicationMessages { get; set; }
     public DbSet<EmailTemplate> EmailTemplates { get; set; }
     public DbSet<Conversation> Conversations { get; set; }
-    
+
     // Master data entities
     public DbSet<ZipCode> ZipCodes { get; set; }
     public DbSet<Locality> Localities { get; set; }
-    
+
     // Social media follow tracking
     public DbSet<SocialMediaFollow> SocialMediaFollows { get; set; }
-    
+
     // Cloud Deployment entities
     public DbSet<CloudProvider> CloudProviders { get; set; }
     public DbSet<CloudDeployment> CloudDeployments { get; set; }
     public DbSet<DeploymentAttempt> DeploymentAttempts { get; set; }
     public DbSet<HealthCheckLog> HealthCheckLogs { get; set; }
-    
+
     // Dashboard and Analytics entities
     public DbSet<Dashboard> Dashboards { get; set; }
     public DbSet<DashboardWidget> DashboardWidgets { get; set; }
-    
+
     // Workflow entities
     public DbSet<WorkflowDefinition> WorkflowDefinitions { get; set; }
     public DbSet<WorkflowVersion> WorkflowVersions { get; set; }
@@ -153,16 +155,16 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<WorkflowNodeInstance> WorkflowNodeInstances { get; set; }
     public DbSet<WorkflowTask> WorkflowTasks { get; set; }
     public DbSet<WorkflowLog> WorkflowLogs { get; set; }
-    
+
     // Relationship Management entities
-    public DbSet<RelationshipType> RelationshipTypes { get; set; }
+    public DbSet<CRM.Core.Entities.RelationshipType> RelationshipTypes { get; set; }
     public DbSet<AccountRelationship> AccountRelationships { get; set; }
     public DbSet<RelationshipInteraction> RelationshipInteractions { get; set; }
     public DbSet<AccountHealthSnapshot> AccountHealthSnapshots { get; set; }
     public DbSet<RelationshipMap> RelationshipMaps { get; set; }
     public DbSet<AccountTerritory> AccountTerritories { get; set; }
     public DbSet<AccountTerritoryAssignment> CustomerTerritoryAssignments { get; set; }
-    
+
     // Campaign execution entities
     public DbSet<CampaignRecipient> CampaignRecipients { get; set; }
     public DbSet<CampaignLinkClick> CampaignLinkClicks { get; set; }
@@ -290,6 +292,58 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<BusinessHours> BusinessHoursConfigs { get; set; }
     public DbSet<EscalationRule> EscalationRules { get; set; }
 
+    // =============================================================================
+    // ITSM Module Entities (Incident, Problem, Change, CMDB, Knowledge, Catalog)
+    // =============================================================================
+    
+    // Incident Management
+    public DbSet<ITSM.Incident> Incidents { get; set; }
+    public DbSet<ITSM.IncidentComment> IncidentComments { get; set; }
+    public DbSet<ITSM.IncidentAttachment> IncidentAttachments { get; set; }
+    public DbSet<ITSM.IncidentHistory> IncidentHistory { get; set; }
+    
+    // Problem Management
+    public DbSet<ITSM.Problem> Problems { get; set; }
+    public DbSet<ITSM.ProblemIncident> ProblemIncidents { get; set; }
+    public DbSet<ITSM.ProblemTask> ProblemTasks { get; set; }
+    public DbSet<ITSM.ProblemComment> ProblemComments { get; set; }
+    public DbSet<ITSM.ProblemAttachment> ProblemAttachments { get; set; }
+    
+    // SLA Management (Enhanced)
+    public DbSet<ITSM.SLAPolicy> ITSMSLAPolicies { get; set; }
+    public DbSet<ITSM.SLAInstance> ITSMSLAInstances { get; set; }
+    public DbSet<ITSM.BusinessHoursSchedule> BusinessHoursSchedules { get; set; }
+    
+    // CMDB
+    public DbSet<ITSM.ConfigurationItem> ConfigurationItems { get; set; }
+    public DbSet<ITSM.CIRelationship> CIRelationships { get; set; }
+    public DbSet<ITSM.Service> Services { get; set; }
+    public DbSet<ITSM.ServiceCI> ServiceCIs { get; set; }
+    
+    // Change Management
+    public DbSet<ITSM.Change> Changes { get; set; }
+    public DbSet<ITSM.ChangeApproval> ChangeApprovals { get; set; }
+    public DbSet<ITSM.ChangeBlackout> ChangeBlackouts { get; set; }
+    public DbSet<ITSM.ChangeImpactedCI> ChangeImpactedCIs { get; set; }
+    public DbSet<ITSM.ChangeTask> ChangeTasks { get; set; }
+    public DbSet<ITSM.ChangeComment> ChangeComments { get; set; }
+    public DbSet<ITSM.ChangeAttachment> ChangeAttachments { get; set; }
+    
+    // Knowledge Management (Enhanced)
+    public DbSet<ITSM.KnowledgeArticle> ITSMKnowledgeArticles { get; set; }
+    public DbSet<ITSM.ArticleRelationship> ArticleRelationships { get; set; }
+    public DbSet<ITSM.ArticleIncident> ArticleIncidents { get; set; }
+    public DbSet<ITSM.ArticleFeedback> ITSMArticleFeedback { get; set; }
+    public DbSet<ITSM.ArticleAttachment> ArticleAttachments { get; set; }
+    
+    // Service Catalog
+    public DbSet<ITSM.CatalogCategory> CatalogCategories { get; set; }
+    public DbSet<ITSM.CatalogItem> CatalogItems { get; set; }
+    public DbSet<ITSM.CatalogVariable> CatalogVariables { get; set; }
+    public DbSet<ITSM.CatalogRequest> CatalogRequests { get; set; }
+    public DbSet<ITSM.CatalogRequestApproval> CatalogRequestApprovals { get; set; }
+    public DbSet<ITSM.CatalogRequestComment> CatalogRequestComments { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
             if (!optionsBuilder.IsConfigured && _configuration != null)
@@ -334,45 +388,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Get database provider - check both configuration and actual provider
-        // Handle null configuration gracefully for unit tests
+        // Use Strategy Pattern for database provider-specific configurations
+        var factory = new DatabaseProviderStrategyFactory(_configuration);
         var databaseProvider = _configuration?["DatabaseProvider"]?.ToLower() ?? "mariadb";
-        
-        // Also check if we're using SQL Server based on the actual provider
-        var isSqlServer = databaseProvider == "sqlserver" || 
-                          Database.ProviderName?.Contains("SqlServer", StringComparison.OrdinalIgnoreCase) == true;
-        
-        // Database-agnostic column types for large text fields
-        var longTextType = isSqlServer ? "nvarchar(max)" : "LONGTEXT";
-        var textType = isSqlServer ? "nvarchar(max)" : "TEXT";
+        var providerStrategy = factory.CreateStrategy(databaseProvider, Database.ProviderName);
+
+        // Get provider-specific column types for use in configurations
+        var longTextType = providerStrategy.LongTextColumnType;
+        var textType = providerStrategy.TextColumnType;
 
         // Configure RowVersion for all entities that inherit from BaseEntity
-        // This enables optimistic concurrency control
+        // This enables optimistic concurrency control using the provider strategy
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
             {
-                var rowVersionProperty = entityType.FindProperty("RowVersion");
-                if (rowVersionProperty != null)
-                {
-                    if (isSqlServer)
-                    {
-                        // SQL Server uses native rowversion
-                        modelBuilder.Entity(entityType.ClrType)
-                            .Property("RowVersion")
-                            .IsRowVersion();
-                    }
-                    else
-                    {
-                        // MariaDB/MySQL: Use TIMESTAMP with ON UPDATE for optimistic concurrency
-                        // Store as binary(8) for compatibility
-                        modelBuilder.Entity(entityType.ClrType)
-                            .Property("RowVersion")
-                            .HasColumnType("BINARY(8)")
-                            .IsConcurrencyToken()
-                            .ValueGeneratedOnAddOrUpdate();
-                    }
-                }
+                providerStrategy.ConfigureRowVersion(modelBuilder, entityType);
             }
         }
 
@@ -381,7 +412,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
 #pragma warning disable CS0618 // Type or member is obsolete
         modelBuilder.Ignore<Customer>();
 #pragma warning restore CS0618
-        
+
         // Configure Account (formerly Customer)
         modelBuilder.Entity<Account>(entity =>
         {
@@ -398,21 +429,21 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Salutation).HasMaxLength(20);
             entity.Property(e => e.Suffix).HasMaxLength(20);
             entity.Property(e => e.Gender).HasMaxLength(20);
-            
+
             // Map renamed properties to original database columns for backward compatibility
             entity.Property(e => e.AccountHealthScore).HasColumnName("CustomerHealthScore");
             // AccountType, ReferredByAccountId, ParentAccountId columns exist in database with these names
-            
+
             entity.HasIndex(e => e.Email);
             entity.HasIndex(e => e.Category);
             entity.HasIndex(e => e.Company);
-            
+
             // Self-referencing relationships
             entity.HasOne(e => e.ReferredByAccount)
                 .WithMany()
                 .HasForeignKey(e => e.ReferredByAccountId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.ParentAccount)
                 .WithMany()
                 .HasForeignKey(e => e.ParentAccountId)
@@ -426,12 +457,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => new { e.AccountId, e.ContactId }).IsUnique();
             entity.Property(e => e.PositionAtAccount).HasMaxLength(100);
             entity.Property(e => e.DepartmentAtAccount).HasMaxLength(100);
-            
+
             entity.HasOne(e => e.Account)
                 .WithMany(c => c.AccountContacts)
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasOne(e => e.Contact)
                 .WithMany(c => c.AccountContacts)
                 .HasForeignKey(e => e.ContactId)
@@ -444,26 +475,26 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
             entity.Property(e => e.Amount).HasPrecision(18, 2);
-            
+
             // Link Opportunity -> Customer (required)
             entity.HasOne(e => e.Account)
                 .WithMany(c => c.Opportunities)
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Link Opportunity -> Lead (optional, source lead)
             entity.HasOne(e => e.Lead)
                 .WithMany(l => l.Opportunities)
                 .HasForeignKey(e => e.LeadId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             // Link Opportunity -> User (sales owner)
             entity.HasOne(e => e.SalesOwner)
                 .WithMany()
                 .HasForeignKey(e => e.SalesOwnerId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // Configure OpportunityProduct junction table
         modelBuilder.Entity<OpportunityProduct>(entity =>
         {
@@ -480,7 +511,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.DiscountPercent).HasPrecision(5, 2);
             entity.Property(e => e.LineTotal).HasPrecision(18, 2);
         });
-        
+
         // Configure LeadProductInterest junction table
         modelBuilder.Entity<LeadProductInterest>(entity =>
         {
@@ -523,19 +554,19 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.AddressXml).HasColumnType("TEXT");
             entity.Property(e => e.Latitude).HasPrecision(10, 6);
             entity.Property(e => e.Longitude).HasPrecision(10, 6);
-            
+
             // FK to ZipCode
             entity.HasOne(e => e.ZipCodeData)
                 .WithMany(z => z.Addresses)
                 .HasForeignKey(e => e.ZipCodeId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             // FK to Locality
             entity.HasOne(e => e.LocalityData)
                 .WithMany()
                 .HasForeignKey(e => e.LocalityId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasIndex(e => e.ZipCodeId);
             entity.HasIndex(e => e.LocalityId);
             entity.HasIndex(e => e.PostalCode);
@@ -704,7 +735,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(c => c.PreferredContactMethodLookupId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             // Contact belongs to Customer (one-to-many)
             entity.HasOne(c => c.Customer)
                 .WithMany(cust => cust.Contacts)
@@ -755,7 +786,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
             entity.HasIndex(e => e.Username).IsUnique();
             entity.HasIndex(e => e.Email).IsUnique();
-            
+
             // Column mappings for backward compatibility with existing database schema
             entity.Property(e => e.LastLoginDate).HasColumnName("LastLoginAt");
             entity.Property(e => e.EmailVerified).HasColumnName("IsEmailVerified");
@@ -772,13 +803,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(p => p.Users)
                 .HasForeignKey(e => e.UserProfileId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.PrimaryGroup)
                 .WithMany(g => g.PrimaryUsers)
                 .HasForeignKey(e => e.PrimaryGroupId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // Configure UserGroup
         modelBuilder.Entity<UserGroup>(entity =>
         {
@@ -786,26 +817,26 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Description).HasMaxLength(500);
         });
-        
+
         // Configure UserGroupMember (junction table for User-UserGroup many-to-many)
         modelBuilder.Entity<UserGroupMember>(entity =>
         {
             entity.HasKey(e => e.Id);
-            
+
             // Unique constraint: user can only be member of a group once
             entity.HasIndex(e => new { e.UserId, e.UserGroupId }).IsUnique();
-            
+
             entity.HasOne(e => e.User)
                 .WithMany(u => u.GroupMemberships)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.UserGroup)
                 .WithMany(g => g.Members)
                 .HasForeignKey(e => e.UserGroupId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // Configure SystemSettings
         modelBuilder.Entity<SystemSettings>(entity =>
         {
@@ -897,27 +928,27 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Subject).IsRequired().HasMaxLength(255);
-            
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.Opportunity)
                 .WithMany()
                 .HasForeignKey(e => e.OpportunityId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.AssignedToUser)
                 .WithMany()
                 .HasForeignKey(e => e.AssignedToUserId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.ParentTask)
                 .WithMany(t => t.SubTasks)
                 .HasForeignKey(e => e.ParentTaskId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             entity.HasIndex(e => e.DueDate);
             entity.HasIndex(e => e.Status);
 
@@ -934,17 +965,17 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
             entity.Property(e => e.Content).IsRequired();
-            
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasOne(e => e.Opportunity)
                 .WithMany()
                 .HasForeignKey(e => e.OpportunityId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Link Note -> MarketingCampaign
             entity.HasOne(e => e.Campaign)
                 .WithMany()
@@ -955,7 +986,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.CreatedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasIndex(e => e.IsPinned);
         });
 
@@ -965,37 +996,37 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.QuoteNumber).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
-            
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.Contact)
                 .WithMany()
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.Opportunity)
                 .WithMany()
                 .HasForeignKey(e => e.OpportunityId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.AssignedToUser)
                 .WithMany()
                 .HasForeignKey(e => e.AssignedToUserId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.RelationshipManager)
                 .WithMany()
                 .HasForeignKey(e => e.RelationshipManagerId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.ParentQuote)
                 .WithMany(q => q.Revisions)
                 .HasForeignKey(e => e.ParentQuoteId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             entity.HasIndex(e => e.QuoteNumber).IsUnique();
             entity.HasIndex(e => e.Status);
         });
@@ -1014,7 +1045,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.BillingPeriod).HasMaxLength(50);
             entity.Property(e => e.InternalNotes).HasMaxLength(2000);
             entity.Property(e => e.QuoteNotes).HasMaxLength(2000);
-            
+
             // Precision for decimal fields
             entity.Property(e => e.Quantity).HasPrecision(18, 4);
             entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
@@ -1028,25 +1059,25 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
             entity.Property(e => e.Total).HasPrecision(18, 2);
             entity.Property(e => e.Margin).HasPrecision(18, 2);
-            
+
             // Quote relationship
             entity.HasOne(e => e.Quote)
                 .WithMany(q => q.QuoteLineItems)
                 .HasForeignKey(e => e.QuoteId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Product relationship
             entity.HasOne(e => e.Product)
                 .WithMany()
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             // Self-referencing for bundle items
             entity.HasOne(e => e.ParentLineItem)
                 .WithMany(e => e.BundleItems)
                 .HasForeignKey(e => e.ParentLineItemId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             entity.HasIndex(e => new { e.QuoteId, e.LineNumber });
             entity.HasIndex(e => e.SKU);
         });
@@ -1059,22 +1090,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.EntityType).HasMaxLength(100);
             entity.Property(e => e.SecondaryEntityType).HasMaxLength(100);
             entity.Property(e => e.ActivityType).HasMaxLength(100);
-            
+
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasOne(e => e.Opportunity)
                 .WithMany()
                 .HasForeignKey(e => e.OpportunityId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasIndex(e => e.ActivityDate);
             entity.HasIndex(e => e.ActivityType);
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
@@ -1100,37 +1131,37 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Region).HasMaxLength(100);
             entity.Property(e => e.Tags).HasMaxLength(2000);
             entity.Property(e => e.QualificationNotes).HasMaxLength(4000);
-            
+
             // Lead -> User (Owner)
             entity.HasOne(e => e.Owner)
                 .WithMany()
                 .HasForeignKey(e => e.OwnerId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             // Lead -> Campaign (EXPLICIT: only GeneratedLeads inverse)
             // This fixes the warning about multiple Lead-Campaign relationships
             entity.HasOne(e => e.Campaign)
                 .WithMany(c => c.GeneratedLeads)
                 .HasForeignKey(e => e.CampaignId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             // Lead -> Customer
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             // Lead -> Contact
             entity.HasOne(e => e.Contact)
                 .WithMany()
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasIndex(e => e.Email);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Score);
         });
-        
+
         // Configure MarketingCampaign Lead collections (without inverse navigation)
         // ConvertedLeads and TouchedLeads don't have FK in Lead, so they need junction tables or explicit ignore
         modelBuilder.Entity<MarketingCampaign>(entity =>
@@ -1140,24 +1171,24 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Ignore(e => e.ConvertedLeads);
             entity.Ignore(e => e.TouchedLeads);
         });
-        
+
         // Configure LeadProductInterest (junction table)
         modelBuilder.Entity<LeadProductInterest>(entity =>
         {
             entity.HasKey(e => new { e.LeadId, e.ProductId });
             entity.Property(e => e.Notes).HasMaxLength(1000);
-            
+
             entity.HasOne(e => e.Lead)
                 .WithMany(l => l.ProductInterests)
                 .HasForeignKey(e => e.LeadId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasOne(e => e.Product)
                 .WithMany()
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // Configure Opportunity (3NF) - Additional property configurations
         // NOTE: Main relationship configurations are earlier in the file
         modelBuilder.Entity<Opportunity>(entity =>
@@ -1166,17 +1197,17 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Region).HasMaxLength(100);
             entity.Property(e => e.SolutionNotes).HasMaxLength(4000);
             entity.Property(e => e.QualificationNotes).HasMaxLength(4000);
-            
+
             // Opportunity -> Contact (Primary)
             entity.HasOne(e => e.PrimaryContact)
                 .WithMany()
                 .HasForeignKey(e => e.PrimaryContactId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasIndex(e => e.Stage);
             entity.HasIndex(e => e.ExpectedCloseDate);
         });
-        
+
         // Configure OpportunityProduct (junction table)
         modelBuilder.Entity<OpportunityProduct>(entity =>
         {
@@ -1185,12 +1216,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.DiscountPercent).HasPrecision(5, 2);
             entity.Property(e => e.LineTotal).HasPrecision(18, 2);
             entity.Property(e => e.Notes).HasMaxLength(1000);
-            
+
             entity.HasOne(e => e.Opportunity)
                 .WithMany(o => o.Products)
                 .HasForeignKey(e => e.OpportunityId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasOne(e => e.Product)
                 .WithMany()
                 .HasForeignKey(e => e.ProductId)
@@ -1204,7 +1235,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.ConvertedFromLeadId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.SourceCampaign)
                 .WithMany()
                 .HasForeignKey(e => e.SourceCampaignId)
@@ -1231,7 +1262,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.HasIndex(e => e.Name);
             entity.HasIndex(e => e.DisplayOrder);
-            
+
             entity.HasOne(e => e.Category)
                 .WithMany(c => c.Subcategories)
                 .HasForeignKey(e => e.CategoryId)
@@ -1255,12 +1286,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.MaxValue).HasPrecision(18, 4);
             entity.HasIndex(e => e.FieldKey);
             entity.HasIndex(e => e.DisplayOrder);
-            
+
             entity.HasOne(e => e.Category)
                 .WithMany()
                 .HasForeignKey(e => e.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.Subcategory)
                 .WithMany()
                 .HasForeignKey(e => e.SubcategoryId)
@@ -1274,12 +1305,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.TextValue).HasColumnType("TEXT");
             entity.Property(e => e.NumericValue).HasPrecision(18, 4);
             entity.HasIndex(e => new { e.ServiceRequestId, e.CustomFieldDefinitionId }).IsUnique();
-            
+
             entity.HasOne(e => e.ServiceRequest)
                 .WithMany(sr => sr.CustomFieldValues)
                 .HasForeignKey(e => e.ServiceRequestId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasOne(e => e.CustomFieldDefinition)
                 .WithMany(f => f.FieldValues)
                 .HasForeignKey(e => e.CustomFieldDefinitionId)
@@ -1309,7 +1340,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.InternalNotes).HasColumnType("TEXT");
             entity.Property(e => e.EstimatedEffortHours).HasPrecision(18, 2);
             entity.Property(e => e.ActualEffortHours).HasPrecision(18, 2);
-            
+
             entity.HasIndex(e => e.TicketNumber).IsUnique();
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Priority);
@@ -1317,37 +1348,37 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.ResponseDueDate);
             entity.HasIndex(e => e.ResolutionDueDate);
-            
+
             entity.HasOne(e => e.Category)
                 .WithMany(c => c.ServiceRequests)
                 .HasForeignKey(e => e.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.Subcategory)
                 .WithMany(s => s.ServiceRequests)
                 .HasForeignKey(e => e.SubcategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.Contact)
                 .WithMany()
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.AssignedToUser)
                 .WithMany()
                 .HasForeignKey(e => e.AssignedToUserId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.AssignedToGroup)
                 .WithMany()
                 .HasForeignKey(e => e.AssignedToGroupId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
         // Configure Tags
         modelBuilder.Entity<CRM.Core.Entities.Tag>(entity =>
         {
@@ -1364,12 +1395,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
             entity.Property(e => e.TagName).HasMaxLength(200);
-            
+
             // Unique constraint: same tag can only be assigned once per entity
             entity.HasIndex(e => new { e.EntityType, e.EntityId, e.TagId }).IsUnique();
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
             entity.HasIndex(e => e.TagId);
-            
+
             // Navigation to Tag with cascade delete
             entity.HasOne(e => e.Tag)
                 .WithMany(t => t.EntityTags)
@@ -1385,7 +1416,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Value).HasColumnType("TEXT");
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
         });
-        
+
         // Configure Conversation
         modelBuilder.Entity<Conversation>(entity =>
         {
@@ -1397,12 +1428,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.ParticipantName).HasMaxLength(200);
             entity.HasIndex(e => e.ConversationId).IsUnique();
             entity.HasIndex(e => e.Status);
-            
+
             // Ignore Messages navigation - relationship is via string ConversationId, not FK
             // This prevents EF from creating shadow FK ConversationId1 on CommunicationMessage
             entity.Ignore(e => e.Messages);
         });
-        
+
         // Configure CommunicationMessage
         modelBuilder.Entity<CommunicationMessage>(entity =>
         {
@@ -1414,28 +1445,28 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.ToName).HasMaxLength(200);
             entity.Property(e => e.ConversationId).HasMaxLength(100);
             entity.Property(e => e.ExternalMessageId).HasMaxLength(500);
-            
+
             // CommunicationMessage -> Channel
             entity.HasOne(e => e.Channel)
                 .WithMany()
                 .HasForeignKey(e => e.ChannelId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             // CommunicationMessage -> ParentMessage (self-referencing for threading)
             entity.HasOne(e => e.ParentMessage)
                 .WithMany(m => m.Replies)
                 .HasForeignKey(e => e.ParentMessageId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             // Ignore navigation to Conversation by string ID - handled via ConversationId string field
             // This prevents EF from creating shadow FK ConversationId1
-            
+
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Direction);
             entity.HasIndex(e => e.SentAt);
             entity.HasIndex(e => e.ConversationId);
         });
-        
+
         // Configure ZipCodes (Master Data)
         modelBuilder.Entity<ZipCode>(entity =>
         {
@@ -1457,20 +1488,20 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => new { e.CountryCode, e.PostalCode });
             entity.HasIndex(e => e.City);
             entity.HasIndex(e => e.State);
-            
+
             // Navigation to Localities
             entity.HasMany(e => e.Localities)
                 .WithOne(l => l.ZipCode)
                 .HasForeignKey(l => l.ZipCodeId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             // Navigation to Addresses
             entity.HasMany(e => e.Addresses)
                 .WithOne(a => a.ZipCodeData)
                 .HasForeignKey(a => a.ZipCodeId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // Configure Localities
         modelBuilder.Entity<Locality>(entity =>
         {
@@ -1486,24 +1517,24 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => new { e.ZipCodeId });
             entity.HasIndex(e => e.Name);
         });
-        
+
         // Configure SocialMediaFollow
         modelBuilder.Entity<SocialMediaFollow>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.EntityType).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Notes).HasMaxLength(500);
-            
+
             entity.HasOne(e => e.SocialMediaAccount)
                 .WithMany(s => s.Followers)
                 .HasForeignKey(e => e.SocialMediaAccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasOne(e => e.FollowedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.FollowedByUserId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasIndex(e => new { e.SocialMediaAccountId, e.FollowedByUserId }).IsUnique();
             entity.HasIndex(e => e.FollowedByUserId);
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
@@ -1513,23 +1544,23 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.CreatedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.RelatedOpportunity)
                 .WithMany()
                 .HasForeignKey(e => e.RelatedOpportunityId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.RelatedProduct)
                 .WithMany()
                 .HasForeignKey(e => e.RelatedProductId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.ParentServiceRequest)
                 .WithMany(sr => sr.ChildServiceRequests)
                 .HasForeignKey(e => e.ParentServiceRequestId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // Configure Cloud Deployment entities
         modelBuilder.Entity<CloudProvider>(entity =>
         {
@@ -1547,7 +1578,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Name);
             entity.HasIndex(e => e.ProviderType);
         });
-        
+
         modelBuilder.Entity<CloudDeployment>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -1573,13 +1604,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.ResourceConfiguration).HasColumnType("TEXT");
             entity.HasIndex(e => e.Name);
             entity.HasIndex(e => e.Status);
-            
+
             entity.HasOne(e => e.CloudProvider)
                 .WithMany(p => p.Deployments)
                 .HasForeignKey(e => e.CloudProviderId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-        
+
         modelBuilder.Entity<DeploymentAttempt>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -1597,13 +1628,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.CloudDeploymentId);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.StartedAt);
-            
+
             entity.HasOne(e => e.CloudDeployment)
                 .WithMany(d => d.Attempts)
                 .HasForeignKey(e => e.CloudDeploymentId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         modelBuilder.Entity<HealthCheckLog>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -1614,13 +1645,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.CloudDeploymentId);
             entity.HasIndex(e => e.CheckedAt);
             entity.HasIndex(e => e.Status);
-            
+
             entity.HasOne(e => e.CloudDeployment)
                 .WithMany(d => d.HealthChecks)
                 .HasForeignKey(e => e.CloudDeploymentId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // Dashboard configuration
         modelBuilder.Entity<Dashboard>(entity =>
         {
@@ -1634,13 +1665,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.IsDefault);
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.OwnerId);
-            
+
             entity.HasOne(e => e.Owner)
                 .WithMany()
                 .HasForeignKey(e => e.OwnerId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         modelBuilder.Entity<DashboardWidget>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -1655,13 +1686,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.DashboardId);
             entity.HasIndex(e => e.DisplayOrder);
             entity.HasIndex(e => e.WidgetType);
-            
+
             entity.HasOne(e => e.Dashboard)
                 .WithMany(d => d.Widgets)
                 .HasForeignKey(e => e.DashboardId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // Workflow Definition configuration
         modelBuilder.Entity<WorkflowDefinition>(entity =>
         {
@@ -1680,13 +1711,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Category);
             entity.HasIndex(e => e.OwnerId);
-            
+
             entity.HasOne(e => e.Owner)
                 .WithMany()
                 .HasForeignKey(e => e.OwnerId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // Workflow Version configuration
         modelBuilder.Entity<WorkflowVersion>(entity =>
         {
@@ -1696,18 +1727,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.CanvasLayout).HasColumnType("TEXT");
             entity.HasIndex(e => new { e.WorkflowDefinitionId, e.VersionNumber }).IsUnique();
             entity.HasIndex(e => e.Status);
-            
+
             entity.HasOne(e => e.WorkflowDefinition)
                 .WithMany(d => d.Versions)
                 .HasForeignKey(e => e.WorkflowDefinitionId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.PublishedBy)
                 .WithMany()
                 .HasForeignKey(e => e.PublishedById)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // Workflow Node configuration
         modelBuilder.Entity<WorkflowNode>(entity =>
         {
@@ -1727,13 +1758,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.NodeType);
             entity.HasIndex(e => e.IsStartNode);
             entity.HasIndex(e => e.IsEndNode);
-            
+
             entity.HasOne(e => e.WorkflowVersion)
                 .WithMany(v => v.Nodes)
                 .HasForeignKey(e => e.WorkflowVersionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // Workflow Transition configuration
         modelBuilder.Entity<WorkflowTransition>(entity =>
         {
@@ -1750,23 +1781,23 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.WorkflowVersionId);
             entity.HasIndex(e => e.SourceNodeId);
             entity.HasIndex(e => e.TargetNodeId);
-            
+
             entity.HasOne(e => e.WorkflowVersion)
                 .WithMany(v => v.Transitions)
                 .HasForeignKey(e => e.WorkflowVersionId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.SourceNode)
                 .WithMany(n => n.OutgoingTransitions)
                 .HasForeignKey(e => e.SourceNodeId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.TargetNode)
                 .WithMany(n => n.IncomingTransitions)
                 .HasForeignKey(e => e.TargetNodeId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-        
+
         // Workflow Instance configuration
         modelBuilder.Entity<WorkflowInstance>(entity =>
         {
@@ -1787,33 +1818,33 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.ScheduledAt);
             entity.HasIndex(e => e.NextRetryAt);
-            
+
             entity.HasOne(e => e.WorkflowDefinition)
                 .WithMany(d => d.Instances)
                 .HasForeignKey(e => e.WorkflowDefinitionId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.WorkflowVersion)
                 .WithMany()
                 .HasForeignKey(e => e.WorkflowVersionId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.CurrentNode)
                 .WithMany()
                 .HasForeignKey(e => e.CurrentNodeId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.TriggeredBy)
                 .WithMany()
                 .HasForeignKey(e => e.TriggeredById)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.ParentInstance)
                 .WithMany(i => i.ChildInstances)
                 .HasForeignKey(e => e.ParentInstanceId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // Workflow Node Instance configuration
         modelBuilder.Entity<WorkflowNodeInstance>(entity =>
         {
@@ -1828,23 +1859,23 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.WorkflowNodeId);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.NextRetryAt);
-            
+
             entity.HasOne(e => e.WorkflowInstance)
                 .WithMany(i => i.NodeInstances)
                 .HasForeignKey(e => e.WorkflowInstanceId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.WorkflowNode)
                 .WithMany(n => n.NodeInstances)
                 .HasForeignKey(e => e.WorkflowNodeId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.TransitionTaken)
                 .WithMany()
                 .HasForeignKey(e => e.TransitionTakenId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // Workflow Task configuration
         modelBuilder.Entity<WorkflowTask>(entity =>
         {
@@ -1870,28 +1901,28 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.IsDeadLetter);
             entity.HasIndex(e => e.AssignedToId);
             entity.HasIndex(e => e.LockExpiresAt);
-            
+
             entity.HasOne(e => e.WorkflowInstance)
                 .WithMany(i => i.Tasks)
                 .HasForeignKey(e => e.WorkflowInstanceId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.WorkflowNode)
                 .WithMany()
                 .HasForeignKey(e => e.WorkflowNodeId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.NodeInstance)
                 .WithMany()
                 .HasForeignKey(e => e.NodeInstanceId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.AssignedTo)
                 .WithMany()
                 .HasForeignKey(e => e.AssignedToId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // Workflow Log configuration
         modelBuilder.Entity<WorkflowLog>(entity =>
         {
@@ -1907,32 +1938,32 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Level);
             entity.HasIndex(e => e.Timestamp);
             entity.HasIndex(e => e.Category);
-            
+
             entity.HasOne(e => e.WorkflowInstance)
                 .WithMany(i => i.Logs)
                 .HasForeignKey(e => e.WorkflowInstanceId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.WorkflowNode)
                 .WithMany()
                 .HasForeignKey(e => e.WorkflowNodeId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.NodeInstance)
                 .WithMany()
                 .HasForeignKey(e => e.NodeInstanceId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // ===================================================================
         // RELATIONSHIP MANAGEMENT ENTITIES
         // ===================================================================
-        
+
         // RelationshipType configuration
         modelBuilder.Entity<RelationshipType>(entity =>
         {
@@ -1946,7 +1977,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.TypeCategory);
             entity.HasIndex(e => e.IsActive);
         });
-        
+
         // AccountRelationship configuration
         modelBuilder.Entity<AccountRelationship>(entity =>
         {
@@ -1958,23 +1989,23 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.RelationshipTypeId);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => new { e.SourceAccountId, e.TargetAccountId, e.RelationshipTypeId }).IsUnique();
-            
+
             entity.HasOne(e => e.SourceAccount)
                 .WithMany()
                 .HasForeignKey(e => e.SourceAccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.TargetAccount)
                 .WithMany()
                 .HasForeignKey(e => e.TargetAccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.RelationshipType)
                 .WithMany(t => t.Relationships)
                 .HasForeignKey(e => e.RelationshipTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-        
+
         // RelationshipInteraction configuration
         modelBuilder.Entity<RelationshipInteraction>(entity =>
         {
@@ -1993,13 +2024,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.AccountRelationshipId);
             entity.HasIndex(e => e.InteractionDate);
             entity.HasIndex(e => e.InteractionType);
-            
+
             entity.HasOne(e => e.AccountRelationship)
                 .WithMany(r => r.Interactions)
                 .HasForeignKey(e => e.AccountRelationshipId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // AccountHealthSnapshot configuration
         modelBuilder.Entity<AccountHealthSnapshot>(entity =>
         {
@@ -2012,13 +2043,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.AccountId);
             entity.HasIndex(e => e.SnapshotDate);
             entity.HasIndex(e => new { e.AccountId, e.SnapshotDate }).IsUnique();
-            
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // RelationshipMap configuration
         modelBuilder.Entity<RelationshipMap>(entity =>
         {
@@ -2032,13 +2063,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.SharedWithUserIds).HasColumnType("TEXT");
             entity.Property(e => e.SharedWithGroupIds).HasColumnType("TEXT");
             entity.HasIndex(e => e.IsPublic);
-            
+
             entity.HasOne(e => e.CentralAccount)
                 .WithMany()
                 .HasForeignKey(e => e.CentralAccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // AccountTerritory configuration
         modelBuilder.Entity<AccountTerritory>(entity =>
         {
@@ -2056,13 +2087,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.TerritoryCode).IsUnique();
             entity.HasIndex(e => e.PrimaryOwnerId);
             entity.HasIndex(e => e.IsActive);
-            
+
             entity.HasOne(e => e.PrimaryOwner)
                 .WithMany()
                 .HasForeignKey(e => e.PrimaryOwnerId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // CustomerTerritoryAssignment configuration
         modelBuilder.Entity<AccountTerritoryAssignment>(entity =>
         {
@@ -2070,22 +2101,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Notes).HasMaxLength(500);
             entity.HasIndex(e => e.TerritoryId);
             entity.HasIndex(e => e.IsPrimary);
-            
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.Territory)
                 .WithMany(t => t.AccountAssignments)
                 .HasForeignKey(e => e.TerritoryId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // ===================================================================
         // CAMPAIGN EXECUTION ENTITIES
         // ===================================================================
-        
+
         // CampaignRecipient configuration
         modelBuilder.Entity<CampaignRecipient>(entity =>
         {
@@ -2105,23 +2136,23 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.AccountId);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Email);
-            
+
             entity.HasOne(e => e.Campaign)
                 .WithMany()
                 .HasForeignKey(e => e.CampaignId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.Contact)
                 .WithMany()
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // CampaignLinkClick configuration
         modelBuilder.Entity<CampaignLinkClick>(entity =>
         {
@@ -2137,18 +2168,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.CampaignRecipientId);
             entity.HasIndex(e => e.CampaignId);
             entity.HasIndex(e => e.ClickedAt);
-            
+
             entity.HasOne(e => e.CampaignRecipient)
                 .WithMany(r => r.LinkClicks)
                 .HasForeignKey(e => e.CampaignRecipientId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.Campaign)
                 .WithMany()
                 .HasForeignKey(e => e.CampaignId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // CampaignABTest configuration
         modelBuilder.Entity<CampaignABTest>(entity =>
         {
@@ -2163,13 +2194,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.WinningCriteria).HasColumnType("TEXT");
             entity.HasIndex(e => e.CampaignId);
             entity.HasIndex(e => e.Status);
-            
+
             entity.HasOne(e => e.Campaign)
                 .WithMany()
                 .HasForeignKey(e => e.CampaignId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // CampaignConversion configuration
         modelBuilder.Entity<CampaignConversion>(entity =>
         {
@@ -2184,28 +2215,28 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.CampaignRecipientId);
             entity.HasIndex(e => e.ConversionType);
             entity.HasIndex(e => e.ConvertedAt);
-            
+
             entity.HasOne(e => e.Campaign)
                 .WithMany()
                 .HasForeignKey(e => e.CampaignId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.CampaignRecipient)
                 .WithMany()
                 .HasForeignKey(e => e.CampaignRecipientId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.Contact)
                 .WithMany()
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // CampaignWorkflow configuration
         modelBuilder.Entity<CampaignWorkflow>(entity =>
         {
@@ -2216,22 +2247,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.CampaignId);
             entity.HasIndex(e => e.WorkflowDefinitionId);
             entity.HasIndex(e => e.IsActive);
-            
+
             entity.HasOne(e => e.Campaign)
                 .WithMany()
                 .HasForeignKey(e => e.CampaignId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.WorkflowDefinition)
                 .WithMany()
                 .HasForeignKey(e => e.WorkflowDefinitionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // =============================================================================
         // AI Entity Configurations
         // =============================================================================
-        
+
         // AIModel configuration
         modelBuilder.Entity<AIModel>(entity =>
         {
@@ -2256,7 +2287,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Provider);
         });
-        
+
         // Prediction configuration
         modelBuilder.Entity<Prediction>(entity =>
         {
@@ -2276,13 +2307,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
             entity.HasIndex(e => e.AIModelId);
             entity.HasIndex(e => e.PredictedAt);
-            
+
             entity.HasOne(e => e.AIModel)
                 .WithMany(m => m.Predictions)
                 .HasForeignKey(e => e.AIModelId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // LeadScore configuration
         modelBuilder.Entity<LeadScore>(entity =>
         {
@@ -2311,18 +2342,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Category);
             entity.HasIndex(e => e.OverallScore);
             entity.HasIndex(e => e.ScoredAt);
-            
+
             entity.HasOne(e => e.Lead)
                 .WithMany()
                 .HasForeignKey(e => e.LeadId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.AIModel)
                 .WithMany()
                 .HasForeignKey(e => e.AIModelId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // OpportunityInsight configuration
         modelBuilder.Entity<OpportunityInsight>(entity =>
         {
@@ -2357,18 +2388,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.WinCategory);
             entity.HasIndex(e => e.HealthStatus);
             entity.HasIndex(e => e.GeneratedAt);
-            
+
             entity.HasOne(e => e.Opportunity)
                 .WithMany()
                 .HasForeignKey(e => e.OpportunityId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.AIModel)
                 .WithMany()
                 .HasForeignKey(e => e.AIModelId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // ChurnRisk configuration
         modelBuilder.Entity<ChurnRisk>(entity =>
         {
@@ -2403,18 +2434,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.RiskLevel);
             entity.HasIndex(e => e.HealthSegment);
             entity.HasIndex(e => e.AssessedAt);
-            
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.AIModel)
                 .WithMany()
                 .HasForeignKey(e => e.AIModelId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // ActionRecommendation configuration
         modelBuilder.Entity<ActionRecommendation>(entity =>
         {
@@ -2445,18 +2476,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Priority);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.GeneratedAt);
-            
+
             entity.HasOne(e => e.AssignedUser)
                 .WithMany()
                 .HasForeignKey(e => e.AssignedUserId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.AIModel)
                 .WithMany()
                 .HasForeignKey(e => e.AIModelId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // EmailIntelligence configuration
         modelBuilder.Entity<EmailIntelligence>(entity =>
         {
@@ -2491,22 +2522,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.PrimaryIntent);
             entity.HasIndex(e => e.Urgency);
             entity.HasIndex(e => e.AnalyzedAt);
-            
+
             entity.HasOne(e => e.CommunicationMessage)
                 .WithMany()
                 .HasForeignKey(e => e.CommunicationMessageId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.AIModel)
                 .WithMany()
                 .HasForeignKey(e => e.AIModelId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // =============================================================================
         // Report Entity Configurations
         // =============================================================================
-        
+
         // ReportDefinition configuration
         modelBuilder.Entity<ReportDefinition>(entity =>
         {
@@ -2531,18 +2562,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.DataSource);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedByUserId);
-            
+
             entity.HasOne(e => e.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.CreatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.Folder)
                 .WithMany(f => f.Reports)
                 .HasForeignKey(e => e.FolderId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // ReportFolder configuration
         modelBuilder.Entity<ReportFolder>(entity =>
         {
@@ -2551,18 +2582,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.HasIndex(e => e.Name);
             entity.HasIndex(e => e.OwnerUserId);
-            
+
             entity.HasOne(e => e.ParentFolder)
                 .WithMany(f => f.ChildFolders)
                 .HasForeignKey(e => e.ParentFolderId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.Owner)
                 .WithMany()
                 .HasForeignKey(e => e.OwnerUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-        
+
         // ReportSchedule configuration
         modelBuilder.Entity<ReportSchedule>(entity =>
         {
@@ -2585,18 +2616,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.NextRunAt);
             entity.HasIndex(e => e.CreatedByUserId);
-            
+
             entity.HasOne(e => e.ReportDefinition)
                 .WithMany(r => r.Schedules)
                 .HasForeignKey(e => e.ReportDefinitionId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.CreatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-        
+
         // ReportExecution configuration
         modelBuilder.Entity<ReportExecution>(entity =>
         {
@@ -2612,23 +2643,23 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.ReportDefinitionId);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.StartedAt);
-            
+
             entity.HasOne(e => e.ReportSchedule)
                 .WithMany(s => s.Executions)
                 .HasForeignKey(e => e.ReportScheduleId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.ReportDefinition)
                 .WithMany()
                 .HasForeignKey(e => e.ReportDefinitionId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.TriggeredByUser)
                 .WithMany()
                 .HasForeignKey(e => e.TriggeredByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // ReportWidgetConfig configuration
         modelBuilder.Entity<ReportWidgetConfig>(entity =>
         {
@@ -2636,22 +2667,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.FiltersOverrideJson).HasColumnType(longTextType);
             entity.HasIndex(e => e.DashboardWidgetId);
             entity.HasIndex(e => e.ReportDefinitionId);
-            
+
             entity.HasOne(e => e.DashboardWidget)
                 .WithMany()
                 .HasForeignKey(e => e.DashboardWidgetId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.ReportDefinition)
                 .WithMany(r => r.WidgetConfigs)
                 .HasForeignKey(e => e.ReportDefinitionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // =============================================================================
         // Knowledge Base Entity Configurations
         // =============================================================================
-        
+
         // KnowledgeArticle configuration
         modelBuilder.Entity<KnowledgeArticle>(entity =>
         {
@@ -2688,33 +2719,33 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.CategoryId);
             entity.HasIndex(e => e.AuthorUserId);
             entity.HasIndex(e => e.PublishedAt);
-            
+
             entity.HasOne(e => e.Category)
                 .WithMany(c => c.Articles)
                 .HasForeignKey(e => e.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.Author)
                 .WithMany()
                 .HasForeignKey(e => e.AuthorUserId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.LastUpdatedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.LastUpdatedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.ApprovedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.ApprovedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.ParentArticle)
                 .WithMany(a => a.Translations)
                 .HasForeignKey(e => e.ParentArticleId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // KnowledgeCategory configuration
         modelBuilder.Entity<KnowledgeCategory>(entity =>
         {
@@ -2725,36 +2756,36 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Icon).HasMaxLength(100);
             entity.HasIndex(e => e.Slug);
             entity.HasIndex(e => e.Name);
-            
+
             entity.HasOne(e => e.ParentCategory)
                 .WithMany(c => c.ChildCategories)
                 .HasForeignKey(e => e.ParentCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-        
+
         // ServiceRequestArticle configuration
         modelBuilder.Entity<ServiceRequestArticle>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.ServiceRequestId);
             entity.HasIndex(e => e.KnowledgeArticleId);
-            
+
             entity.HasOne(e => e.ServiceRequest)
                 .WithMany()
                 .HasForeignKey(e => e.ServiceRequestId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.KnowledgeArticle)
                 .WithMany(a => a.ServiceRequests)
                 .HasForeignKey(e => e.KnowledgeArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.LinkedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.LinkedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // ArticleFeedback configuration
         modelBuilder.Entity<ArticleFeedback>(entity =>
         {
@@ -2763,23 +2794,23 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.SessionId).HasMaxLength(100);
             entity.HasIndex(e => e.KnowledgeArticleId);
             entity.HasIndex(e => e.SubmittedAt);
-            
+
             entity.HasOne(e => e.KnowledgeArticle)
                 .WithMany(a => a.Feedback)
                 .HasForeignKey(e => e.KnowledgeArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
-                
+
             entity.HasOne(e => e.Account)
                 .WithMany()
                 .HasForeignKey(e => e.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // SLAPolicy configuration
         modelBuilder.Entity<SLAPolicy>(entity =>
         {
@@ -2794,26 +2825,26 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Name);
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.Priority);
-            
+
             entity.HasOne(e => e.BusinessHours)
                 .WithMany(b => b.Policies)
                 .HasForeignKey(e => e.BusinessHoursId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // SLATarget configuration
         modelBuilder.Entity<SLATarget>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.SLAPolicyId);
             entity.HasIndex(e => e.MetricType);
-            
+
             entity.HasOne(e => e.SLAPolicy)
                 .WithMany(p => p.Targets)
                 .HasForeignKey(e => e.SLAPolicyId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-        
+
         // BusinessHours configuration
         modelBuilder.Entity<BusinessHours>(entity =>
         {
@@ -2825,7 +2856,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Name);
             entity.HasIndex(e => e.IsActive);
         });
-        
+
         // EscalationRule configuration
         modelBuilder.Entity<EscalationRule>(entity =>
         {
@@ -2837,18 +2868,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.SLAPolicyId);
             entity.HasIndex(e => e.TriggerMetric);
             entity.HasIndex(e => e.IsActive);
-            
+
             entity.HasOne(e => e.SLAPolicy)
                 .WithMany(p => p.EscalationRules)
                 .HasForeignKey(e => e.SLAPolicyId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.ReassignToUser)
                 .WithMany()
                 .HasForeignKey(e => e.ReassignToUserId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
-        
+
         // SLAInstance configuration
         modelBuilder.Entity<SLAInstance>(entity =>
         {
@@ -2859,66 +2890,26 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.SLAPolicyId);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.DueAt);
-            
+
             entity.HasOne(e => e.ServiceRequest)
                 .WithMany()
                 .HasForeignKey(e => e.ServiceRequestId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.SLAPolicy)
                 .WithMany()
                 .HasForeignKey(e => e.SLAPolicyId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             entity.HasOne(e => e.SLATarget)
                 .WithMany()
                 .HasForeignKey(e => e.SLATargetId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-        
-        // SQL Server specific: disable cascade deletes to avoid "multiple cascade paths" errors
-        // This MUST be at the end after all entity configurations
-        // For SQL Server, we set ALL foreign keys to Restrict/NoAction to avoid any cascade issues
-        if (isSqlServer)
-        {
-            foreach (var relationship in modelBuilder.Model.GetEntityTypes()
-                .SelectMany(e => e.GetForeignKeys()))
-            {
-                // SQL Server doesn't support cascade delete on multiple paths
-                relationship.DeleteBehavior = DeleteBehavior.NoAction;
-            }
-        }
-        
-        // FINAL STEP: For MySQL/MariaDB, set string column types to prevent row size issues
-        // This MUST be at the very end to override any other configurations
-        // Without this, Pomelo uses LONGTEXT which counts against the 65535 byte row limit
-        if (databaseProvider == "mysql" || databaseProvider == "mariadb")
-        {
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-            {
-                foreach (var property in entityType.GetProperties())
-                {
-                    if (property.ClrType == typeof(string))
-                    {
-                        // Only set column type if not already explicitly configured
-                        var columnType = property.GetColumnType();
-                        if (columnType == null || columnType.Equals("longtext", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var maxLength = property.GetMaxLength();
-                            if (maxLength == null || maxLength > 4000)
-                            {
-                                // Use TEXT type for large/unlimited strings
-                                property.SetColumnType("TEXT");
-                            }
-                            else
-                            {
-                                // Use VARCHAR for smaller strings
-                                property.SetColumnType($"VARCHAR({maxLength})");
-                            }
-                        }
-                    }
-                }
-            }
-        }
+
+        // Apply provider-specific post-configuration using the Strategy Pattern
+        // For SQL Server: Sets all FKs to NoAction to avoid cascade path issues
+        // For MySQL/MariaDB: Converts LONGTEXT columns to TEXT to avoid row size limits
+        providerStrategy.ApplyPostConfiguration(modelBuilder);
     }
 }

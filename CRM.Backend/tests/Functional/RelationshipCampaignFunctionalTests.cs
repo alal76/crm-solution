@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -9,9 +25,9 @@ namespace CRM.Tests.Functional;
 /// <summary>
 /// Automated Functional Tests - Relationship Management & Campaign Execution Endpoints
 /// These tests run against a live API instance to validate end-to-end functionality.
-/// 
+///
 /// Run with: CRM_API_URL=http://localhost:5000 dotnet test --filter "Category=Functional"
-/// 
+///
 /// Test Categories:
 /// - FT-100 to FT-110: Relationship Type CRUD
 /// - FT-111 to FT-120: Account Relationship CRUD
@@ -27,7 +43,7 @@ namespace CRM.Tests.Functional;
 public class RelationshipCampaignFunctionalTests : FunctionalTestBase
 {
     private readonly ITestOutputHelper _output;
-    
+
     public RelationshipCampaignFunctionalTests(ITestOutputHelper output)
     {
         _output = output;
@@ -40,10 +56,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT100_GetRelationshipTypes_Should_Return_List()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-100 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
         var response = await Client.GetAsync("/api/relationships/types");
-        
+
         AssertSuccess(response);
         var types = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.True(types.ValueKind == JsonValueKind.Array);
@@ -55,7 +71,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT101_CreateRelationshipType_Should_Succeed()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-101 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
         var response = await Client.PostAsJsonAsync("/api/relationships/types", new
         {
@@ -65,7 +81,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             isBidirectional = true,
             sortOrder = 100
         });
-        
+
         if (response.IsSuccessStatusCode)
         {
             var created = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -83,9 +99,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT102_GetRelationshipType_ById_Should_Return_Type()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-102 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         // First get the list to find an ID
         var listResponse = await Client.GetAsync("/api/relationships/types");
         if (!listResponse.IsSuccessStatusCode)
@@ -93,17 +109,17 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-102 SKIPPED: Could not get types list");
             return;
         }
-        
+
         var types = await listResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (types.GetArrayLength() == 0)
         {
             _output.WriteLine("FT-102 SKIPPED: No relationship types exist");
             return;
         }
-        
+
         var firstId = types[0].GetProperty("id").GetInt32();
         var response = await Client.GetAsync($"/api/relationships/types/{firstId}");
-        
+
         AssertSuccess(response);
         _output.WriteLine($"FT-102 PASSED: Retrieved relationship type ID {firstId}");
     }
@@ -117,10 +133,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT111_GetAccountRelationships_Should_Return_List()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-111 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
         var response = await Client.GetAsync("/api/relationships");
-        
+
         AssertSuccess(response);
         var relationships = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.True(relationships.ValueKind == JsonValueKind.Array);
@@ -132,9 +148,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT112_CreateAccountRelationship_Should_Succeed()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-112 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         // Get customers first
         var accountsResponse = await Client.GetAsync("/api/accounts");
         if (!accountsResponse.IsSuccessStatusCode)
@@ -142,14 +158,14 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-112 SKIPPED: Could not get customers");
             return;
         }
-        
+
         var accounts = await accountsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (accounts.GetArrayLength() < 2)
         {
             _output.WriteLine("FT-112 SKIPPED: Need at least 2 customers for relationship");
             return;
         }
-        
+
         // Get relationship types
         var typesResponse = await Client.GetAsync("/api/relationships/types");
         var types = await typesResponse.Content.ReadFromJsonAsync<JsonElement>();
@@ -158,7 +174,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-112 SKIPPED: No relationship types available");
             return;
         }
-        
+
         var response = await Client.PostAsJsonAsync("/api/relationships", new
         {
             sourceAccountId = accounts[0].GetProperty("id").GetInt32(),
@@ -168,7 +184,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             strategicImportance = "Medium",
             notes = "Test relationship"
         });
-        
+
         if (response.IsSuccessStatusCode)
         {
             var created = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -187,21 +203,21 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT113_GetAccountRelationship_ByAccountId_Should_Filter()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-113 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var accountsResponse = await Client.GetAsync("/api/accounts");
         if (!accountsResponse.IsSuccessStatusCode || (await accountsResponse.Content.ReadFromJsonAsync<JsonElement>()).GetArrayLength() == 0)
         {
             _output.WriteLine("FT-113 SKIPPED: No customers available");
             return;
         }
-        
+
         var accounts = await accountsResponse.Content.ReadFromJsonAsync<JsonElement>();
         var accountId = accounts[0].GetProperty("id").GetInt32();
-        
+
         var response = await Client.GetAsync($"/api/relationships?accountId={accountId}");
-        
+
         AssertSuccess(response);
         _output.WriteLine($"FT-113 PASSED: Filtered relationships by customer ID {accountId}");
     }
@@ -215,9 +231,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT121_GetRelationshipInteractions_Should_Return_List()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-121 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         // Get a relationship first
         var relResponse = await Client.GetAsync("/api/relationships");
         var relationships = await relResponse.Content.ReadFromJsonAsync<JsonElement>();
@@ -226,10 +242,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-121 SKIPPED: No relationships exist");
             return;
         }
-        
+
         var relId = relationships[0].GetProperty("id").GetInt32();
         var response = await Client.GetAsync($"/api/relationships/{relId}/interactions");
-        
+
         AssertSuccess(response);
         _output.WriteLine($"FT-121 PASSED: Retrieved interactions for relationship {relId}");
     }
@@ -239,9 +255,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT122_CreateRelationshipInteraction_Should_Succeed()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-122 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var relResponse = await Client.GetAsync("/api/relationships");
         var relationships = await relResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (relationships.GetArrayLength() == 0)
@@ -249,7 +265,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-122 SKIPPED: No relationships exist");
             return;
         }
-        
+
         var relId = relationships[0].GetProperty("id").GetInt32();
         var response = await Client.PostAsJsonAsync($"/api/relationships/{relId}/interactions", new
         {
@@ -261,7 +277,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             healthImpact = "Moderate",
             strengthChange = 5
         });
-        
+
         if (response.IsSuccessStatusCode)
         {
             _output.WriteLine($"FT-122 PASSED: Created interaction for relationship {relId}");
@@ -281,9 +297,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT131_GetRelationshipMap_Should_Return_Visualization()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-131 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var accountsResponse = await Client.GetAsync("/api/accounts");
         var accounts = await accountsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (accounts.GetArrayLength() == 0)
@@ -291,10 +307,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-131 SKIPPED: No customers available");
             return;
         }
-        
+
         var accountId = accounts[0].GetProperty("id").GetInt32();
         var response = await Client.GetAsync($"/api/relationships/map/{accountId}?depth=2");
-        
+
         if (response.IsSuccessStatusCode)
         {
             var map = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -313,9 +329,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT132_GetHealthSnapshots_Should_Return_List()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-132 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var accountsResponse = await Client.GetAsync("/api/accounts");
         var accounts = await accountsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (accounts.GetArrayLength() == 0)
@@ -323,10 +339,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-132 SKIPPED: No customers available");
             return;
         }
-        
+
         var accountId = accounts[0].GetProperty("id").GetInt32();
         var response = await Client.GetAsync($"/api/relationships/health/{accountId}");
-        
+
         AssertSuccess(response);
         _output.WriteLine($"FT-132 PASSED: Retrieved health snapshots for customer {accountId}");
     }
@@ -336,9 +352,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT133_CreateHealthSnapshot_Should_Succeed()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-133 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var accountsResponse = await Client.GetAsync("/api/accounts");
         var accounts = await accountsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (accounts.GetArrayLength() == 0)
@@ -346,10 +362,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-133 SKIPPED: No customers available");
             return;
         }
-        
+
         var accountId = accounts[0].GetProperty("id").GetInt32();
         var response = await Client.PostAsync($"/api/relationships/health/{accountId}", null);
-        
+
         if (response.IsSuccessStatusCode)
         {
             _output.WriteLine($"FT-133 PASSED: Created health snapshot for customer {accountId}");
@@ -369,9 +385,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT141_GetCampaignWorkflows_Should_Return_List()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-141 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var campaignsResponse = await Client.GetAsync("/api/campaigns");
         var campaigns = await campaignsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (campaigns.GetArrayLength() == 0)
@@ -379,10 +395,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-141 SKIPPED: No campaigns available");
             return;
         }
-        
+
         var campaignId = campaigns[0].GetProperty("id").GetInt32();
         var response = await Client.GetAsync($"/api/campaign-execution/{campaignId}/workflows");
-        
+
         AssertSuccess(response);
         _output.WriteLine($"FT-141 PASSED: Retrieved workflows for campaign {campaignId}");
     }
@@ -392,9 +408,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT142_LinkCampaignWorkflow_Should_Succeed()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-142 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         // Get campaigns
         var campaignsResponse = await Client.GetAsync("/api/campaigns");
         var campaigns = await campaignsResponse.Content.ReadFromJsonAsync<JsonElement>();
@@ -403,7 +419,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-142 SKIPPED: No campaigns available");
             return;
         }
-        
+
         // Get workflow definitions
         var workflowsResponse = await Client.GetAsync("/api/workflows/definitions");
         if (!workflowsResponse.IsSuccessStatusCode)
@@ -411,17 +427,17 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-142 SKIPPED: Could not get workflow definitions");
             return;
         }
-        
+
         var workflows = await workflowsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (workflows.GetArrayLength() == 0)
         {
             _output.WriteLine("FT-142 SKIPPED: No workflow definitions available");
             return;
         }
-        
+
         var campaignId = campaigns[0].GetProperty("id").GetInt32();
         var workflowId = workflows[0].GetProperty("id").GetInt32();
-        
+
         var response = await Client.PostAsJsonAsync($"/api/campaign-execution/{campaignId}/workflows", new
         {
             campaignId = campaignId,
@@ -430,7 +446,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             triggerEvent = "CampaignStarted",
             priority = 1
         });
-        
+
         if (response.IsSuccessStatusCode)
         {
             _output.WriteLine($"FT-142 PASSED: Linked workflow to campaign {campaignId}");
@@ -450,9 +466,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT151_GetCampaignRecipients_Should_Return_List()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-151 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var campaignsResponse = await Client.GetAsync("/api/campaigns");
         var campaigns = await campaignsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (campaigns.GetArrayLength() == 0)
@@ -460,10 +476,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-151 SKIPPED: No campaigns available");
             return;
         }
-        
+
         var campaignId = campaigns[0].GetProperty("id").GetInt32();
         var response = await Client.GetAsync($"/api/campaign-execution/{campaignId}/recipients");
-        
+
         AssertSuccess(response);
         _output.WriteLine($"FT-151 PASSED: Retrieved recipients for campaign {campaignId}");
     }
@@ -473,9 +489,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT152_AddCampaignRecipients_Should_Succeed()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-152 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var campaignsResponse = await Client.GetAsync("/api/campaigns");
         var campaigns = await campaignsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (campaigns.GetArrayLength() == 0)
@@ -483,13 +499,13 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-152 SKIPPED: No campaigns available");
             return;
         }
-        
+
         var campaignId = campaigns[0].GetProperty("id").GetInt32();
         var response = await Client.PostAsJsonAsync($"/api/campaign-execution/{campaignId}/recipients", new
         {
             emails = new[] { $"test_{DateTime.Now.Ticks}@example.com" }
         });
-        
+
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -510,9 +526,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT161_GetCampaignABTests_Should_Return_List()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-161 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var campaignsResponse = await Client.GetAsync("/api/campaigns");
         var campaigns = await campaignsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (campaigns.GetArrayLength() == 0)
@@ -520,10 +536,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-161 SKIPPED: No campaigns available");
             return;
         }
-        
+
         var campaignId = campaigns[0].GetProperty("id").GetInt32();
         var response = await Client.GetAsync($"/api/campaign-execution/{campaignId}/ab-tests");
-        
+
         AssertSuccess(response);
         _output.WriteLine($"FT-161 PASSED: Retrieved A/B tests for campaign {campaignId}");
     }
@@ -533,9 +549,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT162_CreateABTest_Should_Succeed()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-162 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var campaignsResponse = await Client.GetAsync("/api/campaigns");
         var campaigns = await campaignsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (campaigns.GetArrayLength() == 0)
@@ -543,7 +559,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-162 SKIPPED: No campaigns available");
             return;
         }
-        
+
         var campaignId = campaigns[0].GetProperty("id").GetInt32();
         var response = await Client.PostAsJsonAsync($"/api/campaign-execution/{campaignId}/ab-tests", new
         {
@@ -556,7 +572,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             testMetric = "OpenRate",
             sampleSize = 1000
         });
-        
+
         if (response.IsSuccessStatusCode)
         {
             _output.WriteLine($"FT-162 PASSED: Created A/B test for campaign {campaignId}");
@@ -576,9 +592,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT171_GetCampaignConversions_Should_Return_List()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-171 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var campaignsResponse = await Client.GetAsync("/api/campaigns");
         var campaigns = await campaignsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (campaigns.GetArrayLength() == 0)
@@ -586,10 +602,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-171 SKIPPED: No campaigns available");
             return;
         }
-        
+
         var campaignId = campaigns[0].GetProperty("id").GetInt32();
         var response = await Client.GetAsync($"/api/campaign-execution/{campaignId}/conversions");
-        
+
         AssertSuccess(response);
         _output.WriteLine($"FT-171 PASSED: Retrieved conversions for campaign {campaignId}");
     }
@@ -599,9 +615,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT172_GetCampaignAnalytics_Should_Return_Data()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-172 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var campaignsResponse = await Client.GetAsync("/api/campaigns");
         var campaigns = await campaignsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (campaigns.GetArrayLength() == 0)
@@ -609,10 +625,10 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-172 SKIPPED: No campaigns available");
             return;
         }
-        
+
         var campaignId = campaigns[0].GetProperty("id").GetInt32();
         var response = await Client.GetAsync($"/api/campaign-execution/{campaignId}/analytics");
-        
+
         if (response.IsSuccessStatusCode)
         {
             var analytics = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -629,9 +645,9 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     public async Task FT173_RecordConversion_Should_Succeed()
     {
         if (!ApiAvailable) { _output.WriteLine("FT-173 SKIPPED: API not available"); return; }
-        
+
         await AuthenticateAsync();
-        
+
         var campaignsResponse = await Client.GetAsync("/api/campaigns");
         var campaigns = await campaignsResponse.Content.ReadFromJsonAsync<JsonElement>();
         if (campaigns.GetArrayLength() == 0)
@@ -639,7 +655,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             _output.WriteLine("FT-173 SKIPPED: No campaigns available");
             return;
         }
-        
+
         var campaignId = campaigns[0].GetProperty("id").GetInt32();
         var response = await Client.PostAsJsonAsync($"/api/campaign-execution/{campaignId}/conversions", new
         {
@@ -650,7 +666,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
             attributionModel = "LastTouch",
             sourceChannel = "Email"
         });
-        
+
         if (response.IsSuccessStatusCode)
         {
             _output.WriteLine($"FT-173 PASSED: Recorded conversion for campaign {campaignId}");

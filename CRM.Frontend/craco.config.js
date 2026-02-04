@@ -2,6 +2,17 @@
 // Enables webpack filesystem caching for faster incremental builds
 
 const path = require('path');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+
+// Bundle size budgets (in bytes)
+const BUNDLE_SIZE_LIMITS = {
+  // Main entry point should stay under 500KB
+  mainEntryLimit: 500 * 1024,
+  // Individual vendor chunks should stay under 250KB
+  vendorChunkLimit: 250 * 1024,
+  // Total bundle should stay under 2MB gzipped
+  totalBundleLimit: 2 * 1024 * 1024,
+};
 
 module.exports = {
   webpack: {
@@ -72,6 +83,42 @@ module.exports = {
             },
           },
         };
+
+        // Add bundle size budgets using webpack performance hints
+        webpackConfig.performance = {
+          hints: 'warning',
+          maxEntrypointSize: BUNDLE_SIZE_LIMITS.mainEntryLimit,
+          maxAssetSize: BUNDLE_SIZE_LIMITS.vendorChunkLimit,
+          assetFilter: (assetFilename) => {
+            // Only check JS and CSS files
+            return /\.(js|css)$/i.test(assetFilename);
+          },
+        };
+      }
+
+      // Add bundle analyzer in analyze mode
+      if (process.env.ANALYZE === 'true') {
+        webpackConfig.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            reportFilename: 'bundle-report.html',
+            openAnalyzer: true,
+            generateStatsFile: true,
+            statsFilename: 'bundle-stats.json',
+          })
+        );
+      }
+
+      // Add bundle analyzer in CI mode (generates JSON only)
+      if (process.env.ANALYZE_JSON === 'true') {
+        webpackConfig.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'disabled',
+            generateStatsFile: true,
+            statsFilename: 'bundle-stats.json',
+            statsOptions: { source: false },
+          })
+        );
       }
 
       return webpackConfig;

@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Api.Controllers;
 using CRM.Api.Hubs;
 using CRM.Core.Entities;
@@ -27,7 +43,7 @@ public class ProductsControllerTests
         _mockProductService = new Mock<IProductService>();
         _mockLogger = new Mock<ILogger<ProductsController>>();
         _mockNotificationService = new Mock<ICrmNotificationService>();
-        
+
         // Setup default returns for notification service
         _mockNotificationService.Setup(x => x.NotifyRecordCreatedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<object>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
@@ -35,9 +51,9 @@ public class ProductsControllerTests
             .Returns(Task.CompletedTask);
         _mockNotificationService.Setup(x => x.NotifyRecordDeletedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
-            
+
         _controller = new ProductsController(_mockProductService.Object, _mockLogger.Object, _mockNotificationService.Object);
-        
+
         // Setup HttpContext with Response.Headers for ETag support
         var httpContext = new DefaultHttpContext();
         _controller.ControllerContext = new ControllerContext

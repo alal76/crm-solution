@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -9,17 +25,17 @@ public class FieldMasterDataLink : BaseEntity
     /// Foreign key to the field configuration
     /// </summary>
     public int FieldConfigurationId { get; set; }
-    
+
     /// <summary>
     /// Navigation property to field configuration
     /// </summary>
     public ModuleFieldConfiguration FieldConfiguration { get; set; } = null!;
-    
+
     /// <summary>
     /// The source type for master data (Table, LookupCategory, Api)
     /// </summary>
     public string SourceType { get; set; } = "LookupCategory";
-    
+
     /// <summary>
     /// Name of the source (table name, lookup category name, or API endpoint)
     /// For SourceType=Table: "ZipCodes", "Products", "Customers", etc.
@@ -27,60 +43,60 @@ public class FieldMasterDataLink : BaseEntity
     /// For SourceType=Api: "/api/zipcodes/countries"
     /// </summary>
     public string SourceName { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// The column/field to use as the display value
     /// </summary>
     public string DisplayField { get; set; } = "Value";
-    
+
     /// <summary>
     /// The column/field to use as the stored value
     /// </summary>
     public string ValueField { get; set; } = "Key";
-    
+
     /// <summary>
     /// Optional filter expression (JSON format)
     /// Example: {"CountryCode": "US"} or {"IsActive": true}
     /// </summary>
     public string? FilterExpression { get; set; }
-    
+
     /// <summary>
     /// Field name from the same entity to use for dynamic filtering
     /// E.g., if this field is "city" and depends on "state" field
     /// </summary>
     public string? DependsOnField { get; set; }
-    
+
     /// <summary>
     /// The source column to filter by when DependsOnField has a value
     /// E.g., "StateCode" in the master data table
     /// </summary>
     public string? DependsOnSourceColumn { get; set; }
-    
+
     /// <summary>
     /// Whether to allow values not in the master data (free text)
     /// </summary>
     public bool AllowFreeText { get; set; } = false;
-    
+
     /// <summary>
     /// Validation type: Required, Pattern, Custom
     /// </summary>
     public string? ValidationType { get; set; }
-    
+
     /// <summary>
     /// Validation pattern (regex) for custom validation
     /// </summary>
     public string? ValidationPattern { get; set; }
-    
+
     /// <summary>
     /// Custom validation error message
     /// </summary>
     public string? ValidationMessage { get; set; }
-    
+
     /// <summary>
     /// Sort order when multiple links exist for cascading
     /// </summary>
     public int SortOrder { get; set; } = 0;
-    
+
     /// <summary>
     /// Whether this link is active
     /// </summary>

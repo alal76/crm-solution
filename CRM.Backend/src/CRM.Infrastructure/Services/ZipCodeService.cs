@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -14,7 +30,7 @@ public class ZipCodeService : IZipCodeService
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<ZipCodeService> _logger;
-    
+
     // Postal code formats and regex patterns by country
     private static readonly Dictionary<string, (string Format, string Regex)> PostalCodeFormats = new()
     {
@@ -77,7 +93,7 @@ public class ZipCodeService : IZipCodeService
         try
         {
             var normalizedPostalCode = postalCode.Trim().ToUpperInvariant().Replace(" ", "");
-            
+
             var query = _context.ZipCodes
                 .Where(z => z.IsActive)
                 .AsQueryable();
@@ -225,8 +241,8 @@ public class ZipCodeService : IZipCodeService
             var normalizedStateCode = stateCode.Trim().ToUpperInvariant();
 
             return await _context.ZipCodes
-                .Where(z => z.IsActive && 
-                       z.CountryCode == normalizedCountryCode && 
+                .Where(z => z.IsActive &&
+                       z.CountryCode == normalizedCountryCode &&
                        z.StateCode == normalizedStateCode)
                 .Select(z => z.City)
                 .Distinct()
@@ -253,7 +269,7 @@ public class ZipCodeService : IZipCodeService
             return 0;
         }
     }
-    
+
     /// <inheritdoc />
     public async Task<int> GetTotalCountAsync()
     {
@@ -267,7 +283,7 @@ public class ZipCodeService : IZipCodeService
             return 0;
         }
     }
-    
+
     /// <inheritdoc />
     public async Task<int> GetCountryCountAsync()
     {
@@ -285,7 +301,7 @@ public class ZipCodeService : IZipCodeService
             return 0;
         }
     }
-    
+
     /// <inheritdoc />
     public async Task<IEnumerable<CountryInfo>> GetCountriesAsync()
     {
@@ -297,7 +313,7 @@ public class ZipCodeService : IZipCodeService
                 .Distinct()
                 .OrderBy(c => c.Country)
                 .ToListAsync();
-            
+
             return countries.Select(c => new CountryInfo
             {
                 Code = c.CountryCode,
@@ -312,7 +328,7 @@ public class ZipCodeService : IZipCodeService
             return Enumerable.Empty<CountryInfo>();
         }
     }
-    
+
     /// <inheritdoc />
     public async Task<IEnumerable<ZipCodeLookupResult>> GetPostalCodesForCityAsync(string countryCode, string stateCode, string city)
     {
@@ -328,8 +344,8 @@ public class ZipCodeService : IZipCodeService
             var normalizedCity = city.Trim().ToLower();
 
             return await _context.ZipCodes
-                .Where(z => z.IsActive && 
-                       z.CountryCode == normalizedCountryCode && 
+                .Where(z => z.IsActive &&
+                       z.CountryCode == normalizedCountryCode &&
                        z.StateCode == normalizedStateCode &&
                        z.City.ToLower() == normalizedCity)
                 .Select(z => new ZipCodeLookupResult
@@ -354,7 +370,7 @@ public class ZipCodeService : IZipCodeService
             return Enumerable.Empty<ZipCodeLookupResult>();
         }
     }
-    
+
     /// <inheritdoc />
     public async Task<ZipCodeValidationResult> ValidatePostalCodeAsync(string postalCode, string countryCode)
     {
@@ -379,7 +395,7 @@ public class ZipCodeService : IZipCodeService
         {
             result.ExpectedFormat = format.Format;
             result.FormatValid = Regex.IsMatch(normalizedPostalCode, format.Regex, RegexOptions.IgnoreCase);
-            
+
             if (!result.FormatValid)
             {
                 result.Message = $"Invalid format. Expected: {format.Format}";
@@ -396,12 +412,12 @@ public class ZipCodeService : IZipCodeService
         try
         {
             result.ExistsInDatabase = await _context.ZipCodes
-                .AnyAsync(z => z.IsActive && 
-                          z.CountryCode == normalizedCountryCode && 
+                .AnyAsync(z => z.IsActive &&
+                          z.CountryCode == normalizedCountryCode &&
                           z.PostalCode.Replace(" ", "").ToUpper() == normalizedPostalCode.Replace(" ", ""));
-            
+
             result.IsValid = result.FormatValid && result.ExistsInDatabase;
-            
+
             if (!result.ExistsInDatabase && result.FormatValid)
             {
                 result.Message = "Format is valid but postal code not found in database";
@@ -419,7 +435,7 @@ public class ZipCodeService : IZipCodeService
 
         return result;
     }
-    
+
     /// <inheritdoc />
     public async Task<IEnumerable<LocalityInfo>> GetLocalitiesAsync(int zipCodeId)
     {
@@ -448,7 +464,7 @@ public class ZipCodeService : IZipCodeService
             return Enumerable.Empty<LocalityInfo>();
         }
     }
-    
+
     /// <inheritdoc />
     public async Task<IEnumerable<LocalityInfo>> GetLocalitiesByCityAsync(string city, string countryCode)
     {
@@ -456,12 +472,12 @@ public class ZipCodeService : IZipCodeService
         {
             return Enumerable.Empty<LocalityInfo>();
         }
-        
+
         try
         {
             return await _context.Localities
-                .Where(l => l.City.ToLower() == city.ToLower() && 
-                           l.CountryCode == countryCode.ToUpperInvariant() && 
+                .Where(l => l.City.ToLower() == city.ToLower() &&
+                           l.CountryCode == countryCode.ToUpperInvariant() &&
                            l.IsActive)
                 .OrderBy(l => l.Name)
                 .Select(l => new LocalityInfo
@@ -484,7 +500,7 @@ public class ZipCodeService : IZipCodeService
             return Enumerable.Empty<LocalityInfo>();
         }
     }
-    
+
     /// <inheritdoc />
     public async Task<LocalityInfo> CreateLocalityAsync(string name, string city, string? stateCode, string countryCode, int? zipCodeId, int userId)
     {
@@ -500,13 +516,13 @@ public class ZipCodeService : IZipCodeService
             CreatedByUserId = userId,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         _context.Localities.Add(locality);
         await _context.SaveChangesAsync();
-        
-        _logger.LogInformation("Created new locality: {Name} in {City}, {CountryCode} by user {UserId}", 
+
+        _logger.LogInformation("Created new locality: {Name} in {City}, {CountryCode} by user {UserId}",
             name, city, countryCode, userId);
-        
+
         return new LocalityInfo
         {
             Id = locality.Id,

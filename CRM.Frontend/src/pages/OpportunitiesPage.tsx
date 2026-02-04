@@ -42,7 +42,10 @@ import {
   Close as CloseIcon,
   Note as NoteIcon,
   Link as LinkIcon,
+  ViewModule as ViewModuleIcon,
+  TableChart as TableChartIcon,
 } from '@mui/icons-material';
+import PipelineKanban from '../components/sales/PipelineKanban';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
 import logo from '../assets/logo.png';
@@ -192,6 +195,7 @@ function OpportunitiesPage() {
   });
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   
   // Account contacts for the selected account (for Primary Contact dropdown)
   const [accountContacts, setAccountContacts] = useState<Array<{ id: number; firstName: string; lastName: string; role?: string }>>([]);
@@ -201,9 +205,9 @@ function OpportunitiesPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [bulkFormData, setBulkFormData] = useState({
-    stage: '' as string | number,
-    probability: '' as string | number,
-    pricingModel: '' as string | number,
+    stage: '',
+    probability: '',
+    pricingModel: '',
     region: '' as string,
   });
   
@@ -564,7 +568,32 @@ function OpportunitiesPage() {
             <Box sx={{ width: 40, height: 40, flexShrink: 0 }}><img src={logo} alt="CRM Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></Box>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>Opportunities</Typography>
           </Box>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            {/* View Mode Toggle */}
+            <Box sx={{ display: 'flex', bgcolor: 'grey.100', borderRadius: 1, p: 0.5 }}>
+              <IconButton
+                size="small"
+                onClick={() => setViewMode('table')}
+                sx={{
+                  bgcolor: viewMode === 'table' ? 'primary.main' : 'transparent',
+                  color: viewMode === 'table' ? 'white' : 'text.secondary',
+                  '&:hover': { bgcolor: viewMode === 'table' ? 'primary.dark' : 'grey.200' },
+                }}
+              >
+                <TableChartIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={() => setViewMode('kanban')}
+                sx={{
+                  bgcolor: viewMode === 'kanban' ? 'primary.main' : 'transparent',
+                  color: viewMode === 'kanban' ? 'white' : 'text.secondary',
+                  '&:hover': { bgcolor: viewMode === 'kanban' ? 'primary.dark' : 'grey.200' },
+                }}
+              >
+                <ViewModuleIcon fontSize="small" />
+              </IconButton>
+            </Box>
             <ImportExportButtons entityType="opportunities" entityLabel="Opportunities" onImportComplete={fetchAllData} />
             <Button
               variant="contained"
@@ -629,6 +658,24 @@ function OpportunitiesPage() {
           </Paper>
         </Collapse>
 
+        {/* Kanban View */}
+        {viewMode === 'kanban' && (
+          <Box sx={{ mb: 2 }}>
+            <PipelineKanban
+              opportunities={filteredOpportunities}
+              stages={STAGES}
+              onStageChange={async (opportunityId, newStage) => {
+                await apiClient.put(`/opportunities/${opportunityId}`, { stage: newStage });
+                fetchAllData();
+              }}
+              onEdit={handleOpenDialog}
+              loading={loading}
+            />
+          </Box>
+        )}
+
+        {/* Table View */}
+        {viewMode === 'table' && (
         <Card>
           <CardContent sx={{ p: 0 }}>
             <TableContainer sx={{ overflowX: 'auto' }}>
@@ -734,6 +781,7 @@ function OpportunitiesPage() {
             )}
           </CardContent>
         </Card>
+        )}
       </Container>
 
       {/* Add/Edit Opportunity Dialog */}

@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 
 namespace CRM.Core.Dtos;
@@ -8,11 +24,11 @@ namespace CRM.Core.Dtos;
 public class AccountDto
 {
     public int Id { get; set; }
-    
+
     // Category
     public string Category { get; set; } = "Individual"; // Individual or Organization
     public bool IsOrganization => Category == "Organization";
-    
+
     // Individual fields
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
@@ -22,7 +38,7 @@ public class AccountDto
     public string? Gender { get; set; }
     public int? LinkedContactId { get; set; }
     public string? LinkedContactName { get; set; }
-    
+
     // Organization fields
     public string Company { get; set; } = string.Empty;
     public string? LegalName { get; set; }
@@ -32,7 +48,7 @@ public class AccountDto
     public int? YearFounded { get; set; }
     public int? PrimaryContactId { get; set; }
     public string? PrimaryContactName { get; set; }
-    
+
     // Contact Information
     public string Email { get; set; } = string.Empty;
     public string? SecondaryEmail { get; set; }
@@ -41,7 +57,7 @@ public class AccountDto
     public string? FaxNumber { get; set; }
     public string? JobTitle { get; set; }
     public string? Website { get; set; }
-    
+
     // Address - Billing
     public string Address { get; set; } = string.Empty;
     public string? Address2 { get; set; }
@@ -49,7 +65,7 @@ public class AccountDto
     public string State { get; set; } = string.Empty;
     public string ZipCode { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
-    
+
     // Address - Shipping
     public string? ShippingAddress { get; set; }
     public string? ShippingAddress2 { get; set; }
@@ -58,7 +74,7 @@ public class AccountDto
     public string? ShippingZipCode { get; set; }
     public string? ShippingCountry { get; set; }
     public bool ShippingSameAsBilling { get; set; } = true;
-    
+
     // Business Information
     public string? Industry { get; set; }
     public string? SubIndustry { get; set; }
@@ -70,7 +86,7 @@ public class AccountDto
     public string Priority { get; set; } = "Medium";
     public string? StockSymbol { get; set; }
     public string? Ownership { get; set; }
-    
+
     // Lifecycle & Status
     public string LifecycleStage { get; set; } = "Lead";
     public string? LeadSource { get; set; }
@@ -78,7 +94,7 @@ public class AccountDto
     public DateTime? ConversionDate { get; set; }
     public DateTime? LastActivityDate { get; set; }
     public DateTime? NextFollowUpDate { get; set; }
-    
+
     // Financial
     public decimal TotalPurchases { get; set; } = 0;
     public decimal AccountBalance { get; set; } = 0;
@@ -87,13 +103,13 @@ public class AccountDto
     public string? PreferredPaymentMethod { get; set; }
     public string? Currency { get; set; }
     public string? BillingCycle { get; set; }
-    
+
     // Scoring
     public int LeadScore { get; set; } = 0;
     public int AccountHealthScore { get; set; } = 50;
     public int NpsScore { get; set; } = 0;
     public double SatisfactionRating { get; set; } = 0;
-    
+
     // Social & Communication
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }
@@ -105,7 +121,7 @@ public class AccountDto
     public string? PreferredContactTime { get; set; }
     public string? Timezone { get; set; }
     public string? PreferredLanguage { get; set; }
-    
+
     // Assignment
     public int? AssignedToUserId { get; set; }
     public string? AssignedToUserName { get; set; }
@@ -113,7 +129,7 @@ public class AccountDto
     public string? AccountManagerName { get; set; }
     public string? Territory { get; set; }
     public string? Region { get; set; }
-    
+
     // Classification
     public string? Tags { get; set; }
     public string? Segment { get; set; }
@@ -122,30 +138,30 @@ public class AccountDto
     public string? ReferredByAccountName { get; set; }
     public int? ParentAccountId { get; set; }
     public string? ParentAccountName { get; set; }
-    
+
     // Documentation
     public string Notes { get; set; } = string.Empty;
     public string? InternalNotes { get; set; }
     public string? Description { get; set; }
     public string? CustomFields { get; set; }
-    
+
     // Metadata
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     /// <summary>
     /// Row version for optimistic concurrency control.
     /// Used to detect concurrent updates - clients should send this in If-Match header.
     /// </summary>
     public byte[]? RowVersion { get; set; }
-    
+
     // Display
     public string DisplayName { get; set; } = string.Empty;
-    
+
     // Linked contacts (for organizations)
     public List<AccountContactDto>? Contacts { get; set; }
     public int ContactCount { get; set; } = 0;
-    
+
     // === Normalized Contact Info Collections ===
     // These replace the flat contact fields above and are the source of truth
     public List<LinkedEmailDto>? EmailAddresses { get; set; }
@@ -186,7 +202,7 @@ public class CreateAccountDto
 {
     // Category
     public AccountCategory Category { get; set; } = AccountCategory.Individual;
-    
+
     // Individual fields
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
@@ -195,7 +211,7 @@ public class CreateAccountDto
     public DateTime? DateOfBirth { get; set; }
     public string? Gender { get; set; }
     public int? LinkedContactId { get; set; }
-    
+
     // Organization fields
     public string? Company { get; set; }
     public string? LegalName { get; set; }
@@ -203,7 +219,7 @@ public class CreateAccountDto
     public string? TaxId { get; set; }
     public string? RegistrationNumber { get; set; }
     public int? YearFounded { get; set; }
-    
+
     // Contact Information
     public string Email { get; set; } = string.Empty;
     public string? SecondaryEmail { get; set; }
@@ -212,7 +228,7 @@ public class CreateAccountDto
     public string? FaxNumber { get; set; }
     public string? JobTitle { get; set; }
     public string? Website { get; set; }
-    
+
     // Address
     public string? Address { get; set; }
     public string? Address2 { get; set; }
@@ -220,7 +236,7 @@ public class CreateAccountDto
     public string? State { get; set; }
     public string? ZipCode { get; set; }
     public string? Country { get; set; }
-    
+
     // Shipping Address
     public string? ShippingAddress { get; set; }
     public string? ShippingAddress2 { get; set; }
@@ -229,7 +245,7 @@ public class CreateAccountDto
     public string? ShippingZipCode { get; set; }
     public string? ShippingCountry { get; set; }
     public bool ShippingSameAsBilling { get; set; } = true;
-    
+
     // Business Information
     public string? Industry { get; set; }
     public string? SubIndustry { get; set; }
@@ -241,29 +257,29 @@ public class CreateAccountDto
     public AccountPriority Priority { get; set; } = AccountPriority.Medium;
     public string? StockSymbol { get; set; }
     public string? Ownership { get; set; }
-    
+
     // Lifecycle
     public AccountLifecycleStage LifecycleStage { get; set; } = AccountLifecycleStage.Lead;
     public string? LeadSource { get; set; }
-    
+
     // Assignment
     public int? AssignedToUserId { get; set; }
     public int? AccountManagerId { get; set; }
     public string? Territory { get; set; }
     public string? Region { get; set; }
-    
+
     // Classification
     public string? Tags { get; set; }
     public string? Segment { get; set; }
     public string? ReferralSource { get; set; }
     public int? ReferredByAccountId { get; set; }
     public int? ParentAccountId { get; set; }
-    
+
     // Documentation
     public string? Notes { get; set; }
     public string? InternalNotes { get; set; }
     public string? Description { get; set; }
-    
+
     // Communication Preferences
     public bool OptInEmail { get; set; } = true;
     public bool OptInSms { get; set; } = false;
@@ -281,7 +297,7 @@ public class UpdateAccountDto
 {
     // Category
     public AccountCategory? Category { get; set; }
-    
+
     // Individual fields
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
@@ -290,7 +306,7 @@ public class UpdateAccountDto
     public DateTime? DateOfBirth { get; set; }
     public string? Gender { get; set; }
     public int? LinkedContactId { get; set; }
-    
+
     // Organization fields
     public string? Company { get; set; }
     public string? LegalName { get; set; }
@@ -299,7 +315,7 @@ public class UpdateAccountDto
     public string? RegistrationNumber { get; set; }
     public int? YearFounded { get; set; }
     public int? PrimaryContactId { get; set; }
-    
+
     // Contact Information
     public string? Email { get; set; }
     public string? SecondaryEmail { get; set; }
@@ -308,7 +324,7 @@ public class UpdateAccountDto
     public string? FaxNumber { get; set; }
     public string? JobTitle { get; set; }
     public string? Website { get; set; }
-    
+
     // Address
     public string? Address { get; set; }
     public string? Address2 { get; set; }
@@ -316,7 +332,7 @@ public class UpdateAccountDto
     public string? State { get; set; }
     public string? ZipCode { get; set; }
     public string? Country { get; set; }
-    
+
     // Shipping Address
     public string? ShippingAddress { get; set; }
     public string? ShippingAddress2 { get; set; }
@@ -325,7 +341,7 @@ public class UpdateAccountDto
     public string? ShippingZipCode { get; set; }
     public string? ShippingCountry { get; set; }
     public bool? ShippingSameAsBilling { get; set; }
-    
+
     // Business Information
     public string? Industry { get; set; }
     public string? SubIndustry { get; set; }
@@ -337,44 +353,44 @@ public class UpdateAccountDto
     public AccountPriority? Priority { get; set; }
     public string? StockSymbol { get; set; }
     public string? Ownership { get; set; }
-    
+
     // Lifecycle
     public AccountLifecycleStage? LifecycleStage { get; set; }
     public string? LeadSource { get; set; }
     public DateTime? NextFollowUpDate { get; set; }
-    
+
     // Financial
     public decimal? CreditLimit { get; set; }
     public string? PaymentTerms { get; set; }
     public string? PreferredPaymentMethod { get; set; }
     public string? Currency { get; set; }
     public string? BillingCycle { get; set; }
-    
+
     // Scoring
     public int? LeadScore { get; set; }
     public int? AccountHealthScore { get; set; }
     public int? NpsScore { get; set; }
     public double? SatisfactionRating { get; set; }
-    
+
     // Assignment
     public int? AssignedToUserId { get; set; }
     public int? AccountManagerId { get; set; }
     public string? Territory { get; set; }
     public string? Region { get; set; }
-    
+
     // Classification
     public string? Tags { get; set; }
     public string? Segment { get; set; }
     public string? ReferralSource { get; set; }
     public int? ReferredByAccountId { get; set; }
     public int? ParentAccountId { get; set; }
-    
+
     // Documentation
     public string? Notes { get; set; }
     public string? InternalNotes { get; set; }
     public string? Description { get; set; }
     public string? CustomFields { get; set; }
-    
+
     // Communication Preferences
     public bool? OptInEmail { get; set; }
     public bool? OptInSms { get; set; }
@@ -383,7 +399,7 @@ public class UpdateAccountDto
     public string? PreferredContactTime { get; set; }
     public string? Timezone { get; set; }
     public string? PreferredLanguage { get; set; }
-    
+
     // Social
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }

@@ -30,12 +30,12 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Authentication Service for handling user registration, login, and token management.
-/// 
+///
 /// HEXAGONAL ARCHITECTURE:
 /// - Implements IAuthInputPort (primary/driving port)
 /// - Implements IAuthenticationService (backward compatibility)
 /// - Uses IRepository and IJwtTokenService (secondary/driven ports)
-/// 
+///
 /// NOTE: Authentication ALWAYS uses the production database context, regardless of demo mode.
 /// This ensures admin users exist and can authenticate even when demo mode is active.
 /// </summary>
@@ -164,7 +164,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             var passwordSetupToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
             var cacheKey = $"password_setup_{passwordSetupToken}";
             _cache.Set(cacheKey, user.Id, TimeSpan.FromMinutes(15));
-            
+
             return new AuthResponse
             {
                 UserId = user.Id,
@@ -184,7 +184,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             var passwordSetupToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
             var cacheKey = $"password_setup_{passwordSetupToken}";
             _cache.Set(cacheKey, user.Id, TimeSpan.FromMinutes(15));
-            
+
             return new AuthResponse
             {
                 UserId = user.Id,
@@ -201,11 +201,11 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         {
             // Generate a temporary token for 2FA verification
             var tempToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-            
+
             // Store the temp token in memory cache with 5 minute expiry
             var cacheKey = $"2fa_token_{tempToken}";
             _cache.Set(cacheKey, user.Id, TimeSpan.FromMinutes(5));
-            
+
             return new AuthResponse
             {
                 UserId = user.Id,
@@ -223,18 +223,18 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         // Update last login date
         user.LastLoginDate = DateTime.UtcNow;
-        
+
         // Generate response with tokens
         var response = GenerateAuthResponse(user);
-        
+
         // Add password expiration warning to response
         response.PasswordExpirationWarning = passwordStatus.isWarning;
         response.DaysUntilPasswordExpiration = passwordStatus.daysRemaining;
-        
+
         // Store refresh token for later validation
         user.RefreshToken = response.RefreshToken;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        
+
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();
 
@@ -251,9 +251,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             return (false, false, null);
 
         var group = user.PrimaryGroup;
-        
+
         // If no expiration policy or expiration days, password doesn't expire
-        if (group.PasswordExpirationPolicy == PasswordExpirationPolicy.None || 
+        if (group.PasswordExpirationPolicy == PasswordExpirationPolicy.None ||
             group.PasswordExpirationDays == null || group.PasswordExpirationDays <= 0)
             return (false, false, null);
 
@@ -266,7 +266,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             // If policy is MustChange, block login
             if (group.PasswordExpirationPolicy == PasswordExpirationPolicy.MustChange)
                 return (true, false, 0);
-            
+
             // For Alert policy, allow login but indicate expiration
             if (group.PasswordExpirationPolicy == PasswordExpirationPolicy.Alert)
                 return (false, true, 0);
@@ -356,10 +356,10 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         // Find user with matching refresh token
         // Note: In production, store refresh tokens in a separate table with expiry
         var users = await _userRepository.GetAllAsync();
-        var user = users.FirstOrDefault(u => 
-            !u.IsDeleted && 
-            u.IsActive && 
-            u.RefreshToken == refreshToken && 
+        var user = users.FirstOrDefault(u =>
+            !u.IsDeleted &&
+            u.IsActive &&
+            u.RefreshToken == refreshToken &&
             u.RefreshTokenExpiry > DateTime.UtcNow);
 
         if (user == null)
@@ -423,7 +423,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))
             return false;
-        
+
         try
         {
             // Support BCrypt hashes (preferred)
@@ -431,7 +431,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             {
                 return BCrypt.Net.BCrypt.Verify(password, hash);
             }
-            
+
             // Legacy support for old SHA-256 hashes (will be migrated on next password change)
             using (var sha256 = SHA256.Create())
             {
@@ -489,7 +489,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         // Build group permissions from user's primary group or admin role
         GroupPermissionsDto? groupPermissions = null;
-        
+
         // Check if user is Admin role - grant all permissions
         if (user.Role == (int)CRM.Core.Entities.UserRole.Admin)
         {
@@ -510,6 +510,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
                 CanAccessNotes = true,
                 CanAccessWorkflows = true,
                 CanAccessServiceRequests = true,
+                CanAccessITSM = true,
                 CanAccessReports = true,
                 CanAccessSettings = true,
                 CanAccessUserManagement = true,
@@ -548,6 +549,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
                 CanAccessNotes = group.CanAccessNotes,
                 CanAccessWorkflows = group.CanAccessWorkflows,
                 CanAccessServiceRequests = group.CanAccessServiceRequests,
+                CanAccessITSM = group.CanAccessITSM,
                 CanAccessReports = group.CanAccessReports,
                 CanAccessSettings = group.CanAccessSettings,
                 CanAccessUserManagement = group.CanAccessUserManagement,
@@ -761,20 +763,20 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         var cacheKey = $"2fa_token_{tempToken}";
         if (!_cache.TryGetValue(cacheKey, out int userId))
             throw new UnauthorizedAccessException("Invalid or expired verification token");
-        
+
         // Remove token from cache immediately (one-time use)
         _cache.Remove(cacheKey);
-        
+
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
             throw new UnauthorizedAccessException("User not found");
-        
+
         if (string.IsNullOrEmpty(user.TwoFactorSecret))
             throw new InvalidOperationException("2FA not configured for this user");
-        
+
         // Verify the TOTP code
         var isValid = _totpService.VerifyCode(user.TwoFactorSecret, code);
-        
+
         // Check backup codes if TOTP fails
         if (!isValid && !string.IsNullOrEmpty(user.BackupCodes))
         {
@@ -787,28 +789,28 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
                 user.BackupCodes = System.Text.Json.JsonSerializer.Serialize(backupCodes);
             }
         }
-        
+
         if (!isValid)
             throw new UnauthorizedAccessException("Invalid verification code");
-        
+
         user.LastLoginDate = DateTime.UtcNow;
-        
+
         // Generate response with tokens
         var fullUser = await _dbContext.Users
             .Include(u => u.PrimaryGroup)
             .Include(u => u.Department)
             .Include(u => u.UserProfile)
             .FirstOrDefaultAsync(u => u.Id == user.Id);
-        
+
         var response = GenerateAuthResponse(fullUser ?? user);
-        
+
         // Store refresh token
         user.RefreshToken = response.RefreshToken;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        
+
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();
-        
+
         return response;
     }
 
@@ -951,7 +953,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         // Generate auth response with tokens
         var response = GenerateAuthResponse(user);
-        
+
         // Store refresh token
         user.RefreshToken = response.RefreshToken;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
@@ -966,7 +968,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     public async Task<PasswordComplexityRequirements> GetPasswordRequirementsAsync()
     {
         var settings = await _dbContext.SystemSettings.FirstOrDefaultAsync();
-        
+
         return new PasswordComplexityRequirements
         {
             MinLength = settings?.MinPasswordLength ?? 8,

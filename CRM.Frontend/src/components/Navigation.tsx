@@ -46,6 +46,7 @@ import {
   Psychology as LLMIcon,
   Handshake as RelationshipsIcon,
   RocketLaunch as CampaignExecutionIcon,
+  Email as EmailIcon,
   // Admin section icons
   Storage as StorageIcon,
   Cloud as CloudIcon,
@@ -102,6 +103,7 @@ function NavigationContent() {
     'main': true,
     'sales': true,
     'support': true,
+    'itsm': true,
     'productivity': true,
     'info': false,
     'admin': true,
@@ -148,6 +150,8 @@ function NavigationContent() {
       setExpandedCategories(prev => ({ ...prev, 'sales': true }));
     } else if (path.includes('/services') || path.includes('/service-requests')) {
       setExpandedCategories(prev => ({ ...prev, 'support': true }));
+    } else if (path.includes('/itsm') || path.includes('/incidents') || path.includes('/knowledge') || path.includes('/catalog')) {
+      setExpandedCategories(prev => ({ ...prev, 'itsm': true }));
     } else if (path.includes('/queue') || path.includes('/activities') || path.includes('/notes') || path.includes('/communications') || path.includes('/interactions')) {
       setExpandedCategories(prev => ({ ...prev, 'productivity': true }));
     } else if (path.includes('/about') || path.includes('/help') || path.includes('/licenses')) {
@@ -208,7 +212,17 @@ function NavigationContent() {
     'products': { label: 'Products', icon: PackageIcon, path: '/products', menuName: 'Products' },
     'services': { label: 'Services', icon: SettingsIcon, path: '/services', menuName: 'Services' },
     'service-requests': { label: 'Service Requests', icon: SupportAgentIcon, path: '/service-requests', menuName: 'ServiceRequests' },
+    'itsm-overview': { label: 'ITSM Overview', icon: DashboardIcon, path: '/itsm', menuName: 'ITSMOverview' },
+    'itsm-incidents': { label: 'Incidents', icon: SupportAgentIcon, path: '/itsm/incidents', menuName: 'ITSMIncidents' },
+    'itsm-problems': { label: 'Problems', icon: TestResultsIcon as typeof DashboardIcon, path: '/itsm/problems', menuName: 'ITSMProblems' },
+    'itsm-changes': { label: 'Changes', icon: InteractionsIcon as typeof DashboardIcon, path: '/itsm/changes', menuName: 'ITSMChanges' },
+    'itsm-cmdb': { label: 'CMDB', icon: WorkflowIcon as typeof DashboardIcon, path: '/itsm/cmdb', menuName: 'ITSMCMDB' },
+    'itsm-knowledge': { label: 'Knowledge', icon: QuoteIcon as typeof DashboardIcon, path: '/itsm/knowledge', menuName: 'ITSMKnowledge' },
+    'itsm-catalog': { label: 'Service Catalog', icon: PackageIcon as typeof DashboardIcon, path: '/itsm/catalog', menuName: 'ITSMCatalog' },
+    'itsm-sla': { label: 'SLA', icon: ActivityIcon as typeof DashboardIcon, path: '/itsm/sla', menuName: 'ITSMSLA' },
+    'itsm-metrics': { label: 'ITSM Metrics', icon: DashboardIcon, path: '/itsm/metrics', menuName: 'ITSMMetrics' },
     'campaigns': { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', menuName: 'Campaigns' },
+    'email-templates': { label: 'Email Templates', icon: EmailIcon, path: '/email-templates', menuName: 'EmailTemplates' },
     'campaign-execution': { label: 'Campaign Execution', icon: CampaignExecutionIcon, path: '/campaign-execution', menuName: 'CampaignExecution' },
     'relationships': { label: 'Relationships', icon: RelationshipsIcon, path: '/relationships', menuName: 'Relationships' },
     'quotes': { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
@@ -251,7 +265,8 @@ function NavigationContent() {
   // Default order for nav items
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'customers', 'customer-overview', 'contacts', 'relationships', 'leads', 'opportunities',
-    'products', 'services', 'service-requests', 'campaigns', 'campaign-execution', 'quotes',
+    'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'quotes',
+    'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics',
     'my-queue', 'activities', 'notes', 'communications', 'interactions'
   ], []);
   const defaultAdminOrder = useMemo(() => [
@@ -266,9 +281,10 @@ function NavigationContent() {
     { id: 'main', label: 'Main', order: 0 },
     { id: 'sales', label: 'Sales & Marketing', order: 1 },
     { id: 'support', label: 'Customer Support', order: 2 },
-    { id: 'productivity', label: 'Productivity', order: 3 },
-    { id: 'info', label: 'Help & Info', order: 4 },
-    { id: 'admin', label: 'Administration', order: 5 },
+    { id: 'itsm', label: 'IT Service Management', order: 3 },
+    { id: 'productivity', label: 'Productivity', order: 4 },
+    { id: 'info', label: 'Help & Info', order: 5 },
+    { id: 'admin', label: 'Administration', order: 6 },
   ], []);
 
   // Default admin subcategories with icons for collapsible sections
@@ -310,6 +326,15 @@ function NavigationContent() {
     { id: 'products', order: 6, visible: true, category: 'sales' },
     { id: 'services', order: 7, visible: true, category: 'support' },
     { id: 'service-requests', order: 8, visible: true, category: 'support' },
+    { id: 'itsm-overview', order: 30, visible: true, category: 'itsm' },
+    { id: 'itsm-incidents', order: 31, visible: true, category: 'itsm' },
+    { id: 'itsm-problems', order: 32, visible: true, category: 'itsm' },
+    { id: 'itsm-changes', order: 33, visible: true, category: 'itsm' },
+    { id: 'itsm-cmdb', order: 34, visible: true, category: 'itsm' },
+    { id: 'itsm-knowledge', order: 35, visible: true, category: 'itsm' },
+    { id: 'itsm-catalog', order: 36, visible: true, category: 'itsm' },
+    { id: 'itsm-sla', order: 37, visible: true, category: 'itsm' },
+    { id: 'itsm-metrics', order: 38, visible: true, category: 'itsm' },
     { id: 'campaigns', order: 9, visible: true, category: 'sales' },
     { id: 'quotes', order: 10, visible: true, category: 'sales' },
     { id: 'my-queue', order: 11, visible: true, category: 'productivity' },
@@ -468,8 +493,8 @@ function NavigationContent() {
   }
   
   // Filter nav items based on group permissions and module status
-  const visibleNavItems = navItems.filter(item => canAccessMenu(item.menuName));
-  const visibleAdminItems = adminItems.filter(item => canAccessMenu(item.menuName));
+  const visibleNavItems = navItems.filter((item: { menuName: string }) => canAccessMenu(item.menuName));
+  const visibleAdminItems = adminItems.filter((item: { menuName: string }) => canAccessMenu(item.menuName));
 
   return (
     <>

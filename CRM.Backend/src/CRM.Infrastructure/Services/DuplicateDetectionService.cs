@@ -77,7 +77,7 @@ public class DuplicateDetectionService : IDuplicateDetectionService
             foreach (var candidate in candidates)
             {
                 var matchResult = CalculateMatchScore(fieldValues, candidate, rule);
-                
+
                 if (matchResult.TotalScore >= rule.MatchThreshold)
                 {
                     var duplicateMatch = new DuplicateMatch
@@ -174,7 +174,7 @@ public class DuplicateDetectionService : IDuplicateDetectionService
         CancellationToken cancellationToken = default)
     {
         var candidates = new List<DuplicateCandidate>();
-        
+
         try
         {
             // Get active rules for this entity type
@@ -193,8 +193,8 @@ public class DuplicateDetectionService : IDuplicateDetectionService
 
             // Get all records for the entity type
             var allRecords = await GetAllRecordsForEntityTypeAsync(entityType, cancellationToken);
-            
-            _logger.LogInformation("Scanning {Count} records for duplicates of type {EntityType}", 
+
+            _logger.LogInformation("Scanning {Count} records for duplicates of type {EntityType}",
                 allRecords.Count, entityType);
 
             // Compare each record with all others
@@ -208,12 +208,12 @@ public class DuplicateDetectionService : IDuplicateDetectionService
                     foreach (var rule in rulesList)
                     {
                         var matchResult = CalculateMatchScore(record1.FieldValues, record2, rule);
-                        
+
                         if (matchResult.TotalScore >= rule.MatchThreshold)
                         {
                             // Check if this pair already exists as a candidate
                             var existingCandidate = await _context.Set<DuplicateCandidate>()
-                                .FirstOrDefaultAsync(c => 
+                                .FirstOrDefaultAsync(c =>
                                     !c.IsDeleted &&
                                     c.EntityType == entityType &&
                                     c.DuplicateRuleId == rule.Id &&
@@ -251,7 +251,7 @@ public class DuplicateDetectionService : IDuplicateDetectionService
             if (candidates.Any())
             {
                 await _context.SaveChangesAsync(cancellationToken);
-                _logger.LogInformation("Found {Count} new duplicate candidates for {EntityType}", 
+                _logger.LogInformation("Found {Count} new duplicate candidates for {EntityType}",
                     candidates.Count, entityType);
             }
 
@@ -493,7 +493,7 @@ public class DuplicateDetectionService : IDuplicateDetectionService
             var emailDomain = email.Split('@').LastOrDefault()?.ToLower();
             if (!string.IsNullOrEmpty(emailDomain) && !string.IsNullOrEmpty(email))
             {
-                query = query.Where(c => 
+                query = query.Where(c =>
                     (c.EmailPrimary != null && c.EmailPrimary.ToLower().Contains(emailDomain)) ||
                     (c.EmailWork != null && c.EmailWork.ToLower().Contains(emailDomain)));
             }
@@ -545,7 +545,7 @@ public class DuplicateDetectionService : IDuplicateDetectionService
         if (fieldValues.TryGetValue("CompanyName", out var companyName) && !string.IsNullOrWhiteSpace(companyName))
         {
             var searchTerm = companyName.ToLower();
-            query = query.Where(a => a.Company.ToLower().Contains(searchTerm) || 
+            query = query.Where(a => a.Company.ToLower().Contains(searchTerm) ||
                                     (a.LegalName != null && a.LegalName.ToLower().Contains(searchTerm)));
         }
 
@@ -612,8 +612,8 @@ public class DuplicateDetectionService : IDuplicateDetectionService
             };
 
             // Skip if both values are null/empty and configured to ignore nulls
-            if (matchField.IgnoreNullValues && 
-                string.IsNullOrWhiteSpace(newValue) && 
+            if (matchField.IgnoreNullValues &&
+                string.IsNullOrWhiteSpace(newValue) &&
                 string.IsNullOrWhiteSpace(existingValue))
             {
                 continue;
@@ -690,7 +690,7 @@ public class DuplicateDetectionService : IDuplicateDetectionService
         var maxLength = Math.Max(value1.Length, value2.Length);
         var similarity = maxLength > 0 ? (int)((maxLength - distance) * 100.0 / maxLength) : 0;
         var threshold = 100 - tolerance;
-        
+
         return (similarity >= threshold, similarity);
     }
 

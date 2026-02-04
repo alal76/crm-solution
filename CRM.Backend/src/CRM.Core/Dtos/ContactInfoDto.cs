@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 
 namespace CRM.Core.Dtos;
@@ -20,13 +36,13 @@ public class AddressDto
     public string? County { get; set; }
     public string? CountryCode { get; set; }
     public string Country { get; set; } = "United States";
-    
+
     // New fields for ZipCode/Locality linking
     public int? ZipCodeId { get; set; }
     public int? LocalityId { get; set; }
     public string? Locality { get; set; }
     public string? AddressXml { get; set; }
-    
+
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
     public string? GeocodeAccuracy { get; set; }
@@ -73,12 +89,12 @@ public class CreateAddressDto
     public string? County { get; set; }
     public string? CountryCode { get; set; }
     public string Country { get; set; } = "United States";
-    
+
     // New fields for ZipCode/Locality linking
     public int? ZipCodeId { get; set; }
     public int? LocalityId { get; set; }
     public string? Locality { get; set; }
-    
+
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
     public bool? IsResidential { get; set; }
@@ -344,7 +360,7 @@ public class EntityContactInfoDto
     public List<LinkedPhoneDto> PhoneNumbers { get; set; } = new();
     public List<LinkedEmailDto> EmailAddresses { get; set; } = new();
     public List<LinkedSocialMediaDto> SocialMediaAccounts { get; set; } = new();
-    
+
     // Primary contact info (convenience properties)
     public LinkedAddressDto? PrimaryAddress => Addresses.FirstOrDefault(a => a.IsPrimary) ?? Addresses.FirstOrDefault();
     public LinkedPhoneDto? PrimaryPhone => PhoneNumbers.FirstOrDefault(p => p.IsPrimary) ?? PhoneNumbers.FirstOrDefault();
@@ -361,13 +377,13 @@ public class ShareContactInfoDto
     public int SourceEntityId { get; set; }
     public string TargetEntityType { get; set; } = "Contact";
     public int TargetEntityId { get; set; }
-    
+
     // Which contact info to share (by ID)
     public List<int>? AddressIds { get; set; }
     public List<int>? PhoneIds { get; set; }
     public List<int>? EmailIds { get; set; }
     public List<int>? SocialMediaIds { get; set; }
-    
+
     // Default types and settings for the links
     public string DefaultAddressType { get; set; } = "Primary";
     public string DefaultPhoneType { get; set; } = "Office";
@@ -437,7 +453,7 @@ public class SocialMediaFollowDto
     public string NotificationFrequency { get; set; } = "Daily";
     public DateTime? LastNotifiedAt { get; set; }
     public string? Notes { get; set; }
-    
+
     // Social media account details
     public string? Platform { get; set; }
     public string? HandleOrUsername { get; set; }

@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Core.Models;
 using CRM.Infrastructure.Data;
@@ -108,10 +124,10 @@ class Program
         logger.LogInformation("Creating database schema...");
 
         var dbContext = CreateDbContext(configuration);
-        
+
         // Ensure database is created
         var created = await dbContext.Database.EnsureCreatedAsync();
-        
+
         if (created)
         {
             Console.WriteLine("✅ Database created successfully");
@@ -185,7 +201,7 @@ class Program
 
         // Check if admin already exists
         var existingAdmin = await context.Users.FirstOrDefaultAsync(u => u.Username == username || u.Email == email);
-        
+
         if (existingAdmin != null)
         {
             Console.WriteLine($"   Admin user already exists: {existingAdmin.Username} ({existingAdmin.Email})");
@@ -219,7 +235,7 @@ class Program
     static async Task SeedSampleData(CrmDbContext context, IConfiguration configuration, ILogger logger)
     {
         var seedingConfig = configuration.GetSection("Seeding:SampleData");
-        
+
         // Create Departments
         Console.WriteLine("🏢 Creating departments...");
         var departments = await SeedDepartments(context);
@@ -405,11 +421,11 @@ class Program
             var price = faker.Random.Decimal(99, 9999);
             var cost = price * 0.4m;
             var productType = (ProductType)faker.Random.Int(0, 12);
-            var isService = productType == ProductType.Service || productType == ProductType.Consulting || 
+            var isService = productType == ProductType.Service || productType == ProductType.Consulting ||
                            productType == ProductType.ManagedService || productType == ProductType.SupportContract ||
                            productType == ProductType.Training || productType == ProductType.ProfessionalServices;
             var isSubscription = productType == ProductType.Subscription || productType == ProductType.ManagedService;
-            
+
             var product = new Product
             {
                 // Basic Information
@@ -421,7 +437,7 @@ class Program
                 Barcode = isService ? null : faker.Commerce.Ean13(),
                 ExternalId = faker.Random.Bool(0.3f) ? $"EXT-{faker.Random.Int(1000, 9999)}" : null,
                 InternalReference = $"{(isService ? "SVC" : "PRD")}-{faker.Random.Int(100000, 999999)}",
-                
+
                 // Classification
                 ProductType = productType,
                 Status = ProductStatus.Active,
@@ -434,7 +450,7 @@ class Program
                 ServiceTier = isService ? faker.PickRandom(serviceTiers) : ServiceTier.Standard,
                 IsService = isService,
                 IsSubscription = isSubscription,
-                
+
                 // Unit Pricing
                 Price = price,
                 ListPrice = price * 1.2m,
@@ -448,7 +464,7 @@ class Program
                 MinimumQuantity = 1,
                 MaximumQuantity = isService ? 1000 : 10000,
                 QuantityIncrement = 1,
-                
+
                 // Contract Pricing (for services)
                 WeeklyPrice = isService ? price * 0.3m : null,
                 MonthlyPrice = isService ? price : null,
@@ -459,7 +475,7 @@ class Program
                 ThreeYearPrice = isService ? price * 21m : null,
                 DefaultContractTerm = isSubscription ? ContractTermCategory.Annual : ContractTermCategory.NoContract,
                 MinimumContractTerm = isSubscription ? ContractTermCategory.Monthly : ContractTermCategory.NoContract,
-                
+
                 // Term Discounts
                 WeeklyTermDiscount = 0,
                 MonthlyTermDiscount = 0,
@@ -469,11 +485,11 @@ class Program
                 TwoYearTermDiscount = 33,
                 ThreeYearTermDiscount = 42,
                 MaxTermDiscount = 45,
-                
+
                 // Volume Discounts
                 MaxVolumeDiscount = 25,
                 MaxTotalDiscount = 50,
-                
+
                 // Subscription Fields
                 BillingFrequency = isSubscription ? (BillingFrequency)faker.Random.Int(4, 7) : BillingFrequency.OneTime,
                 PricingModel = faker.PickRandom(pricingModels),
@@ -486,7 +502,7 @@ class Program
                 MinContractLengthMonths = isSubscription ? 1 : null,
                 AutoRenewal = isSubscription,
                 CancellationNoticeDays = isSubscription ? 30 : null,
-                
+
                 // Service Fields
                 HourlyRate = isService ? faker.Random.Decimal(75, 350) : null,
                 DailyRate = isService ? faker.Random.Decimal(600, 2800) : null,
@@ -501,7 +517,7 @@ class Program
                 DeliveryMethod = isService ? faker.PickRandom(new[] { "Remote", "On-site", "Hybrid" }) : null,
                 EstimatedDuration = isService ? faker.Random.Decimal(2, 80) : null,
                 DurationUnit = isService ? faker.PickRandom(new[] { "Hours", "Days", "Weeks" }) : null,
-                
+
                 // SLA Fields
                 UptimeGuaranteePercent = isSubscription ? faker.PickRandom(new[] { 99.0m, 99.5m, 99.9m, 99.99m }) : null,
                 ResponseTimeSlaHours = isService ? faker.PickRandom(new[] { 1m, 4m, 8m, 24m }) : null,
@@ -509,7 +525,7 @@ class Program
                 SupportHours = isService ? faker.PickRandom(new[] { "24/7", "Business Hours (9-5 EST)", "Extended (6am-10pm)" }) : null,
                 IncludedSupportIncidents = isSubscription ? faker.Random.Int(5, 50) : null,
                 AdditionalIncidentPrice = isSubscription ? faker.Random.Decimal(50, 250) : null,
-                
+
                 // Usage Limits
                 IncludedUnits = isSubscription ? faker.Random.Int(1000, 50000) : null,
                 UsageUnitType = isSubscription ? faker.PickRandom(new[] { "API Calls", "GB Storage", "Transactions", "Reports" }) : null,
@@ -518,14 +534,14 @@ class Program
                 AdditionalUserPrice = isSubscription ? faker.Random.Decimal(5, 50) : null,
                 IncludedStorageGb = isSubscription ? faker.Random.Decimal(10, 500) : null,
                 AdditionalStoragePrice = isSubscription ? faker.Random.Decimal(0.05m, 0.5m) : null,
-                
+
                 // Tax & Currency
                 CurrencyCode = "USD",
                 IsTaxable = true,
                 TaxRate = 8.25m,
                 TaxCategory = faker.PickRandom(new[] { "Standard", "Reduced", "Software", "Services" }),
                 RevenueRecognition = isSubscription ? RevenueRecognitionMethod.OverTime : RevenueRecognitionMethod.Immediate,
-                
+
                 // Inventory (physical products only)
                 Quantity = isService ? 0 : faker.Random.Int(0, 1000),
                 ReorderLevel = isService ? null : faker.Random.Int(10, 50),
@@ -535,7 +551,7 @@ class Program
                 TrackInventory = !isService,
                 AllowBackorder = !isService && faker.Random.Bool(0.3f),
                 LeadTimeDays = isService ? null : faker.Random.Int(3, 21),
-                
+
                 // Physical Attributes
                 Weight = isService ? null : faker.Random.Decimal(0.5m, 50m),
                 WeightUnit = isService ? null : "kg",
@@ -545,17 +561,17 @@ class Program
                 DimensionUnit = isService ? null : "cm",
                 ShippingClass = isService ? null : faker.PickRandom(new[] { "Standard", "Express", "Freight", "Oversized" }),
                 IsHazardous = !isService && faker.Random.Bool(0.05f),
-                
+
                 // Media
                 ImageUrl = $"https://picsum.photos/seed/{i}/200/200",
                 ThumbnailUrl = $"https://picsum.photos/seed/{i}/100/100",
-                
+
                 // Features & Warranty
                 Warranty = isService ? null : $"{faker.Random.Int(1, 5)} Year Limited Warranty",
                 WarrantyMonths = isService ? null : faker.Random.Int(12, 60),
                 ExtendedWarrantyAvailable = !isService && faker.Random.Bool(0.5f),
                 ExtendedWarrantyPrice = !isService && faker.Random.Bool(0.5f) ? faker.Random.Decimal(50, 500) : null,
-                
+
                 // Sales Performance
                 TotalSold = faker.Random.Int(0, 500),
                 TotalRevenue = faker.Random.Decimal(10000, 500000),
@@ -566,16 +582,16 @@ class Program
                 IsNew = faker.Random.Bool(0.15f),
                 IsOnSale = faker.Random.Bool(0.1f),
                 SalePrice = faker.Random.Bool(0.1f) ? price * 0.85m : null,
-                
+
                 // Availability
                 AvailableFrom = faker.Date.Past(1),
                 LastPriceUpdate = faker.Date.Recent(90),
-                
+
                 // Status
                 IsActive = true,
                 IsVisible = true,
                 IsPurchasable = true,
-                
+
                 CreatedAt = faker.Date.Past(2)
             };
             products.Add(product);
@@ -612,14 +628,14 @@ class Program
                 var mrr = faker.Random.Decimal(500, 10000);
                 var contractStart = faker.Date.Past(2);
                 var contractLength = faker.PickRandom(new[] { 12, 24, 36 });
-                
+
                 var subscription = new Subscription
                 {
                     SubscriptionNumber = $"SUB-{accountNumber:D6}",
                     AccountId = customer.Id,
                     ProductId = product?.Id,
                     SubscriptionStatus = faker.PickRandom(subscriptionStatuses),
-                    
+
                     // Financial
                     MRR = mrr,
                     ARR = mrr * 12,
@@ -627,7 +643,7 @@ class Program
                     BillingCycle = faker.PickRandom(new[] { "Monthly", "Quarterly", "Annual" }),
                     BillingStartDate = contractStart,
                     BillingEndDate = contractStart.AddMonths(contractLength),
-                    
+
                     // Contract
                     ContractReference = $"CTR-{faker.Random.AlphaNumeric(8).ToUpper()}",
                     ContractStartDate = contractStart,
@@ -636,7 +652,7 @@ class Program
                     ServiceTier = faker.PickRandom(serviceTiers),
                     SLA = faker.PickRandom(new[] { "Standard", "Premium", "Enterprise" }),
                     ContractNotes = faker.Lorem.Sentence(),
-                    
+
                     // Billing Address
                     BillingAddress = faker.Address.StreetAddress(),
                     BillingCity = faker.Address.City(),
@@ -646,14 +662,14 @@ class Program
                     BillingContactName = faker.Name.FullName(),
                     BillingContactEmail = faker.Internet.Email(),
                     BillingContactPhone = faker.Phone.PhoneNumber("+1-###-###-####"),
-                    
+
                     // Operational
                     IsAutoRenew = faker.Random.Bool(0.7f),
                     RenewalDate = contractStart.AddMonths(contractLength),
                     IsActive = true,
                     SubscriptionOwner = faker.Name.FullName(),
                     Tags = faker.Random.Bool(0.3f) ? string.Join(",", faker.Commerce.Categories(2)) : null,
-                    
+
                     CreatedAt = contractStart
                 };
                 subscriptions.Add(subscription);
@@ -757,14 +773,14 @@ class Program
                 PrimarySuccessMetric = faker.PickRandom(successMetrics),
                 Theme = faker.Commerce.ProductAdjective() + " " + faker.Commerce.ProductMaterial(),
                 ValueProposition = faker.Lorem.Sentence(),
-                
+
                 // Timeline
                 StartDate = startDate,
                 EndDate = endDate,
                 ActualStartDate = startDate.AddDays(faker.Random.Int(-2, 2)),
                 DurationDays = (int)(endDate - startDate).TotalDays,
                 IsEvergreen = faker.Random.Bool(0.1f),
-                
+
                 // Budget & Financials
                 Budget = budget,
                 ActualCost = actualCost,
@@ -777,7 +793,7 @@ class Program
                 CostPerSql = sqlsGenerated > 0 ? actualCost / sqlsGenerated : 0,
                 CostPerOpportunity = opportunitiesCreated > 0 ? actualCost / opportunitiesCreated : 0,
                 CurrencyCode = "USD",
-                
+
                 // Target Audience
                 TargetAudience = faker.Random.Int(1000, 50000),
                 TargetAudienceDescription = faker.Lorem.Sentence(),
@@ -786,7 +802,7 @@ class Program
                 TargetIndustries = string.Join(",", faker.Commerce.Categories(3)),
                 TargetSegments = faker.PickRandom(new[] { "Enterprise", "Mid-Market", "SMB", "Startups", "Government" }),
                 TargetJobTitles = string.Join(",", new[] { "CTO", "VP Engineering", "IT Director", "Developer", "Product Manager" }.OrderBy(x => faker.Random.Int()).Take(3)),
-                
+
                 // Lead Generation Metrics
                 LeadsGenerated = leadsGenerated,
                 MqlsGenerated = mqlsGenerated,
@@ -800,7 +816,7 @@ class Program
                 MqlToSqlRate = mqlsGenerated > 0 ? (double)sqlsGenerated / mqlsGenerated * 100 : 0,
                 ConversionRate = faker.Random.Double(1, 10),
                 AverageLeadScore = faker.Random.Double(30, 80),
-                
+
                 // Reach & Engagement
                 Impressions = impressions,
                 Reach = (int)(impressions * faker.Random.Double(0.3, 0.7)),
@@ -812,7 +828,7 @@ class Program
                 ContentDownloads = faker.Random.Int(50, 500),
                 DemoRequests = faker.Random.Int(5, 50),
                 TrialSignups = faker.Random.Int(10, 100),
-                
+
                 // Email Metrics
                 EmailsSent = emailsSent,
                 EmailsDelivered = emailsDelivered,
@@ -824,7 +840,7 @@ class Program
                 BounceRate = emailsSent > 0 ? (double)(emailsSent - emailsDelivered) / emailsSent * 100 : 0,
                 Unsubscribes = faker.Random.Int(10, 200),
                 SpamComplaints = faker.Random.Int(0, 10),
-                
+
                 // Social Metrics
                 SocialReach = faker.Random.Int(5000, 100000),
                 SocialEngagement = faker.Random.Int(100, 5000),
@@ -832,42 +848,42 @@ class Program
                 SocialComments = faker.Random.Int(10, 200),
                 SocialLikes = faker.Random.Int(50, 2000),
                 NewFollowers = faker.Random.Int(10, 500),
-                
+
                 // Event Metrics (for event campaigns)
                 Registrations = campaignType == CampaignType.Event || campaignType == CampaignType.Webinar ? faker.Random.Int(50, 500) : 0,
                 Attendance = campaignType == CampaignType.Event || campaignType == CampaignType.Webinar ? faker.Random.Int(25, 300) : 0,
-                
+
                 // ROI
                 ROI = faker.Random.Double(-20, 200),
                 TargetRoi = faker.Random.Double(100, 300),
                 TargetLeads = leadsGenerated + faker.Random.Int(-50, 50),
                 GoalAchievementPercent = faker.Random.Double(60, 120),
                 CampaignHealthScore = faker.Random.Int(40, 95),
-                
+
                 // Content
                 MessageSubject = faker.Lorem.Sentence(5),
                 CallToAction = faker.PickRandom(new[] { "Learn More", "Get Started", "Request Demo", "Download Now", "Start Free Trial", "Register Now" }),
                 LandingPageUrl = $"https://example.com/campaign/{faker.Random.AlphaNumeric(8)}",
-                
+
                 // UTM Tracking
                 UtmSource = faker.PickRandom(new[] { "email", "google", "linkedin", "facebook", "twitter", "direct" }),
                 UtmMedium = faker.PickRandom(new[] { "email", "cpc", "social", "organic", "display", "referral" }),
                 UtmCampaign = faker.Lorem.Slug(3),
-                
+
                 // A/B Testing
                 IsABTest = faker.Random.Bool(0.3f),
-                
+
                 // Assignment
                 OwnerId = faker.PickRandom(users).Id,
                 AssignedToUserId = faker.PickRandom(users).Id,
                 Department = "Marketing",
-                
+
                 // Classification
                 Tags = string.Join(",", faker.Commerce.Categories(2)),
                 Category = faker.PickRandom(new[] { "Demand Generation", "Brand Awareness", "Product Marketing", "Customer Marketing", "Field Marketing" }),
                 FiscalQuarter = faker.PickRandom(new[] { "Q1", "Q2", "Q3", "Q4" }),
                 FiscalYear = DateTime.Now.Year,
-                
+
                 CreatedAt = startDate.AddDays(-7)
             };
             campaigns.Add(campaign);
@@ -901,7 +917,7 @@ class Program
             var createdDate = faker.Date.Past(1);
             var primaryCampaign = faker.Random.Bool(0.8f) ? faker.PickRandom(campaigns) : null;
             var score = faker.Random.Int(0, 100);
-            
+
             var lead = new Lead
             {
                 // Contact Information
@@ -910,29 +926,29 @@ class Program
                 Email = faker.Internet.Email(),
                 Phone = faker.Phone.PhoneNumber("+1-###-###-####"),
                 Title = faker.PickRandom(jobTitles),
-                
+
                 // Company Information
                 CompanyName = faker.Company.CompanyName(),
                 Website = faker.Internet.Url(),
-                
+
                 // Status & Scoring
                 Status = status,
                 Source = faker.PickRandom(leadSources),
                 Score = score,
                 FitScore = faker.Random.Int(0, 100),
                 EngagementScore = faker.Random.Int(0, 100),
-                
+
                 // Qualification
                 QualificationNotes = status >= LeadLifecycleStatus.Qualified ? faker.Lorem.Paragraph() : null,
                 MqlDate = score >= 50 ? createdDate.AddDays(faker.Random.Int(1, 14)) : null,
                 SqlDate = score >= 70 ? createdDate.AddDays(faker.Random.Int(7, 21)) : null,
                 Region = faker.PickRandom(regions),
                 Tags = faker.Random.Bool(0.3f) ? string.Join(",", faker.Commerce.Categories(2)) : null,
-                
+
                 // Assignment
                 OwnerId = faker.PickRandom(users).Id,
                 CampaignId = primaryCampaign?.Id,
-                
+
                 CreatedAt = createdDate
             };
             leads.Add(lead);
@@ -980,27 +996,27 @@ class Program
             {
                 Name = $"{faker.Company.CompanyName()} - {faker.Commerce.ProductName()}",
                 SolutionNotes = faker.Lorem.Paragraph(),
-                
+
                 // Pipeline & Probability
                 Stage = stage,
                 Probability = probability,
-                
+
                 // Commercial Fields
                 Amount = amount,
                 Currency = faker.PickRandom(currencies),
                 ExpectedCloseDate = faker.Date.Future(1),
                 PricingModel = faker.PickRandom(pricingModels),
                 TermLengthMonths = faker.PickRandom(termLengths),
-                
+
                 // Solution & Qualification
                 QualificationReason = stage >= OpportunityStage.Qualification ? faker.PickRandom(qualificationReasons) : null,
                 QualificationNotes = stage >= OpportunityStage.Qualification ? faker.Lorem.Paragraph() : null,
                 Region = faker.PickRandom(regions),
-                
+
                 // Foreign Keys
                 AccountId = faker.PickRandom(subscriptions).AccountId,
                 SalesOwnerId = faker.PickRandom(salesUsers).Id,
-                
+
                 CreatedAt = faker.Date.Past(1)
             };
             opportunities.Add(opportunity);

@@ -314,7 +314,7 @@ describe('Component - ImportExportButtons', () => {
       const mockFile = new File(['test'], 'customers.json', { type: 'application/json' });
       handleFileSelect(mockFile);
       
-      expect(selectedFile?.name).toBe('customers.json');
+      expect((selectedFile as File | null)?.name).toBe('customers.json');
     });
 
     it('should validate file type', () => {

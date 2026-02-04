@@ -80,7 +80,7 @@ public class SystemSettingsServiceTests : IDisposable
         result.Should().NotBeNull();
         result.CustomersEnabled.Should().BeTrue();  // Default enabled
         result.ContactsEnabled.Should().BeTrue();   // Default enabled
-        
+
         // Verify settings were persisted
         var savedSettings = await _dbContext.SystemSettings.FirstOrDefaultAsync();
         savedSettings.Should().NotBeNull();
@@ -158,7 +158,7 @@ public class SystemSettingsServiceTests : IDisposable
         result.CompanyName.Should().Be("New Company");
         result.MinPasswordLength.Should().Be(10);
         result.CustomersEnabled.Should().BeFalse();
-        
+
         // Verify persistence
         var updatedSettings = await _dbContext.SystemSettings.FirstAsync();
         updatedSettings.CompanyName.Should().Be("New Company");

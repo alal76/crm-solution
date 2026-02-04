@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -265,8 +281,8 @@ public class WorkflowWorkerService : BackgroundService
                     if (nodeInstance != null)
                     {
                         nodeInstance.CompletedAt = trackedTask.CompletedAt;
-                        nodeInstance.Status = result.Success 
-                            ? WorkflowNodeInstanceStatus.Completed 
+                        nodeInstance.Status = result.Success
+                            ? WorkflowNodeInstanceStatus.Completed
                             : (trackedTask.IsDeadLetter ? WorkflowNodeInstanceStatus.Failed : WorkflowNodeInstanceStatus.Running);
                         nodeInstance.DurationMs = (int)(DateTime.UtcNow - startTime).TotalMilliseconds;
                         if (!result.Success)
@@ -631,8 +647,8 @@ public class WorkflowWorkerService : BackgroundService
         else
         {
             // Create automated task
-            var taskType = node.NodeType == WorkflowNodeType.LLMAction 
-                ? WorkflowTaskType.LLM 
+            var taskType = node.NodeType == WorkflowNodeType.LLMAction
+                ? WorkflowTaskType.LLM
                 : WorkflowTaskType.Automated;
             var queueName = node.NodeType == WorkflowNodeType.LLMAction ? "llm" : "default";
 
@@ -769,10 +785,10 @@ public class WorkflowWorkerService : BackgroundService
             // Get resilience service for circuit breaker and retry
             using var scope = _serviceProvider.CreateScope();
             var resilienceService = scope.ServiceProvider.GetService<IResilienceService>();
-            
+
             using var client = new HttpClient();
             client.Timeout = TimeSpan.FromSeconds(30);
-            
+
             HttpResponseMessage response;
             if (resilienceService != null)
             {
@@ -851,7 +867,7 @@ public class WorkflowWorkerService : BackgroundService
             return new TaskResult { Success = false, ErrorMessage = "LLM prompt is required" };
         }
 
-        _logger.LogInformation("Executing LLM action with provider {Provider}, model {Model}", 
+        _logger.LogInformation("Executing LLM action with provider {Provider}, model {Model}",
             config.Provider, config.Model);
 
         try
@@ -898,10 +914,10 @@ public class WorkflowWorkerService : BackgroundService
                 response = await resilienceService.ExecuteWithFallbackAsync(
                     $"llm-{config.Provider}",
                     async (innerCt) => await llmService.ChatAsync(llmRequest, innerCt),
-                    (ex) => new LLMResponse 
-                    { 
-                        Success = false, 
-                        Error = ex.Message 
+                    (ex) => new LLMResponse
+                    {
+                        Success = false,
+                        Error = ex.Message
                     },
                     ct);
             }
@@ -928,10 +944,10 @@ public class WorkflowWorkerService : BackgroundService
                     };
                 }
 
-                return new TaskResult 
-                { 
-                    Success = false, 
-                    ErrorMessage = response.Error ?? "LLM call failed" 
+                return new TaskResult
+                {
+                    Success = false,
+                    ErrorMessage = response.Error ?? "LLM call failed"
                 };
             }
 
@@ -954,7 +970,7 @@ public class WorkflowWorkerService : BackgroundService
         catch (ServiceUnavailableException ex)
         {
             _logger.LogError(ex, "LLM service unavailable (circuit open)");
-            
+
             if (!string.IsNullOrEmpty(config.FallbackAction))
             {
                 return new TaskResult
@@ -1060,7 +1076,7 @@ public class WorkflowWorkerService : BackgroundService
             // Get the import service
             using var scope = _serviceProvider.CreateScope();
             var importService = scope.ServiceProvider.GetService<IZipCodeImportService>();
-            
+
             if (importService == null)
             {
                 return new TaskResult
@@ -1081,7 +1097,7 @@ public class WorkflowWorkerService : BackgroundService
 
             // Execute import based on configuration
             ZipCodeImportResult result;
-            
+
             if (config.Source?.Equals("GitHub", StringComparison.OrdinalIgnoreCase) == true)
             {
                 _logger.LogInformation("Starting ZIP code import from GitHub: {Url}", config.GitHubUrl ?? "default");
@@ -1154,13 +1170,13 @@ public class ZipCodeImportConfig
     /// Import source: "GeoNames" or "GitHub"
     /// </summary>
     public string Source { get; set; } = "GeoNames";
-    
+
     /// <summary>
     /// Country code for single-country import (e.g., "US", "CA")
     /// Leave empty to import all countries
     /// </summary>
     public string? CountryCode { get; set; }
-    
+
     /// <summary>
     /// Custom GitHub URL for JSON ZIP code data
     /// </summary>

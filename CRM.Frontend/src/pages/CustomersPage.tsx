@@ -237,9 +237,9 @@ function CustomersPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [bulkFormData, setBulkFormData] = useState({
-    customerType: '' as string | number,
-    lifecycleStage: '' as string | number,
-    priority: '' as string | number,
+    customerType: '',
+    lifecycleStage: '',
+    priority: '',
     industry: '' as string,
     territory: '' as string,
   });

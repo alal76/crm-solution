@@ -2165,7 +2165,8 @@ const getDefaultConfig = (nodeType: string): any => {
         confidenceThreshold: 0.7,
         inputVariables: [],
         outputVariable: 'decision_result',
-      } as AIDecisionConfig;
+        retryOnError: true,
+      } as unknown as AIDecisionConfig;
     case 'AIAgent':
       return {
         agentName: 'CRM Agent',

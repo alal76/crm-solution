@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -49,7 +65,7 @@ public class CloudProvider : BaseEntity
     public string Name { get; set; } = string.Empty;
     public CloudProviderType ProviderType { get; set; }
     public string? Description { get; set; }
-    
+
     // Connection credentials (encrypted in DB)
     public string? AccessKeyId { get; set; }
     public string? SecretAccessKey { get; set; }
@@ -58,13 +74,13 @@ public class CloudProvider : BaseEntity
     public string? ProjectId { get; set; }
     public string? Region { get; set; }
     public string? Endpoint { get; set; }
-    
+
     // Additional configuration as JSON
     public string? Configuration { get; set; }
-    
+
     public bool IsActive { get; set; } = true;
     public bool IsDefault { get; set; } = false;
-    
+
     // Navigation
     public virtual ICollection<CloudDeployment> Deployments { get; set; } = new List<CloudDeployment>();
 }
@@ -76,52 +92,52 @@ public class CloudDeployment : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    
+
     // Provider reference
     public int CloudProviderId { get; set; }
     public virtual CloudProvider CloudProvider { get; set; } = null!;
-    
+
     // Deployment target
     public string? ClusterName { get; set; }
     public string? Namespace { get; set; }
     public string? ResourceGroup { get; set; }
     public string? VpcId { get; set; }
     public string? SubnetIds { get; set; }
-    
+
     // Container/Image details
     public string? BackendImage { get; set; }
     public string? FrontendImage { get; set; }
     public string? DatabaseImage { get; set; }
     public string? BackendVersion { get; set; }
     public string? FrontendVersion { get; set; }
-    
+
     // Deployed endpoints
     public string? FrontendUrl { get; set; }
     public string? ApiUrl { get; set; }
     public string? DatabaseHost { get; set; }
     public int? DatabasePort { get; set; }
-    
+
     // SSL/TLS
     public bool SslEnabled { get; set; } = true;
     public string? SslCertificateArn { get; set; }
     public string? DomainName { get; set; }
-    
+
     // Resource allocation
     public int CpuUnits { get; set; } = 256;
     public int MemoryMb { get; set; } = 512;
     public int Replicas { get; set; } = 1;
-    
+
     // Status
     public DeploymentStatus Status { get; set; } = DeploymentStatus.Pending;
     public HealthStatus HealthStatus { get; set; } = HealthStatus.Unknown;
     public DateTime? LastHealthCheck { get; set; }
     public DateTime? DeployedAt { get; set; }
     public string? LastError { get; set; }
-    
+
     // Configuration as JSON
     public string? EnvironmentVariables { get; set; }
     public string? ResourceConfiguration { get; set; }
-    
+
     // Navigation
     public virtual ICollection<DeploymentAttempt> Attempts { get; set; } = new List<DeploymentAttempt>();
     public virtual ICollection<HealthCheckLog> HealthChecks { get; set; } = new List<HealthCheckLog>();
@@ -134,30 +150,30 @@ public class DeploymentAttempt : BaseEntity
 {
     public int CloudDeploymentId { get; set; }
     public virtual CloudDeployment CloudDeployment { get; set; } = null!;
-    
+
     public string AttemptNumber { get; set; } = string.Empty;
     public DeploymentStatus Status { get; set; } = DeploymentStatus.Pending;
-    
+
     // Build info
     public string? GitCommitHash { get; set; }
     public string? GitBranch { get; set; }
     public string? BuildNumber { get; set; }
-    
+
     // Images built
     public string? BackendImageTag { get; set; }
     public string? FrontendImageTag { get; set; }
-    
+
     // Timing
     public DateTime StartedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
     public int? DurationSeconds { get; set; }
-    
+
     // Logs and errors
     public string? BuildLog { get; set; }
     public string? DeployLog { get; set; }
     public string? ErrorMessage { get; set; }
     public string? ErrorStackTrace { get; set; }
-    
+
     // Triggered by
     public int? TriggeredByUserId { get; set; }
     public string? TriggerType { get; set; } // Manual, Webhook, Scheduled
@@ -170,20 +186,20 @@ public class HealthCheckLog : BaseEntity
 {
     public int CloudDeploymentId { get; set; }
     public virtual CloudDeployment CloudDeployment { get; set; } = null!;
-    
+
     public HealthStatus Status { get; set; }
     public DateTime CheckedAt { get; set; } = DateTime.UtcNow;
-    
+
     // Component health
     public bool? ApiHealthy { get; set; }
     public bool? FrontendHealthy { get; set; }
     public bool? DatabaseHealthy { get; set; }
-    
+
     // Response times (ms)
     public int? ApiResponseTimeMs { get; set; }
     public int? FrontendResponseTimeMs { get; set; }
     public int? DatabaseResponseTimeMs { get; set; }
-    
+
     // Details
     public string? ApiResponse { get; set; }
     public string? FrontendResponse { get; set; }

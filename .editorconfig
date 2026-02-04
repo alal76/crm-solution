@@ -18,6 +18,37 @@ indent_size = 4
 dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
+# StyleCop Analyzer rules
+dotnet_diagnostic.SA1101.severity = none  # Do not prefix local calls with this
+dotnet_diagnostic.SA1309.severity = none  # Field names should not begin with underscore
+dotnet_diagnostic.SA1633.severity = warning  # File should have header
+dotnet_diagnostic.SA1636.severity = warning  # File header copyright text should match
+dotnet_diagnostic.SA1600.severity = suggestion  # Elements should be documented (too noisy, make it a suggestion)
+dotnet_diagnostic.SA1629.severity = none  # Documentation text should end with period (too pedantic)
+dotnet_diagnostic.SA1623.severity = none  # Property summary documentation should match standard text
+dotnet_diagnostic.SA1611.severity = suggestion  # Element parameters should be documented
+dotnet_diagnostic.SA1615.severity = suggestion  # Element return value should be documented
+dotnet_diagnostic.SA1413.severity = suggestion  # Use trailing comma in multi-line initializers
+dotnet_diagnostic.SA1513.severity = suggestion  # Closing brace should be followed by blank line
+dotnet_diagnostic.SA1515.severity = suggestion  # Single-line comment should be preceded by blank line
+dotnet_diagnostic.SA1516.severity = suggestion  # Elements should be separated by blank line
+dotnet_diagnostic.SA1503.severity = suggestion  # Braces should not be omitted
+dotnet_diagnostic.SA1000.severity = suggestion  # Keywords should be spaced correctly
+dotnet_diagnostic.SA1124.severity = suggestion  # Do not use regions
+dotnet_diagnostic.SA1313.severity = suggestion  # Parameter names should begin with lower-case letter
+dotnet_diagnostic.SA1602.severity = suggestion  # Enumeration items should be documented
+dotnet_diagnostic.SA1122.severity = suggestion  # Use string.Empty for empty strings
+dotnet_diagnostic.SA1009.severity = suggestion  # Closing parenthesis should be spaced correctly
+dotnet_diagnostic.SA1117.severity = suggestion  # Parameters should be on same line or separate lines
+dotnet_diagnostic.SA1618.severity = suggestion  # Generic type parameters should be documented
+dotnet_diagnostic.SA1127.severity = suggestion  # Generic type constraints should be on their own line
+dotnet_diagnostic.SA1116.severity = suggestion  # Split parameters should start on line after declaration
+dotnet_diagnostic.SA1137.severity = suggestion  # Elements should have the same indentation
+dotnet_diagnostic.SA1202.severity = suggestion  # Elements should be ordered by access
+dotnet_diagnostic.SA1208.severity = suggestion  # System using directives should be placed before other using directives
+dotnet_diagnostic.SA1210.severity = suggestion  # Using directives should be ordered alphabetically
+dotnet_diagnostic.SA1204.severity = suggestion  # Static elements should appear before instance elements
+
 # Code style preferences
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
