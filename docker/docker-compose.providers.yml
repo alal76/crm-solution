@@ -1,0 +1,164 @@
+# CRM Solution - Pluggable Provider Services
+# Phase 2 Week 9: Adds optional self-hosted provider services
+# 
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.providers.yml up -d
+#
+# These services are OPTIONAL and only needed when:
+# - You want to use external providers instead of BuiltIn
+# - You prefer self-hosted over SaaS alternatives
+
+volumes:
+  novu-data:
+  novu-mongo-data:
+  novu-redis-data:
+
+services:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # NOVU - Self-Hosted Notification Infrastructure
+  # https://novu.co - Multi-channel notification management
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  # Novu API (Main service)
+  novu-api:
+    image: ghcr.io/novuhq/novu/api:0.24.0
+    container_name: crm-novu-api
+    depends_on:
+      novu-mongo:
+        condition: service_healthy
+      novu-redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - API_ROOT_URL=http://localhost:3000
+      - MONGO_URL=mongodb://novu-mongo:27017/novu
+      - REDIS_HOST=novu-redis
+      - REDIS_PORT=6379
+      - REDIS_DB_INDEX=2
+      - S3_LOCAL_STACK=
+      - S3_BUCKET_NAME=novu-local
+      - S3_REGION=us-east-1
+      - FRONT_BASE_URL=http://localhost:4200
+      - API_PORT=3000
+      - JWT_SECRET=${NOVU_JWT_SECRET:-your-jwt-secret-change-in-production}
+      - STORE_ENCRYPTION_KEY=${NOVU_ENCRYPTION_KEY:-your-encryption-key-change}
+    ports:
+      - "${NOVU_API_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/v1/health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - crm-network
+
+  # Novu Worker (Processes notification jobs)
+  novu-worker:
+    image: ghcr.io/novuhq/novu/worker:0.24.0
+    container_name: crm-novu-worker
+    depends_on:
+      novu-mongo:
+        condition: service_healthy
+      novu-redis:
+        condition: service_healthy
+      novu-api:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - MONGO_URL=mongodb://novu-mongo:27017/novu
+      - REDIS_HOST=novu-redis
+      - REDIS_PORT=6379
+      - REDIS_DB_INDEX=2
+      - STORE_ENCRYPTION_KEY=${NOVU_ENCRYPTION_KEY:-your-encryption-key-change}
+    networks:
+      - crm-network
+
+  # Novu Web Dashboard (Optional - for managing workflows/templates)
+  novu-web:
+    image: ghcr.io/novuhq/novu/web:0.24.0
+    container_name: crm-novu-web
+    depends_on:
+      novu-api:
+        condition: service_healthy
+    environment:
+      - REACT_APP_API_URL=http://localhost:3000
+      - REACT_APP_WS_URL=http://localhost:3002
+      - REACT_APP_WIDGET_EMBED_PATH=http://localhost:4701/embed.umd.min.js
+    ports:
+      - "${NOVU_WEB_PORT:-4200}:4200"
+    networks:
+      - crm-network
+
+  # Novu Widget (In-app notification center)
+  novu-widget:
+    image: ghcr.io/novuhq/novu/widget:0.24.0
+    container_name: crm-novu-widget
+    depends_on:
+      novu-api:
+        condition: service_healthy
+    environment:
+      - REACT_APP_API_URL=http://localhost:3000
+      - REACT_APP_WS_URL=http://localhost:3002
+    ports:
+      - "${NOVU_WIDGET_PORT:-4701}:4701"
+    networks:
+      - crm-network
+
+  # Novu WebSocket Service
+  novu-ws:
+    image: ghcr.io/novuhq/novu/ws:0.24.0
+    container_name: crm-novu-ws
+    depends_on:
+      novu-mongo:
+        condition: service_healthy
+      novu-redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - MONGO_URL=mongodb://novu-mongo:27017/novu
+      - REDIS_HOST=novu-redis
+      - REDIS_PORT=6379
+      - REDIS_DB_INDEX=2
+      - JWT_SECRET=${NOVU_JWT_SECRET:-your-jwt-secret-change-in-production}
+      - PORT=3002
+    ports:
+      - "${NOVU_WS_PORT:-3002}:3002"
+    networks:
+      - crm-network
+
+  # MongoDB for Novu (data storage)
+  novu-mongo:
+    image: mongo:6
+    container_name: crm-novu-mongo
+    volumes:
+      - novu-mongo-data:/data/db
+    environment:
+      - PUID=1000
+      - PGID=1000
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - crm-network
+
+  # Redis for Novu (job queue and caching)
+  novu-redis:
+    image: redis:7-alpine
+    container_name: crm-novu-redis
+    volumes:
+      - novu-redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+networks:
+  crm-network:
+    external: true

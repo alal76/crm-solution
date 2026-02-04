@@ -4,6 +4,7 @@
 // Phase 1 Week 6: Added MeilisearchProvider registration
 // Phase 1 Week 7: Added AlgoliaProvider registration
 // Phase 2 Week 8: Added BuiltInNotificationProvider registration
+// Phase 2 Week 9: Added NovuProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ using CRM.Infrastructure.Factories;
 using CRM.Infrastructure.Providers.BuiltIn;
 using CRM.Infrastructure.Providers.Meilisearch;
 using CRM.Infrastructure.Providers.Algolia;
+using CRM.Infrastructure.Providers.Novu;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -193,21 +195,41 @@ public static class ProviderServiceExtensions
         var novuConfig = config.GetSection("Novu");
         if (!string.IsNullOrEmpty(novuConfig["ApiKey"]))
         {
-            // Will be registered when NovuProvider is implemented in Phase 2
+            // Register Novu configuration
+            services.Configure<NovuConfiguration>(novuConfig);
+            
+            // Register HttpClient for Novu provider
+            var novuUrl = novuConfig["Url"] ?? "https://api.novu.co";
+            var novuApiKey = novuConfig["ApiKey"];
+            var timeoutSeconds = int.TryParse(novuConfig["TimeoutSeconds"], out var t) ? t : 30;
+            
+            services.AddHttpClient<NovuProvider>(client =>
+            {
+                client.BaseAddress = new Uri(novuUrl.TrimEnd('/') + "/");
+                client.DefaultRequestHeaders.Add("Authorization", $"ApiKey {novuApiKey}");
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            services.AddHttpClient<NovuHealthCheck>(client =>
+            {
+                client.BaseAddress = new Uri(novuUrl.TrimEnd('/') + "/");
+                client.DefaultRequestHeaders.Add("Authorization", $"ApiKey {novuApiKey}");
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
         }
         
         // Twilio
         var twilioConfig = config.GetSection("Twilio");
         if (!string.IsNullOrEmpty(twilioConfig["AccountSid"]))
         {
-            // Will be registered when TwilioProvider is implemented in Phase 2
+            // Will be registered when TwilioProvider is implemented in Week 10
         }
         
         // SendGrid
         var sendGridConfig = config.GetSection("SendGrid");
         if (!string.IsNullOrEmpty(sendGridConfig["ApiKey"]))
         {
-            // Will be registered when SendGridProvider is implemented in Phase 2
+            // Will be registered when SendGridProvider is implemented in Week 10
         }
     }
     
