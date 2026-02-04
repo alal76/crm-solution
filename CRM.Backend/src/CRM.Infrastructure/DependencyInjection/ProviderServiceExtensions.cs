@@ -6,6 +6,7 @@
 // Phase 2 Week 8: Added BuiltInNotificationProvider registration
 // Phase 2 Week 9: Added NovuProvider registration
 // Phase 2 Week 10: Added TwilioProvider and SendGridProvider registration
+// Phase 3 Week 11: Added BuiltInChatProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -100,8 +101,12 @@ public static class ProviderServiceExtensions
         services.AddScoped<INotificationPort, BuiltInNotificationProvider>();
         services.AddScoped<BuiltInNotificationProvider>();
         
+        // Phase 3: Chat Provider - BuiltInChatProvider
+        // In-memory stub for development, use Chatwoot/Intercom for production
+        services.AddScoped<IChatPort, BuiltInChatProvider>();
+        services.AddScoped<BuiltInChatProvider>();
+        
         // Note: Remaining BuiltIn providers will be created in subsequent phases:
-        // - Phase 3: BuiltInChatProvider
         // - Phase 4: BuiltInSignatureProvider
         // - Phase 5: BuiltInAnalyticsProvider
         // - Phase 7: AI providers are already implemented
