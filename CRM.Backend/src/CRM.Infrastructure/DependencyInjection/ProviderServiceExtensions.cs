@@ -2,6 +2,7 @@
 // Phase 0 Week 4: DI Registration Extensions
 // Phase 1 Week 5: Added BuiltInSearchProvider registration
 // Phase 1 Week 6: Added MeilisearchProvider registration
+// Phase 1 Week 7: Added AlgoliaProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,7 @@ using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Factories;
 using CRM.Infrastructure.Providers.BuiltIn;
 using CRM.Infrastructure.Providers.Meilisearch;
+using CRM.Infrastructure.Providers.Algolia;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -149,9 +151,13 @@ public static class ProviderServiceExtensions
         var algoliaConfig = config.GetSection("Algolia");
         if (!string.IsNullOrEmpty(algoliaConfig["ApplicationId"]))
         {
-            // Will be registered when AlgoliaProvider is implemented in Phase 1 Week 7
-            // services.Configure<AlgoliaConfiguration>(algoliaConfig);
-            // services.AddScoped<AlgoliaProvider>();
+            // Register Algolia configuration and provider
+            services.Configure<AlgoliaConfiguration>(algoliaConfig);
+            services.AddScoped<AlgoliaProvider>();
+            services.AddScoped<AlgoliaHealthCheck>();
+            
+            // Register as ISearchPort for factory resolution
+            services.AddScoped<ISearchPort, AlgoliaProvider>();
         }
     }
     
