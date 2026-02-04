@@ -7,6 +7,7 @@
 // Phase 2 Week 9: Added NovuProvider registration
 // Phase 2 Week 10: Added TwilioProvider and SendGridProvider registration
 // Phase 3 Week 11: Added BuiltInChatProvider registration
+// Phase 3 Week 12: Added ChatwootProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,7 @@ using CRM.Infrastructure.Providers.Algolia;
 using CRM.Infrastructure.Providers.Novu;
 using CRM.Infrastructure.Providers.Twilio;
 using CRM.Infrastructure.Providers.SendGrid;
+using CRM.Infrastructure.Providers.Chatwoot;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -184,14 +186,33 @@ public static class ProviderServiceExtensions
         var chatwootConfig = config.GetSection("Chatwoot");
         if (!string.IsNullOrEmpty(chatwootConfig["BaseUrl"]))
         {
-            // Will be registered when ChatwootProvider is implemented in Phase 3
+            // Register Chatwoot configuration
+            services.Configure<ChatwootConfiguration>(chatwootConfig);
+            
+            // Register HttpClient for Chatwoot provider
+            var baseUrl = chatwootConfig["BaseUrl"]!;
+            var apiKey = chatwootConfig["ApiKey"] ?? "";
+            var timeoutSeconds = int.TryParse(chatwootConfig["TimeoutSeconds"], out var t) ? t : 30;
+            
+            services.AddHttpClient<ChatwootProvider>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    client.DefaultRequestHeaders.Add("api_access_token", apiKey);
+                }
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            // Register as IChatPort for factory resolution
+            services.AddScoped<IChatPort, ChatwootProvider>();
         }
         
         // Intercom
         var intercomConfig = config.GetSection("Intercom");
         if (!string.IsNullOrEmpty(intercomConfig["AppId"]))
         {
-            // Will be registered when IntercomProvider is implemented in Phase 3
+            // Will be registered when IntercomProvider is implemented in Phase 3 Week 15
         }
     }
     

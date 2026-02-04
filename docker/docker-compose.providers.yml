@@ -1,5 +1,6 @@
 # CRM Solution - Pluggable Provider Services
 # Phase 2 Week 9: Adds optional self-hosted provider services
+# Phase 3 Week 12: Added Chatwoot for live chat
 # 
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.providers.yml up -d
 #
@@ -11,6 +12,9 @@ volumes:
   novu-data:
   novu-mongo-data:
   novu-redis-data:
+  chatwoot-data:
+  chatwoot-redis-data:
+  chatwoot-postgres-data:
 
 services:
   # ═══════════════════════════════════════════════════════════════════════════
@@ -162,3 +166,117 @@ services:
 networks:
   crm-network:
     external: true
+
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CHATWOOT - Self-Hosted Live Chat & Customer Engagement
+  # https://chatwoot.com - Open-source customer engagement platform
+  # Phase 3 Week 12: Chat Provider Implementation
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  chatwoot-web:
+    image: chatwoot/chatwoot:v3.13.0
+    container_name: crm-chatwoot-web
+    depends_on:
+      chatwoot-postgres:
+        condition: service_healthy
+      chatwoot-redis:
+        condition: service_healthy
+    command: bundle exec rails s -p 3000 -b 0.0.0.0
+    entrypoint: docker/entrypoints/rails.sh
+    environment:
+      - RAILS_ENV=production
+      - NODE_ENV=production
+      - SECRET_KEY_BASE=${CHATWOOT_SECRET_KEY:-replace-with-secure-secret-key-64-chars-minimum}
+      - POSTGRES_HOST=chatwoot-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=chatwoot_production
+      - POSTGRES_USERNAME=chatwoot
+      - POSTGRES_PASSWORD=${CHATWOOT_DB_PASSWORD:-chatwoot_password}
+      - REDIS_URL=redis://chatwoot-redis:6379
+      - REDIS_PASSWORD=${CHATWOOT_REDIS_PASSWORD:-}
+      - FRONTEND_URL=http://localhost:3003
+      - DEFAULT_LOCALE=en
+      - FORCE_SSL=false
+      # SMTP settings (optional - for email notifications)
+      - SMTP_ADDRESS=${CHATWOOT_SMTP_ADDRESS:-}
+      - SMTP_PORT=${CHATWOOT_SMTP_PORT:-587}
+      - SMTP_USERNAME=${CHATWOOT_SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${CHATWOOT_SMTP_PASSWORD:-}
+      - SMTP_DOMAIN=${CHATWOOT_SMTP_DOMAIN:-}
+      # ActiveStorage (local by default)
+      - ACTIVE_STORAGE_SERVICE=local
+      # CRM Integration settings
+      - ENABLE_ACCOUNT_SIGNUP=false
+    volumes:
+      - chatwoot-data:/app/storage
+    ports:
+      - "${CHATWOOT_PORT:-3003}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/v1/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - crm-network
+
+  # Chatwoot Sidekiq Worker (Background job processing)
+  chatwoot-worker:
+    image: chatwoot/chatwoot:v3.13.0
+    container_name: crm-chatwoot-worker
+    depends_on:
+      chatwoot-postgres:
+        condition: service_healthy
+      chatwoot-redis:
+        condition: service_healthy
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    environment:
+      - RAILS_ENV=production
+      - SECRET_KEY_BASE=${CHATWOOT_SECRET_KEY:-replace-with-secure-secret-key-64-chars-minimum}
+      - POSTGRES_HOST=chatwoot-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=chatwoot_production
+      - POSTGRES_USERNAME=chatwoot
+      - POSTGRES_PASSWORD=${CHATWOOT_DB_PASSWORD:-chatwoot_password}
+      - REDIS_URL=redis://chatwoot-redis:6379
+      - REDIS_PASSWORD=${CHATWOOT_REDIS_PASSWORD:-}
+      - ACTIVE_STORAGE_SERVICE=local
+    volumes:
+      - chatwoot-data:/app/storage
+    networks:
+      - crm-network
+
+  # PostgreSQL for Chatwoot
+  chatwoot-postgres:
+    image: postgres:15-alpine
+    container_name: crm-chatwoot-postgres
+    volumes:
+      - chatwoot-postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=chatwoot_production
+      - POSTGRES_USER=chatwoot
+      - POSTGRES_PASSWORD=${CHATWOOT_DB_PASSWORD:-chatwoot_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatwoot -d chatwoot_production"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - crm-network
+
+  # Redis for Chatwoot (Sidekiq jobs and caching)
+  chatwoot-redis:
+    image: redis:7-alpine
+    container_name: crm-chatwoot-redis
+    volumes:
+      - chatwoot-redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
