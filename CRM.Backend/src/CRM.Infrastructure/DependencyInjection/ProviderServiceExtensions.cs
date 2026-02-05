@@ -9,6 +9,7 @@
 // Phase 3 Week 11: Added BuiltInChatProvider registration
 // Phase 3 Week 12: Added ChatwootProvider registration
 // Phase 3 Week 15: Added IntercomProvider registration
+// Phase 4 Week 16: Added BuiltInSignatureProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -110,8 +111,12 @@ public static class ProviderServiceExtensions
         services.AddScoped<IChatPort, BuiltInChatProvider>();
         services.AddScoped<BuiltInChatProvider>();
         
+        // Phase 4: Signature Provider - BuiltInSignatureProvider
+        // Manual signature workflow tracking without external e-signature services
+        services.AddScoped<ISignaturePort, BuiltInSignatureProvider>();
+        services.AddScoped<BuiltInSignatureProvider>();
+        
         // Note: Remaining BuiltIn providers will be created in subsequent phases:
-        // - Phase 4: BuiltInSignatureProvider
         // - Phase 5: BuiltInAnalyticsProvider
         // - Phase 7: AI providers are already implemented
         
