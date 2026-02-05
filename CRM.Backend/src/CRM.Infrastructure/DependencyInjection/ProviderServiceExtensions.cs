@@ -13,6 +13,7 @@
 // Phase 5 Week 19: Added BuiltInAnalyticsProvider registration
 // Phase 4 Week 17: Added DocuSealProvider registration
 // Phase 4 Week 18: Added DocuSignProvider registration
+// Phase 5 Week 21: Added SupersetProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,7 @@ using CRM.Infrastructure.Providers.Chatwoot;
 using CRM.Infrastructure.Providers.Intercom;
 using CRM.Infrastructure.Providers.DocuSeal;
 using CRM.Infrastructure.Providers.DocuSign;
+using CRM.Infrastructure.Providers.Superset;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -310,16 +312,32 @@ public static class ProviderServiceExtensions
         
         // Superset
         var supersetConfig = config.GetSection("Superset");
-        if (!string.IsNullOrEmpty(supersetConfig["Url"]))
+        if (!string.IsNullOrEmpty(supersetConfig["BaseUrl"]))
         {
-            // Will be registered when SupersetProvider is implemented in Phase 5
+            // Register Superset configuration
+            services.Configure<SupersetConfiguration>(supersetConfig);
+            
+            // Register HttpClient for Superset provider
+            var baseUrl = supersetConfig["BaseUrl"]!;
+            var timeoutSeconds = int.TryParse(supersetConfig["TimeoutSeconds"], out var t) ? t : 30;
+            
+            services.AddHttpClient<SupersetProvider>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            services.AddScoped<SupersetProvider>();
+            
+            // Register as IAnalyticsPort for factory resolution
+            services.AddScoped<IAnalyticsPort, SupersetProvider>();
         }
         
         // Power BI
         var powerBiConfig = config.GetSection("PowerBI");
         if (!string.IsNullOrEmpty(powerBiConfig["TenantId"]))
         {
-            // Will be registered when PowerBIProvider is implemented in Phase 5
+            // Will be registered when PowerBIProvider is implemented in Week 23
         }
     }
     
