@@ -14,6 +14,7 @@
 // Phase 4 Week 17: Added DocuSealProvider registration
 // Phase 4 Week 18: Added DocuSignProvider registration
 // Phase 5 Week 21: Added SupersetProvider registration
+// Phase 5 Week 23: Added PowerBIProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,7 @@ using CRM.Infrastructure.Providers.Intercom;
 using CRM.Infrastructure.Providers.DocuSeal;
 using CRM.Infrastructure.Providers.DocuSign;
 using CRM.Infrastructure.Providers.Superset;
+using CRM.Infrastructure.Providers.PowerBI;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -337,7 +339,22 @@ public static class ProviderServiceExtensions
         var powerBiConfig = config.GetSection("PowerBI");
         if (!string.IsNullOrEmpty(powerBiConfig["TenantId"]))
         {
-            // Will be registered when PowerBIProvider is implemented in Week 23
+            // Register Power BI configuration
+            services.Configure<PowerBIConfiguration>(powerBiConfig);
+            
+            // Register HttpClient for Power BI provider
+            var timeoutSeconds = int.TryParse(powerBiConfig["TimeoutSeconds"], out var t) ? t : 30;
+            
+            services.AddHttpClient<PowerBIProvider>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.powerbi.com/v1.0/myorg/");
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            services.AddScoped<PowerBIProvider>();
+            
+            // Register as IAnalyticsPort for factory resolution
+            services.AddScoped<IAnalyticsPort, PowerBIProvider>();
         }
     }
     
