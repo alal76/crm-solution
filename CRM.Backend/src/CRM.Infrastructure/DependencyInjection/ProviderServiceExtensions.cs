@@ -526,5 +526,26 @@ public static class ProviderServiceExtensions
             services.AddScoped<BedrockProvider>();
             services.AddScoped<IAIPort, BedrockProvider>();
         }
+        
+        // OpenRouter (multi-model AI gateway)
+        var openRouterConfig = config.GetSection("OpenRouter");
+        if (!string.IsNullOrEmpty(openRouterConfig["ApiKey"]))
+        {
+            services.Configure<OpenRouterConfiguration>(openRouterConfig);
+            
+            var baseUrl = openRouterConfig["BaseUrl"] ?? "https://openrouter.ai/api/v1";
+            var apiKey = openRouterConfig["ApiKey"]!;
+            var timeoutSeconds = int.TryParse(openRouterConfig["TimeoutSeconds"], out var t) ? t : 120;
+            
+            services.AddHttpClient<OpenRouterProvider>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            services.AddScoped<OpenRouterProvider>();
+            services.AddScoped<IAIPort, OpenRouterProvider>();
+        }
     }
 }

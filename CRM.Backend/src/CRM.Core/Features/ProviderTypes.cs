@@ -179,6 +179,9 @@ public static class ProviderTypes
         
         /// <summary>DeepSeek - DeepSeek AI models</summary>
         public const string DeepSeek = "DeepSeek";
+        
+        /// <summary>OpenRouter - Multi-model AI gateway (access to 100+ models)</summary>
+        public const string OpenRouter = "OpenRouter";
     }
     
     /// <summary>
