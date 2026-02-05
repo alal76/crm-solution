@@ -8,6 +8,7 @@
 // Phase 2 Week 10: Added TwilioProvider and SendGridProvider registration
 // Phase 3 Week 11: Added BuiltInChatProvider registration
 // Phase 3 Week 12: Added ChatwootProvider registration
+// Phase 3 Week 15: Added IntercomProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,7 @@ using CRM.Infrastructure.Providers.Novu;
 using CRM.Infrastructure.Providers.Twilio;
 using CRM.Infrastructure.Providers.SendGrid;
 using CRM.Infrastructure.Providers.Chatwoot;
+using CRM.Infrastructure.Providers.Intercom;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -212,7 +214,29 @@ public static class ProviderServiceExtensions
         var intercomConfig = config.GetSection("Intercom");
         if (!string.IsNullOrEmpty(intercomConfig["AppId"]))
         {
-            // Will be registered when IntercomProvider is implemented in Phase 3 Week 15
+            // Register Intercom configuration
+            services.Configure<IntercomConfiguration>(intercomConfig);
+            
+            // Register HttpClient for Intercom provider
+            var baseUrl = intercomConfig["BaseUrl"] ?? "https://api.intercom.io";
+            var accessToken = intercomConfig["AccessToken"] ?? "";
+            var apiVersion = intercomConfig["ApiVersion"] ?? "2.11";
+            var timeoutSeconds = int.TryParse(intercomConfig["TimeoutSeconds"], out var t) ? t : 30;
+            
+            services.AddHttpClient<IntercomProvider>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl.TrimEnd('/'));
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+                }
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.DefaultRequestHeaders.Add("Intercom-Version", apiVersion);
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            // Register as IChatPort for factory resolution
+            services.AddScoped<IChatPort, IntercomProvider>();
         }
     }
     
