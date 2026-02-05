@@ -16,6 +16,7 @@
 // Phase 5 Week 21: Added SupersetProvider registration
 // Phase 5 Week 23: Added PowerBIProvider registration
 // Phase 6 Weeks 24-28: Added Integration providers (BuiltIn, n8n, Zapier)
+// Phase 7 Weeks 29-31: Added AI/LLM providers (Ollama, AzureOpenAI, Bedrock)
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,7 @@ using CRM.Infrastructure.Providers.DocuSign;
 using CRM.Infrastructure.Providers.Superset;
 using CRM.Infrastructure.Providers.PowerBI;
 using CRM.Infrastructure.Providers.Integration;
+using CRM.Infrastructure.Providers.AI;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -165,6 +167,9 @@ public static class ProviderServiceExtensions
         
         // Integration providers
         AddIntegrationProviders(services, providersSection.GetSection("Integrations"));
+        
+        // AI/LLM providers (Phase 7)
+        AddAIProviders(services, providersSection.GetSection("AI"));
         
         return services;
     }
@@ -450,6 +455,76 @@ public static class ProviderServiceExtensions
             
             services.AddScoped<ZapierProvider>();
             services.AddScoped<IIntegrationPort, ZapierProvider>();
+        }
+    }
+    
+    private static void AddAIProviders(IServiceCollection services, IConfiguration config)
+    {
+        var providerType = config["Type"];
+        
+        // Ollama (local LLM)
+        var ollamaConfig = config.GetSection("Ollama");
+        if (!string.IsNullOrEmpty(ollamaConfig["BaseUrl"]))
+        {
+            services.Configure<OllamaConfiguration>(ollamaConfig);
+            
+            var baseUrl = ollamaConfig["BaseUrl"]!;
+            var timeoutSeconds = int.TryParse(ollamaConfig["TimeoutSeconds"], out var t) ? t : 120;
+            
+            services.AddHttpClient<OllamaProvider>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            services.AddScoped<OllamaProvider>();
+            services.AddScoped<IAIPort, OllamaProvider>();
+        }
+        
+        // Azure OpenAI
+        var azureOpenAiConfig = config.GetSection("AzureOpenAI");
+        if (!string.IsNullOrEmpty(azureOpenAiConfig["Endpoint"]))
+        {
+            services.Configure<AzureOpenAIConfiguration>(azureOpenAiConfig);
+            
+            var endpoint = azureOpenAiConfig["Endpoint"]!;
+            var apiKey = azureOpenAiConfig["ApiKey"] ?? "";
+            var timeoutSeconds = int.TryParse(azureOpenAiConfig["TimeoutSeconds"], out var t) ? t : 120;
+            
+            services.AddHttpClient<AzureOpenAIProvider>(client =>
+            {
+                client.BaseAddress = new Uri(endpoint.TrimEnd('/') + "/");
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    client.DefaultRequestHeaders.Add("api-key", apiKey);
+                }
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            services.AddScoped<AzureOpenAIProvider>();
+            services.AddScoped<IAIPort, AzureOpenAIProvider>();
+        }
+        
+        // AWS Bedrock
+        var bedrockConfig = config.GetSection("Bedrock");
+        if (!string.IsNullOrEmpty(bedrockConfig["Region"]))
+        {
+            services.Configure<BedrockConfiguration>(bedrockConfig);
+            
+            var region = bedrockConfig["Region"]!;
+            var timeoutSeconds = int.TryParse(bedrockConfig["TimeoutSeconds"], out var t) ? t : 120;
+            
+            // Note: For production, use AWS SDK with proper credential chain
+            // This HttpClient setup expects SigV4 signing to be handled externally
+            // or via AWS SDK's credential provider
+            services.AddHttpClient<BedrockProvider>(client =>
+            {
+                client.BaseAddress = new Uri($"https://bedrock-runtime.{region}.amazonaws.com/");
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            services.AddScoped<BedrockProvider>();
+            services.AddScoped<IAIPort, BedrockProvider>();
         }
     }
 }
