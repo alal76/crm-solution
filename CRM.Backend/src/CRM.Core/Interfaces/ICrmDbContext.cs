@@ -48,6 +48,7 @@ public interface ICrmDbContext
     DbSet<SystemSettings> SystemSettings { get; }
     DbSet<CrmTask> CrmTasks { get; }
     DbSet<Note> Notes { get; }
+    DbSet<Activity> Activities { get; }
     DbSet<Quote> Quotes { get; }
 
     // Service Request entities
