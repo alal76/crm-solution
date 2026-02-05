@@ -340,12 +340,12 @@ public class DocuSignWebhookController : ControllerBase
 
         // Log activity if we have entity context
         if (sigRequest != null && !string.IsNullOrWhiteSpace(sigRequest.EntityType) && 
-            !string.IsNullOrWhiteSpace(sigRequest.EntityId))
+            sigRequest.EntityId.HasValue)
         {
             _logger.LogDebug(
                 "Creating activity for {EntityType}/{EntityId} from DocuSign webhook",
                 sigRequest.EntityType,
-                sigRequest.EntityId);
+                sigRequest.EntityId.Value);
 
             // Activity creation would go here via IActivityService
             // The activity service integration depends on the specific implementation
