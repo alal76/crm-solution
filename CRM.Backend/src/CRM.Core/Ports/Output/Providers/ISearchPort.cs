@@ -369,7 +369,7 @@ public class ProviderHealthResult
     /// <summary>
     /// Additional details.
     /// </summary>
-    public Dictionary<string, object>? Details { get; set; }
+    public Dictionary<string, object> Details { get; set; } = new();
 }
 
 #endregion

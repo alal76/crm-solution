@@ -10,6 +10,7 @@
 // Phase 3 Week 12: Added ChatwootProvider registration
 // Phase 3 Week 15: Added IntercomProvider registration
 // Phase 4 Week 16: Added BuiltInSignatureProvider registration
+// Phase 4 Week 17: Added DocuSealProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,7 @@ using CRM.Infrastructure.Providers.Twilio;
 using CRM.Infrastructure.Providers.SendGrid;
 using CRM.Infrastructure.Providers.Chatwoot;
 using CRM.Infrastructure.Providers.Intercom;
+using CRM.Infrastructure.Providers.DocuSeal;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -322,7 +324,21 @@ public static class ProviderServiceExtensions
         var docuSealConfig = config.GetSection("DocuSeal");
         if (!string.IsNullOrEmpty(docuSealConfig["Url"]))
         {
-            // Will be registered when DocuSealProvider is implemented in Phase 4
+            services.Configure<DocuSealConfiguration>(docuSealConfig);
+            services.AddHttpClient<DocuSealProvider>(client =>
+            {
+                client.BaseAddress = new Uri(docuSealConfig["Url"]!.TrimEnd('/') + "/api/");
+                if (!string.IsNullOrEmpty(docuSealConfig["ApiKey"]))
+                {
+                    client.DefaultRequestHeaders.Add("X-Auth-Token", docuSealConfig["ApiKey"]);
+                }
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+            }).ConfigureHttpClient(client =>
+            {
+                var timeout = int.TryParse(docuSealConfig["TimeoutSeconds"], out var t) ? t : 30;
+                client.Timeout = TimeSpan.FromSeconds(timeout);
+            });
+            services.AddScoped<DocuSealProvider>();
         }
         
         // DocuSign
