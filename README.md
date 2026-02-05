@@ -307,7 +307,77 @@ docker compose -f docker/docker-compose.microservices.unified.yml up -d
 
 ---
 
-## 📁 Project Structure
+## � Pluggable Architecture
+
+CRM Solution features a **pluggable provider architecture** that allows operators to choose between built-in implementations and external services for key capabilities. This enables flexibility from simple deployments to enterprise-grade integrations.
+
+### Provider Categories
+
+| Category | Built-In | Self-Hosted OSS | Cloud SaaS |
+|----------|----------|-----------------|------------|
+| **Search** | SQL LIKE queries | Meilisearch, Typesense | Algolia, Azure Search |
+| **Notifications** | SMTP Email | Novu | Twilio, SendGrid |
+| **Chat** | In-memory | Chatwoot | Intercom, Zendesk |
+| **E-Signatures** | Manual workflow | DocuSeal | DocuSign, Adobe Sign |
+| **Analytics** | Basic dashboards | Apache Superset | Power BI, Looker |
+| **Integrations** | Webhooks | n8n | Zapier, Make |
+| **AI/LLM** | Ollama (local) | - | Azure OpenAI, AWS Bedrock |
+
+### Configuration-Driven Selection
+
+Providers are selected via feature flags in `appsettings.json`:
+
+```json
+{
+  "FeatureManagement": {
+    "UseExternalSearch": false,
+    "UseExternalNotifications": false,
+    "UseExternalChat": false,
+    "UseExternalSignatures": false,
+    "UseExternalAnalytics": false
+  },
+  "Providers": {
+    "Search": {
+      "Type": "BuiltIn",
+      "Meilisearch": {
+        "Url": "http://meilisearch:7700",
+        "ApiKey": "${MEILISEARCH_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+### Provider Health Endpoint
+
+Check provider status at runtime:
+
+```bash
+GET /api/health/providers
+
+{
+  "timestamp": "2024-02-05T10:30:00Z",
+  "overallHealthy": true,
+  "providers": {
+    "Search": { "activeProvider": "Meilisearch", "isHealthy": true },
+    "Chat": { "activeProvider": "BuiltIn", "isHealthy": true },
+    "Notifications": { "activeProvider": "Novu", "isHealthy": true }
+  }
+}
+```
+
+### Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Operator Deployment Guide](docs/OPERATOR_DEPLOYMENT_GUIDE.md) | Complete deployment instructions |
+| [Provider Configuration Reference](docs/PROVIDER_CONFIGURATION_REFERENCE.md) | All provider settings |
+| [Troubleshooting Runbook](docs/TROUBLESHOOTING_RUNBOOK.md) | Provider issue resolution |
+| [ADR-001: Architecture Strategy](docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md) | Architecture decision record |
+
+---
+
+## �📁 Project Structure
 
 ```
 crm-solution/
