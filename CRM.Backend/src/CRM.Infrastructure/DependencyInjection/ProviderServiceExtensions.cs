@@ -11,6 +11,7 @@
 // Phase 3 Week 15: Added IntercomProvider registration
 // Phase 4 Week 16: Added BuiltInSignatureProvider registration
 // Phase 4 Week 17: Added DocuSealProvider registration
+// Phase 4 Week 18: Added DocuSignProvider registration
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,7 @@ using CRM.Infrastructure.Providers.SendGrid;
 using CRM.Infrastructure.Providers.Chatwoot;
 using CRM.Infrastructure.Providers.Intercom;
 using CRM.Infrastructure.Providers.DocuSeal;
+using CRM.Infrastructure.Providers.DocuSign;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -339,13 +341,20 @@ public static class ProviderServiceExtensions
                 client.Timeout = TimeSpan.FromSeconds(timeout);
             });
             services.AddScoped<DocuSealProvider>();
+            
+            // Register as ISignaturePort for factory resolution
+            services.AddScoped<ISignaturePort, DocuSealProvider>();
         }
         
         // DocuSign
         var docuSignConfig = config.GetSection("DocuSign");
         if (!string.IsNullOrEmpty(docuSignConfig["IntegrationKey"]))
         {
-            // Will be registered when DocuSignProvider is implemented in Phase 4
+            services.Configure<DocuSignConfiguration>(docuSignConfig);
+            services.AddScoped<DocuSignProvider>();
+            
+            // Register as ISignaturePort for factory resolution
+            services.AddScoped<ISignaturePort, DocuSignProvider>();
         }
     }
     
