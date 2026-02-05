@@ -355,6 +355,7 @@ builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
 builder.Services.AddHostedService<BackupSchedulerHostedService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
 builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
+builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 builder.Services.AddScoped<IServiceRequestCategoryService, ServiceRequestCategoryService>();
 builder.Services.AddScoped<IServiceRequestSubcategoryService, ServiceRequestSubcategoryService>();
