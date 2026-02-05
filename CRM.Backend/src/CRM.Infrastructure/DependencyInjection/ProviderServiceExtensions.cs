@@ -15,6 +15,7 @@
 // Phase 4 Week 18: Added DocuSignProvider registration
 // Phase 5 Week 21: Added SupersetProvider registration
 // Phase 5 Week 23: Added PowerBIProvider registration
+// Phase 6 Weeks 24-28: Added Integration providers (BuiltIn, n8n, Zapier)
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,7 @@ using CRM.Infrastructure.Providers.DocuSeal;
 using CRM.Infrastructure.Providers.DocuSign;
 using CRM.Infrastructure.Providers.Superset;
 using CRM.Infrastructure.Providers.PowerBI;
+using CRM.Infrastructure.Providers.Integration;
 
 namespace CRM.Infrastructure.DependencyInjection;
 
@@ -402,18 +404,52 @@ public static class ProviderServiceExtensions
     {
         var providerType = config["Type"];
         
+        // BuiltIn Integration Provider (webhook-based)
+        services.Configure<BuiltInIntegrationConfiguration>(config.GetSection("BuiltIn"));
+        services.AddHttpClient<BuiltInIntegrationProvider>();
+        services.AddScoped<BuiltInIntegrationProvider>();
+        services.AddScoped<IIntegrationPort, BuiltInIntegrationProvider>();
+        
         // n8n
         var n8nConfig = config.GetSection("N8n");
         if (!string.IsNullOrEmpty(n8nConfig["BaseUrl"]))
         {
-            // Will be registered when N8nProvider is implemented in Phase 6
+            services.Configure<N8nConfiguration>(n8nConfig);
+            
+            var baseUrl = n8nConfig["BaseUrl"]!;
+            var apiKey = n8nConfig["ApiKey"] ?? "";
+            var timeoutSeconds = int.TryParse(n8nConfig["TimeoutSeconds"], out var t) ? t : 30;
+            
+            services.AddHttpClient<N8nProvider>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    client.DefaultRequestHeaders.Add("X-N8N-API-KEY", apiKey);
+                }
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            services.AddScoped<N8nProvider>();
+            services.AddScoped<IIntegrationPort, N8nProvider>();
         }
         
         // Zapier
         var zapierConfig = config.GetSection("Zapier");
-        if (!string.IsNullOrEmpty(zapierConfig["WebhookBaseUrl"]))
+        if (!string.IsNullOrEmpty(zapierConfig["WebhookBaseUrl"]) || 
+            zapierConfig.GetSection("EventWebhooks").GetChildren().Any())
         {
-            // Will be registered when ZapierProvider is implemented in Phase 6
+            services.Configure<ZapierConfiguration>(zapierConfig);
+            
+            var timeoutSeconds = int.TryParse(zapierConfig["TimeoutSeconds"], out var t) ? t : 30;
+            
+            services.AddHttpClient<ZapierProvider>(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+            
+            services.AddScoped<ZapierProvider>();
+            services.AddScoped<IIntegrationPort, ZapierProvider>();
         }
     }
 }

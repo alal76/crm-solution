@@ -74,8 +74,8 @@ public class IntegrationProviderFactory : IProviderFactory<IIntegrationPort>
         return providerName.ToLowerInvariant() switch
         {
             "builtin" => GetBuiltInProvider(),
-            "n8n" => GetProviderOrFallback<IIntegrationPort>("N8nIntegrationProvider"),
-            "zapier" => GetProviderOrFallback<IIntegrationPort>("ZapierIntegrationProvider"),
+            "n8n" => GetProviderOrFallback<IIntegrationPort>("N8nProvider"),
+            "zapier" => GetProviderOrFallback<IIntegrationPort>("ZapierProvider"),
             "make" => GetProviderOrFallback<IIntegrationPort>("MakeIntegrationProvider"),
             "workato" => GetProviderOrFallback<IIntegrationPort>("WorkatoIntegrationProvider"),
             "tray" => GetProviderOrFallback<IIntegrationPort>("TrayIntegrationProvider"),
