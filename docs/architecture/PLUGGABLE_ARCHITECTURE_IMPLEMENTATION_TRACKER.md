@@ -858,7 +858,7 @@
 | | | | - Created AnalyticsEmbed.tsx (~250 lines) for Superset/Power BI dashboards |
 | | | | - Dashboard selector, token auth, fullscreen, entity filters |
 | | | | - Updated common/index.ts to export new components |
-| | | | - All 265 tests still passing |
+| | | | - All 265 tests still passing
 
 ---
 
