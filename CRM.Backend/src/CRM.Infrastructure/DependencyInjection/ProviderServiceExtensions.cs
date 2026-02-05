@@ -10,6 +10,7 @@
 // Phase 3 Week 12: Added ChatwootProvider registration
 // Phase 3 Week 15: Added IntercomProvider registration
 // Phase 4 Week 16: Added BuiltInSignatureProvider registration
+// Phase 5 Week 19: Added BuiltInAnalyticsProvider registration
 // Phase 4 Week 17: Added DocuSealProvider registration
 // Phase 4 Week 18: Added DocuSignProvider registration
 
@@ -120,8 +121,12 @@ public static class ProviderServiceExtensions
         services.AddScoped<ISignaturePort, BuiltInSignatureProvider>();
         services.AddScoped<BuiltInSignatureProvider>();
         
+        // Phase 5: Analytics Provider - BuiltInAnalyticsProvider
+        // Basic dashboard and reporting using direct database queries via EF Core
+        services.AddScoped<IAnalyticsPort, BuiltInAnalyticsProvider>();
+        services.AddScoped<BuiltInAnalyticsProvider>();
+        
         // Note: Remaining BuiltIn providers will be created in subsequent phases:
-        // - Phase 5: BuiltInAnalyticsProvider
         // - Phase 7: AI providers are already implemented
         
         return services;
