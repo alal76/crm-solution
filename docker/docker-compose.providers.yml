@@ -2,6 +2,7 @@
 # Phase 2 Week 9: Adds optional self-hosted provider services
 # Phase 3 Week 12: Added Chatwoot for live chat
 # Phase 4 Week 17: Added DocuSeal for e-signatures
+# Phase 5 Week 21: Added Apache Superset for analytics
 # 
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.providers.yml up -d
 #
@@ -18,6 +19,9 @@ volumes:
   chatwoot-postgres-data:
   docuseal-data:
   docuseal-postgres-data:
+  superset-data:
+  superset-postgres-data:
+  superset-redis-data:
 
 services:
   # ═══════════════════════════════════════════════════════════════════════════
@@ -340,5 +344,145 @@ networks:
       timeout: 5s
       retries: 10
       start_period: 20s
+    networks:
+      - crm-network
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # APACHE SUPERSET - Self-Hosted Business Intelligence & Data Visualization
+  # https://superset.apache.org - Modern data exploration and visualization
+  # Phase 5 Week 21: Analytics Provider Implementation
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  superset:
+    image: apache/superset:3.1.0
+    container_name: crm-superset
+    depends_on:
+      superset-postgres:
+        condition: service_healthy
+      superset-redis:
+        condition: service_healthy
+    environment:
+      - SUPERSET_SECRET_KEY=${SUPERSET_SECRET_KEY:-replace-with-secure-secret-key-64-chars-minimum}
+      - SUPERSET_LOAD_EXAMPLES=false
+      # Database configuration
+      - DATABASE_HOST=superset-postgres
+      - DATABASE_PORT=5432
+      - DATABASE_DB=superset
+      - DATABASE_USER=superset
+      - DATABASE_PASSWORD=${SUPERSET_DB_PASSWORD:-superset_password}
+      # Redis configuration
+      - REDIS_HOST=superset-redis
+      - REDIS_PORT=6379
+      # Guest token settings for embedding
+      - GUEST_TOKEN_JWT_SECRET=${SUPERSET_GUEST_TOKEN_SECRET:-guest-token-secret-change-me}
+      - GUEST_TOKEN_JWT_EXP_SECONDS=3600
+      # Additional settings
+      - TALISMAN_ENABLED=false
+      - WTF_CSRF_ENABLED=false
+      - ENABLE_PROXY_FIX=true
+      - FEATURE_FLAGS={"EMBEDDED_SUPERSET": true, "DASHBOARD_RBAC": true}
+    volumes:
+      - superset-data:/app/superset_home
+    ports:
+      - "${SUPERSET_PORT:-8088}:8088"
+    command: >
+      bash -c "superset db upgrade &&
+               superset fab create-admin --username admin --firstname Admin --lastname User --email admin@crm.local --password ${SUPERSET_ADMIN_PASSWORD:-admin123} || true &&
+               superset init &&
+               gunicorn --bind 0.0.0.0:8088 --workers 4 --timeout 120 --limit-request-line 0 --limit-request-field_size 0 'superset.app:create_app()'"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    networks:
+      - crm-network
+
+  # Superset Celery Worker (Background jobs)
+  superset-worker:
+    image: apache/superset:3.1.0
+    container_name: crm-superset-worker
+    depends_on:
+      superset:
+        condition: service_healthy
+      superset-postgres:
+        condition: service_healthy
+      superset-redis:
+        condition: service_healthy
+    environment:
+      - SUPERSET_SECRET_KEY=${SUPERSET_SECRET_KEY:-replace-with-secure-secret-key-64-chars-minimum}
+      - DATABASE_HOST=superset-postgres
+      - DATABASE_PORT=5432
+      - DATABASE_DB=superset
+      - DATABASE_USER=superset
+      - DATABASE_PASSWORD=${SUPERSET_DB_PASSWORD:-superset_password}
+      - REDIS_HOST=superset-redis
+      - REDIS_PORT=6379
+    command: celery --app=superset.tasks.celery_app:app worker --pool=prefork -O fair -c 4
+    healthcheck:
+      test: ["CMD", "celery", "--app=superset.tasks.celery_app:app", "inspect", "ping", "-d", "celery@$$HOSTNAME"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - crm-network
+
+  # Superset Celery Beat (Scheduled tasks)
+  superset-beat:
+    image: apache/superset:3.1.0
+    container_name: crm-superset-beat
+    depends_on:
+      superset:
+        condition: service_healthy
+      superset-postgres:
+        condition: service_healthy
+      superset-redis:
+        condition: service_healthy
+    environment:
+      - SUPERSET_SECRET_KEY=${SUPERSET_SECRET_KEY:-replace-with-secure-secret-key-64-chars-minimum}
+      - DATABASE_HOST=superset-postgres
+      - DATABASE_PORT=5432
+      - DATABASE_DB=superset
+      - DATABASE_USER=superset
+      - DATABASE_PASSWORD=${SUPERSET_DB_PASSWORD:-superset_password}
+      - REDIS_HOST=superset-redis
+      - REDIS_PORT=6379
+    command: celery --app=superset.tasks.celery_app:app beat --pidfile /tmp/celerybeat.pid --schedule /tmp/celerybeat-schedule
+    networks:
+      - crm-network
+
+  # PostgreSQL for Superset (metadata storage)
+  superset-postgres:
+    image: postgres:15-alpine
+    container_name: crm-superset-postgres
+    volumes:
+      - superset-postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=superset
+      - POSTGRES_USER=superset
+      - POSTGRES_PASSWORD=${SUPERSET_DB_PASSWORD:-superset_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset -d superset"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - crm-network
+
+  # Redis for Superset (Celery broker and cache)
+  superset-redis:
+    image: redis:7-alpine
+    container_name: crm-superset-redis
+    volumes:
+      - superset-redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - crm-network
