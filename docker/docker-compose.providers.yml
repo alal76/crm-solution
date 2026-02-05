@@ -1,6 +1,7 @@
 # CRM Solution - Pluggable Provider Services
 # Phase 2 Week 9: Adds optional self-hosted provider services
 # Phase 3 Week 12: Added Chatwoot for live chat
+# Phase 4 Week 17: Added DocuSeal for e-signatures
 # 
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.providers.yml up -d
 #
@@ -15,6 +16,8 @@ volumes:
   chatwoot-data:
   chatwoot-redis-data:
   chatwoot-postgres-data:
+  docuseal-data:
+  docuseal-postgres-data:
 
 services:
   # ═══════════════════════════════════════════════════════════════════════════
@@ -278,5 +281,64 @@ networks:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - crm-network
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DOCUSEAL - Self-Hosted E-Signature Platform
+  # https://www.docuseal.co - Open source DocuSign alternative
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  docuseal:
+    image: docuseal/docuseal:1.5.7
+    container_name: crm-docuseal
+    depends_on:
+      docuseal-postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://docuseal:${DOCUSEAL_DB_PASSWORD:-docuseal_password}@docuseal-postgres:5432/docuseal
+      - SECRET_KEY_BASE=${DOCUSEAL_SECRET_KEY:-replace-with-secure-secret-key-64-chars-minimum}
+      - HOST=${DOCUSEAL_HOST:-localhost:3001}
+      # Webhook configuration
+      - WEBHOOK_URL=${DOCUSEAL_WEBHOOK_URL:-}
+      - WEBHOOK_SECRET=${DOCUSEAL_WEBHOOK_SECRET:-}
+      # SMTP settings (optional - for email notifications)
+      - SMTP_ADDRESS=${DOCUSEAL_SMTP_ADDRESS:-}
+      - SMTP_PORT=${DOCUSEAL_SMTP_PORT:-587}
+      - SMTP_USERNAME=${DOCUSEAL_SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${DOCUSEAL_SMTP_PASSWORD:-}
+      - SMTP_DOMAIN=${DOCUSEAL_SMTP_DOMAIN:-}
+      - SMTP_FROM=${DOCUSEAL_SMTP_FROM:-}
+      # Storage settings (local by default)
+      - ACTIVE_STORAGE_SERVICE=local
+    volumes:
+      - docuseal-data:/data
+    ports:
+      - "${DOCUSEAL_PORT:-3001}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - crm-network
+
+  # PostgreSQL for DocuSeal
+  docuseal-postgres:
+    image: postgres:15-alpine
+    container_name: crm-docuseal-postgres
+    volumes:
+      - docuseal-postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=docuseal
+      - POSTGRES_USER=docuseal
+      - POSTGRES_PASSWORD=${DOCUSEAL_DB_PASSWORD:-docuseal_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docuseal -d docuseal"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     networks:
       - crm-network
