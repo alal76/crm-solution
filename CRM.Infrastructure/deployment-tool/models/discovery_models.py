@@ -7,11 +7,8 @@ Author: Abhishek Lal
 License: AGPL-3.0
 """
 
-import paramiko
 import json
-import yaml
 import subprocess
-import requests
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -19,27 +16,49 @@ import logging
 import os
 import re
 
-# Cloud SDK imports (optional)
-try:
-    from azure.identity import DefaultAzureCredential
-    from azure.mgmt.compute import ComputeManagementClient
-    from azure.mgmt.containerinstance import ContainerInstanceManagementClient
-    AZURE_AVAILABLE = True
-except ImportError:
-    AZURE_AVAILABLE = False
+# ---------------------------------------------------------------------------
+# Lazy / optional imports
+#
+# Heavy SDKs (paramiko, requests, azure-*, boto3, google-cloud-*) are NOT
+# imported at module load time.  They are resolved on demand when the user
+# actually invokes a feature that needs them.  The prerequisite checker
+# (prerequisites.py) will offer to install missing packages at that point.
+# ---------------------------------------------------------------------------
 
-try:
-    import boto3
-    AWS_AVAILABLE = True
-except ImportError:
-    AWS_AVAILABLE = False
+def _check_available(import_name: str) -> bool:
+    """Return True if a module can be imported."""
+    try:
+        __import__(import_name)
+        return True
+    except ImportError:
+        return False
 
-try:
-    from google.cloud import compute_v1
-    from google.cloud import container_v1
-    GCP_AVAILABLE = True
-except ImportError:
-    GCP_AVAILABLE = False
+
+def _lazy_import(module_name: str):
+    """Import and return a module, raising ImportError if missing."""
+    import importlib
+    return importlib.import_module(module_name)
+
+
+# Availability flags – evaluated lazily via properties
+def _ssh_available() -> bool:
+    return _check_available("paramiko")
+
+def _requests_available() -> bool:
+    return _check_available("requests")
+
+def _azure_available() -> bool:
+    return (_check_available("azure.identity")
+            and _check_available("azure.mgmt.compute")
+            and _check_available("azure.mgmt.containerinstance"))
+
+def _aws_available() -> bool:
+    return _check_available("boto3")
+
+def _gcp_available() -> bool:
+    return (_check_available("google.cloud.compute_v1")
+            and _check_available("google.cloud.container_v1"))
+
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +130,7 @@ class BaseDiscoveryClient:
         """Get health status of a component."""
         if component.health_url:
             try:
+                requests = _lazy_import("requests")
                 response = requests.get(component.health_url, timeout=10)
                 if response.status_code == 200:
                     return "healthy"
@@ -126,11 +146,36 @@ class SSHDiscoveryClient(BaseDiscoveryClient):
 
     def __init__(self):
         self.ssh_client = None
+        self._paramiko = None
+
+    def _get_paramiko(self):
+        """Lazy-load paramiko, offering installation if missing."""
+        if self._paramiko is None:
+            try:
+                self._paramiko = _lazy_import("paramiko")
+            except ImportError:
+                # Attempt on-demand install via prerequisites module
+                try:
+                    from prerequisites import ensure_group_installed
+                    if ensure_group_installed("ssh"):
+                        self._paramiko = _lazy_import("paramiko")
+                    else:
+                        raise ImportError(
+                            "paramiko is required for SSH discovery. "
+                            "Install with: pip install paramiko"
+                        )
+                except ImportError:
+                    raise ImportError(
+                        "paramiko is required for SSH discovery. "
+                        "Install with: pip install paramiko"
+                    )
+        return self._paramiko
 
     def connect(self, hostname: str, username: str, password: str = None,
                 key_path: str = None, port: int = 22) -> None:
         """Establish SSH connection."""
         try:
+            paramiko = self._get_paramiko()
             self.ssh_client = paramiko.SSHClient()
             self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -298,7 +343,8 @@ class SSHDiscoveryClient(BaseDiscoveryClient):
             api_component = next((c for c in components if c.type == "api"), None)
             if api_component and api_component.health_url:
                 try:
-                    response = requests.get(f"{api_component.health_url}/version", timeout=5)
+                    _requests = _lazy_import("requests")
+                    response = _requests.get(f"{api_component.health_url}/version", timeout=5)
                     if response.status_code == 200:
                         version_data = response.json()
                         version = version_data.get('version')
@@ -329,9 +375,16 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
     """Azure-based deployment discovery."""
 
     def __init__(self):
-        if not AZURE_AVAILABLE:
-            raise ImportError("Azure SDK not available. Install with: pip install azure-identity azure-mgmt-compute azure-mgmt-containerinstance")
-        self.credential = DefaultAzureCredential()
+        if not _azure_available():
+            # Attempt on-demand install
+            try:
+                from prerequisites import ensure_group_installed
+                if not ensure_group_installed("azure"):
+                    raise ImportError("Azure SDK not available. Install with: pip install azure-identity azure-mgmt-compute azure-mgmt-containerinstance")
+            except ImportError as orig:
+                raise ImportError("Azure SDK not available. Install with: pip install azure-identity azure-mgmt-compute azure-mgmt-containerinstance") from orig
+        azure_identity = _lazy_import("azure.identity")
+        self.credential = azure_identity.DefaultAzureCredential()
 
     def discover_deployment(self, config: Dict[str, Any]) -> DeploymentInfo:
         """Discover Azure deployment."""
@@ -345,7 +398,8 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
         components = []
 
         # Discover VMs
-        compute_client = ComputeManagementClient(self.credential, subscription_id)
+        azure_compute = _lazy_import("azure.mgmt.compute")
+        compute_client = azure_compute.ComputeManagementClient(self.credential, subscription_id)
         vms = compute_client.virtual_machines.list(resource_group)
 
         for vm in vms:
@@ -363,7 +417,8 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
                 components.append(component)
 
         # Discover Container Instances
-        container_client = ContainerInstanceManagementClient(self.credential, subscription_id)
+        azure_container = _lazy_import("azure.mgmt.containerinstance")
+        container_client = azure_container.ContainerInstanceManagementClient(self.credential, subscription_id)
         containers = container_client.container_groups.list_by_resource_group(resource_group)
 
         for container_group in containers:
@@ -393,20 +448,28 @@ class AWSDiscoveryClient(BaseDiscoveryClient):
     """AWS-based deployment discovery."""
 
     def __init__(self):
-        if not AWS_AVAILABLE:
-            raise ImportError("AWS SDK not available. Install with: pip install boto3")
-        self.ec2_client = boto3.client('ec2')
-        self.ecs_client = boto3.client('ecs')
-        self.rds_client = boto3.client('rds')
+        if not _aws_available():
+            # Attempt on-demand install
+            try:
+                from prerequisites import ensure_group_installed
+                if not ensure_group_installed("aws"):
+                    raise ImportError("AWS SDK not available. Install with: pip install boto3")
+            except ImportError as orig:
+                raise ImportError("AWS SDK not available. Install with: pip install boto3") from orig
+        _boto3 = _lazy_import("boto3")
+        self.ec2_client = _boto3.client('ec2')
+        self.ecs_client = _boto3.client('ecs')
+        self.rds_client = _boto3.client('rds')
 
     def discover_deployment(self, config: Dict[str, Any]) -> DeploymentInfo:
         """Discover AWS deployment."""
         region = config.get('region', 'us-east-1')
 
         # Update clients with region
-        self.ec2_client = boto3.client('ec2', region_name=region)
-        self.ecs_client = boto3.client('ecs', region_name=region)
-        self.rds_client = boto3.client('rds', region_name=region)
+        _boto3 = _lazy_import("boto3")
+        self.ec2_client = _boto3.client('ec2', region_name=region)
+        self.ecs_client = _boto3.client('ecs', region_name=region)
+        self.rds_client = _boto3.client('rds', region_name=region)
 
         components = []
 
@@ -485,8 +548,14 @@ class GCPDiscoveryClient(BaseDiscoveryClient):
     """GCP-based deployment discovery."""
 
     def __init__(self):
-        if not GCP_AVAILABLE:
-            raise ImportError("GCP SDK not available. Install with: pip install google-cloud-compute google-cloud-container")
+        if not _gcp_available():
+            # Attempt on-demand install
+            try:
+                from prerequisites import ensure_group_installed
+                if not ensure_group_installed("gcp"):
+                    raise ImportError("GCP SDK not available. Install with: pip install google-cloud-compute google-cloud-container")
+            except ImportError as orig:
+                raise ImportError("GCP SDK not available. Install with: pip install google-cloud-compute google-cloud-container") from orig
         # GCP uses default credentials from environment
 
     def discover_deployment(self, config: Dict[str, Any]) -> DeploymentInfo:
@@ -500,8 +569,9 @@ class GCPDiscoveryClient(BaseDiscoveryClient):
         components = []
 
         # Discover Compute Engine instances
-        compute_client = compute_v1.InstancesClient()
-        request = compute_v1.ListInstancesRequest(
+        _compute_v1 = _lazy_import("google.cloud.compute_v1")
+        compute_client = _compute_v1.InstancesClient()
+        request = _compute_v1.ListInstancesRequest(
             project=project_id,
             zone=zone
         )
@@ -521,7 +591,8 @@ class GCPDiscoveryClient(BaseDiscoveryClient):
                 components.append(component)
 
         # Discover GKE clusters and workloads
-        container_client = container_v1.ClusterManagerClient()
+        _container_v1 = _lazy_import("google.cloud.container_v1")
+        container_client = _container_v1.ClusterManagerClient()
         clusters = container_client.list_clusters(project_id=project_id, zone=zone)
 
         for cluster in clusters.clusters:
@@ -581,13 +652,13 @@ class DeploymentDiscoveryManager:
     def check_platform_availability(self, platform: str) -> bool:
         """Check if platform dependencies are available."""
         if platform == 'on_premises':
-            return True  # SSH is always available
+            return _ssh_available()
         elif platform == 'azure':
-            return AZURE_AVAILABLE
+            return _azure_available()
         elif platform == 'aws':
-            return AWS_AVAILABLE
+            return _aws_available()
         elif platform == 'gcp':
-            return GCP_AVAILABLE
+            return _gcp_available()
         return False
 
 

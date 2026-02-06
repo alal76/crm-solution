@@ -34,6 +34,16 @@ from datetime import datetime
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
+# ---------------------------------------------------------------------------
+# Prerequisite check — runs before any heavy imports.
+# The CLI needs core + cli + validation groups to function properly.
+# ---------------------------------------------------------------------------
+from prerequisites import run_startup_check
+
+if not run_startup_check(require_groups=["core"]):
+    print("\n  Cannot start the CLI without required prerequisites.\n")
+    sys.exit(1)
+
 from models.config_models import DeploymentConfig, DeploymentState
 from wizard.configuration_wizard import ConfigurationWizard
 from orchestrator.deployment_orchestrator import DeploymentOrchestrator, DeploymentPhase

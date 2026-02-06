@@ -17,11 +17,9 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-# Check and install Flask if needed
-if ! python3 -c "import flask" 2>/dev/null; then
-    echo "Installing Flask..."
-    pip3 install flask --quiet
-fi
+# Note: Flask and other dependencies are checked at startup by
+# the prerequisite checker (prerequisites.py).  If anything is
+# missing the user will be prompted to install it automatically.
 
 # Start the GUI server
 echo "Starting GUI server..."
