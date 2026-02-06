@@ -1,6 +1,6 @@
 # CRM Solution - Comprehensive Test Strategy Document
 
-**Version:** 3.4.0  
+**Version:** 3.5.0  
 **Last Updated:** February 6, 2026  
 **Document Status:** Active
 
@@ -30,12 +30,12 @@
 
 | Test Category | Count | Framework | Location |
 |--------------|-------|-----------|----------|
-| Backend Unit Tests | **~6,750** | xUnit + Moq | `CRM.Backend/tests/` |
+| Backend Unit Tests | **~7,045** | xUnit + Moq | `CRM.Backend/tests/` |
 | Frontend Unit Tests | ~180 | Jest + RTL | `CRM.Frontend/src/__tests__/` |
 | E2E API Tests (BVT) | ~60 | Playwright | `e2e-tests/tests/bvt/` |
 | E2E UI Tests | ~200+ | Playwright | `e2e-tests/tests/` |
 | Integration Tests | ~55 | xUnit | `CRM.Backend/tests/Integration/` |
-| Provider Tests | ~280 | xUnit | `CRM.Backend/tests/CRM.Tests/Providers/` |
+| Provider Tests | ~575 | xUnit | `CRM.Backend/tests/CRM.Tests/Providers/` |
 | Performance Tests | ~20 | xUnit | `CRM.Backend/tests/Performance/` |
 
 > **Note:** Backend unit tests increased from ~1,050 to ~6,130 via comprehensive test generation (Batches 1-4).
@@ -215,6 +215,12 @@
 | `CRM.Tests/Providers/DocuSealProviderTests.cs` | ~27 | DocuSeal e-signature | ✅ Active |
 | `CRM.Tests/Providers/DocuSignProviderTests.cs` | ~48 | DocuSign e-signature | ✅ Active |
 | `CRM.Tests/Providers/BuiltInSignatureProviderTests.cs` | ~34 | Built-in signature | ✅ Active |
+| `CRM.Tests/Providers/BuiltInSearchProviderTests.cs` | ~45 | Built-in SQL search | ✅ Active |
+| `CRM.Tests/Providers/BuiltInIntegrationProviderTests.cs` | ~55 | Built-in webhook integration | ✅ Active |
+| `CRM.Tests/Providers/BuiltInSignatureProviderAdditionalTests.cs` | ~50 | Built-in signature (additional) | ✅ Active |
+| `CRM.Tests/Providers/BuiltInNotificationProviderTests.cs` | ~50 | Built-in SMTP notifications | ✅ Active |
+| `CRM.Tests/Providers/BuiltInChatProviderTests.cs` | ~55 | Built-in chat (in-memory) | ✅ Active |
+| `CRM.Tests/Providers/BuiltInAnalyticsProviderTests.cs` | ~45 | Built-in analytics/reports | ✅ Active |
 
 ### 3.6 Repository Tests (Batch 3 - ~800 tests)
 
@@ -1097,7 +1103,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 ---
 
 *Document generated: February 6, 2026*  
-*Version: 3.4.0*  
+*Version: 3.5.0*  
 *Next review: February 13, 2026*
 
 ---
@@ -1106,6 +1112,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.5.0 | Feb 6, 2026 | Auto | Added BuiltIn provider tests: Search, Integration, Signature, Notification, Chat, Analytics (~295 tests, 6 files) |
 | 3.4.0 | Feb 6, 2026 | Auto | Added infrastructure tests: AdapterRegistry (~55 tests), ProviderConfiguration (~30 tests) |
 | 3.3.0 | Feb 6, 2026 | Auto | Added Batch 4 Part 3: Provider Factory Tests (+315 tests, 7 files) - AI, Search, Notification, Chat, Signature, Analytics, Integration factories |
 | 3.2.0 | Feb 6, 2026 | Auto | Added Batch 4 Part 2: Database Provider Strategies, SLA Enforcement (+220 tests, 6 files) |
