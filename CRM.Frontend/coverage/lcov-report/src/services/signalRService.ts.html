@@ -381,7 +381,9 @@
 <a name='L316'></a><a href='#L316'>316</a>
 <a name='L317'></a><a href='#L317'>317</a>
 <a name='L318'></a><a href='#L318'>318</a>
-<a name='L319'></a><a href='#L319'>319</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -701,6 +703,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import * as signalR from '@microsoft/signalr';
 import { getApiBaseUrl } from '../config/ports';
+import logger from './logger';
 &nbsp;
 /**
  * SignalR connection manager for CRM real-time notifications.
@@ -765,7 +768,7 @@ class SignalRService {
 &nbsp;
       // Connect
 <span class="cstat-no" title="statement not covered" >      await this.connection.start();</span>
-<span class="cstat-no" title="statement not covered" >      console.log('SignalR connected to CRM notifications hub');</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug('SignalR connected to CRM notifications hub');</span>
 <span class="cstat-no" title="statement not covered" >      this.reconnectAttempts = 0;</span>
 <span class="cstat-no" title="statement not covered" >      this.notifyConnectionState(this.connection.state);</span>
       
@@ -786,7 +789,7 @@ class SignalRService {
 <span class="cstat-no" title="statement not covered" >    if (this.connection) {</span>
 <span class="cstat-no" title="statement not covered" >      await this.connection.stop();</span>
 <span class="cstat-no" title="statement not covered" >      this.connection = null;</span>
-<span class="cstat-no" title="statement not covered" >      console.log('SignalR disconnected');</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug('SignalR disconnected');</span>
     }
   }
 &nbsp;
@@ -798,17 +801,17 @@ class SignalRService {
 &nbsp;
     // Handle reconnection events
 <span class="cstat-no" title="statement not covered" >    this.connection.onreconnecting(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      console.log('SignalR reconnecting...');</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug('SignalR reconnecting...');</span>
 <span class="cstat-no" title="statement not covered" >      this.notifyConnectionState(signalR.HubConnectionState.Reconnecting);</span>
     });
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    this.connection.onreconnected(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      console.log('SignalR reconnected');</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug('SignalR reconnected');</span>
 <span class="cstat-no" title="statement not covered" >      this.notifyConnectionState(signalR.HubConnectionState.Connected);</span>
     });
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    this.connection.onclose(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      console.log('SignalR connection closed');</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug('SignalR connection closed');</span>
 <span class="cstat-no" title="statement not covered" >      this.notifyConnectionState(signalR.HubConnectionState.Disconnected);</span>
     });
 &nbsp;
@@ -844,11 +847,11 @@ class SignalRService {
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    this.connection.on('UserViewingRecord', <span class="fstat-no" title="function not covered" >(n</span>otification: UserEditingNotification) =&gt; {</span>
       // Can be used to show who's viewing a record
-<span class="cstat-no" title="statement not covered" >      console.log('User viewing record:', notification);</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug('User viewing record:', notification);</span>
     });
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    this.connection.on('UserLeftRecord', <span class="fstat-no" title="function not covered" >(n</span>otification: UserEditingNotification) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      console.log('User left record:', notification);</span>
+<span class="cstat-no" title="statement not covered" >      logger.debug('User left record:', notification);</span>
     });
   }
 &nbsp;
@@ -1024,7 +1027,7 @@ export default signalRService;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-02T15:29:17.122Z
+                at 2026-02-06T08:32:43.651Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
