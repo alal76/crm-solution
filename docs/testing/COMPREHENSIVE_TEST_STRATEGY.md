@@ -1,6 +1,6 @@
 # CRM Solution - Comprehensive Test Strategy Document
 
-**Version:** 3.6.0  
+**Version:** 3.7.0  
 **Last Updated:** February 6, 2026  
 **Document Status:** Active
 
@@ -30,12 +30,12 @@
 
 | Test Category | Count | Framework | Location |
 |--------------|-------|-----------|----------|
-| Backend Unit Tests | **~7,350** | xUnit + Moq | `CRM.Backend/tests/` |
+| Backend Unit Tests | **~7,630** | xUnit + Moq | `CRM.Backend/tests/` |
 | Frontend Unit Tests | ~180 | Jest + RTL | `CRM.Frontend/src/__tests__/` |
 | E2E API Tests (BVT) | ~60 | Playwright | `e2e-tests/tests/bvt/` |
 | E2E UI Tests | ~200+ | Playwright | `e2e-tests/tests/` |
 | Integration Tests | ~55 | xUnit | `CRM.Backend/tests/Integration/` |
-| Provider Tests | ~888 | xUnit | `CRM.Backend/tests/CRM.Tests/Providers/` |
+| Provider Tests | ~1,168 | xUnit | `CRM.Backend/tests/CRM.Tests/Providers/` |
 | Performance Tests | ~20 | xUnit | `CRM.Backend/tests/Performance/` |
 
 > **Note:** Backend unit tests increased from ~1,050 to ~6,130 via comprehensive test generation (Batches 1-4).
@@ -528,6 +528,12 @@
 | `Providers/ChatwootProviderTests.cs` | ~50 | Chatwoot Chat | ✅ Active |
 | `Providers/N8nProviderTests.cs` | ~40 | N8n Workflows | ✅ Active |
 | `Providers/ZapierProviderTests.cs` | ~40 | Zapier Webhooks | ✅ Active |
+| `Providers/OllamaProviderTests.cs` | ~50 | Ollama Local LLM | ✅ Active |
+| `Providers/OpenAIProviderTests.cs` | ~45 | OpenAI Direct API | ✅ Active |
+| `Providers/AzureOpenAIProviderTests.cs` | ~45 | Azure OpenAI | ✅ Active |
+| `Providers/AnthropicProviderTests.cs` | ~45 | Anthropic Claude | ✅ Active |
+| `Providers/BedrockProviderTests.cs` | ~50 | AWS Bedrock | ✅ Active |
+| `Providers/OpenRouterProviderTests.cs` | ~45 | OpenRouter Gateway | ✅ Active |
 
 ### 7.4 Provider Health & Monitoring Tests
 
@@ -547,9 +553,9 @@
 | Notification | ✅ 50 | Novu: 34, Twilio: 45, SendGrid: 45 | 174 |
 | Analytics | ✅ 45 | Superset: 29, PowerBI: 27 | 101 |
 | E-Signature | ✅ 84 | DocuSeal: 27, DocuSign: 48 | 159 |
-| AI/LLM | N/A | Ollama: 20, Azure: 20, Bedrock: 20 | 60 |
+| AI/LLM | N/A | Ollama: 50, OpenAI: 45, AzureOpenAI: 45, Anthropic: 45, Bedrock: 50, OpenRouter: 45 | 280 |
 | Integration | ✅ 55 | N8n: 40, Zapier: 40 | 135 |
-| **TOTAL** | **334** | **554** | **888** |
+| **TOTAL** | **334** | **834** | **1,168** |
 
 ---
 
@@ -1110,7 +1116,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 ---
 
 *Document generated: February 6, 2026*  
-*Version: 3.6.0*  
+*Version: 3.7.0*  
 *Next review: February 13, 2026*
 
 ---
@@ -1119,6 +1125,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.7.0 | Feb 6, 2026 | Auto | Added AI provider tests: Ollama, OpenAI, AzureOpenAI, Anthropic, Bedrock, OpenRouter (~280 tests, 6 files) |
 | 3.6.0 | Feb 6, 2026 | Auto | Added external provider tests: Meilisearch, Algolia, Twilio, SendGrid, Chatwoot, N8n, Zapier (~305 tests, 7 files) |
 | 3.5.0 | Feb 6, 2026 | Auto | Added BuiltIn provider tests: Search, Integration, Signature, Notification, Chat, Analytics (~295 tests, 6 files) |
 | 3.4.0 | Feb 6, 2026 | Auto | Added infrastructure tests: AdapterRegistry (~55 tests), ProviderConfiguration (~30 tests) |
