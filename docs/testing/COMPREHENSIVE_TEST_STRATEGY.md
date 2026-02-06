@@ -1,6 +1,6 @@
 # CRM Solution - Comprehensive Test Strategy Document
 
-**Version:** 3.8.0  
+**Version:** 3.9.0  
 **Last Updated:** February 6, 2026  
 **Document Status:** Active
 
@@ -30,7 +30,7 @@
 
 | Test Category | Count | Framework | Location |
 |--------------|-------|-----------|----------|
-| Backend Unit Tests | **~7,955** | xUnit + Moq | `CRM.Backend/tests/` |
+| Backend Unit Tests | **~8,200** | xUnit + Moq | `CRM.Backend/tests/` |
 | Frontend Unit Tests | ~180 | Jest + RTL | `CRM.Frontend/src/__tests__/` |
 | E2E API Tests (BVT) | ~60 | Playwright | `e2e-tests/tests/bvt/` |
 | E2E UI Tests | ~200+ | Playwright | `e2e-tests/tests/` |
@@ -38,7 +38,7 @@
 | Provider Tests | ~1,243 | xUnit | `CRM.Backend/tests/CRM.Tests/Providers/` |
 | Performance Tests | ~20 | xUnit | `CRM.Backend/tests/Performance/` |
 
-> **Note:** Backend unit tests increased from ~7,630 to ~7,955 via ITSM service tests, DTO tests, and Novu provider tests (+325 tests).
+> **Note:** Backend unit tests increased from ~7,955 to ~8,200 via additional ITSM service tests for active services (+245 tests).
 
 ### Test Generation Progress
 
@@ -162,6 +162,14 @@
 | `Services/ITSM/ArticleRecommendationServiceTests.cs` | ~50 | KB article recommendations | ✅ Active |
 | `Services/ITSM/ITSMDashboardServiceTests.cs` | ~45 | ITSM dashboard analytics | ✅ Active |
 | `Services/ITSM/EmailToTicketServiceTests.cs` | ~50 | Email-to-incident parsing | ✅ Active |
+| `Services/ITSM/ServiceCatalogServiceTests.cs` | ~45 | Service catalog CRUD, requests | ✅ Active |
+| `Services/ITSM/ChangeManagementServiceTests.cs` | ~50 | Change workflow, approvals | ✅ Active |
+| `Services/ITSM/KnowledgeManagementServiceTests.cs` | ~40 | Article lifecycle, feedback | ✅ Active |
+| `Services/ITSM/CICDIntegrationServiceTests.cs` | ~45 | CI/CD pipeline, deployment | ✅ Active |
+| `Services/ITSM/MonitoringIntegrationServiceTests.cs` | ~40 | Alert processing, integrations | ✅ Active |
+| `Services/ITSM/WebhookNotificationServiceTests.cs` | ~40 | Webhook delivery, subscriptions | ✅ Active |
+| `Services/ITSM/SLAEnforcementHostedServiceTests.cs` | ~25 | Background SLA enforcement | ✅ Active |
+| `Services/ITSM/SelfServiceChatbotServiceTests.cs` | ~55 | Self-service chatbot, intents | ✅ Active |
 
 ### 3.4 Controller Tests (Batch 1 - ~1,600 tests)
 
@@ -1127,7 +1135,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 ---
 
 *Document generated: February 6, 2026*  
-*Version: 3.8.0*  
+*Version: 3.9.0*  
 *Next review: February 13, 2026*
 
 ---
@@ -1136,6 +1144,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.9.0 | Feb 6, 2026 | Auto | Added comprehensive ITSM service tests: ServiceCatalog, ChangeManagement, KnowledgeManagement, CICDIntegration, MonitoringIntegration, WebhookNotification, SLAEnforcement, SelfServiceChatbot (~245 tests, 8 files) |
 | 3.8.0 | Feb 6, 2026 | Auto | Added ITSM service tests (BusinessHoursCalculator, ArticleRecommendation, ITSMDashboard, EmailToTicket), DTO tests, Novu provider tests (~325 tests, 6 files) |
 | 3.7.0 | Feb 6, 2026 | Auto | Added AI provider tests: Ollama, OpenAI, AzureOpenAI, Anthropic, Bedrock, OpenRouter (~280 tests, 6 files) |
 | 3.6.0 | Feb 6, 2026 | Auto | Added external provider tests: Meilisearch, Algolia, Twilio, SendGrid, Chatwoot, N8n, Zapier (~305 tests, 7 files) |
