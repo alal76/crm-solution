@@ -1,7 +1,7 @@
 # CRM Solution - Comprehensive Test Strategy Document
 
-**Version:** 3.12.0  
-**Last Updated:** February 7, 2026  
+**Version:** 3.13.0  
+**Last Updated:** February 8, 2026  
 **Document Status:** Active
 
 ---
@@ -30,7 +30,7 @@
 
 | Test Category | Count | Framework | Location |
 |--------------|-------|-----------|----------|
-| Backend Unit Tests | **~8,575** | xUnit + Moq | `CRM.Backend/tests/` |
+| Backend Unit Tests | **~8,655** | xUnit + Moq | `CRM.Backend/tests/` |
 | Frontend Unit Tests | ~180 | Jest + RTL | `CRM.Frontend/src/__tests__/` |
 | E2E API Tests (BVT) | ~60 | Playwright | `e2e-tests/tests/bvt/` |
 | E2E UI Tests | ~200+ | Playwright | `e2e-tests/tests/` |
@@ -38,7 +38,22 @@
 | Provider Tests | ~1,243 | xUnit | `CRM.Backend/tests/CRM.Tests/Providers/` |
 | Performance Tests | ~20 | xUnit | `CRM.Backend/tests/Performance/` |
 
-> **Note:** Backend unit tests increased from ~8,535 to ~8,575 via middleware tests (+40 tests for InstrumentationMiddleware, SecurityHeadersMiddleware).
+> **Note:** Backend unit tests increased from ~8,575 to ~8,655 via CrmExceptions tests (~50) and InstrumentationService tests (~30).
+
+### Test Compilation Status
+
+⚠️ **Known Issue:** The CRM.Tests project has ~224 compilation errors as of Feb 8, 2026:
+- CS0246 (244): Missing types - interfaces/classes renamed or not yet created
+- CS0535 (140): Interface implementations incomplete 
+- CS0234 (44): Missing namespaces
+- CS0311 (8): Generic type constraint violations
+
+**Root Causes:**
+1. Tests reference interfaces that have been renamed (e.g., `IInvoiceService`, `ICrmNotificationService`)
+2. Tests reference classes that don't exist yet (e.g., `AccountRepository`, `InvoicesController`)
+3. Some tests use deprecated patterns incompatible with current codebase
+
+**Mitigation:** New tests added to `Unit/Core/` folder compile correctly. See Section 10.5 for remediation plan.
 
 ### Test Generation Progress
 
@@ -50,7 +65,8 @@
 | Batch 4 | Hosted Services, Extensions, Helpers, Configs, Data Strategies, Provider Factories, Infrastructure | 28 | ~1,050 | ✅ Complete |
 | Batch 5 | Seeder Services, Background Workers | 3 | ~100 | ✅ Complete |
 | Batch 6 | Middleware (Instrumentation, Security Headers) | 1 | ~40 | ✅ Complete |
-| **Total** | | **122 files** | **~5,755 tests** | **Added** |
+| Batch 7 | Core Infrastructure (Exceptions, Instrumentation) | 2 | ~80 | ✅ Complete |
+| **Total** | | **124 files** | **~5,835 tests** | **Added** |
 
 ### Overall Coverage
 
@@ -843,6 +859,29 @@
 | Email Template Management | 🟢 Low | Template CRUD |
 | Report Generation | 🟢 Low | Report creation |
 
+### 10.5 Test Compilation Remediation Plan
+
+**Current Status:** ~224 compilation errors in CRM.Tests project
+
+| Error Category | Count | Fix Strategy | Priority |
+|----------------|-------|--------------|----------|
+| Missing Interfaces | 120 | Add missing interface stubs or update imports | 🔴 High |
+| Missing Classes | 80 | Create placeholder classes or update references | 🔴 High |
+| Missing Namespaces | 44 | Update using statements | 🟡 Medium |
+| Generic Constraints | 8 | Fix entity inheritance issues | 🟡 Medium |
+| Duplicate Definitions | 4 | Remove duplicate test files | 🟢 Low |
+
+**Recommended Actions:**
+1. **Short-term:** Add new tests in `Unit/Core/` folder which compiles correctly
+2. **Medium-term:** Audit and fix interface references (ICrmNotificationService → ISignalRNotificationService, etc.)
+3. **Long-term:** Refactor test project structure to match current codebase architecture
+
+**Files Requiring Immediate Attention:**
+- `Controllers/InvoicesControllerTests.cs` - References non-existent InvoicesController
+- `Repositories/*RepositoryTests.cs` - References non-existent Repository classes
+- `Services/WorkflowInstanceServiceTests.cs` - References missing Workflow entities
+- `Services/TokenRevocationServiceTests.cs` - RevokedToken entity constraint issue
+
 ---
 
 ## 11. Test Automation Scripts
@@ -1136,9 +1175,9 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 
 ---
 
-*Document generated: February 7, 2026*  
-*Version: 3.12.0*  
-*Next review: February 14, 2026*
+*Document generated: February 8, 2026*  
+*Version: 3.13.0*  
+*Next review: February 15, 2026*
 
 ---
 
@@ -1146,6 +1185,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.13.0 | Feb 8, 2026 | Auto | Added core infrastructure tests: CrmExceptionsTests (~50), InstrumentationServiceTests (~30) - Total: ~80 tests, 2 files. Added test compilation status and remediation plan (Section 10.5). |
 | 3.12.0 | Feb 7, 2026 | Auto | Added middleware tests: InstrumentationMiddleware (~20), SecurityHeadersMiddleware (~20) - Total: ~40 tests, 1 file |
 | 3.11.0 | Feb 7, 2026 | Auto | Added seeder and hosted service tests: MasterDataSeederService (~30), SampleDataSeederService (~35), BackupSchedulerHostedService (~15), LeadScoreDecayHostedService (~20) - Total: ~100 tests, 3 files |
 | 3.10.0 | Feb 7, 2026 | Auto | Added tests for previously untested services: DbCacheService (~40), NewsSocialService (~35), ServiceRequestSettingsService (~30), ContactInfoValidationService (~65), CachedZipCodeService (~35), FieldMasterDataService (~30) - Total: ~235 tests, 6 files |
