@@ -1,6 +1,6 @@
 # CRM Solution - Comprehensive Test Strategy Document
 
-**Version:** 3.11.0  
+**Version:** 3.12.0  
 **Last Updated:** February 7, 2026  
 **Document Status:** Active
 
@@ -30,7 +30,7 @@
 
 | Test Category | Count | Framework | Location |
 |--------------|-------|-----------|----------|
-| Backend Unit Tests | **~8,535** | xUnit + Moq | `CRM.Backend/tests/` |
+| Backend Unit Tests | **~8,575** | xUnit + Moq | `CRM.Backend/tests/` |
 | Frontend Unit Tests | ~180 | Jest + RTL | `CRM.Frontend/src/__tests__/` |
 | E2E API Tests (BVT) | ~60 | Playwright | `e2e-tests/tests/bvt/` |
 | E2E UI Tests | ~200+ | Playwright | `e2e-tests/tests/` |
@@ -38,7 +38,7 @@
 | Provider Tests | ~1,243 | xUnit | `CRM.Backend/tests/CRM.Tests/Providers/` |
 | Performance Tests | ~20 | xUnit | `CRM.Backend/tests/Performance/` |
 
-> **Note:** Backend unit tests increased from ~8,435 to ~8,535 via tests for seeder services and hosted services (+100 tests for MasterDataSeederService, SampleDataSeederService, BackupSchedulerHostedService, LeadScoreDecayHostedService).
+> **Note:** Backend unit tests increased from ~8,535 to ~8,575 via middleware tests (+40 tests for InstrumentationMiddleware, SecurityHeadersMiddleware).
 
 ### Test Generation Progress
 
@@ -49,7 +49,8 @@
 | Batch 3 | Repos, Providers, Middleware, Validators | 33 | ~1,500 | ✅ Complete |
 | Batch 4 | Hosted Services, Extensions, Helpers, Configs, Data Strategies, Provider Factories, Infrastructure | 28 | ~1,050 | ✅ Complete |
 | Batch 5 | Seeder Services, Background Workers | 3 | ~100 | ✅ Complete |
-| **Total** | | **121 files** | **~5,715 tests** | **Added** |
+| Batch 6 | Middleware (Instrumentation, Security Headers) | 1 | ~40 | ✅ Complete |
+| **Total** | | **122 files** | **~5,755 tests** | **Added** |
 
 ### Overall Coverage
 
@@ -1136,7 +1137,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 ---
 
 *Document generated: February 7, 2026*  
-*Version: 3.11.0*  
+*Version: 3.12.0*  
 *Next review: February 14, 2026*
 
 ---
@@ -1145,6 +1146,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.12.0 | Feb 7, 2026 | Auto | Added middleware tests: InstrumentationMiddleware (~20), SecurityHeadersMiddleware (~20) - Total: ~40 tests, 1 file |
 | 3.11.0 | Feb 7, 2026 | Auto | Added seeder and hosted service tests: MasterDataSeederService (~30), SampleDataSeederService (~35), BackupSchedulerHostedService (~15), LeadScoreDecayHostedService (~20) - Total: ~100 tests, 3 files |
 | 3.10.0 | Feb 7, 2026 | Auto | Added tests for previously untested services: DbCacheService (~40), NewsSocialService (~35), ServiceRequestSettingsService (~30), ContactInfoValidationService (~65), CachedZipCodeService (~35), FieldMasterDataService (~30) - Total: ~235 tests, 6 files |
 | 3.9.0 | Feb 6, 2026 | Auto | Added comprehensive ITSM service tests: ServiceCatalog, ChangeManagement, KnowledgeManagement, CICDIntegration, MonitoringIntegration, WebhookNotification, SLAEnforcement, SelfServiceChatbot (~245 tests, 8 files) |
