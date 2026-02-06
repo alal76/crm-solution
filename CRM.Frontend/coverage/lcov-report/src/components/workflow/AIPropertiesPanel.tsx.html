@@ -2531,7 +2531,8 @@
 <a name='L2466'></a><a href='#L2466'>2466</a>
 <a name='L2467'></a><a href='#L2467'>2467</a>
 <a name='L2468'></a><a href='#L2468'>2468</a>
-<a name='L2469'></a><a href='#L2469'>2469</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L2469'></a><a href='#L2469'>2469</a>
+<a name='L2470'></a><a href='#L2470'>2470</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -4689,6 +4690,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -5740,7 +5742,7 @@ const AIAgentPanel: React.FC&lt;AIAgentPanelProps&gt; = <span class="cstat-no" t
               &lt;Select
                 value={config.autonomyLevel}
                 label="Autonomy Level"
-                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, autonomyLevel: e.target.value as any })}</span>
+                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, autonomyLevel: e.target.value as 'low' | 'medium' | 'high' | 'full' })}</span>
                 disabled={disabled}
               &gt;
                 &lt;MenuItem value="low"&gt;Low - Requires approval for all actions&lt;/MenuItem&gt;
@@ -5804,7 +5806,7 @@ const AIAgentPanel: React.FC&lt;AIAgentPanelProps&gt; = <span class="cstat-no" t
                   &lt;Select
                     value={config.memoryType}
                     label="Memory Type"
-                    onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, memoryType: e.target.value as any })}</span>
+                    onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, memoryType: e.target.value as 'conversation' | 'summary' | 'vector' })}</span>
                     disabled={disabled}
                   &gt;
                     &lt;MenuItem value="conversation"&gt;Conversation History&lt;/MenuItem&gt;
@@ -5938,7 +5940,7 @@ const AIContentGeneratorPanel: React.FC&lt;AIContentGeneratorPanelProps&gt; = <s
               &lt;Select
                 value={config.contentType}
                 label="Content Type"
-                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, contentType: e.target.value as any })}</span>
+                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, contentType: e.target.value as 'email' | 'summary' | 'report' | 'response' | 'document' | 'custom' })}</span>
                 disabled={disabled}
               &gt;
                 &lt;MenuItem value="email"&gt;Email&lt;/MenuItem&gt;
@@ -5956,7 +5958,7 @@ const AIContentGeneratorPanel: React.FC&lt;AIContentGeneratorPanelProps&gt; = <s
               &lt;Select
                 value={config.tone}
                 label="Tone"
-                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, tone: e.target.value as any })}</span>
+                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, tone: e.target.value as 'professional' | 'friendly' | 'formal' | 'casual' | 'empathetic' })}</span>
                 disabled={disabled}
               &gt;
                 &lt;MenuItem value="professional"&gt;Professional&lt;/MenuItem&gt;
@@ -5973,7 +5975,7 @@ const AIContentGeneratorPanel: React.FC&lt;AIContentGeneratorPanelProps&gt; = <s
               &lt;Select
                 value={config.outputFormat}
                 label="Output Format"
-                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, outputFormat: e.target.value as any })}</span>
+                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, outputFormat: e.target.value as 'text' | 'html' | 'markdown' | 'json' })}</span>
                 disabled={disabled}
               &gt;
                 &lt;MenuItem value="text"&gt;Plain Text&lt;/MenuItem&gt;
@@ -6207,7 +6209,7 @@ const AIDataExtractorPanel: React.FC&lt;AIDataExtractorPanelProps&gt; = <span cl
               &lt;Select
                 value={config.outputFormat}
                 label="Output Format"
-                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, outputFormat: e.target.value as any })}</span>
+                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, outputFormat: e.target.value as 'object' | 'array' })}</span>
                 disabled={disabled}
               &gt;
                 &lt;MenuItem value="object"&gt;Object&lt;/MenuItem&gt;
@@ -6270,7 +6272,7 @@ const AIDataExtractorPanel: React.FC&lt;AIDataExtractorPanelProps&gt; = <span cl
                     &lt;Select
                       value={field.type}
                       label="Type"
-                      onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >updateField(index, { type: e.target.value as any })}</span>
+                      onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >updateField(index, { type: e.target.value as 'string' | 'number' | 'boolean' | 'date' | 'email' | 'phone' | 'address' })}</span>
                       disabled={disabled}
                     &gt;
                       &lt;MenuItem value="string"&gt;String&lt;/MenuItem&gt;
@@ -6335,7 +6337,7 @@ const AIDataExtractorPanel: React.FC&lt;AIDataExtractorPanelProps&gt; = <span cl
                     &lt;Select
                       value={newField.type}
                       label="Type"
-                      onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setNewField({ ...newField, type: e.target.value as any })}</span>
+                      onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setNewField({ ...newField, type: e.target.value as 'string' | 'number' | 'boolean' | 'date' | 'email' | 'phone' })}</span>
                     &gt;
                       &lt;MenuItem value="string"&gt;String&lt;/MenuItem&gt;
                       &lt;MenuItem value="number"&gt;Number&lt;/MenuItem&gt;
@@ -6469,7 +6471,7 @@ const AIClassifierPanel: React.FC&lt;AIClassifierPanelProps&gt; = <span class="c
               &lt;Select
                 value={config.classificationType}
                 label="Classification Type"
-                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, classificationType: e.target.value as any })}</span>
+                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, classificationType: e.target.value as 'single' | 'multi' })}</span>
                 disabled={disabled}
               &gt;
                 &lt;MenuItem value="single"&gt;Single Category&lt;/MenuItem&gt;
@@ -6693,7 +6695,7 @@ const AISentimentAnalyzerPanel: React.FC&lt;AISentimentAnalyzerPanelProps&gt; = 
               &lt;Select
                 value={config.analysisType}
                 label="Analysis Type"
-                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, analysisType: e.target.value as any })}</span>
+                onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >onChange({ ...config, analysisType: e.target.value as 'basic' | 'detailed' | 'emotional' })}</span>
                 disabled={disabled}
               &gt;
                 &lt;MenuItem value="basic"&gt;Basic (Positive/Neutral/Negative)&lt;/MenuItem&gt;
@@ -7088,7 +7090,7 @@ const HumanReviewPanel: React.FC&lt;HumanReviewPanelProps&gt; = <span class="cst
                     &lt;Select
                       value={newOption.action}
                       label="Action"
-                      onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setNewOption({ ...newOption, action: e.target.value as any })}</span>
+                      onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setNewOption({ ...newOption, action: e.target.value as 'approve' | 'reject' | 'modify' | 'escalate' })}</span>
                     &gt;
                       &lt;MenuItem value="approve"&gt;Approve&lt;/MenuItem&gt;
                       &lt;MenuItem value="reject"&gt;Reject&lt;/MenuItem&gt;
@@ -7166,7 +7168,8 @@ const getDefaultConfig = <span class="cstat-no" title="statement not covered" ><
         confidenceThreshold: 0.7,
         inputVariables: [],
         outputVariable: 'decision_result',
-      } as AIDecisionConfig;
+        retryOnError: true,
+      } as unknown as AIDecisionConfig;
     case 'AIAgent':
 <span class="cstat-no" title="statement not covered" >      return {</span>
         agentName: 'CRM Agent',
@@ -7474,7 +7477,7 @@ export default AIPropertiesPanel;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-02T15:29:17.122Z
+                at 2026-02-06T08:32:43.651Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

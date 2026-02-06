@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/161</span>
+                <span class='fraction'>0/167</span>
             </div>
         
             
@@ -999,7 +999,17 @@
 <a name='L934'></a><a href='#L934'>934</a>
 <a name='L935'></a><a href='#L935'>935</a>
 <a name='L936'></a><a href='#L936'>936</a>
-<a name='L937'></a><a href='#L937'>937</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L937'></a><a href='#L937'>937</a>
+<a name='L938'></a><a href='#L938'>938</a>
+<a name='L939'></a><a href='#L939'>939</a>
+<a name='L940'></a><a href='#L940'>940</a>
+<a name='L941'></a><a href='#L941'>941</a>
+<a name='L942'></a><a href='#L942'>942</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1963,6 +1973,7 @@ import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import NotesTab from '../components/NotesTab';
 import apiClient from '../services/apiClient';
+import logger from '../services/logger';
 import logo from '../assets/logo.png';
 &nbsp;
 // ==================== TYPES ====================
@@ -2042,9 +2053,13 @@ interface ContractForm {
   quoteId: number | null;
 }
 &nbsp;
+// ==================== TYPES ====================
+&nbsp;
+type ChipColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+&nbsp;
 // ==================== CONSTANTS ====================
 &nbsp;
-const CONTRACT_STATUS_OPTIONS = <span class="cstat-no" title="statement not covered" >[</span>
+const CONTRACT_STATUS_OPTIONS: Array&lt;{ value: ContractStatus; label: string; color: ChipColor }&gt; = <span class="cstat-no" title="statement not covered" >[</span>
   { value: ContractStatus.Draft, label: 'Draft', color: 'default' },
   { value: ContractStatus.PendingApproval, label: 'Pending Approval', color: 'warning' },
   { value: ContractStatus.Approved, label: 'Approved', color: 'info' },
@@ -2077,7 +2092,7 @@ const BILLING_FREQUENCY_OPTIONS = <span class="cstat-no" title="statement not co
 &nbsp;
 // ==================== HELPER FUNCTIONS ====================
 &nbsp;
-const getStatusInfo = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(s</span>tatus: ContractStatus) =&gt;</span>
+const getStatusInfo = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(s</span>tatus: ContractStatus): { label: string; color: ChipColor } =&gt;</span>
 <span class="cstat-no" title="statement not covered" >  CONTRACT_STATUS_OPTIONS.find(<span class="fstat-no" title="function not covered" >s </span>=&gt; <span class="cstat-no" title="statement not covered" >s.value === status)</span> || { label: 'Unknown', color: 'default' };</span>
 &nbsp;
 const getTypeLabel = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(t</span>ype: ContractType) =&gt;</span>
@@ -2502,7 +2517,7 @@ function <span class="fstat-no" title="function not covered" >ContractsPage(</sp
                           &lt;Chip
                             label={statusInfo.label}
                             size="small"
-                            color={statusInfo.color as any}
+                            color={statusInfo.color}
                           /&gt;
                         &lt;/TableCell&gt;
                         &lt;TableCell align="right"&gt;{formatCurrency(contract.value)}&lt;/TableCell&gt;
@@ -2646,7 +2661,7 @@ function <span class="fstat-no" title="function not covered" >ContractsPage(</sp
                   name="accountId"
                   label="Account *"
                   entityType="account"
-                  value={formData.accountId}
+                  value={formData.accountId ?? ''}
                   onChange={<span class="fstat-no" title="function not covered" >(v</span>al) =&gt; <span class="cstat-no" title="statement not covered" >setFormData(<span class="fstat-no" title="function not covered" >pr</span>ev =&gt; (<span class="cstat-no" title="statement not covered" >{ ...prev, accountId: val as number | null })</span>)}</span>
                 /&gt;
               &lt;/Grid&gt;
@@ -2655,7 +2670,7 @@ function <span class="fstat-no" title="function not covered" >ContractsPage(</sp
                   name="contactId"
                   label="Contact"
                   entityType="contact"
-                  value={formData.contactId}
+                  value={formData.contactId ?? ''}
                   onChange={<span class="fstat-no" title="function not covered" >(v</span>al) =&gt; <span class="cstat-no" title="statement not covered" >setFormData(<span class="fstat-no" title="function not covered" >pr</span>ev =&gt; (<span class="cstat-no" title="statement not covered" >{ ...prev, contactId: val as number | null })</span>)}</span>
                 /&gt;
               &lt;/Grid&gt;
@@ -2790,7 +2805,7 @@ function <span class="fstat-no" title="function not covered" >ContractsPage(</sp
                   name="opportunityId"
                   label="Related Opportunity"
                   entityType="opportunity"
-                  value={formData.opportunityId}
+                  value={formData.opportunityId ?? ''}
                   onChange={<span class="fstat-no" title="function not covered" >(v</span>al) =&gt; <span class="cstat-no" title="statement not covered" >setFormData(<span class="fstat-no" title="function not covered" >pr</span>ev =&gt; (<span class="cstat-no" title="statement not covered" >{ ...prev, opportunityId: val as number | null })</span>)}</span>
                 /&gt;
               &lt;/Grid&gt;
@@ -2816,7 +2831,7 @@ function <span class="fstat-no" title="function not covered" >ContractsPage(</sp
                 showRelated={['accounts', 'contacts', 'quotes']}
                 onEntityClick={<span class="fstat-no" title="function not covered" >(t</span>ype, id) =&gt; {
 <span class="cstat-no" title="statement not covered" >                  handleCloseDialog();</span>
-<span class="cstat-no" title="statement not covered" >                  console.log(`Navigate to ${type} ${id}`);</span>
+<span class="cstat-no" title="statement not covered" >                  logger.debug(`Navigate to ${type} ${id}`);</span>
                 }}
               /&gt;
             &lt;/TabPanel&gt;
@@ -2878,7 +2893,7 @@ export default ContractsPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-02T15:29:17.122Z
+                at 2026-02-06T08:32:43.651Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

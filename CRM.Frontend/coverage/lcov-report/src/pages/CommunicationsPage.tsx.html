@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/146</span>
+                <span class='fraction'>0/156</span>
             </div>
         
             
@@ -1000,7 +1000,9 @@
 <a name='L935'></a><a href='#L935'>935</a>
 <a name='L936'></a><a href='#L936'>936</a>
 <a name='L937'></a><a href='#L937'>937</a>
-<a name='L938'></a><a href='#L938'>938</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L938'></a><a href='#L938'>938</a>
+<a name='L939'></a><a href='#L939'>939</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1940,6 +1942,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useState, useEffect } from 'react';
 import { TabPanel } from '../components/common';
 import { BaseEntity } from '../types';
+import { createSafeHtml } from '../utils/sanitize';
 import {
   Box,
   Container,
@@ -2220,7 +2223,7 @@ function <span class="fstat-no" title="function not covered" >CommunicationsPage
     }
   };
 &nbsp;
-  const getChannelColor = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(c</span>hannelType: string) =&gt; {</span>
+  const getChannelColor = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(c</span>hannelType: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    switch (channelType?.toLowerCase()) {</span>
       case 'email': <span class="cstat-no" title="statement not covered" >return 'primary';</span>
       case 'whatsapp': <span class="cstat-no" title="statement not covered" >return 'success';</span>
@@ -2406,7 +2409,7 @@ function <span class="fstat-no" title="function not covered" >CommunicationsPage
                           icon={getChannelIcon(message.channelType)}
                           label={message.channelType}
                           size="small"
-                          color={getChannelColor(message.channelType) as any}
+                            color={getChannelColor(message.channelType)}
                           variant="outlined"
                         /&gt;
                       &lt;/TableCell&gt;
@@ -2428,7 +2431,7 @@ function <span class="fstat-no" title="function not covered" >CommunicationsPage
                       &lt;/TableCell&gt;
                       &lt;TableCell&gt;
                         &lt;Typography variant="caption"&gt;
-                          {new Date(message.receivedAt || message.createdAt).toLocaleString()}
+                          {new Date(message.receivedAt || message.createdAt || 0).toLocaleString()}
                         &lt;/Typography&gt;
                       &lt;/TableCell&gt;
                       &lt;TableCell align="right"&gt;
@@ -2490,7 +2493,7 @@ function <span class="fstat-no" title="function not covered" >CommunicationsPage
                           icon={getChannelIcon(message.channelType)}
                           label={message.channelType}
                           size="small"
-                          color={getChannelColor(message.channelType) as any}
+                          color={getChannelColor(message.channelType)}
                           variant="outlined"
                         /&gt;
                       &lt;/TableCell&gt;
@@ -2507,7 +2510,7 @@ function <span class="fstat-no" title="function not covered" >CommunicationsPage
                       &lt;/TableCell&gt;
                       &lt;TableCell&gt;
                         &lt;Typography variant="caption"&gt;
-                          {new Date(message.sentAt || message.createdAt).toLocaleString()}
+                          {new Date(message.sentAt || message.createdAt || 0).toLocaleString()}
                         &lt;/Typography&gt;
                       &lt;/TableCell&gt;
                       &lt;TableCell align="right"&gt;
@@ -2606,7 +2609,7 @@ function <span class="fstat-no" title="function not covered" >CommunicationsPage
                       &lt;TableCell&gt;
                         &lt;Chip label={message.status} size="small" color={getStatusColor(message.status)} /&gt;
                       &lt;/TableCell&gt;
-                      &lt;TableCell&gt;{new Date(message.createdAt).toLocaleString()}&lt;/TableCell&gt;
+                      &lt;TableCell&gt;{new Date(message.createdAt || 0).toLocaleString()}&lt;/TableCell&gt;
                     &lt;/TableRow&gt;
                   ))}
                 &lt;/TableBody&gt;
@@ -2627,7 +2630,7 @@ function <span class="fstat-no" title="function not covered" >CommunicationsPage
                       &lt;TableCell&gt;
                         &lt;Chip label={message.status} size="small" color={getStatusColor(message.status)} /&gt;
                       &lt;/TableCell&gt;
-                      &lt;TableCell&gt;{new Date(message.createdAt).toLocaleString()}&lt;/TableCell&gt;
+                      &lt;TableCell&gt;{new Date(message.createdAt || 0).toLocaleString()}&lt;/TableCell&gt;
                     &lt;/TableRow&gt;
                   ))}
                   {messages.filter(<span class="fstat-no" title="function not covered" >m </span>=&gt; <span class="cstat-no" title="statement not covered" >m.channelType === 'WhatsApp')</span>.length === 0 &amp;&amp; (
@@ -2653,7 +2656,7 @@ function <span class="fstat-no" title="function not covered" >CommunicationsPage
                       &lt;TableCell&gt;
                         &lt;Chip label={message.status} size="small" color={getStatusColor(message.status)} /&gt;
                       &lt;/TableCell&gt;
-                      &lt;TableCell&gt;{new Date(message.createdAt).toLocaleString()}&lt;/TableCell&gt;
+                      &lt;TableCell&gt;{new Date(message.createdAt || 0).toLocaleString()}&lt;/TableCell&gt;
                     &lt;/TableRow&gt;
                   ))}
                   {messages.filter(<span class="fstat-no" title="function not covered" >m </span>=&gt; <span class="cstat-no" title="statement not covered" >m.channelType === 'Twitter')</span>.length === 0 &amp;&amp; (
@@ -2679,7 +2682,7 @@ function <span class="fstat-no" title="function not covered" >CommunicationsPage
                       &lt;TableCell&gt;
                         &lt;Chip label={message.status} size="small" color={getStatusColor(message.status)} /&gt;
                       &lt;/TableCell&gt;
-                      &lt;TableCell&gt;{new Date(message.createdAt).toLocaleString()}&lt;/TableCell&gt;
+                      &lt;TableCell&gt;{new Date(message.createdAt || 0).toLocaleString()}&lt;/TableCell&gt;
                     &lt;/TableRow&gt;
                   ))}
                   {messages.filter(<span class="fstat-no" title="function not covered" >m </span>=&gt; <span class="cstat-no" title="statement not covered" >m.channelType === 'Facebook')</span>.length === 0 &amp;&amp; (
@@ -2856,7 +2859,7 @@ function <span class="fstat-no" title="function not covered" >CommunicationsPage
               &lt;Divider sx={{ my: 2 }} /&gt;
               &lt;Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}&gt;
                 {messageDetails.htmlBody ? (
-                  &lt;div dangerouslySetInnerHTML={{ __html: messageDetails.htmlBody }} /&gt;
+                  &lt;div dangerouslySetInnerHTML={createSafeHtml(messageDetails.htmlBody)} /&gt;
                 ) : (
                   messageDetails.body
                 )}
@@ -2881,7 +2884,7 @@ export default CommunicationsPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-02T15:29:17.122Z
+                at 2026-02-06T08:32:43.651Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

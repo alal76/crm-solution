@@ -842,8 +842,8 @@ export interface ValidationRule {
   email?: boolean | string;
   /** URL validation */
   url?: boolean | string;
-  /** Custom validation function */
-  validate?: (value: any, formValues: Record&lt;string, any&gt;) =&gt; string | null | true;
+  /** Custom validation function - value is the field value, formValues are all form values */
+  validate?: &lt;T extends Record&lt;string, unknown&gt;&gt;(value: unknown, formValues: T) =&gt; string | null | true;
 }
 &nbsp;
 export type ValidationRules&lt;T&gt; = {
@@ -860,7 +860,7 @@ export interface UseFormValidationReturn&lt;T&gt; {
   /** Current form values */
   values: T;
   /** Set a single form value */
-  setValue: (name: keyof T, value: any) =&gt; void;
+  setValue: &lt;K extends keyof T&gt;(name: K, value: T[K]) =&gt; void;
   /** Set multiple form values */
   setValues: React.Dispatch&lt;React.SetStateAction&lt;T&gt;&gt;;
   /** Validation state for each field */
@@ -868,7 +868,7 @@ export interface UseFormValidationReturn&lt;T&gt; {
   /** Handle input change event */
   handleChange: (e: React.ChangeEvent&lt;HTMLInputElement | HTMLTextAreaElement&gt;) =&gt; void;
   /** Handle select change event */
-  handleSelectChange: (e: any) =&gt; void;
+  handleSelectChange: (e: React.ChangeEvent&lt;HTMLSelectElement&gt; | { target: { name: string; value: unknown } }) =&gt; void;
   /** Handle field blur - triggers validation */
   handleBlur: (name: keyof T) =&gt; void;
   /** Validate a single field */
@@ -879,7 +879,7 @@ export interface UseFormValidationReturn&lt;T&gt; {
   isFormValid: boolean;
   /** Get error props for TextField */
   getFieldProps: (name: keyof T) =&gt; {
-    value: any;
+    value: T[keyof T] | string;
     onChange: (e: React.ChangeEvent&lt;HTMLInputElement | HTMLTextAreaElement&gt;) =&gt; void;
     onBlur: () =&gt; void;
     error: boolean;
@@ -887,8 +887,8 @@ export interface UseFormValidationReturn&lt;T&gt; {
   };
   /** Get error props for Select fields */
   getSelectProps: (name: keyof T) =&gt; {
-    value: any;
-    onChange: (e: any) =&gt; void;
+    value: T[keyof T] | string;
+    onChange: (e: React.ChangeEvent&lt;HTMLSelectElement&gt; | { target: { name: string; value: unknown } }) =&gt; void;
     onBlur: () =&gt; void;
     error: boolean;
   };
@@ -910,7 +910,7 @@ const URL_PATTERN = <span class="cstat-no" title="statement not covered" >/^(htt
 /**
  * useFormValidation - Hook for form validation with inline error display
  */
-export function <span class="fstat-no" title="function not covered" >useFormValidation&lt;</span>T extends Record&lt;string, any&gt;&gt;(
+export function <span class="fstat-no" title="function not covered" >useFormValidation&lt;</span>T extends Record&lt;string, unknown&gt;&gt;(
   initialValues: T,
   rules: ValidationRules&lt;T&gt;
 ): UseFormValidationReturn&lt;T&gt; {
@@ -927,7 +927,7 @@ export function <span class="fstat-no" title="function not covered" >useFormVali
   });
 &nbsp;
   // Validate a single field
-  const validateFieldValue = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >(n</span>ame: keyof T, value: any): string | null =&gt; {</span>
+  const validateFieldValue = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >(n</span>ame: keyof T, value: unknown): string | null =&gt; {</span>
     const rule = <span class="cstat-no" title="statement not covered" >rules[name];</span>
 <span class="cstat-no" title="statement not covered" >    if (!rule) <span class="cstat-no" title="statement not covered" >return null;</span></span>
 &nbsp;
@@ -1057,7 +1057,7 @@ export function <span class="fstat-no" title="function not covered" >useFormVali
   }, [validateFieldValue, validations]);
 &nbsp;
   // Handle select change
-  const handleSelectChange = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >(e</span>: any) =&gt; {</span>
+  const handleSelectChange = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >(e</span>: React.ChangeEvent&lt;HTMLSelectElement&gt; | { target: { name: string; value: unknown } }) =&gt; {</span>
     const name = <span class="cstat-no" title="statement not covered" >e.target.name;</span>
     const value = <span class="cstat-no" title="statement not covered" >e.target.value;</span>
     
@@ -1110,7 +1110,7 @@ export function <span class="fstat-no" title="function not covered" >useFormVali
   }, [values, originalValues]);
 &nbsp;
   // Set single value
-  const setValue = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >(n</span>ame: keyof T, value: any) =&gt; {</span>
+  const setValue = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >&lt;K</span> extends keyof T&gt;(name: K, value: T[K]) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    setValues(<span class="fstat-no" title="function not covered" >pr</span>ev =&gt; (<span class="cstat-no" title="statement not covered" >{ ...prev, [name]: value })</span>);</span>
   }, []);
 &nbsp;
@@ -1198,7 +1198,7 @@ export default useFormValidation;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-02T15:29:17.122Z
+                at 2026-02-06T08:32:43.651Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

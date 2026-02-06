@@ -1403,7 +1403,9 @@
 <a name='L1338'></a><a href='#L1338'>1338</a>
 <a name='L1339'></a><a href='#L1339'>1339</a>
 <a name='L1340'></a><a href='#L1340'>1340</a>
-<a name='L1341'></a><a href='#L1341'>1341</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L1341'></a><a href='#L1341'>1341</a>
+<a name='L1342'></a><a href='#L1342'>1342</a>
+<a name='L1343'></a><a href='#L1343'>1343</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1587,6 +1589,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2952,7 +2956,9 @@ const FIELD_TYPE_OPTIONS = <span class="cstat-no" title="statement not covered" 
   { value: FormFieldType.Divider, label: 'Divider' },
 ];
 &nbsp;
-const FORM_STATUS_OPTIONS = <span class="cstat-no" title="statement not covered" >[</span>
+type ChipColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+&nbsp;
+const FORM_STATUS_OPTIONS: Array&lt;{ value: FormStatus; label: string; color: ChipColor }&gt; = <span class="cstat-no" title="statement not covered" >[</span>
   { value: FormStatus.Draft, label: 'Draft', color: 'default' },
   { value: FormStatus.Published, label: 'Published', color: 'success' },
   { value: FormStatus.Paused, label: 'Paused', color: 'warning' },
@@ -2966,7 +2972,7 @@ const SUBMIT_ACTION_OPTIONS = <span class="cstat-no" title="statement not covere
   { value: FormSubmitAction.StayOnPage, label: 'Stay on Page' },
 ];
 &nbsp;
-const SUBMISSION_STATUS_OPTIONS = <span class="cstat-no" title="statement not covered" >[</span>
+const SUBMISSION_STATUS_OPTIONS: Array&lt;{ value: SubmissionStatus; label: string; color: ChipColor }&gt; = <span class="cstat-no" title="statement not covered" >[</span>
   { value: SubmissionStatus.New, label: 'New', color: 'info' },
   { value: SubmissionStatus.Processing, label: 'Processing', color: 'warning' },
   { value: SubmissionStatus.LeadCreated, label: 'Lead Created', color: 'success' },
@@ -2991,10 +2997,10 @@ const WIDTH_OPTIONS = <span class="cstat-no" title="statement not covered" >[</s
 &nbsp;
 // ==================== HELPER FUNCTIONS ====================
 &nbsp;
-const getStatusInfo = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(s</span>tatus: FormStatus) =&gt; </span>
+const getStatusInfo = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(s</span>tatus: FormStatus): { label: string; color: ChipColor } =&gt; </span>
 <span class="cstat-no" title="statement not covered" >  FORM_STATUS_OPTIONS.find(<span class="fstat-no" title="function not covered" >s </span>=&gt; <span class="cstat-no" title="statement not covered" >s.value === status)</span> || { label: 'Unknown', color: 'default' };</span>
 &nbsp;
-const getSubmissionStatusInfo = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(s</span>tatus: SubmissionStatus) =&gt;</span>
+const getSubmissionStatusInfo = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(s</span>tatus: SubmissionStatus): { label: string; color: ChipColor } =&gt;</span>
 <span class="cstat-no" title="statement not covered" >  SUBMISSION_STATUS_OPTIONS.find(<span class="fstat-no" title="function not covered" >s </span>=&gt; <span class="cstat-no" title="statement not covered" >s.value === status)</span> || { label: 'Unknown', color: 'default' };</span>
 &nbsp;
 const getFieldTypeLabel = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(t</span>ype: FormFieldType) =&gt;</span>
@@ -3377,7 +3383,7 @@ function <span class="fstat-no" title="function not covered" >FormBuilderPage(</
                           &lt;Chip 
                             label={statusInfo.label} 
                             size="small" 
-                            color={statusInfo.color as any}
+                            color={statusInfo.color}
                           /&gt;
                         &lt;/TableCell&gt;
                         &lt;TableCell align="center"&gt;{form.fields?.length || 0}&lt;/TableCell&gt;
@@ -4060,7 +4066,7 @@ function <span class="fstat-no" title="function not covered" >FormBuilderPage(</
                       &lt;TableCell&gt;{sub.submissionNumber}&lt;/TableCell&gt;
                       &lt;TableCell&gt;{new Date(sub.submittedAt).toLocaleString()}&lt;/TableCell&gt;
                       &lt;TableCell&gt;
-                        &lt;Chip label={statusInfo.label} size="small" color={statusInfo.color as any} /&gt;
+                        &lt;Chip label={statusInfo.label} size="small" color={statusInfo.color} /&gt;
                       &lt;/TableCell&gt;
                       &lt;TableCell&gt;{sub.ipAddress || '-'}&lt;/TableCell&gt;
                       &lt;TableCell&gt;{sub.leadId || '-'}&lt;/TableCell&gt;
@@ -4090,7 +4096,7 @@ export default FormBuilderPage;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-02T15:29:17.122Z
+                at 2026-02-06T08:32:43.651Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
