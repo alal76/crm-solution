@@ -200,7 +200,11 @@
     <div class="wizard-container">
         <!-- Step Indicator -->
         <div class="step-indicator">
-            <div class="step active" data-step="1">
+            <div class="step active" data-step="0">
+                <div class="step-circle"><i class="bi bi-search"></i></div>
+                <div class="step-label">Discover</div>
+            </div>
+            <div class="step" data-step="1">
                 <div class="step-circle">1</div>
                 <div class="step-label">Basic Info</div>
             </div>
@@ -228,6 +232,127 @@
 
         <!-- Wizard Card -->
         <div class="wizard-card">
+            <!-- Step 0: Discovery -->
+            <div class="wizard-section active" data-section="0">
+                <h3 class="mb-4"><i class="bi bi-search me-2"></i>Discover Existing Deployments</h3>
+                
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Optional:</strong> Discover existing CRM deployments in your target environment. 
+                    This will help you understand what's already deployed and plan your configuration accordingly.
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">Discovery Platform</label>
+                    <select class="form-select" id="discoveryPlatform">
+                        <option value="">Select platform...</option>
+                    </select>
+                </div>
+                
+                <!-- On-Premises Discovery -->
+                <div id="onPremDiscovery" class="discovery-config" style="display: none;">
+                    <h5 class="mb-3">On-Premises Configuration</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Host/IP Address</label>
+                            <input type="text" class="form-control" id="discoveryHost" placeholder="192.168.1.100">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">SSH Port</label>
+                            <input type="number" class="form-control" id="discoveryPort" value="22" min="1" max="65535">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Auth Method</label>
+                            <select class="form-select" id="discoveryAuthMethod">
+                                <option value="password">Password</option>
+                                <option value="key">SSH Key</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" id="discoveryUsername" placeholder="root">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" id="discoveryPasswordLabel">Password</label>
+                            <input type="password" class="form-control" id="discoveryPassword">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Container Prefix (optional)</label>
+                        <input type="text" class="form-control" id="discoveryContainerPrefix" placeholder="crm" 
+                               value="crm">
+                        <small class="text-muted">Filter containers by name prefix</small>
+                    </div>
+                </div>
+                
+                <!-- Cloud Discovery -->
+                <div id="cloudDiscovery" class="discovery-config" style="display: none;">
+                    <h5 class="mb-3">Cloud Configuration</h5>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Cloud discovery requires appropriate credentials and permissions to be configured.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Region/Location</label>
+                            <input type="text" class="form-control" id="discoveryRegion" placeholder="us-east-1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Resource Group/Project</label>
+                            <input type="text" class="form-control" id="discoveryResourceGroup" placeholder="crm-rg">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-primary" id="btnTestConnection">
+                        <i class="bi bi-plug me-2"></i>Test Connection
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnDiscover">
+                        <i class="bi bi-search me-2"></i>Discover Deployments
+                    </button>
+                </div>
+                
+                <!-- Discovery Results -->
+                <div id="discoveryResults" class="mt-4" style="display: none;">
+                    <h5 class="mb-3">Discovery Results</h5>
+                    <div id="discoveryStatus" class="alert" style="display: none;"></div>
+                    <div id="deploymentInfo" class="card" style="display: none;">
+                        <div class="card-header">
+                            <h6 class="mb-0">Found Deployment</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Platform:</strong> <span id="foundPlatform"></span><br>
+                                    <strong>Architecture:</strong> <span id="foundArchitecture"></span><br>
+                                    <strong>Version:</strong> <span id="foundVersion"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Environment:</strong> <span id="foundEnvironment"></span><br>
+                                    <strong>Health:</strong> <span id="foundHealth"></span><br>
+                                    <strong>Last Checked:</strong> <span id="foundLastChecked"></span>
+                                </div>
+                            </div>
+                            <hr>
+                            <h6>Components Found:</h6>
+                            <div id="foundComponents" class="mt-2"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-success" id="btnUseDiscovered">
+                            <i class="bi bi-check-circle me-2"></i>Use This Configuration
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="btnSkipDiscovery">
+                            <i class="bi bi-arrow-right me-2"></i>Skip & Configure Manually
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Step 1: Basic Information -->
             <div class="wizard-section active" data-section="1">
                 <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Basic Information</h3>
@@ -553,6 +678,24 @@
                 </div>
 
                 <div class="mb-4">
+                    <label class="form-label"><i class="bi bi-pen me-2"></i>Signature Provider</label>
+                    <div class="provider-grid" id="signatureProviderGrid">
+                        <div class="provider-option selected" onclick="selectProvider('signature', 'builtin')">
+                            <i class="bi bi-box text-primary"></i>
+                            <div>Built-in</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('signature', 'docuseal')">
+                            <i class="bi bi-file-earmark-text text-success"></i>
+                            <div>DocuSeal</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('signature', 'docusign')">
+                            <i class="bi bi-file-earmark-check text-info"></i>
+                            <div>DocuSign</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
                     <label class="form-label"><i class="bi bi-robot me-2"></i>AI Provider</label>
                     <div class="provider-grid" id="aiProviderGrid">
                         <div class="provider-option selected" onclick="selectProvider('ai', 'ollama')">
@@ -643,8 +786,202 @@
             ai_provider: 'ollama'
         };
         
-        let currentStep = 1;
+        let currentStep = 0;
         const totalSteps = 6;
+
+        // Discovery state
+        let discoveredConfig = null;
+
+        // Initialize discovery
+        async function initDiscovery() {
+            try {
+                const response = await fetch('/api/discovery/platforms');
+                const data = await response.json();
+                
+                const platformSelect = document.getElementById('discoveryPlatform');
+                platformSelect.innerHTML = '<option value="">Select platform...</option>';
+                
+                data.platforms.forEach(platform => {
+                    const available = data.availability[platform];
+                    const option = document.createElement('option');
+                    option.value = platform;
+                    option.textContent = platform.replace('_', ' ').toUpperCase() + (available ? '' : ' (Not Available)');
+                    option.disabled = !available;
+                    platformSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load platforms:', error);
+                showDiscoveryStatus('Failed to load available platforms', 'danger');
+            }
+        }
+
+        // Handle platform selection
+        function onPlatformChange() {
+            const platform = document.getElementById('discoveryPlatform').value;
+            const onPremDiv = document.getElementById('onPremDiscovery');
+            const cloudDiv = document.getElementById('cloudDiscovery');
+            
+            if (platform === 'on_premises') {
+                onPremDiv.style.display = 'block';
+                cloudDiv.style.display = 'none';
+            } else if (platform === 'azure' || platform === 'aws' || platform === 'gcp') {
+                onPremDiv.style.display = 'none';
+                cloudDiv.style.display = 'block';
+            } else {
+                onPremDiv.style.display = 'none';
+                cloudDiv.style.display = 'none';
+            }
+        }
+
+        // Test connection
+        async function testConnection() {
+            const platform = document.getElementById('discoveryPlatform').value;
+            if (!platform) {
+                alert('Please select a platform first.');
+                return;
+            }
+
+            const config = collectDiscoveryConfig();
+            
+            try {
+                showDiscoveryStatus('Testing connection...', 'info');
+                
+                const response = await fetch('/api/discovery/test-connection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showDiscoveryStatus('Connection successful!', 'success');
+                } else {
+                    showDiscoveryStatus(`Connection failed: ${result.message}`, 'danger');
+                }
+            } catch (error) {
+                showDiscoveryStatus(`Connection test failed: ${error.message}`, 'danger');
+            }
+        }
+
+        // Discover deployments
+        async function discoverDeployments() {
+            const platform = document.getElementById('discoveryPlatform').value;
+            if (!platform) {
+                alert('Please select a platform first.');
+                return;
+            }
+
+            const config = collectDiscoveryConfig();
+            
+            try {
+                showDiscoveryStatus('Discovering deployments...', 'info');
+                
+                const response = await fetch('/api/discovery/discover', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showDiscoveryResults(result);
+                    discoveredConfig = result;
+                } else {
+                    showDiscoveryStatus(`Discovery failed: ${result.error}`, 'danger');
+                }
+            } catch (error) {
+                showDiscoveryStatus(`Discovery failed: ${error.message}`, 'danger');
+            }
+        }
+
+        // Collect discovery configuration
+        function collectDiscoveryConfig() {
+            const platform = document.getElementById('discoveryPlatform').value;
+            const config = { platform };
+            
+            if (platform === 'on_premises') {
+                config.host = document.getElementById('discoveryHost').value;
+                config.port = parseInt(document.getElementById('discoveryPort').value);
+                config.username = document.getElementById('discoveryUsername').value;
+                config.auth_method = document.getElementById('discoveryAuthMethod').value;
+                config.password = document.getElementById('discoveryPassword').value;
+                config.container_prefix = document.getElementById('discoveryContainerPrefix').value;
+            } else if (platform === 'azure' || platform === 'aws' || platform === 'gcp') {
+                config.region = document.getElementById('discoveryRegion').value;
+                config.resource_group = document.getElementById('discoveryResourceGroup').value;
+            }
+            
+            return config;
+        }
+
+        // Show discovery status
+        function showDiscoveryStatus(message, type) {
+            const statusDiv = document.getElementById('discoveryStatus');
+            statusDiv.className = `alert alert-${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+        }
+
+        // Show discovery results
+        function showDiscoveryResults(result) {
+            document.getElementById('discoveryResults').style.display = 'block';
+            document.getElementById('discoveryStatus').style.display = 'none';
+            
+            const infoDiv = document.getElementById('deploymentInfo');
+            infoDiv.style.display = 'block';
+            
+            document.getElementById('foundPlatform').textContent = result.platform;
+            document.getElementById('foundArchitecture').textContent = result.architecture;
+            document.getElementById('foundVersion').textContent = result.version || 'Unknown';
+            document.getElementById('foundEnvironment').textContent = result.environment || 'Unknown';
+            document.getElementById('foundHealth').textContent = result.health_status || 'Unknown';
+            document.getElementById('foundLastChecked').textContent = result.last_checked || 'Just now';
+            
+            const componentsDiv = document.getElementById('foundComponents');
+            componentsDiv.innerHTML = '';
+            
+            if (result.components && result.components.length > 0) {
+                result.components.forEach(component => {
+                    const componentDiv = document.createElement('div');
+                    componentDiv.className = 'mb-2 p-2 border rounded';
+                    componentDiv.innerHTML = `
+                        <strong>${component.name}</strong> (${component.type})<br>
+                        <small class="text-muted">
+                            Status: ${component.status} | 
+                            Version: ${component.version || 'Unknown'} | 
+                            Ports: ${component.ports ? component.ports.join(', ') : 'N/A'}
+                        </small>
+                    `;
+                    componentsDiv.appendChild(componentDiv);
+                });
+            } else {
+                componentsDiv.innerHTML = '<em>No components found</em>';
+            }
+        }
+
+        // Use discovered configuration
+        function useDiscoveredConfig() {
+            if (!discoveredConfig) return;
+            
+            // Pre-fill the wizard with discovered values
+            if (discoveredConfig.platform) {
+                // This would be handled when moving to the next step
+                config.discovered_platform = discoveredConfig.platform;
+                config.discovered_architecture = discoveredConfig.architecture;
+                config.discovered_version = discoveredConfig.version;
+            }
+            
+            // Move to next step
+            nextStep();
+        }
+
+        // Skip discovery
+        function skipDiscovery() {
+            discoveredConfig = null;
+            nextStep();
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -656,6 +993,16 @@
                 config.expected_users = parseInt(this.value);
                 loadRecommendation();
             });
+            
+            // Discovery event listeners
+            document.getElementById('discoveryPlatform').addEventListener('change', onPlatformChange);
+            document.getElementById('testConnectionBtn').addEventListener('click', testConnection);
+            document.getElementById('discoverBtn').addEventListener('click', discoverDeployments);
+            document.getElementById('useDiscoveredBtn').addEventListener('click', useDiscoveredConfig);
+            document.getElementById('skipDiscoveryBtn').addEventListener('click', skipDiscovery);
+            
+            // Initialize discovery
+            initDiscovery();
             
             loadRecommendation();
         });
@@ -771,9 +1118,9 @@
         function updateStepIndicator() {
             document.querySelectorAll('.step').forEach((step, index) => {
                 step.classList.remove('active', 'completed');
-                if (index + 1 < currentStep) {
+                if (index < currentStep) {
                     step.classList.add('completed');
-                } else if (index + 1 === currentStep) {
+                } else if (index === currentStep) {
                     step.classList.add('active');
                 }
             });
@@ -784,7 +1131,7 @@
             document.querySelector(`[data-section="${currentStep}"]`).classList.add('active');
             
             // Update buttons
-            document.getElementById('btnPrev').style.display = currentStep > 1 ? 'block' : 'none';
+            document.getElementById('btnPrev').style.display = currentStep > 0 ? 'block' : 'none';
             document.getElementById('btnNext').style.display = currentStep < totalSteps ? 'block' : 'none';
             document.getElementById('btnGenerate').style.display = currentStep === totalSteps ? 'block' : 'none';
         }
@@ -846,7 +1193,7 @@
         }
 
         function prevStep() {
-            if (currentStep > 1) {
+            if (currentStep > 0) {
                 currentStep--;
                 updateStepIndicator();
             }
@@ -894,6 +1241,10 @@
                     <span>${config.analytics_provider}</span>
                 </div>
                 <div class="summary-item">
+                    <span>Signatures</span>
+                    <span>${config.signature_provider}</span>
+                </div>
+                <div class="summary-item">
                     <span>AI</span>
                     <span>${config.ai_provider}</span>
                 </div>
@@ -912,7 +1263,8 @@
                 // Generate files
                 const response = await fetch('/api/generate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
                 });
                 
                 const result = await response.json();
@@ -922,7 +1274,7 @@
                     <strong>Output Directory:</strong><br>
                     <code>${result.output_dir}</code><br><br>
                     <strong>Files Generated:</strong><br>
-                    ${result.files.map(f => `<code>${f}</code>`).join('<br>')}
+                    ${result.files.map(f => `<code>${f.split('/').pop()}</code>`).join('<br>')}
                 `;
                 
                 const modal = new bootstrap.Modal(document.getElementById('successModal'));
