@@ -60,7 +60,7 @@
 | **Department** | IT/ADMIN |
 | **Primary Goal** | Configure system, manage users, monitor health |
 | **Access Level** | Full System Access |
-| **Example User** | Admin (abhi.lal@gmail.com) |
+| **Example User** | Admin (admin@crm.local) |
 
 ### 1.6 Guest/Read-Only User (UserRole: Guest)
 | Attribute | Details |
@@ -445,7 +445,7 @@
 ### Test Users
 | Username | Email | Role | Department |
 |----------|-------|------|------------|
-| admin | abhi.lal@gmail.com | Admin | IT |
+| admin | admin@crm.local | Admin | IT |
 | jsmith | john.smith@company.com | Manager | SALES |
 | mwilson | mary.wilson@company.com | Sales | SALES |
 | sbrown | sarah.brown@company.com | Manager | MKTG |

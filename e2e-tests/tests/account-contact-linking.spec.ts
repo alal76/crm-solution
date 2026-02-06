@@ -31,7 +31,7 @@ test.describe('Account-Contact Linking via Mapping Table', () => {
     // Get API token
     const apiContext = await request.newContext({ baseURL: 'http://localhost:5000' });
     const loginResp = await apiContext.post('/api/auth/login', {
-      data: { email: 'abhi.lal@gmail.com', password: 'Admin@123' }
+      data: { email: 'admin@crm.local', password: 'Admin@123' }
     });
     const { accessToken: token } = await loginResp.json();
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };

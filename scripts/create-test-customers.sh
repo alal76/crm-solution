@@ -3,7 +3,7 @@
 
 TOKEN=$(curl -s -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"abhi.lal@gmail.com","password":"Admin@123"}' | \
+  -d '{"email":"admin@crm.local","password":"Admin@123"}' | \
   grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
 
 if [ -z "$TOKEN" ]; then

@@ -16,7 +16,7 @@ test.describe('Notes and Quotes Features', () => {
     // Authenticate to get token
     const response = await request.post(`${API_URL}/api/auth/login`, {
       data: {
-        email: 'abhi.lal@gmail.com',
+        email: 'admin@crm.local',
         password: 'Admin@123'
       }
     });

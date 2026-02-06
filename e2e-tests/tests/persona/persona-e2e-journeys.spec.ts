@@ -17,7 +17,7 @@ const FRONTEND_URL = `${BASE_URL}`;
 
 // Test credentials
 const TEST_USER = {
-  email: 'abhi.lal@gmail.com',
+  email: 'admin@crm.local',
   password: 'Admin@123'
 };
 

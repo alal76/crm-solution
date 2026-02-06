@@ -350,11 +350,11 @@ describe('LoginPage - Quick Admin Login', () => {
 
   it('should pre-fill credentials on quick login', () => {
     const quickLoginCredentials = {
-      email: 'abhi.lal@gmail.com',
+      email: 'admin@crm.local',
       password: 'Admin@123',
     };
     
-    expect(quickLoginCredentials.email).toBe('abhi.lal@gmail.com');
+    expect(quickLoginCredentials.email).toBe('admin@crm.local');
     expect(quickLoginCredentials.password).toBe('Admin@123');
   });
 });

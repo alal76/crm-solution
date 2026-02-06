@@ -229,7 +229,7 @@ docker compose -f docker/docker-compose.microservices.unified.yml up -d
 
 | Email | Password | Role |
 |-------|----------|------|
-| abhi.lal@gmail.com | Admin@123 | Administrator |
+| admin@crm.local | Admin@123 | Administrator |
 
 ---
 
@@ -534,7 +534,7 @@ crm-solution/
 POST /api/auth/login
 Content-Type: application/json
 {
-  "email": "abhi.lal@gmail.com",
+  "email": "admin@crm.local",
   "password": "Admin@123"
 }
 
