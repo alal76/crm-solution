@@ -6,12 +6,24 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# ---------------------------------------------------------------------------
+# Prerequisite check — runs before any heavy imports.
+# Core packages (Flask, PyYAML) must be present; optional SDKs are deferred.
+# ---------------------------------------------------------------------------
+from prerequisites import run_startup_check
+
+if not run_startup_check(require_groups=["core"]):
+    print("\n  Cannot start the GUI without required prerequisites.\n")
+    sys.exit(1)
+
+# --- Core imports (guaranteed present after the check above) ---------------
 from flask import Flask, render_template, request, jsonify, session
 import json
 import yaml
 import secrets
 import string
 
+# --- Model imports (pure Python / stdlib — always safe) --------------------
 from models.config_models import (
     TargetPlatform, DeploymentArchitecture, DatabaseType, ProviderStrategy,
     DeploymentType, SSLConfiguration, HostConfiguration, ServiceHosts
@@ -28,6 +40,9 @@ from models.provider_models import (
     SEARCH_PROVIDERS, CHAT_PROVIDERS, NOTIFICATION_PROVIDERS,
     ANALYTICS_PROVIDERS, SIGNATURE_PROVIDERS, AI_PROVIDERS, INTEGRATION_PROVIDERS
 )
+
+# discovery_models no longer imports paramiko/requests at module level,
+# so this import is safe even when those SDKs are not yet installed.
 from models.discovery_models import (
     discovery_manager, DeploymentDiscoveryError, SSHConnectionError, CloudAPIError
 )
