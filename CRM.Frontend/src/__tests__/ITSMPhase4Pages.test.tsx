@@ -135,8 +135,9 @@ describe('ITSM Email-to-Ticket Page', () => {
 
     it('should validate allowed domains', () => {
       const validateDomain = (domain: string): boolean => {
-        const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}$/;
-        return domainRegex.test(domain);
+        // Updated regex to properly handle subdomains with multiple dots
+        const domainRegex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
+        return domainRegex.test(domain) && domain.includes('.');
       };
 
       expect(validateDomain('example.com')).toBe(true);
