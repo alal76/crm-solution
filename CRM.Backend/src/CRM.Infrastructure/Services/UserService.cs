@@ -181,6 +181,54 @@ public class UserService : IUserService, IUserInputPort
         }
     }
 
+    public async Task<UserDto> CreateUserWithoutPasswordAsync(string email, string firstName, string lastName, int roleId = 2)
+    {
+        try
+        {
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (existingUser != null)
+                throw new InvalidOperationException("User with this email already exists");
+
+            // Create user with a placeholder hash and PasswordNeverSet flag
+            var user = new User
+            {
+                Email = email,
+                Username = email,
+                FirstName = firstName,
+                LastName = lastName,
+                PasswordHash = string.Empty, // No password hash
+                PasswordNeverSet = true,     // Flag to require password setup on first login
+                Role = roleId,
+                IsActive = true,
+                EmailVerified = false
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation($"Created user {email} without password - will require password setup on first login");
+
+            return new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = ((UserRole)user.Role).ToString(),
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error creating user {email} without password");
+            throw;
+        }
+    }
+
     public async Task<UserDto> UpdateUserAsync(int id, UserDto userDto)
     {
         try

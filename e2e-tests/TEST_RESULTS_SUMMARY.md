@@ -132,7 +132,7 @@ This document summarizes the E2E test results for the CRM Solution application.
 docker build -t crm-e2e-tests .
 docker run --rm --network host \
   -e "BASE_URL=http://192.168.0.9" \
-  -e "AUTH_USER=abhi.lal@gmail.com" \
+  -e "AUTH_USER=admin@crm.local" \
   -e "AUTH_PASSWORD=Admin@123" \
   -v "$(pwd)/test-results:/app/e2e-tests/test-results" \
   crm-e2e-tests npx playwright test
@@ -142,7 +142,7 @@ docker run --rm --network host \
 ```bash
 docker run --rm --network host \
   -e "BASE_URL=http://192.168.0.9" \
-  -e "AUTH_USER=abhi.lal@gmail.com" \
+  -e "AUTH_USER=admin@crm.local" \
   -e "AUTH_PASSWORD=Admin@123" \
   crm-e2e-tests npx playwright test tests/customers
 ```
@@ -151,7 +151,7 @@ docker run --rm --network host \
 ```bash
 docker run --rm --network host \
   -e "BASE_URL=http://192.168.0.9" \
-  -e "AUTH_USER=abhi.lal@gmail.com" \
+  -e "AUTH_USER=admin@crm.local" \
   -e "AUTH_PASSWORD=Admin@123" \
   crm-e2e-tests npx playwright test --project=chromium --project=firefox
 ```

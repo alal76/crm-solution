@@ -12,7 +12,7 @@ Write-Host "`n[2] Attempting login..." -ForegroundColor Yellow
 $loginResponse = curl -X POST http://localhost:5000/api/auth/login `
   -H "Content-Type: application/json" `
   -d '{
-    "email": "abhi.lal@gmail.com",
+    "email": "admin@crm.local",
     "password": "Microsoft@1"
   }' -s
 
@@ -32,6 +32,6 @@ Write-Host "`n=== Debug Instructions ===" -ForegroundColor Cyan
 Write-Host "1. Open browser to http://localhost:8070"
 Write-Host "2. Open Developer Console (F12)"
 Write-Host "3. Go to Console tab"
-Write-Host "4. Try to login with: abhi.lal@gmail.com / Microsoft@1"
+Write-Host "4. Try to login with: admin@crm.local / Admin@123"
 Write-Host "5. Look for [CRM DEBUG], [CRM ERROR] messages in console"
 Write-Host "6. Check Network tab for API requests and responses"

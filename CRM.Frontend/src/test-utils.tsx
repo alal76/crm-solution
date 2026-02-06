@@ -31,9 +31,9 @@ const mockTheme = createTheme({
 // ============================================================================
 export const mockUser = {
   userId: 1,
-  email: 'abhi.lal@gmail.com',
-  firstName: 'Abhishek',
-  lastName: 'Lal',
+  email: 'admin@crm.local',
+  firstName: 'Admin',
+  lastName: 'User',
   role: 'Admin',
   username: 'admin',
 };
@@ -62,9 +62,9 @@ export const AuthContext = React.createContext(mockAuthContext);
 // ============================================================================
 export const mockProfile = {
   id: 1,
-  email: 'abhi.lal@gmail.com',
-  firstName: 'Abhishek',
-  lastName: 'Lal',
+  email: 'admin@crm.local',
+  firstName: 'Admin',
+  lastName: 'User',
   role: 'Admin',
   permissions: ['view_customers', 'edit_customers', 'delete_customers', 'view_opportunities', 'edit_opportunities'],
   menuAccess: ['Dashboard', 'Customers', 'Contacts', 'Opportunities', 'Products', 'Campaigns', 'Settings'],

@@ -39,7 +39,7 @@ HTTP: 200 OK
 ### Login - Valid Credentials ✅
 ```
 POST http://localhost:5000/api/auth/login
-Email: abhi.lal@gmail.com
+Email: admin@crm.local
 Password: Admin@123
 Response: 200 OK with accessToken, refreshToken, user data
 ```
@@ -47,7 +47,7 @@ Response: 200 OK with accessToken, refreshToken, user data
 ### Login - Invalid Credentials ✅
 ```
 POST http://localhost:5000/api/auth/login
-Email: abhi.lal@gmail.com
+Email: admin@crm.local
 Password: wrongpassword
 Response: 401 Unauthorized with message "Invalid email or password"
 ```
@@ -125,13 +125,13 @@ The frontend automatically detects:
 ```bash
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"abhi.lal@gmail.com","password":"Admin@123"}'
+  -d '{"email":"admin@crm.local","password":"Admin@123"}'
 ```
 
 ### Method 2: Frontend UI Test
 1. Open http://localhost:3000
 2. You should see login page (or be redirected to it)
-3. Enter email: `abhi.lal@gmail.com`
+3. Enter email: `admin@crm.local`
 4. Enter password: `Admin@123`
 5. Click "Sign In"
 6. Check console for logs
@@ -141,7 +141,7 @@ curl -X POST http://localhost:5000/api/auth/login \
 # 1. Get token
 TOKEN=$(curl -s -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"abhi.lal@gmail.com","password":"Admin@123"}' | jq -r '.accessToken')
+  -d '{"email":"admin@crm.local","password":"Admin@123"}' | jq -r '.accessToken')
 
 # 2. Use token to call protected endpoint
 curl -s http://localhost:5000/api/workflows/leads \
@@ -170,7 +170,7 @@ curl -s http://localhost:5000/api/workflows/leads \
 ## Credentials for Testing
 
 Default admin user (automatically seeded):
-- **Email**: abhi.lal@gmail.com
+- **Email**: admin@crm.local
 - **Password**: Admin@123
 
 This user is created during database initialization via DbSeed.cs

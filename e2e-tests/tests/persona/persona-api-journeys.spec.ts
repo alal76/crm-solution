@@ -56,7 +56,7 @@ test.describe.serial('Persona Tests - Complete User Journeys', () => {
   test.describe('Setup: Authenticate All Personas', () => {
     test('Authenticate Admin persona', async ({ request }) => {
       const response = await request.post(`${API_URL}/api/auth/login`, {
-        data: { email: 'abhi.lal@gmail.com', password: 'Admin@123' }
+        data: { email: 'admin@crm.local', password: 'Admin@123' }
       });
       expect(response.ok()).toBeTruthy();
       const data = await response.json();

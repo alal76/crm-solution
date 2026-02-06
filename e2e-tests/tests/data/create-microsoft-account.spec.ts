@@ -409,7 +409,7 @@ Recognition:
 async function getAuthToken(request: any): Promise<string> {
   const loginResponse = await request.post(`${API_URL}/api/auth/login`, {
     data: {
-      email: 'abhi.lal@gmail.com',
+      email: 'admin@crm.local',
       password: 'Admin@123'
     }
   });

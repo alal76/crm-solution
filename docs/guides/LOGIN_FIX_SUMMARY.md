@@ -1,7 +1,7 @@
 # CRM Login Fix Summary
 
 ## Issue Resolved
-**Login was failing with credentials abhi.lal@gmail.com / Microsoft@1 despite API being operational**
+**Login was failing with credentials admin@crm.local / Microsoft@1 despite API being operational**
 
 ## Root Cause Analysis
 1. **Primary Issue**: The password hash stored in the database was **INCORRECT**
@@ -53,7 +53,7 @@ public async Task<AuthResponse> LoginAsync(LoginRequest request)
 
 ### 3. Database User Management
 **Admin User Credentials**:
-- Email: `abhi.lal@gmail.com`
+- Email: `admin@crm.local`
 - Password: `Microsoft@1`
 - Role: Admin (value: 1)
 - Status: Active, Not Deleted
@@ -91,7 +91,7 @@ public async Task<AuthResponse> LoginAsync(LoginRequest request)
 ### Database Status
 - ✅ Database: `crm_db` created
 - ✅ Tables: All migrations applied (10 tables)
-- ✅ Admin User: `abhi.lal@gmail.com` created with correct password hash
+- ✅ Admin User: `admin@crm.local` created with correct password hash
 - ✅ Connection: Active from API container
 
 ### API Endpoints Verified
@@ -105,7 +105,7 @@ public async Task<AuthResponse> LoginAsync(LoginRequest request)
 ### 1. Via Browser
 1. Navigate to http://localhost:8070
 2. Enter credentials:
-   - Email: `abhi.lal@gmail.com`
+   - Email: `admin@crm.local`
    - Password: `Microsoft@1`
 3. Open Browser DevTools (F12)
 4. Go to Console tab
@@ -116,7 +116,7 @@ public async Task<AuthResponse> LoginAsync(LoginRequest request)
 ```bash
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"abhi.lal@gmail.com","password":"Microsoft@1"}'
+  -d '{"email":"admin@crm.local","password":"Microsoft@1"}'
 ```
 
 Expected Response:
@@ -124,7 +124,7 @@ Expected Response:
 {
   "userId": 1,
   "username": "admin",
-  "email": "abhi.lal@gmail.com",
+  "email": "admin@crm.local",
   "firstName": "Abhishek",
   "lastName": "Lal",
   "role": 1,
@@ -167,8 +167,8 @@ private string HashPassword(string password)
 ### Debug Logging Example Output
 When login occurs, browser console shows:
 ```
-[CRM DEBUG] Login attempt: {"email":"abhi.lal@gmail.com"}
-[CRM DEBUG] Login successful: {"userId":1,"email":"abhi.lal@gmail.com"}
+[CRM DEBUG] Login attempt: {"email":"admin@crm.local"}
+[CRM DEBUG] Login successful: {"userId":1,"email":"admin@crm.local"}
 [CRM DEBUG] Fetching current user: {"token":"present"}
 ```
 
@@ -185,7 +185,7 @@ When login occurs, browser console shows:
 ## Next Steps for User
 
 1. Open http://localhost:8070 in browser
-2. Attempt login with: abhi.lal@gmail.com / Microsoft@1
+2. Attempt login with: admin@crm.local / Microsoft@1
 3. Check browser console for debug messages
 4. Verify you are redirected to dashboard
 5. Check that password eye icon is visible and working

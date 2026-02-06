@@ -22,7 +22,7 @@ $userEmail = & git config user.email
 if (-not $userName) {
     Write-Host "Configuring Git user..."
     & git config user.name "Abhishek Lal"
-    & git config user.email "abhi.lal@gmail.com"
+    & git config user.email "admin@crm.local"
     Write-Host "✅ Git user configured" -ForegroundColor Green
 }
 
@@ -46,7 +46,7 @@ Changes:
 - Removed unused imports from frontend components
 - Added Jest unit tests for frontend (utilities, components, services, theme)
 - Added xUnit tests for backend (entities, roles)
-- Created DbSeed.cs with admin user initialization (abhi.lal@gmail.com)
+- Created DbSeed.cs with admin user initialization (admin@crm.local)
 - Implemented automatic versioning system (major/minor/patch)
 - Added version.json as single source of truth for version tracking
 - Created update-version.ps1 (PowerShell) and update-version.js (Node.js) scripts
