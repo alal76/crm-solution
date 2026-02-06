@@ -1,3 +1,16 @@
+# ==============================================================================
+# ⚠️ LEGACY FILE - NOT ACTIVELY USED
+# ==============================================================================
+# This Azure DevOps pipeline configuration is preserved for historical reference.
+# 
+# ACTIVE CI/CD: See .github/workflows/ directory for active GitHub Actions workflows
+# - .github/workflows/ci-cd.yml (Main CI/CD Pipeline)
+# - .github/workflows/docker-build-deploy.yml (Build and Deploy)
+#
+# This file can be reactivated if Azure DevOps integration is needed.
+# Last Active: Pre-2026-02-06
+# ==============================================================================
+
 # CRM Solution - Azure DevOps CI/CD Pipeline
 # Version: 1.0.0
 # Triggers on main and dev branches
