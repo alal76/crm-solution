@@ -10,25 +10,25 @@ dataclasses-json>=0.6.1
 
 # Cloud Provider SDKs (optional - install as needed)
 # Azure
-# azure-mgmt-resource>=23.0.0
-# azure-mgmt-compute>=30.0.0
-# azure-mgmt-containerservice>=28.0.0
-# azure-mgmt-sql>=4.0.0
-# azure-mgmt-network>=25.0.0
-# azure-identity>=1.14.0
+azure-mgmt-resource>=23.0.0
+azure-mgmt-compute>=30.0.0
+azure-mgmt-containerservice>=28.0.0
+azure-mgmt-sql>=3.0.1
+azure-mgmt-network>=25.0.0
+azure-identity>=1.14.0
 
 # AWS
-# boto3>=1.28.0
-# botocore>=1.31.0
+boto3>=1.28.0
+botocore>=1.31.0
 
 # Google Cloud
-# google-cloud-compute>=1.14.0
-# google-cloud-container>=2.32.0
-# google-cloud-sql>=0.1.0
+google-cloud-compute>=1.14.0
+google-cloud-container>=2.32.0
+# google-cloud-sql-connector>=1.0.0  # Temporarily disabled - package name incorrect
 
 # Docker/Kubernetes
-# docker>=6.1.0
-# kubernetes>=28.1.0
+docker>=6.1.0
+kubernetes>=28.1.0
 
 # HTTP client
 requests>=2.31.0
@@ -46,8 +46,8 @@ jsonschema>=4.19.0
 colorlog>=6.7.0
 
 # SSH/Fabric for remote deployment (optional)
-# paramiko>=3.3.0
-# fabric>=3.2.0
+paramiko>=3.3.0
+fabric>=3.2.0
 
 # Testing (development only)
 # pytest>=7.4.0

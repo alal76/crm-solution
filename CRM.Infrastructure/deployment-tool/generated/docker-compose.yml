@@ -1,86 +1,250 @@
-# CRM Solution Docker Compose
-# Generated: 2026-01-30T08:29:50.395694
-# Version: 2.0.0
-
 version: '3.8'
-
 services:
-
   mariadb:
-    image: mariadb:latest
+    image: mariadb:11
     container_name: crm-mariadb
     restart: unless-stopped
-    ports:
-      - "${DB_PORT:-3306}:3306"
     environment:
-      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - MARIADB_DATABASE=${DB_NAME}
-      - MARIADB_USER=${DB_USER}
-      - MARIADB_PASSWORD=${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: crm_db
+      MARIADB_USER: crm_user
+      MARIADB_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - db-data:/var/lib/mysql
+    - db_data:/var/lib/mysql
+    ports:
+    - 3306:3306
     networks:
-      - crm-network
+    - crm-network
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
       interval: 10s
       timeout: 5s
-      retries: 5
-
+      retries: 3
   redis:
     image: redis:alpine
     container_name: crm-redis
     restart: unless-stopped
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+    - 6379:6379
     networks:
-      - crm-network
-
+    - crm-network
   api:
     image: crm-api:latest
     container_name: crm-api
     restart: unless-stopped
-    ports:
-      - "${API_EXTERNAL_PORT:-5000}:5000"
-    env_file:
-      - .env
     environment:
-      - DatabaseProvider=mariadb
-      - DB_HOST=crm-mariadb
-      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD};AllowUserVariables=true
-      - Redis__ConnectionString=crm-redis:6379
-      - AllowedHosts=*
-    volumes:
-      - api-data:/app/data
-    networks:
-      - crm-network
+      ASPNETCORE_ENVIRONMENT: Production
+      DatabaseProvider: mariadb
+      ConnectionStrings__DefaultConnection: Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD}
+      Jwt__Secret: ${JWT_SECRET}
+      Redis__ConnectionString: crm-redis:6379
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      FeatureManagement__UseExternalSearch: 'true'
+      Providers__Search__Type: Meilisearch
+      Providers__Search__Meilisearch__Url: http://crm-meilisearch:7700
+      Providers__Search__Meilisearch__ApiKey: ${MEILI_MASTER_KEY}
+      FeatureManagement__UseExternalChat: 'true'
+      Providers__Chat__Type: Chatwoot
+      Providers__Chat__Chatwoot__BaseUrl: http://crm-chatwoot:3000
+      Providers__Chat__Chatwoot__ApiKey: ${CHATWOOT_API_KEY}
+      Providers__Chat__Chatwoot__AccountId: '1'
+      FeatureManagement__UseExternalNotifications: 'true'
+      Providers__Notifications__Type: Novu
+      Providers__Notifications__Novu__ApiKey: ${NOVU_API_KEY}
+      Providers__Notifications__Novu__ApplicationId: ${NOVU_APPLICATION_ID}
+      FeatureManagement__UseExternalAnalytics: 'true'
+      Providers__Analytics__Type: Superset
+      Providers__Analytics__Superset__Url: http://crm-superset:8088
+      Providers__Analytics__Superset__Username: admin
+      Providers__Analytics__Superset__Password: ${SUPERSET_ADMIN_PASSWORD}
+      FeatureManagement__UseExternalSignatures: 'true'
+      Providers__Signatures__Type: DocuSeal
+      Providers__Signatures__DocuSeal__Url: http://crm-docuseal:3000
+      Providers__Signatures__DocuSeal__ApiKey: ${DOCUSEAL_API_KEY}
+      FeatureManagement__UseExternalAI: 'true'
+      Providers__AI__Type: Ollama
+      Providers__AI__Ollama__Url: http://crm-ollama:11434
+      Providers__AI__Ollama__Model: llama3
+    ports:
+    - 5000:5000
     depends_on:
-      - mariadb
-      - redis
+    - mariadb
+    - redis
+    networks:
+    - crm-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/monitoring/health"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:5000/health
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
-
   frontend:
     image: crm-frontend:latest
     container_name: crm-frontend
     restart: unless-stopped
-    ports:
-      - "${FRONTEND_PORT:-3000}:80"
     environment:
-      - REACT_APP_API_URL=http://192.168.0.9:5000/api
-    networks:
-      - crm-network
+      REACT_APP_API_URL: http://localhost:5000/api
+    ports:
+    - 80:80
     depends_on:
-      - api
-
+    - api
+    networks:
+    - crm-network
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: crm-meilisearch
+    restart: unless-stopped
+    ports:
+    - 7700:7700
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+    volumes:
+    - meili_data:/meili_data
+    networks:
+    - crm-network
+  chatwoot:
+    image: chatwoot/chatwoot:latest
+    container_name: crm-chatwoot
+    restart: unless-stopped
+    ports:
+    - 3000:3000
+    environment:
+      INSTALLATION_ENV: docker
+      SECRET_KEY_BASE: ${CHATWOOT_SECRET_KEY}
+      POSTGRES_HOST: chatwoot-postgres
+      POSTGRES_USERNAME: chatwoot
+      POSTGRES_PASSWORD: ${CHATWOOT_DB_PASSWORD}
+      REDIS_URL: redis://crm-redis:6379/1
+    depends_on:
+    - chatwoot-postgres
+    networks:
+    - crm-network
+  chatwoot-postgres:
+    image: postgres:15
+    container_name: crm-chatwoot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chatwoot
+      POSTGRES_USER: chatwoot
+      POSTGRES_PASSWORD: ${CHATWOOT_DB_PASSWORD}
+    volumes:
+    - chatwoot_data:/var/lib/postgresql/data
+    networks:
+    - crm-network
+  novu:
+    image: novu/novu:latest
+    container_name: crm-novu
+    restart: unless-stopped
+    ports:
+    - 3002:3000
+    environment:
+      NODE_ENV: production
+      MONGO_URL: mongodb://novu-mongo:27017/novu
+      REDIS_URL: redis://crm-redis:6379/2
+      API_SECRET_KEY: ${NOVU_API_KEY}
+      JWT_SECRET: ${NOVU_JWT_SECRET}
+    depends_on:
+    - novu-mongo
+    networks:
+    - crm-network
+  novu-mongo:
+    image: mongo:7
+    container_name: crm-novu-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: novu
+    volumes:
+    - novu_data:/data/db
+    networks:
+    - crm-network
+  superset:
+    image: apache/superset:latest
+    container_name: crm-superset
+    restart: unless-stopped
+    ports:
+    - 8088:8088
+    environment:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
+      POSTGRES_DB: superset
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: ${SUPERSET_DB_PASSWORD}
+      POSTGRES_HOST: superset-postgres
+    depends_on:
+    - superset-postgres
+    networks:
+    - crm-network
+  superset-postgres:
+    image: postgres:15
+    container_name: crm-superset-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: superset
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: ${SUPERSET_DB_PASSWORD}
+    volumes:
+    - superset_data:/var/lib/postgresql/data
+    networks:
+    - crm-network
+  docuseal:
+    image: docuseal/docuseal:latest
+    container_name: crm-docuseal
+    restart: unless-stopped
+    ports:
+    - 3001:3000
+    environment:
+      DATABASE_URL: postgresql://docuseal:docuseal@crm-docuseal-postgres:5432/docuseal
+      SECRET_KEY_BASE: ${DOCUSEAL_SECRET_KEY}
+      HOST: 0.0.0.0
+    depends_on:
+    - docuseal-postgres
+    networks:
+    - crm-network
+  docuseal-postgres:
+    image: postgres:15
+    container_name: crm-docuseal-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: docuseal
+      POSTGRES_USER: docuseal
+      POSTGRES_PASSWORD: docuseal
+    volumes:
+    - docuseal_data:/var/lib/postgresql/data
+    networks:
+    - crm-network
+  ollama:
+    image: ollama/ollama:latest
+    container_name: crm-ollama
+    restart: unless-stopped
+    ports:
+    - 11434:11434
+    volumes:
+    - ollama_data:/root/.ollama
+    networks:
+    - crm-network
+volumes:
+  db_data:
+    driver: local
+  meili_data:
+    driver: local
+  chatwoot_data:
+    driver: local
+  novu_data:
+    driver: local
+  superset_data:
+    driver: local
+  docuseal_data:
+    driver: local
+  ollama_data:
+    driver: local
 networks:
   crm-network:
     driver: bridge
-
-volumes:
-  db-data:
-  api-data:

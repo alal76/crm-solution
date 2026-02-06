@@ -23,10 +23,11 @@ class TargetPlatform(Enum):
     HYBRID = "hybrid"
 
 
-class DeploymentArchitecture(Enum):
-    """Deployment architecture type."""
-    MONOLITHIC = "monolithic"
-    MICROSERVICES = "microservices"
+class DeploymentType(Enum):
+    """Deployment type (production vs non-production)."""
+    DEVELOPMENT = "development"
+    STAGING = "staging"
+    PRODUCTION = "production"
 
 
 class HostingType(Enum):
@@ -54,6 +55,12 @@ class DatabaseHosting(Enum):
     MANAGED = "managed"
 
 
+class DeploymentArchitecture(Enum):
+    """Deployment architecture."""
+    MONOLITHIC = "monolithic"
+    MICROSERVICES = "microservices"
+
+
 class ProviderStrategy(Enum):
     """Provider implementation strategy."""
     BUILTIN = "builtin"
@@ -65,21 +72,52 @@ class ProviderStrategy(Enum):
 class SSLConfiguration:
     """SSL/HTTPS configuration."""
     enabled: bool = False
+    certificate_source: str = "self_signed"  # self_signed, upload, lets_encrypt
     certificate_path: Optional[str] = None
     private_key_path: Optional[str] = None
     ca_bundle_path: Optional[str] = None
-    auto_generate: bool = False  # Let's Encrypt or self-signed
     domain: str = "localhost"
     letsencrypt_email: Optional[str] = None
     force_https: bool = True
     hsts_enabled: bool = True
     min_tls_version: str = "1.2"
+    auto_generate: bool = False  # Generate self-signed certificate
+
+
+@dataclass
+class HostConfiguration:
+    """Host configuration for a service."""
+    hostname: str = "localhost"
+    port: int = 80
+    protocol: str = "http"  # http, https
+    external_url: Optional[str] = None  # For external access
+    internal_only: bool = False  # Only accessible internally
+
+
+@dataclass
+class ServiceHosts:
+    """Host configurations for all services."""
+    # Core services
+    frontend: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=80))
+    api: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=5000))
+    database: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=3306))
+    redis: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=6379))
+
+    # Provider services
+    meilisearch: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=7700))
+    chatwoot: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=3000))
+    novu: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=3001))
+    superset: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=8088))
+    docuseal: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=3002))
+    ollama: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=11434))
+    n8n: HostConfiguration = field(default_factory=lambda: HostConfiguration(hostname="localhost", port=5678))
 
 
 @dataclass
 class NetworkConfiguration:
     """Network configuration."""
-    frontend_port: int = 443
+    deployment_type: DeploymentType = DeploymentType.DEVELOPMENT
+    frontend_port: int = 80
     api_port: int = 5000
     database_port: int = 3306
     redis_port: int = 6379
@@ -89,6 +127,8 @@ class NetworkConfiguration:
     load_balancer: bool = True
     cdn_enabled: bool = False
     waf_enabled: bool = False
+    # New host configurations
+    hosts: ServiceHosts = field(default_factory=ServiceHosts)
 
 
 @dataclass
@@ -340,6 +380,7 @@ class DeploymentConfig:
     
     # Target Platform
     platform: TargetPlatform = TargetPlatform.AZURE
+    deployment_type: DeploymentType = DeploymentType.DEVELOPMENT  # New field
     environment: str = "development"  # development, staging, production
     
     # Architecture
@@ -405,6 +446,8 @@ class DeploymentConfig:
         # Convert string enums back to Enum types
         if 'platform' in data and isinstance(data['platform'], str):
             data['platform'] = TargetPlatform(data['platform'])
+        if 'deployment_type' in data and isinstance(data['deployment_type'], str):
+            data['deployment_type'] = DeploymentType(data['deployment_type'])
         
         # Convert nested dataclasses
         if 'frontend' in data and isinstance(data['frontend'], dict):

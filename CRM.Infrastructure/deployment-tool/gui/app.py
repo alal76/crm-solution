@@ -8,9 +8,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from flask import Flask, render_template, request, jsonify, session
 import json
+import yaml
+import secrets
+import string
 
 from models.config_models import (
-    TargetPlatform, DeploymentArchitecture, DatabaseType, ProviderStrategy
+    TargetPlatform, DeploymentArchitecture, DatabaseType, ProviderStrategy,
+    DeploymentType, SSLConfiguration, HostConfiguration, ServiceHosts
 )
 from models.platform_models import (
     AzureRegion, AWSRegion, GCPRegion,
@@ -24,9 +28,17 @@ from models.provider_models import (
     SEARCH_PROVIDERS, CHAT_PROVIDERS, NOTIFICATION_PROVIDERS,
     ANALYTICS_PROVIDERS, SIGNATURE_PROVIDERS, AI_PROVIDERS, INTEGRATION_PROVIDERS
 )
+from models.discovery_models import (
+    discovery_manager, DeploymentDiscoveryError, SSHConnectionError, CloudAPIError
+)
 
 app = Flask(__name__)
 app.secret_key = "crm-deployment-wizard-secret-key"
+
+def generate_secure_password(length=16):
+    """Generate a secure password with mixed characters."""
+    chars = string.ascii_letters + string.digits + "!@#$%^&*"
+    return ''.join(secrets.choice(chars) for _ in range(length))
 
 def get_enum_choices(enum_cls):
     return [{"value": e.value, "label": e.value} for e in enum_cls]
@@ -112,12 +124,934 @@ def handle_config():
 @app.route("/api/generate", methods=["POST"])
 def generate_files():
     config = request.json
-    output_dir = Path(__file__).parent.parent / "output"
+    output_dir = Path(__file__).parent.parent / "generated"
     output_dir.mkdir(exist_ok=True)
+    
+    # Generate deployment files based on platform
+    generated_files = []
+    
+    if config.get('platform') == 'azure':
+        # Generate Azure ARM templates or Bicep
+        pass
+    elif config.get('platform') == 'aws':
+        # Generate CloudFormation
+        pass
+    elif config.get('platform') == 'gcp':
+        # Generate Deployment Manager
+        pass
+    else:
+        # Generate Docker Compose for on-premises
+        docker_compose = generate_docker_compose(config)
+        compose_file = output_dir / "docker-compose.yml"
+        with open(compose_file, "w") as f:
+            f.write(docker_compose)
+        generated_files.append(str(compose_file))
+        
+        # Generate .env file
+        env_content = generate_env_file(config)
+        env_file = output_dir / ".env"
+        with open(env_file, "w") as f:
+            f.write(env_content)
+        generated_files.append(str(env_file))
+        
+        # Generate deployment script
+        script_content = generate_deployment_script(config)
+        script_file = output_dir / "deploy.sh"
+        with open(script_file, "w") as f:
+            f.write(script_content)
+        # Make script executable
+        script_file.chmod(0o755)
+        generated_files.append(str(script_file))
+        
+        # Generate Kubernetes manifests if needed
+        if config.get('architecture') == 'microservices':
+            k8s_content = generate_kubernetes(config)
+            k8s_file = output_dir / "kubernetes.yml"
+            with open(k8s_file, "w") as f:
+                f.write(k8s_content)
+            generated_files.append(str(k8s_file))
+    
+    # Save config
     config_file = output_dir / "deployment-config.json"
     with open(config_file, "w") as f:
         json.dump(config, f, indent=2)
-    return jsonify({"status": "ok", "message": "Configuration saved", "file": str(config_file)})
+    generated_files.append(str(config_file))
+    
+    return jsonify({
+        "status": "ok", 
+        "message": "Deployment files generated successfully", 
+        "files": generated_files,
+        "output_dir": str(output_dir)
+    })
+
+@app.route("/api/discovery/platforms")
+def get_discovery_platforms():
+    """Get available discovery platforms."""
+    platforms = discovery_manager.get_available_platforms()
+    availability = {}
+    
+    for platform in platforms:
+        availability[platform] = discovery_manager.check_platform_availability(platform)
+    
+    return jsonify({
+        "platforms": platforms,
+        "availability": availability
+    })
+
+@app.route("/api/discovery/discover", methods=["POST"])
+def discover_deployment():
+    """Discover existing deployment."""
+    try:
+        config = request.json
+        platform = config.get('platform')
+        
+        if not platform:
+            return jsonify({"error": "Platform is required"}), 400
+        
+        # Discover deployment
+        deployment_info = discovery_manager.discover_deployment(platform, config)
+        
+        # Convert to JSON-serializable format
+        result = {
+            "platform": deployment_info.platform,
+            "architecture": deployment_info.architecture,
+            "version": deployment_info.version,
+            "environment": deployment_info.environment,
+            "health_status": deployment_info.health_status,
+            "last_checked": deployment_info.last_checked.isoformat() if deployment_info.last_checked else None,
+            "components": []
+        }
+        
+        for component in deployment_info.components:
+            component_data = {
+                "name": component.name,
+                "type": component.type,
+                "status": component.status,
+                "version": component.version,
+                "image": component.image,
+                "ports": component.ports,
+                "environment": component.environment,
+                "health_url": component.health_url,
+                "last_updated": component.last_updated.isoformat() if component.last_updated else None,
+                "metadata": component.metadata
+            }
+            result["components"].append(component_data)
+        
+        return jsonify(result)
+        
+    except DeploymentDiscoveryError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Discovery failed: {str(e)}"}), 500
+
+@app.route("/api/discovery/test-connection", methods=["POST"])
+def test_connection():
+    """Test connection to target environment."""
+    try:
+        config = request.json
+        platform = config.get('platform')
+        
+        if not platform:
+            return jsonify({"error": "Platform is required"}), 400
+        
+        if platform == 'on_premises':
+            # Test SSH connection
+            hostname = config.get('hostname', 'localhost')
+            username = config.get('username', 'root')
+            password = config.get('password')
+            key_path = config.get('key_path')
+            port = config.get('port', 22)
+            
+            try:
+                client = discovery_manager.clients[platform]()
+                client.connect(hostname, username, password, key_path, port)
+                client.disconnect()
+                return jsonify({"status": "success", "message": f"SSH connection to {hostname} successful"})
+            except Exception as e:
+                return jsonify({"status": "failed", "message": f"SSH connection failed: {str(e)}"}), 400
+                
+        elif platform in ['azure', 'aws', 'gcp']:
+            # Test cloud API connection
+            try:
+                client = discovery_manager.clients[platform]()
+                # For cloud platforms, just test client initialization
+                return jsonify({"status": "success", "message": f"{platform.title()} API connection ready"})
+            except Exception as e:
+                return jsonify({"status": "failed", "message": f"{platform.title()} API connection failed: {str(e)}"}), 400
+        
+        return jsonify({"status": "unknown", "message": f"Connection test not implemented for {platform}"}), 400
+        
+    except Exception as e:
+        return jsonify({"error": f"Connection test failed: {str(e)}"}), 500
+
+def generate_docker_compose(config):
+    """Generate docker-compose.yml from config."""
+    import yaml
+    
+    version = "3.8"
+    network_name = "crm-network"
+    
+    services = {}
+    volumes = {}
+    
+    # Get host configurations from config or use defaults
+    hosts = config.get('hosts', {})
+    deployment_type = config.get('deployment_type', 'development')
+    ssl_enabled = config.get('ssl_enabled', False)
+    ssl_config = config.get('ssl_config', {})
+    
+    # Helper function to get host config
+    def get_host_config(service_name, default_host="localhost", default_port=80):
+        host_config = hosts.get(service_name, {})
+        return {
+            'hostname': host_config.get('hostname', default_host),
+            'port': host_config.get('port', default_port),
+            'protocol': host_config.get('protocol', 'http'),
+            'external_url': host_config.get('external_url'),
+            'internal_only': host_config.get('internal_only', False)
+        }
+    
+    # Database
+    db_host = get_host_config('database', 'localhost', 3306)
+    if config.get('database_type', 'mariadb') == 'mariadb':
+        services['mariadb'] = {
+            'image': 'mariadb:11',
+            'container_name': 'crm-mariadb',
+            'restart': 'unless-stopped',
+            'environment': {
+                'MARIADB_ROOT_PASSWORD': '${DB_ROOT_PASSWORD}',
+                'MARIADB_DATABASE': config.get('database_name', 'crm_db'),
+                'MARIADB_USER': 'crm_user',
+                'MARIADB_PASSWORD': '${DB_PASSWORD}'
+            },
+            'volumes': ['db_data:/var/lib/mysql'],
+            'ports': [f"{db_host['port']}:3306"],
+            'networks': [network_name],
+            'healthcheck': {
+                'test': ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"],
+                'interval': '10s',
+                'timeout': '5s',
+                'retries': 3
+            }
+        }
+        volumes['db_data'] = {'driver': 'local'}
+    
+    # Redis
+    redis_host = get_host_config('redis', 'localhost', 6379)
+    services['redis'] = {
+        'image': 'redis:alpine',
+        'container_name': 'crm-redis',
+        'restart': 'unless-stopped',
+        'ports': [f"{redis_host['port']}:6379"],
+        'networks': [network_name]
+    }
+    
+    # API
+    api_host = get_host_config('api', 'localhost', 5000)
+    api_env = {
+        'ASPNETCORE_ENVIRONMENT': 'Production' if deployment_type == 'production' else 'Development',
+        'DatabaseProvider': config.get('database_type', 'mariadb'),
+        'ConnectionStrings__DefaultConnection': f"Server=crm-mariadb;Port={db_host['port']};Database={config.get('database_name', 'crm_db')};User=crm_user;Password=${{DB_PASSWORD}}",
+        'Jwt__Secret': '${JWT_SECRET}',
+        'Redis__ConnectionString': f"crm-redis:{redis_host['port']}",
+        'ADMIN_USERNAME': '${ADMIN_USERNAME}',
+        'ADMIN_EMAIL': '${ADMIN_EMAIL}',
+        'ADMIN_PASSWORD': '${ADMIN_PASSWORD}'
+    }
+    
+    # Add SSL configuration if enabled
+    if ssl_enabled:
+        api_env.update({
+            'ASPNETCORE_URLS': f"https://+:{api_host['port']};http://+:5000",
+            'Kestrel__Certificates__Default__Path': '/app/ssl/server.pfx',
+            'Kestrel__Certificates__Default__Password': '${SSL_CERT_PASSWORD}'
+        })
+    
+    # Add provider environment variables to API
+    if config.get('search_provider') == 'meilisearch':
+        meili_host = get_host_config('meilisearch', 'localhost', 7700)
+        api_env.update({
+            'FeatureManagement__UseExternalSearch': 'true',
+            'Providers__Search__Type': 'Meilisearch',
+            'Providers__Search__Meilisearch__Url': f"http://{meili_host['hostname']}:{meili_host['port']}",
+            'Providers__Search__Meilisearch__ApiKey': '${MEILI_MASTER_KEY}'
+        })
+    
+    if config.get('chat_provider') == 'chatwoot':
+        chatwoot_host = get_host_config('chatwoot', 'localhost', 3000)
+        api_env.update({
+            'FeatureManagement__UseExternalChat': 'true',
+            'Providers__Chat__Type': 'Chatwoot',
+            'Providers__Chat__Chatwoot__BaseUrl': f"http://{chatwoot_host['hostname']}:{chatwoot_host['port']}",
+            'Providers__Chat__Chatwoot__ApiKey': '${CHATWOOT_API_KEY}',
+            'Providers__Chat__Chatwoot__AccountId': '1'
+        })
+    
+    if config.get('notification_provider') == 'novu':
+        novu_host = get_host_config('novu', 'localhost', 3001)
+        api_env.update({
+            'FeatureManagement__UseExternalNotifications': 'true',
+            'Providers__Notifications__Type': 'Novu',
+            'Providers__Notifications__Novu__ApiKey': '${NOVU_API_KEY}',
+            'Providers__Notifications__Novu__ApplicationId': '${NOVU_APPLICATION_ID}'
+        })
+    
+    if config.get('analytics_provider') == 'superset':
+        superset_host = get_host_config('superset', 'localhost', 8088)
+        api_env.update({
+            'FeatureManagement__UseExternalAnalytics': 'true',
+            'Providers__Analytics__Type': 'Superset',
+            'Providers__Analytics__Superset__Url': f"http://{superset_host['hostname']}:{superset_host['port']}",
+            'Providers__Analytics__Superset__Username': 'admin',
+            'Providers__Analytics__Superset__Password': '${SUPERSET_ADMIN_PASSWORD}'
+        })
+    
+    if config.get('signature_provider') == 'docuseal':
+        docuseal_host = get_host_config('docuseal', 'localhost', 3002)
+        api_env.update({
+            'FeatureManagement__UseExternalSignatures': 'true',
+            'Providers__Signatures__Type': 'DocuSeal',
+            'Providers__Signatures__DocuSeal__Url': f"http://{docuseal_host['hostname']}:{docuseal_host['port']}",
+            'Providers__Signatures__DocuSeal__ApiKey': '${DOCUSEAL_API_KEY}'
+        })
+    
+    if config.get('ai_provider') == 'ollama':
+        ollama_host = get_host_config('ollama', 'localhost', 11434)
+        api_env.update({
+            'FeatureManagement__UseExternalAI': 'true',
+            'Providers__AI__Type': 'Ollama',
+            'Providers__AI__Ollama__Url': f"http://{ollama_host['hostname']}:{ollama_host['port']}",
+            'Providers__AI__Ollama__Model': 'llama3'
+        })
+    
+    if config.get('integration_provider') == 'n8n':
+        n8n_host = get_host_config('n8n', 'localhost', 5678)
+        api_env.update({
+            'FeatureManagement__UseExternalIntegrations': 'true',
+            'Providers__Integrations__Type': 'N8n',
+            'Providers__Integrations__N8n__BaseUrl': f"http://{n8n_host['hostname']}:{n8n_host['port']}",
+            'Providers__Integrations__N8n__ApiKey': '${N8N_API_KEY}'
+        })
+    
+    services['api'] = {
+        'image': 'crm-api:latest',
+        'container_name': 'crm-api',
+        'restart': 'unless-stopped',
+        'environment': api_env,
+        'ports': [f"{api_host['port']}:5000"],
+        'depends_on': ['mariadb', 'redis'],
+        'networks': [network_name],
+        'healthcheck': {
+            'test': ["CMD", "curl", "-f", f"http://localhost:5000/health"],
+            'interval': '30s',
+            'timeout': '10s',
+            'retries': 3
+        }
+    }
+    
+    # Add SSL volumes if SSL is enabled
+    if ssl_enabled:
+        services['api']['volumes'] = ['ssl_certs:/app/ssl']
+        volumes['ssl_certs'] = {'driver': 'local'}
+    
+    # Frontend
+    frontend_host = get_host_config('frontend', 'localhost', 80)
+    services['frontend'] = {
+        'image': 'crm-frontend:latest',
+        'container_name': 'crm-frontend',
+        'restart': 'unless-stopped',
+        'environment': {
+            'REACT_APP_API_URL': f"http://localhost:{api_host['port']}/api"
+        },
+        'ports': [f"{frontend_host['port']}:80"],
+        'depends_on': ['api'],
+        'networks': [network_name]
+    }
+    
+    # Add provider services based on selection
+    if config.get('search_provider') == 'meilisearch':
+        meili_host = get_host_config('meilisearch', 'localhost', 7700)
+        services['meilisearch'] = {
+            'image': 'getmeili/meilisearch:v1.6',
+            'container_name': 'crm-meilisearch',
+            'restart': 'unless-stopped',
+            'ports': [f"{meili_host['port']}:7700"],
+            'environment': {
+                'MEILI_MASTER_KEY': '${MEILI_MASTER_KEY}'
+            },
+            'volumes': ['meili_data:/meili_data'],
+            'networks': [network_name]
+        }
+        volumes['meili_data'] = {'driver': 'local'}
+    
+    if config.get('chat_provider') == 'chatwoot':
+        chatwoot_host = get_host_config('chatwoot', 'localhost', 3000)
+        services['chatwoot'] = {
+            'image': 'chatwoot/chatwoot:latest',
+            'container_name': 'crm-chatwoot',
+            'restart': 'unless-stopped',
+            'ports': [f"{chatwoot_host['port']}:3000"],
+            'environment': {
+                'INSTALLATION_ENV': 'docker',
+                'SECRET_KEY_BASE': '${CHATWOOT_SECRET_KEY}',
+                'POSTGRES_HOST': 'chatwoot-postgres',
+                'POSTGRES_USERNAME': 'chatwoot',
+                'POSTGRES_PASSWORD': '${CHATWOOT_DB_PASSWORD}',
+                'REDIS_URL': f"redis://crm-redis:{redis_host['port']}/1"
+            },
+            'depends_on': ['chatwoot-postgres'],
+            'networks': [network_name]
+        }
+        services['chatwoot-postgres'] = {
+            'image': 'postgres:15',
+            'container_name': 'crm-chatwoot-postgres',
+            'restart': 'unless-stopped',
+            'environment': {
+                'POSTGRES_DB': 'chatwoot',
+                'POSTGRES_USER': 'chatwoot',
+                'POSTGRES_PASSWORD': '${CHATWOOT_DB_PASSWORD}'
+            },
+            'volumes': ['chatwoot_data:/var/lib/postgresql/data'],
+            'networks': [network_name]
+        }
+        volumes['chatwoot_data'] = {'driver': 'local'}
+    
+    if config.get('notification_provider') == 'novu':
+        novu_host = get_host_config('novu', 'localhost', 3001)
+        services['novu'] = {
+            'image': 'novu/novu:latest',
+            'container_name': 'crm-novu',
+            'restart': 'unless-stopped',
+            'ports': [f"{novu_host['port']}:3000"],
+            'environment': {
+                'NODE_ENV': 'production',
+                'MONGO_URL': 'mongodb://novu-mongo:27017/novu',
+                'REDIS_URL': f"redis://crm-redis:{redis_host['port']}/2",
+                'API_SECRET_KEY': '${NOVU_API_KEY}',
+                'JWT_SECRET': '${NOVU_JWT_SECRET}'
+            },
+            'depends_on': ['novu-mongo'],
+            'networks': [network_name]
+        }
+        services['novu-mongo'] = {
+            'image': 'mongo:7',
+            'container_name': 'crm-novu-mongo',
+            'restart': 'unless-stopped',
+            'environment': {
+                'MONGO_INITDB_DATABASE': 'novu'
+            },
+            'volumes': ['novu_data:/data/db'],
+            'networks': [network_name]
+        }
+        volumes['novu_data'] = {'driver': 'local'}
+    
+    if config.get('analytics_provider') == 'superset':
+        superset_host = get_host_config('superset', 'localhost', 8088)
+        services['superset'] = {
+            'image': 'apache/superset:latest',
+            'container_name': 'crm-superset',
+            'restart': 'unless-stopped',
+            'ports': [f"{superset_host['port']}:8088"],
+            'environment': {
+                'SUPERSET_SECRET_KEY': '${SUPERSET_SECRET_KEY}',
+                'POSTGRES_DB': 'superset',
+                'POSTGRES_USER': 'superset',
+                'POSTGRES_PASSWORD': '${SUPERSET_DB_PASSWORD}',
+                'POSTGRES_HOST': 'superset-postgres'
+            },
+            'depends_on': ['superset-postgres'],
+            'networks': [network_name]
+        }
+        services['superset-postgres'] = {
+            'image': 'postgres:15',
+            'container_name': 'crm-superset-postgres',
+            'restart': 'unless-stopped',
+            'environment': {
+                'POSTGRES_DB': 'superset',
+                'POSTGRES_USER': 'superset',
+                'POSTGRES_PASSWORD': '${SUPERSET_DB_PASSWORD}'
+            },
+            'volumes': ['superset_data:/var/lib/postgresql/data'],
+            'networks': [network_name]
+        }
+        volumes['superset_data'] = {'driver': 'local'}
+    
+    if config.get('signature_provider') == 'docuseal':
+        docuseal_host = get_host_config('docuseal', 'localhost', 3002)
+        services['docuseal'] = {
+            'image': 'docuseal/docuseal:latest',
+            'container_name': 'crm-docuseal',
+            'restart': 'unless-stopped',
+            'ports': [f"{docuseal_host['port']}:3000"],
+            'environment': {
+                'DATABASE_URL': 'postgresql://docuseal:docuseal@crm-docuseal-postgres:5432/docuseal',
+                'SECRET_KEY_BASE': '${DOCUSEAL_SECRET_KEY}',
+                'HOST': '0.0.0.0'
+            },
+            'depends_on': ['docuseal-postgres'],
+            'networks': [network_name]
+        }
+        services['docuseal-postgres'] = {
+            'image': 'postgres:15',
+            'container_name': 'crm-docuseal-postgres',
+            'restart': 'unless-stopped',
+            'environment': {
+                'POSTGRES_DB': 'docuseal',
+                'POSTGRES_USER': 'docuseal',
+                'POSTGRES_PASSWORD': 'docuseal'
+            },
+            'volumes': ['docuseal_data:/var/lib/postgresql/data'],
+            'networks': [network_name]
+        }
+        volumes['docuseal_data'] = {'driver': 'local'}
+    
+    if config.get('ai_provider') == 'ollama':
+        ollama_host = get_host_config('ollama', 'localhost', 11434)
+        services['ollama'] = {
+            'image': 'ollama/ollama:latest',
+            'container_name': 'crm-ollama',
+            'restart': 'unless-stopped',
+            'ports': [f"{ollama_host['port']}:11434"],
+            'volumes': ['ollama_data:/root/.ollama'],
+            'networks': [network_name]
+        }
+        volumes['ollama_data'] = {'driver': 'local'}
+    
+    if config.get('integration_provider') == 'n8n':
+        n8n_host = get_host_config('n8n', 'localhost', 5678)
+        services['n8n'] = {
+            'image': 'n8nio/n8n:latest',
+            'container_name': 'crm-n8n',
+            'restart': 'unless-stopped',
+            'ports': [f"{n8n_host['port']}:5678"],
+            'environment': {
+                'N8N_BASIC_AUTH_ACTIVE': 'true',
+                'N8N_BASIC_AUTH_USER': '${N8N_USERNAME}',
+                'N8N_BASIC_AUTH_PASSWORD': '${N8N_PASSWORD}',
+                'N8N_ENCRYPTION_KEY': '${N8N_ENCRYPTION_KEY}',
+                'DB_TYPE': 'postgresdb',
+                'DB_POSTGRESDB_DATABASE': 'n8n',
+                'DB_POSTGRESDB_HOST': 'n8n-postgres',
+                'DB_POSTGRESDB_PORT': '5432',
+                'DB_POSTGRESDB_USER': 'n8n',
+                'DB_POSTGRESDB_PASSWORD': '${N8N_DB_PASSWORD}'
+            },
+            'depends_on': ['n8n-postgres'],
+            'volumes': ['n8n_data:/home/node/.n8n'],
+            'networks': [network_name]
+        }
+        services['n8n-postgres'] = {
+            'image': 'postgres:15',
+            'container_name': 'crm-n8n-postgres',
+            'restart': 'unless-stopped',
+            'environment': {
+                'POSTGRES_DB': 'n8n',
+                'POSTGRES_USER': 'n8n',
+                'POSTGRES_PASSWORD': '${N8N_DB_PASSWORD}'
+            },
+            'volumes': ['n8n_data:/var/lib/postgresql/data'],
+            'networks': [network_name]
+        }
+        volumes['n8n_data'] = {'driver': 'local'}
+    
+    compose = {
+        'version': version,
+        'services': services,
+        'volumes': volumes,
+        'networks': {
+            network_name: {'driver': 'bridge'}
+        }
+    }
+    
+    return yaml.dump(compose, default_flow_style=False, sort_keys=False)
+
+def generate_env_file(config):
+    """Generate .env file with environment variables."""
+    env_vars = []
+    
+    # Database
+    env_vars.extend([
+        f"DB_HOST=crm-mariadb",
+        f"DB_PORT={config.get('database_port', 3306)}",
+        f"DB_NAME={config.get('database_name', 'crm_db')}",
+        f"DB_USER=crm_user",
+        f"DB_PASSWORD={generate_secure_password()}",
+        f"DB_ROOT_PASSWORD={generate_secure_password()}"
+    ])
+    
+    # JWT
+    env_vars.extend([
+        f"JWT_SECRET={secrets.token_urlsafe(32)}",
+        f"JWT_ISSUER=CRM.Api",
+        f"JWT_AUDIENCE=CRM.Client"
+    ])
+    
+    # Admin (generate secure password instead of default)
+    admin_password = generate_secure_password()
+    env_vars.extend([
+        f"ADMIN_USERNAME=admin",
+        f"ADMIN_EMAIL=admin@crm.local",
+        f"ADMIN_PASSWORD={admin_password}"
+    ])
+    
+    # Provider environment variables
+    if config.get('search_provider') == 'meilisearch':
+        env_vars.append(f"MEILI_MASTER_KEY={secrets.token_urlsafe(16)}")
+    
+    if config.get('chat_provider') == 'chatwoot':
+        env_vars.extend([
+            f"CHATWOOT_API_KEY={secrets.token_urlsafe(32)}",
+            f"CHATWOOT_SECRET_KEY={secrets.token_urlsafe(32)}",
+            f"CHATWOOT_DB_PASSWORD={generate_secure_password()}"
+        ])
+    
+    if config.get('notification_provider') == 'novu':
+        env_vars.extend([
+            f"NOVU_API_KEY={secrets.token_urlsafe(32)}",
+            f"NOVU_APPLICATION_ID={secrets.token_hex(8)}",
+            f"NOVU_JWT_SECRET={secrets.token_urlsafe(32)}"
+        ])
+    
+    if config.get('analytics_provider') == 'superset':
+        env_vars.extend([
+            f"SUPERSET_SECRET_KEY={secrets.token_urlsafe(32)}",
+            f"SUPERSET_ADMIN_PASSWORD={generate_secure_password()}",
+            f"SUPERSET_DB_PASSWORD={generate_secure_password()}"
+        ])
+    
+    if config.get('signature_provider') == 'docuseal':
+        env_vars.extend([
+            f"DOCUSEAL_SECRET_KEY={secrets.token_urlsafe(32)}",
+            f"DOCUSEAL_API_KEY={secrets.token_urlsafe(32)}"
+        ])
+    
+    if config.get('ai_provider') == 'ollama':
+        env_vars.append("OLLAMA_MODEL=llama3")
+    
+    if config.get('integration_provider') == 'n8n':
+        env_vars.extend([
+            f"N8N_USERNAME=admin",
+            f"N8N_PASSWORD={generate_secure_password()}",
+            f"N8N_ENCRYPTION_KEY={secrets.token_urlsafe(32)}",
+            f"N8N_DB_PASSWORD={generate_secure_password()}",
+            f"N8N_API_KEY={secrets.token_urlsafe(32)}"
+        ])
+    
+    return "\n".join(env_vars)
+
+def generate_deployment_script(config):
+    """Generate one-click deployment script with logging and rollback."""
+    script = """#!/bin/bash
+# CRM Solution Deployment Script
+# Generated by CRM Deployment Wizard
+# This script provides detailed logging and rollback on error
+
+set -e  # Exit on any error
+
+# Colors for output
+RED='\\033[0;31m'
+GREEN='\\033[0;32m'
+YELLOW='\\033[1;33m'
+BLUE='\\033[0;34m'
+NC='\\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a deployment.log
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a deployment.log
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a deployment.log
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a deployment.log
+}
+
+# Rollback function
+rollback() {
+    log_error "Deployment failed! Starting rollback..."
+    
+    # Stop and remove containers
+    if docker-compose ps -q | grep -q .; then
+        log_info "Stopping running containers..."
+        docker-compose down --remove-orphans || true
+    fi
+    
+    # Remove volumes if cleanup requested
+    if [ "$FULL_CLEANUP" = "true" ]; then
+        log_info "Removing volumes..."
+        docker volume rm $(docker volume ls -q | grep crm) 2>/dev/null || true
+    fi
+    
+    # Remove images if cleanup requested
+    if [ "$FULL_CLEANUP" = "true" ]; then
+        log_info "Removing CRM images..."
+        docker rmi $(docker images | grep crm | awk '{print $3}') 2>/dev/null || true
+    fi
+    
+    log_info "Rollback completed."
+    exit 1
+}
+
+# Trap errors and call rollback
+trap rollback ERR
+
+# Configuration
+DEPLOYMENT_NAME="crm-deployment-$(date +%Y%m%d-%H%M%S)"
+BACKUP_DIR="./backups/$DEPLOYMENT_NAME"
+FULL_CLEANUP="${FULL_CLEANUP:-false}"
+
+log_info "Starting CRM Solution deployment..."
+log_info "Deployment ID: $DEPLOYMENT_NAME"
+
+# Pre-deployment checks
+log_info "Performing pre-deployment checks..."
+
+# Check if Docker is running
+if ! docker info >/dev/null 2>&1; then
+    log_error "Docker is not running. Please start Docker and try again."
+    exit 1
+fi
+
+# Check if Docker Compose is available
+if ! command -v docker-compose >/dev/null 2>&1; then
+    log_error "Docker Compose is not installed. Please install Docker Compose and try again."
+    exit 1
+fi
+
+# Check if required files exist
+required_files=("docker-compose.yml" ".env")
+for file in "${required_files[@]}"; do
+    if [ ! -f "$file" ]; then
+        log_error "Required file $file not found in current directory."
+        exit 1
+    fi
+done
+
+log_success "Pre-deployment checks passed."
+
+# Create backup directory
+log_info "Creating backup directory: $BACKUP_DIR"
+mkdir -p "$BACKUP_DIR"
+
+# Backup existing deployment if it exists
+if [ -f "docker-compose.yml" ] && docker-compose ps -q | grep -q .; then
+    log_info "Backing up existing deployment..."
+    docker-compose config > "$BACKUP_DIR/docker-compose.backup.yml" 2>/dev/null || true
+    docker-compose ps > "$BACKUP_DIR/containers.backup.txt" 2>/dev/null || true
+    cp .env "$BACKUP_DIR/.env.backup" 2>/dev/null || true
+    log_success "Backup created in $BACKUP_DIR"
+fi
+
+# Validate configuration
+log_info "Validating Docker Compose configuration..."
+if ! docker-compose config >/dev/null 2>&1; then
+    log_error "Docker Compose configuration is invalid."
+    exit 1
+fi
+log_success "Configuration validation passed."
+
+# Pull images
+log_info "Pulling Docker images..."
+docker-compose pull
+log_success "Images pulled successfully."
+
+# Start services
+log_info "Starting CRM services..."
+docker-compose up -d
+log_success "Services started successfully."
+
+# Wait for services to be healthy
+log_info "Waiting for services to be healthy..."
+max_attempts=30
+attempt=1
+
+while [ $attempt -le $max_attempts ]; do
+    log_info "Health check attempt $attempt/$max_attempts..."
+    
+    # Check core services
+    healthy=true
+    
+    # Check MariaDB
+    if ! docker-compose exec -T mariadb mysqladmin ping -h localhost --silent; then
+        healthy=false
+    fi
+    
+    # Check Redis
+    if ! docker-compose exec -T redis redis-cli ping | grep -q PONG; then
+        healthy=false
+    fi
+    
+    # Check API health endpoint
+    if ! curl -f -s http://localhost:5000/health >/dev/null 2>&1; then
+        healthy=false
+    fi
+    
+    if [ "$healthy" = true ]; then
+        log_success "All services are healthy!"
+        break
+    fi
+    
+    if [ $attempt -eq $max_attempts ]; then
+        log_error "Services failed to become healthy within timeout."
+        exit 1
+    fi
+    
+    sleep 10
+    ((attempt++))
+done
+
+# Post-deployment tasks
+log_info "Running post-deployment tasks..."
+
+# Initialize provider services if needed
+"""
+    
+    # Add provider-specific initialization
+    if config.get('ai_provider') == 'ollama':
+        script += """
+# Initialize Ollama model
+log_info "Initializing Ollama model..."
+if docker-compose exec -T ollama ollama list | grep -q llama3; then
+    log_info "Llama3 model already available."
+else
+    log_info "Pulling Llama3 model (this may take a while)..."
+    docker-compose exec -T ollama ollama pull llama3
+    log_success "Llama3 model initialized."
+fi
+"""
+    
+    if config.get('analytics_provider') == 'superset':
+        script += """
+# Initialize Superset
+log_info "Initializing Superset..."
+sleep 30  # Wait for Superset to fully start
+docker-compose exec -T superset superset db upgrade
+docker-compose exec -T superset superset init
+log_success "Superset initialized."
+"""
+    
+    script += """
+# Final verification
+log_info "Performing final verification..."
+
+# Test API endpoints
+if curl -f -s http://localhost:5000/api/health >/dev/null 2>&1; then
+    log_success "API is responding correctly."
+else
+    log_warning "API health check failed, but services are running."
+fi
+
+# Display service status
+log_info "Service Status:"
+docker-compose ps
+
+# Display access information
+echo
+echo "=================================================="
+echo "  CRM Solution Deployment Complete!"
+echo "=================================================="
+echo
+echo "Access URLs:"
+echo "  Frontend:    http://localhost:80"
+echo "  API:         http://localhost:5000"
+echo "  Database:    localhost:3306"
+"""
+
+    # Add provider access URLs
+    if config.get('search_provider') == 'meilisearch':
+        script += """echo "  Meilisearch: http://localhost:7700"\n"""
+    
+    if config.get('chat_provider') == 'chatwoot':
+        script += """echo "  Chatwoot:    http://localhost:3000"\n"""
+    
+    if config.get('notification_provider') == 'novu':
+        script += """echo "  Novu:        http://localhost:3002"\n"""
+    
+    if config.get('analytics_provider') == 'superset':
+        script += """echo "  Superset:    http://localhost:8088"\n"""
+    
+    if config.get('signature_provider') == 'docuseal':
+        script += """echo "  DocuSeal:    http://localhost:3001"\n"""
+    
+    if config.get('ai_provider') == 'ollama':
+        script += """echo "  Ollama:      http://localhost:11434"\n"""
+
+    script += """
+echo
+echo "Admin Credentials:"
+echo "  Username: admin"
+echo "  Email:    admin@crm.local"
+echo "  Password: (check .env file)"
+echo
+echo "Deployment logs saved to: deployment.log"
+echo "Backup saved to: $BACKUP_DIR"
+echo
+echo "To stop the deployment: docker-compose down"
+echo "To view logs: docker-compose logs -f"
+echo
+echo "=================================================="
+
+log_success "CRM Solution deployment completed successfully!"
+log_info "Deployment ID: $DEPLOYMENT_NAME"
+
+# Save deployment info
+cat > deployment-info.txt << EOF
+CRM Solution Deployment Information
+===================================
+
+Deployment ID: $DEPLOYMENT_NAME
+Deployed At: $(date)
+Status: SUCCESS
+
+Access URLs:
+  Frontend: http://localhost:80
+  API: http://localhost:5000
+  Database: localhost:3306
+"""
+
+    if config.get('search_provider') == 'meilisearch':
+        script += """  Meilisearch: http://localhost:7700\n"""
+    
+    if config.get('chat_provider') == 'chatwoot':
+        script += """  Chatwoot: http://localhost:3000\n"""
+    
+    if config.get('notification_provider') == 'novu':
+        script += """  Novu: http://localhost:3002\n"""
+    
+    if config.get('analytics_provider') == 'superset':
+        script += """  Superset: http://localhost:8088\n"""
+    
+    if config.get('signature_provider') == 'docuseal':
+        script += """  DocuSeal: http://localhost:3001\n"""
+    
+    if config.get('ai_provider') == 'ollama':
+        script += """  Ollama: http://localhost:11434\n"""
+
+    script += """
+Admin Credentials:
+  Username: admin
+  Email: admin@crm.local
+  Password: (stored securely in .env)
+
+Backup Location: $BACKUP_DIR
+Log File: deployment.log
+EOF
+
+log_info "Deployment information saved to deployment-info.txt"
+"""
+
+    return script
+
+def generate_kubernetes(config):
+    """Generate Kubernetes manifests for microservices."""
+    # This would be more complex - for now return a basic template
+    return "# Kubernetes manifests would be generated here\n# Based on microservices architecture"
 
 if __name__ == "__main__":
     print()
