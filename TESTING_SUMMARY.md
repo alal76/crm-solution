@@ -1,6 +1,6 @@
 # CRM Solution - Testing Summary
 
-**Version:** 0.0.38  
+**Version:** 0.0.39  
 **Last Updated:** February 2026
 
 ---
@@ -21,9 +21,9 @@ The CRM Solution includes comprehensive testing at multiple levels:
 
 ## Backend Tests
 
-### Test Statistics (v0.0.38 - Updated February 2026)
-- **Total Unit Tests:** 1,891
-- **Passed:** 1,891
+### Test Statistics (v0.0.39 - Updated February 2026)
+- **Total Unit Tests:** 1,956
+- **Passed:** 1,956
 - **Failed:** 0
 - **Skipped:** 0
 - **Integration Tests:** 36 (require live database)
@@ -36,7 +36,7 @@ The CRM Solution includes comprehensive testing at multiple levels:
 | Category | Tests | Description |
 |----------|-------|-------------|
 | **BVT** | ~95 | Build Verification Tests - critical path validation |
-| **Entity (Core)** | ~1,330 | Core entity validation, business logic, enums |
+| **Entity (Core)** | ~1,395 | Core entity validation, business logic, enums |
 | **DTO** | ~60 | Data transfer object mapping tests |
 | **Enum** | ~310 | Enum value and type tests |
 | **Business Logic** | ~60 | Calculations and computed properties |
@@ -51,7 +51,7 @@ The CRM Solution includes comprehensive testing at multiple levels:
 ```
 CRM.Backend/tests/
 ├── Unit/
-│   └── Core/                  # Isolated CRM.Core unit tests (1,713 tests)
+│   └── Core/                  # Isolated CRM.Core unit tests (1,778 tests)
 │       ├── CRM.Tests.Unit.Core.csproj
 │       ├── AccountContactDtoTests.cs
 │       ├── AccountEntityTests.cs
@@ -77,6 +77,7 @@ CRM.Backend/tests/
 │       ├── KnowledgeBaseEntityTests.cs      # KnowledgeBase entities (47 tests)
 │       ├── InfrastructureEntityTests.cs     # Cloud, Backup, Calendar entities (41 tests)
 │       ├── WebMarketingEntityTests.cs       # Form, LandingPage entities (104 tests)
+│       ├── CPQEntityTests.cs                # CPQ entities (65 tests)
 │       └── UserEntityTests.cs
 ├── CRM.Tests.csproj           # Main test project
 ├── BVT/
