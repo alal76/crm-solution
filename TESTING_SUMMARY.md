@@ -1,6 +1,6 @@
 # CRM Solution - Testing Summary
 
-**Version:** 0.0.28  
+**Version:** 0.0.31  
 **Last Updated:** February 2026
 
 ---
@@ -21,9 +21,9 @@ The CRM Solution includes comprehensive testing at multiple levels:
 
 ## Backend Tests
 
-### Test Statistics (v0.0.30 - Updated February 2026)
-- **Total Unit Tests:** 1,288
-- **Passed:** 1,288
+### Test Statistics (v0.0.31 - Updated February 2026)
+- **Total Unit Tests:** 1,378
+- **Passed:** 1,378
 - **Failed:** 0
 - **Skipped:** 0
 - **Integration Tests:** 36 (require live database)
@@ -36,9 +36,9 @@ The CRM Solution includes comprehensive testing at multiple levels:
 | Category | Tests | Description |
 |----------|-------|-------------|
 | **BVT** | ~95 | Build Verification Tests - critical path validation |
-| **Entity (Core)** | ~850 | Core entity validation, business logic, enums |
+| **Entity (Core)** | ~940 | Core entity validation, business logic, enums |
 | **DTO** | ~60 | Data transfer object mapping tests |
-| **Enum** | ~200 | Enum value and type tests |
+| **Enum** | ~230 | Enum value and type tests |
 | **Business Logic** | ~60 | Calculations and computed properties |
 | **Contact Model** | ~30 | Contact entity model tests |
 | **Utility** | ~45 | Helper functions and utilities |
@@ -51,7 +51,7 @@ The CRM Solution includes comprehensive testing at multiple levels:
 ```
 CRM.Backend/tests/
 ├── Unit/
-│   └── Core/                  # Isolated CRM.Core unit tests (1,089 tests)
+│   └── Core/                  # Isolated CRM.Core unit tests (1,378 tests)
 │       ├── CRM.Tests.Unit.Core.csproj
 │       ├── AccountContactDtoTests.cs
 │       ├── AccountEntityTests.cs
@@ -63,12 +63,13 @@ CRM.Backend/tests/
 │       ├── LeadOpportunityEntityTests.cs
 │       ├── LoggingExtensionsTests.cs
 │       ├── MarketingCampaignEntityTests.cs
-│       ├── PaymentSubscriptionContractEntityTests.cs  # NEW (56 tests)
+│       ├── PaymentSubscriptionContractEntityTests.cs
 │       ├── ProductEntityTests.cs
-│       ├── QuoteInvoiceEntityTests.cs  # NEW (70 tests)
+│       ├── QuoteInvoiceEntityTests.cs
 │       ├── ServiceRequestEntityTests.cs
 │       ├── ActivityNoteTagAddressEntityTests.cs
 │       ├── CommissionTeamWebEntityTests.cs
+│       ├── EmailTemplateSequenceEntityTests.cs  # NEW (90 tests)
 │       └── UserEntityTests.cs
 ├── CRM.Tests.csproj           # Main test project
 ├── BVT/
