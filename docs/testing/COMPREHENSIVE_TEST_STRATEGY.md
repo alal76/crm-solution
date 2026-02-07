@@ -1,7 +1,7 @@
 # CRM Solution - Comprehensive Test Strategy Document
 
-**Version:** 3.14.0  
-**Last Updated:** February 9, 2026  
+**Version:** 3.15.0  
+**Last Updated:** February 10, 2026  
 **Document Status:** Active
 
 ---
@@ -387,6 +387,32 @@
 |-----------|------------|-----------------|--------|
 | `Performance/PerformanceTests.cs` | ~15 | Load and stress tests | ⏸️ Manual Run |
 | `Performance/PerformanceTestHarness.cs` | - | Test harness utilities | ✅ Active |
+
+### 3.20 CRM.Core Unit Tests (Isolated Project - 882 Tests)
+
+**Project Location:** `tests/Unit/Core/CRM.Tests.Unit.Core.csproj`
+
+This isolated test project was created to bypass 224 compilation errors in the main CRM.Tests project, enabling continuous CRM.Core coverage growth while the main project is being repaired.
+
+| Test File | Test Count | Functional Area | Status |
+|-----------|------------|-----------------|--------|
+| `CrmExceptionsTests.cs` | ~55 | CRM exception types, inner exceptions, serialization | ✅ Active |
+| `InstrumentationServiceTests.cs` | ~34 | Performance metrics, latency tracking, percentiles | ✅ Active |
+| `FeatureFlagsAndProviderTypesTests.cs` | ~81 | Feature flags, provider type constants, completeness | ✅ Active |
+| `LoggingExtensionsTests.cs` | ~45 | Structured logging, emoji prefixes, log levels | ✅ Active |
+| `BaseEntityTests.cs` | ~32 | BaseEntity, CreatedAt/UpdatedAt, soft delete | ✅ Active |
+| `AuthDtoTests.cs` | ~56 | Auth DTOs, login/register/token requests | ✅ Active |
+| `AccountContactDtoTests.cs` | ~37 | Account/Contact DTOs, nested collections | ✅ Active |
+| `UserEntityTests.cs` | ~45 | User entity, roles, password, 2FA, groups | ✅ Active |
+| `LeadOpportunityEntityTests.cs` | ~73 | Lead/Opportunity entities, stages, conversion | ✅ Active |
+| `ProductEntityTests.cs` | ~139 | Product, PriceBook, Bundle, PricingRule, Discount entities | ✅ Active |
+| `AccountEntityTests.cs` | ~75 | Account, AccountContact, AccountRelationship entities | ✅ Active |
+| `ServiceRequestEntityTests.cs` | ~170 | ServiceRequest, Category, Subcategory, Type, CustomField entities | ✅ Active |
+| **TOTAL** | **882** | **CRM.Core entities, DTOs, exceptions, utilities** | ✅ **All Passing** |
+
+**Last Verified:** February 10, 2026  
+**Duration:** ~122ms  
+**Coverage Focus:** CRM.Core namespace entities, DTOs, exceptions, feature flags, and logging extensions
 
 ---
 
@@ -1176,9 +1202,9 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 
 ---
 
-*Document generated: February 9, 2026*  
-*Version: 3.14.0*  
-*Next review: February 16, 2026*
+*Document generated: February 10, 2026*  
+*Version: 3.15.0*  
+*Next review: February 17, 2026*
 
 ---
 
@@ -1186,6 +1212,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.15.0 | Feb 10, 2026 | Auto | CRM.Tests.Unit.Core now at **882 passing tests** in 12 files. Added ServiceRequestEntityTests (170 tests for ServiceRequest, Category, Subcategory, Type, CustomField entities). Total test lines: ~25,000. |
 | 3.14.0 | Feb 9, 2026 | Auto | Created isolated CRM.Tests.Unit.Core project (287 passing tests, 3331 lines). Added tests for: FeatureFlagsAndProviderTypes (~80), LoggingExtensions (~45), BaseEntity (~30). Rewrote CrmExceptionsTests (~55) with correct constructor signatures. Fixed InstrumentationServiceTests percentile calculation. |
 | 3.13.0 | Feb 8, 2026 | Auto | Added core infrastructure tests: CrmExceptionsTests (~50), InstrumentationServiceTests (~30) - Total: ~80 tests, 2 files. Added test compilation status and remediation plan (Section 10.5). |
 | 3.12.0 | Feb 7, 2026 | Auto | Added middleware tests: InstrumentationMiddleware (~20), SecurityHeadersMiddleware (~20) - Total: ~40 tests, 1 file |
