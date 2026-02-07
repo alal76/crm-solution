@@ -408,6 +408,10 @@ builder.Services.Configure<ZipCodeImportOptions>(
 builder.Services.AddHostedService<ZipCodeImportHostedService>();
 // Contact info validation service (email, phone, social media)
 builder.Services.AddScoped<IContactInfoValidationService, ContactInfoValidationService>();
+// Phase 1 services - Notes, Tasks, Quotes (Gap Fix Implementation)
+builder.Services.AddScoped<INoteService, NoteService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IQuoteService, QuoteService>();
 // Master data - Field-to-master-data linking service
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
 // Master data seeder - seeds ZipCodes and ColorPalettes on startup if empty
