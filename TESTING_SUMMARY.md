@@ -1,6 +1,6 @@
 # CRM Solution - Testing Summary
 
-**Version:** 0.0.27  
+**Version:** 0.0.28  
 **Last Updated:** February 2026
 
 ---
@@ -12,6 +12,7 @@ The CRM Solution includes comprehensive testing at multiple levels:
 | Test Type | Location | Framework |
 |-----------|----------|-----------|
 | **Backend Unit Tests** | `CRM.Backend/tests/` | xUnit, Moq, FluentAssertions |
+| **Backend Unit Tests (Core)** | `CRM.Backend/tests/Unit/Core/` | xUnit, FluentAssertions |
 | **Frontend Unit Tests** | `CRM.Frontend/src/__tests__/` | Jest, React Testing Library |
 | **E2E Tests** | `e2e-tests/` | Playwright |
 | **Database BVT** | `CRM.Backend/tests/CRM.Tests.Integration/` | xUnit (requires live DB) |
@@ -20,11 +21,11 @@ The CRM Solution includes comprehensive testing at multiple levels:
 
 ## Backend Tests
 
-### Test Statistics (v0.0.27)
-- **Total Unit Tests:** 891
-- **Passed:** 883
+### Test Statistics (v0.0.28 - Updated February 2026)
+- **Total Unit Tests:** 1,089
+- **Passed:** 1,089
 - **Failed:** 0
-- **Skipped:** 8
+- **Skipped:** 0
 - **Integration Tests:** 36 (require live database)
 - **Framework:** xUnit 2.6.2
 - **Mocking:** Moq 4.20.70
@@ -35,9 +36,9 @@ The CRM Solution includes comprehensive testing at multiple levels:
 | Category | Tests | Description |
 |----------|-------|-------------|
 | **BVT** | ~95 | Build Verification Tests - critical path validation |
-| **Entity** | ~80 | Core entity validation and business logic |
-| **DTO** | ~40 | Data transfer object mapping tests |
-| **Enum** | ~50 | Enum value and type tests |
+| **Entity (Core)** | ~650 | Core entity validation, business logic, enums |
+| **DTO** | ~60 | Data transfer object mapping tests |
+| **Enum** | ~150 | Enum value and type tests |
 | **Business Logic** | ~60 | Calculations and computed properties |
 | **Contact Model** | ~30 | Contact entity model tests |
 | **Utility** | ~45 | Helper functions and utilities |
@@ -49,7 +50,25 @@ The CRM Solution includes comprehensive testing at multiple levels:
 
 ```
 CRM.Backend/tests/
-├── CRM.Tests.csproj           # Test project file
+├── Unit/
+│   └── Core/                  # Isolated CRM.Core unit tests (1,089 tests)
+│       ├── CRM.Tests.Unit.Core.csproj
+│       ├── AccountContactDtoTests.cs
+│       ├── AccountEntityTests.cs
+│       ├── AuthDtoTests.cs
+│       ├── BaseEntityTests.cs
+│       ├── CrmExceptionsTests.cs
+│       ├── FeatureFlagsAndProviderTypesTests.cs
+│       ├── InstrumentationServiceTests.cs
+│       ├── LeadOpportunityEntityTests.cs
+│       ├── LoggingExtensionsTests.cs
+│       ├── MarketingCampaignEntityTests.cs
+│       ├── PaymentSubscriptionContractEntityTests.cs  # NEW (56 tests)
+│       ├── ProductEntityTests.cs
+│       ├── QuoteInvoiceEntityTests.cs  # NEW (70 tests)
+│       ├── ServiceRequestEntityTests.cs
+│       └── UserEntityTests.cs
+├── CRM.Tests.csproj           # Main test project
 ├── BVT/
 │   └── CriticalPathBVTTests.cs
 ├── BusinessLogic/
@@ -88,8 +107,8 @@ CRM.Backend/tests/
 ### Running Backend Tests
 
 ```bash
-# Run all tests
-cd CRM.Backend/tests
+# Run all tests (Unit/Core project)
+cd CRM.Backend/tests/Unit/Core
 dotnet test
 
 # Run with verbose output
