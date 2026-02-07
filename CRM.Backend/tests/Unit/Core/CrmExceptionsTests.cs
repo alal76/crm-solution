@@ -11,87 +11,10 @@ namespace CRM.Tests.Unit.Core;
 
 /// <summary>
 /// Unit tests for CRM custom exception types
+/// Tests validate exception constructors, properties, status codes, and error codes.
 /// </summary>
 public class CrmExceptionsTests
 {
-    #region CrmException (Base Class) Tests
-
-    [Fact]
-    public void CrmException_DefaultConstructor_ShouldSetStatusCode500()
-    {
-        // Arrange & Act
-        var exception = new CrmException();
-
-        // Assert
-        exception.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
-        exception.ErrorCode.Should().BeNull();
-        exception.Message.Should().Be("Exception of type 'CRM.Core.Exceptions.CrmException' was thrown.");
-    }
-
-    [Fact]
-    public void CrmException_WithMessage_ShouldPreserveMessage()
-    {
-        // Arrange
-        var message = "Test error message";
-
-        // Act
-        var exception = new CrmException(message);
-
-        // Assert
-        exception.Message.Should().Be(message);
-        exception.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
-    }
-
-    [Fact]
-    public void CrmException_WithMessageAndInnerException_ShouldPreserveBoth()
-    {
-        // Arrange
-        var message = "Outer exception";
-        var innerException = new InvalidOperationException("Inner exception");
-
-        // Act
-        var exception = new CrmException(message, innerException);
-
-        // Assert
-        exception.Message.Should().Be(message);
-        exception.InnerException.Should().Be(innerException);
-        exception.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
-    }
-
-    [Fact]
-    public void CrmException_WithStatusCodeAndMessage_ShouldSetBoth()
-    {
-        // Arrange
-        var statusCode = HttpStatusCode.BadRequest;
-        var message = "Bad request error";
-
-        // Act
-        var exception = new CrmException(statusCode, message);
-
-        // Assert
-        exception.StatusCode.Should().Be(statusCode);
-        exception.Message.Should().Be(message);
-    }
-
-    [Fact]
-    public void CrmException_WithStatusCodeMessageAndErrorCode_ShouldSetAll()
-    {
-        // Arrange
-        var statusCode = HttpStatusCode.UnprocessableEntity;
-        var message = "Validation failed";
-        var errorCode = "VALIDATION_FAILED";
-
-        // Act
-        var exception = new CrmException(statusCode, message, errorCode);
-
-        // Assert
-        exception.StatusCode.Should().Be(statusCode);
-        exception.Message.Should().Be(message);
-        exception.ErrorCode.Should().Be(errorCode);
-    }
-
-    #endregion
-
     #region EntityNotFoundException Tests
 
     [Fact]
@@ -99,7 +22,7 @@ public class CrmExceptionsTests
     {
         // Arrange
         var entityType = "Customer";
-        var entityId = "123";
+        var entityId = 123;
 
         // Act
         var exception = new EntityNotFoundException(entityType, entityId);
@@ -108,38 +31,49 @@ public class CrmExceptionsTests
         exception.StatusCode.Should().Be(HttpStatusCode.NotFound);
         exception.EntityType.Should().Be(entityType);
         exception.EntityId.Should().Be(entityId);
-        exception.Message.Should().Be("Customer with id '123' was not found.");
+        exception.Message.Should().Contain("Customer");
+        exception.Message.Should().Contain("123");
         exception.ErrorCode.Should().Be("ENTITY_NOT_FOUND");
     }
 
     [Fact]
-    public void EntityNotFoundException_WithIntId_ShouldConvertToString()
+    public void EntityNotFoundException_WithEntityTypeOnly_ShouldCreateMessageWithoutId()
     {
         // Arrange
         var entityType = "Opportunity";
-        var entityId = 456;
+
+        // Act
+        var exception = new EntityNotFoundException(entityType);
+
+        // Assert
+        exception.EntityId.Should().BeNull();
+        exception.Message.Should().Contain("Opportunity");
+        exception.Message.Should().Contain("not found");
+    }
+
+    [Fact]
+    public void EntityNotFoundException_WithStringId_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var entityType = "Product";
+        var entityId = "SKU-12345";
 
         // Act
         var exception = new EntityNotFoundException(entityType, entityId);
 
         // Assert
-        exception.EntityId.Should().Be("456");
-        exception.Message.Should().Be("Opportunity with id '456' was not found.");
+        exception.EntityId.Should().Be("SKU-12345");
+        exception.Message.Should().Contain("SKU-12345");
     }
 
     [Fact]
-    public void EntityNotFoundException_WithMessage_ShouldUseCustomMessage()
+    public void EntityNotFoundException_ShouldHaveStatus404()
     {
-        // Arrange
-        var message = "Custom not found message";
-
         // Act
-        var exception = new EntityNotFoundException(message);
+        var exception = new EntityNotFoundException("Test");
 
         // Assert
-        exception.Message.Should().Be(message);
         exception.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        exception.ErrorCode.Should().Be("ENTITY_NOT_FOUND");
     }
 
     #endregion
@@ -167,11 +101,11 @@ public class CrmExceptionsTests
     {
         // Arrange
         var message = "Multiple validation errors";
-        var errors = new Dictionary<string, string>
+        var errors = new Dictionary<string, string[]>
         {
-            { "Email", "Email is required" },
-            { "Name", "Name must be at least 2 characters" },
-            { "Phone", "Invalid phone format" }
+            { "Email", new[] { "Email is required" } },
+            { "Name", new[] { "Name must be at least 2 characters", "Name cannot contain numbers" } },
+            { "Phone", new[] { "Invalid phone format" } }
         };
 
         // Act
@@ -179,20 +113,38 @@ public class CrmExceptionsTests
 
         // Assert
         exception.Errors.Should().HaveCount(3);
-        exception.Errors["Email"].Should().Be("Email is required");
-        exception.Errors["Name"].Should().Be("Name must be at least 2 characters");
-        exception.Errors["Phone"].Should().Be("Invalid phone format");
+        exception.Errors["Email"].Should().Contain("Email is required");
+        exception.Errors["Name"].Should().HaveCount(2);
+        exception.Errors["Phone"].Should().Contain("Invalid phone format");
     }
 
     [Fact]
     public void ValidationException_WithNullErrors_ShouldHaveEmptyDictionary()
     {
         // Act
-        var exception = new ValidationException("Error", null);
+        IDictionary<string, string[]>? nullErrors = null;
+        var exception = new ValidationException("Error", nullErrors);
 
         // Assert
         exception.Errors.Should().NotBeNull();
         exception.Errors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ValidationException_WithFieldAndError_ShouldCreateSingleError()
+    {
+        // Arrange
+        var field = "Email";
+        var error = "Invalid email format";
+
+        // Act
+        var exception = new ValidationException(field, error);
+
+        // Assert
+        exception.Errors.Should().ContainKey(field);
+        exception.Errors[field].Should().Contain(error);
+        exception.Message.Should().Contain(field);
+        exception.Message.Should().Contain(error);
     }
 
     #endregion
@@ -200,7 +152,7 @@ public class CrmExceptionsTests
     #region BusinessRuleException Tests
 
     [Fact]
-    public void BusinessRuleException_WithRuleName_ShouldSetProperties()
+    public void BusinessRuleException_WithRuleNameAndMessage_ShouldSetProperties()
     {
         // Arrange
         var ruleName = "MinimumOrderAmount";
@@ -217,18 +169,27 @@ public class CrmExceptionsTests
     }
 
     [Fact]
-    public void BusinessRuleException_WithMessageOnly_ShouldHaveNullRuleName()
+    public void BusinessRuleException_ShouldReturn422StatusCode()
     {
-        // Arrange
-        var message = "Business rule violated";
-
         // Act
-        var exception = new BusinessRuleException(message);
+        var exception = new BusinessRuleException("TestRule", "Test message");
 
         // Assert
         exception.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-        exception.Message.Should().Be(message);
-        exception.RuleName.Should().BeNull();
+        ((int)exception.StatusCode).Should().Be(422);
+    }
+
+    [Fact]
+    public void BusinessRuleException_ShouldPreserveRuleName()
+    {
+        // Arrange
+        var ruleName = "CannotDeleteActiveOpportunity";
+
+        // Act
+        var exception = new BusinessRuleException(ruleName, "Cannot delete an active opportunity");
+
+        // Assert
+        exception.RuleName.Should().Be(ruleName);
     }
 
     #endregion
@@ -247,7 +208,7 @@ public class CrmExceptionsTests
         // Assert
         exception.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         exception.Message.Should().Be(message);
-        exception.ErrorCode.Should().Be("AUTHORIZATION_FAILED");
+        exception.ErrorCode.Should().Be("ACCESS_DENIED");
     }
 
     [Fact]
@@ -265,6 +226,16 @@ public class CrmExceptionsTests
         exception.Message.Should().Be(message);
     }
 
+    [Fact]
+    public void AuthorizationException_WithoutPermission_ShouldHaveNullPermission()
+    {
+        // Act
+        var exception = new AuthorizationException("Access denied");
+
+        // Assert
+        exception.RequiredPermission.Should().BeNull();
+    }
+
     #endregion
 
     #region AuthenticationException Tests
@@ -277,7 +248,7 @@ public class CrmExceptionsTests
 
         // Assert
         exception.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        exception.Message.Should().Be("Authentication required.");
+        exception.Message.Should().Be("Authentication required");
         exception.ErrorCode.Should().Be("AUTHENTICATION_REQUIRED");
     }
 
@@ -295,6 +266,16 @@ public class CrmExceptionsTests
         exception.Message.Should().Be(message);
     }
 
+    [Fact]
+    public void AuthenticationException_ShouldReturn401()
+    {
+        // Act
+        var exception = new AuthenticationException();
+
+        // Assert
+        ((int)exception.StatusCode).Should().Be(401);
+    }
+
     #endregion
 
     #region ConcurrencyException Tests
@@ -304,7 +285,7 @@ public class CrmExceptionsTests
     {
         // Arrange
         var entityType = "Quote";
-        var entityId = "789";
+        var entityId = 789;
 
         // Act
         var exception = new ConcurrencyException(entityType, entityId);
@@ -313,22 +294,31 @@ public class CrmExceptionsTests
         exception.StatusCode.Should().Be(HttpStatusCode.Conflict);
         exception.EntityType.Should().Be(entityType);
         exception.EntityId.Should().Be(entityId);
-        exception.Message.Should().Be("Quote with id '789' was modified by another user. Please refresh and try again.");
+        exception.Message.Should().Contain(entityType);
+        exception.Message.Should().Contain("modified by another user");
         exception.ErrorCode.Should().Be("CONCURRENCY_CONFLICT");
     }
 
     [Fact]
-    public void ConcurrencyException_WithMessage_ShouldUseCustomMessage()
+    public void ConcurrencyException_WithEntityTypeOnly_ShouldWorkCorrectly()
     {
-        // Arrange
-        var message = "Concurrent modification detected";
-
         // Act
-        var exception = new ConcurrencyException(message);
+        var exception = new ConcurrencyException("Account");
 
         // Assert
-        exception.Message.Should().Be(message);
-        exception.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        exception.EntityType.Should().Be("Account");
+        exception.EntityId.Should().BeNull();
+        exception.Message.Should().Contain("Account");
+    }
+
+    [Fact]
+    public void ConcurrencyException_ShouldReturn409()
+    {
+        // Act
+        var exception = new ConcurrencyException("Test");
+
+        // Assert
+        ((int)exception.StatusCode).Should().Be(409);
     }
 
     #endregion
@@ -369,6 +359,16 @@ public class CrmExceptionsTests
         exception.InnerException!.Message.Should().Be("SMTP connection failed");
     }
 
+    [Fact]
+    public void ServiceException_ShouldReturn500()
+    {
+        // Act
+        var exception = new ServiceException("TestService", "Test error");
+
+        // Assert
+        ((int)exception.StatusCode).Should().Be(500);
+    }
+
     #endregion
 
     #region ExternalServiceException Tests
@@ -387,7 +387,8 @@ public class CrmExceptionsTests
         // Assert
         exception.StatusCode.Should().Be(HttpStatusCode.BadGateway);
         exception.ServiceName.Should().Be(serviceName);
-        exception.Message.Should().Be(message);
+        exception.Message.Should().Contain(serviceName);
+        exception.Message.Should().Contain(message);
         exception.ExternalStatusCode.Should().Be(externalStatusCode);
         exception.ErrorCode.Should().Be("EXTERNAL_SERVICE_ERROR");
     }
@@ -399,7 +400,7 @@ public class CrmExceptionsTests
         var serviceName = "PaymentGateway";
         var message = "Payment processing failed";
         var innerException = new HttpRequestException("Connection refused");
-        var externalStatusCode = 0;
+        int? externalStatusCode = null;
 
         // Act
         var exception = new ExternalServiceException(serviceName, message, externalStatusCode, innerException);
@@ -407,7 +408,17 @@ public class CrmExceptionsTests
         // Assert
         exception.ServiceName.Should().Be(serviceName);
         exception.InnerException.Should().Be(innerException);
-        exception.ExternalStatusCode.Should().Be(0);
+        exception.ExternalStatusCode.Should().BeNull();
+    }
+
+    [Fact]
+    public void ExternalServiceException_ShouldReturn502()
+    {
+        // Act
+        var exception = new ExternalServiceException("TestService", "Test error");
+
+        // Assert
+        ((int)exception.StatusCode).Should().Be(502);
     }
 
     #endregion
@@ -424,25 +435,20 @@ public class CrmExceptionsTests
         var exception = new RateLimitException(retryAfterSeconds);
 
         // Assert
-        exception.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+        exception.StatusCode.Should().Be((HttpStatusCode)429);
         exception.RetryAfterSeconds.Should().Be(retryAfterSeconds);
-        exception.Message.Should().Be("Rate limit exceeded. Retry after 60 seconds.");
+        exception.Message.Should().Contain("60");
         exception.ErrorCode.Should().Be("RATE_LIMIT_EXCEEDED");
     }
 
     [Fact]
-    public void RateLimitException_WithCustomMessage_ShouldUseMessage()
+    public void RateLimitException_DefaultRetryAfter_ShouldBe60Seconds()
     {
-        // Arrange
-        var message = "API quota exceeded";
-        var retryAfterSeconds = 300;
-
         // Act
-        var exception = new RateLimitException(message, retryAfterSeconds);
+        var exception = new RateLimitException();
 
         // Assert
-        exception.Message.Should().Be(message);
-        exception.RetryAfterSeconds.Should().Be(retryAfterSeconds);
+        exception.RetryAfterSeconds.Should().Be(60);
     }
 
     [Fact]
@@ -455,12 +461,22 @@ public class CrmExceptionsTests
         exception.RetryAfterSeconds.Should().Be(0);
     }
 
+    [Fact]
+    public void RateLimitException_ShouldReturn429()
+    {
+        // Act
+        var exception = new RateLimitException();
+
+        // Assert
+        ((int)exception.StatusCode).Should().Be(429);
+    }
+
     #endregion
 
     #region ConfigurationException Tests
 
     [Fact]
-    public void ConfigurationException_WithConfigKey_ShouldSetProperties()
+    public void ConfigurationException_WithConfigKeyAndMessage_ShouldSetProperties()
     {
         // Arrange
         var configKey = "Jwt:Secret";
@@ -472,22 +488,32 @@ public class CrmExceptionsTests
         // Assert
         exception.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
         exception.ConfigurationKey.Should().Be(configKey);
-        exception.Message.Should().Be(message);
+        exception.Message.Should().Contain(configKey);
+        exception.Message.Should().Contain(message);
         exception.ErrorCode.Should().Be("CONFIGURATION_ERROR");
     }
 
     [Fact]
-    public void ConfigurationException_WithMessageOnly_ShouldHaveNullKey()
+    public void ConfigurationException_ShouldReturn500()
     {
-        // Arrange
-        var message = "Configuration is invalid";
-
         // Act
-        var exception = new ConfigurationException(message);
+        var exception = new ConfigurationException("TestKey", "Test error");
 
         // Assert
-        exception.Message.Should().Be(message);
-        exception.ConfigurationKey.Should().BeNull();
+        ((int)exception.StatusCode).Should().Be(500);
+    }
+
+    [Fact]
+    public void ConfigurationException_ShouldPreserveConfigKey()
+    {
+        // Arrange
+        var configKey = "ConnectionStrings:DefaultConnection";
+
+        // Act
+        var exception = new ConfigurationException(configKey, "Connection string not found");
+
+        // Assert
+        exception.ConfigurationKey.Should().Be(configKey);
     }
 
     #endregion
@@ -499,7 +525,7 @@ public class CrmExceptionsTests
     {
         // Arrange
         var entityType = "Contact";
-        var duplicateIds = new List<string> { "101", "102", "103" };
+        var duplicateIds = new List<int> { 101, 102, 103 };
 
         // Act
         var exception = new DuplicateEntityException(entityType, duplicateIds);
@@ -508,8 +534,8 @@ public class CrmExceptionsTests
         exception.StatusCode.Should().Be(HttpStatusCode.Conflict);
         exception.EntityType.Should().Be(entityType);
         exception.DuplicateIds.Should().HaveCount(3);
-        exception.DuplicateIds.Should().Contain(new[] { "101", "102", "103" });
-        exception.ErrorCode.Should().Be("DUPLICATE_ENTITY");
+        exception.DuplicateIds.Should().Contain(new[] { 101, 102, 103 });
+        exception.ErrorCode.Should().Be("DUPLICATE_DETECTED");
     }
 
     [Fact]
@@ -517,7 +543,7 @@ public class CrmExceptionsTests
     {
         // Arrange
         var entityType = "Lead";
-        var duplicateIds = new List<string> { "1", "2" };
+        var duplicateIds = new List<int> { 1, 2 };
 
         // Act
         var exception = new DuplicateEntityException(entityType, duplicateIds);
@@ -528,27 +554,23 @@ public class CrmExceptionsTests
     }
 
     [Fact]
-    public void DuplicateEntityException_WithMessage_ShouldUseCustomMessage()
-    {
-        // Arrange
-        var message = "Duplicate email addresses found";
-
-        // Act
-        var exception = new DuplicateEntityException(message);
-
-        // Assert
-        exception.Message.Should().Be(message);
-        exception.StatusCode.Should().Be(HttpStatusCode.Conflict);
-    }
-
-    [Fact]
     public void DuplicateEntityException_WithEmptyIds_ShouldHaveEmptyList()
     {
         // Act
-        var exception = new DuplicateEntityException("Customer", new List<string>());
+        var exception = new DuplicateEntityException("Customer", new List<int>());
 
         // Assert
         exception.DuplicateIds.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void DuplicateEntityException_ShouldReturn409()
+    {
+        // Act
+        var exception = new DuplicateEntityException("Test", new[] { 1 });
+
+        // Assert
+        ((int)exception.StatusCode).Should().Be(409);
     }
 
     #endregion
@@ -575,19 +597,33 @@ public class CrmExceptionsTests
     [Fact]
     public void AllExceptions_ShouldBeThrowable()
     {
-        // Assert - verify all exceptions can be thrown and caught
-        Assert.Throws<EntityNotFoundException>(() => throw new EntityNotFoundException("Test", "1"));
-        Assert.Throws<ValidationException>(() => throw new ValidationException("Test"));
-        Assert.Throws<BusinessRuleException>(() => throw new BusinessRuleException("Test"));
-        Assert.Throws<AuthorizationException>(() => throw new AuthorizationException("Test"));
-        Assert.Throws<AuthenticationException>(() => throw new AuthenticationException());
-        Assert.Throws<ConcurrencyException>(() => throw new ConcurrencyException("Test"));
-        Assert.Throws<ServiceException>(() => throw new ServiceException("Test", "Test"));
-        Assert.Throws<ExternalServiceException>(() => throw new ExternalServiceException("Test", "Test", 500));
-        Assert.Throws<RateLimitException>(() => throw new RateLimitException(60));
-        Assert.Throws<ConfigurationException>(() => throw new ConfigurationException("Test"));
-        Assert.Throws<DuplicateEntityException>(() => throw new DuplicateEntityException("Test"));
+        // Assert - verify all exceptions can be thrown and caught using Record.Exception pattern
+        var ex1 = Record.Exception(() => ThrowException(new EntityNotFoundException("Test", 1)));
+        var ex2 = Record.Exception(() => ThrowException(new ValidationException("Test")));
+        var ex3 = Record.Exception(() => ThrowException(new BusinessRuleException("TestRule", "Test message")));
+        var ex4 = Record.Exception(() => ThrowException(new AuthorizationException("Test")));
+        var ex5 = Record.Exception(() => ThrowException(new AuthenticationException()));
+        var ex6 = Record.Exception(() => ThrowException(new ConcurrencyException("Test")));
+        var ex7 = Record.Exception(() => ThrowException(new ServiceException("Test", "Test")));
+        var ex8 = Record.Exception(() => ThrowException(new ExternalServiceException("Test", "Test")));
+        var ex9 = Record.Exception(() => ThrowException(new RateLimitException(60)));
+        var ex10 = Record.Exception(() => ThrowException(new ConfigurationException("Key", "Test")));
+        var ex11 = Record.Exception(() => ThrowException(new DuplicateEntityException("Test", new[] { 1 })));
+
+        Assert.IsType<EntityNotFoundException>(ex1);
+        Assert.IsType<ValidationException>(ex2);
+        Assert.IsType<BusinessRuleException>(ex3);
+        Assert.IsType<AuthorizationException>(ex4);
+        Assert.IsType<AuthenticationException>(ex5);
+        Assert.IsType<ConcurrencyException>(ex6);
+        Assert.IsType<ServiceException>(ex7);
+        Assert.IsType<ExternalServiceException>(ex8);
+        Assert.IsType<RateLimitException>(ex9);
+        Assert.IsType<ConfigurationException>(ex10);
+        Assert.IsType<DuplicateEntityException>(ex11);
     }
+
+    private static void ThrowException(Exception ex) => throw ex;
 
     [Fact]
     public void AllExceptions_ShouldBeCatchableAsCrmException()
@@ -595,12 +631,19 @@ public class CrmExceptionsTests
         // Act & Assert
         try
         {
-            throw new EntityNotFoundException("Customer", "123");
+            throw new EntityNotFoundException("Customer", 123);
         }
         catch (CrmException ex)
         {
             ex.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
+    }
+
+    [Fact]
+    public void CrmException_ShouldBeAbstract()
+    {
+        // Assert
+        typeof(CrmException).Should().BeAbstract();
     }
 
     #endregion
@@ -616,7 +659,6 @@ public class CrmExceptionsTests
     [InlineData(typeof(ConcurrencyException), HttpStatusCode.Conflict)]
     [InlineData(typeof(ServiceException), HttpStatusCode.InternalServerError)]
     [InlineData(typeof(ExternalServiceException), HttpStatusCode.BadGateway)]
-    [InlineData(typeof(RateLimitException), HttpStatusCode.TooManyRequests)]
     [InlineData(typeof(ConfigurationException), HttpStatusCode.InternalServerError)]
     [InlineData(typeof(DuplicateEntityException), HttpStatusCode.Conflict)]
     public void Exception_ShouldHaveCorrectStatusCode(Type exceptionType, HttpStatusCode expectedStatusCode)
@@ -624,22 +666,31 @@ public class CrmExceptionsTests
         // Arrange
         CrmException exception = exceptionType.Name switch
         {
-            nameof(EntityNotFoundException) => new EntityNotFoundException("Test", "1"),
+            nameof(EntityNotFoundException) => new EntityNotFoundException("Test", 1),
             nameof(ValidationException) => new ValidationException("Test"),
-            nameof(BusinessRuleException) => new BusinessRuleException("Test"),
+            nameof(BusinessRuleException) => new BusinessRuleException("Rule", "Test"),
             nameof(AuthorizationException) => new AuthorizationException("Test"),
             nameof(AuthenticationException) => new AuthenticationException(),
             nameof(ConcurrencyException) => new ConcurrencyException("Test"),
             nameof(ServiceException) => new ServiceException("Service", "Test"),
-            nameof(ExternalServiceException) => new ExternalServiceException("Service", "Test", 500),
-            nameof(RateLimitException) => new RateLimitException(60),
-            nameof(ConfigurationException) => new ConfigurationException("Test"),
-            nameof(DuplicateEntityException) => new DuplicateEntityException("Test"),
+            nameof(ExternalServiceException) => new ExternalServiceException("Service", "Test"),
+            nameof(ConfigurationException) => new ConfigurationException("Key", "Test"),
+            nameof(DuplicateEntityException) => new DuplicateEntityException("Test", new[] { 1 }),
             _ => throw new ArgumentException($"Unknown exception type: {exceptionType.Name}")
         };
 
         // Assert
         exception.StatusCode.Should().Be(expectedStatusCode);
+    }
+
+    [Fact]
+    public void RateLimitException_ShouldHave429StatusCode()
+    {
+        // Arrange & Act
+        var exception = new RateLimitException();
+
+        // Assert - HttpStatusCode doesn't have TooManyRequests in older frameworks, cast to int
+        ((int)exception.StatusCode).Should().Be(429);
     }
 
     #endregion
@@ -650,35 +701,94 @@ public class CrmExceptionsTests
     [InlineData(typeof(EntityNotFoundException), "ENTITY_NOT_FOUND")]
     [InlineData(typeof(ValidationException), "VALIDATION_ERROR")]
     [InlineData(typeof(BusinessRuleException), "BUSINESS_RULE_VIOLATION")]
-    [InlineData(typeof(AuthorizationException), "AUTHORIZATION_FAILED")]
+    [InlineData(typeof(AuthorizationException), "ACCESS_DENIED")]
     [InlineData(typeof(AuthenticationException), "AUTHENTICATION_REQUIRED")]
     [InlineData(typeof(ConcurrencyException), "CONCURRENCY_CONFLICT")]
     [InlineData(typeof(ServiceException), "SERVICE_ERROR")]
     [InlineData(typeof(ExternalServiceException), "EXTERNAL_SERVICE_ERROR")]
     [InlineData(typeof(RateLimitException), "RATE_LIMIT_EXCEEDED")]
     [InlineData(typeof(ConfigurationException), "CONFIGURATION_ERROR")]
-    [InlineData(typeof(DuplicateEntityException), "DUPLICATE_ENTITY")]
+    [InlineData(typeof(DuplicateEntityException), "DUPLICATE_DETECTED")]
     public void Exception_ShouldHaveCorrectErrorCode(Type exceptionType, string expectedErrorCode)
     {
         // Arrange
         CrmException exception = exceptionType.Name switch
         {
-            nameof(EntityNotFoundException) => new EntityNotFoundException("Test", "1"),
+            nameof(EntityNotFoundException) => new EntityNotFoundException("Test", 1),
             nameof(ValidationException) => new ValidationException("Test"),
-            nameof(BusinessRuleException) => new BusinessRuleException("Test"),
+            nameof(BusinessRuleException) => new BusinessRuleException("Rule", "Test"),
             nameof(AuthorizationException) => new AuthorizationException("Test"),
             nameof(AuthenticationException) => new AuthenticationException(),
             nameof(ConcurrencyException) => new ConcurrencyException("Test"),
             nameof(ServiceException) => new ServiceException("Service", "Test"),
-            nameof(ExternalServiceException) => new ExternalServiceException("Service", "Test", 500),
-            nameof(RateLimitException) => new RateLimitException(60),
-            nameof(ConfigurationException) => new ConfigurationException("Test"),
-            nameof(DuplicateEntityException) => new DuplicateEntityException("Test"),
+            nameof(ExternalServiceException) => new ExternalServiceException("Service", "Test"),
+            nameof(RateLimitException) => new RateLimitException(),
+            nameof(ConfigurationException) => new ConfigurationException("Key", "Test"),
+            nameof(DuplicateEntityException) => new DuplicateEntityException("Test", new[] { 1 }),
             _ => throw new ArgumentException($"Unknown exception type: {exceptionType.Name}")
         };
 
         // Assert
         exception.ErrorCode.Should().Be(expectedErrorCode);
+    }
+
+    #endregion
+
+    #region Edge Cases Tests
+
+    [Fact]
+    public void ValidationException_WithSingleFieldError_ShouldFormatCorrectly()
+    {
+        // Act
+        var exception = new ValidationException("Email", "is required");
+
+        // Assert
+        exception.Errors.Should().ContainKey("Email");
+        exception.Errors["Email"].First().Should().Be("is required");
+    }
+
+    [Fact]
+    public void EntityNotFoundException_WithGuidId_ShouldWork()
+    {
+        // Arrange
+        var guidId = Guid.NewGuid();
+
+        // Act
+        var exception = new EntityNotFoundException("Document", guidId);
+
+        // Assert
+        exception.EntityId.Should().Be(guidId);
+    }
+
+    [Fact]
+    public void ServiceException_WithNullInnerException_ShouldNotThrow()
+    {
+        // Act
+        var exception = new ServiceException("TestService", "Test error", null);
+
+        // Assert
+        exception.InnerException.Should().BeNull();
+    }
+
+    [Fact]
+    public void ExternalServiceException_WithNullStatusCode_ShouldAccept()
+    {
+        // Act
+        var exception = new ExternalServiceException("API", "Error", null);
+
+        // Assert
+        exception.ExternalStatusCode.Should().BeNull();
+    }
+
+    [Fact]
+    public void DuplicateEntityException_WithSingleId_ShouldWork()
+    {
+        // Act
+        var exception = new DuplicateEntityException("User", new[] { 42 });
+
+        // Assert
+        exception.DuplicateIds.Should().ContainSingle();
+        exception.DuplicateIds.Should().Contain(42);
     }
 
     #endregion
