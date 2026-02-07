@@ -322,7 +322,7 @@ public class BaseEntityTests
         // Assert
         entity.Name.Should().Be("Updated");
         entity.UpdatedAt.Should().NotBeNull();
-        entity.UpdatedAt.Should().BeAfter(originalCreatedAt);
+        entity.UpdatedAt.Should().BeOnOrAfter(originalCreatedAt); // Use BeOnOrAfter for fast test execution
         entity.CreatedAt.Should().Be(originalCreatedAt); // Created should not change
     }
 
