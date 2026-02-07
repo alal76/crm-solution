@@ -22,8 +22,8 @@ The CRM Solution includes comprehensive testing at multiple levels:
 ## Backend Tests
 
 ### Test Statistics (v0.0.43 - Updated February 2026)
-- **Total Unit Tests:** 2,622
-- **Passed:** 2,622
+- **Total Unit Tests:** 2,776
+- **Passed:** 2,776
 - **Failed:** 0
 - **Skipped:** 0
 - **Integration Tests:** 36 (require live database)
@@ -36,7 +36,7 @@ The CRM Solution includes comprehensive testing at multiple levels:
 | Category | Tests | Description |
 |----------|-------|-------------|
 | **BVT** | ~95 | Build Verification Tests - critical path validation |
-| **Entity (Core)** | ~2,061 | Core entity validation, business logic, enums |
+| **Entity (Core)** | ~2,215 | Core entity validation, business logic, enums |
 | **DTO** | ~60 | Data transfer object mapping tests |
 | **Enum** | ~310 | Enum value and type tests |
 | **Business Logic** | ~60 | Calculations and computed properties |
@@ -51,12 +51,13 @@ The CRM Solution includes comprehensive testing at multiple levels:
 ```
 CRM.Backend/tests/
 ├── Unit/
-│   └── Core/                  # Isolated CRM.Core unit tests (2,444 tests)
+│   └── Core/                  # Isolated CRM.Core unit tests (2,598 tests)
 │       ├── CRM.Tests.Unit.Core.csproj
 │       ├── AccountContactDtoTests.cs
 │       ├── AccountEntityTests.cs
 │       ├── AuthDtoTests.cs
 │       ├── BaseEntityTests.cs
+│       ├── CreditSignatureOrderEntityTests.cs # CreditMemo, ESignature, Order, SalesQuota (154 tests)
 │       ├── CrmExceptionsTests.cs
 │       ├── DashboardSocialMediaEntityTests.cs # Dashboard, DashboardWidget, SocialMediaFollow (87 tests)
 │       ├── FeatureFlagsAndProviderTypesTests.cs
