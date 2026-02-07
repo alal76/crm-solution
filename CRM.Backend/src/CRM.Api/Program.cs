@@ -412,6 +412,14 @@ builder.Services.AddScoped<IContactInfoValidationService, ContactInfoValidationS
 builder.Services.AddScoped<INoteService, NoteService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IQuoteService, QuoteService>();
+// Phase 2 services - Dashboard, Pipeline, Interaction (Gap Fix Implementation)
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IPipelineService, PipelineService>();
+builder.Services.AddScoped<IInteractionService, InteractionService>();
+// Phase 3 services - Communication, ImportExport, Webhook (Gap Fix Implementation)
+builder.Services.AddScoped<ICommunicationService, CommunicationService>();
+builder.Services.AddScoped<IImportExportService, ImportExportService>();
+builder.Services.AddScoped<IWebhookService, WebhookService>();
 // Master data - Field-to-master-data linking service
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
 // Master data seeder - seeds ZipCodes and ColorPalettes on startup if empty

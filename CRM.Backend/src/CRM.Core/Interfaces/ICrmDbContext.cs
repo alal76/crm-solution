@@ -73,6 +73,10 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.CustomField> CustomFields { get; }
     DbSet<ModuleUIConfig> ModuleUIConfigs { get; }
 
+    // Communication
+    DbSet<CommunicationMessage> CommunicationMessages { get; }
+    DbSet<CommunicationChannel> CommunicationChannels { get; }
+
     // Cloud Deployment entities
     DbSet<CloudProvider> CloudProviders { get; }
     DbSet<CloudDeployment> CloudDeployments { get; }
