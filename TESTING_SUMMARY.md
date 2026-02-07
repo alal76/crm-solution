@@ -1,6 +1,6 @@
 # CRM Solution - Testing Summary
 
-**Version:** 0.0.33  
+**Version:** 0.0.34  
 **Last Updated:** February 2026
 
 ---
@@ -21,9 +21,9 @@ The CRM Solution includes comprehensive testing at multiple levels:
 
 ## Backend Tests
 
-### Test Statistics (v0.0.33 - Updated February 2026)
-- **Total Unit Tests:** 1,556
-- **Passed:** 1,556
+### Test Statistics (v0.0.34 - Updated February 2026)
+- **Total Unit Tests:** 1,643
+- **Passed:** 1,643
 - **Failed:** 0
 - **Skipped:** 0
 - **Integration Tests:** 36 (require live database)
@@ -36,9 +36,9 @@ The CRM Solution includes comprehensive testing at multiple levels:
 | Category | Tests | Description |
 |----------|-------|-------------|
 | **BVT** | ~95 | Build Verification Tests - critical path validation |
-| **Entity (Core)** | ~1,100 | Core entity validation, business logic, enums |
+| **Entity (Core)** | ~1,185 | Core entity validation, business logic, enums |
 | **DTO** | ~60 | Data transfer object mapping tests |
-| **Enum** | ~280 | Enum value and type tests |
+| **Enum** | ~310 | Enum value and type tests |
 | **Business Logic** | ~60 | Calculations and computed properties |
 | **Contact Model** | ~30 | Contact entity model tests |
 | **Utility** | ~45 | Helper functions and utilities |
@@ -51,7 +51,7 @@ The CRM Solution includes comprehensive testing at multiple levels:
 ```
 CRM.Backend/tests/
 ├── Unit/
-│   └── Core/                  # Isolated CRM.Core unit tests (1,378 tests)
+│   └── Core/                  # Isolated CRM.Core unit tests (1,465 tests)
 │       ├── CRM.Tests.Unit.Core.csproj
 │       ├── AccountContactDtoTests.cs
 │       ├── AccountEntityTests.cs
@@ -72,6 +72,7 @@ CRM.Backend/tests/
 │       ├── EmailTemplateSequenceEntityTests.cs
 │       ├── WorkflowEntityTests.cs           # Workflow engine entities (94 tests)
 │       ├── AIEntityTests.cs                 # AI/ML entities (84 tests)
+│       ├── ITSMEntityTests.cs               # ITSM entities (87 tests)
 │       └── UserEntityTests.cs
 ├── CRM.Tests.csproj           # Main test project
 ├── BVT/
