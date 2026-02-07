@@ -22,8 +22,8 @@ The CRM Solution includes comprehensive testing at multiple levels:
 ## Backend Tests
 
 ### Test Statistics (v0.0.43 - Updated February 2026)
-- **Total Unit Tests:** 2,403
-- **Passed:** 2,403
+- **Total Unit Tests:** 2,622
+- **Passed:** 2,622
 - **Failed:** 0
 - **Skipped:** 0
 - **Integration Tests:** 36 (require live database)
@@ -36,7 +36,7 @@ The CRM Solution includes comprehensive testing at multiple levels:
 | Category | Tests | Description |
 |----------|-------|-------------|
 | **BVT** | ~95 | Build Verification Tests - critical path validation |
-| **Entity (Core)** | ~1,842 | Core entity validation, business logic, enums |
+| **Entity (Core)** | ~2,061 | Core entity validation, business logic, enums |
 | **DTO** | ~60 | Data transfer object mapping tests |
 | **Enum** | ~310 | Enum value and type tests |
 | **Business Logic** | ~60 | Calculations and computed properties |
@@ -51,13 +51,14 @@ The CRM Solution includes comprehensive testing at multiple levels:
 ```
 CRM.Backend/tests/
 ├── Unit/
-│   └── Core/                  # Isolated CRM.Core unit tests (2,225 tests)
+│   └── Core/                  # Isolated CRM.Core unit tests (2,444 tests)
 │       ├── CRM.Tests.Unit.Core.csproj
 │       ├── AccountContactDtoTests.cs
 │       ├── AccountEntityTests.cs
 │       ├── AuthDtoTests.cs
 │       ├── BaseEntityTests.cs
 │       ├── CrmExceptionsTests.cs
+│       ├── DashboardSocialMediaEntityTests.cs # Dashboard, DashboardWidget, SocialMediaFollow (87 tests)
 │       ├── FeatureFlagsAndProviderTypesTests.cs
 │       ├── InstrumentationServiceTests.cs
 │       ├── LeadOpportunityEntityTests.cs
@@ -76,6 +77,7 @@ CRM.Backend/tests/
 │       ├── ReportsEnumsEntityTests.cs       # Reports and Enums (56 tests)
 │       ├── KnowledgeBaseEntityTests.cs      # KnowledgeBase entities (47 tests)
 │       ├── InfrastructureEntityTests.cs     # Cloud, Backup, Calendar entities (41 tests)
+│       ├── SystemCoreEntityTests.cs         # SystemSetting, Lookup, ZipCode, Territory (132 tests)
 │       ├── WebMarketingEntityTests.cs       # Form, LandingPage entities (104 tests)
 │       ├── CPQEntityTests.cs                # CPQ entities (65 tests)
 │       ├── RelationshipCommunicationEntityTests.cs # Relationship, Communication (101 tests)
