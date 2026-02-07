@@ -206,6 +206,18 @@ public class Opportunity : BaseEntity
     public decimal WeightedAmount => Amount * Probability / 100;
 
     #endregion
+
+    #region Aliases
+
+    /// <summary>Alias for Amount for service compatibility</summary>
+    [NotMapped]
+    public decimal EstimatedValue
+    {
+        get => Amount;
+        set => Amount = value;
+    }
+
+    #endregion
 }
 
 /// <summary>
@@ -242,6 +254,9 @@ public class OpportunityProduct
     /// <summary>Notes about this product line</summary>
     [MaxLength(1000)]
     public string? Notes { get; set; }
+
+    /// <summary>Soft delete flag</summary>
+    public bool IsDeleted { get; set; } = false;
 
     #region Navigation Properties
 

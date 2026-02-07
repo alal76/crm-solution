@@ -410,4 +410,22 @@ public class Contact
     public ICollection<AccountContact>? AccountContacts { get; set; }
 
     #endregion
+
+    #region Aliases
+
+    /// <summary>Alias for EmailPrimary for service compatibility</summary>
+    public string? Email
+    {
+        get => EmailPrimary;
+        set => EmailPrimary = value;
+    }
+
+    /// <summary>Alias for JobTitle for service compatibility</summary>
+    public string? Title
+    {
+        get => JobTitle;
+        set => JobTitle = value;
+    }
+
+    #endregion
 }

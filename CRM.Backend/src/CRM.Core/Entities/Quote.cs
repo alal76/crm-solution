@@ -469,4 +469,29 @@ public class Quote : BaseEntity
                             (Status == QuoteStatus.Approved);
 
     #endregion
+
+    #region Aliases
+
+    /// <summary>Alias for Discount for service compatibility</summary>
+    public decimal DiscountAmount
+    {
+        get => Discount;
+        set => Discount = value;
+    }
+
+    /// <summary>Alias for Tax for service compatibility</summary>
+    public decimal TaxAmount
+    {
+        get => Tax;
+        set => Tax = value;
+    }
+
+    /// <summary>Alias for Total for service compatibility</summary>
+    public decimal TotalAmount
+    {
+        get => Total;
+        set => Total = value;
+    }
+
+    #endregion
 }

@@ -197,9 +197,10 @@ public class NewsSocialServiceTests
             LastUpdated = DateTime.UtcNow.AddMinutes(-5)
         };
         var cachedJson = JsonSerializer.Serialize(cachedResponse);
-        
-        _mockCache.Setup(x => x.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(cachedJson);
+        var cachedBytes = Encoding.UTF8.GetBytes(cachedJson);
+
+        _mockCache.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cachedBytes);
 
         var service = CreateService();
 
@@ -217,24 +218,25 @@ public class NewsSocialServiceTests
     {
         // Arrange
         var cachedJson = JsonSerializer.Serialize(new NewsSocialFeedResponse { NewsItems = new List<NewsItemDto>() });
-        _mockCache.Setup(x => x.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(cachedJson);
+        var cachedBytes = Encoding.UTF8.GetBytes(cachedJson);
+        _mockCache.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cachedBytes);
 
         SetupNewsApiResponse(new { articles = new List<object>() });
-        
+
         var service = CreateService();
 
         // Act
-        var result = await service.GetFeedsAsync(new NewsSocialFeedRequest 
-        { 
-            CustomerId = 1, 
+        var result = await service.GetFeedsAsync(new NewsSocialFeedRequest
+        {
+            CustomerId = 1,
             CompanyName = "Test",
-            RefreshCache = true 
+            RefreshCache = true
         });
 
         // Assert
         result.IsFromCache.Should().BeFalse();
-        _mockCache.Verify(x => x.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockCache.Verify(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -265,11 +267,11 @@ public class NewsSocialServiceTests
     public async Task GetFeedsAsync_ShouldHandleCacheReadFailure_Gracefully()
     {
         // Arrange
-        _mockCache.Setup(x => x.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _mockCache.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Redis unavailable"));
 
         SetupNewsApiResponse(new { articles = new List<object>() });
-        
+
         var service = CreateService();
 
         // Act

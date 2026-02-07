@@ -56,13 +56,13 @@ public class OracleProviderStrategyTests
     }
 
     [Fact]
-    public void LongTextColumnType_ReturnsClob()
+    public void LongTextColumnType_ReturnsNclob()
     {
         // Arrange
         var strategy = new OracleProviderStrategy();
 
         // Assert
-        strategy.LongTextColumnType.Should().Be("CLOB");
+        strategy.LongTextColumnType.Should().Be("NCLOB");
     }
 
     [Fact]
@@ -76,14 +76,14 @@ public class OracleProviderStrategyTests
     }
 
     [Fact]
-    public void JsonColumnType_ReturnsClob()
+    public void JsonColumnType_ReturnsNclob()
     {
         // Arrange
         var strategy = new OracleProviderStrategy();
 
         // Assert
-        // Oracle 12c+ has JSON support but typically uses CLOB storage
-        strategy.JsonColumnType.Should().Be("CLOB");
+        // Oracle 12c+ has JSON support, using NCLOB for Unicode
+        strategy.JsonColumnType.Should().Be("NCLOB");
     }
 
     [Fact]
@@ -111,14 +111,14 @@ public class OracleProviderStrategyTests
     #region Feature Support Tests
 
     [Fact]
-    public void SupportsNativeJson_ReturnsFalse()
+    public void SupportsNativeJson_ReturnsTrue()
     {
         // Arrange
         var strategy = new OracleProviderStrategy();
 
         // Assert
-        // Oracle uses CLOB for JSON, not native JSON type
-        strategy.SupportsNativeJson.Should().BeFalse();
+        // Oracle 12c+ has IS JSON constraint, 21c+ has native JSON type
+        strategy.SupportsNativeJson.Should().BeTrue();
     }
 
     [Fact]
@@ -246,13 +246,13 @@ public class OracleProviderStrategyTests
     #region Oracle-Specific Features Tests
 
     [Fact]
-    public void Oracle_UsesClobForLargeText()
+    public void Oracle_UsesNclobForLargeText()
     {
         // Arrange
         var strategy = new OracleProviderStrategy();
 
-        // Assert - CLOB for large text (vs VARCHAR2 4000 limit)
-        strategy.LongTextColumnType.Should().Be("CLOB");
+        // Assert - NCLOB for large Unicode text (vs VARCHAR2 4000 limit)
+        strategy.LongTextColumnType.Should().Be("NCLOB");
     }
 
     [Fact]
@@ -313,18 +313,18 @@ public class OracleProviderStrategyTests
 
         // Assert
         oracleStrategy.GuidColumnType.Should().Be("RAW(16)");
-        sqlStrategy.GuidColumnType.Should().Be("UNIQUEIDENTIFIER");
+        sqlStrategy.GuidColumnType.Should().Be("uniqueidentifier");
     }
 
     [Fact]
-    public void Oracle_DiffersFromPostgreSql_InJsonSupport()
+    public void Oracle_SimilarToPostgreSql_InJsonSupport()
     {
         // Arrange
         var oracleStrategy = new OracleProviderStrategy();
         var postgresStrategy = new PostgreSqlProviderStrategy();
 
-        // Assert
-        oracleStrategy.SupportsNativeJson.Should().BeFalse();
+        // Assert - both support native JSON (Oracle 12c+/21c+, PostgreSQL 9.4+)
+        oracleStrategy.SupportsNativeJson.Should().BeTrue();
         postgresStrategy.SupportsNativeJson.Should().BeTrue();
     }
 
@@ -348,7 +348,7 @@ public class OracleProviderStrategyTests
         var mysqlStrategy = new MySqlProviderStrategy();
 
         // Assert
-        oracleStrategy.LongTextColumnType.Should().Be("CLOB");
+        oracleStrategy.LongTextColumnType.Should().Be("NCLOB");
         mysqlStrategy.LongTextColumnType.Should().Be("LONGTEXT");
     }
 
