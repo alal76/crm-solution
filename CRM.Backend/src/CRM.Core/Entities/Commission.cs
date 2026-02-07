@@ -265,6 +265,13 @@ public class CommissionTier : BaseEntity
 
     /// <summary>Navigation to plan</summary>
     public CommissionPlan? CommissionPlan { get; set; }
+
+    /// <summary>Alias for MinAttainmentPercent for service compatibility</summary>
+    public decimal MinValue
+    {
+        get => MinAttainmentPercent;
+        set => MinAttainmentPercent = value;
+    }
 }
 
 /// <summary>
@@ -457,6 +464,20 @@ public class Commission : BaseEntity
 
     /// <summary>Commission notes</summary>
     public string? Notes { get; set; }
+
+    #endregion
+
+    #region Aliases
+
+    /// <summary>Alias for CommissionAmount for service compatibility</summary>
+    public decimal Amount
+    {
+        get => CommissionAmount;
+        set => CommissionAmount = value;
+    }
+
+    /// <summary>Alias for CommissionPlan for service compatibility</summary>
+    public CommissionPlan? Plan => CommissionPlan;
 
     #endregion
 }

@@ -117,6 +117,16 @@ public class AccountTerritory : BaseEntity
     /// </summary>
     public bool IsActive { get; set; } = true;
 
+    /// <summary>
+    /// Team ID associated with this territory
+    /// </summary>
+    public int? TeamId { get; set; }
+
+    /// <summary>
+    /// Navigation to team
+    /// </summary>
+    public virtual Team? Team { get; set; }
+
     // Navigation properties
     public virtual User? PrimaryOwner { get; set; }
     public virtual ICollection<AccountTerritoryAssignment> AccountAssignments { get; set; } = new List<AccountTerritoryAssignment>();

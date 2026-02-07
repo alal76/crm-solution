@@ -725,8 +725,29 @@ cd e2e-tests && npx playwright test
 | [MICROSERVICES_ARCHITECTURE.md](../MICROSERVICES_ARCHITECTURE.md) | Microservices guide |
 | [docs/architecture/ADR-001-*.md](../docs/architecture/) | Architecture decisions |
 | [docs/architecture/PLUGGABLE_ARCHITECTURE_IMPLEMENTATION_TRACKER.md](../docs/architecture/PLUGGABLE_ARCHITECTURE_IMPLEMENTATION_TRACKER.md) | Implementation progress |
+| [docs/PHASE4_SERVICE_SPECIFICATIONS.md](../docs/PHASE4_SERVICE_SPECIFICATIONS.md) | **Phase 4 Service Interface Specifications** |
 | [database/DATABASE_SCHEMA.md](../database/DATABASE_SCHEMA.md) | Database schema |
 | [azure/AZURE_DEPLOYMENT.md](../azure/AZURE_DEPLOYMENT.md) | Azure deployment guide |
+
+---
+
+## 11.1 Service Implementation Guidelines
+
+**CRITICAL:** When implementing services, ALWAYS refer to [docs/PHASE4_SERVICE_SPECIFICATIONS.md](../docs/PHASE4_SERVICE_SPECIFICATIONS.md) for:
+
+1. **Exact method signatures** - Parameter names, types, default values, return types
+2. **Supporting types** - DTOs, enums, statistics classes defined in interfaces
+3. **Common patterns** - CancellationToken usage, soft delete, timestamps
+
+### Service Implementation Checklist
+
+- [ ] Method signature matches interface EXACTLY (parameter names, types, defaults)
+- [ ] All CancellationTokens passed to async database operations
+- [ ] Use `IsDeleted = true` for soft deletes, never hard delete
+- [ ] Set `CreatedAt` on create, `UpdatedAt` on update
+- [ ] Inject `ICrmDbContext` and `ILogger<T>`
+- [ ] Return types match interface (nullable where specified)
+- [ ] Supporting types defined in interface file, not duplicated
 
 ---
 

@@ -448,6 +448,50 @@ public class Order : BaseEntity
 
     #endregion
 
+    #region Workflow Dates
+
+    /// <summary>Date order was submitted for approval</summary>
+    public DateTime? SubmittedDate { get; set; }
+
+    /// <summary>Date order was fulfilled</summary>
+    public DateTime? FulfilledDate { get; set; }
+
+    #endregion
+
+    #region Hold Status
+
+    /// <summary>Reason for hold</summary>
+    public string? HoldReason { get; set; }
+
+    /// <summary>Date order was put on hold</summary>
+    public DateTime? HoldDate { get; set; }
+
+    #endregion
+
+    #region Rejection
+
+    /// <summary>Reason for rejection</summary>
+    public string? RejectionReason { get; set; }
+
+    #endregion
+
+    #region Return Information
+
+    /// <summary>Reason for return</summary>
+    public string? ReturnReason { get; set; }
+
+    #endregion
+
+    #region Discount Codes
+
+    /// <summary>Applied discount code</summary>
+    public string? DiscountCode { get; set; }
+
+    /// <summary>Applied coupon code</summary>
+    public string? CouponCode { get; set; }
+
+    #endregion
+
     #region Audit Fields
 
     /// <summary>Source system (web, API, import)</summary>
@@ -534,6 +578,18 @@ public class OrderLineItem : BaseEntity
 
     /// <summary>Quantity returned</summary>
     public decimal QuantityReturned { get; set; } = 0;
+
+    /// <summary>Quantity fulfilled</summary>
+    public decimal FulfilledQuantity { get; set; } = 0;
+
+    /// <summary>Date line item was fulfilled</summary>
+    public DateTime? FulfilledDate { get; set; }
+
+    /// <summary>Quantity returned (for returns)</summary>
+    public decimal ReturnedQuantity { get; set; } = 0;
+
+    /// <summary>Reason for return</summary>
+    public string? ReturnReason { get; set; }
 
     /// <summary>Fulfillment status</summary>
     public OrderStatus FulfillmentStatus { get; set; } = OrderStatus.Draft;

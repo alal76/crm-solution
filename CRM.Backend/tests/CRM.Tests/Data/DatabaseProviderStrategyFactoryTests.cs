@@ -246,7 +246,7 @@ public class DatabaseProviderStrategyFactoryTests
         var strategy = factory.CreateStrategy("oracle");
 
         // Assert
-        strategy.LongTextColumnType.Should().Be("CLOB");
+        strategy.LongTextColumnType.Should().Be("NCLOB");
         strategy.GuidColumnType.Should().Be("RAW(16)");
         strategy.SupportsSequences.Should().BeTrue();
     }

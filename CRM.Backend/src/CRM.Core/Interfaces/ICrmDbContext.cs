@@ -77,6 +77,35 @@ public interface ICrmDbContext
     DbSet<CommunicationMessage> CommunicationMessages { get; }
     DbSet<CommunicationChannel> CommunicationChannels { get; }
 
+    // Email Templates
+    DbSet<EmailTemplate> EmailTemplates { get; }
+    DbSet<EmailTemplateHistoryEntry> EmailTemplateHistoryEntries { get; }
+    DbSet<EmailTemplateUsage> EmailTemplateUsages { get; }
+    DbSet<EmailTemplateVersion> EmailTemplateVersions { get; }
+
+    // Phase 4 - Sales & Billing
+    DbSet<Order> Orders { get; }
+    DbSet<OrderLineItem> OrderLineItems { get; }
+    DbSet<Invoice> Invoices { get; }
+    DbSet<InvoiceLineItem> InvoiceLineItems { get; }
+    DbSet<Payment> Payments { get; }
+    DbSet<Subscription> Subscriptions { get; }
+    DbSet<SubscriptionItem> SubscriptionItems { get; }
+    DbSet<SubscriptionUsage> SubscriptionUsages { get; }
+    DbSet<Contract> Contracts { get; }
+
+    // Phase 4 - Teams
+    DbSet<Team> Teams { get; }
+    DbSet<TeamMember> TeamMembers { get; }
+    DbSet<AccountTerritory> AccountTerritories { get; }
+
+    // Phase 4 - Commissions
+    DbSet<CommissionPlan> CommissionPlans { get; }
+    DbSet<CommissionTier> CommissionTiers { get; }
+    DbSet<CommissionPlanAssignment> CommissionPlanAssignments { get; }
+    DbSet<Commission> Commissions { get; }
+    DbSet<CommissionStatement> CommissionStatements { get; }
+
     // Cloud Deployment entities
     DbSet<CloudProvider> CloudProviders { get; }
     DbSet<CloudDeployment> CloudDeployments { get; }

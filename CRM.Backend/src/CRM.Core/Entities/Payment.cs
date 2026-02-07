@@ -368,6 +368,29 @@ public class Payment : BaseEntity
 
     #endregion
 
+    #region Scheduling & Retry
+
+    /// <summary>Scheduled payment date</summary>
+    public DateTime? ScheduledDate { get; set; }
+
+    /// <summary>Number of retry attempts</summary>
+    public int RetryCount { get; set; } = 0;
+
+    #endregion
+
+    #region Reconciliation
+
+    /// <summary>Bank reference number for reconciliation</summary>
+    public string? BankReference { get; set; }
+
+    /// <summary>Whether payment has been reconciled</summary>
+    public bool IsReconciled { get; set; } = false;
+
+    /// <summary>Date payment was reconciled</summary>
+    public DateTime? ReconciledDate { get; set; }
+
+    #endregion
+
     #region Notes
 
     /// <summary>Payment notes</summary>
@@ -381,6 +404,17 @@ public class Payment : BaseEntity
 
     /// <summary>Refund reason</summary>
     public string? RefundReason { get; set; }
+
+    #endregion
+
+    #region Aliases
+
+    /// <summary>Alias for GatewayTransactionId for service compatibility</summary>
+    public string? TransactionId
+    {
+        get => GatewayTransactionId;
+        set => GatewayTransactionId = value;
+    }
 
     #endregion
 }

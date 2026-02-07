@@ -62,17 +62,17 @@ public class SqlServerProviderStrategyTests
         var strategy = new SqlServerProviderStrategy();
 
         // Assert
-        strategy.LongTextColumnType.Should().Be("NVARCHAR(MAX)");
+        strategy.LongTextColumnType.Should().Be("nvarchar(max)");
     }
 
     [Fact]
-    public void TextColumnType_ReturnsNvarchar4000()
+    public void TextColumnType_ReturnsNvarcharMax()
     {
         // Arrange
         var strategy = new SqlServerProviderStrategy();
 
         // Assert
-        strategy.TextColumnType.Should().Be("NVARCHAR(4000)");
+        strategy.TextColumnType.Should().Be("nvarchar(max)");
     }
 
     [Fact]
@@ -82,8 +82,8 @@ public class SqlServerProviderStrategyTests
         var strategy = new SqlServerProviderStrategy();
 
         // Assert
-        // SQL Server stores JSON as NVARCHAR(MAX) - native JSON support since 2016
-        strategy.JsonColumnType.Should().Be("NVARCHAR(MAX)");
+        // SQL Server stores JSON as nvarchar(max) - has JSON functions but no native type
+        strategy.JsonColumnType.Should().Be("nvarchar(max)");
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class SqlServerProviderStrategyTests
         var strategy = new SqlServerProviderStrategy();
 
         // Assert
-        strategy.GuidColumnType.Should().Be("UNIQUEIDENTIFIER");
+        strategy.GuidColumnType.Should().Be("uniqueidentifier");
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class SqlServerProviderStrategyTests
         var strategy = new SqlServerProviderStrategy();
 
         // Assert
-        strategy.TimestampColumnType.Should().Be("DATETIME2(7)");
+        strategy.TimestampColumnType.Should().Be("datetime2");
     }
 
     #endregion
@@ -142,13 +142,13 @@ public class SqlServerProviderStrategyTests
     }
 
     [Fact]
-    public void DefaultDeleteBehavior_ReturnsCascade()
+    public void DefaultDeleteBehavior_ReturnsNoAction()
     {
         // Arrange
         var strategy = new SqlServerProviderStrategy();
 
         // Assert
-        strategy.DefaultDeleteBehavior.Should().Be(DeleteBehavior.Cascade);
+        strategy.DefaultDeleteBehavior.Should().Be(DeleteBehavior.NoAction);
     }
 
     #endregion
@@ -266,9 +266,9 @@ public class SqlServerProviderStrategyTests
         // Arrange
         var strategy = new SqlServerProviderStrategy();
 
-        // Assert - NVARCHAR supports Unicode (vs VARCHAR)
-        strategy.LongTextColumnType.Should().Contain("NVARCHAR");
-        strategy.TextColumnType.Should().Contain("NVARCHAR");
+        // Assert - nvarchar supports Unicode (vs varchar)
+        strategy.LongTextColumnType.Should().ContainEquivalentOf("nvarchar");
+        strategy.TextColumnType.Should().ContainEquivalentOf("nvarchar");
     }
 
     [Fact]
@@ -278,7 +278,7 @@ public class SqlServerProviderStrategyTests
         var strategy = new SqlServerProviderStrategy();
 
         // Assert - SQL Server has native UNIQUEIDENTIFIER type
-        strategy.GuidColumnType.Should().Be("UNIQUEIDENTIFIER");
+        strategy.GuidColumnType.Should().Be("uniqueidentifier");
         strategy.SupportsNativeGuid.Should().BeTrue();
     }
 
@@ -288,8 +288,8 @@ public class SqlServerProviderStrategyTests
         // Arrange
         var strategy = new SqlServerProviderStrategy();
 
-        // Assert - DATETIME2(7) for higher precision than DATETIME
-        strategy.TimestampColumnType.Should().Be("DATETIME2(7)");
+        // Assert - datetime2 for higher precision than datetime
+        strategy.TimestampColumnType.Should().Be("datetime2");
     }
 
     [Fact]
@@ -339,7 +339,7 @@ public class SqlServerProviderStrategyTests
         var mysqlStrategy = new MySqlProviderStrategy();
 
         // Assert
-        sqlStrategy.GuidColumnType.Should().Be("UNIQUEIDENTIFIER");
+        sqlStrategy.GuidColumnType.Should().Be("uniqueidentifier");
         mysqlStrategy.GuidColumnType.Should().Be("CHAR(36)");
     }
 

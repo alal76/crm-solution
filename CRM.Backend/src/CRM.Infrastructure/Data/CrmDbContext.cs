@@ -138,6 +138,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<CommunicationChannel> CommunicationChannels { get; set; }
     public DbSet<CommunicationMessage> CommunicationMessages { get; set; }
     public DbSet<EmailTemplate> EmailTemplates { get; set; }
+    public DbSet<EmailTemplateHistoryEntry> EmailTemplateHistoryEntries { get; set; }
+    public DbSet<EmailTemplateUsage> EmailTemplateUsages { get; set; }
+    public DbSet<EmailTemplateVersion> EmailTemplateVersions { get; set; }
     public DbSet<Conversation> Conversations { get; set; }
 
     // Master data entities
