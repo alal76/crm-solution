@@ -1,6 +1,6 @@
 # CRM Solution - Testing Summary
 
-**Version:** 0.0.42  
+**Version:** 0.0.43  
 **Last Updated:** February 2026
 
 ---
@@ -21,9 +21,9 @@ The CRM Solution includes comprehensive testing at multiple levels:
 
 ## Backend Tests
 
-### Test Statistics (v0.0.42 - Updated February 2026)
-- **Total Unit Tests:** 2,234
-- **Passed:** 2,234
+### Test Statistics (v0.0.43 - Updated February 2026)
+- **Total Unit Tests:** 2,403
+- **Passed:** 2,403
 - **Failed:** 0
 - **Skipped:** 0
 - **Integration Tests:** 36 (require live database)
@@ -36,7 +36,7 @@ The CRM Solution includes comprehensive testing at multiple levels:
 | Category | Tests | Description |
 |----------|-------|-------------|
 | **BVT** | ~95 | Build Verification Tests - critical path validation |
-| **Entity (Core)** | ~1,673 | Core entity validation, business logic, enums |
+| **Entity (Core)** | ~1,842 | Core entity validation, business logic, enums |
 | **DTO** | ~60 | Data transfer object mapping tests |
 | **Enum** | ~310 | Enum value and type tests |
 | **Business Logic** | ~60 | Calculations and computed properties |
@@ -51,7 +51,7 @@ The CRM Solution includes comprehensive testing at multiple levels:
 ```
 CRM.Backend/tests/
 ├── Unit/
-│   └── Core/                  # Isolated CRM.Core unit tests (2,056 tests)
+│   └── Core/                  # Isolated CRM.Core unit tests (2,225 tests)
 │       ├── CRM.Tests.Unit.Core.csproj
 │       ├── AccountContactDtoTests.cs
 │       ├── AccountEntityTests.cs
@@ -81,6 +81,8 @@ CRM.Backend/tests/
 │       ├── RelationshipCommunicationEntityTests.cs # Relationship, Communication (101 tests)
 │       ├── LeadManagementSystemEntityTests.cs # Lead routing, duplicate detection (84 tests)
 │       ├── IntegrationMarketingEntityTests.cs # Calendar/Email Integration, Landing Pages (93 tests)
+│       ├── SystemConfigurationEntityTests.cs # Module, Field, Color, LLM config (41 tests)
+│       ├── WebEngagementEntityTests.cs      # Forms, Web Tracking, Interactions (128 tests)
 │       └── UserEntityTests.cs
 ├── CRM.Tests.csproj           # Main test project
 ├── BVT/
