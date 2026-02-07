@@ -1,7 +1,7 @@
 # CRM Solution - Comprehensive Test Strategy Document
 
-**Version:** 3.13.0  
-**Last Updated:** February 8, 2026  
+**Version:** 3.14.0  
+**Last Updated:** February 9, 2026  
 **Document Status:** Active
 
 ---
@@ -30,7 +30,7 @@
 
 | Test Category | Count | Framework | Location |
 |--------------|-------|-----------|----------|
-| Backend Unit Tests | **~8,655** | xUnit + Moq | `CRM.Backend/tests/` |
+| Backend Unit Tests | **~8,862** | xUnit + Moq | `CRM.Backend/tests/` |
 | Frontend Unit Tests | ~180 | Jest + RTL | `CRM.Frontend/src/__tests__/` |
 | E2E API Tests (BVT) | ~60 | Playwright | `e2e-tests/tests/bvt/` |
 | E2E UI Tests | ~200+ | Playwright | `e2e-tests/tests/` |
@@ -38,7 +38,7 @@
 | Provider Tests | ~1,243 | xUnit | `CRM.Backend/tests/CRM.Tests/Providers/` |
 | Performance Tests | ~20 | xUnit | `CRM.Backend/tests/Performance/` |
 
-> **Note:** Backend unit tests increased from ~8,575 to ~8,655 via CrmExceptions tests (~50) and InstrumentationService tests (~30).
+> **Note:** Backend unit tests increased from ~8,655 to ~8,862 via new CRM.Core tests: FeatureFlags (~80), LoggingExtensions (~45), BaseEntity (~30), CrmExceptions (revised, ~55), InstrumentationService (~30). Total: +207 tests.
 
 ### Test Compilation Status
 
@@ -66,7 +66,8 @@
 | Batch 5 | Seeder Services, Background Workers | 3 | ~100 | ✅ Complete |
 | Batch 6 | Middleware (Instrumentation, Security Headers) | 1 | ~40 | ✅ Complete |
 | Batch 7 | Core Infrastructure (Exceptions, Instrumentation) | 2 | ~80 | ✅ Complete |
-| **Total** | | **124 files** | **~5,835 tests** | **Added** |
+| Batch 8 | CRM.Core (FeatureFlags, Logging, BaseEntity) | 5 | ~287 | ✅ Complete |
+| **Total** | | **129 files** | **~6,122 tests** | **Added** |
 
 ### Overall Coverage
 
@@ -1175,9 +1176,9 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 
 ---
 
-*Document generated: February 8, 2026*  
-*Version: 3.13.0*  
-*Next review: February 15, 2026*
+*Document generated: February 9, 2026*  
+*Version: 3.14.0*  
+*Next review: February 16, 2026*
 
 ---
 
@@ -1185,6 +1186,7 @@ Located at: `azure-pipelines.yml` and GitHub Actions
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.14.0 | Feb 9, 2026 | Auto | Created isolated CRM.Tests.Unit.Core project (287 passing tests, 3331 lines). Added tests for: FeatureFlagsAndProviderTypes (~80), LoggingExtensions (~45), BaseEntity (~30). Rewrote CrmExceptionsTests (~55) with correct constructor signatures. Fixed InstrumentationServiceTests percentile calculation. |
 | 3.13.0 | Feb 8, 2026 | Auto | Added core infrastructure tests: CrmExceptionsTests (~50), InstrumentationServiceTests (~30) - Total: ~80 tests, 2 files. Added test compilation status and remediation plan (Section 10.5). |
 | 3.12.0 | Feb 7, 2026 | Auto | Added middleware tests: InstrumentationMiddleware (~20), SecurityHeadersMiddleware (~20) - Total: ~40 tests, 1 file |
 | 3.11.0 | Feb 7, 2026 | Auto | Added seeder and hosted service tests: MasterDataSeederService (~30), SampleDataSeederService (~35), BackupSchedulerHostedService (~15), LeadScoreDecayHostedService (~20) - Total: ~100 tests, 3 files |
