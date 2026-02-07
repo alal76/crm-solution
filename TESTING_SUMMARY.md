@@ -1,6 +1,6 @@
 # CRM Solution - Testing Summary
 
-**Version:** 0.0.35  
+**Version:** 0.0.36  
 **Last Updated:** February 2026
 
 ---
@@ -21,9 +21,9 @@ The CRM Solution includes comprehensive testing at multiple levels:
 
 ## Backend Tests
 
-### Test Statistics (v0.0.35 - Updated February 2026)
-- **Total Unit Tests:** 1,699
-- **Passed:** 1,699
+### Test Statistics (v0.0.36 - Updated February 2026)
+- **Total Unit Tests:** 1,746
+- **Passed:** 1,746
 - **Failed:** 0
 - **Skipped:** 0
 - **Integration Tests:** 36 (require live database)
@@ -51,7 +51,7 @@ The CRM Solution includes comprehensive testing at multiple levels:
 ```
 CRM.Backend/tests/
 ├── Unit/
-│   └── Core/                  # Isolated CRM.Core unit tests (1,521 tests)
+│   └── Core/                  # Isolated CRM.Core unit tests (1,568 tests)
 │       ├── CRM.Tests.Unit.Core.csproj
 │       ├── AccountContactDtoTests.cs
 │       ├── AccountEntityTests.cs
@@ -74,6 +74,7 @@ CRM.Backend/tests/
 │       ├── AIEntityTests.cs                 # AI/ML entities (84 tests)
 │       ├── ITSMEntityTests.cs               # ITSM entities (87 tests)
 │       ├── ReportsEnumsEntityTests.cs       # Reports and Enums (56 tests)
+│       ├── KnowledgeBaseEntityTests.cs      # KnowledgeBase entities (47 tests)
 │       └── UserEntityTests.cs
 ├── CRM.Tests.csproj           # Main test project
 ├── BVT/
