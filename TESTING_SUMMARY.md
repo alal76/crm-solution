@@ -21,9 +21,9 @@ The CRM Solution includes comprehensive testing at multiple levels:
 
 ## Backend Tests
 
-### Test Statistics (v0.0.29 - Updated February 2026)
-- **Total Unit Tests:** 1,188
-- **Passed:** 1,188
+### Test Statistics (v0.0.30 - Updated February 2026)
+- **Total Unit Tests:** 1,288
+- **Passed:** 1,288
 - **Failed:** 0
 - **Skipped:** 0
 - **Integration Tests:** 36 (require live database)
@@ -36,9 +36,9 @@ The CRM Solution includes comprehensive testing at multiple levels:
 | Category | Tests | Description |
 |----------|-------|-------------|
 | **BVT** | ~95 | Build Verification Tests - critical path validation |
-| **Entity (Core)** | ~750 | Core entity validation, business logic, enums |
+| **Entity (Core)** | ~850 | Core entity validation, business logic, enums |
 | **DTO** | ~60 | Data transfer object mapping tests |
-| **Enum** | ~160 | Enum value and type tests |
+| **Enum** | ~200 | Enum value and type tests |
 | **Business Logic** | ~60 | Calculations and computed properties |
 | **Contact Model** | ~30 | Contact entity model tests |
 | **Utility** | ~45 | Helper functions and utilities |
@@ -68,6 +68,7 @@ CRM.Backend/tests/
 │       ├── QuoteInvoiceEntityTests.cs  # NEW (70 tests)
 │       ├── ServiceRequestEntityTests.cs
 │       ├── ActivityNoteTagAddressEntityTests.cs
+│       ├── CommissionTeamWebEntityTests.cs
 │       └── UserEntityTests.cs
 ├── CRM.Tests.csproj           # Main test project
 ├── BVT/
