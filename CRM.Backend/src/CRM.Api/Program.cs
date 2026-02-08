@@ -421,6 +421,11 @@ builder.Services.AddScoped<IInteractionService, InteractionService>();
 builder.Services.AddScoped<ICommunicationService, CommunicationService>();
 builder.Services.AddScoped<IImportExportService, ImportExportService>();
 builder.Services.AddScoped<IWebhookService, WebhookService>();
+// Phase 2B services - Lead Management, Form Builder, Territory Management, Approval Workflows
+builder.Services.AddScoped<ILeadRoutingService, LeadRoutingService>();
+builder.Services.AddScoped<IFormBuilderService, FormBuilderService>();
+builder.Services.AddScoped<ITerritoryService, TerritoryService>();
+builder.Services.AddScoped<IApprovalWorkflowService, ApprovalWorkflowService>();
 // Phase 4 services - Invoice, Payment, Order, Contract, Subscription, Team, Commission, EmailTemplate
 // NOTE: Phase 4 services are implemented but need entity-service alignment work.
 // Services exist at CRM.Infrastructure/Services/{Service}Service.cs
