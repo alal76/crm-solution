@@ -67,14 +67,34 @@
 | TODO-CRM003-007 | Create OpportunityServiceTests | P2 | Testing |
 | TODO-CRM003-008 | Create E2E tests for opportunities | P2 | Testing |
 
+### From SPEC-SALES-006: Subscription Management
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-SALES006-001 | Create SubscriptionsController with REST endpoints covering CRUD/lifecycle/billing/usage to match service | P1 | Backend/API |
+| TODO-SALES006-002 | Build frontend subscriptions pages, components, and API client | P2 | Frontend |
+| TODO-SALES006-003 | Implement usage limits persistence and wire GetUsageLimitsAsync | P2 | Backend |
+| TODO-SALES006-004 | Add validations for required AccountId, Amount>=0, allowed BillingCycle, Start/End date ordering, and full billing detail updates | P1 | Validation |
+| TODO-SALES006-005 | Make invoice number generation deterministic/unique and enforce SubscriptionNumber uniqueness | P2 | Backend |
+
+### From SPEC-SALES-007: Commission Management
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-SALES007-001 | Implement CommissionsController/Plans/Statements with DTOs and feature flag guards | P2 | Backend |
+| TODO-SALES007-002 | Persist CommissionPlanAssignment with effective dating and lookups in CommissionService | P1 | Backend |
+| TODO-SALES007-003 | Implement commission calculation rules (caps, tiers, triggers, splits, validation) and numbering | P1 | Backend |
+| TODO-SALES007-004 | Build frontend pages/services for commissions, plans, statements with validations | P2 | Frontend |
+| TODO-SALES007-005 | Add unit/integration/E2E tests for commissions, plans, statements, assignments | P2 | Testing |
+
 ### Specification TODO Summary
 
 | Priority | Count | Categories |
 |----------|-------|------------|
-| P1 | 1 | Validation (critical) |
-| P2 | 19 | Frontend (8), Backend (3), Validation (4), Testing (8) |
+| P1 | 5 | Backend/API (3), Validation (2) |
+| P2 | 25 | Frontend (9), Backend (6), Validation (3), Testing (7) |
 | P3 | 6 | Consistency (3), Validation (2), Frontend (1) |
-| **Total** | **26** | |
+| **Total** | **36** | |
 
 ---
 
