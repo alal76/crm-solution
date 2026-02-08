@@ -436,7 +436,7 @@ builder.Services.AddScoped<IApprovalWorkflowService, ApprovalWorkflowService>();
 // builder.Services.AddScoped<IContractService, ContractService>();
 // builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 // builder.Services.AddScoped<ITeamService, TeamService>();
-// builder.Services.AddScoped<ICommissionService, CommissionService>();
+builder.Services.AddScoped<ICommissionService, CommissionService>();
 // builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 // Master data - Field-to-master-data linking service
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
