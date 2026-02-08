@@ -5,7 +5,48 @@
 
 ---
 
-## 🚨 Active Remediation Plan
+## � Feature Specification Framework
+
+### IMPORTANT: Service Implementation Guide
+
+**Before implementing ANY feature, consult the feature specification:**
+
+📁 **[docs/specifications/INDEX.md](../docs/specifications/INDEX.md)** - Master index of all specifications
+
+### Specification Structure
+
+Each feature has a specification file (`SPEC-{MODULE}-{SEQ}-{Name}.md`) with full traceability:
+
+| Section | Contents |
+|---------|----------|
+| **1. Business Context** | Sub-features, functionalities, use cases |
+| **2. Frontend** | Pages, components, services, validations (with ❌ Not Implemented markers) |
+| **3. Backend** | Entities, DTOs, interfaces, services, controllers, endpoints, validations |
+| **4. Database** | Tables, columns, data types, constraints, relationships, indexes |
+| **5. Tests** | Unit tests, integration tests, E2E tests |
+| **6. Issues** | Naming inconsistencies, validation gaps |
+| **7. TODOs** | Extracted to [MASTER_TODO_LIST.md](../docs/MASTER_TODO_LIST.md) |
+
+### Before Writing Code
+
+1. **Find the spec:** `docs/specifications/SPEC-{MODULE}-{SEQ}-{FeatureName}.md`
+2. **Check implementation status:** Look for ✅ Implemented, ⚠️ Partial, ❌ Not Found markers
+3. **Follow validations:** Use exact rules from spec (both frontend AND backend)
+4. **Match data types:** Follow entity property types exactly
+5. **Update spec:** Add any new TODO items, mark items as implemented
+
+### Creating New Features
+
+1. **Create spec first:** Copy `SPEC-TEMPLATE.md` → `SPEC-{MODULE}-{SEQ}-{Name}.md`
+2. **Document before coding:** Fill in business context, planned implementation
+3. **Mark ❌ Not Implemented:** For all items pending implementation
+4. **Extract TODOs:** Add all TODO-{SPEC}-{SEQ} items to master list
+5. **Implement:** Follow the spec exactly
+6. **Update spec:** Mark items as ✅ Implemented when complete
+
+---
+
+## �🚨 Active Remediation Plan
 
 **IMPORTANT:** An active remediation plan exists to address solution gaps. Before starting new development work, review:
 

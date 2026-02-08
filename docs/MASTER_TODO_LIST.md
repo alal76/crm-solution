@@ -1,7 +1,63 @@
 # CRM Solution - Master Todo List
 
-**Last Updated:** February 3, 2026  
+**Last Updated:** February 8, 2026  
 **Document Purpose:** Consolidated list of all planned enhancements, pending items, and future roadmap features
+
+---
+
+## Feature Specification TODOs (New - from Specs)
+
+> TODOs extracted from feature specifications. See [docs/specifications/INDEX.md](specifications/INDEX.md) for full context.
+
+### From SPEC-CRM-001: Account Management
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-CRM001-001 | Create AccountForm.tsx component | P2 | Frontend |
+| TODO-CRM001-002 | Create AccountCard.tsx component | P3 | Frontend |
+| TODO-CRM001-003 | Create AccountTimeline.tsx component | P2 | Frontend |
+| TODO-CRM001-004 | Create AccountRelationships.tsx component | P2 | Frontend |
+| TODO-CRM001-005 | Add phone format validation to backend | P2 | Validation |
+| TODO-CRM001-006 | Add URL format validation for Website | P3 | Validation |
+| TODO-CRM001-007 | Add category-specific validation (Individual requires names, Organization requires Company) | P1 | Validation |
+| TODO-CRM001-008 | Implement full territory service (GetAssignedAccounts, AssignToTerritory) | P2 | Backend |
+| TODO-CRM001-009 | Create AccountServiceTests.cs unit tests | P2 | Testing |
+| TODO-CRM001-010 | Create E2E tests for account workflows | P2 | Testing |
+
+### From SPEC-CRM-002: Lead Management
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-CRM002-001 | Standardize CompanyName vs Company naming | P3 | Consistency |
+| TODO-CRM002-002 | Implement lead merge UI | P2 | Frontend |
+| TODO-CRM002-003 | Complete web tracking integration | P2 | Backend |
+| TODO-CRM002-004 | Complete lead import/export UI | P2 | Frontend |
+| TODO-CRM002-005 | Add phone format validation | P2 | Validation |
+| TODO-CRM002-006 | Add website URL validation | P3 | Validation |
+| TODO-CRM002-007 | Create E2E tests for leads | P2 | Testing |
+| TODO-CRM002-008 | Create integration tests for LeadRoutingController | P2 | Testing |
+
+### From SPEC-CRM-003: Opportunity Management
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-CRM003-001 | Standardize Opportunity vs Deal terminology | P3 | Consistency |
+| TODO-CRM003-002 | Complete competitor tracking UI | P2 | Frontend |
+| TODO-CRM003-003 | Complete team selling UI | P2 | Frontend |
+| TODO-CRM003-004 | Implement rule-based probability calculation | P2 | Backend |
+| TODO-CRM003-005 | Add Amount max limit validation | P3 | Validation |
+| TODO-CRM003-006 | Enforce valid stage transitions | P2 | Validation |
+| TODO-CRM003-007 | Create OpportunityServiceTests | P2 | Testing |
+| TODO-CRM003-008 | Create E2E tests for opportunities | P2 | Testing |
+
+### Specification TODO Summary
+
+| Priority | Count | Categories |
+|----------|-------|------------|
+| P1 | 1 | Validation (critical) |
+| P2 | 19 | Frontend (8), Backend (3), Validation (4), Testing (8) |
+| P3 | 6 | Consistency (3), Validation (2), Frontend (1) |
+| **Total** | **26** | |
 
 ---
 
