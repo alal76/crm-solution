@@ -479,6 +479,20 @@ public class Commission : BaseEntity
     /// <summary>Alias for CommissionPlan for service compatibility</summary>
     public CommissionPlan? Plan => CommissionPlan;
 
+    /// <summary>Alias for ApprovedDate for service compatibility</summary>
+    public DateTime? ApprovedAt
+    {
+        get => ApprovedDate;
+        set => ApprovedDate = value;
+    }
+
+    /// <summary>Alias for PaidDate for service compatibility</summary>
+    public DateTime? PaidAt
+    {
+        get => PaidDate;
+        set => PaidDate = value;
+    }
+
     #endregion
 }
 
@@ -534,4 +548,74 @@ public class CommissionStatement : BaseEntity
 
     /// <summary>Generated date</summary>
     public DateTime GeneratedDate { get; set; } = DateTime.UtcNow;
+
+    #region Service Compatibility Aliases
+
+    /// <summary>Alias for PeriodStartDate</summary>
+    public DateTime PeriodStart
+    {
+        get => PeriodStartDate;
+        set => PeriodStartDate = value;
+    }
+
+    /// <summary>Alias for PeriodEndDate</summary>
+    public DateTime PeriodEnd
+    {
+        get => PeriodEndDate;
+        set => PeriodEndDate = value;
+    }
+
+    /// <summary>Alias for TotalEarned</summary>
+    public decimal TotalCommissions
+    {
+        get => TotalEarned;
+        set => TotalEarned = value;
+    }
+
+    /// <summary>Alias for TotalClawbacks as deductions</summary>
+    public decimal TotalDeductions
+    {
+        get => TotalClawbacks + TotalAdjustments;
+        set => TotalClawbacks = value;
+    }
+
+    /// <summary>Alias for NetPayout</summary>
+    public decimal NetAmount
+    {
+        get => NetPayout;
+        set => NetPayout = value;
+    }
+
+    /// <summary>Statement status</summary>
+    public CommissionStatementStatus Status { get; set; } = CommissionStatementStatus.Draft;
+
+    /// <summary>Alias for GeneratedDate</summary>
+    public DateTime GeneratedAt
+    {
+        get => GeneratedDate;
+        set => GeneratedDate = value;
+    }
+
+    /// <summary>Date statement was finalized</summary>
+    public DateTime? FinalizedAt { get; set; }
+
+    #endregion
+}
+
+/// <summary>
+/// Commission statement status
+/// </summary>
+public enum CommissionStatementStatus
+{
+    /// <summary>Draft - not finalized</summary>
+    Draft = 0,
+
+    /// <summary>Pending review</summary>
+    PendingReview = 1,
+
+    /// <summary>Finalized</summary>
+    Finalized = 2,
+
+    /// <summary>Paid</summary>
+    Paid = 3
 }

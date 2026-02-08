@@ -196,7 +196,7 @@ public class InvoiceService : IInvoiceService
         var invoice = new Invoice
         {
             InvoiceNumber = await GenerateInvoiceNumberAsync(cancellationToken),
-            AccountId = quote.AccountId,
+            AccountId = quote.AccountId ?? 0,
             InvoiceDate = DateTime.UtcNow,
             DueDate = DateTime.UtcNow.AddDays(30),
             Status = InvoiceStatus.Draft,
@@ -211,7 +211,7 @@ public class InvoiceService : IInvoiceService
 
         // Copy line items from quote
         int lineNumber = 1;
-        foreach (var quoteLine in quote.LineItems.Where(l => !l.IsDeleted))
+        foreach (var quoteLine in (quote.QuoteLineItems ?? Enumerable.Empty<QuoteLineItem>()).Where(l => !l.IsDeleted))
         {
             invoice.LineItems.Add(new InvoiceLineItem
             {
@@ -220,8 +220,8 @@ public class InvoiceService : IInvoiceService
                 Description = quoteLine.Description ?? string.Empty,
                 Quantity = quoteLine.Quantity,
                 UnitPrice = quoteLine.UnitPrice,
-                DiscountAmount = quoteLine.Discount,
-                TotalAmount = quoteLine.LineTotal,
+                DiscountAmount = quoteLine.TotalDiscount,
+                TotalAmount = quoteLine.Total,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             });

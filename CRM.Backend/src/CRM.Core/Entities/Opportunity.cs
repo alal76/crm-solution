@@ -248,6 +248,13 @@ public class OpportunityProduct
     [Column(TypeName = "decimal(18,2)")]
     public decimal? LineTotal { get; set; }
 
+    /// <summary>Alias for LineTotal for service compatibility</summary>
+    public decimal? TotalPrice
+    {
+        get => LineTotal;
+        set => LineTotal = value;
+    }
+
     /// <summary>When the product was added to the opportunity</summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

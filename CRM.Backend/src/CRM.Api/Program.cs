@@ -364,6 +364,7 @@ builder.Services.AddScoped<IServiceRequestTypeService, ServiceRequestTypeService
 builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 
 // ITSM Services - IT Service Management (Incident, Problem, Change, CMDB, Knowledge, SLA)
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IBusinessHoursCalculator, CRM.Infrastructure.Services.ITSM.BusinessHoursCalculator>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IIncidentService, CRM.Infrastructure.Services.ITSM.IncidentService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IProblemService, CRM.Infrastructure.Services.ITSM.ProblemService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICMDBService, CRM.Infrastructure.Services.ITSM.CMDBService>();

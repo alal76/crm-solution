@@ -312,7 +312,7 @@ public class CommissionService : ICommissionService
 
         // Store plan assignment - would need a CommissionPlanAssignment entity
         // For now, we'll add a record to track this
-        _logger.LogInformation("Assigned plan {PlanId} to user {UserId} effective {EffectiveDate}", 
+        _logger.LogInformation("Assigned plan {PlanId} to user {UserId} effective {EffectiveDate}",
             planId, userId, effectiveDate ?? DateTime.UtcNow);
 
         return true;
@@ -446,7 +446,7 @@ public class CommissionService : ICommissionService
             TotalCommissions = summary.TotalEarned,
             TotalDeductions = summary.TotalClawedBack,
             NetAmount = summary.TotalEarned - summary.TotalClawedBack,
-            Status = "Draft",
+            Status = CommissionStatementStatus.Draft,
             GeneratedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -481,7 +481,7 @@ public class CommissionService : ICommissionService
             throw new InvalidOperationException($"Commission statement {statementId} not found");
         }
 
-        statement.Status = "Finalized";
+        statement.Status = CommissionStatementStatus.Finalized;
         statement.FinalizedAt = DateTime.UtcNow;
         statement.UpdatedAt = DateTime.UtcNow;
 
@@ -583,13 +583,17 @@ public class CommissionService : ICommissionService
 
         var leaderboard = commissions
             .GroupBy(c => c.UserId)
-            .Select(g => new CommissionLeaderboard
-            {
-                UserId = g.Key,
-                UserName = g.First().User != null ? $"{g.First().User.FirstName} {g.First().User.LastName}" : "Unknown",
-                TotalEarned = g.Sum(c => c.Amount),
-                DealCount = g.Count(),
-                AverageDealSize = g.Count() > 0 ? g.Average(c => c.Amount) : 0
+            .Select(g => {
+                var first = g.First();
+                var user = first.User;
+                return new CommissionLeaderboard
+                {
+                    UserId = g.Key,
+                    UserName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown",
+                    TotalEarned = g.Sum(c => c.Amount),
+                    DealCount = g.Count(),
+                    AverageDealSize = g.Count() > 0 ? g.Average(c => c.Amount) : 0
+                };
             })
             .OrderByDescending(l => l.TotalEarned)
             .Take(topN)

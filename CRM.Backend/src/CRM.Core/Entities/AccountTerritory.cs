@@ -36,6 +36,15 @@ public class AccountTerritory : BaseEntity
     public string TerritoryName { get; set; } = string.Empty;
 
     /// <summary>
+    /// Alias for TerritoryName for service compatibility
+    /// </summary>
+    public string Name
+    {
+        get => TerritoryName;
+        set => TerritoryName = value;
+    }
+
+    /// <summary>
     /// Unique code for the territory
     /// </summary>
     [MaxLength(50)]
