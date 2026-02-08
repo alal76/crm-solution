@@ -1,0 +1,50 @@
+# CRM Deployment Tool - Full Dependencies (all optional features)
+# Author: Abhishek Lal
+# License: AGPL-3.0
+#
+# Install with:  pip install -r requirements-full.txt
+#
+# Alternatively, let the tool install packages on demand at runtime.
+# See requirements.txt for the minimal set.
+
+# --- Core -----------------------------------------------------------------
+flask>=3.0
+pyyaml>=6.0
+
+# --- HTTP Client ----------------------------------------------------------
+requests>=2.31
+
+# --- SSH / On-Premises Discovery ------------------------------------------
+paramiko>=3.3
+fabric>=3.2
+
+# --- Azure Cloud SDK ------------------------------------------------------
+azure-identity>=1.14
+azure-mgmt-resource>=23.0
+azure-mgmt-compute>=30.0
+azure-mgmt-containerservice>=28.0
+azure-mgmt-sql>=3.0
+azure-mgmt-network>=25.0
+
+# --- AWS Cloud SDK --------------------------------------------------------
+boto3>=1.28
+botocore>=1.31
+
+# --- Google Cloud SDK -----------------------------------------------------
+google-cloud-compute>=1.14
+google-cloud-container>=2.32
+
+# --- Docker & Kubernetes --------------------------------------------------
+docker>=6.1
+kubernetes>=28.1
+
+# --- CLI Enhancements -----------------------------------------------------
+rich>=13.5
+click>=8.1
+questionary>=2.0
+colorlog>=6.7
+
+# --- Validation & Serialization -------------------------------------------
+jsonschema>=4.19
+dataclasses-json>=0.6
+python-dateutil>=2.8

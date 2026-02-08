@@ -403,7 +403,7 @@ const LoginPage: React.FC = () => {
   );
 
   const handleQuickLogin = useCallback(() => {
-    setFormData({ email: 'abhi.lal@gmail.com', password: 'Admin@123' });
+    setFormData({ email: 'admin@crm.local', password: 'Admin@123' });
     setError('');
   }, []);
 

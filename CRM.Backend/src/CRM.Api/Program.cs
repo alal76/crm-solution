@@ -364,6 +364,7 @@ builder.Services.AddScoped<IServiceRequestTypeService, ServiceRequestTypeService
 builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 
 // ITSM Services - IT Service Management (Incident, Problem, Change, CMDB, Knowledge, SLA)
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IBusinessHoursCalculator, CRM.Infrastructure.Services.ITSM.BusinessHoursCalculator>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IIncidentService, CRM.Infrastructure.Services.ITSM.IncidentService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IProblemService, CRM.Infrastructure.Services.ITSM.ProblemService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICMDBService, CRM.Infrastructure.Services.ITSM.CMDBService>();
@@ -408,6 +409,35 @@ builder.Services.Configure<ZipCodeImportOptions>(
 builder.Services.AddHostedService<ZipCodeImportHostedService>();
 // Contact info validation service (email, phone, social media)
 builder.Services.AddScoped<IContactInfoValidationService, ContactInfoValidationService>();
+// Phase 1 services - Notes, Tasks, Quotes (Gap Fix Implementation)
+builder.Services.AddScoped<INoteService, NoteService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IQuoteService, QuoteService>();
+// Phase 2 services - Dashboard, Pipeline, Interaction (Gap Fix Implementation)
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IPipelineService, PipelineService>();
+builder.Services.AddScoped<IInteractionService, InteractionService>();
+// Phase 3 services - Communication, ImportExport, Webhook (Gap Fix Implementation)
+builder.Services.AddScoped<ICommunicationService, CommunicationService>();
+builder.Services.AddScoped<IImportExportService, ImportExportService>();
+builder.Services.AddScoped<IWebhookService, WebhookService>();
+// Phase 2B services - Lead Management, Form Builder, Territory Management, Approval Workflows
+builder.Services.AddScoped<ILeadRoutingService, LeadRoutingService>();
+builder.Services.AddScoped<IFormBuilderService, FormBuilderService>();
+builder.Services.AddScoped<ITerritoryService, TerritoryService>();
+builder.Services.AddScoped<IApprovalWorkflowService, ApprovalWorkflowService>();
+// Phase 4 services - Invoice, Payment, Order, Contract, Subscription, Team, Commission, EmailTemplate
+// NOTE: Phase 4 services are implemented but need entity-service alignment work.
+// Services exist at CRM.Infrastructure/Services/{Service}Service.cs
+// Enable individually after fixing property mismatches with existing entities.
+// builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+// builder.Services.AddScoped<IPaymentService, PaymentService>();
+// builder.Services.AddScoped<IOrderService, OrderService>();
+// builder.Services.AddScoped<IContractService, ContractService>();
+// builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+// builder.Services.AddScoped<ITeamService, TeamService>();
+// builder.Services.AddScoped<ICommissionService, CommissionService>();
+// builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 // Master data - Field-to-master-data linking service
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
 // Master data seeder - seeds ZipCodes and ColorPalettes on startup if empty

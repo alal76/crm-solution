@@ -149,17 +149,48 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             .Include(u => u.UserProfile)
             .FirstOrDefaultAsync(u => !u.IsDeleted && u.Email != null && u.Email.ToLower() == normalizedEmail);
 
-        if (user == null || !VerifyPassword(request.Password, user.PasswordHash))
+        if (user == null)
         {
-            _logger.LogWarning("Login failed for email: {Email}", normalizedEmail);
+            _logger.LogWarning("Login failed - user not found for email: {Email}", normalizedEmail);
+            throw new UnauthorizedAccessException("Invalid email or password");
+        }
+
+        // Check if password has never been set - allow login with any password to redirect to setup
+        if (user.PasswordNeverSet)
+        {
+            _logger.LogInformation("User {Email} requires password setup - redirecting to password setup", normalizedEmail);
+            
+            if (!user.IsActive)
+                throw new UnauthorizedAccessException("User account is inactive");
+
+            var passwordSetupToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            var cacheKey = $"password_setup_{passwordSetupToken}";
+            _cache.Set(cacheKey, user.Id, TimeSpan.FromMinutes(15));
+
+            return new AuthResponse
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                RequiresPasswordSetup = true,
+                MustChangePassword = false,
+                PasswordSetupToken = passwordSetupToken
+            };
+        }
+
+        // For users with passwords set, verify the password
+        if (!VerifyPassword(request.Password, user.PasswordHash))
+        {
+            _logger.LogWarning("Login failed - invalid password for email: {Email}", normalizedEmail);
             throw new UnauthorizedAccessException("Invalid email or password");
         }
 
         if (!user.IsActive)
             throw new UnauthorizedAccessException("User account is inactive");
 
-        // Check if password setup is required (first-time login with no password set)
-        if (user.PasswordNeverSet || user.MustResetPassword)
+        // Check if password must be reset (admin-forced)
+        if (user.MustResetPassword)
         {
             var passwordSetupToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
             var cacheKey = $"password_setup_{passwordSetupToken}";
@@ -171,8 +202,8 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                RequiresPasswordSetup = user.PasswordNeverSet,
-                MustChangePassword = user.MustResetPassword,
+                RequiresPasswordSetup = false,
+                MustChangePassword = true,
                 PasswordSetupToken = passwordSetupToken
             };
         }

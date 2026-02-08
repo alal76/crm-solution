@@ -1311,4 +1311,15 @@ public class Product : BaseEntity
         (!SaleEndDate.HasValue || SaleEndDate >= DateTime.UtcNow);
 
     #endregion
+
+    #region Aliases
+
+    /// <summary>Alias for Price for service compatibility</summary>
+    public decimal UnitPrice
+    {
+        get => Price;
+        set => Price = value;
+    }
+
+    #endregion
 }

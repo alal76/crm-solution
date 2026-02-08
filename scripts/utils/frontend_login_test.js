@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
   try {
     await page.goto('http://host.docker.internal:3000', { waitUntil: 'networkidle' });
     // Try common selectors
-    await page.fill('input[type="email"]', 'abhi.lal@gmail.com').catch(()=>{});
+    await page.fill('input[type="email"]', 'admin@crm.local').catch(()=>{});
     await page.fill('input[type="password"]', 'Admin@123').catch(()=>{});
     // Wait for the login POST response while attempting submit
     const [response] = await Promise.all([

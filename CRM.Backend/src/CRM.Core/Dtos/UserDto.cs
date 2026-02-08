@@ -50,3 +50,44 @@ public class UserDto
     /// </summary>
     public string? PhotoUrl { get; set; }
 }
+
+/// <summary>
+/// DTO for creating a new user
+/// </summary>
+public class CreateUserRequest
+{
+    /// <summary>
+    /// User's email address (required, used as username)
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User's first name (required)
+    /// </summary>
+    public string FirstName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User's last name (required)
+    /// </summary>
+    public string LastName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User's password (optional - if not provided, user will be prompted to set password on first login)
+    /// </summary>
+    public string? Password { get; set; }
+
+    /// <summary>
+    /// Role ID (default: 2 = User)
+    /// </summary>
+    public int RoleId { get; set; } = 2;
+
+    /// <summary>
+    /// Department ID (optional)
+    /// </summary>
+    public int? DepartmentId { get; set; }
+
+    /// <summary>
+    /// Primary Group ID (optional)
+    /// </summary>
+    public int? PrimaryGroupId { get; set; }
+}

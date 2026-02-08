@@ -243,7 +243,7 @@ show_access_info() {
     echo "  • Health: http://localhost:5000/health"
     echo ""
     echo -e "${BLUE}Test credentials:${NC}"
-    echo "  • Email: abhi.lal@gmail.com"
+    echo "  • Email: admin@crm.local"
     echo "  • Password: Admin123!"
     echo ""
     echo -e "${BLUE}Logs:${NC}"

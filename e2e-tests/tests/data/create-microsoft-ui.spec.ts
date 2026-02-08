@@ -174,8 +174,8 @@ test.describe.serial('Create Microsoft Account via UI', () => {
     }
     
     logger.action('Filling login credentials...');
-    await page.fill('input[name="email"], input[type="email"]', 'abhi.lal@gmail.com');
-    logger.info('Entered email: abhi.lal@gmail.com');
+    await page.fill('input[name="email"], input[type="email"]', 'admin@crm.local');
+    logger.info('Entered email: admin@crm.local');
     
     await page.fill('input[name="password"], input[type="password"]', 'Admin@123');
     logger.info('Entered password: ********');

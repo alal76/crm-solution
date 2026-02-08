@@ -78,12 +78,13 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
     {
         return providerName.ToLowerInvariant() switch
         {
-            "ollama" => GetProviderOrFallback<IAIPort>("OllamaAIProvider"),
+            "ollama" => GetProviderOrFallback<IAIPort>("OllamaProvider"),
             "openai" => GetProviderOrFallback<IAIPort>("OpenAIProvider"),
             "azureopenai" => GetProviderOrFallback<IAIPort>("AzureOpenAIProvider"),
             "anthropic" => GetProviderOrFallback<IAIPort>("AnthropicAIProvider"),
-            "bedrock" => GetProviderOrFallback<IAIPort>("BedrockAIProvider"),
+            "bedrock" => GetProviderOrFallback<IAIPort>("BedrockProvider"),
             "gemini" => GetProviderOrFallback<IAIPort>("GeminiAIProvider"),
+            "openrouter" => GetProviderOrFallback<IAIPort>("OpenRouterProvider"),
             _ => throw new InvalidOperationException($"Unknown AI provider: {providerName}")
         };
     }
@@ -98,7 +99,8 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
             ProviderTypes.AI.AzureOpenAI,
             ProviderTypes.AI.Anthropic,
             ProviderTypes.AI.Bedrock,
-            ProviderTypes.AI.Gemini
+            ProviderTypes.AI.Gemini,
+            ProviderTypes.AI.OpenRouter
         };
     }
 

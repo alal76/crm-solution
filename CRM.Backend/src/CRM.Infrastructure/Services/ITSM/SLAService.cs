@@ -15,11 +15,16 @@ namespace CRM.Infrastructure.Services.ITSM;
 public class SLAService : ISLAService
 {
     private readonly IDbContextResolver _dbContextResolver;
+    private readonly IBusinessHoursCalculator _businessHoursCalculator;
     private readonly ILogger<SLAService> _logger;
 
-    public SLAService(IDbContextResolver dbContextResolver, ILogger<SLAService> logger)
+    public SLAService(
+        IDbContextResolver dbContextResolver,
+        IBusinessHoursCalculator businessHoursCalculator,
+        ILogger<SLAService> logger)
     {
         _dbContextResolver = dbContextResolver;
+        _businessHoursCalculator = businessHoursCalculator;
         _logger = logger;
     }
 
@@ -325,9 +330,20 @@ public class SLAService : ISLAService
             return startTime.AddMinutes(minutes);
         }
 
-        // Simplified business hours calculation - assumes 24/7 for now
-        // TODO: Implement proper business hours calculation using BusinessHoursSchedule
-        return startTime.AddMinutes(minutes);
+        // Use BusinessHoursCalculator for proper business hours calculation
+        // This is a synchronous context, so we use .GetAwaiter().GetResult() safely
+        // In production, consider making calling methods async
+        try
+        {
+            return _businessHoursCalculator.AddBusinessMinutesAsync(startTime, minutes, scheduleId)
+                .GetAwaiter()
+                .GetResult();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to calculate business hours due date, falling back to simple calculation");
+            return startTime.AddMinutes(minutes);
+        }
     }
 
     private SLAPolicyDto MapPolicyToDto(SLAPolicy policy)

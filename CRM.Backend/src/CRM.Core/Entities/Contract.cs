@@ -214,6 +214,12 @@ public class Contract : BaseEntity
     /// <summary>Date renewal notice was sent</summary>
     public DateTime? RenewalNoticeSentDate { get; set; }
 
+    /// <summary>Date renewal was initiated</summary>
+    public DateTime? RenewalInitiatedAt { get; set; }
+
+    /// <summary>Date renewal was completed</summary>
+    public DateTime? RenewalCompletedAt { get; set; }
+
     #endregion
 
     #region Terms & Conditions
@@ -267,6 +273,16 @@ public class Contract : BaseEntity
 
     #endregion
 
+    #region Suspension
+
+    /// <summary>Reason for suspension</summary>
+    public string? SuspensionReason { get; set; }
+
+    /// <summary>Date suspended</summary>
+    public DateTime? SuspendedDate { get; set; }
+
+    #endregion
+
     #region Computed Properties
 
     /// <summary>Days until expiration</summary>
@@ -278,6 +294,64 @@ public class Contract : BaseEntity
     public bool IsExpiringSoon => Status == ContractStatus.Active
         && DaysUntilExpiration.HasValue
         && DaysUntilExpiration.Value <= RenewalNoticeDays;
+
+    #endregion
+
+    #region Aliases
+
+    /// <summary>Alias for Value for service compatibility</summary>
+    public decimal TotalValue
+    {
+        get => Value;
+        set => Value = value;
+    }
+
+    /// <summary>Alias for ActivatedDate for service compatibility</summary>
+    public DateTime? ActivatedAt
+    {
+        get => ActivatedDate;
+        set => ActivatedDate = value;
+    }
+
+    /// <summary>Alias for TerminatedDate for service compatibility</summary>
+    public DateTime? TerminatedAt
+    {
+        get => TerminatedDate;
+        set => TerminatedDate = value;
+    }
+
+    /// <summary>Alias for SignedDate for service compatibility</summary>
+    public DateTime? SentForSignatureAt
+    {
+        get => SignedDate;
+        set => SignedDate = value;
+    }
+
+    /// <summary>Termination reason for contract</summary>
+    public string? TerminationReason { get; set; }
+
+    /// <summary>Payment terms for contract</summary>
+    public string? PaymentTerms { get; set; }
+
+    /// <summary>Whether contract is signed</summary>
+    public bool IsSigned => SignedDate.HasValue;
+
+    /// <summary>Name of person who signed</summary>
+    public string? SignedBy { get; set; }
+
+    /// <summary>Alias for ContractFileUrl for service compatibility</summary>
+    public string? DocumentUrl
+    {
+        get => ContractFileUrl;
+        set => ContractFileUrl = value;
+    }
+
+    /// <summary>Alias for Terms for service compatibility</summary>
+    public string? TermsAndConditions
+    {
+        get => Terms;
+        set => Terms = value;
+    }
 
     #endregion
 }

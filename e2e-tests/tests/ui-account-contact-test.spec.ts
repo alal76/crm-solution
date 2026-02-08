@@ -75,7 +75,7 @@ test.describe('Create 10 Accounts with Contacts via UI', () => {
     // Get API token
     const apiContext = await request.newContext({ baseURL: 'http://localhost:5000' });
     const loginResp = await apiContext.post('/api/auth/login', {
-      data: { email: 'abhi.lal@gmail.com', password: 'Admin@123' }
+      data: { email: 'admin@crm.local', password: 'Admin@123' }
     });
     const { accessToken: token } = await loginResp.json();
     

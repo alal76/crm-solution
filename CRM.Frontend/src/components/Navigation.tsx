@@ -226,6 +226,9 @@ function NavigationContent() {
     'campaign-execution': { label: 'Campaign Execution', icon: CampaignExecutionIcon, path: '/campaign-execution', menuName: 'CampaignExecution' },
     'landing-pages': { label: 'Landing Pages', icon: ViewQuiltIcon, path: '/landing-pages', menuName: 'LandingPages' },
     'relationships': { label: 'Relationships', icon: RelationshipsIcon, path: '/relationships', menuName: 'Relationships' },
+    'territories': { label: 'Territories', icon: BusinessIcon, path: '/territories', menuName: 'Territories' },
+    'lead-routing': { label: 'Lead Routing', icon: AutomationIcon, path: '/lead-routing', menuName: 'LeadRouting' },
+    'approvals': { label: 'Approvals', icon: QuoteIcon, path: '/approvals', menuName: 'Approvals' },
     'quotes': { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
     'my-queue': { label: 'My Queue', icon: TaskIcon, path: '/my-queue', menuName: 'MyQueue' },
     'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
@@ -267,6 +270,7 @@ function NavigationContent() {
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'customers', 'customer-overview', 'contacts', 'relationships', 'leads', 'opportunities',
     'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'quotes',
+    'territories', 'lead-routing', 'approvals',
     'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics',
     'my-queue', 'activities', 'notes', 'communications', 'interactions'
   ], []);
@@ -339,6 +343,9 @@ function NavigationContent() {
     { id: 'campaigns', order: 9, visible: true, category: 'sales' },
     { id: 'landing-pages', order: 9.5, visible: true, category: 'sales' },
     { id: 'quotes', order: 10, visible: true, category: 'sales' },
+    { id: 'territories', order: 10.1, visible: true, category: 'sales' },
+    { id: 'lead-routing', order: 10.2, visible: true, category: 'sales' },
+    { id: 'approvals', order: 10.3, visible: true, category: 'sales' },
     { id: 'my-queue', order: 11, visible: true, category: 'productivity' },
     { id: 'activities', order: 12, visible: true, category: 'productivity' },
     { id: 'notes', order: 13, visible: true, category: 'productivity' },

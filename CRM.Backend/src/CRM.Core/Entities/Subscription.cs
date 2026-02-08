@@ -20,12 +20,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities;
 
 /// <summary>
-/// SubscriptionStatus limited to Current or Churned
+/// Subscription status values for lifecycle management.
 /// </summary>
 public enum SubscriptionStatus
 {
-    Current = 0,
-    Churned = 1
+    Active = 0,
+    Paused = 1,
+    Cancelled = 2,
+    Suspended = 3,
+    PendingCancellation = 4,
+    Expired = 5,
+    Trial = 6,
+    Current = 0,  // Alias for Active (backward compatibility)
+    Churned = 2   // Alias for Cancelled (backward compatibility)
 }
 
 /// <summary>
@@ -83,6 +90,27 @@ public class Subscription : BaseEntity
     /// <summary>Billing cycle (Monthly, Quarterly, Annual)</summary>
     [MaxLength(50)]
     public string? BillingCycle { get; set; }
+
+    /// <summary>Billing period enumeration (computed from BillingCycle string)</summary>
+    [NotMapped]
+    public CRM.Core.Interfaces.BillingPeriod BillingPeriod
+    {
+        get => BillingCycle?.ToLowerInvariant() switch
+        {
+            "weekly" => CRM.Core.Interfaces.BillingPeriod.Weekly,
+            "quarterly" => CRM.Core.Interfaces.BillingPeriod.Quarterly,
+            "yearly" or "annual" => CRM.Core.Interfaces.BillingPeriod.Yearly,
+            _ => CRM.Core.Interfaces.BillingPeriod.Monthly
+        };
+        set => BillingCycle = value switch
+        {
+            CRM.Core.Interfaces.BillingPeriod.Weekly => "Weekly",
+            CRM.Core.Interfaces.BillingPeriod.Monthly => "Monthly",
+            CRM.Core.Interfaces.BillingPeriod.Quarterly => "Quarterly",
+            CRM.Core.Interfaces.BillingPeriod.Yearly => "Yearly",
+            _ => "Monthly"
+        };
+    }
 
     public DateTime? BillingStartDate { get; set; }
     public DateTime? BillingEndDate { get; set; }
@@ -210,6 +238,46 @@ public class Subscription : BaseEntity
     // Validation helper
     [MaxLength(50)]
     public string? ExternalReference { get; set; }
+
+    #region Service-Required Properties
+
+    /// <summary>Related order ID (if created from order)</summary>
+    public int? OrderId { get; set; }
+
+    /// <summary>Subscription amount</summary>
+    public decimal Amount { get; set; }
+
+    /// <summary>Subscription start date</summary>
+    public DateTime? StartDate { get; set; }
+
+    /// <summary>Subscription end date</summary>
+    public DateTime? EndDate { get; set; }
+
+    /// <summary>Next billing date</summary>
+    public DateTime? NextBillingDate { get; set; }
+
+    /// <summary>Current billing period end date</summary>
+    public DateTime? CurrentPeriodEnd { get; set; }
+
+    /// <summary>Current billing period start date</summary>
+    public DateTime? CurrentPeriodStart { get; set; }
+
+    /// <summary>Cancellation date if cancelled</summary>
+    public DateTime? CancelledAt { get; set; }
+
+    /// <summary>Cancellation reason</summary>
+    public string? CancellationReason { get; set; }
+
+    /// <summary>Whether subscription is pending cancellation at period end</summary>
+    public bool CancelAtPeriodEnd { get; set; }
+
+    /// <summary>Paused at date</summary>
+    public DateTime? PausedAt { get; set; }
+
+    /// <summary>Pause reason</summary>
+    public string? PauseReason { get; set; }
+
+    #endregion
 }
 
 #region Backward Compatibility Alias
@@ -261,4 +329,10 @@ public class SubscriptionUsage : BaseEntity
     public decimal Quantity { get; set; }
     public string? UsageType { get; set; }
     public string? Description { get; set; }
+
+    /// <summary>Metric name for usage tracking</summary>
+    public string MetricName { get; set; } = string.Empty;
+
+    /// <summary>Timestamp of usage</summary>
+    public DateTime? Timestamp { get; set; }
 }

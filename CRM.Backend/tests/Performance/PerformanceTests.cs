@@ -25,7 +25,7 @@ public class PerformanceTests : IAsyncLifetime
         _config = new PerformanceTestConfig
         {
             BaseUrl = Environment.GetEnvironmentVariable("CRM_API_URL") ?? "http://localhost:5000",
-            TestUserEmail = Environment.GetEnvironmentVariable("CRM_TEST_EMAIL") ?? "abhi.lal@gmail.com",
+            TestUserEmail = Environment.GetEnvironmentVariable("CRM_TEST_EMAIL") ?? "admin@crm.local",
             TestUserPassword = Environment.GetEnvironmentVariable("CRM_TEST_PASSWORD") ?? "Admin@123"
         };
         _harness = new PerformanceTestHarness(_config);

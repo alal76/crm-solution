@@ -36,6 +36,7 @@ public class UsersController : ControllerBase
     private readonly IRepository<UserProfile> _profileRepository;
     private readonly IRepository<Department> _departmentRepository;
     private readonly IContactsService _contactsService;
+    private readonly IUserService _userService;
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<UsersController> _logger;
 
@@ -44,6 +45,7 @@ public class UsersController : ControllerBase
         IRepository<UserProfile> profileRepository,
         IRepository<Department> departmentRepository,
         IContactsService contactsService,
+        IUserService userService,
         ICrmDbContext dbContext,
         ILogger<UsersController> logger)
     {
@@ -51,8 +53,80 @@ public class UsersController : ControllerBase
         _profileRepository = profileRepository;
         _departmentRepository = departmentRepository;
         _contactsService = contactsService;
+        _userService = userService;
         _dbContext = dbContext;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Create a new user
+    /// </summary>
+    /// <remarks>
+    /// If password is not provided, the user will be required to set their password on first login.
+    /// </remarks>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return BadRequest(new { message = "Email is required" });
+
+            if (string.IsNullOrWhiteSpace(request.FirstName))
+                return BadRequest(new { message = "First name is required" });
+
+            if (string.IsNullOrWhiteSpace(request.LastName))
+                return BadRequest(new { message = "Last name is required" });
+
+            UserDto userDto;
+            if (string.IsNullOrWhiteSpace(request.Password))
+            {
+                // Create user without password - they will set it on first login
+                userDto = await _userService.CreateUserWithoutPasswordAsync(
+                    request.Email.Trim(),
+                    request.FirstName.Trim(),
+                    request.LastName.Trim(),
+                    request.RoleId);
+            }
+            else
+            {
+                // Create user with password
+                userDto = await _userService.CreateUserAsync(
+                    request.Email.Trim(),
+                    request.FirstName.Trim(),
+                    request.LastName.Trim(),
+                    request.Password,
+                    request.RoleId);
+            }
+
+            // Update department and group if provided
+            if (request.DepartmentId.HasValue || request.PrimaryGroupId.HasValue)
+            {
+                var user = await _dbContext.Users.FindAsync(userDto.Id);
+                if (user != null)
+                {
+                    if (request.DepartmentId.HasValue)
+                        user.DepartmentId = request.DepartmentId.Value;
+                    if (request.PrimaryGroupId.HasValue)
+                        user.PrimaryGroupId = request.PrimaryGroupId.Value;
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+
+            return CreatedAtAction(nameof(GetUserById), new { id = userDto.Id }, userDto);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("User creation failed: {Message}", ex.Message);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating user");
+            return StatusCode(500, new { message = "Error creating user", error = ex.Message });
+        }
     }
 
     /// <summary>

@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Deployment Wizard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        body {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        .wizard-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 20px 0;
+        }
+        .wizard-container {
+            max-width: 900px;
+            margin: 30px auto;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+        .step.active .step-circle {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        .step.completed .step-circle {
+            background: #28a745;
+            color: white;
+        }
+        .step-label {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            max-width: 80px;
+        }
+        .wizard-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+        .wizard-section {
+            display: none;
+        }
+        .wizard-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .btn-wizard {
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+        }
+        .option-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .option-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        .option-card.selected {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .option-card input[type="radio"] {
+            display: none;
+        }
+        .option-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .recommendation-box {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .config-summary {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .provider-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .provider-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .provider-option:hover {
+            border-color: var(--primary-color);
+        }
+        .provider-option.selected {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+        }
+        .provider-option i {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="wizard-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-gear-wide-connected me-2"></i>CRM Deployment Wizard</h4>
+                <a href="/" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house me-1"></i>Home
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Wizard Content -->
+    <div class="wizard-container">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" data-step="0">
+                <div class="step-circle"><i class="bi bi-search"></i></div>
+                <div class="step-label">Discover</div>
+            </div>
+            <div class="step" data-step="1">
+                <div class="step-circle">1</div>
+                <div class="step-label">Basic Info</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Platform</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Architecture</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-circle">4</div>
+                <div class="step-label">Database</div>
+            </div>
+            <div class="step" data-step="5">
+                <div class="step-circle">5</div>
+                <div class="step-label">Providers</div>
+            </div>
+            <div class="step" data-step="6">
+                <div class="step-circle">6</div>
+                <div class="step-label">Review</div>
+            </div>
+        </div>
+
+        <!-- Wizard Card -->
+        <div class="wizard-card">
+            <!-- Step 0: Discovery -->
+            <div class="wizard-section active" data-section="0">
+                <h3 class="mb-4"><i class="bi bi-search me-2"></i>Discover Existing Deployments</h3>
+                
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Optional:</strong> Discover existing CRM deployments in your target environment. 
+                    This will help you understand what's already deployed and plan your configuration accordingly.
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">Discovery Platform</label>
+                    <select class="form-select" id="discoveryPlatform">
+                        <option value="">Select platform...</option>
+                    </select>
+                </div>
+                
+                <!-- On-Premises Discovery -->
+                <div id="onPremDiscovery" class="discovery-config" style="display: none;">
+                    <h5 class="mb-3">On-Premises Configuration</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Host/IP Address</label>
+                            <input type="text" class="form-control" id="discoveryHost" placeholder="192.168.1.100">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">SSH Port</label>
+                            <input type="number" class="form-control" id="discoveryPort" value="22" min="1" max="65535">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Auth Method</label>
+                            <select class="form-select" id="discoveryAuthMethod">
+                                <option value="password">Password</option>
+                                <option value="key">SSH Key</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" id="discoveryUsername" placeholder="root">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" id="discoveryPasswordLabel">Password</label>
+                            <input type="password" class="form-control" id="discoveryPassword">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Container Prefix (optional)</label>
+                        <input type="text" class="form-control" id="discoveryContainerPrefix" placeholder="crm" 
+                               value="crm">
+                        <small class="text-muted">Filter containers by name prefix</small>
+                    </div>
+                </div>
+                
+                <!-- Cloud Discovery -->
+                <div id="cloudDiscovery" class="discovery-config" style="display: none;">
+                    <h5 class="mb-3">Cloud Configuration</h5>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Cloud discovery requires appropriate credentials and permissions to be configured.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Region/Location</label>
+                            <input type="text" class="form-control" id="discoveryRegion" placeholder="us-east-1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Resource Group/Project</label>
+                            <input type="text" class="form-control" id="discoveryResourceGroup" placeholder="crm-rg">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-primary" id="btnTestConnection">
+                        <i class="bi bi-plug me-2"></i>Test Connection
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnDiscover">
+                        <i class="bi bi-search me-2"></i>Discover Deployments
+                    </button>
+                </div>
+                
+                <!-- Discovery Results -->
+                <div id="discoveryResults" class="mt-4" style="display: none;">
+                    <h5 class="mb-3">Discovery Results</h5>
+                    <div id="discoveryStatus" class="alert" style="display: none;"></div>
+                    <div id="deploymentInfo" class="card" style="display: none;">
+                        <div class="card-header">
+                            <h6 class="mb-0">Found Deployment</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Platform:</strong> <span id="foundPlatform"></span><br>
+                                    <strong>Architecture:</strong> <span id="foundArchitecture"></span><br>
+                                    <strong>Version:</strong> <span id="foundVersion"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Environment:</strong> <span id="foundEnvironment"></span><br>
+                                    <strong>Health:</strong> <span id="foundHealth"></span><br>
+                                    <strong>Last Checked:</strong> <span id="foundLastChecked"></span>
+                                </div>
+                            </div>
+                            <hr>
+                            <h6>Components Found:</h6>
+                            <div id="foundComponents" class="mt-2"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-success" id="btnUseDiscovered">
+                            <i class="bi bi-check-circle me-2"></i>Use This Configuration
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="btnSkipDiscovery">
+                            <i class="bi bi-arrow-right me-2"></i>Skip & Configure Manually
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 1: Basic Information -->
+            <div class="wizard-section active" data-section="1">
+                <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Basic Information</h3>
+                
+                <div class="mb-4">
+                    <label class="form-label">Deployment Name</label>
+                    <input type="text" class="form-control" id="deploymentName" value="crm-production" 
+                           placeholder="e.g., crm-production">
+                    <small class="text-muted">A unique identifier for this deployment (no spaces)</small>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">Description</label>
+                    <input type="text" class="form-control" id="deploymentDescription" 
+                           value="CRM Solution Deployment" placeholder="Brief description">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">Expected Number of Users</label>
+                    <input type="number" class="form-control" id="expectedUsers" value="100" min="1" max="100000">
+                    <small class="text-muted">Helps determine recommended resource sizing</small>
+                </div>
+                
+                <div class="recommendation-box" id="sizeRecommendation" style="display: none;">
+                    <h6><i class="bi bi-lightbulb me-2"></i>Size Recommendation</h6>
+                    <p class="mb-2" id="recDescription"></p>
+                    <div class="row small">
+                        <div class="col-md-4">
+                            <strong>Azure:</strong><br>
+                            <span id="recAzure"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>AWS:</strong><br>
+                            <span id="recAws"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>GCP:</strong><br>
+                            <span id="recGcp"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Platform Selection -->
+            <div class="wizard-section" data-section="2">
+                <h3 class="mb-4"><i class="bi bi-cloud me-2"></i>Target Platform</h3>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="option-card" onclick="selectPlatform('azure')">
+                            <input type="radio" name="platform" value="azure">
+                            <div class="option-icon text-primary"><i class="bi bi-microsoft"></i></div>
+                            <h5>Microsoft Azure</h5>
+                            <p class="text-muted small mb-0">AKS, Container Apps, VMs</p>
+                        </label>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="option-card" onclick="selectPlatform('aws')">
+                            <input type="radio" name="platform" value="aws">
+                            <div class="option-icon text-warning"><i class="bi bi-amazon"></i></div>
+                            <h5>Amazon AWS</h5>
+                            <p class="text-muted small mb-0">EKS, ECS, Fargate, EC2</p>
+                        </label>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="option-card" onclick="selectPlatform('gcp')">
+                            <input type="radio" name="platform" value="gcp">
+                            <div class="option-icon text-danger"><i class="bi bi-google"></i></div>
+                            <h5>Google Cloud</h5>
+                            <p class="text-muted small mb-0">GKE, Cloud Run, GCE</p>
+                        </label>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="option-card" onclick="selectPlatform('on_premises')">
+                            <input type="radio" name="platform" value="on_premises">
+                            <div class="option-icon text-dark"><i class="bi bi-server"></i></div>
+                            <h5>On-Premises</h5>
+                            <p class="text-muted small mb-0">Docker, Kubernetes, VMs</p>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Platform-specific options -->
+                <div id="platformOptions" class="mt-4" style="display: none;">
+                    <!-- Azure Options -->
+                    <div id="azureOptions" class="platform-specific" style="display: none;">
+                        <h5 class="mb-3">Azure Configuration</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Region</label>
+                                <select class="form-select" id="azureRegion"></select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Resource Group Name</label>
+                            <input type="text" class="form-control" id="azureResourceGroup" value="crm-production-rg">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Subscription ID</label>
+                            <input type="text" class="form-control" id="azureSubscription" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                        </div>
+                    </div>
+
+                    <!-- AWS Options -->
+                    <div id="awsOptions" class="platform-specific" style="display: none;">
+                        <h5 class="mb-3">AWS Configuration</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Region</label>
+                                <select class="form-select" id="awsRegion"></select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">VPC ID (optional)</label>
+                            <input type="text" class="form-control" id="awsVpcId" placeholder="vpc-xxxxxxxxxx">
+                        </div>
+                    </div>
+
+                    <!-- GCP Options -->
+                    <div id="gcpOptions" class="platform-specific" style="display: none;">
+                        <h5 class="mb-3">GCP Configuration</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Region</label>
+                                <select class="form-select" id="gcpRegion"></select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Project ID</label>
+                            <input type="text" class="form-control" id="gcpProjectId" placeholder="my-project-id">
+                        </div>
+                    </div>
+
+                    <!-- On-Premises Options -->
+                    <div id="onPremOptions" class="platform-specific" style="display: none;">
+                        <h5 class="mb-3">On-Premises Configuration</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Virtualization</label>
+                                <select class="form-select" id="onpremVirtualization"></select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Container Runtime</label>
+                                <select class="form-select" id="onpremContainerRuntime"></select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Orchestration</label>
+                                <select class="form-select" id="onpremOrchestration"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Architecture -->
+            <div class="wizard-section" data-section="3">
+                <h3 class="mb-4"><i class="bi bi-diagram-3 me-2"></i>Deployment Architecture</h3>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="option-card" onclick="selectArchitecture('monolithic')">
+                            <input type="radio" name="architecture" value="monolithic">
+                            <div class="option-icon text-info"><i class="bi bi-box"></i></div>
+                            <h5>Monolithic</h5>
+                            <p class="text-muted small mb-0">Single application with all modules. Simpler deployment, good for smaller teams.</p>
+                        </label>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="option-card" onclick="selectArchitecture('microservices')">
+                            <input type="radio" name="architecture" value="microservices">
+                            <div class="option-icon text-success"><i class="bi bi-boxes"></i></div>
+                            <h5>Microservices</h5>
+                            <p class="text-muted small mb-0">Separate services for each module. Better scalability and isolation.</p>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4" id="archInfo" style="display: none;">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <span id="archInfoText"></span>
+                </div>
+            </div>
+
+            <!-- Step 4: Database -->
+            <div class="wizard-section" data-section="4">
+                <h3 class="mb-4"><i class="bi bi-database me-2"></i>Database Configuration</h3>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="option-card" onclick="selectDatabase('mariadb')">
+                            <input type="radio" name="database" value="mariadb" checked>
+                            <div class="option-icon"><i class="bi bi-database"></i></div>
+                            <h5>MariaDB</h5>
+                            <p class="text-muted small mb-0">MySQL-compatible, high performance</p>
+                        </label>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="option-card" onclick="selectDatabase('mysql')">
+                            <input type="radio" name="database" value="mysql">
+                            <div class="option-icon"><i class="bi bi-database"></i></div>
+                            <h5>MySQL</h5>
+                            <p class="text-muted small mb-0">Popular, widely supported</p>
+                        </label>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="option-card" onclick="selectDatabase('postgresql')">
+                            <input type="radio" name="database" value="postgresql">
+                            <div class="option-icon"><i class="bi bi-database"></i></div>
+                            <h5>PostgreSQL</h5>
+                            <p class="text-muted small mb-0">Advanced features, ACID compliant</p>
+                        </label>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="option-card" onclick="selectDatabase('sqlserver')">
+                            <input type="radio" name="database" value="sqlserver">
+                            <div class="option-icon"><i class="bi bi-database"></i></div>
+                            <h5>SQL Server</h5>
+                            <p class="text-muted small mb-0">Microsoft enterprise database</p>
+                        </label>
+                    </div>
+                </div>
+
+                <h5 class="mb-3">Database Settings</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Database Name</label>
+                        <input type="text" class="form-control" id="dbName" value="crm">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Port</label>
+                        <input type="number" class="form-control" id="dbPort" value="3306">
+                    </div>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="dbHighAvailability">
+                    <label class="form-check-label" for="dbHighAvailability">
+                        Enable High Availability (replicas)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 5: Providers -->
+            <div class="wizard-section" data-section="5">
+                <h3 class="mb-4"><i class="bi bi-puzzle me-2"></i>Provider Selection</h3>
+                
+                <p class="text-muted mb-4">Select which providers to use for each service. "Built-in" uses the CRM's native implementation.</p>
+                
+                <div class="mb-4">
+                    <label class="form-label"><i class="bi bi-search me-2"></i>Search Provider</label>
+                    <div class="provider-grid" id="searchProviderGrid">
+                        <div class="provider-option selected" onclick="selectProvider('search', 'builtin')">
+                            <i class="bi bi-box text-primary"></i>
+                            <div>Built-in</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('search', 'meilisearch')">
+                            <i class="bi bi-search text-success"></i>
+                            <div>Meilisearch</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('search', 'algolia')">
+                            <i class="bi bi-search text-info"></i>
+                            <div>Algolia</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label"><i class="bi bi-chat-dots me-2"></i>Chat Provider</label>
+                    <div class="provider-grid" id="chatProviderGrid">
+                        <div class="provider-option selected" onclick="selectProvider('chat', 'builtin')">
+                            <i class="bi bi-box text-primary"></i>
+                            <div>Built-in</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('chat', 'chatwoot')">
+                            <i class="bi bi-chat text-success"></i>
+                            <div>Chatwoot</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('chat', 'intercom')">
+                            <i class="bi bi-chat text-info"></i>
+                            <div>Intercom</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label"><i class="bi bi-bell me-2"></i>Notification Provider</label>
+                    <div class="provider-grid" id="notificationProviderGrid">
+                        <div class="provider-option selected" onclick="selectProvider('notification', 'builtin')">
+                            <i class="bi bi-box text-primary"></i>
+                            <div>Built-in</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('notification', 'novu')">
+                            <i class="bi bi-bell text-success"></i>
+                            <div>Novu</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('notification', 'twilio')">
+                            <i class="bi bi-telephone text-danger"></i>
+                            <div>Twilio</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('notification', 'sendgrid')">
+                            <i class="bi bi-envelope text-info"></i>
+                            <div>SendGrid</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label"><i class="bi bi-bar-chart me-2"></i>Analytics Provider</label>
+                    <div class="provider-grid" id="analyticsProviderGrid">
+                        <div class="provider-option selected" onclick="selectProvider('analytics', 'builtin')">
+                            <i class="bi bi-box text-primary"></i>
+                            <div>Built-in</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('analytics', 'superset')">
+                            <i class="bi bi-graph-up text-success"></i>
+                            <div>Superset</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('analytics', 'powerbi')">
+                            <i class="bi bi-bar-chart text-warning"></i>
+                            <div>Power BI</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label"><i class="bi bi-pen me-2"></i>Signature Provider</label>
+                    <div class="provider-grid" id="signatureProviderGrid">
+                        <div class="provider-option selected" onclick="selectProvider('signature', 'builtin')">
+                            <i class="bi bi-box text-primary"></i>
+                            <div>Built-in</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('signature', 'docuseal')">
+                            <i class="bi bi-file-earmark-text text-success"></i>
+                            <div>DocuSeal</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('signature', 'docusign')">
+                            <i class="bi bi-file-earmark-check text-info"></i>
+                            <div>DocuSign</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label"><i class="bi bi-robot me-2"></i>AI Provider</label>
+                    <div class="provider-grid" id="aiProviderGrid">
+                        <div class="provider-option selected" onclick="selectProvider('ai', 'ollama')">
+                            <i class="bi bi-cpu text-primary"></i>
+                            <div>Ollama (Local)</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('ai', 'openai')">
+                            <i class="bi bi-robot text-success"></i>
+                            <div>OpenAI</div>
+                        </div>
+                        <div class="provider-option" onclick="selectProvider('ai', 'azure_openai')">
+                            <i class="bi bi-cloud text-info"></i>
+                            <div>Azure OpenAI</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Review -->
+            <div class="wizard-section" data-section="6">
+                <h3 class="mb-4"><i class="bi bi-check-circle me-2"></i>Review Configuration</h3>
+                
+                <div class="config-summary" id="configSummary">
+                    <!-- Populated by JavaScript -->
+                </div>
+
+                <div class="alert alert-success mt-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Ready to generate! Click "Generate Configuration" to create your deployment files.
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="d-flex justify-content-between mt-4 pt-4 border-top">
+                <button class="btn btn-outline-secondary btn-wizard" id="btnPrev" onclick="prevStep()" style="display: none;">
+                    <i class="bi bi-arrow-left me-2"></i>Previous
+                </button>
+                <div class="ms-auto">
+                    <button class="btn btn-primary btn-wizard" id="btnNext" onclick="nextStep()">
+                        Next<i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                    <button class="btn btn-success btn-wizard" id="btnGenerate" onclick="generateConfig()" style="display: none;">
+                        <i class="bi bi-download me-2"></i>Generate Configuration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Configuration Generated!</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Your deployment configuration has been generated successfully!</p>
+                    <div class="alert alert-light" id="generatedFiles">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="/" class="btn btn-primary">Start New Configuration</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration state
+        let config = {
+            name: 'crm-production',
+            description: 'CRM Solution Deployment',
+            expected_users: 100,
+            platform: '',
+            architecture: '',
+            database_type: 'mariadb',
+            database_name: 'crm',
+            database_port: 3306,
+            search_provider: 'builtin',
+            chat_provider: 'builtin',
+            notification_provider: 'builtin',
+            analytics_provider: 'builtin',
+            ai_provider: 'ollama'
+        };
+        
+        let currentStep = 0;
+        const totalSteps = 6;
+
+        // Discovery state
+        let discoveredConfig = null;
+
+        // Initialize discovery
+        async function initDiscovery() {
+            try {
+                const response = await fetch('/api/discovery/platforms');
+                const data = await response.json();
+                
+                const platformSelect = document.getElementById('discoveryPlatform');
+                platformSelect.innerHTML = '<option value="">Select platform...</option>';
+                
+                data.platforms.forEach(platform => {
+                    const available = data.availability[platform];
+                    const option = document.createElement('option');
+                    option.value = platform;
+                    option.textContent = platform.replace('_', ' ').toUpperCase() + (available ? '' : ' (Not Available)');
+                    option.disabled = !available;
+                    platformSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load platforms:', error);
+                showDiscoveryStatus('Failed to load available platforms', 'danger');
+            }
+        }
+
+        // Handle platform selection
+        function onPlatformChange() {
+            const platform = document.getElementById('discoveryPlatform').value;
+            const onPremDiv = document.getElementById('onPremDiscovery');
+            const cloudDiv = document.getElementById('cloudDiscovery');
+            
+            if (platform === 'on_premises') {
+                onPremDiv.style.display = 'block';
+                cloudDiv.style.display = 'none';
+            } else if (platform === 'azure' || platform === 'aws' || platform === 'gcp') {
+                onPremDiv.style.display = 'none';
+                cloudDiv.style.display = 'block';
+            } else {
+                onPremDiv.style.display = 'none';
+                cloudDiv.style.display = 'none';
+            }
+        }
+
+        // Test connection
+        async function testConnection() {
+            const platform = document.getElementById('discoveryPlatform').value;
+            if (!platform) {
+                alert('Please select a platform first.');
+                return;
+            }
+
+            const config = collectDiscoveryConfig();
+            
+            try {
+                showDiscoveryStatus('Testing connection...', 'info');
+                
+                const response = await fetch('/api/discovery/test-connection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showDiscoveryStatus('Connection successful!', 'success');
+                } else {
+                    showDiscoveryStatus(`Connection failed: ${result.message}`, 'danger');
+                }
+            } catch (error) {
+                showDiscoveryStatus(`Connection test failed: ${error.message}`, 'danger');
+            }
+        }
+
+        // Discover deployments
+        async function discoverDeployments() {
+            const platform = document.getElementById('discoveryPlatform').value;
+            if (!platform) {
+                alert('Please select a platform first.');
+                return;
+            }
+
+            const config = collectDiscoveryConfig();
+            
+            try {
+                showDiscoveryStatus('Discovering deployments...', 'info');
+                
+                const response = await fetch('/api/discovery/discover', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showDiscoveryResults(result);
+                    discoveredConfig = result;
+                } else {
+                    showDiscoveryStatus(`Discovery failed: ${result.error}`, 'danger');
+                }
+            } catch (error) {
+                showDiscoveryStatus(`Discovery failed: ${error.message}`, 'danger');
+            }
+        }
+
+        // Collect discovery configuration
+        function collectDiscoveryConfig() {
+            const platform = document.getElementById('discoveryPlatform').value;
+            const config = { platform };
+            
+            if (platform === 'on_premises') {
+                config.host = document.getElementById('discoveryHost').value;
+                config.port = parseInt(document.getElementById('discoveryPort').value);
+                config.username = document.getElementById('discoveryUsername').value;
+                config.auth_method = document.getElementById('discoveryAuthMethod').value;
+                config.password = document.getElementById('discoveryPassword').value;
+                config.container_prefix = document.getElementById('discoveryContainerPrefix').value;
+            } else if (platform === 'azure' || platform === 'aws' || platform === 'gcp') {
+                config.region = document.getElementById('discoveryRegion').value;
+                config.resource_group = document.getElementById('discoveryResourceGroup').value;
+            }
+            
+            return config;
+        }
+
+        // Show discovery status
+        function showDiscoveryStatus(message, type) {
+            const statusDiv = document.getElementById('discoveryStatus');
+            statusDiv.className = `alert alert-${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+        }
+
+        // Show discovery results
+        function showDiscoveryResults(result) {
+            document.getElementById('discoveryResults').style.display = 'block';
+            document.getElementById('discoveryStatus').style.display = 'none';
+            
+            const infoDiv = document.getElementById('deploymentInfo');
+            infoDiv.style.display = 'block';
+            
+            document.getElementById('foundPlatform').textContent = result.platform;
+            document.getElementById('foundArchitecture').textContent = result.architecture;
+            document.getElementById('foundVersion').textContent = result.version || 'Unknown';
+            document.getElementById('foundEnvironment').textContent = result.environment || 'Unknown';
+            document.getElementById('foundHealth').textContent = result.health_status || 'Unknown';
+            document.getElementById('foundLastChecked').textContent = result.last_checked || 'Just now';
+            
+            const componentsDiv = document.getElementById('foundComponents');
+            componentsDiv.innerHTML = '';
+            
+            if (result.components && result.components.length > 0) {
+                result.components.forEach(component => {
+                    const componentDiv = document.createElement('div');
+                    componentDiv.className = 'mb-2 p-2 border rounded';
+                    componentDiv.innerHTML = `
+                        <strong>${component.name}</strong> (${component.type})<br>
+                        <small class="text-muted">
+                            Status: ${component.status} | 
+                            Version: ${component.version || 'Unknown'} | 
+                            Ports: ${component.ports ? component.ports.join(', ') : 'N/A'}
+                        </small>
+                    `;
+                    componentsDiv.appendChild(componentDiv);
+                });
+            } else {
+                componentsDiv.innerHTML = '<em>No components found</em>';
+            }
+        }
+
+        // Use discovered configuration
+        function useDiscoveredConfig() {
+            if (!discoveredConfig) return;
+            
+            // Pre-fill the wizard with discovered values
+            if (discoveredConfig.platform) {
+                // This would be handled when moving to the next step
+                config.discovered_platform = discoveredConfig.platform;
+                config.discovered_architecture = discoveredConfig.architecture;
+                config.discovered_version = discoveredConfig.version;
+            }
+            
+            // Move to next step
+            nextStep();
+        }
+
+        // Skip discovery
+        function skipDiscovery() {
+            discoveredConfig = null;
+            nextStep();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEnums();
+            updateStepIndicator();
+            
+            // Update recommendation on user count change
+            document.getElementById('expectedUsers').addEventListener('change', function() {
+                config.expected_users = parseInt(this.value);
+                loadRecommendation();
+            });
+            
+            // Discovery event listeners
+            document.getElementById('discoveryPlatform').addEventListener('change', onPlatformChange);
+            document.getElementById('testConnectionBtn').addEventListener('click', testConnection);
+            document.getElementById('discoverBtn').addEventListener('click', discoverDeployments);
+            document.getElementById('useDiscoveredBtn').addEventListener('click', useDiscoveredConfig);
+            document.getElementById('skipDiscoveryBtn').addEventListener('click', skipDiscovery);
+            
+            // Initialize discovery
+            initDiscovery();
+            
+            loadRecommendation();
+        });
+
+        async function loadEnums() {
+            // Load Azure options
+            await populateSelect('azureRegion', 'azure_region');
+            
+            // Load AWS options
+            await populateSelect('awsRegion', 'aws_region');
+            
+            // Load GCP options
+            await populateSelect('gcpRegion', 'gcp_region');
+            
+            // Load On-Prem options
+            await populateSelect('onpremVirtualization', 'onprem_virtualization');
+            await populateSelect('onpremContainerRuntime', 'onprem_container_runtime');
+            await populateSelect('onpremOrchestration', 'onprem_orchestration');
+        }
+
+        async function populateSelect(elementId, enumName) {
+            try {
+                const response = await fetch(`/api/enums/${enumName}`);
+                const options = await response.json();
+                const select = document.getElementById(elementId);
+                if (select) {
+                    select.innerHTML = options.map(opt => 
+                        `<option value="${opt.value}">${opt.label}</option>`
+                    ).join('');
+                }
+            } catch (e) {
+                console.error(`Error loading ${enumName}:`, e);
+            }
+        }
+
+        async function loadRecommendation() {
+            const users = config.expected_users || 100;
+            try {
+                const response = await fetch(`/api/size-recommendation/${users}`);
+                const rec = await response.json();
+                
+                document.getElementById('recDescription').textContent = rec.description;
+                document.getElementById('recAzure').innerHTML = 
+                    `VM: ${rec.azure.api_vm}<br>DB: ${rec.azure.database_sku}`;
+                document.getElementById('recAws').innerHTML = 
+                    `EC2: ${rec.aws.api_instance}<br>RDS: ${rec.aws.rds_class}`;
+                document.getElementById('recGcp').innerHTML = 
+                    `GCE: ${rec.gcp.api_machine}<br>SQL: ${rec.gcp.cloudsql_tier}`;
+                document.getElementById('sizeRecommendation').style.display = 'block';
+            } catch (e) {
+                console.error('Error loading recommendation:', e);
+            }
+        }
+
+        function selectPlatform(platform) {
+            config.platform = platform;
+            document.querySelectorAll('[name="platform"]').forEach(r => {
+                r.closest('.option-card').classList.remove('selected');
+            });
+            document.querySelector(`[value="${platform}"]`).closest('.option-card').classList.add('selected');
+            
+            // Show platform-specific options
+            document.querySelectorAll('.platform-specific').forEach(el => el.style.display = 'none');
+            document.getElementById('platformOptions').style.display = 'block';
+            
+            const optionsMap = {
+                'azure': 'azureOptions',
+                'aws': 'awsOptions',
+                'gcp': 'gcpOptions',
+                'on_premises': 'onPremOptions'
+            };
+            
+            if (optionsMap[platform]) {
+                document.getElementById(optionsMap[platform]).style.display = 'block';
+            }
+        }
+
+        function selectArchitecture(arch) {
+            config.architecture = arch;
+            document.querySelectorAll('[name="architecture"]').forEach(r => {
+                r.closest('.option-card').classList.remove('selected');
+            });
+            document.querySelector(`[value="${arch}"]`).closest('.option-card').classList.add('selected');
+            
+            // Show info
+            const infoText = arch === 'monolithic' 
+                ? 'Monolithic deployment is recommended for teams < 50 users or when simplicity is preferred.'
+                : 'Microservices deployment provides better scalability and is recommended for 100+ users.';
+            document.getElementById('archInfoText').textContent = infoText;
+            document.getElementById('archInfo').style.display = 'block';
+        }
+
+        function selectDatabase(db) {
+            config.database_type = db;
+            document.querySelectorAll('[name="database"]').forEach(r => {
+                r.closest('.option-card').classList.remove('selected');
+            });
+            document.querySelector(`[value="${db}"]`).closest('.option-card').classList.add('selected');
+            
+            // Update default port
+            const portMap = { 'mariadb': 3306, 'mysql': 3306, 'postgresql': 5432, 'sqlserver': 1433 };
+            document.getElementById('dbPort').value = portMap[db] || 3306;
+            config.database_port = portMap[db] || 3306;
+        }
+
+        function selectProvider(type, provider) {
+            config[`${type}_provider`] = provider;
+            const grid = document.getElementById(`${type}ProviderGrid`);
+            grid.querySelectorAll('.provider-option').forEach(el => el.classList.remove('selected'));
+            event.target.closest('.provider-option').classList.add('selected');
+        }
+
+        function updateStepIndicator() {
+            document.querySelectorAll('.step').forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index < currentStep) {
+                    step.classList.add('completed');
+                } else if (index === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+            
+            document.querySelectorAll('.wizard-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${currentStep}"]`).classList.add('active');
+            
+            // Update buttons
+            document.getElementById('btnPrev').style.display = currentStep > 0 ? 'block' : 'none';
+            document.getElementById('btnNext').style.display = currentStep < totalSteps ? 'block' : 'none';
+            document.getElementById('btnGenerate').style.display = currentStep === totalSteps ? 'block' : 'none';
+        }
+
+        function collectStepData() {
+            // Collect data from current step
+            if (currentStep === 1) {
+                config.name = document.getElementById('deploymentName').value;
+                config.description = document.getElementById('deploymentDescription').value;
+                config.expected_users = parseInt(document.getElementById('expectedUsers').value);
+            } else if (currentStep === 2) {
+                // Platform-specific data
+                if (config.platform === 'azure') {
+                    config.azure_region = document.getElementById('azureRegion').value;
+                    config.azure_resource_group = document.getElementById('azureResourceGroup').value;
+                    config.azure_subscription = document.getElementById('azureSubscription').value;
+                } else if (config.platform === 'aws') {
+                    config.aws_region = document.getElementById('awsRegion').value;
+                    config.aws_vpc_id = document.getElementById('awsVpcId').value;
+                } else if (config.platform === 'gcp') {
+                    config.gcp_region = document.getElementById('gcpRegion').value;
+                    config.gcp_project_id = document.getElementById('gcpProjectId').value;
+                } else if (config.platform === 'on_premises') {
+                    config.onprem_virtualization = document.getElementById('onpremVirtualization').value;
+                    config.onprem_container_runtime = document.getElementById('onpremContainerRuntime').value;
+                    config.onprem_orchestration = document.getElementById('onpremOrchestration').value;
+                }
+            } else if (currentStep === 4) {
+                config.database_name = document.getElementById('dbName').value;
+                config.database_port = parseInt(document.getElementById('dbPort').value);
+                config.database_ha = document.getElementById('dbHighAvailability').checked;
+            }
+        }
+
+        function validateStep() {
+            if (currentStep === 2 && !config.platform) {
+                alert('Please select a target platform.');
+                return false;
+            }
+            if (currentStep === 3 && !config.architecture) {
+                alert('Please select a deployment architecture.');
+                return false;
+            }
+            return true;
+        }
+
+        function nextStep() {
+            collectStepData();
+            if (!validateStep()) return;
+            
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStepIndicator();
+                
+                if (currentStep === totalSteps) {
+                    renderSummary();
+                }
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateStepIndicator();
+            }
+        }
+
+        function renderSummary() {
+            const summary = document.getElementById('configSummary');
+            summary.innerHTML = `
+                <div class="summary-item">
+                    <span><strong>Deployment Name</strong></span>
+                    <span>${config.name}</span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>Expected Users</strong></span>
+                    <span>${config.expected_users}</span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>Platform</strong></span>
+                    <span>${config.platform.replace('_', ' ').toUpperCase()}</span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>Architecture</strong></span>
+                    <span>${config.architecture.charAt(0).toUpperCase() + config.architecture.slice(1)}</span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>Database</strong></span>
+                    <span>${config.database_type.toUpperCase()} (${config.database_name}:${config.database_port})</span>
+                </div>
+                <hr>
+                <h6>Providers</h6>
+                <div class="summary-item">
+                    <span>Search</span>
+                    <span>${config.search_provider}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Chat</span>
+                    <span>${config.chat_provider}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Notifications</span>
+                    <span>${config.notification_provider}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Analytics</span>
+                    <span>${config.analytics_provider}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Signatures</span>
+                    <span>${config.signature_provider}</span>
+                </div>
+                <div class="summary-item">
+                    <span>AI</span>
+                    <span>${config.ai_provider}</span>
+                </div>
+            `;
+        }
+
+        async function generateConfig() {
+            try {
+                // Save config to server
+                await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                // Generate files
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                // Show success modal
+                document.getElementById('generatedFiles').innerHTML = `
+                    <strong>Output Directory:</strong><br>
+                    <code>${result.output_dir}</code><br><br>
+                    <strong>Files Generated:</strong><br>
+                    ${result.files.map(f => `<code>${f.split('/').pop()}</code>`).join('<br>')}
+                `;
+                
+                const modal = new bootstrap.Modal(document.getElementById('successModal'));
+                modal.show();
+            } catch (e) {
+                alert('Error generating configuration: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>

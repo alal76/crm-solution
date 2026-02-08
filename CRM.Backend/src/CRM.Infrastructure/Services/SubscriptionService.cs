@@ -1,0 +1,744 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+// Licensed under AGPL-3.0. See LICENSE for details.
+
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace CRM.Infrastructure.Services;
+
+/// <summary>
+/// Implementation of ISubscriptionService for subscription management operations.
+/// </summary>
+public class SubscriptionService : ISubscriptionService
+{
+    private readonly ICrmDbContext _context;
+    private readonly ILogger<SubscriptionService> _logger;
+
+    public SubscriptionService(ICrmDbContext context, ILogger<SubscriptionService> logger)
+    {
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    #region CRUD Operations
+
+    public async Task<IEnumerable<Subscription>> GetAllAsync(
+        int? customerId = null,
+        SubscriptionStatus? status = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Subscriptions
+            .Include(s => s.Account)
+            .Include(s => s.Product)
+            .Where(s => !s.IsDeleted);
+
+        if (customerId.HasValue)
+        {
+            query = query.Where(s => s.AccountId == customerId.Value);
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(s => s.SubscriptionStatus == status.Value);
+        }
+
+        return await query.OrderByDescending(s => s.CreatedAt).ToListAsync(cancellationToken);
+    }
+
+    public async Task<Subscription?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.Account)
+            .Include(s => s.Product)
+            .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted, cancellationToken);
+    }
+
+    public async Task<Subscription?> GetBySubscriptionNumberAsync(string subscriptionNumber, CancellationToken cancellationToken = default)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.Account)
+            .Include(s => s.Product)
+            .FirstOrDefaultAsync(s => s.SubscriptionNumber == subscriptionNumber && !s.IsDeleted, cancellationToken);
+    }
+
+    public async Task<Subscription> CreateAsync(Subscription subscription, CancellationToken cancellationToken = default)
+    {
+        subscription.SubscriptionNumber = await GenerateSubscriptionNumberAsync(cancellationToken);
+        subscription.CreatedAt = DateTime.UtcNow;
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Add(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Created subscription {SubscriptionNumber} for account {AccountId}", subscription.SubscriptionNumber, subscription.AccountId);
+        return subscription;
+    }
+
+    public async Task<Subscription> UpdateAsync(Subscription subscription, CancellationToken cancellationToken = default)
+    {
+        var existing = await _context.Subscriptions.FindAsync(new object[] { subscription.Id }, cancellationToken);
+        if (existing == null || existing.IsDeleted)
+        {
+            throw new InvalidOperationException($"Subscription {subscription.Id} not found");
+        }
+
+        subscription.UpdatedAt = DateTime.UtcNow;
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Updated subscription {SubscriptionId}", subscription.Id);
+        return subscription;
+    }
+
+    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var subscription = await _context.Subscriptions.FindAsync(new object[] { id }, cancellationToken);
+        if (subscription == null) return false;
+
+        subscription.IsDeleted = true;
+        subscription.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Deleted subscription {SubscriptionId}", id);
+        return true;
+    }
+
+    #endregion
+
+    #region Subscription Operations
+
+    public async Task<Subscription> CreateFromOrderAsync(int orderId, CancellationToken cancellationToken = default)
+    {
+        var order = await _context.Orders
+            .Include(o => o.LineItems)
+            .FirstOrDefaultAsync(o => o.Id == orderId && !o.IsDeleted, cancellationToken);
+
+        if (order == null)
+        {
+            throw new InvalidOperationException($"Order {orderId} not found");
+        }
+
+        var subscription = new Subscription
+        {
+            SubscriptionNumber = await GenerateSubscriptionNumberAsync(cancellationToken),
+            AccountId = order.AccountId,
+            SubscriptionStatus = SubscriptionStatus.Active,
+            MRR = order.TotalAmount,
+            ARR = order.TotalAmount * 12,
+            BillingCycle = "Monthly",
+            BillingStartDate = DateTime.UtcNow.Date,
+            ContractStartDate = DateTime.UtcNow.Date,
+            ContractEndDate = DateTime.UtcNow.Date.AddYears(1),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Subscriptions.Add(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Created subscription {SubscriptionNumber} from order {OrderId}", subscription.SubscriptionNumber, orderId);
+        return subscription;
+    }
+
+    public async Task<string> GenerateSubscriptionNumberAsync(CancellationToken cancellationToken = default)
+    {
+        var prefix = $"SUB-{DateTime.UtcNow:yyMM}-";
+        var lastSubscription = await _context.Subscriptions
+            .Where(s => s.SubscriptionNumber.StartsWith(prefix))
+            .OrderByDescending(s => s.SubscriptionNumber)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var sequence = 1;
+        if (lastSubscription != null)
+        {
+            var lastNum = lastSubscription.SubscriptionNumber.Split('-').LastOrDefault();
+            if (int.TryParse(lastNum, out var num))
+            {
+                sequence = num + 1;
+            }
+        }
+
+        return $"{prefix}{sequence:D4}";
+    }
+
+    public async Task<Subscription> ActivateAsync(int subscriptionId, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        subscription.SubscriptionStatus = SubscriptionStatus.Active;
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Activated subscription {SubscriptionId}", subscriptionId);
+        return subscription;
+    }
+
+    public async Task<Subscription> PauseAsync(int subscriptionId, string? reason = null, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        subscription.SubscriptionStatus = SubscriptionStatus.Paused;
+        subscription.ContractNotes = string.IsNullOrEmpty(subscription.ContractNotes)
+            ? $"Paused: {reason}"
+            : $"{subscription.ContractNotes}; Paused: {reason}";
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Paused subscription {SubscriptionId}: {Reason}", subscriptionId, reason);
+        return subscription;
+    }
+
+    public async Task<Subscription> ResumeAsync(int subscriptionId, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        if (subscription.SubscriptionStatus != SubscriptionStatus.Paused)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} is not paused");
+        }
+
+        subscription.SubscriptionStatus = SubscriptionStatus.Active;
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Resumed subscription {SubscriptionId}", subscriptionId);
+        return subscription;
+    }
+
+    public async Task<Subscription> CancelAsync(int subscriptionId, string reason, bool immediate = false, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        if (immediate)
+        {
+            subscription.SubscriptionStatus = SubscriptionStatus.Cancelled;
+            subscription.ContractEndDate = DateTime.UtcNow;
+        }
+        else
+        {
+            subscription.SubscriptionStatus = SubscriptionStatus.PendingCancellation;
+        }
+
+        subscription.ContractNotes = string.IsNullOrEmpty(subscription.ContractNotes)
+            ? $"Cancellation reason: {reason}"
+            : $"{subscription.ContractNotes}; Cancellation reason: {reason}";
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Cancelled subscription {SubscriptionId}: {Reason}", subscriptionId, reason);
+        return subscription;
+    }
+
+    #endregion
+
+    #region Status Management
+
+    public async Task<Subscription> UpdateStatusAsync(int subscriptionId, SubscriptionStatus status, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        subscription.SubscriptionStatus = status;
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Updated subscription {SubscriptionId} status to {Status}", subscriptionId, status);
+        return subscription;
+    }
+
+    public async Task<Subscription> SuspendAsync(int subscriptionId, string reason, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        subscription.SubscriptionStatus = SubscriptionStatus.Suspended;
+        subscription.ContractNotes = string.IsNullOrEmpty(subscription.ContractNotes)
+            ? $"Suspended: {reason}"
+            : $"{subscription.ContractNotes}; Suspended: {reason}";
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Suspended subscription {SubscriptionId}: {Reason}", subscriptionId, reason);
+        return subscription;
+    }
+
+    public async Task<Subscription> ReactivateAsync(int subscriptionId, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        subscription.SubscriptionStatus = SubscriptionStatus.Active;
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Reactivated subscription {SubscriptionId}", subscriptionId);
+        return subscription;
+    }
+
+    #endregion
+
+    #region Billing
+
+    public async Task<Invoice> GenerateInvoiceAsync(int subscriptionId, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        var invoice = new Invoice
+        {
+            InvoiceNumber = $"INV-{DateTime.UtcNow:yyMMdd}-{new Random().Next(1000, 9999)}",
+            AccountId = subscription.AccountId,
+            Status = InvoiceStatus.Draft,
+            InvoiceDate = DateTime.UtcNow,
+            DueDate = DateTime.UtcNow.AddDays(30),
+            Subtotal = subscription.MRR ?? 0,
+            TaxAmount = 0,
+            TotalAmount = subscription.MRR ?? 0,
+            Notes = $"Subscription billing for {subscription.SubscriptionNumber}",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Invoices.Add(invoice);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Generated invoice {InvoiceNumber} for subscription {SubscriptionId}", invoice.InvoiceNumber, subscriptionId);
+        return invoice;
+    }
+
+    public async Task<IEnumerable<Invoice>> GetBillingHistoryAsync(int subscriptionId, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            return Enumerable.Empty<Invoice>();
+        }
+
+        return await _context.Invoices
+            .Where(i => i.AccountId == subscription.AccountId && !i.IsDeleted)
+            .OrderByDescending(i => i.InvoiceDate)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<decimal> CalculateProratedAmountAsync(int subscriptionId, DateTime changeDate, decimal newAmount, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        var billingEnd = subscription.BillingEndDate ?? DateTime.UtcNow.AddMonths(1);
+        var daysRemaining = (billingEnd - changeDate).Days;
+        var totalDays = subscription.BillingPeriod switch
+        {
+            BillingPeriod.Weekly => 7,
+            BillingPeriod.Monthly => 30,
+            BillingPeriod.Quarterly => 90,
+            BillingPeriod.Yearly => 365,
+            _ => 30
+        };
+
+        var proratedAmount = (newAmount / totalDays) * daysRemaining;
+        return Math.Round(proratedAmount, 2);
+    }
+
+    public async Task<DateTime?> GetNextBillingDateAsync(int subscriptionId, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            return null;
+        }
+
+        if (!subscription.BillingStartDate.HasValue)
+        {
+            return null;
+        }
+
+        var nextDate = subscription.BillingEndDate ?? subscription.BillingStartDate.Value.AddMonths(1);
+        return nextDate;
+    }
+
+    public async Task<Subscription> UpdateBillingDetailsAsync(int subscriptionId, BillingDetails details, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        subscription.BillingAddress = details.BillingAddress;
+        subscription.BillingCity = details.BillingCity;
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Updated billing details for subscription {SubscriptionId}", subscriptionId);
+        return subscription;
+    }
+
+    #endregion
+
+    #region Plan Changes
+
+    public async Task<Subscription> UpgradeAsync(int subscriptionId, int newPlanId, bool immediate = true, CancellationToken cancellationToken = default)
+    {
+        return await ChangePlanAsync(subscriptionId, newPlanId, immediate ? SubscriptionChangeType.Immediate : SubscriptionChangeType.NextBillingCycle, cancellationToken);
+    }
+
+    public async Task<Subscription> DowngradeAsync(int subscriptionId, int newPlanId, CancellationToken cancellationToken = default)
+    {
+        return await ChangePlanAsync(subscriptionId, newPlanId, SubscriptionChangeType.EndOfPeriod, cancellationToken);
+    }
+
+    public async Task<Subscription> ChangePlanAsync(int subscriptionId, int newPlanId, SubscriptionChangeType changeType, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        var product = await _context.Products.FindAsync(new object[] { newPlanId }, cancellationToken);
+        if (product == null)
+        {
+            throw new InvalidOperationException($"Product/Plan {newPlanId} not found");
+        }
+
+        if (changeType == SubscriptionChangeType.Immediate)
+        {
+            subscription.ProductId = newPlanId;
+            subscription.MRR = product.UnitPrice;
+            subscription.ARR = product.UnitPrice * 12;
+        }
+        else
+        {
+            subscription.ContractNotes = $"Plan change to {product.Name} scheduled for {(changeType == SubscriptionChangeType.EndOfPeriod ? "end of period" : "next billing cycle")}";
+        }
+
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Changed plan for subscription {SubscriptionId} to {NewPlanId}", subscriptionId, newPlanId);
+        return subscription;
+    }
+
+    public async Task<Subscription> AddAddonAsync(int subscriptionId, int addonId, int quantity = 1, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        var addon = await _context.Products.FindAsync(new object[] { addonId }, cancellationToken);
+        if (addon == null)
+        {
+            throw new InvalidOperationException($"Addon product {addonId} not found");
+        }
+
+        subscription.MRR = (subscription.MRR ?? 0) + (addon.UnitPrice * quantity);
+        subscription.ARR = subscription.MRR * 12;
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Added addon {AddonId} x{Quantity} to subscription {SubscriptionId}", addonId, quantity, subscriptionId);
+        return subscription;
+    }
+
+    public async Task<Subscription> RemoveAddonAsync(int subscriptionId, int addonId, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        var addon = await _context.Products.FindAsync(new object[] { addonId }, cancellationToken);
+        if (addon == null)
+        {
+            throw new InvalidOperationException($"Addon product {addonId} not found");
+        }
+
+        subscription.MRR = Math.Max(0, (subscription.MRR ?? 0) - addon.UnitPrice);
+        subscription.ARR = subscription.MRR * 12;
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Removed addon {AddonId} from subscription {SubscriptionId}", addonId, subscriptionId);
+        return subscription;
+    }
+
+    #endregion
+
+    #region Renewal
+
+    public async Task<Subscription> RenewAsync(int subscriptionId, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        var termLength = subscription.BillingPeriod switch
+        {
+            BillingPeriod.Weekly => TimeSpan.FromDays(7),
+            BillingPeriod.Monthly => TimeSpan.FromDays(30),
+            BillingPeriod.Quarterly => TimeSpan.FromDays(90),
+            BillingPeriod.Yearly => TimeSpan.FromDays(365),
+            _ => TimeSpan.FromDays(30)
+        };
+
+        subscription.ContractStartDate = subscription.ContractEndDate ?? DateTime.UtcNow;
+        subscription.ContractEndDate = subscription.ContractStartDate.Value.Add(termLength);
+        subscription.BillingStartDate = subscription.ContractStartDate;
+        subscription.BillingEndDate = subscription.ContractEndDate;
+        subscription.SubscriptionStatus = SubscriptionStatus.Active;
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Renewed subscription {SubscriptionId}", subscriptionId);
+        return subscription;
+    }
+
+    public async Task<IEnumerable<Subscription>> GetDueForRenewalAsync(int withinDays, CancellationToken cancellationToken = default)
+    {
+        var cutoffDate = DateTime.UtcNow.Date.AddDays(withinDays);
+
+        return await _context.Subscriptions
+            .Include(s => s.Account)
+            .Where(s => !s.IsDeleted)
+            .Where(s => s.SubscriptionStatus == SubscriptionStatus.Active)
+            .Where(s => s.ContractEndDate.HasValue && s.ContractEndDate.Value <= cutoffDate && s.ContractEndDate.Value >= DateTime.UtcNow.Date)
+            .OrderBy(s => s.ContractEndDate)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Subscription> SetAutoRenewalAsync(int subscriptionId, bool autoRenew, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        subscription.ContractNotes = autoRenew ? "Auto-renewal enabled" : "Auto-renewal disabled";
+        subscription.UpdatedAt = DateTime.UtcNow;
+
+        _context.Subscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Set auto-renewal to {AutoRenew} for subscription {SubscriptionId}", autoRenew, subscriptionId);
+        return subscription;
+    }
+
+    #endregion
+
+    #region Usage
+
+    public async Task<bool> RecordUsageAsync(int subscriptionId, string metricName, decimal quantity, DateTime? timestamp = null, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
+
+        var usage = new SubscriptionUsage
+        {
+            SubscriptionId = subscriptionId,
+            MetricName = metricName,
+            Quantity = quantity,
+            Timestamp = timestamp ?? DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.SubscriptionUsages.Add(usage);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Recorded usage {MetricName}={Quantity} for subscription {SubscriptionId}", metricName, quantity, subscriptionId);
+        return true;
+    }
+
+    public async Task<SubscriptionUsageData> GetUsageAsync(int subscriptionId, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default)
+    {
+        var usages = await _context.SubscriptionUsages
+            .Where(u => u.SubscriptionId == subscriptionId && u.Timestamp >= fromDate && u.Timestamp <= toDate)
+            .ToListAsync(cancellationToken);
+
+        var metrics = usages
+            .GroupBy(u => u.MetricName)
+            .Select(g => new UsageMetric
+            {
+                MetricName = g.Key,
+                TotalUsage = g.Sum(u => u.Quantity),
+                Records = g.Select(u => new UsageRecord
+                {
+                    Timestamp = u.Timestamp ?? u.UsageDate,
+                    Quantity = u.Quantity
+                }).ToList()
+            })
+            .ToList();
+
+        return new SubscriptionUsageData
+        {
+            SubscriptionId = subscriptionId,
+            FromDate = fromDate,
+            ToDate = toDate,
+            Metrics = metrics
+        };
+    }
+
+    public async Task<IEnumerable<UsageLimit>> GetUsageLimitsAsync(int subscriptionId, CancellationToken cancellationToken = default)
+    {
+        // Placeholder - would need a UsageLimits table
+        await Task.CompletedTask;
+        return new List<UsageLimit>();
+    }
+
+    #endregion
+
+    #region Queries
+
+    public async Task<IEnumerable<Subscription>> GetActiveSubscriptionsAsync(int customerId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.Product)
+            .Where(s => s.AccountId == customerId && s.SubscriptionStatus == SubscriptionStatus.Active && !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Subscription>> GetExpiringSubscriptionsAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default)
+    {
+        return await _context.Subscriptions
+            .Include(s => s.Account)
+            .Where(s => !s.IsDeleted)
+            .Where(s => s.SubscriptionStatus == SubscriptionStatus.Active)
+            .Where(s => s.ContractEndDate.HasValue && s.ContractEndDate.Value >= fromDate && s.ContractEndDate.Value <= toDate)
+            .OrderBy(s => s.ContractEndDate)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<SubscriptionStatistics> GetStatisticsAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Subscriptions.Where(s => !s.IsDeleted);
+
+        if (fromDate.HasValue)
+        {
+            query = query.Where(s => s.CreatedAt >= fromDate.Value);
+        }
+        if (toDate.HasValue)
+        {
+            query = query.Where(s => s.CreatedAt <= toDate.Value);
+        }
+
+        var subscriptions = await query.ToListAsync(cancellationToken);
+
+        var active = subscriptions.Where(s => s.SubscriptionStatus == SubscriptionStatus.Active).ToList();
+        var mrr = active.Sum(s => s.MRR ?? 0);
+
+        return new SubscriptionStatistics
+        {
+            TotalSubscriptions = subscriptions.Count,
+            ActiveSubscriptions = active.Count,
+            TrialSubscriptions = subscriptions.Count(s => s.SubscriptionStatus == SubscriptionStatus.Trial),
+            CancelledSubscriptions = subscriptions.Count(s => s.SubscriptionStatus == SubscriptionStatus.Cancelled),
+            PausedSubscriptions = subscriptions.Count(s => s.SubscriptionStatus == SubscriptionStatus.Paused),
+            MRR = mrr,
+            ARR = mrr * 12,
+            ChurnRate = await GetChurnRateAsync(fromDate ?? DateTime.UtcNow.AddMonths(-1), toDate ?? DateTime.UtcNow, cancellationToken),
+            ConversionRate = 0, // Would need trial-to-paid tracking
+            AverageRevenuePerUser = active.Count > 0 ? mrr / active.Count : 0,
+            NewSubscriptionsThisMonth = subscriptions.Count(s => s.CreatedAt >= DateTime.UtcNow.AddMonths(-1)),
+            CancellationsThisMonth = subscriptions.Count(s => s.SubscriptionStatus == SubscriptionStatus.Cancelled && s.UpdatedAt >= DateTime.UtcNow.AddMonths(-1)),
+            SubscriptionsByPlan = subscriptions.GroupBy(s => s.Product?.Name ?? "Unknown").ToDictionary(g => g.Key, g => g.Count())
+        };
+    }
+
+    public async Task<decimal> CalculateMRRAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Subscriptions
+            .Where(s => !s.IsDeleted && s.SubscriptionStatus == SubscriptionStatus.Active)
+            .SumAsync(s => s.MRR ?? 0, cancellationToken);
+    }
+
+    public async Task<decimal> CalculateARRAsync(CancellationToken cancellationToken = default)
+    {
+        var mrr = await CalculateMRRAsync(cancellationToken);
+        return mrr * 12;
+    }
+
+    public async Task<double> GetChurnRateAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default)
+    {
+        var startCount = await _context.Subscriptions
+            .CountAsync(s => !s.IsDeleted && s.CreatedAt < fromDate && s.SubscriptionStatus == SubscriptionStatus.Active, cancellationToken);
+
+        if (startCount == 0) return 0;
+
+        var churned = await _context.Subscriptions
+            .CountAsync(s => !s.IsDeleted && s.SubscriptionStatus == SubscriptionStatus.Cancelled && s.UpdatedAt >= fromDate && s.UpdatedAt <= toDate, cancellationToken);
+
+        return (double)churned / startCount * 100;
+    }
+
+    #endregion
+}
