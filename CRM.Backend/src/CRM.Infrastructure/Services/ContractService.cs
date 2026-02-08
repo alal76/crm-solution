@@ -127,7 +127,7 @@ public class ContractService : IContractService
         {
             ContractNumber = await GenerateContractNumberAsync(cancellationToken),
             Name = $"Contract for {quote.QuoteNumber}",
-            AccountId = quote.AccountId,
+            AccountId = quote.AccountId ?? 0,
             ContactId = quote.ContactId,
             Status = ContractStatus.Draft,
             ContractType = ContractType.Service,
@@ -218,8 +218,8 @@ public class ContractService : IContractService
             Status = ContractStatus.Draft,
             ContractType = original.ContractType,
             TotalValue = original.TotalValue,
-            StartDate = original.EndDate ?? DateTime.UtcNow.Date,
-            EndDate = (original.EndDate ?? DateTime.UtcNow.Date).AddYears(1),
+            StartDate = original.EndDate,
+            EndDate = original.EndDate.AddYears(1),
             TermsAndConditions = original.TermsAndConditions,
             PaymentTerms = original.PaymentTerms,
             CreatedAt = DateTime.UtcNow,
@@ -390,7 +390,7 @@ public class ContractService : IContractService
             .Include(c => c.Account)
             .Where(c => !c.IsDeleted)
             .Where(c => c.Status == ContractStatus.Active)
-            .Where(c => c.EndDate.HasValue && c.EndDate.Value <= cutoffDate && c.EndDate.Value >= DateTime.UtcNow.Date)
+            .Where(c => c.EndDate <= cutoffDate && c.EndDate >= DateTime.UtcNow.Date)
             .OrderBy(c => c.EndDate)
             .ToListAsync(cancellationToken);
     }
@@ -480,7 +480,6 @@ public class ContractService : IContractService
             throw new InvalidOperationException($"Contract {contractId} not found");
         }
 
-        contract.IsSigned = true;
         contract.SignedDate = DateTime.UtcNow;
         contract.SignedBy = signerId.ToString();
         contract.UpdatedAt = DateTime.UtcNow;
@@ -506,9 +505,9 @@ public class ContractService : IContractService
             AllSigned = contract.IsSigned,
             TotalSigners = 1,
             SignedCount = contract.IsSigned ? 1 : 0,
-            Signers = new List<SignerStatus>
+            Signers = new List<CRM.Core.Interfaces.SignerStatus>
             {
-                new SignerStatus
+                new CRM.Core.Interfaces.SignerStatus
                 {
                     SignerId = int.TryParse(contract.SignedBy, out var id) ? id : 0,
                     HasSigned = contract.IsSigned,
@@ -537,7 +536,7 @@ public class ContractService : IContractService
             .Include(c => c.Account)
             .Where(c => !c.IsDeleted)
             .Where(c => c.Status == ContractStatus.Active)
-            .Where(c => c.EndDate.HasValue && c.EndDate.Value >= fromDate && c.EndDate.Value <= toDate)
+            .Where(c => c.EndDate >= fromDate && c.EndDate <= toDate)
             .OrderBy(c => c.EndDate)
             .ToListAsync(cancellationToken);
     }
@@ -559,7 +558,7 @@ public class ContractService : IContractService
 
         var totalContracts = contracts.Count;
         var activeContracts = contracts.Count(c => c.Status == ContractStatus.Active);
-        var expiringContracts = contracts.Count(c => c.Status == ContractStatus.Active && c.EndDate.HasValue && c.EndDate.Value <= DateTime.UtcNow.AddDays(30));
+        var expiringContracts = contracts.Count(c => c.Status == ContractStatus.Active && c.EndDate <= DateTime.UtcNow.AddDays(30));
         var expiredContracts = contracts.Count(c => c.Status == ContractStatus.Expired);
         var renewedContracts = contracts.Count(c => c.Status == ContractStatus.Renewed);
 
@@ -570,8 +569,8 @@ public class ContractService : IContractService
             ExpiringContracts = expiringContracts,
             ExpiredContracts = expiredContracts,
             PendingRenewals = contracts.Count(c => c.RenewalInitiatedAt.HasValue && !c.RenewalCompletedAt.HasValue),
-            TotalContractValue = contracts.Sum(c => c.TotalValue ?? 0),
-            ActiveContractValue = contracts.Where(c => c.Status == ContractStatus.Active).Sum(c => c.TotalValue ?? 0),
+            TotalContractValue = contracts.Sum(c => c.TotalValue),
+            ActiveContractValue = contracts.Where(c => c.Status == ContractStatus.Active).Sum(c => c.TotalValue),
             RenewalRate = totalContracts > 0 ? (double)renewedContracts / totalContracts * 100 : 0,
             AverageContractLength = CalculateAverageContractLength(contracts),
             ContractsByType = contracts.GroupBy(c => c.ContractType).ToDictionary(g => g.Key, g => g.Count())
@@ -580,11 +579,10 @@ public class ContractService : IContractService
 
     private double CalculateAverageContractLength(List<Contract> contracts)
     {
-        var contractsWithDates = contracts.Where(c => c.StartDate.HasValue && c.EndDate.HasValue).ToList();
-        if (!contractsWithDates.Any()) return 0;
+        if (!contracts.Any()) return 0;
 
-        var totalDays = contractsWithDates.Sum(c => (c.EndDate!.Value - c.StartDate!.Value).TotalDays);
-        return totalDays / contractsWithDates.Count;
+        var totalDays = contracts.Sum(c => (c.EndDate - c.StartDate).TotalDays);
+        return totalDays / contracts.Count;
     }
 
     public async Task<IEnumerable<Contract>> SearchAsync(string searchTerm, CancellationToken cancellationToken = default)
@@ -604,7 +602,7 @@ public class ContractService : IContractService
     {
         return await _context.Contracts
             .Where(c => c.AccountId == customerId && c.Status == ContractStatus.Active && !c.IsDeleted)
-            .SumAsync(c => c.TotalValue ?? 0, cancellationToken);
+            .SumAsync(c => c.TotalValue, cancellationToken);
     }
 
     #endregion
@@ -669,8 +667,8 @@ Contract Name: {contract.Name}
 Status: {contract.Status}
 
 Account: {contract.Account?.Company ?? "N/A"}
-Start Date: {contract.StartDate?.ToShortDateString() ?? "N/A"}
-End Date: {contract.EndDate?.ToShortDateString() ?? "N/A"}
+Start Date: {contract.StartDate.ToShortDateString()}
+End Date: {contract.EndDate.ToShortDateString()}
 Total Value: {contract.TotalValue:C}
 
 Description:

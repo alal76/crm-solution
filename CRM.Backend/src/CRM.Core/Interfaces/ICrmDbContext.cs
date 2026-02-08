@@ -115,6 +115,28 @@ public interface ICrmDbContext
     // LLM Settings
     DbSet<LLMProviderSetting> LLMProviderSettings { get; }
 
+    // Lead Routing
+    DbSet<LeadRoutingRule> LeadRoutingRules { get; }
+    DbSet<LeadRoutingCriteria> LeadRoutingCriteria { get; }
+    DbSet<LeadRoutingTarget> LeadRoutingTargets { get; }
+    DbSet<LeadRoutingLog> LeadRoutingLogs { get; }
+
+    // Territory
+    DbSet<AccountTerritoryAssignment> AccountTerritoryAssignments { get; }
+
+    // Form Builder
+    DbSet<FormDefinition> FormDefinitions { get; }
+    DbSet<FormField> FormFields { get; }
+    DbSet<FormSubmission> FormSubmissions { get; }
+
+    // Approval Workflow
+    DbSet<DiscountApprovalMatrix> DiscountApprovalMatrices { get; }
+    DbSet<ApprovalLevel> ApprovalLevels { get; }
+    DbSet<ApprovalGroup> ApprovalGroups { get; }
+    DbSet<ApprovalGroupMember> ApprovalGroupMembers { get; }
+    DbSet<ApprovalRequest> ApprovalRequests { get; }
+    DbSet<ApprovalStep> ApprovalSteps { get; }
+
     // ITSM Module
     DbSet<CRM.Core.Entities.ITSM.Incident> Incidents { get; }
     DbSet<CRM.Core.Entities.ITSM.IncidentComment> IncidentComments { get; }

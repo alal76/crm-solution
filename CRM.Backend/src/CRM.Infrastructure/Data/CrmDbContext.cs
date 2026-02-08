@@ -178,6 +178,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<RelationshipMap> RelationshipMaps { get; set; }
     public DbSet<AccountTerritory> AccountTerritories { get; set; }
     public DbSet<AccountTerritoryAssignment> CustomerTerritoryAssignments { get; set; }
+    
+    /// <summary>
+    /// Alias for CustomerTerritoryAssignments for interface compatibility
+    /// </summary>
+    public DbSet<AccountTerritoryAssignment> AccountTerritoryAssignments => CustomerTerritoryAssignments;
 
     // Campaign execution entities
     public DbSet<CampaignRecipient> CampaignRecipients { get; set; }

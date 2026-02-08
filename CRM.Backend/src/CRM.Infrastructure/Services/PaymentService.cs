@@ -445,7 +445,7 @@ public class PaymentService : IPaymentService
 
         payment.Status = PaymentStatus.Failed;
         payment.FailureReason = failureReason;
-        payment.RetryCount = (payment.RetryCount ?? 0) + 1;
+        payment.RetryCount = payment.RetryCount + 1;
         payment.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -480,7 +480,7 @@ public class PaymentService : IPaymentService
     public async Task<IEnumerable<Payment>> GetFailedPaymentsAsync(int maxRetries = 3, CancellationToken cancellationToken = default)
     {
         return await _context.Payments
-            .Where(p => !p.IsDeleted && p.Status == PaymentStatus.Failed && (p.RetryCount ?? 0) < maxRetries)
+            .Where(p => !p.IsDeleted && p.Status == PaymentStatus.Failed && p.RetryCount < maxRetries)
             .OrderBy(p => p.PaymentDate)
             .ToListAsync(cancellationToken);
     }
@@ -652,7 +652,7 @@ public class PaymentService : IPaymentService
 
         // Retry payment
         payment.Status = PaymentStatus.Processing;
-        payment.RetryCount = (payment.RetryCount ?? 0) + 1;
+        payment.RetryCount = payment.RetryCount + 1;
         payment.UpdatedAt = DateTime.UtcNow;
 
         // Simulate retry success (in production, call actual gateway)

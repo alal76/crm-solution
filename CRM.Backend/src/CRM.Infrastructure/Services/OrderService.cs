@@ -139,7 +139,7 @@ public class OrderService : IOrderService
         var order = new Order
         {
             OrderNumber = await GenerateOrderNumberAsync(cancellationToken),
-            AccountId = quote.AccountId,
+            AccountId = quote.AccountId ?? 0,
             ContactId = quote.ContactId,
             QuoteId = quoteId,
             OpportunityId = quote.OpportunityId,
@@ -156,7 +156,7 @@ public class OrderService : IOrderService
 
         // Copy line items
         int lineNumber = 1;
-        foreach (var quoteLine in quote.LineItems.Where(l => !l.IsDeleted))
+        foreach (var quoteLine in (quote.QuoteLineItems ?? Enumerable.Empty<QuoteLineItem>()).Where(l => !l.IsDeleted))
         {
             order.LineItems.Add(new OrderLineItem
             {
@@ -165,8 +165,8 @@ public class OrderService : IOrderService
                 Description = quoteLine.Description ?? string.Empty,
                 Quantity = quoteLine.Quantity,
                 UnitPrice = quoteLine.UnitPrice,
-                DiscountAmount = quoteLine.Discount,
-                TotalAmount = quoteLine.LineTotal,
+                DiscountAmount = quoteLine.TotalDiscount,
+                TotalAmount = quoteLine.Total,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             });
@@ -213,8 +213,8 @@ public class OrderService : IOrderService
                 LineNumber = lineNumber++,
                 ProductId = oppProduct.ProductId,
                 Quantity = oppProduct.Quantity,
-                UnitPrice = oppProduct.UnitPrice,
-                TotalAmount = oppProduct.TotalPrice,
+                UnitPrice = oppProduct.UnitPrice ?? 0,
+                TotalAmount = oppProduct.TotalPrice ?? 0,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             });
@@ -549,7 +549,7 @@ public class OrderService : IOrderService
             var line = order.LineItems.FirstOrDefault(l => l.Id == returnItem.LineItemId && !l.IsDeleted);
             if (line != null)
             {
-                line.ReturnedQuantity = (line.ReturnedQuantity ?? 0) + returnItem.Quantity;
+                line.ReturnedQuantity = line.ReturnedQuantity + returnItem.Quantity;
                 line.ReturnReason = returnItem.Reason;
                 line.UpdatedAt = DateTime.UtcNow;
             }
@@ -724,7 +724,7 @@ public class OrderService : IOrderService
             .Where(o => !o.IsDeleted && (
                 o.OrderNumber.ToLower().Contains(term) ||
                 (o.Account != null && (
-                    o.Account.Company != null && o.Account.Company.ToLower().Contains(term) ||
+                    (o.Account.Company != null && o.Account.Company.ToLower().Contains(term)) ||
                     o.Account.Email.ToLower().Contains(term)))))
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync(cancellationToken);

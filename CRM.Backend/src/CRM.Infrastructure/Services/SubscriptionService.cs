@@ -192,8 +192,8 @@ public class SubscriptionService : ISubscriptionService
         }
 
         subscription.SubscriptionStatus = SubscriptionStatus.Paused;
-        subscription.ContractNotes = string.IsNullOrEmpty(subscription.ContractNotes) 
-            ? $"Paused: {reason}" 
+        subscription.ContractNotes = string.IsNullOrEmpty(subscription.ContractNotes)
+            ? $"Paused: {reason}"
             : $"{subscription.ContractNotes}; Paused: {reason}";
         subscription.UpdatedAt = DateTime.UtcNow;
 
@@ -337,7 +337,7 @@ public class SubscriptionService : ISubscriptionService
             Status = InvoiceStatus.Draft,
             InvoiceDate = DateTime.UtcNow,
             DueDate = DateTime.UtcNow.AddDays(30),
-            SubTotal = subscription.MRR ?? 0,
+            Subtotal = subscription.MRR ?? 0,
             TaxAmount = 0,
             TotalAmount = subscription.MRR ?? 0,
             Notes = $"Subscription billing for {subscription.SubscriptionNumber}",
@@ -632,7 +632,7 @@ public class SubscriptionService : ISubscriptionService
                 TotalUsage = g.Sum(u => u.Quantity),
                 Records = g.Select(u => new UsageRecord
                 {
-                    Timestamp = u.Timestamp,
+                    Timestamp = u.Timestamp ?? u.UsageDate,
                     Quantity = u.Quantity
                 }).ToList()
             })

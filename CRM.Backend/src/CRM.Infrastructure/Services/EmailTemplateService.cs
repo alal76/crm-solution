@@ -307,7 +307,7 @@ public class EmailTemplateService : IEmailTemplateService
         var rendered = RenderTemplate(template, data);
 
         // Log instead of sending (actual sending would use an email service)
-        _logger.LogInformation("Test email for template {TemplateId} to {Recipient}: Subject='{Subject}'", 
+        _logger.LogInformation("Test email for template {TemplateId} to {Recipient}: Subject='{Subject}'",
             templateId, recipientEmail, rendered.Subject);
 
         return true;
@@ -639,7 +639,7 @@ public class EmailTemplateService : IEmailTemplateService
         {
             TemplateId = templateId,
             TemplateName = template.Name,
-            TotalUsages = template.UsageCount ?? 0,
+            TotalUsages = template.UsageCount,
             UniqueUsers = 0, // Would need usage tracking table
             LastUsedAt = template.LastUsedAt,
             UsageHistory = new List<UsageByDay>()
@@ -651,7 +651,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await _context.EmailTemplates.FindAsync(new object[] { templateId }, cancellationToken);
         if (template == null) return;
 
-        template.UsageCount = (template.UsageCount ?? 0) + 1;
+        template.UsageCount = template.UsageCount + 1;
         template.LastUsedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -670,7 +670,7 @@ public class EmailTemplateService : IEmailTemplateService
                 TemplateId = t.Id,
                 TemplateName = t.Name,
                 Category = t.Category,
-                UsageCount = t.UsageCount ?? 0
+                UsageCount = t.UsageCount
             })
             .ToListAsync(cancellationToken);
     }

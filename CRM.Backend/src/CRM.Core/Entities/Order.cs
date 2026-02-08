@@ -406,6 +406,13 @@ public class Order : BaseEntity
     /// <summary>Navigation to sales rep</summary>
     public User? Owner { get; set; }
 
+    /// <summary>Alias for OwnerId for service compatibility</summary>
+    public int? SalesRepId
+    {
+        get => OwnerId;
+        set => OwnerId = value;
+    }
+
     /// <summary>User who approved the order</summary>
     public int? ApprovedById { get; set; }
 

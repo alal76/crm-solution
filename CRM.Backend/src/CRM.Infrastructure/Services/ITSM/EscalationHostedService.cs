@@ -229,8 +229,239 @@ public class EscalationHostedService : BackgroundService
             "Escalated incident {IncidentNumber} from level {OldLevel} to {NewLevel}: {Reason}",
             incident.Number, oldLevel, incident.EscalationLevel, reason);
 
-        // TODO: Send notification to escalation contacts
-        // await SendEscalationNotificationAsync(incident, reason);
+        // Send notification to escalation contacts
+        await SendEscalationNotificationAsync(context, incident, oldLevel, reason);
+    }
+
+    /// <summary>
+    /// Sends escalation notification to the appropriate contacts based on escalation level.
+    /// Uses INotificationPort for multi-channel notifications (email, SMS, etc.).
+    /// </summary>
+    private async Task SendEscalationNotificationAsync(ICrmDbContext context, Incident incident, int previousLevel, string reason)
+    {
+        try
+        {
+            // Get escalation contacts based on level and assignment group
+            var escalationContacts = await GetEscalationContactsAsync(context, incident);
+
+            if (!escalationContacts.Any())
+            {
+                _logger.LogWarning(
+                    "No escalation contacts found for incident {IncidentNumber} at level {Level}",
+                    incident.Number, incident.EscalationLevel);
+                return;
+            }
+
+            // Resolve notification port from DI
+            using var scope = _serviceProvider.CreateScope();
+            var notificationPort = scope.ServiceProvider.GetService<CRM.Core.Ports.Output.Providers.INotificationPort>();
+
+            if (notificationPort == null)
+            {
+                _logger.LogWarning("INotificationPort not available, escalation notifications will not be sent");
+                return;
+            }
+
+            // Send email notification to each escalation contact
+            foreach (var contact in escalationContacts)
+            {
+                var emailRequest = new CRM.Core.Ports.Output.Providers.NotificationRequest
+                {
+                    Channel = CRM.Core.Ports.Output.Providers.NotificationChannel.Email,
+                    Subject = $"[ESCALATION L{incident.EscalationLevel}] Incident {incident.Number}: {incident.ShortDescription}",
+                    Body = BuildEscalationEmailBody(incident, previousLevel, reason),
+                    Recipients = new List<CRM.Core.Ports.Output.Providers.NotificationRecipient>
+                    {
+                        new()
+                        {
+                            Email = contact.Email,
+                            Name = contact.Name,
+                        }
+                    },
+                    Priority = incident.Impact <= 2 ? CRM.Core.Ports.Output.Providers.NotificationPriority.High : CRM.Core.Ports.Output.Providers.NotificationPriority.Normal,
+                    Metadata = new Dictionary<string, string>
+                    {
+                        ["incident_id"] = incident.IncidentId.ToString(),
+                        ["incident_number"] = incident.Number,
+                        ["escalation_level"] = incident.EscalationLevel.ToString(),
+                        ["priority"] = GetPriorityLabel(incident.Impact, incident.Urgency),
+                    },
+                };
+
+                var result = await notificationPort.SendAsync(emailRequest);
+
+                if (result.Success)
+                {
+                    _logger.LogInformation(
+                        "Escalation notification sent to {Email} for incident {IncidentNumber}",
+                        contact.Email, incident.Number);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Failed to send escalation notification to {Email} for incident {IncidentNumber}: {Error}",
+                        contact.Email, incident.Number, result.ErrorMessage);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending escalation notification for incident {IncidentNumber}", incident.Number);
+        }
+    }
+
+    /// <summary>
+    /// Gets escalation contacts based on incident escalation level and assignment group.
+    /// </summary>
+    private async Task<List<EscalationContact>> GetEscalationContactsAsync(ICrmDbContext context, Incident incident)
+    {
+        var contacts = new List<EscalationContact>();
+
+        // Level 1: Assigned technician + team lead
+        // Level 2: Team manager + service owner
+        // Level 3: Department head + IT director
+        // Level 4+: Executive / CIO
+
+        // Get assignee if exists
+        if (incident.AssignedToId.HasValue)
+        {
+            var assignee = await context.Users
+                .Where(u => u.Id == incident.AssignedToId && !u.IsDeleted)
+                .FirstOrDefaultAsync();
+
+            if (assignee != null && incident.EscalationLevel == 1)
+            {
+                contacts.Add(new EscalationContact
+                {
+                    Email = assignee.Email,
+                    Name = $"{assignee.FirstName} {assignee.LastName}",
+                    Role = "Assigned Technician",
+                });
+            }
+        }
+
+        // Get assignment group members for manager escalation
+        if (incident.AssignmentGroupId.HasValue && incident.EscalationLevel >= 2)
+        {
+            var groupManagers = await context.UserGroupMembers
+                .Where(ugm => ugm.UserGroupId == incident.AssignmentGroupId)
+                .Join(
+                    context.Users.Where(u => !u.IsDeleted),
+                    ugm => ugm.UserId,
+                    u => u.Id,
+                    (ugm, u) => u)
+                .ToListAsync();
+
+            // Find users with manager role (Role == 3 or check for admin in group)
+            foreach (var user in groupManagers.Where(u => u.Role >= 2).Take(2))
+            {
+                contacts.Add(new EscalationContact
+                {
+                    Email = user.Email,
+                    Name = $"{user.FirstName} {user.LastName}",
+                    Role = incident.EscalationLevel >= 3 ? "Manager" : "Team Lead",
+                });
+            }
+        }
+
+        // For highest escalation levels, try to find system admins
+        if (incident.EscalationLevel >= 3)
+        {
+            var admins = await context.Users
+                .Where(u => u.Role >= 3 && !u.IsDeleted)
+                .Take(2)
+                .ToListAsync();
+
+            foreach (var admin in admins)
+            {
+                if (!contacts.Any(c => c.Email == admin.Email))
+                {
+                    contacts.Add(new EscalationContact
+                    {
+                        Email = admin.Email,
+                        Name = $"{admin.FirstName} {admin.LastName}",
+                        Role = "IT Director",
+                    });
+                }
+            }
+        }
+
+        return contacts;
+    }
+
+    /// <summary>
+    /// Builds the HTML email body for escalation notification.
+    /// </summary>
+    private static string BuildEscalationEmailBody(Incident incident, int previousLevel, string reason)
+    {
+        var priority = GetPriorityLabel(incident.Impact, incident.Urgency);
+        var urgencyColor = incident.Impact <= 2 ? "#dc3545" : (incident.Impact == 3 ? "#ffc107" : "#28a745");
+
+        return $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .header {{ background-color: {urgencyColor}; color: white; padding: 20px; text-align: center; }}
+        .content {{ padding: 20px; }}
+        .details {{ background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }}
+        .label {{ font-weight: bold; color: #555; }}
+        .action {{ background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px; }}
+    </style>
+</head>
+<body>
+    <div class='header'>
+        <h1>⚠️ Incident Escalated</h1>
+        <p>Level {previousLevel} → Level {incident.EscalationLevel}</p>
+    </div>
+    <div class='content'>
+        <h2>Incident: {incident.Number}</h2>
+        <p><strong>{incident.ShortDescription}</strong></p>
+
+        <div class='details'>
+            <p><span class='label'>Priority:</span> {priority}</p>
+            <p><span class='label'>Impact:</span> P{incident.Impact}</p>
+            <p><span class='label'>Urgency:</span> P{incident.Urgency}</p>
+            <p><span class='label'>State:</span> {(IncidentState)incident.State}</p>
+            <p><span class='label'>Opened:</span> {incident.OpenedAt:yyyy-MM-dd HH:mm} UTC</p>
+        </div>
+
+        <h3>Escalation Reason</h3>
+        <p>{reason}</p>
+
+        <h3>Description</h3>
+        <p>{incident.Description ?? "No description provided."}</p>
+
+        <p>Please review and take appropriate action.</p>
+    </div>
+</body>
+</html>";
+    }
+
+    /// <summary>
+    /// Gets priority label based on impact and urgency matrix.
+    /// </summary>
+    private static string GetPriorityLabel(int impact, int urgency)
+    {
+        var priorityValue = (impact + urgency) / 2;
+        return priorityValue switch
+        {
+            1 => "P1 - Critical",
+            2 => "P2 - High",
+            3 => "P3 - Medium",
+            _ => "P4 - Low",
+        };
+    }
+
+    /// <summary>
+    /// Represents an escalation contact for notifications.
+    /// </summary>
+    private sealed class EscalationContact
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
     }
 
     private static double CalculateTimePercentage(DateTime start, DateTime end, DateTime current)

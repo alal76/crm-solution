@@ -190,7 +190,7 @@ public class TeamService : ITeamService
         return await _context.TeamMembers
             .Include(m => m.User)
             .Where(m => m.TeamId == teamId && !m.IsDeleted)
-            .OrderBy(m => m.User.LastName)
+            .OrderBy(m => m.User != null ? m.User.LastName : string.Empty)
             .ToListAsync(cancellationToken);
     }
 
@@ -417,8 +417,8 @@ public class TeamService : ITeamService
 
         var memberIds = members.Select(m => m.UserId).ToList();
         var activeOpportunities = await _context.Opportunities
-            .CountAsync(o => memberIds.Contains(o.SalesOwnerId ?? 0) && 
-                           o.Stage != OpportunityStage.ClosedWon && 
+            .CountAsync(o => memberIds.Contains(o.SalesOwnerId ?? 0) &&
+                           o.Stage != OpportunityStage.ClosedWon &&
                            o.Stage != OpportunityStage.ClosedLost, cancellationToken);
 
         return new TeamStatistics
@@ -541,7 +541,7 @@ public class TeamService : ITeamService
                 {
                     throw new InvalidOperationException("Cannot create circular team hierarchy");
                 }
-                current = current.ParentTeamId.HasValue 
+                current = current.ParentTeamId.HasValue
                     ? await GetByIdAsync(current.ParentTeamId.Value, cancellationToken)
                     : null;
             }

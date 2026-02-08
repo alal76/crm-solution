@@ -11,6 +11,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     
+    <!-- Feature Flags -->
+    <!-- ITSM_ADVANCED: 28 advanced ITSM services with 460+ build errors. Disabled pending entity property alignment.
+         Enable with: <DefineConstants>$(DefineConstants);ITSM_ADVANCED</DefineConstants> -->
+    
     <!-- Code Analysis -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
