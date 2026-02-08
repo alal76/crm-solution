@@ -17,6 +17,14 @@ public class SubscriptionService : ISubscriptionService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<SubscriptionService> _logger;
+    private static readonly HashSet<string> AllowedBillingCycles = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "weekly",
+        "monthly",
+        "quarterly",
+        "yearly",
+        "annual"
+    };
 
     public SubscriptionService(ICrmDbContext context, ILogger<SubscriptionService> logger)
     {
@@ -67,6 +75,8 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<Subscription> CreateAsync(Subscription subscription, CancellationToken cancellationToken = default)
     {
+        ValidateSubscriptionInput(subscription);
+        subscription.BillingCycle = NormalizeBillingCycle(subscription.BillingCycle);
         subscription.SubscriptionNumber = await GenerateSubscriptionNumberAsync(cancellationToken);
         subscription.CreatedAt = DateTime.UtcNow;
         subscription.UpdatedAt = DateTime.UtcNow;
@@ -86,6 +96,8 @@ public class SubscriptionService : ISubscriptionService
             throw new InvalidOperationException($"Subscription {subscription.Id} not found");
         }
 
+        ValidateSubscriptionInput(subscription);
+        subscription.BillingCycle = NormalizeBillingCycle(subscription.BillingCycle);
         subscription.UpdatedAt = DateTime.UtcNow;
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -136,6 +148,9 @@ public class SubscriptionService : ISubscriptionService
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+
+        ValidateSubscriptionInput(subscription);
+        subscription.BillingCycle = NormalizeBillingCycle(subscription.BillingCycle);
 
         _context.Subscriptions.Add(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -332,7 +347,7 @@ public class SubscriptionService : ISubscriptionService
 
         var invoice = new Invoice
         {
-            InvoiceNumber = $"INV-{DateTime.UtcNow:yyMMdd}-{new Random().Next(1000, 9999)}",
+            InvoiceNumber = await GenerateInvoiceNumberAsync(cancellationToken),
             AccountId = subscription.AccountId,
             Status = InvoiceStatus.Draft,
             InvoiceDate = DateTime.UtcNow,
@@ -601,10 +616,26 @@ public class SubscriptionService : ISubscriptionService
             throw new InvalidOperationException($"Subscription {subscriptionId} not found");
         }
 
+        var normalizedMetric = metricName?.Trim() ?? string.Empty;
+        var limit = await _context.SubscriptionUsageLimits
+            .FirstOrDefaultAsync(l => l.SubscriptionId == subscriptionId && l.MetricName == normalizedMetric && !l.IsDeleted, cancellationToken);
+
+        if (limit != null)
+        {
+            var used = await _context.SubscriptionUsages
+                .Where(u => u.SubscriptionId == subscriptionId && u.MetricName == normalizedMetric)
+                .SumAsync(u => u.Quantity, cancellationToken);
+
+            if (limit.EnforceCap && used + quantity > limit.Limit)
+            {
+                throw new InvalidOperationException($"Usage for {normalizedMetric} exceeds the configured limit.");
+            }
+        }
+
         var usage = new SubscriptionUsage
         {
             SubscriptionId = subscriptionId,
-            MetricName = metricName,
+            MetricName = normalizedMetric,
             Quantity = quantity,
             Timestamp = timestamp ?? DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,
@@ -649,9 +680,27 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<IEnumerable<UsageLimit>> GetUsageLimitsAsync(int subscriptionId, CancellationToken cancellationToken = default)
     {
-        // Placeholder - would need a UsageLimits table
-        await Task.CompletedTask;
-        return new List<UsageLimit>();
+        var limits = await _context.SubscriptionUsageLimits
+            .Where(l => l.SubscriptionId == subscriptionId && !l.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        if (!limits.Any())
+        {
+            return Enumerable.Empty<UsageLimit>();
+        }
+
+        var usageByMetric = await _context.SubscriptionUsages
+            .Where(u => u.SubscriptionId == subscriptionId)
+            .GroupBy(u => u.MetricName)
+            .Select(g => new { Metric = g.Key, Used = g.Sum(u => u.Quantity) })
+            .ToDictionaryAsync(x => x.Metric, x => x.Used, cancellationToken);
+
+        return limits.Select(l => new UsageLimit
+        {
+            MetricName = l.MetricName,
+            Limit = l.Limit,
+            Used = usageByMetric.TryGetValue(l.MetricName, out var used) ? used : 0
+        }).ToList();
     }
 
     #endregion
@@ -738,6 +787,89 @@ public class SubscriptionService : ISubscriptionService
             .CountAsync(s => !s.IsDeleted && s.SubscriptionStatus == SubscriptionStatus.Cancelled && s.UpdatedAt >= fromDate && s.UpdatedAt <= toDate, cancellationToken);
 
         return (double)churned / startCount * 100;
+    }
+
+    #endregion
+
+    #region Helpers
+
+    private static string NormalizeBillingCycle(string? billingCycle)
+    {
+        if (string.IsNullOrWhiteSpace(billingCycle)) return "Monthly";
+
+        var normalized = billingCycle.Trim().ToLowerInvariant();
+        if (!AllowedBillingCycles.Contains(normalized))
+        {
+            throw new ArgumentException($"Unsupported billing cycle '{billingCycle}'. Allowed values: Weekly, Monthly, Quarterly, Yearly, Annual.");
+        }
+
+        return normalized switch
+        {
+            "annual" => "Yearly",
+            _ => char.ToUpperInvariant(normalized[0]) + normalized[1..]
+        };
+    }
+
+    private static void ValidateSubscriptionInput(Subscription subscription)
+    {
+        if (subscription.AccountId <= 0)
+        {
+            throw new ArgumentException("AccountId is required for a subscription.");
+        }
+
+        if (subscription.Amount < 0)
+        {
+            throw new ArgumentException("Amount must be greater than or equal to zero.");
+        }
+
+        if (subscription.MRR.HasValue && subscription.MRR.Value < 0)
+        {
+            throw new ArgumentException("MRR must be greater than or equal to zero.");
+        }
+
+        if (subscription.ARR.HasValue && subscription.ARR.Value < 0)
+        {
+            throw new ArgumentException("ARR must be greater than or equal to zero.");
+        }
+
+        if (subscription.StartDate.HasValue && subscription.EndDate.HasValue && subscription.EndDate < subscription.StartDate)
+        {
+            throw new ArgumentException("EndDate must be greater than or equal to StartDate.");
+        }
+
+        if (subscription.BillingStartDate.HasValue && subscription.BillingEndDate.HasValue && subscription.BillingEndDate < subscription.BillingStartDate)
+        {
+            throw new ArgumentException("BillingEndDate must be greater than or equal to BillingStartDate.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(subscription.BillingCycle))
+        {
+            _ = NormalizeBillingCycle(subscription.BillingCycle); // will throw if invalid
+        }
+    }
+
+    private async Task<string> GenerateInvoiceNumberAsync(CancellationToken cancellationToken)
+    {
+        var prefix = "INV";
+        var year = DateTime.UtcNow.ToString("yy");
+        var month = DateTime.UtcNow.ToString("MM");
+
+        var lastInvoice = await _context.Invoices
+            .Where(i => i.InvoiceNumber.StartsWith($"{prefix}-{year}{month}"))
+            .OrderByDescending(i => i.InvoiceNumber)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        int sequence = 1;
+        if (lastInvoice != null)
+        {
+            var parts = lastInvoice.InvoiceNumber.Split('-');
+            if (parts.Length >= 2 && int.TryParse(parts[^1], out int lastSeq))
+            {
+                sequence = lastSeq + 1;
+            }
+        }
+
+        return $"{prefix}-{year}{month}-{sequence:D4}";
     }
 
     #endregion

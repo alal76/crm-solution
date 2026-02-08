@@ -92,6 +92,7 @@ public interface ICrmDbContext
     DbSet<Subscription> Subscriptions { get; }
     DbSet<SubscriptionItem> SubscriptionItems { get; }
     DbSet<SubscriptionUsage> SubscriptionUsages { get; }
+    DbSet<SubscriptionUsageLimit> SubscriptionUsageLimits { get; }
     DbSet<Contract> Contracts { get; }
 
     // Phase 4 - Teams
