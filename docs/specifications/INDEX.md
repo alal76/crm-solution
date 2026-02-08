@@ -1,7 +1,7 @@
 # CRM Solution - Feature Specification Index
 
-> **Last Updated:** February 8, 2026  
-> **Total Specifications:** 3 (Active), 37 (Planned) = 40 Total  
+> **Last Updated:** February 12, 2026  
+> **Total Specifications:** 5 (Active), 35 (Planned) = 40 Total  
 > **Template Version:** 1.0
 
 ---
@@ -28,8 +28,8 @@ This index provides a centralized catalog of all feature specifications in the C
 | [SPEC-CRM-001](SPEC-CRM-001-AccountManagement.md) | Account Management | ✅ Complete | P0 | - |
 | [SPEC-CRM-002](SPEC-CRM-002-LeadManagement.md) | Lead Management | ✅ Complete | P0 | - |
 | [SPEC-CRM-003](SPEC-CRM-003-OpportunityManagement.md) | Opportunity Management | ✅ Complete | P0 | CRM-001 |
-| SPEC-CRM-004 | Contact Management | ⏳ Pending | P0 | CRM-001 |
-| SPEC-CRM-005 | Activity Management | ⏳ Pending | P1 | CRM-001, CRM-004 |
+| [SPEC-CRM-004](SPEC-CRM-004-ContactManagement.md) | Contact Management | ✅ Complete | P0 | CRM-001 |
+| [SPEC-CRM-005](SPEC-CRM-005-ActivityManagement.md) | Activity Management | ✅ Complete | P1 | CRM-001, CRM-004 |
 | SPEC-CRM-006 | Pipeline Management | ⏳ Pending | P1 | CRM-003 |
 | SPEC-CRM-007 | Task Management | ⏳ Pending | P1 | - |
 
@@ -112,7 +112,7 @@ This index provides a centralized catalog of all feature specifications in the C
 ### By Module
 | Module | Total | Complete | Pending | In Progress |
 |--------|-------|----------|---------|-------------|
-| Core CRM | 7 | 3 | 4 | 0 |
+| Core CRM | 7 | 5 | 2 | 0 |
 | Sales | 7 | 0 | 7 | 0 |
 | Marketing | 5 | 0 | 5 | 0 |
 | Service Desk | 5 | 0 | 5 | 0 |
@@ -120,7 +120,7 @@ This index provides a centralized catalog of all feature specifications in the C
 | System | 5 | 0 | 5 | 0 |
 | AI & Analytics | 4 | 0 | 4 | 0 |
 | Integration | 3 | 0 | 3 | 0 |
-| **Total** | **40** | **3** | **37** | **0** |
+| **Total** | **40** | **5** | **35** | **0** |
 
 ### TODO Items Extracted
 | Spec | TODO Count | High Priority | Medium Priority | Low Priority |
@@ -128,7 +128,9 @@ This index provides a centralized catalog of all feature specifications in the C
 | SPEC-CRM-001 | 10 | 3 | 5 | 2 |
 | SPEC-CRM-002 | 8 | 2 | 5 | 1 |
 | SPEC-CRM-003 | 8 | 2 | 5 | 1 |
-| **Total** | **26** | **7** | **15** | **4** |
+| SPEC-CRM-004 | 5 | 1 | 3 | 1 |
+| SPEC-CRM-005 | 4 | 1 | 2 | 1 |
+| **Total** | **35** | **9** | **20** | **6** |
 
 ---
 
