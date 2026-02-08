@@ -47,6 +47,7 @@ import {
   Handshake as RelationshipsIcon,
   RocketLaunch as CampaignExecutionIcon,
   Email as EmailIcon,
+  Autorenew as SubscriptionIcon,
   // Admin section icons
   Storage as StorageIcon,
   Cloud as CloudIcon,
