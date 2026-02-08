@@ -495,7 +495,7 @@ echo "E2E Pass Rate: $(grep -c 'passed' playwright-report/results.json 2>/dev/nu
 
 | Module | Total | Complete | In Progress | Pending | % Done |
 |--------|-------|----------|-------------|---------|--------|
-| Core CRM | 7 | 5 | 0 | 2 | 71% |
+| Core CRM | 7 | 6 | 0 | 1 | 86% |
 | Sales | 7 | 0 | 0 | 7 | 0% |
 | Marketing | 5 | 0 | 0 | 5 | 0% |
 | Service Desk | 5 | 0 | 0 | 5 | 0% |
