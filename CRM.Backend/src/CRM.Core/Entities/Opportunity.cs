@@ -206,6 +206,18 @@ public class Opportunity : BaseEntity
     public decimal WeightedAmount => Amount * Probability / 100;
 
     #endregion
+
+    #region Aliases
+
+    /// <summary>Alias for Amount for service compatibility</summary>
+    [NotMapped]
+    public decimal EstimatedValue
+    {
+        get => Amount;
+        set => Amount = value;
+    }
+
+    #endregion
 }
 
 /// <summary>
@@ -236,12 +248,22 @@ public class OpportunityProduct
     [Column(TypeName = "decimal(18,2)")]
     public decimal? LineTotal { get; set; }
 
+    /// <summary>Alias for LineTotal for service compatibility</summary>
+    public decimal? TotalPrice
+    {
+        get => LineTotal;
+        set => LineTotal = value;
+    }
+
     /// <summary>When the product was added to the opportunity</summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>Notes about this product line</summary>
     [MaxLength(1000)]
     public string? Notes { get; set; }
+
+    /// <summary>Soft delete flag</summary>
+    public bool IsDeleted { get; set; } = false;
 
     #region Navigation Properties
 

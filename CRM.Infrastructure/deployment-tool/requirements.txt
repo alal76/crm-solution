@@ -1,0 +1,20 @@
+# CRM Deployment Tool - Python Dependencies
+# Author: Abhishek Lal
+# License: AGPL-3.0
+#
+# ============================================================================
+# ONLY CORE PACKAGES ARE LISTED HERE.
+#
+# All other packages (cloud SDKs, SSH, Docker, etc.) are installed ON DEMAND
+# at runtime when the user first needs them.  The prerequisite checker
+# (prerequisites.py) detects missing packages and prompts the user to
+# install them automatically, resolving the best available version at that
+# time.
+#
+# To install everything up front (optional):
+#   pip install -r requirements-full.txt
+# ============================================================================
+
+# --- Core: required for the GUI & CLI to start ----------------------------
+flask>=3.0
+pyyaml>=6.0

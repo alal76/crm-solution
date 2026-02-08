@@ -445,7 +445,7 @@ public class PerformanceTestHarness
 public class PerformanceTestConfig
 {
     public string BaseUrl { get; set; } = "http://localhost:5000";
-    public string TestUserEmail { get; set; } = "abhi.lal@gmail.com";
+    public string TestUserEmail { get; set; } = "admin@crm.local";
     public string TestUserPassword { get; set; } = "Admin@123";
     public int RequestTimeoutSeconds { get; set; } = 30;
     public int DefaultConcurrentUsers { get; set; } = 10;

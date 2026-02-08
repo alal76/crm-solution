@@ -70,3 +70,9 @@ database/master_data/allCountries.zip
 coverage/
 *.lcov
 .nyc_output/
+
+# Local configuration files (secrets, OAuth credentials)
+# These should NEVER be committed to source control
+config/*.local.env
+config/*.local.json
+*.local.env

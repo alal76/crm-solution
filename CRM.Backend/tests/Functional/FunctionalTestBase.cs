@@ -77,7 +77,7 @@ public abstract class FunctionalTestBase : IAsyncLifetime
     /// Authenticate with the API and get a JWT token.
     /// Returns false if API unavailable or authentication fails.
     /// </summary>
-    protected async Task<bool> AuthenticateAsync(string email = "abhi.lal@gmail.com", string password = "Admin@123")
+    protected async Task<bool> AuthenticateAsync(string email = "admin@crm.local", string password = "Admin@123")
     {
         if (!ApiAvailable) return false;
 

@@ -12,6 +12,8 @@
     <InternalsVisibleTo Include="CRM.Tests" />
   </ItemGroup>
 
+  <!-- Phase 4 services - Entity alignment in progress -->
+
   <ItemGroup>
     <PackageReference Include="Algolia.Search" Version="7.11.0" />
     <PackageReference Include="DocuSign.eSign.dll" Version="8.6.0" />

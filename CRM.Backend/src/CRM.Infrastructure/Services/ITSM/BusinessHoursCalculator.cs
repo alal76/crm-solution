@@ -299,21 +299,141 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
         {
             return DefaultSchedule;
         }
-        
-        // TODO: Load custom schedule from database
-        // For now, return default
+
         try
         {
             var context = _dbContextResolver.ResolveContext();
-            // Would query ITSMBusinessSchedules table if it existed
-            // var schedule = await context.ITSMBusinessSchedules.FindAsync(scheduleId);
+
+            // Load custom schedule from database
+            var dbSchedule = await context.BusinessHoursSchedules
+                .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId && !s.IsDeleted && s.IsActive);
+
+            if (dbSchedule == null)
+            {
+                _logger.LogWarning("Business schedule {ScheduleId} not found or inactive, using default", scheduleId);
+                return DefaultSchedule;
+            }
+
+            // Convert database entity to BusinessSchedule
+            var schedule = new BusinessSchedule
+            {
+                ScheduleId = dbSchedule.ScheduleId,
+                Name = dbSchedule.Name,
+                TimeZoneId = dbSchedule.TimeZone ?? "UTC",
+                IsActive = dbSchedule.IsActive,
+                Days = ParseBusinessHours(dbSchedule.BusinessHours),
+                Holidays = ParseHolidays(dbSchedule.Holidays),
+            };
+
+            return schedule;
         }
-        catch
+        catch (Exception ex)
         {
-            _logger.LogWarning("Failed to load business schedule {ScheduleId}, using default", scheduleId);
+            _logger.LogWarning(ex, "Failed to load business schedule {ScheduleId}, using default", scheduleId);
         }
-        
+
         return DefaultSchedule;
+    }
+
+    /// <summary>
+    /// Parses JSON business hours into BusinessDay list.
+    /// Expected format: {"Monday": {"start": "09:00", "end": "17:00"}, ...}
+    /// </summary>
+    private List<BusinessDay> ParseBusinessHours(string? businessHoursJson)
+    {
+        if (string.IsNullOrWhiteSpace(businessHoursJson))
+        {
+            return DefaultSchedule.Days;
+        }
+
+        try
+        {
+            var result = new List<BusinessDay>();
+            using var doc = System.Text.Json.JsonDocument.Parse(businessHoursJson);
+
+            foreach (DayOfWeek day in Enum.GetValues<DayOfWeek>())
+            {
+                var dayName = day.ToString();
+                if (doc.RootElement.TryGetProperty(dayName, out var dayConfig))
+                {
+                    var startStr = dayConfig.GetProperty("start").GetString() ?? "09:00";
+                    var endStr = dayConfig.GetProperty("end").GetString() ?? "17:00";
+
+                    result.Add(new BusinessDay
+                    {
+                        DayOfWeek = day,
+                        StartTime = TimeSpan.Parse(startStr),
+                        EndTime = TimeSpan.Parse(endStr),
+                        IsWorkingDay = true,
+                    });
+                }
+                else
+                {
+                    // Day not defined means not a working day
+                    result.Add(new BusinessDay
+                    {
+                        DayOfWeek = day,
+                        IsWorkingDay = false,
+                    });
+                }
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse business hours JSON, using defaults");
+            return DefaultSchedule.Days;
+        }
+    }
+
+    /// <summary>
+    /// Parses JSON holidays into Holiday list.
+    /// Expected format: ["2025-01-01", "2025-12-25", ...] or [{"date": "2025-01-01", "name": "New Year", "recurring": true}, ...]
+    /// </summary>
+    private List<Holiday> ParseHolidays(string? holidaysJson)
+    {
+        if (string.IsNullOrWhiteSpace(holidaysJson))
+        {
+            return new List<Holiday>();
+        }
+
+        try
+        {
+            var result = new List<Holiday>();
+            using var doc = System.Text.Json.JsonDocument.Parse(holidaysJson);
+
+            foreach (var element in doc.RootElement.EnumerateArray())
+            {
+                if (element.ValueKind == System.Text.Json.JsonValueKind.String)
+                {
+                    // Simple date string format
+                    if (DateTime.TryParse(element.GetString(), out var date))
+                    {
+                        result.Add(new Holiday { Date = date, Name = "Holiday" });
+                    }
+                }
+                else if (element.ValueKind == System.Text.Json.JsonValueKind.Object)
+                {
+                    // Complex object format
+                    var dateStr = element.GetProperty("date").GetString();
+                    var name = element.TryGetProperty("name", out var nameProp) ? nameProp.GetString() ?? "Holiday" : "Holiday";
+                    var recurring = element.TryGetProperty("recurring", out var recurProp) && recurProp.GetBoolean();
+
+                    if (DateTime.TryParse(dateStr, out var date))
+                    {
+                        result.Add(new Holiday { Date = date, Name = name, IsRecurringYearly = recurring });
+                    }
+                }
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse holidays JSON, using empty list");
+            return new List<Holiday>();
+        }
     }
 
     private static BusinessDay GetDaySchedule(BusinessSchedule schedule, DayOfWeek dayOfWeek)

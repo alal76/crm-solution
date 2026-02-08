@@ -101,7 +101,7 @@ dotnet test --filter "Category=Functional" -c Debug -v n
 
 1. API must be running on localhost:5000
 2. MariaDB database must be accessible
-3. Admin user must exist: `abhi.lal@gmail.com` / `Admin@123`
+3. Admin user must exist: `admin@crm.local` / `Admin@123`
 
 ## Start API
 

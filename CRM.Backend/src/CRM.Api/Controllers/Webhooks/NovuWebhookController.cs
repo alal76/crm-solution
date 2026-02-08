@@ -4,6 +4,8 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using System.Text.Json;
 
@@ -18,13 +20,16 @@ namespace CRM.Api.Controllers.Webhooks;
 public class NovuWebhookController : ControllerBase
 {
     private readonly INotificationPort _notificationProvider;
+    private readonly IActivityService _activityService;
     private readonly ILogger<NovuWebhookController> _logger;
 
     public NovuWebhookController(
         INotificationPort notificationProvider,
+        IActivityService activityService,
         ILogger<NovuWebhookController> logger)
     {
         _notificationProvider = notificationProvider;
+        _activityService = activityService;
         _logger = logger;
     }
 

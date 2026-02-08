@@ -30,6 +30,9 @@ public enum EmailTemplateCategory
     Newsletter = 6,
     Notification = 7,
     Transactional = 8,
+    System = 9,
+    Billing = 10,
+    Internal = 11,
     Custom = 99
 }
 
@@ -128,6 +131,44 @@ public class EmailTemplate : BaseEntity
     /// Associated channel ID (optional)
     /// </summary>
     public int? ChannelId { get; set; }
+
+    /// <summary>
+    /// URL-friendly identifier (slug)
+    /// </summary>
+    public string? Slug { get; set; }
+
+    /// <summary>
+    /// Alias for PlainTextBody for service compatibility
+    /// </summary>
+    public string? TextBody
+    {
+        get => PlainTextBody;
+        set => PlainTextBody = value;
+    }
+
+    /// <summary>
+    /// Alias for ReplyToEmail for service compatibility
+    /// </summary>
+    public string? ReplyTo
+    {
+        get => ReplyToEmail;
+        set => ReplyToEmail = value;
+    }
+
+    /// <summary>
+    /// Template version number
+    /// </summary>
+    public int Version { get; set; } = 1;
+
+    /// <summary>
+    /// Template purpose (e.g., WelcomeEmail, PasswordReset)
+    /// </summary>
+    public string? Purpose { get; set; }
+
+    /// <summary>
+    /// Whether this is the default template for its purpose
+    /// </summary>
+    public bool IsDefault { get; set; } = false;
 
     // Navigation
     public virtual ICollection<CommunicationMessage> Messages { get; set; } = new List<CommunicationMessage>();

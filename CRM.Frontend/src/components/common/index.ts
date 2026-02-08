@@ -46,3 +46,10 @@ export type { EnhancedEmptyStateProps, EmptyStateVariant, EntityIllustration } f
 // Dialog Header for consistent CRUD dialog headers
 export { DialogHeader } from './DialogHeader';
 export type { DialogHeaderProps, DialogMode, DialogEntityType } from './DialogHeader';
+
+// Chat Timeline Item for displaying chat messages in activity timeline
+export { default as ChatTimelineItem } from './ChatTimelineItem';
+export type { ChatMessageActivity } from './ChatTimelineItem';
+
+// Analytics Embed for embedding Superset/Power BI dashboards
+export { default as AnalyticsEmbed } from './AnalyticsEmbed';

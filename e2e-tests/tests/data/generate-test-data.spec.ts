@@ -27,7 +27,7 @@ test.describe.serial('Test Data Generation', () => {
   
   test.beforeAll(async ({ request }) => {
     const response = await request.post(`${API_URL}/api/auth/login`, {
-      data: { email: 'abhi.lal@gmail.com', password: 'Admin@123' }
+      data: { email: 'admin@crm.local', password: 'Admin@123' }
     });
     expect(response.ok()).toBeTruthy();
     const data = await response.json();

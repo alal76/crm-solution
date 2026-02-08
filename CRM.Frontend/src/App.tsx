@@ -73,6 +73,8 @@ const OpportunitiesPage = lazy(() => import('./pages/OpportunitiesPage'));
 const QuotesPage = lazy(() => import('./pages/QuotesPage'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage'));
 const ContractsPage = lazy(() => import('./pages/ContractsPage'));
+const TerritoriesPage = lazy(() => import('./pages/TerritoriesPage'));
+const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'));
 
 // ----------------------------------------------------------------------------
 // Marketing Module - Lazy Loaded
@@ -82,6 +84,7 @@ const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
 const CampaignExecutionPage = lazy(() => import('./pages/CampaignExecutionPage'));
 const EmailTemplatesPage = lazy(() => import('./pages/EmailTemplatesPage'));
 const LandingPagesPage = lazy(() => import('./pages/LandingPagesPage'));
+const LeadRoutingPage = lazy(() => import('./pages/LeadRoutingPage'));
 
 // ----------------------------------------------------------------------------
 // Service Module - Lazy Loaded
@@ -353,6 +356,36 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <RelationshipsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/territories"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <TerritoriesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/lead-routing"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <LeadRoutingPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/approvals"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <ApprovalsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

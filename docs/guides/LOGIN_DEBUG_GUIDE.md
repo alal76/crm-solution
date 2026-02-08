@@ -14,7 +14,7 @@ curl http://localhost:5000/health
 # Test login endpoint directly
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"abhi.lal@gmail.com","password":"Admin@123"}'
+  -d '{"email":"admin@crm.local","password":"Admin@123"}'
 # Expected: 200 OK with accessToken
 ```
 
@@ -42,7 +42,7 @@ When login fails, check browser console (F12) for:
 
 ### Issue: API returns 401 "Invalid email or password"
 **Solution**:
-- Verify correct credentials (email: abhi.lal@gmail.com, password: Admin@123)
+- Verify correct credentials (email: admin@crm.local, password: Admin@123)
 - Check database has user: Query database directly if needed
 - Default user is seeded in database on first startup
 
@@ -92,7 +92,7 @@ curl http://localhost:5000/health
 # Test login
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"abhi.lal@gmail.com","password":"Admin@123"}'
+  -d '{"email":"admin@crm.local","password":"Admin@123"}'
 ```
 
 ### 2. Frontend Test

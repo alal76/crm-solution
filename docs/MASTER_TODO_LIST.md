@@ -1,7 +1,100 @@
 # CRM Solution - Master Todo List
 
-**Last Updated:** February 3, 2026  
+**Last Updated:** February 8, 2026  
 **Document Purpose:** Consolidated list of all planned enhancements, pending items, and future roadmap features
+
+---
+
+## Implementation Plan
+
+> **IMPORTANT:** A detailed 16-week implementation plan for all 40 feature specifications is available:
+> 
+> **[specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md)** - Complete step-by-step guide
+> 
+> | Phase | Timeline | Modules | Specs |
+> |-------|----------|---------|-------|
+> | Phase 1 | Weeks 1-4 | Core CRM Foundation | Contact, Activity, Pipeline, Task (4) |
+> | Phase 2 | Weeks 5-8 | Sales Module | Quote, Order, Invoice, Payment, Contract, Subscription, Commission (7) |
+> | Phase 3 | Weeks 9-12 | Marketing & Service Desk | Campaign, Templates, Sequences, Forms, Tracking, ServiceRequest, KB, SLA, Workflow, Escalation (10) |
+> | Phase 4 | Weeks 13-16 | ITSM, System & Integrations | Incident, Problem, Change, CMDB, Users, Auth, Permissions, Settings, Audit, AI (4), Integration (3) (16) |
+> 
+> **Current Progress:** 3/40 specs complete (7.5%) - 3 complete in Core CRM module
+
+---
+
+## Feature Specification TODOs (New - from Specs)
+
+> TODOs extracted from feature specifications. See [docs/specifications/INDEX.md](specifications/INDEX.md) for full context.
+
+### From SPEC-CRM-001: Account Management
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-CRM001-001 | Create AccountForm.tsx component | P2 | Frontend |
+| TODO-CRM001-002 | Create AccountCard.tsx component | P3 | Frontend |
+| TODO-CRM001-003 | Create AccountTimeline.tsx component | P2 | Frontend |
+| TODO-CRM001-004 | Create AccountRelationships.tsx component | P2 | Frontend |
+| TODO-CRM001-005 | Add phone format validation to backend | P2 | Validation |
+| TODO-CRM001-006 | Add URL format validation for Website | P3 | Validation |
+| TODO-CRM001-007 | Add category-specific validation (Individual requires names, Organization requires Company) | P1 | Validation |
+| TODO-CRM001-008 | Implement full territory service (GetAssignedAccounts, AssignToTerritory) | P2 | Backend |
+| TODO-CRM001-009 | Create AccountServiceTests.cs unit tests | P2 | Testing |
+| TODO-CRM001-010 | Create E2E tests for account workflows | P2 | Testing |
+
+### From SPEC-CRM-002: Lead Management
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-CRM002-001 | Standardize CompanyName vs Company naming | P3 | Consistency |
+| TODO-CRM002-002 | Implement lead merge UI | P2 | Frontend |
+| TODO-CRM002-003 | Complete web tracking integration | P2 | Backend |
+| TODO-CRM002-004 | Complete lead import/export UI | P2 | Frontend |
+| TODO-CRM002-005 | Add phone format validation | P2 | Validation |
+| TODO-CRM002-006 | Add website URL validation | P3 | Validation |
+| TODO-CRM002-007 | Create E2E tests for leads | P2 | Testing |
+| TODO-CRM002-008 | Create integration tests for LeadRoutingController | P2 | Testing |
+
+### From SPEC-CRM-003: Opportunity Management
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-CRM003-001 | Standardize Opportunity vs Deal terminology | P3 | Consistency |
+| TODO-CRM003-002 | Complete competitor tracking UI | P2 | Frontend |
+| TODO-CRM003-003 | Complete team selling UI | P2 | Frontend |
+| TODO-CRM003-004 | Implement rule-based probability calculation | P2 | Backend |
+| TODO-CRM003-005 | Add Amount max limit validation | P3 | Validation |
+| TODO-CRM003-006 | Enforce valid stage transitions | P2 | Validation |
+| TODO-CRM003-007 | Create OpportunityServiceTests | P2 | Testing |
+| TODO-CRM003-008 | Create E2E tests for opportunities | P2 | Testing |
+
+### From SPEC-SALES-006: Subscription Management
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-SALES006-001 | Create SubscriptionsController with REST endpoints covering CRUD/lifecycle/billing/usage to match service | P1 | Backend/API |
+| TODO-SALES006-002 | Build frontend subscriptions pages, components, and API client | P2 | Frontend |
+| TODO-SALES006-003 | Implement usage limits persistence and wire GetUsageLimitsAsync | P2 | Backend |
+| TODO-SALES006-004 | Add validations for required AccountId, Amount>=0, allowed BillingCycle, Start/End date ordering, and full billing detail updates | P1 | Validation |
+| TODO-SALES006-005 | Make invoice number generation deterministic/unique and enforce SubscriptionNumber uniqueness | P2 | Backend |
+
+### From SPEC-SALES-007: Commission Management
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-SALES007-001 | Implement CommissionsController/Plans/Statements with DTOs and feature flag guards | P2 | Backend |
+| TODO-SALES007-002 | Persist CommissionPlanAssignment with effective dating and lookups in CommissionService | P1 | Backend |
+| TODO-SALES007-003 | Implement commission calculation rules (caps, tiers, triggers, splits, validation) and numbering | P1 | Backend |
+| TODO-SALES007-004 | Build frontend pages/services for commissions, plans, statements with validations | P2 | Frontend |
+| TODO-SALES007-005 | Add unit/integration/E2E tests for commissions, plans, statements, assignments | P2 | Testing |
+
+### Specification TODO Summary
+
+| Priority | Count | Categories |
+|----------|-------|------------|
+| P1 | 5 | Backend/API (3), Validation (2) |
+| P2 | 25 | Frontend (9), Backend (6), Validation (3), Testing (7) |
+| P3 | 6 | Consistency (3), Validation (2), Frontend (1) |
+| **Total** | **36** | |
 
 ---
 
