@@ -37,7 +37,7 @@ This index provides a centralized catalog of all feature specifications in the C
 | Spec ID | Feature | Status | Priority | Dependencies |
 |---------|---------|--------|----------|--------------|
 | [SPEC-SALES-001](SPEC-SALES-001-QuoteManagement.md) | Quote Management | ✅ Complete | P1 | CRM-003 |
-| SPEC-SALES-002 | Order Management | ⏳ Pending | P1 | SALES-001 |
+| [SPEC-SALES-002](SPEC-SALES-002-OrderManagement.md) | Order Management | ✅ Complete | P1 | SALES-001 |
 | SPEC-SALES-003 | Invoice Management | ⏳ Pending | P1 | SALES-002 |
 | SPEC-SALES-004 | Payment Management | ⏳ Pending | P1 | SALES-003 |
 | SPEC-SALES-005 | Contract Management | ⏳ Pending | P1 | CRM-001 |
