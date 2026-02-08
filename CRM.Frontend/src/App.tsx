@@ -73,6 +73,7 @@ const OpportunitiesPage = lazy(() => import('./pages/OpportunitiesPage'));
 const QuotesPage = lazy(() => import('./pages/QuotesPage'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage'));
 const ContractsPage = lazy(() => import('./pages/ContractsPage'));
+const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
 const TerritoriesPage = lazy(() => import('./pages/TerritoriesPage'));
 const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'));
 
