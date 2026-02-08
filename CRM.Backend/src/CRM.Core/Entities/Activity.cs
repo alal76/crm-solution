@@ -31,6 +31,8 @@ public enum ActivityType
     MeetingCompleted = 5,
     ChatMessage = 6,
     SMSSent = 7,
+    SMSReceived = 8,
+    PushSent = 9,
 
     // CRM Actions
     CustomerCreated = 10,

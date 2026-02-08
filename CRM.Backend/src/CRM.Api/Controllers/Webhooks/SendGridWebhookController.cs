@@ -2,10 +2,13 @@
 // SendGrid Webhook Controller
 // Week 10: Handle email delivery status callbacks
 
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Text;
+using System.Text.Json;
 
 namespace CRM.Api.Controllers.Webhooks;
 
@@ -17,13 +20,16 @@ namespace CRM.Api.Controllers.Webhooks;
 public class SendGridWebhookController : ControllerBase
 {
     private readonly INotificationPort _notificationProvider;
+    private readonly IActivityService _activityService;
     private readonly ILogger<SendGridWebhookController> _logger;
 
     public SendGridWebhookController(
         INotificationPort notificationProvider,
+        IActivityService activityService,
         ILogger<SendGridWebhookController> logger)
     {
         _notificationProvider = notificationProvider;
+        _activityService = activityService;
         _logger = logger;
     }
 

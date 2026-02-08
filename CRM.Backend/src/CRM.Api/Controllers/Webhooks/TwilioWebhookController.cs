@@ -2,9 +2,12 @@
 // Twilio Webhook Controller
 // Week 10: Handle SMS delivery status callbacks
 
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace CRM.Api.Controllers.Webhooks;
 
@@ -16,13 +19,16 @@ namespace CRM.Api.Controllers.Webhooks;
 public class TwilioWebhookController : ControllerBase
 {
     private readonly INotificationPort _notificationProvider;
+    private readonly IActivityService _activityService;
     private readonly ILogger<TwilioWebhookController> _logger;
 
     public TwilioWebhookController(
         INotificationPort notificationProvider,
+        IActivityService activityService,
         ILogger<TwilioWebhookController> logger)
     {
         _notificationProvider = notificationProvider;
+        _activityService = activityService;
         _logger = logger;
     }
 
