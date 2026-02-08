@@ -202,6 +202,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Subscription> Subscriptions { get; set; }
     public DbSet<SubscriptionItem> SubscriptionItems { get; set; }
     public DbSet<SubscriptionUsage> SubscriptionUsages { get; set; }
+    public DbSet<SubscriptionUsageLimit> SubscriptionUsageLimits { get; set; }
     public DbSet<Contract> Contracts { get; set; }
     public DbSet<CreditMemo> CreditMemos { get; set; }
     public DbSet<CreditMemoLineItem> CreditMemoLineItems { get; set; }

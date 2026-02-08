@@ -336,3 +336,25 @@ public class SubscriptionUsage : BaseEntity
     /// <summary>Timestamp of usage</summary>
     public DateTime? Timestamp { get; set; }
 }
+
+/// <summary>
+/// Usage limit definition for a subscription/metric pair.
+/// </summary>
+public class SubscriptionUsageLimit : BaseEntity
+{
+    public int SubscriptionId { get; set; }
+    public Subscription? Subscription { get; set; }
+
+    [MaxLength(100)]
+    public string MetricName { get; set; } = string.Empty;
+
+    [Range(0, double.MaxValue)]
+    public decimal Limit { get; set; }
+
+    /// <summary>Unit label (e.g., seats, GB).</summary>
+    [MaxLength(50)]
+    public string? Unit { get; set; }
+
+    /// <summary>When true, usage above the limit should be rejected.</summary>
+    public bool EnforceCap { get; set; }
+}
