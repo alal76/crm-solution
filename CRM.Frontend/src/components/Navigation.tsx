@@ -48,6 +48,7 @@ import {
   RocketLaunch as CampaignExecutionIcon,
   Email as EmailIcon,
   Autorenew as SubscriptionIcon,
+  AttachMoney as CommissionIcon,
   // Admin section icons
   Storage as StorageIcon,
   Cloud as CloudIcon,
@@ -231,6 +232,7 @@ function NavigationContent() {
     'lead-routing': { label: 'Lead Routing', icon: AutomationIcon, path: '/lead-routing', menuName: 'LeadRouting' },
     'approvals': { label: 'Approvals', icon: QuoteIcon, path: '/approvals', menuName: 'Approvals' },
     'quotes': { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
+    'commissions': { label: 'Commissions', icon: CommissionIcon, path: '/commissions', menuName: 'Commissions' },
     'my-queue': { label: 'My Queue', icon: TaskIcon, path: '/my-queue', menuName: 'MyQueue' },
     'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
     'notes': { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
@@ -347,6 +349,7 @@ function NavigationContent() {
     { id: 'territories', order: 10.1, visible: true, category: 'sales' },
     { id: 'lead-routing', order: 10.2, visible: true, category: 'sales' },
     { id: 'approvals', order: 10.3, visible: true, category: 'sales' },
+    { id: 'commissions', order: 10.4, visible: true, category: 'sales' },
     { id: 'my-queue', order: 11, visible: true, category: 'productivity' },
     { id: 'activities', order: 12, visible: true, category: 'productivity' },
     { id: 'notes', order: 13, visible: true, category: 'productivity' },
