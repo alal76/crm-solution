@@ -55,7 +55,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
     private readonly ICrmDbContext _context;
     private readonly ILogger<ServiceRequestService> _logger;
     private static int _ticketCounter = 0;
-    private static readonly object _ticketLock = new();
+    private static bool _counterInitialized = false;
+    private static readonly SemaphoreSlim _ticketSemaphore = new(1, 1);
     private readonly NormalizationService _normalizationService;
 
     public ServiceRequestService(ICrmDbContext context, ILogger<ServiceRequestService> logger, NormalizationService normalizationService)
@@ -67,12 +68,37 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
     #region Helper Methods
 
-    private string GenerateTicketNumber()
+    private async Task<string> GenerateTicketNumberAsync()
     {
-        lock (_ticketLock)
+        await _ticketSemaphore.WaitAsync();
+        try
         {
+            if (!_counterInitialized)
+            {
+                var todayPrefix = $"SR-{DateTime.UtcNow:yyyyMMdd}-";
+                var maxTicket = await _context.ServiceRequests
+                    .Where(sr => sr.TicketNumber != null && sr.TicketNumber.StartsWith(todayPrefix))
+                    .OrderByDescending(sr => sr.TicketNumber)
+                    .Select(sr => sr.TicketNumber)
+                    .FirstOrDefaultAsync();
+
+                if (maxTicket != null)
+                {
+                    var numberPart = maxTicket.Substring(todayPrefix.Length);
+                    if (int.TryParse(numberPart, out int maxNumber))
+                    {
+                        _ticketCounter = maxNumber;
+                    }
+                }
+                _counterInitialized = true;
+            }
+
             _ticketCounter++;
             return $"SR-{DateTime.UtcNow:yyyyMMdd}-{_ticketCounter:D5}";
+        }
+        finally
+        {
+            _ticketSemaphore.Release();
         }
     }
 
@@ -421,7 +447,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
     {
         var entity = new ServiceRequest
         {
-            TicketNumber = GenerateTicketNumber(),
+            TicketNumber = await GenerateTicketNumberAsync(),
             Subject = dto.Subject,
             Description = dto.Description,
             Channel = dto.Channel,
