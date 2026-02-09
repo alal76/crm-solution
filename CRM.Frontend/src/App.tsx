@@ -73,6 +73,10 @@ const OpportunitiesPage = lazy(() => import('./pages/OpportunitiesPage'));
 const QuotesPage = lazy(() => import('./pages/QuotesPage'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage'));
 const ContractsPage = lazy(() => import('./pages/ContractsPage'));
+const InvoicesPage = lazy(() => import('./pages/InvoicesPage'));
+const PaymentsPage = lazy(() => import('./pages/PaymentsPage'));
+const OrdersPage = lazy(() => import('./pages/OrdersPage'));
+const TeamsPage = lazy(() => import('./pages/TeamsPage'));
 const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
 const CommissionsPage = lazy(() => import('./pages/CommissionsPage'));
 const TerritoriesPage = lazy(() => import('./pages/TerritoriesPage'));
@@ -520,6 +524,46 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <CommissionsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/invoices"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <InvoicesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payments"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <PaymentsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <OrdersPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/teams"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <TeamsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

@@ -49,6 +49,9 @@ import {
   Email as EmailIcon,
   Autorenew as SubscriptionIcon,
   AttachMoney as CommissionIcon,
+  Receipt as InvoiceIcon,
+  Payment as PaymentIcon,
+  ShoppingCart as OrderIcon,
   // Admin section icons
   Storage as StorageIcon,
   Cloud as CloudIcon,
@@ -148,7 +151,7 @@ function NavigationContent() {
       setExpandedCategories(prev => ({ ...prev, 'main': true }));
     } else if (path.includes('/customers') || path.includes('/contacts')) {
       setExpandedCategories(prev => ({ ...prev, 'main': true }));
-    } else if (path.includes('/leads') || path.includes('/opportunities') || path.includes('/products') || path.includes('/campaigns') || path.includes('/quotes')) {
+    } else if (path.includes('/leads') || path.includes('/opportunities') || path.includes('/products') || path.includes('/campaigns') || path.includes('/quotes') || path.includes('/contracts') || path.includes('/invoices') || path.includes('/payments') || path.includes('/orders') || path.includes('/teams')) {
       setExpandedCategories(prev => ({ ...prev, 'sales': true }));
     } else if (path.includes('/services') || path.includes('/service-requests')) {
       setExpandedCategories(prev => ({ ...prev, 'support': true }));
@@ -233,6 +236,11 @@ function NavigationContent() {
     'approvals': { label: 'Approvals', icon: QuoteIcon, path: '/approvals', menuName: 'Approvals' },
     'quotes': { label: 'Quotes', icon: QuoteIcon, path: '/quotes', menuName: 'Quotes' },
     'commissions': { label: 'Commissions', icon: CommissionIcon, path: '/commissions', menuName: 'Commissions' },
+    'contracts': { label: 'Contracts', icon: LicenseIcon, path: '/contracts', menuName: 'Contracts' },
+    'invoices': { label: 'Invoices', icon: InvoiceIcon, path: '/invoices', menuName: 'Invoices' },
+    'payments': { label: 'Payments', icon: PaymentIcon, path: '/payments', menuName: 'Payments' },
+    'orders': { label: 'Orders', icon: OrderIcon, path: '/orders', menuName: 'Orders' },
+    'teams': { label: 'Teams', icon: GroupsIcon, path: '/teams', menuName: 'Teams' },
     'my-queue': { label: 'My Queue', icon: TaskIcon, path: '/my-queue', menuName: 'MyQueue' },
     'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
     'notes': { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
@@ -273,6 +281,7 @@ function NavigationContent() {
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'customers', 'customer-overview', 'contacts', 'relationships', 'leads', 'opportunities',
     'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'quotes',
+    'contracts', 'invoices', 'payments', 'orders', 'teams',
     'territories', 'lead-routing', 'approvals',
     'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics',
     'my-queue', 'activities', 'notes', 'communications', 'interactions'
@@ -350,6 +359,11 @@ function NavigationContent() {
     { id: 'lead-routing', order: 10.2, visible: true, category: 'sales' },
     { id: 'approvals', order: 10.3, visible: true, category: 'sales' },
     { id: 'commissions', order: 10.4, visible: true, category: 'sales' },
+    { id: 'contracts', order: 10.5, visible: true, category: 'sales' },
+    { id: 'invoices', order: 10.6, visible: true, category: 'sales' },
+    { id: 'payments', order: 10.7, visible: true, category: 'sales' },
+    { id: 'orders', order: 10.8, visible: true, category: 'sales' },
+    { id: 'teams', order: 10.9, visible: true, category: 'sales' },
     { id: 'my-queue', order: 11, visible: true, category: 'productivity' },
     { id: 'activities', order: 12, visible: true, category: 'productivity' },
     { id: 'notes', order: 13, visible: true, category: 'productivity' },
