@@ -244,7 +244,7 @@ The following 60+ EF entities registered as `DbSet<>` in `CrmDbContext` have **n
 | `FormField` | `FormFields` | ❌ None | Missing |
 | `FormSubmission` | `FormSubmissions` | ❌ None | Missing |
 
-> **Note:** These entities are managed through EF Code-First migrations (`CRM.Infrastructure/Migrations/`). The SQL schema files under `database/schema/` represent an initial hand-written schema that has diverged from the EF-managed schema.
+> **Note:** These entities are managed through EF Code-First migrations (`CRM.Infrastructure/Migrations/`). The SQL schema files under `database/schema/` represent an initial handwritten schema that has diverged from the EF-managed schema.
 
 ---
 
