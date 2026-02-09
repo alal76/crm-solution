@@ -337,7 +337,7 @@ function PaymentsPage() {
                   <TableRow>
                     <TableCell colSpan={8} sx={{ border: 0 }}>
                       <EnhancedEmptyState
-                        illustration="payments"
+                        illustration="generic"
                         title="No payments yet"
                         description="Record your first payment to start tracking transactions"
                         variant="no-data"

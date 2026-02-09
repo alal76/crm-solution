@@ -1,6 +1,6 @@
 # CRM Solution - Master Todo List
 
-**Last Updated:** February 9, 2026  
+**Last Updated:** February 8, 2026  
 **Document Purpose:** Consolidated list of all planned enhancements, pending items, and future roadmap features
 
 ---
@@ -15,7 +15,7 @@
 > |-------|----------|---------|-------|
 > | Phase 1 | Weeks 1-4 | Core CRM Foundation | Contact, Activity, Pipeline, Task (4) |
 > | Phase 2 | Weeks 5-8 | Sales Module | Quote, Order, Invoice, Payment, Contract, Subscription, Commission (7) |
-> | Phase 3 | Weeks 9-12 | Marketing & Service Desk | Campaign, Templates, Sequences, Forms, Tracking, ServiceRequest, KB, SLA, Workflow, Escalation (10) |
+> | Phase 3 | Weeks 9-12 | Marketing & Service Desk | Campaign, Templates, Sequences, Forms, Tracking, ServiceRdo equest, KB, SLA, Workflow, Escalation (10) |
 > | Phase 4 | Weeks 13-16 | ITSM, System & Integrations | Incident, Problem, Change, CMDB, Users, Auth, Permissions, Settings, Audit, AI (4), Integration (3) (16) |
 > 
 > **Current Progress:** 3/40 specs complete (7.5%) - 3 complete in Core CRM module
@@ -98,85 +98,9 @@
 
 ---
 
-## Phase 4 Sales Services - Activation Gaps — ✅ RESOLVED (February 9, 2026)
+## Recently Completed (February 3, 2026)
 
-> **Status:** ✅ All P1 gaps resolved. DI registrations active, 4 controllers created. See "Recently Completed" above.
-
-### Gap A: DI Registrations — ✅ COMPLETE
-
-All 7 services uncommented and active in Program.cs (commit `1733b38`).
-
-### Gap B: API Controllers — ✅ 4 of 5 COMPLETE (1 remaining)
-
-| ID | Controller | Status | Notes |
-|----|------------|--------|-------|
-| PH4-CTL-001 | InvoicesController | ✅ Complete | ~560 lines, 25+ endpoints |
-| PH4-CTL-002 | PaymentsController | ✅ Complete | ~535 lines, 20+ endpoints |
-| PH4-CTL-003 | OrdersController | ✅ Complete | ~720 lines, 30+ endpoints |
-| PH4-CTL-004 | ContractsController (monolith) | ❌ **Still missing** | Exists in microservices only |
-| PH4-CTL-005 | TeamsController | ✅ Complete | ~450 lines, 28 endpoints |
-
-### Gap C: Missing Unit Tests (12 services) — ⏳ Pending
-
-Still needed — see original list. Priority P2.
-
-### Gap D: Remaining TODO Comments (4) — ⏳ Pending
-
-Still present. Priority P2-P3.
-
-### Phase 4 Activation Summary (Updated)
-
-| Gap Category | Count | Priority | Status |
-|--------------|-------|----------|--------|
-| Uncomment DI registrations | 7/7 | P1 | ✅ Complete |
-| Create missing controllers | 4/5 | P1 | ✅ 4 done, 1 remaining (ContractsController monolith) |
-| Create unit tests | 0/12 | P2 | ⏳ Pending |
-| Resolve TODO comments | 0/4 | P2-P3 | ⏳ Pending |
-
----
-
-## Recently Completed
-
-### Phase 4: Sales Services Activation - ✅ COMPLETE (February 9, 2026)
-
-| # | Item | Type | Status |
-|---|------|------|--------|
-| 1 | Uncomment 7 DI registrations (Program.cs) | Backend/DI | ✅ Complete |
-| 2 | Create InvoicesController (~560 lines, 25+ endpoints) | Backend/API | ✅ Complete |
-| 3 | Create PaymentsController (~535 lines, 20+ endpoints) | Backend/API | ✅ Complete |
-| 4 | Create OrdersController (~720 lines, 30+ endpoints) | Backend/API | ✅ Complete |
-| 5 | Create TeamsController (~450 lines, 28 endpoints) | Backend/API | ✅ Complete |
-| 6 | Fix 7 build errors (method signature mismatches) | Backend/Fix | ✅ Complete |
-
-**Commit:** `1733b38` — 5 files changed, +2,306 insertions, -10 deletions  
-**Build Status:** ✅ 0 errors, 4 warnings (NuGet advisories only)
-
----
-
-### Workflow Engine: P0-P3 Gap Implementation - ✅ COMPLETE (February 13, 2026)
-
-| # | Item | Priority | Category | Status |
-|---|------|----------|----------|--------|
-| 1 | SLA Timer Node (pause/resume on business hours) | P0 | Backend | ✅ Complete |
-| 2 | EscalationRulesController (CRUD + trigger endpoint) | P0 | API | ✅ Complete |
-| 3 | 14 Controller Build Fixes (LeadsController, OrderService, etc.) | P0 | Build | ✅ Complete |
-| 4 | Scheduled Workflow Background Service (cron-based triggers) | P1 | Backend | ✅ Complete |
-| 5 | Interface Extraction & Service Refactoring (IWorkflowService, IWorkflowInstanceService) | P1 | Architecture | ✅ Complete |
-| 6 | Event-Driven Trigger Hooks (IEntityEventDispatcher, IWorkflowTriggerService) | P1 | Backend | ✅ Complete |
-| 7 | Workflow Audit & History (WorkflowLog retention service) | P1 | Backend | ✅ Complete |
-| 8 | Workflow Execution Dashboard API (statistics, timeline, health) | P2 | API | ✅ Complete |
-| 9 | Workflow Versioning Support (version management endpoints) | P2 | Backend | ✅ Complete |
-| 10 | Parallel Gateway & Sub-workflow (fork/join, sub-workflow nodes) | P2 | Backend | ✅ Complete |
-| 11 | Wait/Timer Node (delay, schedule, SLA deadline nodes) | P2 | Backend | ✅ Complete |
-| 12 | Bulk Workflow Execution (batch operations, progress tracking) | P3 | API | ✅ Complete |
-| 13 | HTTP Callout Action Node (IHttpCalloutService with retry/auth) | P3 | Backend | ✅ Complete |
-
-**Commit:** `c93e931` — 31 files changed, 6,632 insertions, 510 deletions
-**Build Status:** ✅ 0 errors, 31 warnings (StyleCop only)
-
----
-
-### ITSM Phase 4 Testing Suite - ✅ COMPLETE (February 3, 2026)
+### ITSM Phase 4 Testing Suite - ✅ COMPLETE
 
 | Category | File | Tests | Status |
 |----------|------|-------|--------|
@@ -212,57 +136,6 @@ Still present. Priority P2-P3.
 9. [Advanced Customization](#9-advanced-customization)
 10. [CRM Feature Gaps](#10-crm-feature-gaps)
 11. [Priority Matrix](#11-priority-matrix)
-
----
-
-## Phase 5: Frontend Activation Gaps (Discovered February 9, 2026)
-
-> **Context:** Phase 4 activated 8 backend services + controllers. The next gap is wiring them to the frontend.
-
-### Gap A: Missing ContractsController (Monolith)
-
-| ID | Controller | Service | Impact | Priority |
-|----|------------|---------|--------|----------|
-| PH5-CTL-001 | ContractsController (monolith) | ContractService (687 lines) | Contract endpoints unreachable in monolith mode | 🔴 P1 |
-
-### Gap B: Missing Frontend API Services (6)
-
-| ID | Service File | Backend Controller | Priority |
-|----|-------------|-------------------|----------|
-| PH5-FE-001 | invoiceService.ts | InvoicesController | 🔴 P1 |
-| PH5-FE-002 | paymentService.ts | PaymentsController | 🔴 P1 |
-| PH5-FE-003 | orderService.ts | OrdersController | 🔴 P1 |
-| PH5-FE-004 | contractService.ts | ContractsController | 🔴 P1 |
-| PH5-FE-005 | teamService.ts | TeamsController | 🔴 P1 |
-| PH5-FE-006 | emailTemplateService.ts | EmailTemplatesController | 🟡 P2 |
-
-### Gap C: Missing Frontend Pages (4)
-
-| ID | Page | Backend Controller | Frontend Service | Priority |
-|----|------|-------------------|-----------------|----------|
-| PH5-PG-001 | InvoicesPage.tsx + route | InvoicesController | invoiceService.ts | 🔴 P1 |
-| PH5-PG-002 | PaymentsPage.tsx + route | PaymentsController | paymentService.ts | 🔴 P1 |
-| PH5-PG-003 | OrdersPage.tsx + route | OrdersController | orderService.ts | 🔴 P1 |
-| PH5-PG-004 | TeamsPage.tsx + route | TeamsController | teamService.ts | 🟡 P2 |
-
-### Gap D: DI / Housekeeping
-
-| ID | Item | Description | Priority |
-|----|------|-------------|----------|
-| PH5-DI-001 | Register ITokenRevocationService | Interface exists but not in DI | 🟡 P2 |
-| PH5-DI-002 | Remove duplicate IAccountService registration | Program.cs has it twice | 🟢 P3 |
-| PH5-NAV-001 | Add navigation menu items | Invoices, Payments, Orders, Teams in sidebar | 🔴 P1 |
-
-### Phase 5 Activation Summary
-
-| Gap Category | Count | Priority | Est. Effort |
-|--------------|-------|----------|-------------|
-| Create ContractsController (monolith) | 1 | P1 | 2-3 hours |
-| Create frontend services | 6 | P1-P2 | 3-4 hours |
-| Create frontend pages + routes | 4 | P1-P2 | 4-6 hours |
-| Add navigation menu items | 1 | P1 | 30 min |
-| DI housekeeping | 2 | P2-P3 | 15 min |
-| **Total** | **14** | | **~10-14 hours** |
 
 ---
 

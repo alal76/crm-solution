@@ -399,7 +399,7 @@ function InvoicesPage() {
                   <TableRow>
                     <TableCell colSpan={8} sx={{ border: 0 }}>
                       <EnhancedEmptyState
-                        illustration="invoices"
+                        illustration="generic"
                         title="No invoices yet"
                         description="Create your first invoice to start billing customers"
                         variant="no-data"

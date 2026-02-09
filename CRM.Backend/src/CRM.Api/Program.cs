@@ -445,7 +445,9 @@ builder.Services.AddHttpClient();
 
 // Workflow management services
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
+builder.Services.AddScoped<WorkflowService>(); // Also register concrete type for CampaignExecutionService dependency
 builder.Services.AddScoped<IWorkflowInstanceService, WorkflowInstanceService>();
+builder.Services.AddScoped<WorkflowInstanceService>(); // Also register concrete type for CampaignExecutionService dependency
 builder.Services.AddScoped<IHttpCalloutService, HttpCalloutService>();
 
 // Relationship management services

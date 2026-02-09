@@ -27,6 +27,12 @@ import {
   Assignment as AssignmentIcon,
   Campaign as CampaignIcon,
   ContactPhone as ContactPhoneIcon,
+  Receipt as ReceiptIcon,
+  Payment as PaymentIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Group as GroupIcon,
+  Subscriptions as SubscriptionsIcon,
+  AttachMoney as AttachMoneyIcon,
 } from '@mui/icons-material';
 
 export type DialogMode = 'create' | 'edit' | 'view';
@@ -41,7 +47,14 @@ export type DialogEntityType =
   | 'quote'
   | 'contract'
   | 'activity'
-  | 'product';
+  | 'product'
+  | 'invoice'
+  | 'payment'
+  | 'order'
+  | 'team'
+  | 'user'
+  | 'subscription'
+  | 'commission';
 
 export interface DialogHeaderProps {
   /** Mode of the dialog */
@@ -129,6 +142,41 @@ const entityConfigs: Record<DialogEntityType, {
     icon: <AssignmentIcon />,
     color: '#607D8B',
     singularLabel: 'Product',
+  },
+  invoice: {
+    icon: <ReceiptIcon />,
+    color: '#3F51B5',
+    singularLabel: 'Invoice',
+  },
+  payment: {
+    icon: <PaymentIcon />,
+    color: '#009688',
+    singularLabel: 'Payment',
+  },
+  order: {
+    icon: <ShoppingCartIcon />,
+    color: '#FF5722',
+    singularLabel: 'Order',
+  },
+  team: {
+    icon: <GroupIcon />,
+    color: '#673AB7',
+    singularLabel: 'Team',
+  },
+  user: {
+    icon: <PersonIcon />,
+    color: '#FF9800',
+    singularLabel: 'User',
+  },
+  subscription: {
+    icon: <SubscriptionsIcon />,
+    color: '#00BCD4',
+    singularLabel: 'Subscription',
+  },
+  commission: {
+    icon: <AttachMoneyIcon />,
+    color: '#4CAF50',
+    singularLabel: 'Commission',
   },
 };
 
