@@ -42,7 +42,7 @@ public enum SubscriptionStatus
 /// Note: This was previously named "Account" but renamed to "Subscription" to avoid
 /// confusion with the Account entity (the company/person, formerly Customer).
 /// </summary>
-[Table("Accounts")] // Keep original table name for backward compatibility
+[Table("Subscriptions")]
 public class Subscription : BaseEntity
 {
     #region Identification
@@ -50,13 +50,11 @@ public class Subscription : BaseEntity
     /// <summary>Unique subscription number</summary>
     [Required]
     [MaxLength(50)]
-    [Column("AccountNumber")]
     public string SubscriptionNumber { get; set; } = string.Empty;
 
     #endregion
 
     // Relationships - linked to Account (formerly Customer)
-    [Column("CustomerId")]
     public int AccountId { get; set; }
     public Account? Account { get; set; }
 
@@ -64,7 +62,6 @@ public class Subscription : BaseEntity
     public Product? Product { get; set; }
 
     // Status (Current / Churned)
-    [Column("Status")]
     public SubscriptionStatus SubscriptionStatus { get; set; } = SubscriptionStatus.Current;
 
     #region Financial
@@ -212,12 +209,10 @@ public class Subscription : BaseEntity
 
     /// <summary>Subscription owner name</summary>
     [MaxLength(255)]
-    [Column("AccountOwner")]
     public string? SubscriptionOwner { get; set; }
 
     /// <summary>Subscription manager user ID</summary>
     [ForeignKey("SubscriptionManager")]
-    [Column("AccountManagerId")]
     public int? SubscriptionManagerId { get; set; }
 
     /// <summary>Tags (comma-separated)</summary>
