@@ -142,7 +142,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
   const [dialogError, setDialogError] = useState<string | null>(null);
 
   // Form data for quick create
-  const [customerForm, setAccountForm] = useState<AccountFormData>({
+  const [accountForm, setAccountForm] = useState<AccountFormData>({
     firstName: '', lastName: '', company: '', emailPrimary: '', phonePrimary: ''
   });
   const [contactForm, setContactForm] = useState<ContactFormData>({
@@ -241,7 +241,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
         case 'account':
           endpoint = '/accounts';
           payload = {
-            ...customerForm,
+            ...accountForm,
             category: 0, // Individual
             lifecycleStage: 0,
           };
@@ -315,24 +315,24 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
               <TextField
                 fullWidth
                 label="First Name"
-                value={customerForm.firstName}
-                onChange={(e) => setAccountForm({ ...customerForm, firstName: e.target.value })}
+                value={accountForm.firstName}
+                onChange={(e) => setAccountForm({ ...accountForm, firstName: e.target.value })}
               />
             </Grid>
             <Grid item xs={6}>
               <TextField
                 fullWidth
                 label="Last Name"
-                value={customerForm.lastName}
-                onChange={(e) => setAccountForm({ ...customerForm, lastName: e.target.value })}
+                value={accountForm.lastName}
+                onChange={(e) => setAccountForm({ ...accountForm, lastName: e.target.value })}
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Company"
-                value={customerForm.company}
-                onChange={(e) => setAccountForm({ ...customerForm, company: e.target.value })}
+                value={accountForm.company}
+                onChange={(e) => setAccountForm({ ...accountForm, company: e.target.value })}
               />
             </Grid>
             <Grid item xs={6}>
@@ -340,16 +340,16 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
                 fullWidth
                 label="Email"
                 type="email"
-                value={customerForm.emailPrimary}
-                onChange={(e) => setAccountForm({ ...customerForm, emailPrimary: e.target.value })}
+                value={accountForm.emailPrimary}
+                onChange={(e) => setAccountForm({ ...accountForm, emailPrimary: e.target.value })}
               />
             </Grid>
             <Grid item xs={6}>
               <TextField
                 fullWidth
                 label="Phone"
-                value={customerForm.phonePrimary}
-                onChange={(e) => setAccountForm({ ...customerForm, phonePrimary: e.target.value })}
+                value={accountForm.phonePrimary}
+                onChange={(e) => setAccountForm({ ...accountForm, phonePrimary: e.target.value })}
               />
             </Grid>
           </Grid>
