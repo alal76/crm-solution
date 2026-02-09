@@ -1,6 +1,6 @@
 # CRM Solution - Master Todo List
 
-**Last Updated:** February 8, 2026  
+**Last Updated:** February 13, 2026  
 **Document Purpose:** Consolidated list of all planned enhancements, pending items, and future roadmap features
 
 ---
@@ -98,9 +98,96 @@
 
 ---
 
-## Recently Completed (February 3, 2026)
+## Phase 4 Sales Services - Activation Gaps (Discovered February 13, 2026)
 
-### ITSM Phase 4 Testing Suite - ✅ COMPLETE
+> **Context:** 7 full service implementations exist (625-884 lines each) but are **commented out** in DI registration (Program.cs lines 433-440). 5 of these also have **no API controller**.
+
+### Gap A: Commented-Out DI Registrations (7 services)
+
+| ID | Service | Implementation | Lines | DI Status | Controller? | Priority |
+|----|---------|----------------|-------|-----------|-------------|----------|
+| PH4-DI-001 | IInvoiceService → InvoiceService | ✅ Exists | 651 | ❌ Commented | ❌ Missing | P1 |
+| PH4-DI-002 | IPaymentService → PaymentService | ✅ Exists | 727 | ❌ Commented | ❌ Missing | P1 |
+| PH4-DI-003 | IOrderService → OrderService | ✅ Exists | 884 | ❌ Commented | ❌ Missing | P1 |
+| PH4-DI-004 | IContractService → ContractService | ✅ Exists | 687 | ❌ Commented | ❌ Missing | P1 |
+| PH4-DI-005 | ISubscriptionService → SubscriptionService | ✅ Exists | 876 | ❌ Commented | ✅ Exists | P1 |
+| PH4-DI-006 | ITeamService → TeamService | ✅ Exists | 625 | ❌ Commented | ❌ Missing | P1 |
+| PH4-DI-007 | IEmailTemplateService → EmailTemplateService | ✅ Exists | 732 | ❌ Commented | ✅ Exists | P1 |
+
+### Gap B: Missing API Controllers (5 needed)
+
+| ID | Controller | Service Exists | Spec Reference | Priority |
+|----|------------|----------------|----------------|----------|
+| PH4-CTL-001 | InvoicesController | InvoiceService (651 lines) | PHASE4_SERVICE_SPECIFICATIONS §1 | P1 |
+| PH4-CTL-002 | PaymentsController | PaymentService (727 lines) | PHASE4_SERVICE_SPECIFICATIONS §2 | P1 |
+| PH4-CTL-003 | OrdersController | OrderService (884 lines) | PHASE4_SERVICE_SPECIFICATIONS §3 | P1 |
+| PH4-CTL-004 | ContractsController | ContractService (687 lines) | PHASE4_SERVICE_SPECIFICATIONS §4 | P1 |
+| PH4-CTL-005 | TeamsController | TeamService (625 lines) | PHASE4_SERVICE_SPECIFICATIONS §6 | P1 |
+
+### Gap C: Missing Unit Tests (12 services)
+
+| ID | Service | Lines | Test File | Priority |
+|----|---------|-------|-----------|----------|
+| PH4-TST-001 | InvoiceService | 651 | InvoiceServiceTests.cs | P2 |
+| PH4-TST-002 | PaymentService | 727 | PaymentServiceTests.cs | P2 |
+| PH4-TST-003 | OrderService | 884 | OrderServiceTests.cs | P2 |
+| PH4-TST-004 | ContractService | 687 | ContractServiceTests.cs | P2 |
+| PH4-TST-005 | SubscriptionService | 876 | SubscriptionServiceTests.cs | P2 |
+| PH4-TST-006 | TeamService | 625 | TeamServiceTests.cs | P2 |
+| PH4-TST-007 | CommissionService | ~700 | CommissionServiceTests.cs | P2 |
+| PH4-TST-008 | EmailTemplateService | 732 | EmailTemplateServiceTests.cs | P2 |
+| PH4-TST-009 | WorkflowTriggerService | ~650 | WorkflowTriggerServiceTests.cs | P2 |
+| PH4-TST-010 | HttpCalloutService | ~200 | HttpCalloutServiceTests.cs | P2 |
+| PH4-TST-011 | EntityEventDispatcher | ~150 | EntityEventDispatcherTests.cs | P2 |
+| PH4-TST-012 | ScheduledWorkflowService | ~250 | ScheduledWorkflowServiceTests.cs | P2 |
+
+### Gap D: Remaining TODO Comments (4)
+
+| ID | File | Line | Description | Priority |
+|----|------|------|-------------|----------|
+| PH4-TODO-001 | ApprovalWorkflowService.cs | 910 | Send actual notification via INotificationPort | P2 |
+| PH4-TODO-002 | FormBuilderService.cs | 596 | Implement actual email sending via notification service | P2 |
+| PH4-TODO-003 | WorkflowTriggerService.cs | 632 | Implement dynamic filter condition evaluation | P2 |
+| PH4-TODO-004 | FeaturesController.cs | 164 | Implement provider health checks in Phase 1 | P3 |
+
+### Phase 4 Activation Summary
+
+| Gap Category | Count | Priority | Est. Effort |
+|--------------|-------|----------|-------------|
+| Uncomment DI registrations | 7 | P1 | 15 min |
+| Create missing controllers | 5 | P1 | 4-6 hours |
+| Create unit tests | 12 | P2 | 8-12 hours |
+| Resolve TODO comments | 4 | P2-P3 | 2-3 hours |
+| **Total** | **28** | | **~15-21 hours** |
+
+---
+
+## Recently Completed (February 13, 2026)
+
+### Workflow Engine: P0-P3 Gap Implementation - ✅ COMPLETE
+
+| # | Item | Priority | Category | Status |
+|---|------|----------|----------|--------|
+| 1 | SLA Timer Node (pause/resume on business hours) | P0 | Backend | ✅ Complete |
+| 2 | EscalationRulesController (CRUD + trigger endpoint) | P0 | API | ✅ Complete |
+| 3 | 14 Controller Build Fixes (LeadsController, OrderService, etc.) | P0 | Build | ✅ Complete |
+| 4 | Scheduled Workflow Background Service (cron-based triggers) | P1 | Backend | ✅ Complete |
+| 5 | Interface Extraction & Service Refactoring (IWorkflowService, IWorkflowInstanceService) | P1 | Architecture | ✅ Complete |
+| 6 | Event-Driven Trigger Hooks (IEntityEventDispatcher, IWorkflowTriggerService) | P1 | Backend | ✅ Complete |
+| 7 | Workflow Audit & History (WorkflowLog retention service) | P1 | Backend | ✅ Complete |
+| 8 | Workflow Execution Dashboard API (statistics, timeline, health) | P2 | API | ✅ Complete |
+| 9 | Workflow Versioning Support (version management endpoints) | P2 | Backend | ✅ Complete |
+| 10 | Parallel Gateway & Sub-workflow (fork/join, sub-workflow nodes) | P2 | Backend | ✅ Complete |
+| 11 | Wait/Timer Node (delay, schedule, SLA deadline nodes) | P2 | Backend | ✅ Complete |
+| 12 | Bulk Workflow Execution (batch operations, progress tracking) | P3 | API | ✅ Complete |
+| 13 | HTTP Callout Action Node (IHttpCalloutService with retry/auth) | P3 | Backend | ✅ Complete |
+
+**Commit:** `c93e931` — 31 files changed, 6,632 insertions, 510 deletions
+**Build Status:** ✅ 0 errors, 31 warnings (StyleCop only)
+
+---
+
+### ITSM Phase 4 Testing Suite - ✅ COMPLETE (February 3, 2026)
 
 | Category | File | Tests | Status |
 |----------|------|-------|--------|
