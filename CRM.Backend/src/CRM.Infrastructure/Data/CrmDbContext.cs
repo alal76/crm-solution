@@ -131,7 +131,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // Module field configurations
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
         public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
-        public DbSet<Account> Accounts { get; set; }
+        /// <summary>Alias for Customers DbSet. Both map to the Account entity on the "Customers" table.</summary>
+        public DbSet<Account> Accounts => Customers;
         public DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; set; }
 
     // Communication entities
@@ -178,12 +179,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<AccountHealthSnapshot> AccountHealthSnapshots { get; set; }
     public DbSet<RelationshipMap> RelationshipMaps { get; set; }
     public DbSet<AccountTerritory> AccountTerritories { get; set; }
-    public DbSet<AccountTerritoryAssignment> CustomerTerritoryAssignments { get; set; }
-    
-    /// <summary>
-    /// Alias for CustomerTerritoryAssignments for interface compatibility
-    /// </summary>
-    public DbSet<AccountTerritoryAssignment> AccountTerritoryAssignments => CustomerTerritoryAssignments;
+    public DbSet<AccountTerritoryAssignment> AccountTerritoryAssignments { get; set; }
+    /// <summary>Alias for AccountTerritoryAssignments (legacy naming).</summary>
+    public DbSet<AccountTerritoryAssignment> CustomerTerritoryAssignments => AccountTerritoryAssignments;
 
     // Campaign execution entities
     public DbSet<CampaignRecipient> CampaignRecipients { get; set; }
