@@ -25,14 +25,14 @@ namespace CRM.Api.Controllers;
 public class WorkflowController : ControllerBase
 {
     private readonly CrmDbContext _context;
-    private readonly WorkflowService _workflowService;
+    private readonly IWorkflowService _workflowService;
     private readonly ILLMService _llmService;
     private readonly ILLMSettingsService _llmSettingsService;
     private readonly ILogger<WorkflowController> _logger;
 
     public WorkflowController(
         CrmDbContext context,
-        WorkflowService workflowService,
+        IWorkflowService workflowService,
         ILLMService llmService,
         ILLMSettingsService llmSettingsService,
         ILogger<WorkflowController> logger)
@@ -868,8 +868,8 @@ public class WorkflowController : ControllerBase
             TriggerTypes = GetTriggerTypesInternal(),
             ConditionOperators = GetConditionOperatorsInternal(),
             StatusOptions = GetStatusOptionsInternal(),
-            LLMProviders = _llmService.GetAvailableProviders(),
-            LLMModels = _llmService.GetAvailableModels(),
+            LLMProviders = _llmService.GetAvailableProviders().Select(p => new LLMProviderOption { Value = p.Value, Label = p.Label, IsConfigured = p.IsConfigured, Models = p.Models.Select(m => new LLMModelOption { Value = m.Value, Label = m.Label, Provider = m.Provider, IsDefault = m.IsDefault }).ToList() }).ToList(),
+            LLMModels = _llmService.GetAvailableModels().Select(m => new LLMModelOption { Value = m.Value, Label = m.Label, Provider = m.Provider, IsDefault = m.IsDefault }).ToList(),
             Roles = roles,
             Categories = categories.Where(c => c != null).Select(c => c!).ToList(),
             IconOptions = GetIconOptionsInternal(),
@@ -1025,18 +1025,20 @@ public class WorkflowController : ControllerBase
 
     private List<TriggerTypeConfig> GetTriggerTypesInternal() => new()
     {
-        new() { Value = "onCreate", Label = "On Create", Description = "Triggered when an entity is created", Icon = "Add" },
-        new() { Value = "onUpdate", Label = "On Update", Description = "Triggered when an entity is updated", Icon = "Edit" },
-        new() { Value = "onDelete", Label = "On Delete", Description = "Triggered when an entity is deleted", Icon = "Delete" },
-        new() { Value = "onFieldChange", Label = "On Field Change", Description = "Triggered when specific field changes", Icon = "SwapHoriz" },
-        new() { Value = "onStatusChange", Label = "On Status Change", Description = "Triggered when status changes", Icon = "ChangeCircle" },
-        new() { Value = "onSchedule", Label = "Scheduled", Description = "Triggered on a schedule (cron)", Icon = "Schedule" },
-        new() { Value = "onManual", Label = "Manual", Description = "Triggered manually by user", Icon = "TouchApp" },
-        new() { Value = "onWebhook", Label = "On Webhook", Description = "Triggered by external webhook", Icon = "Http" },
-        new() { Value = "onApproval", Label = "On Approval", Description = "Triggered when approval is granted", Icon = "Approval" },
-        new() { Value = "onRejection", Label = "On Rejection", Description = "Triggered when request is rejected", Icon = "Cancel" },
-        new() { Value = "onEscalation", Label = "On Escalation", Description = "Triggered when escalation occurs", Icon = "PriorityHigh" },
-        new() { Value = "onAssignment", Label = "On Assignment", Description = "Triggered when entity is assigned", Icon = "PersonAdd" }
+        new() { Value = "Manual", Label = "Manual", Description = "Triggered manually by user", Icon = "TouchApp" },
+        new() { Value = "OnCreate", Label = "On Create", Description = "Triggered when an entity is created", Icon = "Add" },
+        new() { Value = "OnUpdate", Label = "On Update", Description = "Triggered when an entity is updated", Icon = "Edit" },
+        new() { Value = "OnDelete", Label = "On Delete", Description = "Triggered when an entity is deleted", Icon = "Delete" },
+        new() { Value = "OnFieldChange", Label = "On Field Change", Description = "Triggered when specific field changes", Icon = "SwapHoriz" },
+        new() { Value = "Scheduled", Label = "Scheduled", Description = "Triggered on a schedule (cron)", Icon = "Schedule" },
+        new() { Value = "OnEvent", Label = "On Event", Description = "Triggered by a custom event", Icon = "FlashOn" },
+        new() { Value = "OnWebhook", Label = "On Webhook", Description = "Triggered by external webhook", Icon = "Http" },
+        new() { Value = "OnSLABreach", Label = "On SLA Breach", Description = "Triggered when SLA is breached or at risk", Icon = "Warning" },
+        new() { Value = "OnEscalation", Label = "On Escalation", Description = "Triggered when escalation occurs", Icon = "PriorityHigh" },
+        new() { Value = "OnStatusChange", Label = "On Status Change", Description = "Triggered when status changes", Icon = "ChangeCircle" },
+        new() { Value = "OnApproval", Label = "On Approval", Description = "Triggered when approval is granted", Icon = "Approval" },
+        new() { Value = "OnRejection", Label = "On Rejection", Description = "Triggered when request is rejected", Icon = "Cancel" },
+        new() { Value = "OnAssignment", Label = "On Assignment", Description = "Triggered when entity is assigned", Icon = "PersonAdd" }
     };
 
     private List<OperatorConfig> GetConditionOperatorsInternal() => new()
@@ -1438,281 +1440,3 @@ public class WorkflowController : ControllerBase
     #endregion
 }
 
-#region DTOs
-
-public class WorkflowDefinitionDto
-{
-    public int Id { get; set; }
-    public string WorkflowKey { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string? Category { get; set; }
-    public string EntityType { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
-    public int CurrentVersion { get; set; }
-    public string? IconName { get; set; }
-    public string? Color { get; set; }
-    public bool IsSystem { get; set; }
-    public int Priority { get; set; }
-    public int MaxConcurrentInstances { get; set; }
-    public int DefaultTimeoutHours { get; set; }
-    public int? OwnerId { get; set; }
-    public string? OwnerName { get; set; }
-    public List<string>? Tags { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-}
-
-public class WorkflowDefinitionDetailDto : WorkflowDefinitionDto
-{
-    public string? Metadata { get; set; }
-    public List<WorkflowVersionSummaryDto> Versions { get; set; } = new();
-}
-
-public class WorkflowVersionSummaryDto
-{
-    public int Id { get; set; }
-    public int VersionNumber { get; set; }
-    public string? Label { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public DateTime? PublishedAt { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-public class WorkflowVersionDetailDto : WorkflowVersionSummaryDto
-{
-    public int WorkflowDefinitionId { get; set; }
-    public string WorkflowName { get; set; } = string.Empty;
-    public string? ChangeLog { get; set; }
-    public string? PublishedByName { get; set; }
-    public string? CanvasLayout { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public List<WorkflowNodeDto> Nodes { get; set; } = new();
-    public List<WorkflowTransitionDto> Transitions { get; set; } = new();
-}
-
-
-public class CreateWorkflowDto
-{
-    public string WorkflowKey { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string? Category { get; set; }
-    public string EntityType { get; set; } = string.Empty;
-    public string? IconName { get; set; }
-    public string? Color { get; set; }
-    public int? Priority { get; set; }
-    public int? MaxConcurrentInstances { get; set; }
-    public int? DefaultTimeoutHours { get; set; }
-    public List<string>? Tags { get; set; }
-    public string? Metadata { get; set; }
-}
-
-public class UpdateWorkflowDto
-{
-    public string? Name { get; set; }
-    public string? Description { get; set; }
-    public string? Category { get; set; }
-    public string? EntityType { get; set; }
-    public string? IconName { get; set; }
-    public string? Color { get; set; }
-    public int? Priority { get; set; }
-    public int? MaxConcurrentInstances { get; set; }
-    public int? DefaultTimeoutHours { get; set; }
-    public List<string>? Tags { get; set; }
-    public string? Metadata { get; set; }
-}
-
-public class CreateVersionDto
-{
-    public int? SourceVersionId { get; set; }
-}
-
-public class SaveLayoutDto
-{
-    public string CanvasLayout { get; set; } = string.Empty;
-}
-
-public class UpdateVersionMetadataDto
-{
-    public string? Label { get; set; }
-    public string? ChangeLog { get; set; }
-}
-
-public class CreateNodeDto
-{
-    public string? NodeKey { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string NodeType { get; set; } = string.Empty;
-    public string? NodeSubType { get; set; }
-    public double PositionX { get; set; }
-    public double PositionY { get; set; }
-    public double? Width { get; set; }
-    public double? Height { get; set; }
-    public string? IconName { get; set; }
-    public string? Color { get; set; }
-    public bool IsStartNode { get; set; }
-    public bool IsEndNode { get; set; }
-    public string? Configuration { get; set; }
-    public int? TimeoutMinutes { get; set; }
-    public int? RetryCount { get; set; }
-    public int? RetryDelaySeconds { get; set; }
-    public bool? UseExponentialBackoff { get; set; }
-    public int? ExecutionOrder { get; set; }
-}
-
-public class UpdateNodeDto
-{
-    public string? Name { get; set; }
-    public string? Description { get; set; }
-    public string? NodeType { get; set; }
-    public string? NodeSubType { get; set; }
-    public double? PositionX { get; set; }
-    public double? PositionY { get; set; }
-    public double? Width { get; set; }
-    public double? Height { get; set; }
-    public string? IconName { get; set; }
-    public string? Color { get; set; }
-    public bool? IsStartNode { get; set; }
-    public bool? IsEndNode { get; set; }
-    public string? Configuration { get; set; }
-    public int? TimeoutMinutes { get; set; }
-    public int? RetryCount { get; set; }
-    public int? RetryDelaySeconds { get; set; }
-    public bool? UseExponentialBackoff { get; set; }
-    public int? ExecutionOrder { get; set; }
-}
-
-public class NodePositionDto
-{
-    public int NodeId { get; set; }
-    public double X { get; set; }
-    public double Y { get; set; }
-}
-
-public class CreateTransitionDto
-{
-    public int SourceNodeId { get; set; }
-    public int TargetNodeId { get; set; }
-    public string? TransitionKey { get; set; }
-    public string? Label { get; set; }
-    public string? Description { get; set; }
-    public string? ConditionType { get; set; }
-    public string? ConditionExpression { get; set; }
-    public bool IsDefault { get; set; }
-    public int? Priority { get; set; }
-    public string? SourceHandle { get; set; }
-    public string? TargetHandle { get; set; }
-    public string? LineStyle { get; set; }
-    public string? Color { get; set; }
-    public string? AnimationStyle { get; set; }
-}
-
-public class UpdateTransitionDto
-{
-    public string? Label { get; set; }
-    public string? Description { get; set; }
-    public string? ConditionType { get; set; }
-    public string? ConditionExpression { get; set; }
-    public bool? IsDefault { get; set; }
-    public int? Priority { get; set; }
-    public string? SourceHandle { get; set; }
-    public string? TargetHandle { get; set; }
-    public string? LineStyle { get; set; }
-    public string? Color { get; set; }
-    public string? AnimationStyle { get; set; }
-}
-
-/// <summary>
-/// Comprehensive workflow configuration response
-/// </summary>
-public class WorkflowConfigResponse
-{
-    public List<ConfigOption> EntityTypes { get; set; } = new();
-    public List<NodeTypeConfig> NodeTypes { get; set; } = new();
-    public List<ActionTypeConfig> ActionTypes { get; set; } = new();
-    public List<TriggerTypeConfig> TriggerTypes { get; set; } = new();
-    public List<OperatorConfig> ConditionOperators { get; set; } = new();
-    public List<StatusConfig> StatusOptions { get; set; } = new();
-    public List<LLMProviderInfo> LLMProviders { get; set; } = new();
-    public List<LLMModelInfo> LLMModels { get; set; } = new();
-    public List<ConfigOption> Roles { get; set; } = new();
-    public List<string> Categories { get; set; } = new();
-    public List<string> IconOptions { get; set; } = new();
-    public List<string> ColorOptions { get; set; } = new();
-    public List<ConfigOption> FallbackActions { get; set; } = new();
-    public List<EventTypeConfig> EventTypes { get; set; } = new();
-    public Dictionary<string, List<EntityFieldConfig>> EntityFields { get; set; } = new();
-    public Dictionary<string, List<RelatedEntityConfig>> RelatedEntities { get; set; } = new();
-}
-
-/// <summary>
-/// Entity field configuration for workflow node configuration
-/// </summary>
-public class EntityFieldConfig
-{
-    public string Name { get; set; } = "";
-    public string Label { get; set; } = "";
-    public string Type { get; set; } = ""; // string, number, boolean, date, enum, reference
-    public bool Required { get; set; }
-    public List<string>? EnumValues { get; set; }
-    public string? ReferenceEntity { get; set; }
-    public string? Group { get; set; }
-}
-
-/// <summary>
-/// Related entity configuration for workflow actions
-/// </summary>
-public class RelatedEntityConfig
-{
-    public string Name { get; set; } = "";
-    public string Label { get; set; } = "";
-    public string EntityType { get; set; } = "";
-    public string RelationType { get; set; } = ""; // parent, child, related
-}
-
-public class ConfigOption
-{
-    public string Value { get; set; } = "";
-    public string Label { get; set; } = "";
-}
-
-public class NodeTypeConfig : ConfigOption
-{
-    public string Icon { get; set; } = "";
-    public string Color { get; set; } = "";
-    public string Description { get; set; } = "";
-}
-
-public class ActionTypeConfig : ConfigOption
-{
-    public string Category { get; set; } = "";
-    public string Icon { get; set; } = "";
-}
-
-public class TriggerTypeConfig : ConfigOption
-{
-    public string Description { get; set; } = "";
-    public string Icon { get; set; } = "";
-}
-
-public class OperatorConfig : ConfigOption
-{
-    public string[] AppliesTo { get; set; } = Array.Empty<string>();
-}
-
-public class StatusConfig : ConfigOption
-{
-    public string Color { get; set; } = "";
-    public string BgColor { get; set; } = "";
-    public string Icon { get; set; } = "";
-}
-
-public class EventTypeConfig : ConfigOption
-{
-    public string Color { get; set; } = "";
-    public string Category { get; set; } = "";
-}
-
-#endregion

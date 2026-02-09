@@ -629,11 +629,275 @@ public class WorkflowTriggerService : IWorkflowTriggerService
         if (string.IsNullOrEmpty(trigger.FilterConditions))
             return true;
 
-        // TODO: Implement dynamic filter condition evaluation
-        // For now, return true if we have filter conditions (assume they match)
-        // A full implementation would parse the JSON filter and evaluate against the entity
-        _logger.LogDebug("Filter conditions not fully implemented, assuming match for trigger {TriggerId}", trigger.Id);
-        return true;
+        try
+        {
+            using var doc = JsonDocument.Parse(trigger.FilterConditions);
+            var root = doc.RootElement;
+
+            // Support both array of conditions and object with "conditions" array
+            JsonElement conditions;
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                conditions = root;
+            }
+            else if (root.TryGetProperty("conditions", out var condArray) && condArray.ValueKind == JsonValueKind.Array)
+            {
+                conditions = condArray;
+            }
+            else
+            {
+                _logger.LogWarning("Trigger {TriggerId}: FilterConditions JSON is not an array and has no 'conditions' property. Assuming match.", trigger.Id);
+                return true;
+            }
+
+            // Determine logical operator (AND by default)
+            var logicOperator = "and";
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("logic", out var logicProp))
+                logicOperator = logicProp.GetString()?.ToLowerInvariant() ?? "and";
+
+            // Parse context data if present
+            Dictionary<string, string>? contextFields = null;
+            if (!string.IsNullOrEmpty(request.ContextData))
+            {
+                try
+                {
+                    contextFields = JsonSerializer.Deserialize<Dictionary<string, string>>(request.ContextData);
+                }
+                catch
+                {
+                    // ContextData is not a simple dictionary; ignore
+                }
+            }
+
+            // Evaluate each condition
+            var results = new List<bool>();
+            foreach (var condition in conditions.EnumerateArray())
+            {
+                var result = EvaluateSingleCondition(condition, request, contextFields);
+                results.Add(result);
+            }
+
+            if (results.Count == 0)
+                return true;
+
+            var match = logicOperator == "or"
+                ? results.Any(r => r)
+                : results.All(r => r);
+
+            _logger.LogDebug(
+                "Trigger {TriggerId}: Evaluated {Count} filter conditions with '{Logic}' logic. Result: {Match}",
+                trigger.Id, results.Count, logicOperator, match);
+
+            return match;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Trigger {TriggerId}: Failed to parse FilterConditions JSON. Assuming match.", trigger.Id);
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Evaluates a single filter condition against the trigger execution request.
+    /// Expected JSON shape: { "field": "Status", "operator": "equals", "value": "Active" }
+    /// </summary>
+    private bool EvaluateSingleCondition(
+        JsonElement condition,
+        TriggerExecutionRequest request,
+        Dictionary<string, string>? contextFields)
+    {
+        if (!condition.TryGetProperty("field", out var fieldProp) ||
+            !condition.TryGetProperty("operator", out var opProp))
+        {
+            return true; // Malformed condition — skip (treat as match)
+        }
+
+        var fieldName = fieldProp.GetString() ?? string.Empty;
+        var op = opProp.GetString() ?? "equals";
+        var conditionValue = condition.TryGetProperty("value", out var valProp) ? valProp.GetString() : null;
+        var conditionValue2 = condition.TryGetProperty("value2", out var val2Prop) ? val2Prop.GetString() : null;
+
+        // Resolve the actual field value from the request
+        var actualValue = ResolveFieldValue(fieldName, request, contextFields);
+
+        return EvaluateOperator(op, actualValue, conditionValue, conditionValue2);
+    }
+
+    /// <summary>
+    /// Resolves the value of a field from the trigger request.
+    /// Checks ChangedField/NewValue first, then ContextData dictionary.
+    /// </summary>
+    private static string? ResolveFieldValue(
+        string fieldName,
+        TriggerExecutionRequest request,
+        Dictionary<string, string>? contextFields)
+    {
+        // If the condition targets the changed field specifically, use OldValue/NewValue
+        if (!string.IsNullOrEmpty(request.ChangedField) &&
+            string.Equals(request.ChangedField, fieldName, StringComparison.OrdinalIgnoreCase))
+        {
+            return request.NewValue;
+        }
+
+        // Check context data for the field value
+        if (contextFields != null)
+        {
+            // Try exact match first, then case-insensitive
+            if (contextFields.TryGetValue(fieldName, out var val))
+                return val;
+
+            var key = contextFields.Keys.FirstOrDefault(k => string.Equals(k, fieldName, StringComparison.OrdinalIgnoreCase));
+            if (key != null)
+                return contextFields[key];
+        }
+
+        // Special built-in fields
+        return fieldName.ToLowerInvariant() switch
+        {
+            "entitytype" => request.EntityType,
+            "entityid" => request.EntityId.ToString(),
+            "changedfield" => request.ChangedField,
+            "oldvalue" => request.OldValue,
+            "newvalue" => request.NewValue,
+            "eventname" => request.EventName,
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// Evaluates a condition operator against actual and expected values.
+    /// Supports: equals, notEquals, contains, notContains, startsWith, endsWith,
+    /// greaterThan, lessThan, greaterThanOrEqual, lessThanOrEqual,
+    /// isNull, isNotNull, in, notIn, between, regex
+    /// </summary>
+    private static bool EvaluateOperator(string op, string? actual, string? expected, string? expected2)
+    {
+        switch (op.ToLowerInvariant())
+        {
+            case "equals":
+            case "eq":
+                return string.Equals(actual ?? "", expected ?? "", StringComparison.OrdinalIgnoreCase);
+
+            case "notequals":
+            case "not_equals":
+            case "neq":
+                return !string.Equals(actual ?? "", expected ?? "", StringComparison.OrdinalIgnoreCase);
+
+            case "contains":
+                return (actual ?? "").Contains(expected ?? "", StringComparison.OrdinalIgnoreCase);
+
+            case "notcontains":
+            case "not_contains":
+                return !(actual ?? "").Contains(expected ?? "", StringComparison.OrdinalIgnoreCase);
+
+            case "startswith":
+            case "starts_with":
+                return (actual ?? "").StartsWith(expected ?? "", StringComparison.OrdinalIgnoreCase);
+
+            case "endswith":
+            case "ends_with":
+                return (actual ?? "").EndsWith(expected ?? "", StringComparison.OrdinalIgnoreCase);
+
+            case "greaterthan":
+            case "greater_than":
+            case "gt":
+                return CompareNumeric(actual, expected) > 0;
+
+            case "lessthan":
+            case "less_than":
+            case "lt":
+                return CompareNumeric(actual, expected) < 0;
+
+            case "greaterthanorequal":
+            case "greater_than_or_equal":
+            case "gte":
+                return CompareNumeric(actual, expected) >= 0;
+
+            case "lessthanorequal":
+            case "less_than_or_equal":
+            case "lte":
+                return CompareNumeric(actual, expected) <= 0;
+
+            case "isnull":
+            case "is_null":
+            case "is_empty":
+                return string.IsNullOrEmpty(actual);
+
+            case "isnotnull":
+            case "is_not_null":
+            case "is_not_empty":
+                return !string.IsNullOrEmpty(actual);
+
+            case "in":
+                if (string.IsNullOrEmpty(expected)) return false;
+                var inValues = expected.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                return inValues.Any(v => string.Equals(v, actual, StringComparison.OrdinalIgnoreCase));
+
+            case "notin":
+            case "not_in":
+                if (string.IsNullOrEmpty(expected)) return true;
+                var notInValues = expected.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                return !notInValues.Any(v => string.Equals(v, actual, StringComparison.OrdinalIgnoreCase));
+
+            case "between":
+                return EvaluateBetween(actual, expected, expected2);
+
+            case "regex":
+                if (string.IsNullOrEmpty(expected)) return true;
+                try
+                {
+                    return System.Text.RegularExpressions.Regex.IsMatch(actual ?? "", expected, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                }
+                catch
+                {
+                    return false; // Invalid regex pattern
+                }
+
+            // Frontend-specific aliases (field change triggers)
+            case "changed_to":
+                return string.Equals(actual ?? "", expected ?? "", StringComparison.OrdinalIgnoreCase);
+
+            case "changed_from":
+                // For changed_from, compare against OldValue — but we only get actual=NewValue here
+                // The caller should have set actual to OldValue for this operator
+                return string.Equals(actual ?? "", expected ?? "", StringComparison.OrdinalIgnoreCase);
+
+            default:
+                return true; // Unknown operator — treat as match
+        }
+    }
+
+    /// <summary>
+    /// Compares two string values as decimals. Returns -1, 0, or 1.
+    /// Falls back to string comparison if not numeric.
+    /// </summary>
+    private static int CompareNumeric(string? left, string? right)
+    {
+        if (decimal.TryParse(left, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var leftNum) &&
+            decimal.TryParse(right, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var rightNum))
+        {
+            return leftNum.CompareTo(rightNum);
+        }
+
+        // Fall back to date comparison
+        if (DateTime.TryParse(left, out var leftDate) && DateTime.TryParse(right, out var rightDate))
+        {
+            return leftDate.CompareTo(rightDate);
+        }
+
+        // Fall back to ordinal string comparison
+        return string.Compare(left ?? "", right ?? "", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Evaluates whether actual is between expected (low) and expected2 (high), inclusive.
+    /// </summary>
+    private static bool EvaluateBetween(string? actual, string? low, string? high)
+    {
+        if (string.IsNullOrEmpty(low) || string.IsNullOrEmpty(high))
+            return true; // Incomplete between — skip
+
+        return CompareNumeric(actual, low) >= 0 && CompareNumeric(actual, high) <= 0;
     }
 
     private async Task<int> StartWorkflowAsync(WorkflowTrigger trigger, int entityId, int? initiatedById, CancellationToken cancellationToken)
