@@ -53,7 +53,7 @@ const mockViewOnlyUser = {
 // Navigation items configuration
 const NAVIGATION_ITEMS = [
   { id: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: 'Dashboard', permission: 'view_dashboard' },
-  { id: 'customers', path: '/customers', label: 'Customers', icon: 'People', permission: 'view_customers' },
+  { id: 'customers', path: '/accounts', label: 'Customers', icon: 'People', permission: 'view_customers' },
   { id: 'contacts', path: '/contacts', label: 'Contacts', icon: 'Contacts', permission: 'view_contacts' },
   { id: 'opportunities', path: '/opportunities', label: 'Opportunities', icon: 'TrendingUp', permission: 'view_opportunities' },
   { id: 'products', path: '/products', label: 'Products', icon: 'Inventory', permission: 'view_products' },
@@ -89,7 +89,7 @@ describe('Navigation - Structure', () => {
   it('should have Customers item', () => {
     const customers = NAVIGATION_ITEMS.find(item => item.id === 'customers');
     expect(customers).toBeTruthy();
-    expect(customers?.path).toBe('/customers');
+    expect(customers?.path).toBe('/accounts');
   });
 
   it('should have Opportunities item', () => {
@@ -185,8 +185,8 @@ describe('Navigation - Route Navigation', () => {
   });
 
   it('should navigate to customers', () => {
-    mockNavigate('/customers');
-    expect(mockNavigate).toHaveBeenCalledWith('/customers');
+    mockNavigate('/accounts');
+    expect(mockNavigate).toHaveBeenCalledWith('/accounts');
   });
 
   it('should navigate to opportunities', () => {
@@ -273,7 +273,7 @@ describe('Navigation - Mobile', () => {
     };
     
     closeDrawer();
-    mockNavigate('/customers');
+    mockNavigate('/accounts');
     expect(drawerOpen).toBe(false);
   });
 
@@ -333,18 +333,18 @@ describe('Navigation - Protected Routes', () => {
 
 describe('Navigation - Active State', () => {
   it('should highlight active item', () => {
-    const currentPath = '/customers';
+    const currentPath = '/accounts';
     const isActive = (path: string) => currentPath === path;
     
-    expect(isActive('/customers')).toBe(true);
+    expect(isActive('/accounts')).toBe(true);
     expect(isActive('/dashboard')).toBe(false);
   });
 
   it('should handle nested routes', () => {
-    const currentPath = '/customers/1/edit';
+    const currentPath = '/accounts/1/edit';
     const isActive = (path: string) => currentPath.startsWith(path);
     
-    expect(isActive('/customers')).toBe(true);
+    expect(isActive('/accounts')).toBe(true);
     expect(isActive('/dashboard')).toBe(false);
   });
 
@@ -354,8 +354,8 @@ describe('Navigation - Active State', () => {
       activePath = path;
     };
     
-    setActivePath('/customers');
-    expect(activePath).toBe('/customers');
+    setActivePath('/accounts');
+    expect(activePath).toBe('/accounts');
   });
 });
 
@@ -441,8 +441,8 @@ describe('Navigation - Search', () => {
   });
 
   it('should navigate to search result', () => {
-    mockNavigate('/customers/1');
-    expect(mockNavigate).toHaveBeenCalledWith('/customers/1');
+    mockNavigate('/accounts/1');
+    expect(mockNavigate).toHaveBeenCalledWith('/accounts/1');
   });
 });
 
@@ -488,8 +488,8 @@ describe('Navigation - Breadcrumbs', () => {
   });
 
   it('should be clickable for navigation', () => {
-    mockNavigate('/customers');
-    expect(mockNavigate).toHaveBeenCalledWith('/customers');
+    mockNavigate('/accounts');
+    expect(mockNavigate).toHaveBeenCalledWith('/accounts');
   });
 
   it('should generate from path', () => {
@@ -498,7 +498,7 @@ describe('Navigation - Breadcrumbs', () => {
       return ['Home', ...parts.map(p => p.charAt(0).toUpperCase() + p.slice(1))];
     };
     
-    expect(generateBreadcrumbs('/customers/1/edit')).toEqual(['Home', 'Customers', '1', 'Edit']);
+    expect(generateBreadcrumbs('/accounts/1/edit')).toEqual(['Home', 'Customers', '1', 'Edit']);
   });
 });
 

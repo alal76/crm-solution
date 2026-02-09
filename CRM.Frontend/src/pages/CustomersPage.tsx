@@ -18,7 +18,7 @@ import {
 } from '../components/common';
 import {
   LIFECYCLE_STAGE_OPTIONS,
-  CUSTOMER_TYPE_OPTIONS,
+  ACCOUNT_TYPE_OPTIONS,
   PRIORITY_OPTIONS,
   CONTACT_ROLE_OPTIONS
 } from '../utils/constants';
@@ -49,7 +49,7 @@ import logger from '../services/logger';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
-  { name: 'customerType', label: 'Account Type', type: 'select', options: [...CUSTOMER_TYPE_OPTIONS] },
+  { name: 'customerType', label: 'Account Type', type: 'select', options: [...ACCOUNT_TYPE_OPTIONS] },
   { name: 'firstName', label: 'First Name', type: 'text' },
   { name: 'lastName', label: 'Last Name', type: 'text' },
   { name: 'company', label: 'Business Name', type: 'text' },
@@ -63,7 +63,7 @@ const SEARCHABLE_FIELDS = ['firstName', 'lastName', 'company', 'email', 'industr
 
 // Use shared constants
 const LIFECYCLE_STAGES = LIFECYCLE_STAGE_OPTIONS;
-const CUSTOMER_TYPES = CUSTOMER_TYPE_OPTIONS;
+const ACCOUNT_TYPES = ACCOUNT_TYPE_OPTIONS;
 const PRIORITIES = PRIORITY_OPTIONS;
 const CONTACT_ROLES = CONTACT_ROLE_OPTIONS;
 
@@ -266,7 +266,7 @@ function CustomersPage() {
   const fetchCustomers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/customers');
+      const response = await apiClient.get('/accounts');
       setCustomers(response.data);
       setError(null);
     } catch (err: any) {
@@ -286,7 +286,7 @@ function CustomersPage() {
   }, []);
 
   // SignalR subscription for real-time updates
-  useEntityTypeSubscription('Customer', {
+  useEntityTypeSubscription('Account', {
     onCreated: useCallback(() => {
       logger.debug('[SignalR] Customer created - refreshing list');
       fetchCustomers();
@@ -333,7 +333,7 @@ function CustomersPage() {
 
   const fetchCustomerContacts = async (accountId: number) => {
     try {
-      const response = await apiClient.get(`/customers/${accountId}/contacts`);
+      const response = await apiClient.get(`/accounts/${accountId}/contacts`);
       setCustomerContacts(response.data);
     } catch (err) {
       console.error('Error fetching customer contacts:', err);
@@ -430,10 +430,10 @@ function CustomersPage() {
       });
 
       if (editingId) {
-        await apiClient.put(`/customers/${editingId}`, submitData);
+        await apiClient.put(`/accounts/${editingId}`, submitData);
         setSuccessMessage('Account updated successfully');
       } else {
-        await apiClient.post('/customers', submitData);
+        await apiClient.post('/accounts', submitData);
         setSuccessMessage('Account created successfully');
       }
       handleCloseDialog();
@@ -447,7 +447,7 @@ function CustomersPage() {
   const handleDeleteCustomer = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this account?')) {
       const result = await dialogApi.execute(async () => {
-        await apiClient.delete(`/customers/${id}`);
+        await apiClient.delete(`/accounts/${id}`);
         return true;
       }, 'Account deleted successfully');
       
@@ -512,7 +512,7 @@ function CustomersPage() {
 
     const result = await bulkApi.execute(async () => {
       const updatePromises = selectedIds.map(id =>
-        apiClient.put(`/customers/${id}`, updatePayload)
+        apiClient.put(`/accounts/${id}`, updatePayload)
       );
       await Promise.all(updatePromises);
       return selectedIds.length;
@@ -535,7 +535,7 @@ function CustomersPage() {
     }
 
     const result = await bulkApi.execute(async () => {
-      const deletePromises = selectedIds.map(id => apiClient.delete(`/customers/${id}`));
+      const deletePromises = selectedIds.map(id => apiClient.delete(`/accounts/${id}`));
       await Promise.all(deletePromises);
       return selectedIds.length;
     }, `Successfully deleted ${selectedIds.length} account(s)`);
@@ -555,7 +555,7 @@ function CustomersPage() {
     if (!editingId || !selectedContactId) return;
 
     try {
-      await apiClient.post(`/customers/${editingId}/contacts`, {
+      await apiClient.post(`/accounts/${editingId}/contacts`, {
         contactId: selectedContactId,
         role: contactRole,
         isPrimaryContact: contactIsPrimary,
@@ -579,7 +579,7 @@ function CustomersPage() {
 
     if (window.confirm('Are you sure you want to remove this contact from the account?')) {
       try {
-        await apiClient.delete(`/customers/${editingId}/contacts/${contactId}`);
+        await apiClient.delete(`/accounts/${editingId}/contacts/${contactId}`);
         fetchCustomerContacts(editingId);
         setSuccessMessage('Contact removed successfully');
         setTimeout(() => setSuccessMessage(null), 3000);
@@ -592,7 +592,7 @@ function CustomersPage() {
   // Helper functions
   const getLifecycleStage = (value: number) => LIFECYCLE_STAGES.find(s => s.value === value);
   const getPriority = (value: number) => PRIORITIES.find(p => p.value === value);
-  const getCustomerType = (value: number) => CUSTOMER_TYPES.find(t => t.value === value);
+  const getCustomerType = (value: number) => ACCOUNT_TYPES.find(t => t.value === value);
 
   const handleSearch = (filters: SearchFilter[], text: string) => {
     setSearchFilters(filters);
@@ -688,7 +688,7 @@ function CustomersPage() {
               </IconButton>
             </Tooltip>
             <ImportExportButtons
-              entityType="customers"
+              entityType="accounts"
               entityLabel="Accounts"
               onImportComplete={fetchCustomers}
             />
@@ -955,7 +955,7 @@ function CustomersPage() {
                     Manage Contact Information
                   </Typography>
                   <ContactInfoPanel
-                    entityType="Customer"
+                    entityType="Account"
                     entityId={editingId}
                     layout="tabs"
                     showCounts={true}
@@ -1055,7 +1055,7 @@ function CustomersPage() {
               {editingId && (
                 <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 102)}>
                   <NotesTab
-                    entityType="Customer"
+                    entityType="Account"
                     entityId={editingId}
                     entityName={formData.company || `${formData.firstName} ${formData.lastName}`}
                   />
@@ -1157,7 +1157,7 @@ function CustomersPage() {
                 onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, customerType: e.target.value }))}
               >
                 <MenuItem value="">-- No Change --</MenuItem>
-                {CUSTOMER_TYPE_OPTIONS.map(type => (
+                {ACCOUNT_TYPE_OPTIONS.map(type => (
                   <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
                 ))}
               </Select>

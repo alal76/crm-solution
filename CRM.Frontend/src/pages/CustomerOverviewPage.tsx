@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   LIFECYCLE_STAGE_OPTIONS,
-  CUSTOMER_TYPE_OPTIONS,
+  ACCOUNT_TYPE_OPTIONS,
   getLabelByValue,
   getColorByValue
 } from '../utils/constants';
@@ -74,7 +74,7 @@ interface User {
 
 // Use shared constants - aliased for backward compatibility in this file
 const LIFECYCLE_STAGES = LIFECYCLE_STAGE_OPTIONS;
-const CUSTOMER_TYPES = CUSTOMER_TYPE_OPTIONS;
+const ACCOUNT_TYPES = ACCOUNT_TYPE_OPTIONS;
 
 function CustomerOverviewPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -117,7 +117,7 @@ function CustomerOverviewPage() {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/customers');
+      const response = await apiClient.get('/accounts');
       setCustomers(response.data || []);
       setError(null);
     } catch (err: any) {
@@ -183,7 +183,7 @@ function CustomerOverviewPage() {
       setLoadingDetails(true);
       
       // Fetch contacts for this customer
-      const contactsResponse = await apiClient.get(`/customers/${accountId}/contacts`);
+      const contactsResponse = await apiClient.get(`/accounts/${accountId}/contacts`);
       setContacts(contactsResponse.data || []);
 
       // Fetch news and social feeds from real API
@@ -221,7 +221,7 @@ function CustomerOverviewPage() {
   };
 
   const getLifecycleStage = (value?: number) => LIFECYCLE_STAGES.find(s => s.value === value);
-  const getCustomerType = (value?: number) => CUSTOMER_TYPES.find(t => t.value === value);
+  const getCustomerType = (value?: number) => ACCOUNT_TYPES.find(t => t.value === value);
 
   const getSentimentColor = (sentiment?: string) => {
     switch (sentiment) {

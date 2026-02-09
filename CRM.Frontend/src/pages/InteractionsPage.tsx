@@ -301,7 +301,7 @@ function InteractionsPage() {
   const fetchEntities = async () => {
     try {
       const [customersRes, contactsRes, opportunitiesRes] = await Promise.all([
-        apiClient.get('/customers?limit=100'),
+        apiClient.get('/accounts?limit=100'),
         apiClient.get('/contacts?limit=100'),
         apiClient.get('/opportunities?limit=100'),
       ]);

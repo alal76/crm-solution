@@ -27,7 +27,7 @@ import { Add as AddIcon } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 
 // Entity types supported by this component
-export type EntityType = 'customer' | 'contact' | 'product' | 'opportunity' | 'user' | 'account';
+export type EntityType = 'account' | 'contact' | 'product' | 'opportunity' | 'user';
 
 interface EntitySelectProps {
   entityType: EntityType;
@@ -51,7 +51,7 @@ interface BaseEntityItem {
 }
 
 // Entity item interfaces
-interface CustomerItem extends BaseEntityItem {
+interface AccountItem extends BaseEntityItem {
   firstName: string;
   lastName: string;
   company?: string;
@@ -84,10 +84,10 @@ interface UserItem extends BaseEntityItem {
   username?: string;
 }
 
-type EntityItem = CustomerItem | ContactItem | ProductItem | OpportunityItem | UserItem;
+type EntityItem = AccountItem | ContactItem | ProductItem | OpportunityItem | UserItem;
 
 // Quick create form data interfaces
-interface CustomerFormData {
+interface AccountFormData {
   firstName: string;
   lastName: string;
   company: string;
@@ -142,7 +142,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
   const [dialogError, setDialogError] = useState<string | null>(null);
 
   // Form data for quick create
-  const [customerForm, setCustomerForm] = useState<CustomerFormData>({
+  const [customerForm, setAccountForm] = useState<AccountFormData>({
     firstName: '', lastName: '', company: '', emailPrimary: '', phonePrimary: ''
   });
   const [contactForm, setContactForm] = useState<ContactFormData>({
@@ -161,7 +161,6 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
       setLoading(true);
       let endpoint = '';
       switch (entityType) {
-        case 'customer': endpoint = '/customers'; break;
         case 'contact': endpoint = '/contacts'; break;
         case 'product': endpoint = '/products'; break;
         case 'opportunity': endpoint = '/opportunities'; break;
@@ -185,13 +184,8 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
   // Get display text for an entity item
   const getDisplayText = (item: EntityItem): string => {
     switch (entityType) {
-      case 'customer': {
-        const c = item as CustomerItem;
-        const name = c.displayName || `${c.firstName || ''} ${c.lastName || ''}`.trim();
-        return c.company ? `${name} (${c.company})` : name || 'Unnamed';
-      }
       case 'account': {
-        const a = item as CustomerItem;
+        const a = item as AccountItem;
         if (a.company) return a.company;
         const name = `${a.firstName || ''} ${a.lastName || ''}`.trim();
         return name || 'Unnamed Account';
@@ -221,7 +215,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
   // Handle "Add New" click
   const handleAddNewClick = () => {
     // Reset forms
-    setCustomerForm({ firstName: '', lastName: '', company: '', emailPrimary: '', phonePrimary: '' });
+    setAccountForm({ firstName: '', lastName: '', company: '', emailPrimary: '', phonePrimary: '' });
     setContactForm({ firstName: '', lastName: '', company: '', emailPrimary: '', phonePrimary: '', jobTitle: '' });
     setProductForm({ name: '', sku: '', price: 0, category: '', description: '' });
     setOpportunityForm({ name: '', description: '', amount: 0, stage: 0, closeDate: new Date().toISOString().split('T')[0] });
@@ -244,17 +238,6 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
       let payload: any = {};
 
       switch (entityType) {
-        case 'customer':
-          endpoint = '/customers';
-          payload = {
-            ...customerForm,
-            customerCategory: 0, // Individual
-            lifecycleStage: 0,
-          };
-          if (!payload.firstName && !payload.lastName && !payload.company) {
-            throw new Error('Please provide at least a name or company');
-          }
-          break;
         case 'account':
           endpoint = '/accounts';
           payload = {
@@ -325,7 +308,6 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
   // Render quick create form based on entity type
   const renderQuickCreateForm = () => {
     switch (entityType) {
-      case 'customer':
       case 'account':
         return (
           <Grid container spacing={2}>
@@ -334,7 +316,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
                 fullWidth
                 label="First Name"
                 value={customerForm.firstName}
-                onChange={(e) => setCustomerForm({ ...customerForm, firstName: e.target.value })}
+                onChange={(e) => setAccountForm({ ...customerForm, firstName: e.target.value })}
               />
             </Grid>
             <Grid item xs={6}>
@@ -342,7 +324,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
                 fullWidth
                 label="Last Name"
                 value={customerForm.lastName}
-                onChange={(e) => setCustomerForm({ ...customerForm, lastName: e.target.value })}
+                onChange={(e) => setAccountForm({ ...customerForm, lastName: e.target.value })}
               />
             </Grid>
             <Grid item xs={12}>
@@ -350,7 +332,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
                 fullWidth
                 label="Company"
                 value={customerForm.company}
-                onChange={(e) => setCustomerForm({ ...customerForm, company: e.target.value })}
+                onChange={(e) => setAccountForm({ ...customerForm, company: e.target.value })}
               />
             </Grid>
             <Grid item xs={6}>
@@ -359,7 +341,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
                 label="Email"
                 type="email"
                 value={customerForm.emailPrimary}
-                onChange={(e) => setCustomerForm({ ...customerForm, emailPrimary: e.target.value })}
+                onChange={(e) => setAccountForm({ ...customerForm, emailPrimary: e.target.value })}
               />
             </Grid>
             <Grid item xs={6}>
@@ -367,7 +349,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
                 fullWidth
                 label="Phone"
                 value={customerForm.phonePrimary}
-                onChange={(e) => setCustomerForm({ ...customerForm, phonePrimary: e.target.value })}
+                onChange={(e) => setAccountForm({ ...customerForm, phonePrimary: e.target.value })}
               />
             </Grid>
           </Grid>
@@ -537,7 +519,6 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
   // Get dialog title based on entity type
   const getDialogTitle = () => {
     switch (entityType) {
-      case 'customer': return 'Quick Create Customer';
       case 'account': return 'Quick Create Account';
       case 'contact': return 'Quick Create Contact';
       case 'product': return 'Quick Create Product';

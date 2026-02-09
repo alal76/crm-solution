@@ -339,8 +339,8 @@ describe('DashboardPage - Navigation', () => {
   });
 
   it('should navigate to customers on stat card click', () => {
-    mockNavigate('/customers');
-    expect(mockNavigate).toHaveBeenCalledWith('/customers');
+    mockNavigate('/accounts');
+    expect(mockNavigate).toHaveBeenCalledWith('/accounts');
   });
 
   it('should navigate to opportunities on pipeline click', () => {

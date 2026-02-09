@@ -640,7 +640,7 @@ describe('Component - EntitySelect', () => {
         { id: 1, name: 'Customer A' },
         { id: 2, name: 'Customer B' },
       ]});
-      await mockApiClient.get('/customers');
+      await mockApiClient.get('/accounts');
       
       expect(mockApiClient.get).toHaveBeenCalled();
     });
@@ -742,7 +742,7 @@ describe('Component - Breadcrumbs', () => {
     });
 
     it('should generate from path', () => {
-      const path = '/customers/1/edit';
+      const path = '/accounts/1/edit';
       const parts = path.split('/').filter(Boolean);
       expect(parts).toEqual(['customers', '1', 'edit']);
     });

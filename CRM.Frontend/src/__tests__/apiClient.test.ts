@@ -9,9 +9,9 @@ describe('API Client Service', () => {
       get: jest.fn().mockResolvedValue({ data: { id: 1, name: 'Test Customer' } })
     };
 
-    const response = await mockClient.get('/customers');
+    const response = await mockClient.get('/accounts');
     expect(response.data.name).toBe('Test Customer');
-    expect(mockClient.get).toHaveBeenCalledWith('/customers');
+    expect(mockClient.get).toHaveBeenCalledWith('/accounts');
   });
 
   it('should support HTTP POST requests', async () => {
@@ -19,7 +19,7 @@ describe('API Client Service', () => {
       post: jest.fn().mockResolvedValue({ data: { id: 1, name: 'New Customer' } })
     };
 
-    const response = await mockClient.post('/customers', { name: 'New Customer' });
+    const response = await mockClient.post('/accounts', { name: 'New Customer' });
     expect(response.data.id).toBe(1);
     expect(mockClient.post).toHaveBeenCalled();
   });
@@ -29,7 +29,7 @@ describe('API Client Service', () => {
       put: jest.fn().mockResolvedValue({ data: { id: 1, name: 'Updated' } })
     };
 
-    const response = await mockClient.put('/customers/1', { name: 'Updated' });
+    const response = await mockClient.put('/accounts/1', { name: 'Updated' });
     expect(response.data.name).toBe('Updated');
   });
 
@@ -38,7 +38,7 @@ describe('API Client Service', () => {
       delete: jest.fn().mockResolvedValue({ status: 204 })
     };
 
-    const response = await mockClient.delete('/customers/1');
+    const response = await mockClient.delete('/accounts/1');
     expect(response.status).toBe(204);
   });
 
@@ -48,7 +48,7 @@ describe('API Client Service', () => {
     };
 
     try {
-      await mockClient.get('/customers');
+      await mockClient.get('/accounts');
       fail('Should have thrown');
     } catch (error: any) {
       expect(error.message).toBe('Network error');

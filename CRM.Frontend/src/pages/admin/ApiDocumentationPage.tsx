@@ -90,13 +90,13 @@ const apiEndpoints: ApiEndpoint[] = [
   { method: 'POST', path: '/api/auth/2fa/verify', description: 'Verify 2FA code during login', auth: false, category: 'Authentication', requestBody: '{ "code": "string", "tempToken": "string" }' },
 
   // Customers
-  { method: 'GET', path: '/api/customers', description: 'Get paginated list of customers', auth: true, category: 'Customers', parameters: [{ name: 'page', type: 'int', required: false, description: 'Page number' }, { name: 'pageSize', type: 'int', required: false, description: 'Items per page' }, { name: 'search', type: 'string', required: false, description: 'Search query' }] },
-  { method: 'GET', path: '/api/customers/{id}', description: 'Get customer by ID', auth: true, category: 'Customers' },
-  { method: 'POST', path: '/api/customers', description: 'Create new customer', auth: true, category: 'Customers', requestBody: '{ "firstName": "string", "lastName": "string", "email": "string", "phone": "string", "category": "Individual|Organization", "lifecycleStage": "string" }' },
-  { method: 'PUT', path: '/api/customers/{id}', description: 'Update customer', auth: true, category: 'Customers' },
-  { method: 'DELETE', path: '/api/customers/{id}', description: 'Soft delete customer', auth: true, category: 'Customers' },
-  { method: 'GET', path: '/api/customers/{id}/contacts', description: 'Get contacts for customer', auth: true, category: 'Customers' },
-  { method: 'GET', path: '/api/customers/{id}/opportunities', description: 'Get opportunities for customer', auth: true, category: 'Customers' },
+  { method: 'GET', path: '/api/accounts', description: 'Get paginated list of customers', auth: true, category: 'Accounts', parameters: [{ name: 'page', type: 'int', required: false, description: 'Page number' }, { name: 'pageSize', type: 'int', required: false, description: 'Items per page' }, { name: 'search', type: 'string', required: false, description: 'Search query' }] },
+  { method: 'GET', path: '/api/accounts/{id}', description: 'Get customer by ID', auth: true, category: 'Accounts' },
+  { method: 'POST', path: '/api/accounts', description: 'Create new customer', auth: true, category: 'Accounts', requestBody: '{ "firstName": "string", "lastName": "string", "email": "string", "phone": "string", "category": "Individual|Organization", "lifecycleStage": "string" }' },
+  { method: 'PUT', path: '/api/accounts/{id}', description: 'Update customer', auth: true, category: 'Accounts' },
+  { method: 'DELETE', path: '/api/accounts/{id}', description: 'Soft delete customer', auth: true, category: 'Accounts' },
+  { method: 'GET', path: '/api/accounts/{id}/contacts', description: 'Get contacts for customer', auth: true, category: 'Accounts' },
+  { method: 'GET', path: '/api/accounts/{id}/opportunities', description: 'Get opportunities for customer', auth: true, category: 'Accounts' },
 
   // Contacts
   { method: 'GET', path: '/api/contacts', description: 'Get paginated list of contacts', auth: true, category: 'Contacts' },
@@ -242,9 +242,9 @@ const apiEndpoints: ApiEndpoint[] = [
 ];
 
 const webhooks: Webhook[] = [
-  { event: 'customer.created', description: 'Fired when a new customer is created', category: 'Customer', payload: '{ "event": "customer.created", "timestamp": "ISO8601", "data": { "id": 1, "firstName": "John", "lastName": "Doe", "email": "john@example.com" } }' },
-  { event: 'customer.updated', description: 'Fired when a customer is updated', category: 'Customer', payload: '{ "event": "customer.updated", "timestamp": "ISO8601", "data": { "id": 1, "changes": {...}, "previousValues": {...} } }' },
-  { event: 'customer.deleted', description: 'Fired when a customer is deleted', category: 'Customer', payload: '{ "event": "customer.deleted", "timestamp": "ISO8601", "data": { "id": 1 } }' },
+  { event: 'account.created', description: 'Fired when a new account is created', category: 'Account', payload: '{ "event": "customer.created", "timestamp": "ISO8601", "data": { "id": 1, "firstName": "John", "lastName": "Doe", "email": "john@example.com" } }' },
+  { event: 'account.updated', description: 'Fired when an account is updated', category: 'Account', payload: '{ "event": "customer.updated", "timestamp": "ISO8601", "data": { "id": 1, "changes": {...}, "previousValues": {...} } }' },
+  { event: 'account.deleted', description: 'Fired when an account is deleted', category: 'Account', payload: '{ "event": "customer.deleted", "timestamp": "ISO8601", "data": { "id": 1 } }' },
   { event: 'contact.created', description: 'Fired when a new contact is created', category: 'Contact', payload: '{ "event": "contact.created", "timestamp": "ISO8601", "data": { "id": 1, "firstName": "Jane", "lastName": "Smith", "accountId": 1 } }' },
   { event: 'lead.created', description: 'Fired when a new lead is created', category: 'Lead', payload: '{ "event": "lead.created", "timestamp": "ISO8601", "data": { "id": 1, "firstName": "Bob", "source": "Web", "score": 75 } }' },
   { event: 'lead.converted', description: 'Fired when a lead is converted to opportunity', category: 'Lead', payload: '{ "event": "lead.converted", "timestamp": "ISO8601", "data": { "leadId": 1, "opportunityId": 5, "accountId": 10 } }' },
@@ -733,7 +733,7 @@ POST /api/auth/login
 }
 
 // 2. Use token in subsequent requests
-GET /api/customers
+GET /api/accounts
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 
 // 3. Refresh token before expiry
@@ -844,7 +844,7 @@ token = response.json()['token']`}</pre>
             <AccordionDetails>
               <Box sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1, fontFamily: 'monospace', fontSize: 12 }}>
                 <pre style={{ margin: 0 }}>{`// JavaScript/TypeScript
-const customers = await fetch('${baseUrl}/api/customers', {
+const customers = await fetch('${baseUrl}/api/accounts', {
   headers: { 
     'Authorization': \`Bearer \${token}\`,
     'Content-Type': 'application/json'
@@ -852,7 +852,7 @@ const customers = await fetch('${baseUrl}/api/customers', {
 }).then(r => r.json());
 
 // Create a customer
-await fetch('${baseUrl}/api/customers', {
+await fetch('${baseUrl}/api/accounts', {
   method: 'POST',
   headers: { 
     'Authorization': \`Bearer \${token}\`,
@@ -878,7 +878,7 @@ await fetch('${baseUrl}/api/customers', {
                 List endpoints support pagination with <code>page</code> and <code>pageSize</code> parameters:
               </Typography>
               <Box sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1, fontFamily: 'monospace', fontSize: 12 }}>
-                <pre style={{ margin: 0 }}>{`GET /api/customers?page=1&pageSize=50
+                <pre style={{ margin: 0 }}>{`GET /api/accounts?page=1&pageSize=50
 
 // Response includes:
 {

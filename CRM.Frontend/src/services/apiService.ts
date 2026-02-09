@@ -2,7 +2,7 @@ import apiClient from './apiClient';
 import { LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from './contactInfoService';
 import { BaseEntity } from '../types';
 
-export interface Customer extends BaseEntity {
+export interface Account extends BaseEntity {
   firstName: string;
   lastName: string;
   email: string;
@@ -17,14 +17,20 @@ export interface Customer extends BaseEntity {
   socialMediaAccounts?: LinkedSocialMediaDto[];
 }
 
-export const customerService = {
-  getAll: () => apiClient.get<Customer[]>('/customers'),
-  getById: (id: number) => apiClient.get<Customer>(`/customers/${id}`),
-  search: (term: string) => apiClient.get<Customer[]>(`/customers/search/${term}`),
-  create: (data: Customer) => apiClient.post<Customer>('/customers', data),
-  update: (id: number, data: Customer) => apiClient.put(`/customers/${id}`, data),
-  delete: (id: number) => apiClient.delete(`/customers/${id}`),
+/** @deprecated Use Account instead */
+export type Customer = Account;
+
+export const accountService = {
+  getAll: () => apiClient.get<Account[]>('/accounts'),
+  getById: (id: number) => apiClient.get<Account>(`/accounts/${id}`),
+  search: (term: string) => apiClient.get<Account[]>(`/accounts/search/${term}`),
+  create: (data: Account) => apiClient.post<Account>('/accounts', data),
+  update: (id: number, data: Account) => apiClient.put(`/accounts/${id}`, data),
+  delete: (id: number) => apiClient.delete(`/accounts/${id}`),
 };
+
+/** @deprecated Use accountService instead */
+export const customerService = accountService;
 
 // Opportunity Stage enum values
 export enum OpportunityStage {
@@ -79,7 +85,7 @@ export interface Opportunity extends BaseEntity {
 export const opportunityService = {
   getAll: () => apiClient.get<Opportunity[]>('/opportunities'),
   getById: (id: number) => apiClient.get<Opportunity>(`/opportunities/${id}`),
-  getByCustomer: (accountId: number) => 
+  getByAccount: (accountId: number) => 
     apiClient.get<Opportunity[]>(`/opportunities/customer/${accountId}`),
   getTotalPipeline: () => apiClient.get(`/opportunities/pipeline/total`),
   create: (data: Opportunity) => apiClient.post<Opportunity>('/opportunities', data),
@@ -480,7 +486,7 @@ export const serviceRequestService = {
     apiClient.post(`/servicerequests/${id}/feedback`, { rating, feedback }),
   
   // Queries
-  getByCustomer: (accountId: number) => 
+  getByAccount: (accountId: number) => 
     apiClient.get<ServiceRequest[]>(`/servicerequests/customer/${accountId}`),
   getByContact: (contactId: number) => 
     apiClient.get<ServiceRequest[]>(`/servicerequests/contact/${contactId}`),

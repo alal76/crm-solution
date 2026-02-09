@@ -146,7 +146,7 @@ describe('CustomersPage - Customer List Display', () => {
 // ============================================================================
 
 describe('CustomersPage - Customer Types', () => {
-  const CUSTOMER_TYPES = [
+  const ACCOUNT_TYPES = [
     { value: 0, label: 'Individual' },
     { value: 1, label: 'Business' },
   ];
@@ -163,7 +163,7 @@ describe('CustomersPage - Customer Types', () => {
 
   it('should display correct type label', () => {
     const getTypeLabel = (type: number) => {
-      return CUSTOMER_TYPES.find(t => t.value === type)?.label || 'Unknown';
+      return ACCOUNT_TYPES.find(t => t.value === type)?.label || 'Unknown';
     };
     expect(getTypeLabel(0)).toBe('Individual');
     expect(getTypeLabel(1)).toBe('Business');
@@ -296,9 +296,9 @@ describe('CustomersPage - Create Customer', () => {
     };
     
     mockApiClient.post.mockResolvedValue({ data: { id: 4, ...newCustomer } });
-    const result = await mockApiClient.post('/customers', newCustomer);
+    const result = await mockApiClient.post('/accounts', newCustomer);
     
-    expect(mockApiClient.post).toHaveBeenCalledWith('/customers', newCustomer);
+    expect(mockApiClient.post).toHaveBeenCalledWith('/accounts', newCustomer);
     expect(result.data.id).toBe(4);
   });
 
@@ -341,7 +341,7 @@ describe('CustomersPage - Edit Customer', () => {
     const updatedData = { ...mockCustomers[0], firstName: 'Updated' };
     
     mockApiClient.put.mockResolvedValue({ data: updatedData });
-    const result = await mockApiClient.put('/customers/1', updatedData);
+    const result = await mockApiClient.put('/accounts/1', updatedData);
     
     expect(mockApiClient.put).toHaveBeenCalled();
   });
@@ -375,8 +375,8 @@ describe('CustomersPage - Delete Customer', () => {
 
   it('should delete customer on confirm', async () => {
     mockApiClient.delete.mockResolvedValue({ data: { success: true } });
-    await mockApiClient.delete('/customers/1');
-    expect(mockApiClient.delete).toHaveBeenCalledWith('/customers/1');
+    await mockApiClient.delete('/accounts/1');
+    expect(mockApiClient.delete).toHaveBeenCalledWith('/accounts/1');
   });
 
   it('should remove customer from list after delete', () => {
@@ -815,7 +815,7 @@ describe('CustomersPage - Error Handling', () => {
     mockApiClient.get.mockRejectedValue(new Error('Network error'));
     
     try {
-      await mockApiClient.get('/customers');
+      await mockApiClient.get('/accounts');
     } catch (error: any) {
       expect(error.message).toBe('Network error');
     }

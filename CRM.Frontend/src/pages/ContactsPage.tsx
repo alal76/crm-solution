@@ -302,7 +302,7 @@ function ContactsPage() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await apiClient.get('/customers');
+      const response = await apiClient.get('/accounts');
       setCustomers(response.data);
     } catch (err) {
       console.error('Error fetching customers:', err);
@@ -930,11 +930,11 @@ function ContactsPage() {
               />
 
               <EntitySelect
-                entityType="customer"
+                entityType="account"
                 name="accountId"
                 value={formData.accountId || ''}
                 onChange={(e) => setFormData({ ...formData, accountId: e.target.value ? Number(e.target.value) : '' })}
-                label="Owner Customer"
+                label="Owner Account"
                 showAddNew={true}
               />
 
@@ -1095,11 +1095,11 @@ function ContactsPage() {
             />
             
             <EntitySelect
-              entityType="customer"
+              entityType="account"
               name="accountId"
               value={bulkFormData.accountId}
               onChange={(e) => setBulkFormData(prev => ({ ...prev, accountId: e.target.value }))}
-              label="Owner Customer"
+              label="Owner Account"
               showAddNew={false}
             />
           </Stack>

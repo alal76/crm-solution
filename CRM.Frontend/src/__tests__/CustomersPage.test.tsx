@@ -14,7 +14,7 @@ describe('CustomersPage Component', () => {
 
   it('should fetch customers from API', async () => {
     const mockFetch = jest.fn().mockResolvedValue({ data: mockCustomers });
-    const result = await mockFetch('/customers');
+    const result = await mockFetch('/accounts');
     expect(result.data).toBe(mockCustomers);
   });
 
@@ -63,7 +63,7 @@ describe('CustomersPage Component', () => {
   it('should handle API errors', async () => {
     const mockError = jest.fn().mockRejectedValue(new Error('API Error'));
     try {
-      await mockError('/customers');
+      await mockError('/accounts');
     } catch (error: any) {
       expect(error.message).toBe('API Error');
     }

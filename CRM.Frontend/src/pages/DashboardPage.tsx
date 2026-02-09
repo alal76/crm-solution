@@ -81,7 +81,7 @@ import {
   PipelineSummary,
   WidgetType,
 } from '../services/dashboardService';
-import { opportunityService, campaignService, customerService, Opportunity, Customer } from '../services/apiService';
+import { opportunityService, campaignService, accountService, Opportunity, Account, Customer } from '../services/apiService';
 import { useProfile } from '../contexts/ProfileContext';
 
 // Icon mapping for dynamic icons
@@ -307,7 +307,7 @@ function DashboardPage() {
       }
 
       try {
-        const customersResponse = await customerService.getAll();
+        const customersResponse = await accountService.getAll();
         setCustomers(customersResponse.data || []);
       } catch (err) {
         console.warn('Could not load customers');
@@ -659,7 +659,7 @@ function DashboardPage() {
     const fallbackStats = [
       { title: 'Total Pipeline', value: formatCurrency(totalPipeline), icon: TrendingUpIcon, color: '#6750A4', link: '/opportunities', menuKey: 'Opportunities' },
       { title: 'Active Campaigns', value: campaignCount, icon: CampaignIcon, color: '#06A77D', link: '/campaigns', menuKey: 'Campaigns' },
-      { title: 'Accounts', value: totalCustomers.toLocaleString(), icon: PeopleIcon, color: '#0092BC', link: '/customers', menuKey: 'Customers' },
+      { title: 'Accounts', value: totalCustomers.toLocaleString(), icon: PeopleIcon, color: '#0092BC', link: '/accounts', menuKey: 'Accounts' },
       { title: 'Total Revenue', value: formatCurrency(totalRevenue), icon: ShoppingCartIcon, color: '#F57C00', link: '/opportunities', menuKey: 'Opportunities' },
     ];
 

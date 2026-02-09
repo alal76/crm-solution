@@ -168,7 +168,7 @@ function QuotesPage() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await apiClient.get('/customers');
+      const response = await apiClient.get('/accounts');
       setCustomers(response.data);
     } catch (err) {
       console.error('Error fetching customers:', err);
@@ -332,7 +332,7 @@ function QuotesPage() {
             { label: 'Quote Number', value: quote.quoteNumber },
             { label: 'Title', value: quote.title },
             { label: 'Status', value: status?.label || 'Unknown' },
-            { label: 'Customer', value: accountName },
+            { label: 'Account', value: accountName },
             { label: 'Valid Until', value: formatDate(quote.validUntil) },
             { label: 'Revision', value: `v${quote.revisionNumber}` },
           ],
@@ -425,7 +425,7 @@ function QuotesPage() {
                 <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                   <TableCell><strong>Quote #</strong></TableCell>
                   <TableCell><strong>Title</strong></TableCell>
-                  <TableCell><strong>Customer</strong></TableCell>
+                  <TableCell><strong>Account</strong></TableCell>
                   <TableCell><strong>Status</strong></TableCell>
                   <TableCell><strong>Amount</strong></TableCell>
                   <TableCell><strong>Valid Until</strong></TableCell>
@@ -598,11 +598,11 @@ function QuotesPage() {
               </Grid>
               <Grid item xs={6}>
                 <EntitySelect
-                  entityType="customer"
+                  entityType="account"
                   name="accountId"
                   value={formData.accountId}
                   onChange={handleSelectChange}
-                  label="Customer"
+                  label="Account"
                   showAddNew={true}
                 />
               </Grid>
