@@ -427,17 +427,14 @@ builder.Services.AddScoped<IFormBuilderService, FormBuilderService>();
 builder.Services.AddScoped<ITerritoryService, TerritoryService>();
 builder.Services.AddScoped<IApprovalWorkflowService, ApprovalWorkflowService>();
 // Phase 4 services - Invoice, Payment, Order, Contract, Subscription, Team, Commission, EmailTemplate
-// NOTE: Phase 4 services are implemented but need entity-service alignment work.
-// Services exist at CRM.Infrastructure/Services/{Service}Service.cs
-// Enable individually after fixing property mismatches with existing entities.
-// builder.Services.AddScoped<IInvoiceService, InvoiceService>();
-// builder.Services.AddScoped<IPaymentService, PaymentService>();
-// builder.Services.AddScoped<IOrderService, OrderService>();
-// builder.Services.AddScoped<IContractService, ContractService>();
-// builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
-// builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IContractService, ContractService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ICommissionService, CommissionService>();
-// builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
+builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 // Master data - Field-to-master-data linking service
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
 // Master data seeder - seeds ZipCodes and ColorPalettes on startup if empty
