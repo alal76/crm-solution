@@ -169,6 +169,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<WorkflowNodeInstance> WorkflowNodeInstances { get; set; }
     public DbSet<WorkflowTask> WorkflowTasks { get; set; }
     public DbSet<WorkflowLog> WorkflowLogs { get; set; }
+    public DbSet<WorkflowTrigger> WorkflowTriggers { get; set; }
 
     // Relationship Management entities
     public DbSet<CRM.Core.Entities.RelationshipType> RelationshipTypes { get; set; }
@@ -1966,6 +1967,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasOne(e => e.WorkflowInstance)
                 .WithMany(i => i.Logs)
                 .HasForeignKey(e => e.WorkflowInstanceId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(e => e.WorkflowNode)

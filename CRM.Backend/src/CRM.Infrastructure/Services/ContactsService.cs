@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Dtos;
+using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
 using CRM.Core.Ports.Input;
@@ -37,11 +38,13 @@ public class ContactsService : IContactsService, IContactInputPort
 {
     private readonly CrmDbContext _context;
     private readonly IContactInfoService _contactInfoService;
+    private readonly IEntityEventDispatcher _eventDispatcher;
 
-    public ContactsService(CrmDbContext context, IContactInfoService contactInfoService)
+    public ContactsService(CrmDbContext context, IContactInfoService contactInfoService, IEntityEventDispatcher eventDispatcher)
     {
         _context = context;
         _contactInfoService = contactInfoService;
+        _eventDispatcher = eventDispatcher;
     }
 
     public async Task<ContactDto> GetByIdAsync(int id)
@@ -215,6 +218,9 @@ public class ContactsService : IContactsService, IContactInputPort
             _context.ContactInfoLinks.Add(link);
             await _context.SaveChangesAsync();
         }
+
+        // Fire workflow triggers for entity creation
+        _eventDispatcher.DispatchEntityEvent("Contact", contact.Id, WorkflowTriggerType.OnCreate);
 
         return await MapToDtoAsync(contact);
     }
@@ -408,6 +414,9 @@ public class ContactsService : IContactsService, IContactInputPort
             await _context.SaveChangesAsync();
         }
 
+        // Fire workflow triggers for entity update
+        _eventDispatcher.DispatchEntityEvent("Contact", contact.Id, WorkflowTriggerType.OnUpdate);
+
         return await MapToDtoAsync(contact);
     }
 
@@ -424,6 +433,9 @@ public class ContactsService : IContactsService, IContactInputPort
         _context.SocialMediaLinks.RemoveRange(contact.SocialMediaLinks);
         _context.Contacts.Remove(contact);
         await _context.SaveChangesAsync();
+
+        // Fire workflow triggers for entity deletion
+        _eventDispatcher.DispatchEntityEvent("Contact", id, WorkflowTriggerType.OnDelete);
 
         return true;
     }

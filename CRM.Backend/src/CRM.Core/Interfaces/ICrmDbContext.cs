@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
+using CRM.Core.Entities.Workflow;
 using CRM.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -160,6 +161,17 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.ITSM.CatalogCategory> CatalogCategories { get; }
     DbSet<CRM.Core.Entities.ITSM.CatalogItem> CatalogItems { get; }
     DbSet<CRM.Core.Entities.ITSM.CatalogRequest> CatalogRequests { get; }
+
+    // Workflow Engine
+    DbSet<WorkflowDefinition> WorkflowDefinitions { get; }
+    DbSet<WorkflowVersion> WorkflowVersions { get; }
+    DbSet<WorkflowNode> WorkflowNodes { get; }
+    DbSet<WorkflowTransition> WorkflowTransitions { get; }
+    DbSet<WorkflowInstance> WorkflowInstances { get; }
+    DbSet<WorkflowNodeInstance> WorkflowNodeInstances { get; }
+    DbSet<WorkflowTask> WorkflowTasks { get; }
+    DbSet<WorkflowLog> WorkflowLogs { get; }
+    DbSet<WorkflowTrigger> WorkflowTriggers { get; }
 
     DatabaseFacade Database { get; }
 
