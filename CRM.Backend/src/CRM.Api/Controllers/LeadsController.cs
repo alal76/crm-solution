@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
+using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,11 +33,13 @@ public class LeadsController : ControllerBase
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<LeadsController> _logger;
+    private readonly IEntityEventDispatcher _eventDispatcher;
 
-    public LeadsController(ICrmDbContext context, ILogger<LeadsController> logger)
+    public LeadsController(ICrmDbContext context, ILogger<LeadsController> logger, IEntityEventDispatcher eventDispatcher)
     {
         _context = context;
         _logger = logger;
+        _eventDispatcher = eventDispatcher;
     }
 
     /// <summary>
@@ -170,6 +173,9 @@ public class LeadsController : ControllerBase
             _context.Set<Lead>().Add(lead);
             await _context.SaveChangesAsync();
 
+            // Fire workflow triggers for entity creation
+            _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnCreate);
+
             return CreatedAtAction(nameof(GetById), new { id = lead.Id }, new { id = lead.Id, message = "Lead created successfully" });
         }
         catch (Exception ex)
@@ -211,6 +217,9 @@ public class LeadsController : ControllerBase
             lead.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
+            // Fire workflow triggers for entity update
+            _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
+
             return Ok(new { message = "Lead updated successfully" });
         }
         catch (Exception ex)
@@ -235,6 +244,9 @@ public class LeadsController : ControllerBase
             lead.IsDeleted = true;
             lead.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
+
+            // Fire workflow triggers for entity deletion
+            _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnDelete);
 
             return Ok(new { message = "Lead deleted successfully" });
         }

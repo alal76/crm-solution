@@ -12,14 +12,14 @@ namespace CRM.Core.Entities.Workflow;
 public class WorkflowLog : BaseEntity
 {
     /// <summary>
-    /// Foreign key to the workflow instance
+    /// Foreign key to the workflow instance (nullable for configuration-level audit logs)
     /// </summary>
-    public int WorkflowInstanceId { get; set; }
+    public int? WorkflowInstanceId { get; set; }
 
     /// <summary>
     /// Navigation property to the workflow instance
     /// </summary>
-    public virtual WorkflowInstance WorkflowInstance { get; set; } = null!;
+    public virtual WorkflowInstance? WorkflowInstance { get; set; }
 
     /// <summary>
     /// Foreign key to the workflow node (optional)

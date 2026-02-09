@@ -16,6 +16,7 @@
 
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
 
@@ -59,6 +60,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     private readonly IRepository<CRM.Core.Entities.EntityTag> _entityTagRepository;
     private readonly IRepository<CRM.Core.Entities.CustomField> _customFieldRepository;
     private readonly NormalizationService _normalizationService;
+    private readonly IEntityEventDispatcher _eventDispatcher;
 
     /// <summary>
     /// Initializes a new instance of AccountService with required dependencies.
@@ -77,7 +79,8 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         IRepository<ContactInfoLink> contactInfoLinkRepository,
         IRepository<CRM.Core.Entities.EntityTag> entityTagRepository,
         IRepository<CRM.Core.Entities.CustomField> customFieldRepository,
-        NormalizationService normalizationService)
+        NormalizationService normalizationService,
+        IEntityEventDispatcher eventDispatcher)
     {
         _accountRepository = accountRepository;
         _accountContactRepository = accountContactRepository;
@@ -90,6 +93,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         _entityTagRepository = entityTagRepository;
         _customFieldRepository = customFieldRepository;
         _normalizationService = normalizationService;
+        _eventDispatcher = eventDispatcher;
     }
 
     /// <summary>
@@ -327,6 +331,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         }
 
 
+
+        // Fire workflow triggers for entity creation
+        _eventDispatcher.DispatchEntityEvent("Account", account.Id, WorkflowTriggerType.OnCreate);
 
         return await MapToDto(account);
     }
@@ -569,6 +576,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             await _contactInfoLinkRepository.SaveAsync();
         }
 
+        // Fire workflow triggers for entity update
+        _eventDispatcher.DispatchEntityEvent("Account", account.Id, WorkflowTriggerType.OnUpdate);
+
         return await MapToDto(account);
     }
 
@@ -583,6 +593,10 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
         await _accountRepository.UpdateAsync(account);
         await _accountRepository.SaveAsync();
+
+        // Fire workflow triggers for entity deletion
+        _eventDispatcher.DispatchEntityEvent("Account", id, WorkflowTriggerType.OnDelete);
+
         return true;
     }
 

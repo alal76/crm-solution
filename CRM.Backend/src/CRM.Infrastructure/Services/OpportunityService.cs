@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
+using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
 
@@ -34,16 +35,19 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
     private readonly IRepository<CRM.Core.Entities.EntityTag> _entityTagRepository;
     private readonly IRepository<CRM.Core.Entities.CustomField> _customFieldRepository;
     private readonly NormalizationService _normalizationService;
+    private readonly IEntityEventDispatcher _eventDispatcher;
 
     public OpportunityService(IRepository<Opportunity> repository,
         IRepository<CRM.Core.Entities.EntityTag> entityTagRepository,
         IRepository<CRM.Core.Entities.CustomField> customFieldRepository,
-        NormalizationService normalizationService)
+        NormalizationService normalizationService,
+        IEntityEventDispatcher eventDispatcher)
     {
         _repository = repository;
         _entityTagRepository = entityTagRepository;
         _customFieldRepository = customFieldRepository;
         _normalizationService = normalizationService;
+        _eventDispatcher = eventDispatcher;
     }
 
     public async Task<Opportunity?> GetOpportunityByIdAsync(int id)
@@ -68,6 +72,10 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
     {
         await _repository.AddAsync(opportunity);
         await _repository.SaveAsync();
+
+        // Fire workflow triggers for entity creation
+        _eventDispatcher.DispatchEntityEvent("Opportunity", opportunity.Id, WorkflowTriggerType.OnCreate);
+
         return opportunity.Id;
     }
 
@@ -76,6 +84,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         opportunity.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(opportunity);
         await _repository.SaveAsync();
+
+        // Fire workflow triggers for entity update
+        _eventDispatcher.DispatchEntityEvent("Opportunity", opportunity.Id, WorkflowTriggerType.OnUpdate);
     }
 
     public async Task DeleteOpportunityAsync(int id)
@@ -85,6 +96,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         {
             await _repository.DeleteAsync(opportunity);
             await _repository.SaveAsync();
+
+            // Fire workflow triggers for entity deletion
+            _eventDispatcher.DispatchEntityEvent("Opportunity", id, WorkflowTriggerType.OnDelete);
         }
     }
 

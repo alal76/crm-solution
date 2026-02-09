@@ -447,8 +447,9 @@ builder.Services.AddScoped<ICloudDeploymentService, CloudDeploymentService>();
 builder.Services.AddHttpClient();
 
 // Workflow management services
-builder.Services.AddScoped<WorkflowService>();
-builder.Services.AddScoped<WorkflowInstanceService>();
+builder.Services.AddScoped<IWorkflowService, WorkflowService>();
+builder.Services.AddScoped<IWorkflowInstanceService, WorkflowInstanceService>();
+builder.Services.AddScoped<IHttpCalloutService, HttpCalloutService>();
 
 // Relationship management services
 builder.Services.AddScoped<RelationshipService>();
@@ -490,6 +491,14 @@ var workflowWorkerOptions = new WorkflowWorkerOptions
 };
 builder.Services.AddSingleton(workflowWorkerOptions);
 builder.Services.AddHostedService<WorkflowWorkerService>();
+
+// Workflow Trigger Service + Scheduled Workflow Background Service
+builder.Services.AddScoped<IWorkflowTriggerService, WorkflowTriggerService>();
+builder.Services.AddSingleton<IEntityEventDispatcher, EntityEventDispatcher>();
+builder.Services.AddHostedService<ScheduledWorkflowService>();
+
+// Workflow Log Retention Service - purges old log entries based on level-specific retention periods
+builder.Services.AddHostedService<WorkflowLogRetentionService>();
 
 // Lead Score Decay Background Service - applies inactivity decay to lead scores
 builder.Services.AddLeadScoreDecayService();

@@ -3,6 +3,7 @@
 // Licensed under the GNU Affero General Public License v3.0
 
 using CRM.Core.Entities.Workflow;
+using CRM.Core.DTOs.Workflow;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -413,6 +414,149 @@ public class WorkflowController : ControllerBase
         {
             _logger.LogError(ex, "Error saving layout for version {Id}", versionId);
             return StatusCode(500, new { message = "An error occurred while saving the layout" });
+        }
+    }
+
+    /// <summary>
+    /// List all versions for a workflow
+    /// </summary>
+    [HttpGet("{workflowId}/versions")]
+    public async Task<IActionResult> GetVersions(int workflowId)
+    {
+        try
+        {
+            var versions = await _workflowService.GetVersionsAsync(workflowId);
+            var result = versions.Select(v => new WorkflowVersionSummaryDto
+            {
+                Id = v.Id,
+                VersionNumber = v.VersionNumber,
+                Label = v.Label,
+                Status = v.Status.ToString(),
+                PublishedAt = v.PublishedAt,
+                CreatedAt = v.CreatedAt
+            }).ToList();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error listing versions for workflow {Id}", workflowId);
+            return StatusCode(500, new { message = "An error occurred while listing versions" });
+        }
+    }
+
+    /// <summary>
+    /// Update a draft version's metadata (label, changelog)
+    /// </summary>
+    [HttpPut("versions/{versionId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateVersionMetadata(int versionId, [FromBody] UpdateVersionMetadataDto dto)
+    {
+        try
+        {
+            var version = await _workflowService.UpdateVersionMetadataAsync(versionId, dto.Label, dto.ChangeLog);
+            if (version == null)
+                return BadRequest(new { message = "Cannot update this version. Only draft versions can be modified." });
+            return Ok(new { id = version.Id, label = version.Label, changeLog = version.ChangeLog });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating version metadata {Id}", versionId);
+            return StatusCode(500, new { message = "An error occurred while updating the version" });
+        }
+    }
+
+    /// <summary>
+    /// Publish a draft version (set active, deprecate previous active, record publisher)
+    /// </summary>
+    [HttpPost("versions/{versionId}/publish")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> PublishVersion(int versionId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var success = await _workflowService.PublishVersionAsync(versionId, userId);
+            if (!success)
+                return BadRequest(new { message = "Cannot publish this version. Only draft versions can be published." });
+            return Ok(new { message = "Version published successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error publishing version {Id}", versionId);
+            return StatusCode(500, new { message = "An error occurred while publishing the version" });
+        }
+    }
+
+    /// <summary>
+    /// Delete a draft version
+    /// </summary>
+    [HttpDelete("versions/{versionId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteVersion(int versionId)
+    {
+        try
+        {
+            var success = await _workflowService.DeleteVersionAsync(versionId);
+            if (!success)
+                return BadRequest(new { message = "Cannot delete this version. Only draft versions can be deleted." });
+            return Ok(new { message = "Version deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting version {Id}", versionId);
+            return StatusCode(500, new { message = "An error occurred while deleting the version" });
+        }
+    }
+
+    /// <summary>
+    /// Rollback: create a new draft version cloned from a previous version
+    /// </summary>
+    [HttpPost("{workflowId}/rollback/{versionId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> RollbackToVersion(int workflowId, int versionId)
+    {
+        try
+        {
+            var newVersion = await _workflowService.RollbackToVersionAsync(workflowId, versionId);
+            return Ok(new
+            {
+                id = newVersion.Id,
+                versionNumber = newVersion.VersionNumber,
+                label = newVersion.Label,
+                message = "Rollback version created successfully. Publish it to make it active."
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error rolling back workflow {WorkflowId} to version {VersionId}", workflowId, versionId);
+            return StatusCode(500, new { message = "An error occurred while rolling back" });
+        }
+    }
+
+    /// <summary>
+    /// Compare two workflow versions and return the differences
+    /// </summary>
+    [HttpGet("versions/compare")]
+    public async Task<IActionResult> CompareVersions(
+        [FromQuery] int versionId1, [FromQuery] int versionId2)
+    {
+        try
+        {
+            var result = await _workflowService.CompareVersionsAsync(versionId1, versionId2);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error comparing versions {V1} and {V2}", versionId1, versionId2);
+            return StatusCode(500, new { message = "An error occurred while comparing versions" });
         }
     }
 
@@ -1347,45 +1491,6 @@ public class WorkflowVersionDetailDto : WorkflowVersionSummaryDto
     public List<WorkflowTransitionDto> Transitions { get; set; } = new();
 }
 
-public class WorkflowNodeDto
-{
-    public int Id { get; set; }
-    public string NodeKey { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string NodeType { get; set; } = string.Empty;
-    public string? NodeSubType { get; set; }
-    public double PositionX { get; set; }
-    public double PositionY { get; set; }
-    public double Width { get; set; }
-    public double Height { get; set; }
-    public string? IconName { get; set; }
-    public string? Color { get; set; }
-    public bool IsStartNode { get; set; }
-    public bool IsEndNode { get; set; }
-    public string? Configuration { get; set; }
-    public int TimeoutMinutes { get; set; }
-    public int RetryCount { get; set; }
-    public int ExecutionOrder { get; set; }
-}
-
-public class WorkflowTransitionDto
-{
-    public int Id { get; set; }
-    public int SourceNodeId { get; set; }
-    public int TargetNodeId { get; set; }
-    public string? TransitionKey { get; set; }
-    public string? Label { get; set; }
-    public string ConditionType { get; set; } = string.Empty;
-    public string? ConditionExpression { get; set; }
-    public bool IsDefault { get; set; }
-    public int Priority { get; set; }
-    public string SourceHandle { get; set; } = string.Empty;
-    public string TargetHandle { get; set; } = string.Empty;
-    public string LineStyle { get; set; } = string.Empty;
-    public string Color { get; set; } = string.Empty;
-    public string AnimationStyle { get; set; } = string.Empty;
-}
 
 public class CreateWorkflowDto
 {
@@ -1426,6 +1531,12 @@ public class CreateVersionDto
 public class SaveLayoutDto
 {
     public string CanvasLayout { get; set; } = string.Empty;
+}
+
+public class UpdateVersionMetadataDto
+{
+    public string? Label { get; set; }
+    public string? ChangeLog { get; set; }
 }
 
 public class CreateNodeDto

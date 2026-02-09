@@ -1,99 +1,85 @@
-// CRM Solution - Customer Relationship Management System
-// Copyright (C) 2024-2026 Abhishek Lal
-// Licensed under the GNU Affero General Public License v3.0
-
 using CRM.Core.Entities.Workflow;
-using CRM.Infrastructure.Data;
-using CRM.Infrastructure.Services;
+using CRM.Core.DTOs.Workflow;
+using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// Controller for managing workflow instances and monitoring
+/// Manages workflow instances - starting, monitoring, and controlling workflow executions
 /// </summary>
 [ApiController]
 [Route("api/workflow-instances")]
 [Authorize]
 public class WorkflowInstanceController : ControllerBase
 {
-    private readonly CrmDbContext _context;
-    private readonly WorkflowInstanceService _instanceService;
+    private readonly IWorkflowInstanceService _instanceService;
+    private readonly IHttpCalloutService _calloutService;
     private readonly ILogger<WorkflowInstanceController> _logger;
 
     public WorkflowInstanceController(
-        CrmDbContext context,
-        WorkflowInstanceService instanceService,
+        IWorkflowInstanceService instanceService,
+        IHttpCalloutService calloutService,
         ILogger<WorkflowInstanceController> logger)
     {
-        _context = context;
         _instanceService = instanceService;
+        _calloutService = calloutService;
         _logger = logger;
     }
 
     private int GetCurrentUserId()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+        return claim != null ? int.Parse(claim.Value) : 0;
     }
 
     private string[] GetCurrentUserRoles()
     {
-        return User.FindAll(ClaimTypes.Role)?.Select(c => c.Value).ToArray() ?? Array.Empty<string>();
+        return User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray();
     }
 
-    #region Instance List & Details
+    #region Instance Queries
 
     /// <summary>
-    /// Get workflow instances with filtering
+    /// Get all workflow instances with filtering
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetInstances(
-        [FromQuery] int? workflowDefinitionId = null,
+        [FromQuery] int? definitionId = null,
+        [FromQuery] string? status = null,
         [FromQuery] string? entityType = null,
         [FromQuery] int? entityId = null,
-        [FromQuery] string? status = null,
-        [FromQuery] DateTime? fromDate = null,
-        [FromQuery] DateTime? toDate = null,
         [FromQuery] int skip = 0,
-        [FromQuery] int take = 50)
+        [FromQuery] int take = 20)
     {
         try
         {
             WorkflowInstanceStatus? statusFilter = null;
-            if (!string.IsNullOrEmpty(status) && Enum.TryParse<WorkflowInstanceStatus>(status, out var s))
-                statusFilter = s;
+            if (!string.IsNullOrEmpty(status) && Enum.TryParse<WorkflowInstanceStatus>(status, true, out var parsed))
+                statusFilter = parsed;
 
             var instances = await _instanceService.GetInstancesAsync(
-                workflowDefinitionId, entityType, entityId, statusFilter, fromDate, toDate, skip, take);
+                workflowDefinitionId: definitionId,
+                entityType: entityType,
+                entityId: entityId,
+                status: statusFilter,
+                fromDate: null,
+                toDate: null,
+                skip: skip,
+                take: take);
 
             var result = instances.Select(i => new WorkflowInstanceDto
             {
                 Id = i.Id,
                 CorrelationId = i.CorrelationId,
                 WorkflowDefinitionId = i.WorkflowDefinitionId,
-                WorkflowName = i.WorkflowDefinition.Name,
-                WorkflowVersionId = i.WorkflowVersionId,
-                VersionNumber = i.WorkflowVersion.VersionNumber,
-                EntityType = i.EntityType,
-                EntityId = i.EntityId,
+                WorkflowName = i.WorkflowDefinition?.Name ?? string.Empty,
                 Status = i.Status.ToString(),
-                CurrentNodeId = i.CurrentNodeId,
-                CurrentNodeName = i.CurrentNode?.Name,
-                TriggerEvent = i.TriggerEvent,
-                TriggeredByName = i.TriggeredBy != null
-                    ? $"{i.TriggeredBy.FirstName} {i.TriggeredBy.LastName}"
-                    : null,
                 StartedAt = i.StartedAt,
                 CompletedAt = i.CompletedAt,
-                ScheduledAt = i.ScheduledAt,
-                Priority = i.Priority,
-                RetryCount = i.RetryCount,
                 ErrorMessage = i.ErrorMessage,
-                IsCancelled = i.IsCancelled,
                 CreatedAt = i.CreatedAt
             }).ToList();
 
@@ -107,7 +93,7 @@ public class WorkflowInstanceController : ControllerBase
     }
 
     /// <summary>
-    /// Get a specific instance with full details
+    /// Get a specific workflow instance with full details
     /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetInstance(int id)
@@ -115,16 +101,16 @@ public class WorkflowInstanceController : ControllerBase
         try
         {
             var instance = await _instanceService.GetInstanceAsync(id);
-            if (instance == null) return NotFound(new { message = "Instance not found" });
+            if (instance == null) return NotFound(new { message = $"Workflow instance {id} not found" });
 
             var result = new WorkflowInstanceDetailDto
             {
                 Id = instance.Id,
                 CorrelationId = instance.CorrelationId,
                 WorkflowDefinitionId = instance.WorkflowDefinitionId,
-                WorkflowName = instance.WorkflowDefinition.Name,
+                WorkflowName = instance.WorkflowDefinition?.Name ?? string.Empty,
                 WorkflowVersionId = instance.WorkflowVersionId,
-                VersionNumber = instance.WorkflowVersion.VersionNumber,
+                VersionNumber = instance.WorkflowVersion?.VersionNumber ?? 0,
                 EntityType = instance.EntityType,
                 EntityId = instance.EntityId,
                 Status = instance.Status.ToString(),
@@ -155,7 +141,7 @@ public class WorkflowInstanceController : ControllerBase
                 UpdatedAt = instance.UpdatedAt,
 
                 // Include workflow graph for visualization
-                Nodes = instance.WorkflowVersion.Nodes.Select(n => new WorkflowNodeDto
+                Nodes = (instance.WorkflowVersion?.Nodes ?? new List<WorkflowNode>()).Select(n => new WorkflowNodeDto
                 {
                     Id = n.Id,
                     NodeKey = n.NodeKey,
@@ -171,7 +157,7 @@ public class WorkflowInstanceController : ControllerBase
                     IsEndNode = n.IsEndNode
                 }).ToList(),
 
-                Transitions = instance.WorkflowVersion.Transitions.Select(t => new WorkflowTransitionDto
+                Transitions = (instance.WorkflowVersion?.Transitions ?? new List<WorkflowTransition>()).Select(t => new WorkflowTransitionDto
                 {
                     Id = t.Id,
                     SourceNodeId = t.SourceNodeId,
@@ -184,13 +170,13 @@ public class WorkflowInstanceController : ControllerBase
                 }).ToList(),
 
                 // Node execution history
-                NodeInstances = instance.NodeInstances
+                NodeInstances = (instance.NodeInstances ?? new List<WorkflowNodeInstance>())
                     .OrderBy(ni => ni.ExecutionSequence)
                     .Select(ni => new WorkflowNodeInstanceDto
                     {
                         Id = ni.Id,
                         NodeId = ni.WorkflowNodeId,
-                        NodeName = ni.WorkflowNode.Name,
+                        NodeName = ni.WorkflowNode?.Name ?? string.Empty,
                         Status = ni.Status.ToString(),
                         StartedAt = ni.StartedAt,
                         CompletedAt = ni.CompletedAt,
@@ -204,13 +190,13 @@ public class WorkflowInstanceController : ControllerBase
                     }).ToList(),
 
                 // Pending tasks
-                Tasks = instance.Tasks
+                Tasks = (instance.Tasks ?? new List<WorkflowTask>())
                     .Where(t => t.Status != WorkflowTaskStatus.Completed)
                     .Select(t => new WorkflowTaskDto
                     {
                         Id = t.Id,
                         NodeId = t.WorkflowNodeId,
-                        NodeName = t.WorkflowNode.Name,
+                        NodeName = t.WorkflowNode?.Name ?? string.Empty,
                         TaskType = t.TaskType.ToString(),
                         Name = t.Name,
                         Status = t.Status.ToString(),
@@ -224,7 +210,7 @@ public class WorkflowInstanceController : ControllerBase
                     }).ToList(),
 
                 // Recent logs
-                RecentLogs = instance.Logs
+                RecentLogs = (instance.Logs ?? new List<WorkflowLog>())
                     .Take(50)
                     .Select(l => new WorkflowLogDto
                     {
@@ -256,14 +242,21 @@ public class WorkflowInstanceController : ControllerBase
         try
         {
             var instances = await _instanceService.GetInstancesAsync(
-                entityType: entityType, entityId: entityId, take: 100);
+                workflowDefinitionId: null,
+                entityType: entityType,
+                entityId: entityId,
+                status: null,
+                fromDate: null,
+                toDate: null,
+                skip: 0,
+                take: 100);
 
             var result = instances.Select(i => new WorkflowInstanceDto
             {
                 Id = i.Id,
                 CorrelationId = i.CorrelationId,
                 WorkflowDefinitionId = i.WorkflowDefinitionId,
-                WorkflowName = i.WorkflowDefinition.Name,
+                WorkflowName = i.WorkflowDefinition?.Name ?? string.Empty,
                 Status = i.Status.ToString(),
                 StartedAt = i.StartedAt,
                 CompletedAt = i.CompletedAt,
@@ -294,8 +287,8 @@ public class WorkflowInstanceController : ControllerBase
         {
             var instance = await _instanceService.StartWorkflowAsync(
                 dto.WorkflowDefinitionId,
-                dto.EntityType,
-                dto.EntityId,
+                dto.EntityType ?? string.Empty,
+                dto.EntityId ?? 0,
                 dto.TriggerEvent ?? "Manual",
                 GetCurrentUserId(),
                 dto.InputData,
@@ -322,7 +315,7 @@ public class WorkflowInstanceController : ControllerBase
     {
         try
         {
-            var success = await _instanceService.CancelInstanceAsync(id, dto.Reason, GetCurrentUserId());
+            var success = await _instanceService.CancelInstanceAsync(id, dto.Reason ?? string.Empty, GetCurrentUserId());
             if (!success) return BadRequest(new { message = "Cannot cancel this instance" });
             return Ok(new { message = "Instance cancelled successfully" });
         }
@@ -399,7 +392,7 @@ public class WorkflowInstanceController : ControllerBase
     {
         try
         {
-            var success = await _instanceService.SkipNodeAsync(id, nodeId, dto.Reason, GetCurrentUserId());
+            var success = await _instanceService.SkipNodeAsync(id, nodeId, dto.Reason ?? string.Empty, GetCurrentUserId());
             if (!success) return BadRequest(new { message = "Cannot skip this node" });
             return Ok(new { message = "Node skipped successfully" });
         }
@@ -431,16 +424,16 @@ public class WorkflowInstanceController : ControllerBase
             {
                 Id = t.Id,
                 WorkflowInstanceId = t.WorkflowInstanceId,
-                WorkflowName = t.WorkflowInstance.WorkflowDefinition.Name,
+                WorkflowName = t.WorkflowInstance?.WorkflowDefinition?.Name ?? string.Empty,
                 NodeId = t.WorkflowNodeId,
-                NodeName = t.WorkflowNode.Name,
+                NodeName = t.WorkflowNode?.Name ?? string.Empty,
                 Name = t.Name,
                 Description = t.Description,
                 Priority = t.Priority,
                 DueAt = t.DueAt,
                 FormSchema = t.FormSchema,
-                EntityType = t.WorkflowInstance.EntityType,
-                EntityId = t.WorkflowInstance.EntityId,
+                EntityType = t.WorkflowInstance?.EntityType,
+                EntityId = t.WorkflowInstance?.EntityId,
                 CreatedAt = t.CreatedAt
             }).ToList();
 
@@ -461,19 +454,14 @@ public class WorkflowInstanceController : ControllerBase
     {
         try
         {
-            var task = await _context.WorkflowTasks.FindAsync(taskId);
-            if (task == null) return NotFound(new { message = "Task not found" });
-            if (task.AssignedToId != null) return BadRequest(new { message = "Task already claimed" });
-
-            task.AssignedToId = GetCurrentUserId();
-            task.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
+            var userId = GetCurrentUserId();
+            var success = await _instanceService.ClaimTaskAsync(taskId, userId);
+            if (!success) return BadRequest(new { message = "Cannot claim this task. It may not exist or is already assigned." });
             return Ok(new { message = "Task claimed successfully" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error claiming task {Id}", taskId);
+            _logger.LogError(ex, "Error claiming task {TaskId}", taskId);
             return StatusCode(500, new { message = "An error occurred while claiming the task" });
         }
     }
@@ -486,35 +474,35 @@ public class WorkflowInstanceController : ControllerBase
     {
         try
         {
-            var task = await _context.WorkflowTasks.FindAsync(taskId);
-            if (task == null) return NotFound(new { message = "Task not found" });
-
             var userId = GetCurrentUserId();
-            if (task.AssignedToId != userId)
-                return BadRequest(new { message = "Task not assigned to you" });
-
-            task.FormData = dto.FormData;
-            task.OutputData = dto.OutputData;
-            task.Status = WorkflowTaskStatus.Completed;
-            task.CompletedAt = DateTime.UtcNow;
-            task.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            // Log the completion
-            await _instanceService.LogAsync(
-                task.WorkflowInstanceId,
-                WorkflowLogLevel.Info,
-                "HumanTask",
-                $"Task completed by user",
-                task.WorkflowNodeId,
-                userId: userId);
-
+            var success = await _instanceService.CompleteHumanTaskAsync(taskId, userId, dto.FormData, dto.OutputData);
+            if (!success) return BadRequest(new { message = "Cannot complete this task. It may not exist or is not assigned to you." });
             return Ok(new { message = "Task completed successfully" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error completing task {Id}", taskId);
+            _logger.LogError(ex, "Error completing task {TaskId}", taskId);
             return StatusCode(500, new { message = "An error occurred while completing the task" });
+        }
+    }
+
+    /// <summary>
+    /// Reassign a human task to another user
+    /// </summary>
+    [HttpPost("tasks/{taskId}/reassign")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ReassignTask(int taskId, [FromQuery] int assignToUserId)
+    {
+        try
+        {
+            var success = await _instanceService.ClaimTaskAsync(taskId, assignToUserId);
+            if (!success) return BadRequest(new { message = "Cannot reassign this task" });
+            return Ok(new { message = "Task reassigned successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reassigning task {TaskId}", taskId);
+            return StatusCode(500, new { message = "An error occurred while reassigning the task" });
         }
     }
 
@@ -523,36 +511,40 @@ public class WorkflowInstanceController : ControllerBase
     #region Logs
 
     /// <summary>
-    /// Get logs for an instance
+    /// Get logs for a specific workflow instance
     /// </summary>
     [HttpGet("{id}/logs")]
     public async Task<IActionResult> GetLogs(
         int id,
-        [FromQuery] string? minLevel = null,
+        [FromQuery] string? level = null,
         [FromQuery] string? category = null,
         [FromQuery] int skip = 0,
-        [FromQuery] int take = 100)
+        [FromQuery] int take = 50)
     {
         try
         {
-            WorkflowLogLevel? levelFilter = null;
-            if (!string.IsNullOrEmpty(minLevel) && Enum.TryParse<WorkflowLogLevel>(minLevel, out var l))
-                levelFilter = l;
+            WorkflowLogLevel? minLevel = null;
+            if (!string.IsNullOrEmpty(level) && Enum.TryParse<WorkflowLogLevel>(level, true, out var parsedLevel))
+                minLevel = parsedLevel;
 
-            var logs = await _instanceService.GetLogsAsync(id, levelFilter, category, skip, take);
+            var logs = await _instanceService.GetLogsAsync(id, minLevel, category, skip, take);
 
             var result = logs.Select(l => new WorkflowLogDto
             {
                 Id = l.Id,
+                WorkflowInstanceId = l.WorkflowInstanceId,
                 Level = l.Level.ToString(),
                 Category = l.Category,
                 Message = l.Message,
                 Details = l.Details,
                 NodeName = l.WorkflowNode?.Name,
-                UserName = l.User != null ? $"{l.User.FirstName} {l.User.LastName}" : null,
-                WorkerId = l.WorkerId,
+                NodeInstanceId = l.NodeInstanceId,
                 Timestamp = l.Timestamp,
-                DurationMs = l.DurationMs
+                DurationMs = l.DurationMs,
+                WorkerId = l.WorkerId,
+                UserId = l.UserId,
+                UserName = l.User != null ? $"{l.User.FirstName} {l.User.LastName}" : null,
+                ExceptionType = l.ExceptionType
             }).ToList();
 
             return Ok(result);
@@ -566,13 +558,12 @@ public class WorkflowInstanceController : ControllerBase
 
     #endregion
 
-    #region Audit Log
+    #region Audit & Monitoring
 
     /// <summary>
     /// Get audit log for a workflow definition
     /// </summary>
     [HttpGet("definitions/{definitionId}/audit-log")]
-    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAuditLog(
         int definitionId,
         [FromQuery] string? eventType = null,
@@ -584,48 +575,32 @@ public class WorkflowInstanceController : ControllerBase
     {
         try
         {
-            var query = _context.WorkflowLogs
-                .Include(l => l.WorkflowNode)
-                .Include(l => l.User)
-                .Where(l => l.WorkflowInstance != null &&
-                           l.WorkflowInstance.WorkflowDefinitionId == definitionId)
-                .OrderByDescending(l => l.Timestamp)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(eventCategory))
-                query = query.Where(l => l.Category == eventCategory);
-
-            if (fromDate.HasValue)
-                query = query.Where(l => l.Timestamp >= fromDate.Value);
-
-            if (toDate.HasValue)
-                query = query.Where(l => l.Timestamp <= toDate.Value);
-
-            var logs = await query.Skip(skip).Take(take).ToListAsync();
+            var (logs, hasMore) = await _instanceService.GetAuditLogAsync(
+                definitionId, eventType, eventCategory, fromDate, toDate, skip, take);
 
             var result = logs.Select(l => new WorkflowAuditLogDto
             {
                 Id = l.Id,
-                EventType = l.Category,
-                EventCategory = l.Level.ToString(),
+                WorkflowInstanceId = l.WorkflowInstanceId,
+                Level = l.Level.ToString(),
+                Category = l.Category,
                 Message = l.Message,
-                Details = l.Details,
-                ActorName = l.User != null ? $"{l.User.FirstName} {l.User.LastName}" : null,
                 NodeName = l.WorkflowNode?.Name,
-                WorkerId = l.WorkerId,
+                Timestamp = l.Timestamp,
                 DurationMs = l.DurationMs,
-                Timestamp = l.Timestamp
+                Data = l.Details,
+                UserId = l.UserId,
+                UserName = l.User != null ? $"{l.User.FirstName} {l.User.LastName}" : null,
+                WorkerId = l.WorkerId,
+                ExceptionType = l.ExceptionType
             }).ToList();
 
-            return Ok(new {
-                items = result,
-                hasMore = result.Count == take
-            });
+            return Ok(new { items = result, hasMore });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving audit log for definition {Id}", definitionId);
-            return StatusCode(500, new { message = "An error occurred while retrieving audit log" });
+            _logger.LogError(ex, "Error retrieving audit log for definition {DefinitionId}", definitionId);
+            return StatusCode(500, new { message = "An error occurred while retrieving the audit log" });
         }
     }
 
@@ -633,7 +608,6 @@ public class WorkflowInstanceController : ControllerBase
     /// Export audit log as CSV
     /// </summary>
     [HttpGet("definitions/{definitionId}/audit-log/export")]
-    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ExportAuditLog(
         int definitionId,
         [FromQuery] DateTime? fromDate = null,
@@ -641,118 +615,69 @@ public class WorkflowInstanceController : ControllerBase
     {
         try
         {
-            var query = _context.WorkflowLogs
-                .Include(l => l.WorkflowNode)
-                .Include(l => l.User)
-                .Where(l => l.WorkflowInstance != null &&
-                           l.WorkflowInstance.WorkflowDefinitionId == definitionId)
-                .OrderByDescending(l => l.Timestamp)
-                .AsQueryable();
-
-            if (fromDate.HasValue)
-                query = query.Where(l => l.Timestamp >= fromDate.Value);
-
-            if (toDate.HasValue)
-                query = query.Where(l => l.Timestamp <= toDate.Value);
-
-            var logs = await query.Take(10000).ToListAsync();
-
-            var csv = new System.Text.StringBuilder();
-            csv.AppendLine("Timestamp,Event Type,Level,Message,Actor,Node,Worker ID,Duration (ms)");
-
-            foreach (var log in logs)
-            {
-                var actor = log.User != null ? $"{log.User.FirstName} {log.User.LastName}" : "";
-                var node = log.WorkflowNode?.Name ?? "";
-                var message = (log.Message ?? "").Replace("\"", "\"\"");
-
-                csv.AppendLine($"\"{log.Timestamp:yyyy-MM-dd HH:mm:ss}\",\"{log.Category}\",\"{log.Level}\",\"{message}\",\"{actor}\",\"{node}\",\"{log.WorkerId ?? ""}\",{log.DurationMs ?? 0}");
-            }
-
-            var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
-            return File(bytes, "text/csv", $"workflow-audit-log-{definitionId}-{DateTime.UtcNow:yyyyMMdd}.csv");
+            var csvBytes = await _instanceService.ExportAuditLogCsvAsync(definitionId, fromDate, toDate);
+            var fileName = $"audit-log-{definitionId}-{DateTime.UtcNow:yyyyMMdd}.csv";
+            return File(csvBytes, "text/csv", fileName);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error exporting audit log for definition {Id}", definitionId);
-            return StatusCode(500, new { message = "An error occurred while exporting audit log" });
+            _logger.LogError(ex, "Error exporting audit log for definition {DefinitionId}", definitionId);
+            return StatusCode(500, new { message = "An error occurred while exporting the audit log" });
         }
     }
 
-    #endregion
-
-    #region Execution Timeline
-
     /// <summary>
-    /// Get execution timeline for visualization
+    /// Get execution timeline for a workflow instance
     /// </summary>
     [HttpGet("{id}/timeline")]
     public async Task<IActionResult> GetExecutionTimeline(int id)
     {
         try
         {
-            var instance = await _context.WorkflowInstances
-                .Include(i => i.NodeInstances)
-                .ThenInclude(ni => ni.WorkflowNode)
-                .Include(i => i.Tasks)
-                .ThenInclude(t => t.WorkflowNode)
-                .FirstOrDefaultAsync(i => i.Id == id);
-
+            var instance = await _instanceService.GetExecutionTimelineDataAsync(id);
             if (instance == null)
-                return NotFound(new { message = "Instance not found" });
+                return NotFound(new { message = $"Workflow instance {id} not found" });
 
-            var timeline = new List<TimelineEntryDto>();
+            var nodeInstances = instance.NodeInstances ?? new List<WorkflowNodeInstance>();
+            var taskList = instance.Tasks ?? new List<WorkflowTask>();
 
-            // Add node instances to timeline
-            foreach (var ni in instance.NodeInstances.OrderBy(n => n.ExecutionSequence))
+            var timelineEntries = new List<TimelineEntryDto>();
+
+            timelineEntries.AddRange(nodeInstances.Select(ni => new TimelineEntryDto
             {
-                timeline.Add(new TimelineEntryDto
-                {
-                    Id = ni.Id,
-                    Type = "node",
-                    Name = ni.WorkflowNode.Name,
-                    NodeType = ni.WorkflowNode.NodeType.ToString(),
-                    Status = ni.Status.ToString(),
-                    StartedAt = ni.StartedAt,
-                    CompletedAt = ni.CompletedAt,
-                    DurationMs = ni.DurationMs,
-                    IsSkipped = ni.IsSkipped,
-                    ErrorMessage = ni.ErrorMessage,
-                    Sequence = ni.ExecutionSequence
-                });
-            }
+                Type = "Node",
+                Id = ni.Id,
+                Name = ni.WorkflowNode?.Name ?? string.Empty,
+                NodeType = ni.WorkflowNode?.NodeType.ToString(),
+                Status = ni.Status.ToString(),
+                StartedAt = ni.StartedAt,
+                CompletedAt = ni.CompletedAt,
+                DurationMs = ni.DurationMs,
+                IsSkipped = ni.IsSkipped,
+                ErrorMessage = ni.ErrorMessage,
+                Sequence = ni.ExecutionSequence
+            }));
 
-            // Add tasks to timeline
-            foreach (var task in instance.Tasks.OrderBy(t => t.CreatedAt))
+            timelineEntries.AddRange(taskList.Select(t => new TimelineEntryDto
             {
-                timeline.Add(new TimelineEntryDto
-                {
-                    Id = task.Id,
-                    Type = "task",
-                    Name = task.Name,
-                    NodeType = task.TaskType.ToString(),
-                    Status = task.Status.ToString(),
-                    StartedAt = task.PickedAt,
-                    CompletedAt = task.CompletedAt,
-                    DurationMs = task.CompletedAt.HasValue && task.PickedAt.HasValue
-                        ? (long)(task.CompletedAt.Value - task.PickedAt.Value).TotalMilliseconds
-                        : null,
-                    IsSkipped = false,
-                    ErrorMessage = task.ErrorMessage,
-                    AssignedTo = task.AssignedToRole ?? task.AssignedToId?.ToString()
-                });
-            }
+                Type = "Task",
+                Id = t.Id,
+                Name = t.Name,
+                NodeType = "HumanTask",
+                Status = t.Status.ToString(),
+                StartedAt = t.CreatedAt,
+                CompletedAt = t.CompletedAt,
+                DurationMs = t.CompletedAt.HasValue
+                    ? (long?)(t.CompletedAt.Value - t.CreatedAt).TotalMilliseconds
+                    : null,
+                AssignedTo = t.AssignedToId?.ToString(),
+                Sequence = 0
+            }));
 
             var result = new ExecutionTimelineDto
             {
-                InstanceId = instance.Id,
-                Status = instance.Status.ToString(),
-                StartedAt = instance.StartedAt,
-                CompletedAt = instance.CompletedAt,
-                TotalDurationMs = instance.StartedAt.HasValue && instance.CompletedAt.HasValue
-                    ? (long)(instance.CompletedAt.Value - instance.StartedAt.Value).TotalMilliseconds
-                    : null,
-                Entries = timeline.OrderBy(e => e.StartedAt ?? DateTime.MaxValue).ToList()
+                InstanceId = id,
+                Entries = timelineEntries.OrderBy(e => e.StartedAt ?? DateTime.MaxValue).ToList()
             };
 
             return Ok(result);
@@ -760,257 +685,339 @@ public class WorkflowInstanceController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving execution timeline for instance {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while retrieving timeline" });
+            return StatusCode(500, new { message = "An error occurred while retrieving the timeline" });
         }
     }
 
-    #endregion
-
-    #region Statistics
+    /// <summary>
+    /// Get comprehensive workflow execution dashboard data including status counts,
+    /// success/failure rates, duration metrics (avg/median/p95), top-failing workflows,
+    /// daily throughput trends, recent errors, and per-workflow breakdown.
+    /// </summary>
+    /// <param name="fromDate">Start of date range (default: 30 days ago)</param>
+    /// <param name="toDate">End of date range (default: now)</param>
+    /// <param name="topN">Number of items for top-N lists (default: 10)</param>
+    [HttpGet("dashboard")]
+    public async Task<IActionResult> GetDashboard(
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null,
+        [FromQuery] int topN = 10)
+    {
+        try
+        {
+            var dashboard = await _instanceService.GetDashboardAsync(fromDate, toDate, topN);
+            return Ok(dashboard);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving workflow dashboard");
+            return StatusCode(500, new { message = "An error occurred while retrieving the dashboard" });
+        }
+    }
 
     /// <summary>
-    /// Get instance statistics
+    /// Get workflow instance statistics
     /// </summary>
     [HttpGet("statistics")]
     public async Task<IActionResult> GetStatistics(
-        [FromQuery] int? workflowDefinitionId = null,
+        [FromQuery] int? definitionId = null,
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null)
     {
         try
         {
-            var query = _context.WorkflowInstances.Where(i => !i.IsDeleted);
-
-            if (workflowDefinitionId.HasValue)
-                query = query.Where(i => i.WorkflowDefinitionId == workflowDefinitionId.Value);
-
-            if (fromDate.HasValue)
-                query = query.Where(i => i.CreatedAt >= fromDate.Value);
-
-            if (toDate.HasValue)
-                query = query.Where(i => i.CreatedAt <= toDate.Value);
-
-            var stats = new
-            {
-                Total = await query.CountAsync(),
-                Pending = await query.CountAsync(i => i.Status == WorkflowInstanceStatus.Pending),
-                Running = await query.CountAsync(i => i.Status == WorkflowInstanceStatus.Running),
-                Waiting = await query.CountAsync(i => i.Status == WorkflowInstanceStatus.Waiting),
-                Completed = await query.CountAsync(i => i.Status == WorkflowInstanceStatus.Completed),
-                Failed = await query.CountAsync(i => i.Status == WorkflowInstanceStatus.Failed),
-                Cancelled = await query.CountAsync(i => i.Status == WorkflowInstanceStatus.Cancelled),
-                TimedOut = await query.CountAsync(i => i.Status == WorkflowInstanceStatus.TimedOut),
-
-                // Average completion time (in minutes)
-                AverageCompletionTimeMinutes = await query
-                    .Where(i => i.Status == WorkflowInstanceStatus.Completed &&
-                               i.StartedAt != null && i.CompletedAt != null)
-                    .Select(i => (double)((i.CompletedAt!.Value - i.StartedAt!.Value).TotalMinutes))
-                    .DefaultIfEmpty(0)
-                    .AverageAsync(),
-
-                // Status breakdown by workflow
-                ByWorkflow = await query
-                    .GroupBy(i => new { i.WorkflowDefinitionId, i.WorkflowDefinition.Name })
-                    .Select(g => new
-                    {
-                        WorkflowId = g.Key.WorkflowDefinitionId,
-                        WorkflowName = g.Key.Name,
-                        Total = g.Count(),
-                        Completed = g.Count(i => i.Status == WorkflowInstanceStatus.Completed),
-                        Failed = g.Count(i => i.Status == WorkflowInstanceStatus.Failed)
-                    })
-                    .ToListAsync()
-            };
-
+            var stats = await _instanceService.GetInstanceStatisticsAsync(definitionId, fromDate, toDate);
             return Ok(stats);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving instance statistics");
+            _logger.LogError(ex, "Error retrieving workflow statistics");
             return StatusCode(500, new { message = "An error occurred while retrieving statistics" });
         }
     }
 
     #endregion
+
+    #region Parallel Gateway & Sub-workflow
+
+    /// <summary>
+    /// Advance a workflow instance after a node completes.
+    /// Evaluates outgoing transitions and handles parallel gateways, join gateways, and subprocesses.
+    /// </summary>
+    [HttpPost("{id}/advance/{nodeInstanceId}")]
+    public async Task<IActionResult> AdvanceWorkflow(int id, int nodeInstanceId)
+    {
+        try
+        {
+            var startedNodes = await _instanceService.AdvanceWorkflowAsync(id, nodeInstanceId);
+            return Ok(new
+            {
+                message = $"Workflow advanced — {startedNodes.Count} node(s) started",
+                startedNodeInstances = startedNodes.Select(ni => new
+                {
+                    ni.Id,
+                    ni.WorkflowNodeId,
+                    Status = ni.Status.ToString(),
+                    ni.StartedAt
+                })
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error advancing workflow instance {InstanceId}", id);
+            return StatusCode(500, new { message = "An error occurred while advancing the workflow" });
+        }
+    }
+
+    /// <summary>
+    /// Get parallel branch status for a workflow instance.
+    /// Optionally scoped to branches from a specific gateway node.
+    /// </summary>
+    [HttpGet("{id}/parallel-branches")]
+    public async Task<IActionResult> GetParallelBranchStatus(
+        int id,
+        [FromQuery] int? gatewayNodeId = null)
+    {
+        try
+        {
+            var status = await _instanceService.GetParallelBranchStatusAsync(id, gatewayNodeId);
+            return Ok(status);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting parallel branch status for instance {InstanceId}", id);
+            return StatusCode(500, new { message = "An error occurred while retrieving branch status" });
+        }
+    }
+
+    /// <summary>
+    /// Get child workflow instances spawned by a parent instance (via Subprocess nodes).
+    /// </summary>
+    [HttpGet("{id}/child-instances")]
+    public async Task<IActionResult> GetChildInstances(int id)
+    {
+        try
+        {
+            var children = await _instanceService.GetChildInstancesAsync(id);
+            return Ok(children.Select(c => new
+            {
+                c.Id,
+                c.WorkflowDefinitionId,
+                WorkflowName = c.WorkflowDefinition?.Name,
+                c.CorrelationId,
+                Status = c.Status.ToString(),
+                c.EntityType,
+                c.EntityId,
+                c.StartedAt,
+                c.CompletedAt,
+                c.ParentInstanceId,
+                c.ErrorMessage
+            }));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting child instances for instance {InstanceId}", id);
+            return StatusCode(500, new { message = "An error occurred while retrieving child instances" });
+        }
+    }
+
+    #endregion
+
+    #region HTTP Callout
+
+    /// <summary>
+    /// Test an HTTP callout configuration without running a full workflow.
+    /// Useful for validating webhook/API configurations before saving them on a node.
+    /// </summary>
+    [HttpPost("callout/test")]
+    public async Task<IActionResult> TestHttpCallout([FromBody] HttpCalloutConfig config)
+    {
+        try
+        {
+            if (config == null)
+                return BadRequest(new { message = "Request body is required" });
+
+            var validation = _calloutService.Validate(config);
+            if (!validation.IsValid)
+                return BadRequest(new { message = "Invalid configuration", errors = validation.Errors });
+
+            var result = await _calloutService.ExecuteAsync(config);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error testing HTTP callout");
+            return StatusCode(500, new { message = "An error occurred while testing the HTTP callout" });
+        }
+    }
+
+    /// <summary>
+    /// Validate an HTTP callout configuration without executing it.
+    /// </summary>
+    [HttpPost("callout/validate")]
+    public IActionResult ValidateHttpCallout([FromBody] HttpCalloutConfig config)
+    {
+        try
+        {
+            if (config == null)
+                return BadRequest(new { message = "Request body is required" });
+
+            var validation = _calloutService.Validate(config);
+            return Ok(validation);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating HTTP callout config");
+            return StatusCode(500, new { message = "An error occurred" });
+        }
+    }
+
+    #endregion
+
+    #region Bulk Operations
+
+    /// <summary>
+    /// Start workflow instances for multiple entities in a single request.
+    /// Individual failures do not abort the batch.
+    /// </summary>
+    [HttpPost("bulk-start")]
+    public async Task<IActionResult> BulkStartWorkflow([FromBody] BulkStartWorkflowRequest request)
+    {
+        try
+        {
+            if (request == null)
+                return BadRequest(new { message = "Request body is required" });
+
+            if (request.EntityIds == null || request.EntityIds.Count == 0)
+                return BadRequest(new { message = "At least one entity ID is required" });
+
+            if (request.EntityIds.Count > 500)
+                return BadRequest(new { message = "Maximum of 500 entities per bulk operation" });
+
+            var result = await _instanceService.BulkStartWorkflowAsync(
+                request.WorkflowDefinitionId,
+                request.EntityType,
+                request.EntityIds,
+                request.TriggerEvent,
+                request.TriggeredById,
+                request.InputData);
+
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in bulk workflow start");
+            return StatusCode(500, new { message = "An error occurred during bulk workflow start" });
+        }
+    }
+
+    #endregion
+
+    #region Wait/Timer & Timeout
+
+    /// <summary>
+    /// Get all currently waiting (timer/delay) node instances.
+    /// Optionally filter by workflow instance ID.
+    /// </summary>
+    [HttpGet("waiting-nodes")]
+    public async Task<IActionResult> GetWaitingNodes([FromQuery] int? instanceId = null)
+    {
+        try
+        {
+            var nodes = await _instanceService.GetWaitingNodesAsync(instanceId);
+            return Ok(nodes.Select(ni => new
+            {
+                ni.Id,
+                ni.WorkflowInstanceId,
+                NodeId = ni.WorkflowNode?.Id,
+                NodeName = ni.WorkflowNode?.Name,
+                Status = ni.Status.ToString(),
+                ResumeAt = ni.NextRetryAt,
+                ni.StartedAt,
+                WorkflowName = ni.WorkflowInstance?.WorkflowDefinition?.Name,
+                InstanceCorrelationId = ni.WorkflowInstance?.CorrelationId
+            }));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting waiting nodes");
+            return StatusCode(500, new { message = "An error occurred while retrieving waiting nodes" });
+        }
+    }
+
+    /// <summary>
+    /// Manually resume a waiting node, skipping the remaining wait time.
+    /// </summary>
+    [HttpPost("waiting-nodes/{nodeInstanceId}/resume")]
+    public async Task<IActionResult> ResumeWaitingNode(int nodeInstanceId)
+    {
+        try
+        {
+            var result = await _instanceService.ResumeWaitingNodeAsync(nodeInstanceId);
+            return Ok(new
+            {
+                result.Id,
+                result.WorkflowInstanceId,
+                Status = result.Status.ToString(),
+                result.CompletedAt,
+                Message = "Wait node resumed successfully"
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resuming waiting node {NodeInstanceId}", nodeInstanceId);
+            return StatusCode(500, new { message = "An error occurred while resuming the waiting node" });
+        }
+    }
+
+    #endregion
+
 }
 
-#region DTOs
-
-public class WorkflowInstanceDto
+/// <summary>
+/// Request model for bulk starting workflow instances
+/// </summary>
+public class BulkStartWorkflowRequest
 {
-    public int Id { get; set; }
-    public string CorrelationId { get; set; } = string.Empty;
+    /// <summary>Workflow definition to start</summary>
     public int WorkflowDefinitionId { get; set; }
-    public string WorkflowName { get; set; } = string.Empty;
-    public int WorkflowVersionId { get; set; }
-    public int VersionNumber { get; set; }
-    public string EntityType { get; set; } = string.Empty;
-    public int EntityId { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public int? CurrentNodeId { get; set; }
-    public string? CurrentNodeName { get; set; }
-    public string? TriggerEvent { get; set; }
-    public string? TriggeredByName { get; set; }
-    public DateTime? StartedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
-    public DateTime? ScheduledAt { get; set; }
-    public int Priority { get; set; }
-    public int RetryCount { get; set; }
-    public string? ErrorMessage { get; set; }
-    public bool IsCancelled { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
 
-public class WorkflowInstanceDetailDto : WorkflowInstanceDto
-{
+    /// <summary>Entity type (e.g., "Lead", "Opportunity")</summary>
+    public string EntityType { get; set; } = string.Empty;
+
+    /// <summary>List of entity IDs to start workflows for</summary>
+    public List<int> EntityIds { get; set; } = new();
+
+    /// <summary>Trigger event name</summary>
+    public string TriggerEvent { get; set; } = "BulkStart";
+
+    /// <summary>User who triggered the bulk operation</summary>
     public int? TriggeredById { get; set; }
-    public string? InputData { get; set; }
-    public string? StateData { get; set; }
-    public string? OutputData { get; set; }
-    public DateTime? TimeoutAt { get; set; }
-    public int MaxRetries { get; set; }
-    public DateTime? NextRetryAt { get; set; }
-    public string? ErrorStackTrace { get; set; }
-    public string? CancellationReason { get; set; }
-    public int? ParentInstanceId { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public List<WorkflowNodeDto> Nodes { get; set; } = new();
-    public List<WorkflowTransitionDto> Transitions { get; set; } = new();
-    public List<WorkflowNodeInstanceDto> NodeInstances { get; set; } = new();
-    public List<WorkflowTaskDto> Tasks { get; set; } = new();
-    public List<WorkflowLogDto> RecentLogs { get; set; } = new();
-}
 
-public class WorkflowNodeInstanceDto
-{
-    public int Id { get; set; }
-    public int NodeId { get; set; }
-    public string NodeName { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
-    public DateTime? StartedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
-    public long? DurationMs { get; set; }
-    public int RetryCount { get; set; }
-    public string? ErrorMessage { get; set; }
-    public bool IsSkipped { get; set; }
-    public string? SkipReason { get; set; }
-    public int ExecutionSequence { get; set; }
-    public string? WorkerId { get; set; }
-}
-
-public class WorkflowTaskDto
-{
-    public int Id { get; set; }
-    public int NodeId { get; set; }
-    public string NodeName { get; set; } = string.Empty;
-    public string TaskType { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
-    public int Priority { get; set; }
-    public DateTime? DueAt { get; set; }
-    public int? AssignedToId { get; set; }
-    public string? AssignedToRole { get; set; }
-    public int RetryCount { get; set; }
-    public bool IsDeadLetter { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-public class WorkflowLogDto
-{
-    public int Id { get; set; }
-    public string Level { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-    public string? Details { get; set; }
-    public string? NodeName { get; set; }
-    public string? UserName { get; set; }
-    public string? WorkerId { get; set; }
-    public DateTime Timestamp { get; set; }
-    public long? DurationMs { get; set; }
-}
-
-public class HumanTaskDto
-{
-    public int Id { get; set; }
-    public int WorkflowInstanceId { get; set; }
-    public string WorkflowName { get; set; } = string.Empty;
-    public int NodeId { get; set; }
-    public string NodeName { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public int Priority { get; set; }
-    public DateTime? DueAt { get; set; }
-    public string? FormSchema { get; set; }
-    public string EntityType { get; set; } = string.Empty;
-    public int EntityId { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-public class StartWorkflowDto
-{
-    public int WorkflowDefinitionId { get; set; }
-    public string EntityType { get; set; } = string.Empty;
-    public int EntityId { get; set; }
-    public string? TriggerEvent { get; set; }
+    /// <summary>Optional input data shared across all instances</summary>
     public object? InputData { get; set; }
-    public DateTime? ScheduledAt { get; set; }
 }
-
-public class CancelInstanceDto
-{
-    public string Reason { get; set; } = string.Empty;
-}
-
-public class SkipNodeDto
-{
-    public string Reason { get; set; } = string.Empty;
-}
-
-public class CompleteTaskDto
-{
-    public string? FormData { get; set; }
-    public string? OutputData { get; set; }
-}
-
-public class WorkflowAuditLogDto
-{
-    public int Id { get; set; }
-    public string EventType { get; set; } = string.Empty;
-    public string EventCategory { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-    public string? Details { get; set; }
-    public string? ActorName { get; set; }
-    public string? NodeName { get; set; }
-    public string? WorkerId { get; set; }
-    public long? DurationMs { get; set; }
-    public DateTime Timestamp { get; set; }
-}
-
-public class ExecutionTimelineDto
-{
-    public int InstanceId { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public DateTime? StartedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
-    public long? TotalDurationMs { get; set; }
-    public List<TimelineEntryDto> Entries { get; set; } = new();
-}
-
-public class TimelineEntryDto
-{
-    public int Id { get; set; }
-    public string Type { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string NodeType { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
-    public DateTime? StartedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
-    public long? DurationMs { get; set; }
-    public bool IsSkipped { get; set; }
-    public string? ErrorMessage { get; set; }
-    public int? Sequence { get; set; }
-    public string? AssignedTo { get; set; }
-}
-
-#endregion

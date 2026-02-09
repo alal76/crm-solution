@@ -164,3 +164,92 @@ public class SLAMetricsInfo
     public double AverageResolutionTimeMinutes { get; set; }
     public Dictionary<int, double> ComplianceByPriority { get; set; } = new();
 }
+
+// ============================================================================
+// Escalation Rule Service
+// ============================================================================
+
+/// <summary>
+/// Service for managing escalation rules within SLA policies.
+/// </summary>
+public interface IEscalationRuleService
+{
+    /// <summary>Get all escalation rules with optional filtering.</summary>
+    Task<(IEnumerable<EscalationRuleDto> Items, int TotalCount)> GetRulesAsync(EscalationRuleFilterDto filter);
+
+    /// <summary>Get an escalation rule by ID.</summary>
+    Task<EscalationRuleDto?> GetRuleByIdAsync(int id);
+
+    /// <summary>Get all rules for a specific SLA policy.</summary>
+    Task<IEnumerable<EscalationRuleDto>> GetRulesBySLAPolicyAsync(int slaPolicyId);
+
+    /// <summary>Create a new escalation rule.</summary>
+    Task<EscalationRuleDto> CreateRuleAsync(CreateEscalationRuleDto dto, int createdById);
+
+    /// <summary>Update an existing escalation rule.</summary>
+    Task<EscalationRuleDto> UpdateRuleAsync(int id, UpdateEscalationRuleDto dto, int modifiedById);
+
+    /// <summary>Delete an escalation rule.</summary>
+    Task<bool> DeleteRuleAsync(int id);
+
+    /// <summary>Enable an escalation rule.</summary>
+    Task<EscalationRuleDto> EnableRuleAsync(int id, int modifiedById);
+
+    /// <summary>Disable an escalation rule.</summary>
+    Task<EscalationRuleDto> DisableRuleAsync(int id, int modifiedById);
+
+    /// <summary>Get applicable rules for a service request.</summary>
+    Task<IEnumerable<EscalationRuleDto>> GetApplicableRulesAsync(int serviceRequestId);
+
+    /// <summary>Evaluate and execute applicable escalation rules.</summary>
+    Task<bool> EvaluateRulesAsync(int serviceRequestId);
+
+    /// <summary>Reorder escalation rules.</summary>
+    Task<bool> ReorderRulesAsync(int slaPolicyId, IEnumerable<int> ruleIds);
+}
+
+// ============================================================================
+// Escalation Policy Service
+// ============================================================================
+
+/// <summary>
+/// Service for managing escalation policies.
+/// </summary>
+public interface IEscalationPolicyService
+{
+    /// <summary>Get all escalation policies.</summary>
+    Task<IEnumerable<EscalationPolicyDto>> GetPoliciesAsync(bool? isActive = null);
+
+    /// <summary>Get an escalation policy by ID.</summary>
+    Task<EscalationPolicyDto?> GetPolicyByIdAsync(int id);
+
+    /// <summary>Create a new escalation policy.</summary>
+    Task<EscalationPolicyDto> CreatePolicyAsync(CreateEscalationPolicyDto dto, int createdById);
+
+    /// <summary>Update an existing escalation policy.</summary>
+    Task<EscalationPolicyDto> UpdatePolicyAsync(int id, UpdateEscalationPolicyDto dto, int modifiedById);
+
+    /// <summary>Delete an escalation policy.</summary>
+    Task<bool> DeletePolicyAsync(int id);
+
+    /// <summary>Get all levels for a policy.</summary>
+    Task<IEnumerable<EscalationLevelDto>> GetPolicyLevelsAsync(int policyId);
+
+    /// <summary>Add a level to a policy.</summary>
+    Task<EscalationLevelDto> AddLevelAsync(int policyId, CreateEscalationLevelDto dto, int createdById);
+
+    /// <summary>Update a level.</summary>
+    Task<EscalationLevelDto> UpdateLevelAsync(int levelId, CreateEscalationLevelDto dto, int modifiedById);
+
+    /// <summary>Delete a level.</summary>
+    Task<bool> DeleteLevelAsync(int levelId);
+
+    /// <summary>Assign a policy to a service request.</summary>
+    Task<bool> AssignPolicyToRequestAsync(int serviceRequestId, int policyId, int assignedById);
+
+    /// <summary>Get the default policy for a category/priority combination.</summary>
+    Task<EscalationPolicyDto?> GetDefaultPolicyAsync(int? categoryId, int? priority);
+
+    /// <summary>Set a policy as the default for a category/priority.</summary>
+    Task<bool> SetAsDefaultAsync(int policyId, int? categoryId, int? priority);
+}

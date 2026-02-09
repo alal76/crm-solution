@@ -3,6 +3,7 @@
 // Licensed under the GNU Affero General Public License v3.0
 
 using CRM.Core.Entities.Workflow;
+using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,7 @@ namespace CRM.Infrastructure.Services;
 /// <summary>
 /// Service for managing workflow definitions and versions
 /// </summary>
-public class WorkflowService
+public class WorkflowService : IWorkflowService
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<WorkflowService> _logger;
@@ -361,6 +362,200 @@ public class WorkflowService
         return true;
     }
 
+    /// <summary>
+    /// Get all versions for a workflow
+    /// </summary>
+    public async Task<List<WorkflowVersion>> GetVersionsAsync(int workflowId)
+    {
+        return await _context.WorkflowVersions
+            .Include(v => v.PublishedBy)
+            .Where(v => v.WorkflowDefinitionId == workflowId && !v.IsDeleted)
+            .OrderByDescending(v => v.VersionNumber)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Update a draft version's metadata
+    /// </summary>
+    public async Task<WorkflowVersion?> UpdateVersionMetadataAsync(int versionId, string? label, string? changeLog)
+    {
+        var version = await _context.WorkflowVersions.FindAsync(versionId);
+        if (version == null || version.IsDeleted || version.Status != WorkflowVersionStatus.Draft)
+            return null;
+
+        if (label != null) version.Label = label;
+        if (changeLog != null) version.ChangeLog = changeLog;
+        version.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Updated metadata for version {VersionId}: Label='{Label}'", versionId, version.Label);
+        return version;
+    }
+
+    /// <summary>
+    /// Publish a draft version — activates it, deprecates previous active, records publisher
+    /// </summary>
+    public async Task<bool> PublishVersionAsync(int versionId, int publishedById)
+    {
+        var version = await _context.WorkflowVersions
+            .Include(v => v.WorkflowDefinition)
+            .FirstOrDefaultAsync(v => v.Id == versionId && !v.IsDeleted);
+        if (version == null || version.Status != WorkflowVersionStatus.Draft) return false;
+
+        var workflowId = version.WorkflowDefinitionId;
+
+        // Deprecate any currently active versions
+        var activeVersions = await _context.WorkflowVersions
+            .Where(v => v.WorkflowDefinitionId == workflowId && v.Status == WorkflowVersionStatus.Active)
+            .ToListAsync();
+        foreach (var av in activeVersions)
+        {
+            av.Status = WorkflowVersionStatus.Deprecated;
+            av.DeprecatedAt = DateTime.UtcNow;
+            av.UpdatedAt = DateTime.UtcNow;
+        }
+
+        // Publish the version
+        version.Status = WorkflowVersionStatus.Active;
+        version.PublishedAt = DateTime.UtcNow;
+        version.PublishedById = publishedById;
+        version.UpdatedAt = DateTime.UtcNow;
+
+        // Update the workflow definition
+        version.WorkflowDefinition.Status = WorkflowStatus.Active;
+        version.WorkflowDefinition.CurrentVersion = version.VersionNumber;
+        version.WorkflowDefinition.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        _logger.LogInformation(
+            "Published version {VersionId} (v{VersionNumber}) for workflow {WorkflowId} by user {UserId}",
+            versionId, version.VersionNumber, workflowId, publishedById);
+        return true;
+    }
+
+    /// <summary>
+    /// Delete a draft version (soft delete)
+    /// </summary>
+    public async Task<bool> DeleteVersionAsync(int versionId)
+    {
+        var version = await _context.WorkflowVersions.FindAsync(versionId);
+        if (version == null || version.IsDeleted || version.Status != WorkflowVersionStatus.Draft)
+            return false;
+
+        version.IsDeleted = true;
+        version.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Deleted draft version {VersionId} for workflow {WorkflowId}",
+            versionId, version.WorkflowDefinitionId);
+        return true;
+    }
+
+    /// <summary>
+    /// Create a new draft version cloned from a previous version (rollback)
+    /// </summary>
+    public async Task<WorkflowVersion> RollbackToVersionAsync(int workflowId, int sourceVersionId)
+    {
+        var sourceVersion = await GetWorkflowVersionAsync(sourceVersionId);
+        if (sourceVersion == null || sourceVersion.WorkflowDefinitionId != workflowId)
+            throw new ArgumentException("Source version not found or belongs to a different workflow");
+
+        var newVersion = await CreateNewVersionAsync(workflowId, sourceVersionId);
+        newVersion.Label = $"Rollback to v{sourceVersion.VersionNumber}";
+        newVersion.ChangeLog = $"Rolled back from version {sourceVersion.VersionNumber} ({sourceVersion.Label})";
+        newVersion.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Created rollback version {VersionId} (v{VersionNumber}) from source v{SourceVersion} for workflow {WorkflowId}",
+            newVersion.Id, newVersion.VersionNumber, sourceVersion.VersionNumber, workflowId);
+        return newVersion;
+    }
+
+    /// <summary>
+    /// Compare two versions and return node/transition differences
+    /// </summary>
+    public async Task<VersionComparisonResult> CompareVersionsAsync(int versionId1, int versionId2)
+    {
+        var v1 = await GetWorkflowVersionAsync(versionId1);
+        var v2 = await GetWorkflowVersionAsync(versionId2);
+        if (v1 == null || v2 == null)
+            throw new ArgumentException("One or both versions not found");
+
+        var result = new VersionComparisonResult
+        {
+            Version1Id = v1.Id,
+            Version1Label = v1.Label,
+            Version1Number = v1.VersionNumber,
+            Version2Id = v2.Id,
+            Version2Label = v2.Label,
+            Version2Number = v2.VersionNumber,
+        };
+
+        // Compare nodes by NodeKey
+        var v1Nodes = v1.Nodes.ToDictionary(n => n.NodeKey, n => n);
+        var v2Nodes = v2.Nodes.ToDictionary(n => n.NodeKey, n => n);
+
+        var addedKeys = v2Nodes.Keys.Except(v1Nodes.Keys);
+        var removedKeys = v1Nodes.Keys.Except(v2Nodes.Keys);
+        var commonKeys = v1Nodes.Keys.Intersect(v2Nodes.Keys);
+
+        result.AddedNodes = addedKeys.Select(k => new NodeDiffItem
+        {
+            NodeKey = k, Name = v2Nodes[k].Name, NodeType = v2Nodes[k].NodeType.ToString()
+        }).ToList();
+
+        result.RemovedNodes = removedKeys.Select(k => new NodeDiffItem
+        {
+            NodeKey = k, Name = v1Nodes[k].Name, NodeType = v1Nodes[k].NodeType.ToString()
+        }).ToList();
+
+        foreach (var key in commonKeys)
+        {
+            var n1 = v1Nodes[key];
+            var n2 = v2Nodes[key];
+            var changes = new List<string>();
+            if (n1.Name != n2.Name) changes.Add($"Name: '{n1.Name}' -> '{n2.Name}'");
+            if (n1.NodeType != n2.NodeType) changes.Add($"Type: {n1.NodeType} -> {n2.NodeType}");
+            if (n1.Configuration != n2.Configuration) changes.Add("Configuration changed");
+            if (n1.IsStartNode != n2.IsStartNode) changes.Add($"IsStartNode: {n1.IsStartNode} -> {n2.IsStartNode}");
+            if (n1.IsEndNode != n2.IsEndNode) changes.Add($"IsEndNode: {n1.IsEndNode} -> {n2.IsEndNode}");
+            if (System.Math.Abs(n1.PositionX - n2.PositionX) > 0.1 || System.Math.Abs(n1.PositionY - n2.PositionY) > 0.1)
+                changes.Add("Position changed");
+            if (changes.Count > 0)
+            {
+                result.ModifiedNodes.Add(new NodeDiffItem
+                {
+                    NodeKey = key, Name = n2.Name, NodeType = n2.NodeType.ToString(), Changes = changes
+                });
+            }
+        }
+
+        // Compare transitions by TransitionKey
+        string TransKey(WorkflowTransition t) => t.TransitionKey ?? $"{t.SourceNodeId}->{t.TargetNodeId}";
+        var v1Trans = v1.Transitions.GroupBy(TransKey).ToDictionary(g => g.Key, g => g.First());
+        var v2Trans = v2.Transitions.GroupBy(TransKey).ToDictionary(g => g.Key, g => g.First());
+
+        result.AddedTransitions = v2Trans.Keys.Except(v1Trans.Keys).Count();
+        result.RemovedTransitions = v1Trans.Keys.Except(v2Trans.Keys).Count();
+        result.ModifiedTransitions = v1Trans.Keys.Intersect(v2Trans.Keys)
+            .Count(k =>
+            {
+                var t1 = v1Trans[k];
+                var t2 = v2Trans[k];
+                return t1.Label != t2.Label
+                    || t1.ConditionExpression != t2.ConditionExpression
+                    || t1.IsDefault != t2.IsDefault
+                    || t1.Priority != t2.Priority;
+            });
+
+        result.TotalChanges = result.AddedNodes.Count + result.RemovedNodes.Count
+            + result.ModifiedNodes.Count + result.AddedTransitions
+            + result.RemovedTransitions + result.ModifiedTransitions;
+
+        return result;
+    }
+
     #endregion
 
     #region Node Operations
@@ -576,22 +771,4 @@ public class WorkflowService
     }
 
     #endregion
-}
-
-/// <summary>
-/// Workflow statistics model
-/// </summary>
-public class WorkflowStatistics
-{
-    public int TotalWorkflows { get; set; }
-    public int ActiveWorkflows { get; set; }
-    public int DraftWorkflows { get; set; }
-    public int TotalInstances { get; set; }
-    public int RunningInstances { get; set; }
-    public int CompletedInstances { get; set; }
-    public int FailedInstances { get; set; }
-    public int PendingTasks { get; set; }
-    public int DeadLetterTasks { get; set; }
-    public Dictionary<string, int> WorkflowsByCategory { get; set; } = new();
-    public Dictionary<string, int> WorkflowsByEntityType { get; set; } = new();
 }

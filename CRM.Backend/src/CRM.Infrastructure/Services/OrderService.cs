@@ -3,6 +3,7 @@
 // Licensed under AGPL-3.0. See LICENSE for details.
 
 using CRM.Core.Entities;
+using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,11 +18,13 @@ public class OrderService : IOrderService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<OrderService> _logger;
+    private readonly IEntityEventDispatcher _eventDispatcher;
 
-    public OrderService(ICrmDbContext context, ILogger<OrderService> logger)
+    public OrderService(ICrmDbContext context, ILogger<OrderService> logger, IEntityEventDispatcher eventDispatcher)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _eventDispatcher = eventDispatcher ?? throw new ArgumentNullException(nameof(eventDispatcher));
     }
 
     #region CRUD Operations
@@ -83,6 +86,10 @@ public class OrderService : IOrderService
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Created order {OrderNumber} for account {AccountId}", order.OrderNumber, order.AccountId);
+
+        // Fire workflow triggers for entity creation
+        _eventDispatcher.DispatchEntityEvent("Order", order.Id, WorkflowTriggerType.OnCreate);
+
         return order;
     }
 
@@ -100,6 +107,10 @@ public class OrderService : IOrderService
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Updated order {OrderNumber}", order.OrderNumber);
+
+        // Fire workflow triggers for entity update
+        _eventDispatcher.DispatchEntityEvent("Order", order.Id, WorkflowTriggerType.OnUpdate);
+
         return order;
     }
 
@@ -117,6 +128,10 @@ public class OrderService : IOrderService
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted order {OrderNumber}", order.OrderNumber);
+
+        // Fire workflow triggers for entity deletion
+        _eventDispatcher.DispatchEntityEvent("Order", id, WorkflowTriggerType.OnDelete);
+
         return true;
     }
 
