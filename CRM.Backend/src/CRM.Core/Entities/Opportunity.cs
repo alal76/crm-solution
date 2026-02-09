@@ -249,6 +249,7 @@ public class OpportunityProduct
     public decimal? LineTotal { get; set; }
 
     /// <summary>Alias for LineTotal for service compatibility</summary>
+    [NotMapped]
     public decimal? TotalPrice
     {
         get => LineTotal;

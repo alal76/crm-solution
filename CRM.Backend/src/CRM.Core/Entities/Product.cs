@@ -1315,6 +1315,7 @@ public class Product : BaseEntity
     #region Aliases
 
     /// <summary>Alias for Price for service compatibility</summary>
+    [NotMapped]
     public decimal UnitPrice
     {
         get => Price;
