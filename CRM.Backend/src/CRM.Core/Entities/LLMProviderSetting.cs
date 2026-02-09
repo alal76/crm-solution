@@ -22,6 +22,8 @@
  * Note: API keys are NOT stored here - they remain in environment variables for security
  */
 
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -37,6 +39,7 @@ namespace CRM.Core.Entities;
 /// Settings are grouped by category (general, provider.openai, provider.anthropic, etc.)
 /// Values support multiple types: string, integer, decimal, boolean, json
 /// </summary>
+[Table("llm_provider_settings")]
 public class LLMProviderSetting : BaseEntity
 {
     /// <summary>
