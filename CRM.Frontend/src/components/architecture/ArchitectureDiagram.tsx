@@ -87,21 +87,14 @@ interface ForeignKey {
 // Module data
 const modules: Module[] = [
   {
-    name: 'Customer Management',
-    description: 'Core customer lifecycle and relationship management',
-    icon: '👥',
-    entities: ['Customer', 'CustomerContact', 'Contact', 'SocialMediaLink'],
-    controllers: ['CustomersController', 'ContactsController'],
-    frontendPages: ['CustomersPage', 'ContactsPage', 'CustomerOverviewPage'],
-  },
-  {
     name: 'Account Management',
-    description: 'Contract and account lifecycle management',
-    icon: '📋',
-    entities: ['Account'],
-    controllers: ['AccountsController'],
-    frontendPages: ['AccountPage'],
+    description: 'Core account lifecycle and relationship management',
+    icon: '👥',
+    entities: ['Account', 'AccountContact', 'Contact', 'SocialMediaLink'],
+    controllers: ['AccountsController', 'ContactsController'],
+    frontendPages: ['AccountsPage', 'ContactsPage', 'AccountOverviewPage'],
   },
+
   {
     name: 'Sales Pipeline',
     description: 'Lead tracking, opportunities, and quotes',

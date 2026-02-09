@@ -46,6 +46,9 @@ export const ACCOUNT_TYPES = [
 export type AccountType = typeof ACCOUNT_TYPES[number];
 
 // Legacy alias for backward compatibility
+/** @deprecated Use ACCOUNT_TYPES instead */
+/** @deprecated Use ACCOUNT_TYPES instead */
+/** @deprecated Use ACCOUNT_TYPES instead */
 export const CUSTOMER_TYPES = ACCOUNT_TYPES;
 export type CustomerType = AccountType;
 
@@ -385,6 +388,9 @@ export const ACCOUNT_TYPE_OPTIONS = [
 ] as const;
 
 // Legacy alias for backward compatibility
+/** @deprecated Use ACCOUNT_TYPE_OPTIONS instead */
+/** @deprecated Use ACCOUNT_TYPE_OPTIONS instead */
+/** @deprecated Use ACCOUNT_TYPE_OPTIONS instead */
 export const CUSTOMER_TYPE_OPTIONS = ACCOUNT_TYPE_OPTIONS;
 
 export const PRIORITY_OPTIONS = [

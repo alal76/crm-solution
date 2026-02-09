@@ -149,7 +149,7 @@ function NavigationContent() {
     // Auto-expand main categories based on route
     if (path === '/' || path === '/dashboard') {
       setExpandedCategories(prev => ({ ...prev, 'main': true }));
-    } else if (path.includes('/customers') || path.includes('/contacts')) {
+    } else if (path.includes('/accounts') || path.includes('/contacts')) {
       setExpandedCategories(prev => ({ ...prev, 'main': true }));
     } else if (path.includes('/leads') || path.includes('/opportunities') || path.includes('/products') || path.includes('/campaigns') || path.includes('/quotes') || path.includes('/contracts') || path.includes('/invoices') || path.includes('/payments') || path.includes('/orders') || path.includes('/teams')) {
       setExpandedCategories(prev => ({ ...prev, 'sales': true }));
@@ -209,8 +209,8 @@ function NavigationContent() {
   // Nav item ID to path/icon mapping (defined outside useMemo for stability)
   const navItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
     'dashboard': { label: 'Dashboard', icon: DashboardIcon, path: '/', menuName: 'Dashboard' },
-    'customers': { label: 'Accounts', icon: PeopleIcon, path: '/customers', menuName: 'Customers' }, // Industry-standard label
-    'customer-overview': { label: 'Account Overview', icon: PersonSearchIcon, path: '/customer-overview', menuName: 'CustomerOverview' },
+    'accounts': { label: 'Accounts', icon: PeopleIcon, path: '/accounts', menuName: 'Accounts' }, // Industry-standard label
+    'customer-overview': { label: 'Account Overview', icon: PersonSearchIcon, path: '/account-overview', menuName: 'CustomerOverview' },
     'contacts': { label: 'Contacts', icon: PeopleIcon, path: '/contacts', menuName: 'Contacts' },
     'leads': { label: 'Leads', icon: PeopleIcon, path: '/leads', menuName: 'Leads' },
     'opportunities': { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', menuName: 'Opportunities' },

@@ -312,7 +312,7 @@ export const handlers = [
         canEditSettings: true,
       },
       groupPermissions: {},
-      accessiblePages: ['/dashboard', '/customers', '/contacts', '/leads'],
+      accessiblePages: ['/dashboard', '/accounts', '/contacts', '/leads'],
     }));
   }),
 

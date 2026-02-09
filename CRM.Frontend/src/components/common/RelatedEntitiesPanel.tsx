@@ -141,7 +141,7 @@ const entityTypeConfig: Record<RelatedEntityType, {
     icon: <BusinessIcon />, 
     label: 'Accounts', 
     singularLabel: 'Account',
-    path: '/customers',
+    path: '/accounts',
     color: '#2196F3'
   },
   activities: { 
@@ -213,7 +213,7 @@ export const RelatedEntitiesPanel: React.FC<RelatedEntitiesPanelProps> = ({
         case 'account':
           switch (relatedType) {
             case 'contacts':
-              endpoint = `/customers/${entityId}/contacts`;
+              endpoint = `/accounts/${entityId}/contacts`;
               break;
             case 'opportunities':
               endpoint = `/opportunities?accountId=${entityId}`;

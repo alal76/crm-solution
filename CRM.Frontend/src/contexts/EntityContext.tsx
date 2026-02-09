@@ -11,7 +11,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, Rea
 import { useLocation } from 'react-router-dom';
 
 export type EntityType = 
-  | 'Customer' 
+  | 'Account' 
   | 'Contact' 
   | 'Lead' 
   | 'Opportunity' 
@@ -68,7 +68,7 @@ const EntityContext = createContext<EntityContextValue>({
 
 // Route patterns to entity type mapping
 const routePatterns: { pattern: RegExp; entityType: EntityType }[] = [
-  { pattern: /^\/customers\/(\d+)/, entityType: 'Customer' },
+  { pattern: /^\/customers\/(\d+)/, entityType: 'Account' },
   { pattern: /^\/contacts\/(\d+)/, entityType: 'Contact' },
   { pattern: /^\/leads\/(\d+)/, entityType: 'Lead' },
   { pattern: /^\/opportunities\/(\d+)/, entityType: 'Opportunity' },
@@ -80,7 +80,7 @@ const routePatterns: { pattern: RegExp; entityType: EntityType }[] = [
   { pattern: /^\/interactions\/(\d+)/, entityType: 'Interaction' },
   { pattern: /^\/notes\/(\d+)/, entityType: 'Note' },
   // List pages (no specific ID)
-  { pattern: /^\/customers$/, entityType: 'Customer' },
+  { pattern: /^\/accounts$/, entityType: 'Account' },
   { pattern: /^\/contacts$/, entityType: 'Contact' },
   { pattern: /^\/leads$/, entityType: 'Lead' },
   { pattern: /^\/opportunities$/, entityType: 'Opportunity' },

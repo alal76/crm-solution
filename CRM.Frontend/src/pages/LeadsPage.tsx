@@ -568,7 +568,7 @@ function LeadsPage() {
     if (window.confirm(`Convert ${lead.firstName} ${lead.lastName} to a Customer?`)) {
       try {
         // Create customer from lead data
-        await apiClient.post('/customers', {
+        await apiClient.post('/accounts', {
           name: `${lead.firstName} ${lead.lastName}`,
           company: lead.company || `${lead.firstName}'s Company`,
           email: lead.emailPrimary,

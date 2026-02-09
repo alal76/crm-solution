@@ -217,7 +217,7 @@ const HelpPage: React.FC = () => {
 
   const quickLinks = [
     { icon: <DashboardIcon />, label: 'Dashboard Overview', path: '/dashboard' },
-    { icon: <PeopleIcon />, label: 'Account Management', path: '/customers' },
+    { icon: <PeopleIcon />, label: 'Account Management', path: '/accounts' },
     { icon: <ContactIcon />, label: 'Contact Management', path: '/contacts' },
     { icon: <SalesIcon />, label: 'Opportunities', path: '/opportunities' },
     { icon: <TaskIcon />, label: 'My Queue', path: '/my-queue' },

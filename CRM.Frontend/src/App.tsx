@@ -136,11 +136,11 @@ const SLAPolicyFormPage = lazy(() => import('./pages/itsm/SLAPolicyFormPage'));
 const SLAInstanceListPage = lazy(() => import('./pages/itsm/SLAInstanceListPage'));
 
 // ----------------------------------------------------------------------------
-// Customer Module - Lazy Loaded
+// Account Module - Lazy Loaded
 // ----------------------------------------------------------------------------
-const CustomersPage = lazy(() => import('./pages/CustomersPage'));
+const AccountsPage = lazy(() => import('./pages/CustomersPage'));
 const ContactsPage = lazy(() => import('./pages/ContactsPage'));
-const CustomerOverviewPage = lazy(() => import('./pages/CustomerOverviewPage'));
+const AccountOverviewPage = lazy(() => import('./pages/CustomerOverviewPage'));
 const RelationshipsPage = lazy(() => import('./pages/RelationshipsPage'));
 
 // ----------------------------------------------------------------------------
@@ -267,21 +267,21 @@ function ThemedApp() {
                 }
               />
               <Route
-                path="/customers"
+                path="/accounts"
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Customers">
-                      <CustomersPage />
+                      <AccountsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
               />
               <Route
-                path="/customer-overview"
+                path="/account-overview"
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Customers">
-                      <CustomerOverviewPage />
+                      <AccountOverviewPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

@@ -4,7 +4,7 @@ import apiClient from './apiClient';
 // ENUMS
 // ============================================================
 
-export type EntityType = 'Customer' | 'Contact' | 'Lead' | 'Account';
+export type EntityType = 'Account' | 'Contact' | 'Lead';
 export type AddressType = 'Primary' | 'Billing' | 'Shipping' | 'Mailing' | 'Headquarters' | 'Branch' | 'Warehouse' | 'Other';
 export type PhoneType = 'Mobile' | 'Home' | 'Office' | 'Direct' | 'Fax' | 'Toll-Free' | 'Pager' | 'Other';
 export type EmailType = 'Personal' | 'Work' | 'Invoicing' | 'Support' | 'Marketing' | 'General' | 'Other';

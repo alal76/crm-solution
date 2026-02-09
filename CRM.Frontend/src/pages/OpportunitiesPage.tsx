@@ -269,7 +269,7 @@ function OpportunitiesPage() {
     }
     try {
       setLoadingContacts(true);
-      const response = await apiClient.get(`/customers/${accountId}/contacts`);
+      const response = await apiClient.get(`/accounts/${accountId}/contacts`);
       setAccountContacts(response.data.map((c: any) => ({
         id: c.contactId,
         firstName: c.contactName?.split(' ')[0] || 'Contact',

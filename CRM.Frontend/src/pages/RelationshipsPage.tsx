@@ -133,7 +133,7 @@ function RelationshipsPage() {
       const [typesRes, relationshipsRes, customersRes] = await Promise.all([
         relationshipService.getRelationshipTypes(),
         relationshipService.getAccountRelationships(),
-        apiClient.get('/customers')
+        apiClient.get('/accounts')
       ]);
       setRelationshipTypes(typesRes);
       setRelationships(relationshipsRes);

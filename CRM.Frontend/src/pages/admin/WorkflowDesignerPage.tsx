@@ -1048,7 +1048,7 @@ function WorkflowDesignerPage() {
                 nodeKey={selectedNode.nodeKey}
                 nodeName={selectedNode.name}
                 configuration={selectedNode.configuration || '{}'}
-                entityType={workflow?.entityType || 'Customer'}
+                entityType={workflow?.entityType || 'Account'}
                 onChange={(property, value) => updateNodeProperty(property as keyof UpdateNodeDto, value)}
                 onDelete={() => deleteNode(selectedNode)}
                 readonly={version?.status === 'Active'}
@@ -1060,7 +1060,7 @@ function WorkflowDesignerPage() {
                 nodeKey={selectedNode.nodeKey}
                 nodeName={selectedNode.name}
                 configuration={selectedNode.configuration || '{}'}
-                entityType={workflow?.entityType || 'Customer'}
+                entityType={workflow?.entityType || 'Account'}
                 onChange={(property, value) => updateNodeProperty(property as keyof UpdateNodeDto, value)}
                 onDelete={() => deleteNode(selectedNode)}
                 readonly={version?.status === 'Active'}

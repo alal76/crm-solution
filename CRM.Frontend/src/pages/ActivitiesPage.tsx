@@ -23,9 +23,9 @@ import ImportExportButtons from '../components/ImportExportButtons';
 
 // Activity type mappings
 const ACTIVITY_ICONS: Record<string, React.ReactElement> = {
-  'CustomerCreated': <PersonIcon />,
-  'CustomerUpdated': <EditIcon />,
-  'CustomerDeleted': <DeleteIcon />,
+  'AccountCreated': <PersonIcon />,
+  'AccountUpdated': <EditIcon />,
+  'AccountDeleted': <DeleteIcon />,
   'ContactCreated': <PersonIcon />,
   'ContactUpdated': <EditIcon />,
   'OpportunityCreated': <TrendingUpIcon />,
@@ -48,9 +48,9 @@ const ACTIVITY_ICONS: Record<string, React.ReactElement> = {
 };
 
 const ACTIVITY_COLORS: Record<string, string> = {
-  'CustomerCreated': '#4caf50',
-  'CustomerUpdated': '#2196f3',
-  'CustomerDeleted': '#f44336',
+  'AccountCreated': '#4caf50',
+  'AccountUpdated': '#2196f3',
+  'AccountDeleted': '#f44336',
   'ContactCreated': '#4caf50',
   'ContactUpdated': '#2196f3',
   'OpportunityCreated': '#4caf50',
@@ -208,7 +208,7 @@ function ActivitiesPage() {
                 startAdornment={<FilterIcon sx={{ mr: 1, color: '#666' }} />}
               >
                 <MenuItem value="all">All Activities</MenuItem>
-                <MenuItem value="Customer">Accounts</MenuItem>
+                <MenuItem value="Account">Accounts</MenuItem>
                 <MenuItem value="Contact">Contacts</MenuItem>
                 <MenuItem value="Opportunity">Opportunities</MenuItem>
                 <MenuItem value="Task">Tasks</MenuItem>

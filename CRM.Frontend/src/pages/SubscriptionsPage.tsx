@@ -572,7 +572,7 @@ function SubscriptionsPage() {
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <EntitySelect
-                    entityType="customer"
+                    entityType="account"
                     name="accountId"
                     label="Account *"
                     value={formData.accountId}

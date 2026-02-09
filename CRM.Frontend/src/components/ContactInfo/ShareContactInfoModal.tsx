@@ -239,10 +239,9 @@ const ShareContactInfoModal: React.FC<ShareContactInfoModalProps> = ({
                     onChange={(e) => setTargetEntityType(e.target.value as EntityType)}
                     label="Entity Type"
                   >
-                    <MenuItem value="Customer">Customer</MenuItem>
+                    <MenuItem value="Account">Account</MenuItem>
                     <MenuItem value="Contact">Contact</MenuItem>
                     <MenuItem value="Lead">Lead</MenuItem>
-                    <MenuItem value="Account">Account</MenuItem>
                   </Select>
                 </FormControl>
                 

@@ -66,7 +66,7 @@ const BREADCRUMB_LABELS: { [key: string]: { label: string; icon?: React.ReactNod
   '/': { label: 'My Queue', icon: <TaskIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/dashboard': { label: 'Dashboard', icon: <DashboardIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/my-queue': { label: 'My Queue', icon: <TaskIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
-  '/customers': { label: 'Customers', icon: <PeopleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/accounts': { label: 'Accounts', icon: <PeopleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/contacts': { label: 'Contacts', icon: <ContactsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/leads': { label: 'Leads', icon: <PeopleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/opportunities': { label: 'Opportunities', icon: <TrendingUpIcon sx={{ mr: 0.5, fontSize: 18 }} /> },

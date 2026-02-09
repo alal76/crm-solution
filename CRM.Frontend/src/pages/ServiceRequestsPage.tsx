@@ -1206,11 +1206,11 @@ function ServiceRequestsPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <EntitySelect
-                entityType="customer"
+                entityType="account"
                 name="accountId"
                 value={formData.accountId || ''}
                 onChange={(e: any) => handleFormChange('accountId', e.target.value ? Number(e.target.value) : undefined)}
-                label="Customer"
+                label="Account"
                 disabled={viewMode}
                 showAddNew={!viewMode}
               />
