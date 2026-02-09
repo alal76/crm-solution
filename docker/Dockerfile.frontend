@@ -34,7 +34,7 @@ ARG SOURCE_HASH
 # CRITICAL: Set REACT_APP_API_URL to empty for runtime detection
 # DO NOT pass a value here - the frontend will use window.location.origin
 ENV REACT_APP_API_URL=
-ENV CI=true
+ENV CI=false
 ENV GENERATE_SOURCEMAP=false
 
 LABEL source_hash=$SOURCE_HASH

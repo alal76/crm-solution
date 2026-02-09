@@ -397,7 +397,7 @@ function OrdersPage() {
                   <TableRow>
                     <TableCell colSpan={7} sx={{ border: 0 }}>
                       <EnhancedEmptyState
-                        illustration="orders"
+                        illustration="generic"
                         title="No orders yet"
                         description="Create your first order to start tracking sales"
                         variant="no-data"

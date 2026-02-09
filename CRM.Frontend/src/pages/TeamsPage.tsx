@@ -353,7 +353,7 @@ function TeamsPage() {
                   <TableRow>
                     <TableCell colSpan={6} sx={{ border: 0 }}>
                       <EnhancedEmptyState
-                        illustration="teams"
+                        illustration="generic"
                         title="No teams yet"
                         description="Create your first team to organize your sales force"
                         variant="no-data"
@@ -553,7 +553,7 @@ function TeamsPage() {
       <Dialog open={addMemberDialogOpen} onClose={() => setAddMemberDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogHeader
           mode="create"
-          entityType="team member"
+          entityType="user"
           onClose={() => setAddMemberDialogOpen(false)}
         />
         <DialogContent dividers>
