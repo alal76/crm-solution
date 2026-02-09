@@ -64,7 +64,7 @@ import {
 // ============================================================================
 
 export interface TriggerConfiguration {
-  triggerType: 'record_created' | 'record_updated' | 'field_changed' | 'scheduled' | 'webhook' | 'manual';
+  triggerType: 'Manual' | 'OnCreate' | 'OnUpdate' | 'OnDelete' | 'OnFieldChange' | 'Scheduled' | 'OnEvent' | 'OnWebhook' | 'OnSLABreach' | 'OnEscalation' | 'OnStatusChange' | 'OnApproval' | 'OnRejection' | 'OnAssignment';
   
   // Field Change Triggers
   watchedFields?: string[];
@@ -88,7 +88,7 @@ export interface TriggerConfiguration {
 
 interface FieldCondition {
   field: string;
-  operator: 'equals' | 'not_equals' | 'changed_to' | 'changed_from' | 'contains' | 'is_empty' | 'is_not_empty';
+  operator: 'equals' | 'notEquals' | 'contains' | 'notContains' | 'startsWith' | 'endsWith' | 'greaterThan' | 'lessThan' | 'greaterThanOrEqual' | 'lessThanOrEqual' | 'isNull' | 'isNotNull' | 'in' | 'notIn' | 'between' | 'regex' | 'changed_to' | 'changed_from';
   value?: string;
   oldValue?: string;
 }
@@ -135,7 +135,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
   readonly = false,
 }) => {
   const [tabValue, setTabValue] = useState(0);
-  const [config, setConfig] = useState<TriggerConfiguration>({ triggerType: 'record_created' });
+  const [config, setConfig] = useState<TriggerConfiguration>({ triggerType: 'OnCreate' });
   
   // Backend-driven configuration state
   const [workflowConfig, setWorkflowConfig] = useState<WorkflowConfig | null>(null);
@@ -183,7 +183,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
     try {
       const parsed = configuration ? JSON.parse(configuration) : {};
       setConfig({
-        triggerType: parsed.triggerType || 'record_created',
+        triggerType: parsed.triggerType || 'OnCreate',
         watchedFields: parsed.watchedFields || [],
         fieldConditions: parsed.fieldConditions || [],
         scheduleType: parsed.scheduleType,
@@ -197,7 +197,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
         filterExpression: parsed.filterExpression,
       });
     } catch {
-      setConfig({ triggerType: 'record_created' });
+      setConfig({ triggerType: 'OnCreate' });
     }
   }, [configuration]);
 
@@ -212,7 +212,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
   const addFieldCondition = () => {
     const fieldConditions = [
       ...(config.fieldConditions || []),
-      { field: '', operator: 'changed_to' as const, value: '' }
+      { field: '', operator: 'equals' as const, value: '' }
     ];
     updateConfig({ fieldConditions });
   };
@@ -299,37 +299,85 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
               onChange={(e) => updateConfig({ triggerType: e.target.value as TriggerConfiguration['triggerType'] })}
               disabled={readonly}
             >
-              <MenuItem value="record_created">
+              <MenuItem value="OnCreate">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <AddIcon fontSize="small" />
                   Record Created
                 </Box>
               </MenuItem>
-              <MenuItem value="record_updated">
+              <MenuItem value="OnUpdate">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <FieldIcon fontSize="small" />
                   Record Updated (Any Field)
                 </Box>
               </MenuItem>
-              <MenuItem value="field_changed">
+              <MenuItem value="OnDelete">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <DeleteIcon fontSize="small" />
+                  Record Deleted
+                </Box>
+              </MenuItem>
+              <MenuItem value="OnFieldChange">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <EventIcon fontSize="small" />
                   Specific Field Changed
                 </Box>
               </MenuItem>
-              <MenuItem value="scheduled">
+              <MenuItem value="OnStatusChange">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <EventIcon fontSize="small" />
+                  Status Changed
+                </Box>
+              </MenuItem>
+              <MenuItem value="Scheduled">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <ScheduleIcon fontSize="small" />
                   Scheduled / Recurring
                 </Box>
               </MenuItem>
-              <MenuItem value="webhook">
+              <MenuItem value="OnEvent">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <EventIcon fontSize="small" />
+                  On Event
+                </Box>
+              </MenuItem>
+              <MenuItem value="OnWebhook">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <WebhookIcon fontSize="small" />
                   Webhook
                 </Box>
               </MenuItem>
-              <MenuItem value="manual">
+              <MenuItem value="OnSLABreach">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <EventIcon fontSize="small" />
+                  SLA Breach
+                </Box>
+              </MenuItem>
+              <MenuItem value="OnEscalation">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <EventIcon fontSize="small" />
+                  Escalation
+                </Box>
+              </MenuItem>
+              <MenuItem value="OnApproval">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <EventIcon fontSize="small" />
+                  Approved
+                </Box>
+              </MenuItem>
+              <MenuItem value="OnRejection">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <EventIcon fontSize="small" />
+                  Rejected
+                </Box>
+              </MenuItem>
+              <MenuItem value="OnAssignment">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <EventIcon fontSize="small" />
+                  Assigned
+                </Box>
+              </MenuItem>
+              <MenuItem value="Manual">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <TriggerIcon fontSize="small" />
                   Manual Trigger
@@ -339,7 +387,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
           </FormControl>
 
           {/* Field Changed - Select Fields to Watch */}
-          {config.triggerType === 'field_changed' && (
+          {config.triggerType === 'OnFieldChange' && (
             <Box>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
                 Fields to Watch
@@ -383,7 +431,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
           )}
 
           {/* Scheduled - Cron or Interval */}
-          {config.triggerType === 'scheduled' && (
+          {config.triggerType === 'Scheduled' && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Schedule Type</InputLabel>
@@ -426,7 +474,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
           )}
 
           {/* Webhook - Secret and Schema */}
-          {config.triggerType === 'webhook' && (
+          {config.triggerType === 'OnWebhook' && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
                 fullWidth
@@ -551,18 +599,29 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
                         onChange={(e) => updateFieldCondition(index, { operator: e.target.value as FieldCondition['operator'] })}
                         disabled={readonly}
                       >
+                        <MenuItem value="equals">Equals</MenuItem>
+                        <MenuItem value="notEquals">Not Equals</MenuItem>
+                        <MenuItem value="contains">Contains</MenuItem>
+                        <MenuItem value="notContains">Not Contains</MenuItem>
+                        <MenuItem value="startsWith">Starts With</MenuItem>
+                        <MenuItem value="endsWith">Ends With</MenuItem>
+                        <MenuItem value="greaterThan">Greater Than</MenuItem>
+                        <MenuItem value="lessThan">Less Than</MenuItem>
+                        <MenuItem value="greaterThanOrEqual">Greater Than or Equal</MenuItem>
+                        <MenuItem value="lessThanOrEqual">Less Than or Equal</MenuItem>
+                        <MenuItem value="isNull">Is Empty</MenuItem>
+                        <MenuItem value="isNotNull">Is Not Empty</MenuItem>
+                        <MenuItem value="in">In (comma-separated)</MenuItem>
+                        <MenuItem value="notIn">Not In</MenuItem>
+                        <MenuItem value="between">Between</MenuItem>
+                        <MenuItem value="regex">Regex Match</MenuItem>
                         <MenuItem value="changed_to">Changed To</MenuItem>
                         <MenuItem value="changed_from">Changed From</MenuItem>
-                        <MenuItem value="equals">Equals</MenuItem>
-                        <MenuItem value="not_equals">Not Equals</MenuItem>
-                        <MenuItem value="contains">Contains</MenuItem>
-                        <MenuItem value="is_empty">Is Empty</MenuItem>
-                        <MenuItem value="is_not_empty">Is Not Empty</MenuItem>
                       </Select>
                     </FormControl>
 
                     {/* Value input - based on field type */}
-                    {!['is_empty', 'is_not_empty'].includes(condition.operator) && (
+                    {!['isNull', 'isNotNull'].includes(condition.operator) && (
                       selectedField?.type === 'enum' && selectedField.enumValues ? (
                         <FormControl size="small" sx={{ minWidth: 140, flex: 1 }}>
                           <InputLabel>Value</InputLabel>
