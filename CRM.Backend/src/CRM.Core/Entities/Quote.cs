@@ -473,6 +473,7 @@ public class Quote : BaseEntity
     #region Aliases
 
     /// <summary>Alias for Discount for service compatibility</summary>
+    [NotMapped]
     public decimal DiscountAmount
     {
         get => Discount;
@@ -480,6 +481,7 @@ public class Quote : BaseEntity
     }
 
     /// <summary>Alias for Tax for service compatibility</summary>
+    [NotMapped]
     public decimal TaxAmount
     {
         get => Tax;
@@ -487,6 +489,7 @@ public class Quote : BaseEntity
     }
 
     /// <summary>Alias for Total for service compatibility</summary>
+    [NotMapped]
     public decimal TotalAmount
     {
         get => Total;

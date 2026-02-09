@@ -755,6 +755,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
         modelBuilder.Entity<Contact>(entity =>
         {
+            // Ignore alias properties that map to existing columns (Email→EmailPrimary, Title→JobTitle)
+            entity.Ignore(e => e.Email);
+            entity.Ignore(e => e.Title);
+
             // Preferred contact method uses LookupItem
             entity.HasOne(c => c.PreferredContactMethodLookup)
                 .WithMany()
@@ -2875,6 +2879,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // ITSM entities use their DbSet property names as table names by convention:
+        //   ITSMSLAPolicies, ITSMSLAInstances, ITSMKnowledgeArticles, ITSMArticleFeedback, BusinessHoursSchedules
+        // These are SEPARATE from the non-ITSM entities (SLAPolicies, SLAInstances, KnowledgeArticles, etc.)
+        // which exist in the KnowledgeBase namespace and map to their own tables.
+        // Do NOT add ToTable() mappings that would cause shared-table conflicts between the two namespaces.
+
         // SLAPolicy configuration
         modelBuilder.Entity<SLAPolicy>(entity =>
         {
@@ -2969,6 +2979,64 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.SLATargetId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+
+        // =======================================================================
+        // ALIAS PROPERTY IGNORES
+        // EF Core maps all public properties to DB columns by default.
+        // Alias properties redirect to other properties and do NOT have DB columns.
+        // [NotMapped] alone is insufficient - entity.Ignore() is required.
+        // =======================================================================
+
+        // Product: UnitPrice -> Price
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.Ignore(e => e.UnitPrice);
+        });
+
+        // Contract: 10 alias properties that don't map to DB columns
+        modelBuilder.Entity<Contract>(entity =>
+        {
+            entity.Ignore(e => e.TotalValue);          // -> Value
+            entity.Ignore(e => e.ActivatedAt);          // -> ActivatedDate
+            entity.Ignore(e => e.TerminatedAt);         // -> TerminatedDate
+            entity.Ignore(e => e.SentForSignatureAt);   // -> SignedDate
+            entity.Ignore(e => e.TerminationReason);    // no DB column
+            entity.Ignore(e => e.PaymentTerms);         // no DB column
+            entity.Ignore(e => e.IsSigned);             // computed from SignedDate
+            entity.Ignore(e => e.SignedBy);             // no DB column
+            entity.Ignore(e => e.DocumentUrl);          // -> ContractFileUrl
+            entity.Ignore(e => e.TermsAndConditions);   // -> Terms
+        });
+
+        // Commission: 4 alias properties
+        modelBuilder.Entity<Commission>(entity =>
+        {
+            entity.Ignore(e => e.Amount);               // -> CommissionAmount
+            entity.Ignore(e => e.Plan);                 // -> CommissionPlan (nav)
+            entity.Ignore(e => e.ApprovedAt);           // -> ApprovedDate
+            entity.Ignore(e => e.PaidAt);               // -> PaidDate
+        });
+
+        // Payment: TransactionId -> GatewayTransactionId
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.Ignore(e => e.TransactionId);
+        });
+
+        // Opportunity: EstimatedValue -> Amount (also has [NotMapped])
+        modelBuilder.Entity<Opportunity>(entity =>
+        {
+            entity.Ignore(e => e.EstimatedValue);
+        });
+
+        // Quote: 3 alias properties (also have [NotMapped])
+        modelBuilder.Entity<Quote>(entity =>
+        {
+            entity.Ignore(e => e.DiscountAmount);       // -> Discount
+            entity.Ignore(e => e.TaxAmount);            // -> Tax
+            entity.Ignore(e => e.TotalAmount);          // -> Total
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern

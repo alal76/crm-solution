@@ -125,6 +125,14 @@ module.exports = {
     },
   },
   
+  // Fix webpack-dev-server v5 compatibility with CRA 5
+  devServer: (devServerConfig) => {
+    // Remove deprecated options from CRA 5 that webpack-dev-server v5 doesn't support
+    delete devServerConfig.onAfterSetupMiddleware;
+    delete devServerConfig.onBeforeSetupMiddleware;
+    return devServerConfig;
+  },
+
   // Babel configuration for faster builds
   babel: {
     plugins: [
