@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { RootCauseAnalysisTemplate, RelatedIncidentsWidget } from '../../components/itsm';
+import type { RelatedIncident } from '../../components/itsm';
 
 interface ProblemDetail {
   problemId: number;
@@ -19,12 +21,18 @@ const ProblemDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [problem, setProblem] = useState<ProblemDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [relatedIncidents, setRelatedIncidents] = useState<RelatedIncident[]>([]);
 
   useEffect(() => {
     const load = async () => {
       try {
         const response = await axios.get(`/api/problems/${id}`);
         setProblem(response.data);
+        // Load related incidents (best-effort)
+        try {
+          const relResp = await axios.get(`/api/problems/${id}/incidents`);
+          setRelatedIncidents(relResp.data ?? []);
+        } catch { /* non-critical */ }
       } catch (error) {
         console.error('Failed to load problem', error);
       } finally {
@@ -80,6 +88,22 @@ const ProblemDetailPage: React.FC = () => {
           <h3 className="text-sm font-semibold text-gray-700">Known Error</h3>
           <p className="text-gray-900">{problem.knownError ? 'Yes' : 'No'}</p>
         </div>
+      </div>
+
+      {/* Root Cause Analysis */}
+      <div className="mt-6">
+        <RootCauseAnalysisTemplate
+          problemDescription={problem.shortDescription}
+          readOnly={false}
+        />
+      </div>
+
+      {/* Related Incidents */}
+      <div className="mt-6">
+        <RelatedIncidentsWidget
+          problemId={Number(id)}
+          incidents={relatedIncidents}
+        />
       </div>
     </div>
   );

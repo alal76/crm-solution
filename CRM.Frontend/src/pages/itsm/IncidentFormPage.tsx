@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { ImpactUrgencyMatrix } from '../../components/itsm';
+import type { ImpactLevel, UrgencyLevel } from '../../components/itsm';
 
 export const IncidentFormPage: React.FC = () => {
   const navigate = useNavigate();
@@ -82,6 +84,16 @@ export const IncidentFormPage: React.FC = () => {
               <option value={3}>High</option>
             </select>
           </div>
+        </div>
+
+        {/* Impact/Urgency Priority Matrix */}
+        <div className="mt-2">
+          <ImpactUrgencyMatrix
+            impact={formData.impact as ImpactLevel}
+            urgency={formData.urgency as UrgencyLevel}
+            onChange={(impact, urgency) => setFormData({...formData, impact, urgency})}
+            showMatrix
+          />
         </div>
 
         <div className="flex gap-4 pt-4">

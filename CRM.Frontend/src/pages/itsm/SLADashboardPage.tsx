@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { SLACountdownWidget, SLABreachBanner } from '../../components/itsm';
+import type { SLAInstanceData, SLABreachInfo } from '../../components/itsm';
 
 interface SLAPolicySummary {
   slaPolicyId: number;
@@ -22,19 +24,29 @@ const SLADashboardPage: React.FC = () => {
   const [breachedCount, setBreachedCount] = useState(0);
   const [breaches, setBreaches] = useState<SLAInstanceSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [slaInstances, setSlaInstances] = useState<SLAInstanceData[]>([]);
+  const [slaBreachInfos, setSlaBreachInfos] = useState<SLABreachInfo[]>([]);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [policiesResp, breachedResp] = await Promise.all([
+        const [policiesResp, breachedResp, instancesResp, breachInfoResp] = await Promise.allSettled([
           axios.get('/api/sla/policies'),
-          axios.get('/api/sla/breached')
+          axios.get('/api/sla/breached'),
+          axios.get('/api/sla/instances/active'),
+          axios.get('/api/sla/breach-alerts'),
         ]);
-        const policies: SLAPolicySummary[] = policiesResp.data ?? [];
-        const breaches: SLAInstanceSummary[] = breachedResp.data ?? [];
-        setPolicyCount(policies.length);
-        setBreachedCount(breaches.length);
-        setBreaches(breaches);
+        if (policiesResp.status === 'fulfilled') {
+          const policies: SLAPolicySummary[] = policiesResp.value.data ?? [];
+          setPolicyCount(policies.length);
+        }
+        if (breachedResp.status === 'fulfilled') {
+          const breachData: SLAInstanceSummary[] = breachedResp.value.data ?? [];
+          setBreachedCount(breachData.length);
+          setBreaches(breachData);
+        }
+        if (instancesResp.status === 'fulfilled') setSlaInstances(instancesResp.value.data ?? []);
+        if (breachInfoResp.status === 'fulfilled') setSlaBreachInfos(breachInfoResp.value.data ?? []);
       } catch (error) {
         console.error('Failed to load SLA dashboard', error);
       } finally {
@@ -79,6 +91,20 @@ const SLADashboardPage: React.FC = () => {
           <div className="text-3xl font-bold text-green-600">{loading ? '—' : Math.max(policyCount - breachedCount, 0)}</div>
         </div>
       </div>
+
+      {/* SLA Breach Banner */}
+      {slaBreachInfos.length > 0 && (
+        <div className="mt-6">
+          <SLABreachBanner breaches={slaBreachInfos} maxDisplay={5} />
+        </div>
+      )}
+
+      {/* SLA Countdown Timers */}
+      {slaInstances.length > 0 && (
+        <div className="mt-6">
+          <SLACountdownWidget slaInstances={slaInstances} showDetails />
+        </div>
+      )}
 
       <div className="mt-6 bg-white rounded-lg shadow-md p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Breached SLA Instances</h2>

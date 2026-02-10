@@ -199,6 +199,9 @@ const WorkflowMonitorPage = lazy(() => import('./pages/admin/WorkflowMonitorPage
 const TestResultsPage = lazy(() => import('./pages/admin/TestResultsPage'));
 const LLMSettingsPage = lazy(() => import('./pages/admin/LLMSettingsPage'));
 const ApiDocumentationPage = lazy(() => import('./pages/admin/ApiDocumentationPage'));
+const DatabaseSettingsPage = lazy(() => import('./pages/admin/DatabaseSettingsPage'));
+const DuplicateRulesPage = lazy(() => import('./pages/admin/DuplicateRulesPage'));
+const LeadScoreRulesPage = lazy(() => import('./pages/admin/LeadScoreRulesPage'));
 
 // Inner component that can access the theme context
 function ThemedApp() {
@@ -711,36 +714,6 @@ function ThemedApp() {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/incidents"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute>
-                      <IncidentListPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/incidents/create"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute>
-                      <IncidentFormPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/incidents/:id"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute>
-                      <IncidentDetailPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
 
               <Route
                 path="/itsm/problems"
@@ -935,26 +908,6 @@ function ThemedApp() {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/knowledge"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute>
-                      <KnowledgeBaseListPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/knowledge/:id"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute>
-                      <KnowledgeArticleDetailPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
 
               <Route
                 path="/itsm/catalog"
@@ -998,26 +951,6 @@ function ThemedApp() {
               />
               <Route
                 path="/itsm/catalog/:id/request"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute>
-                      <ServiceCatalogRequestCreatePage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/catalog"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute>
-                      <ServiceCatalogPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/catalog/:id/request"
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute>
@@ -1269,6 +1202,36 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute>
                       <LLMSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/database-settings"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <DatabaseSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/duplicate-rules"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <DuplicateRulesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/lead-score-rules"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <LeadScoreRulesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

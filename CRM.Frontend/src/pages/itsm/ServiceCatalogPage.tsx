@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { CatalogCategoryBrowser } from '../../components/itsm';
+import type { CatalogCategory } from '../../components/itsm';
 
 interface CatalogItem {
   catalogItemId: number;
@@ -16,6 +18,8 @@ export const ServiceCatalogPage: React.FC = () => {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
   useEffect(() => {
     const loadItems = async () => {
@@ -34,9 +38,35 @@ export const ServiceCatalogPage: React.FC = () => {
     loadItems();
   }, [searchTerm]);
 
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await axios.get('/api/catalog/categories');
+        setCategories(response.data ?? []);
+      } catch (error) {
+        console.error('Failed to load categories', error);
+      }
+    };
+    loadCategories();
+  }, []);
+
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Service Catalog</h1>
+
+      {/* Category Browser */}
+      {categories.length > 0 && (
+        <div className="mb-6">
+          <CatalogCategoryBrowser
+            categories={categories}
+            selectedCategoryId={selectedCategoryId ?? undefined}
+            onCategorySelect={(catId) => setSelectedCategoryId(catId)}
+            onItemSelect={(itemId) => navigate(`/catalog/${itemId}`)}
+            variant="grid"
+            showSearch
+          />
+        </div>
+      )}
 
       <div className="mb-8">
         <input

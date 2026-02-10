@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import {
+  ApprovalWorkflowPanel,
+  RiskAssessmentForm,
+  ChangeConflictDetector,
+} from '../../components/itsm';
+import type { ApprovalStep, ChangeConflict } from '../../components/itsm';
 
 interface ChangeDetail {
   changeId: number;
@@ -18,12 +24,21 @@ const ChangeDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [change, setChange] = useState<ChangeDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [approvalSteps, setApprovalSteps] = useState<ApprovalStep[]>([]);
+  const [conflicts, setConflicts] = useState<ChangeConflict[]>([]);
 
   useEffect(() => {
     const load = async () => {
       try {
         const response = await axios.get(`/api/changes/${id}`);
         setChange(response.data);
+        // Load approval steps and conflicts (best-effort)
+        const [approvalResp, conflictResp] = await Promise.allSettled([
+          axios.get(`/api/changes/${id}/approvals`),
+          axios.get(`/api/changes/${id}/conflicts`),
+        ]);
+        if (approvalResp.status === 'fulfilled') setApprovalSteps(approvalResp.value.data ?? []);
+        if (conflictResp.status === 'fulfilled') setConflicts(conflictResp.value.data ?? []);
       } catch (error) {
         console.error('Failed to load change', error);
       } finally {
@@ -84,6 +99,40 @@ const ChangeDetailPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Approval Workflow */}
+      <div className="mt-6">
+        <ApprovalWorkflowPanel
+          steps={approvalSteps}
+          currentUserId={0}
+          title={`Approvals for ${change.number}`}
+        />
+      </div>
+
+      {/* Risk Assessment */}
+      <div className="mt-6">
+        <RiskAssessmentForm
+          changeRequestId={change.changeId}
+        />
+      </div>
+
+      {/* Change Conflict Detection */}
+      {conflicts.length > 0 && (
+        <div className="mt-6">
+          <ChangeConflictDetector
+            currentChange={{
+              id: change.changeId,
+              changeNumber: change.number,
+              title: change.shortDescription,
+              scheduledStart: change.plannedStartDate ?? new Date().toISOString(),
+              scheduledEnd: change.plannedEndDate ?? new Date().toISOString(),
+              affectedCIs: [],
+              assignedTo: change.requestorName ?? '',
+            }}
+            conflicts={conflicts}
+          />
+        </div>
+      )}
     </div>
   );
 };

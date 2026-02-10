@@ -10,6 +10,3 @@ export {
   useEditingNotification,
   useSignalRConnection,
 } from './useSignalR';
-
-// Concurrency control hook
-export { useConcurrencyControl } from './useConcurrencyControl';

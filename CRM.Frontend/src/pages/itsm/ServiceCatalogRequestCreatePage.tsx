@@ -1,12 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { CatalogRequestForm } from '../../components/itsm';
+import type { CatalogItemDetails } from '../../components/itsm';
 
 const ServiceCatalogRequestCreatePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [requestedForId, setRequestedForId] = useState('');
+  const [catalogItem, setCatalogItem] = useState<CatalogItemDetails | null>(null);
+
+  useEffect(() => {
+    const loadCatalogItem = async () => {
+      try {
+        const response = await axios.get(`/api/catalog/items/${id}`);
+        setCatalogItem(response.data);
+      } catch (error) {
+        console.error('Failed to load catalog item', error);
+      }
+    };
+    loadCatalogItem();
+  }, [id]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -64,6 +79,30 @@ const ServiceCatalogRequestCreatePage: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {/* Enhanced Catalog Request Form */}
+      {catalogItem && (
+        <div className="mt-6">
+          <CatalogRequestForm
+            catalogItem={catalogItem}
+            onSubmit={async (data) => {
+              setSubmitting(true);
+              try {
+                await axios.post('/api/catalog/requests', {
+                  catalogItemId: Number(id),
+                  ...data,
+                });
+                navigate('/itsm/catalog/requests');
+              } catch (error) {
+                console.error('Failed to submit request', error);
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            onCancel={() => navigate('/itsm/catalog')}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -442,6 +442,12 @@ builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ICommissionService, CommissionService>();
 builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
+// Phase 5 services - Department, SalesQuota, SalesForecast, Conversation, EventAttendee (Missing Entity Services)
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<ISalesQuotaService, SalesQuotaService>();
+builder.Services.AddScoped<ISalesForecastService, SalesForecastService>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
+builder.Services.AddScoped<IEventAttendeeService, EventAttendeeService>();
 // Email Sequence service (drip campaigns)
 builder.Services.AddScoped<CRM.Core.Interfaces.IEmailSequenceService, CRM.Infrastructure.Services.EmailSequenceService>();
 // Pricing & Bundles

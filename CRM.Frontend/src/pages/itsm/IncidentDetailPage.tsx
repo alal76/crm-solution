@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import {
+  IncidentTimeline,
+  SLACountdownWidget,
+  SLABreachAlert,
+  RelatedIncidentsWidget,
+  ArticleSuggestions,
+} from '../../components/itsm';
+import type {
+  TimelineActivity,
+  SLAInstanceData,
+  SLABreachInfo,
+  RelatedIncident,
+} from '../../components/itsm';
 
 interface Incident {
   incidentId: number;
@@ -20,12 +33,27 @@ export const IncidentDetailPage: React.FC = () => {
   const [incident, setIncident] = useState<Incident | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [timelineActivities, setTimelineActivities] = useState<TimelineActivity[]>([]);
+  const [slaInstances, setSlaInstances] = useState<SLAInstanceData[]>([]);
+  const [slaBreaches, setSlaBreaches] = useState<SLABreachInfo[]>([]);
+  const [relatedIncidents, setRelatedIncidents] = useState<RelatedIncident[]>([]);
 
   useEffect(() => {
     const loadIncident = async () => {
       try {
         const response = await axios.get(`/api/incidents/${id}`);
         setIncident(response.data);
+        // Load supplementary data for ITSM components (best-effort)
+        const [timelineResp, slaResp, breachResp, relatedResp] = await Promise.allSettled([
+          axios.get(`/api/incidents/${id}/timeline`),
+          axios.get(`/api/incidents/${id}/sla`),
+          axios.get(`/api/incidents/${id}/sla/breaches`),
+          axios.get(`/api/incidents/${id}/related`),
+        ]);
+        if (timelineResp.status === 'fulfilled') setTimelineActivities(timelineResp.value.data ?? []);
+        if (slaResp.status === 'fulfilled') setSlaInstances(slaResp.value.data ?? []);
+        if (breachResp.status === 'fulfilled') setSlaBreaches(breachResp.value.data ?? []);
+        if (relatedResp.status === 'fulfilled') setRelatedIncidents(relatedResp.value.data ?? []);
       } catch (err) {
         setError('Failed to load incident');
       } finally {
@@ -91,6 +119,49 @@ export const IncidentDetailPage: React.FC = () => {
             Close
           </button>
         </div>
+      </div>
+
+      {/* SLA Breach Alerts */}
+      {slaBreaches.length > 0 && (
+        <div className="mt-6">
+          {slaBreaches.map((breach) => (
+            <div key={breach.id} className="mb-2">
+              <SLABreachAlert breach={breach} variant="inline" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* SLA Countdown */}
+      {slaInstances.length > 0 && (
+        <div className="mt-6">
+          <SLACountdownWidget slaInstances={slaInstances} showDetails />
+        </div>
+      )}
+
+      {/* Related Incidents */}
+      <div className="mt-6">
+        <RelatedIncidentsWidget
+          problemId={Number(id)}
+          incidents={relatedIncidents}
+          readOnly
+        />
+      </div>
+
+      {/* Knowledge Article Suggestions */}
+      <div className="mt-6">
+        <ArticleSuggestions
+          incidentDescription={incident.shortDescription}
+          autoSuggest
+        />
+      </div>
+
+      {/* Incident Timeline */}
+      <div className="mt-6">
+        <IncidentTimeline
+          activities={timelineActivities}
+          showFilters
+        />
       </div>
     </div>
   );
