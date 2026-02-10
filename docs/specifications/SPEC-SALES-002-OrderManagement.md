@@ -1,10 +1,10 @@
 # SPEC-SALES-002: Order Management
 
+> **Version:** 2.0  
+> **Last Updated:** February 2026  
+> **Status:** ⚠️ Partial  
 > **Module:** Sales  
-> **Feature:** Order Management  
-> **Version:** 1.0  
-> **Last Updated:** 2026-02-12  
-> **Status:** ✅ Backend Complete | ❌ API Controller Missing | ❌ Frontend Missing  
+> **Priority:** P1  
 > **Dependencies:** SPEC-SALES-001 (Quote Management), SPEC-CRM-001 (Account Management), SPEC-CRM-003 (Opportunity Management)
 
 ---
@@ -13,142 +13,283 @@
 
 ### 1.1 Overview
 
-Order Management handles the complete order lifecycle from creation through fulfillment and delivery. Orders can be created from approved quotes or directly from opportunities, supporting multiple order types including standard sales, renewals, upgrades, and returns.
+Order Management provides comprehensive functionality for creating, processing, and fulfilling customer orders. The system supports the full order lifecycle from creation through fulfillment and delivery, including approval workflows, line item management, return processing, and invoice generation. Orders can be created manually, from accepted quotes, or from won opportunities.
 
 ### 1.2 Sub-Features
 
 | ID | Sub-Feature | Description | Status |
 |----|-------------|-------------|--------|
-| SF-001 | Order CRUD | Create, read, update, delete orders | ✅ Implemented |
-| SF-002 | Order from Quote | Convert approved quotes to orders | ✅ Implemented |
-| SF-003 | Order from Opportunity | Create orders directly from opportunities | ✅ Implemented |
-| SF-004 | Order Status Workflow | Draft → Approved → Processing → Fulfilled → Delivered | ✅ Implemented |
-| SF-005 | Approval Workflow | Submit, approve, reject orders | ✅ Implemented |
-| SF-006 | Fulfillment Tracking | Track partial and full fulfillment | ✅ Implemented |
-| SF-007 | Returns Processing | Handle order returns with quantity tracking | ✅ Implemented |
-| SF-008 | Order Line Items | Manage products/services on orders | ✅ Implemented |
-| SF-009 | Order Calculations | Subtotal, discount, tax, shipping, total | ✅ Implemented |
-| SF-010 | Invoice Generation | Create invoices from orders | ✅ Implemented |
-| SF-011 | Order Cloning | Duplicate orders for repeat business | ✅ Implemented |
-| SF-012 | Order Search | Search orders by various criteria | ✅ Implemented |
-| SF-013 | Order Statistics | Reporting metrics and KPIs | ✅ Implemented |
+| SF-001 | Order Creation | Create orders manually, from quotes, or from opportunities | ✅ Implemented |
+| SF-002 | Order Numbering | Auto-generation of order numbers (ORD-YYMM-####) | ✅ Implemented |
+| SF-003 | Line Item Management | Add/edit/delete order line items with products | ✅ Implemented |
+| SF-004 | Pricing Calculations | Automatic totals, discounts, tax, shipping, commissions | ✅ Implemented |
+| SF-005 | Order Lifecycle | Draft → Approved → Processing → Fulfilled → Delivered → Completed | ✅ Implemented |
+| SF-006 | Approval Workflow | Submit orders for approval before processing | ✅ Implemented |
+| SF-007 | Fulfillment Tracking | Track full and partial order fulfillment | ✅ Implemented |
+| SF-008 | Return Processing | Process product returns with RMA tracking | ✅ Implemented |
+| SF-009 | Invoice Generation | Create invoices from completed orders | ✅ Implemented |
+| SF-010 | Address Management | Billing and shipping address handling | ✅ Implemented |
+| SF-011 | Order Cloning | Clone existing orders for repeat business | ✅ Implemented |
+| SF-012 | Revenue Recognition | Revenue recognition scheduling and tracking | ✅ Implemented |
+| SF-013 | Hold Management | Place orders on hold with reason tracking | ✅ Implemented |
 
-### 1.3 Use Cases
+### 1.3 Functionalities
 
-| UC-ID | Use Case | Actor | Precondition | Postcondition |
-|-------|----------|-------|--------------|---------------|
-| UC-001 | Create Order from Quote | Sales Rep | Quote is approved | Order created with quote data copied |
-| UC-002 | Create Order from Opportunity | Sales Rep | Opportunity exists with products | Order created with opportunity products |
-| UC-003 | Submit Order for Approval | Sales Rep | Order is in Draft status | Order status changes to PendingApproval |
-| UC-004 | Approve Order | Manager | Order is PendingApproval | Order status changes to Approved |
-| UC-005 | Reject Order | Manager | Order is PendingApproval | Order status changes to Draft with rejection reason |
-| UC-006 | Process Order | Fulfillment | Order is Approved | Order status changes to Processing |
-| UC-007 | Mark Order Fulfilled | Fulfillment | Order is Processing | Order status changes to Fulfilled |
-| UC-008 | Mark Order Delivered | Fulfillment | Order is Fulfilled | Order status changes to Delivered |
-| UC-009 | Process Return | Customer Service | Order is Delivered | Line items updated with return quantities |
-| UC-010 | Put Order on Hold | Manager | Order not cancelled | Order status changes to OnHold with reason |
-| UC-011 | Cancel Order | Sales Rep | Order not fulfilled | Order status changes to Cancelled with reason |
-| UC-012 | Generate Invoice | Finance | Order is Approved+ | Invoice created from order |
-| UC-013 | Clone Order | Sales Rep | Order exists | New Draft order created with copied data |
-| UC-014 | Apply Discount | Sales Rep | Order in editable status | Discount applied and totals recalculated |
+| ID | Functionality | Description | Status |
+|----|---------------|-------------|--------|
+| F-001 | List Orders | Display all orders with filtering by account, status, date range | ✅ Implemented |
+| F-002 | Create Order | Create new order with header and line items | ✅ Implemented |
+| F-003 | Edit Order | Modify order details (restricted by status) | ✅ Implemented |
+| F-004 | Delete Order | Soft delete (Draft status only) | ✅ Implemented |
+| F-005 | Create from Quote | Generate order from accepted quote with line items | ✅ Implemented |
+| F-006 | Create from Opportunity | Generate order from won opportunity | ✅ Implemented |
+| F-007 | Clone Order | Duplicate order for repeat business | ✅ Implemented |
+| F-008 | Submit for Approval | Submit draft order for approval | ✅ Implemented |
+| F-009 | Approve / Reject | Approve or reject pending orders | ✅ Implemented |
+| F-010 | Cancel Order | Cancel order with reason tracking | ✅ Implemented |
+| F-011 | Put on Hold | Place order on hold with reason | ✅ Implemented |
+| F-012 | Mark Fulfilled | Record full or partial fulfillment | ✅ Implemented |
+| F-013 | Mark Delivered | Record order delivery | ✅ Implemented |
+| F-014 | Process Return | Record returns with RMA tracking | ✅ Implemented |
+| F-015 | Generate Invoice | Create invoice from order | ✅ Implemented |
+| F-016 | Recalculate Totals | Recalculate order pricing from line items | ✅ Implemented |
+| F-017 | Apply Discount | Apply discount amount to order | ✅ Implemented |
+| F-018 | Apply Coupon | Apply coupon code to order | ✅ Implemented |
+| F-019 | Get Statistics | Calculate order metrics (counts, revenue, fulfillment rates) | ✅ Implemented |
+| F-020 | Search Orders | Full-text search across order fields | ✅ Implemented |
+
+### 1.4 Use Cases
+
+| ID | Use Case | Actor | Precondition | Steps | Postcondition |
+|----|----------|-------|--------------|-------|---------------|
+| UC-001 | Create Order from Quote | Sales Rep | Quote is accepted | 1. Navigate to quote 2. Click "Create Order" 3. Review mapped data 4. Submit | Order created with Draft status |
+| UC-002 | Submit Order for Approval | Sales Rep | Order in Draft | 1. Open order 2. Click "Submit for Approval" | Status → PendingApproval |
+| UC-003 | Approve Order | Manager | Order in PendingApproval | 1. Review order details 2. Click "Approve" | Status → Approved, ApprovedById set |
+| UC-004 | Reject Order | Manager | Order in PendingApproval | 1. Review order 2. Enter rejection reason 3. Click "Reject" | Status → Draft, RejectionReason recorded |
+| UC-005 | Fulfill Order | Warehouse | Order Approved/Processing | 1. Select line items 2. Enter quantities fulfilled 3. Confirm | Status → Fulfilled or PartiallyFulfilled |
+| UC-006 | Process Return | Support | Order Fulfilled/Delivered | 1. Select return items 2. Enter quantities and reasons 3. Submit | ReturnedQuantity updated, RMA generated |
+| UC-007 | Generate Invoice | Finance | Order Fulfilled | 1. Open order 2. Click "Create Invoice" | Invoice created from order data |
+| UC-008 | Cancel Order | Sales Rep | Order not yet fulfilled | 1. Open order 2. Enter cancellation reason 3. Confirm | Status → Cancelled |
+| UC-009 | Put Order on Hold | Manager | Order not cancelled | 1. Open order 2. Enter hold reason 3. Confirm | IsOnHold = true, HoldReason set |
+| UC-010 | Release from Hold | Manager | Order on hold | 1. Open order 2. Click "Release Hold" | IsOnHold = false, HoldReleasedDate set |
+| UC-011 | Clone Order | Sales Rep | Any existing order | 1. Open order 2. Click "Clone" | New Draft order with copied data |
+| UC-012 | Apply Discount | Sales Rep | Order in Draft | 1. Open order 2. Enter discount amount/reason 3. Save | DiscountAmount updated, totals recalculated |
 
 ---
 
-## 2. Backend Implementation
+## 2. Frontend Implementation
 
-### 2.1 Entities
+### 2.1 Pages
 
-#### 2.1.1 OrderStatus Enum
-**File:** `CRM.Backend/src/CRM.Core/Entities/Order.cs`  
-**Status:** ✅ Implemented
+| Page | File | Status | Description |
+|------|------|--------|-------------|
+| OrdersPage | `CRM.Frontend/src/pages/OrdersPage.tsx` | ✅ Implemented | Order list with DataGrid, filtering, status chips |
+| OrderDetailsPage | `CRM.Frontend/src/pages/OrderDetailsPage.tsx` | ❌ Not Implemented | Order detail view with tabs |
 
-```csharp
-public enum OrderStatus
-{
-    Draft = 0,
-    PendingApproval = 1,
-    Approved = 2,
-    Processing = 3,
-    PartiallyFulfilled = 4,
-    Fulfilled = 5,
-    Delivered = 6,
-    Completed = 7,
-    Cancelled = 8,
-    Returned = 9,
-    Refunded = 10,
-    OnHold = 11,
-    ActionRequired = 12
+### 2.2 Services
+
+#### 2.2.1 orderService.ts
+**File:** `CRM.Frontend/src/services/orderService.ts`  
+**Status:** ✅ Implemented (193 lines)
+
+**TypeScript Types:**
+
+```typescript
+export enum OrderStatus {
+  Draft = 0,
+  PendingApproval = 1,
+  Approved = 2,
+  Processing = 3,
+  PartiallyFulfilled = 4,
+  Fulfilled = 5,
+  Shipped = 6,
+  Delivered = 7,
+  Completed = 8,
+  Cancelled = 9,
+  OnHold = 10,
+  Returned = 11,
+  Refunded = 12,
 }
+
+export interface Order {
+  id: number;
+  orderNumber: string;
+  orderType: number;
+  status: OrderStatus;
+  priority: number;
+  fulfillmentMethod: number;
+  description: string;
+  customerPONumber: string;
+  orderDate: string;
+  requestedDeliveryDate: string;
+  subtotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  shippingAmount: number;
+  totalAmount: number;
+  currency: string;
+  accountId: number;
+  contactId: number;
+  quoteId: number;
+  lineItems: OrderLineItem[];
+}
+
+export interface OrderLineItem { ... }
+export interface OrderReturnItem { ... }
+export interface OrderStatistics { ... }
 ```
 
-#### 2.1.2 OrderType Enum
+**API Methods (35 total):**
+
+| Method | HTTP | Endpoint | Status |
+|--------|------|----------|--------|
+| getAll | GET | /api/orders | ✅ |
+| getById | GET | /api/orders/{id} | ✅ |
+| getByOrderNumber | GET | /api/orders/by-number/{orderNumber} | ✅ |
+| create | POST | /api/orders | ✅ |
+| update | PUT | /api/orders/{id} | ✅ |
+| delete | DELETE | /api/orders/{id} | ✅ |
+| createFromQuote | POST | /api/orders/from-quote/{quoteId} | ✅ |
+| createFromOpportunity | POST | /api/orders/from-opportunity/{opportunityId} | ✅ |
+| generateOrderNumber | GET | /api/orders/generate-number | ✅ |
+| clone | POST | /api/orders/{id}/clone | ✅ |
+| updateStatus | PATCH | /api/orders/{id}/status | ✅ |
+| submitForApproval | POST | /api/orders/{id}/submit | ✅ |
+| approve | POST | /api/orders/{id}/approve | ✅ |
+| reject | POST | /api/orders/{id}/reject | ✅ |
+| cancel | POST | /api/orders/{id}/cancel | ✅ |
+| putOnHold | POST | /api/orders/{id}/hold | ✅ |
+| releaseFromHold | POST | /api/orders/{id}/release | ✅ |
+| markFulfilled | POST | /api/orders/{id}/fulfill | ✅ |
+| markPartiallyFulfilled | POST | /api/orders/{id}/partial-fulfill | ✅ |
+| markDelivered | POST | /api/orders/{id}/deliver | ✅ |
+| processReturn | POST | /api/orders/{id}/return | ✅ |
+| addLineItem | POST | /api/orders/{id}/line-items | ✅ |
+| updateLineItem | PUT | /api/orders/line-items/{lineItemId} | ✅ |
+| removeLineItem | DELETE | /api/orders/line-items/{lineItemId} | ✅ |
+| getLineItems | GET | /api/orders/{id}/line-items | ✅ |
+| getByStatus | GET | /api/orders/by-status/{status} | ✅ |
+| getByDateRange | GET | /api/orders/by-date-range | ✅ |
+| getRequiringAction | GET | /api/orders/requiring-action | ✅ |
+| getStatistics | GET | /api/orders/statistics | ✅ |
+| search | GET | /api/orders/search | ✅ |
+| recalculateTotals | POST | /api/orders/{id}/recalculate | ✅ |
+| applyDiscount | POST | /api/orders/{id}/discount | ✅ |
+| applyCoupon | POST | /api/orders/{id}/coupon | ✅ |
+| createInvoice | POST | /api/orders/{id}/invoice | ✅ |
+| getInvoices | GET | /api/orders/{id}/invoices | ✅ |
+
+**Helper Functions:**
+- `getOrderStatusLabel(status: OrderStatus): string` — Returns display label
+- `getOrderStatusColor(status: OrderStatus): string` — Returns MUI color
+
+### 2.3 Components
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| OrderForm.tsx | ❌ Not Implemented | Create/Edit order form |
+| OrderLineItemsTable.tsx | ❌ Not Implemented | Editable line items grid |
+| OrderStatusBadge.tsx | ❌ Not Implemented | Status chip with color coding |
+| OrderTimeline.tsx | ❌ Not Implemented | Status change history |
+| OrderSummary.tsx | ❌ Not Implemented | Pricing summary card |
+| OrderAddressCard.tsx | ❌ Not Implemented | Billing/Shipping address display |
+| OrderActionButtons.tsx | ❌ Not Implemented | Context-aware action buttons |
+| OrderStatisticsCard.tsx | ❌ Not Implemented | Dashboard statistics |
+
+### 2.4 Frontend Validation Rules
+
+| Field | Validation | Error Message |
+|-------|------------|---------------|
+| AccountId | Required | "Account is required" |
+| OrderDate | Required | "Order date is required" |
+| OrderType | Required, valid enum | "Order type is required" |
+| LineItems | Min 1 required | "At least one line item is required" |
+| Quantity | > 0 | "Quantity must be greater than 0" |
+| UnitPrice | >= 0 | "Unit price cannot be negative" |
+| HoldReason | Required when OnHold | "Hold reason is required" |
+| CancellationReason | Required when Cancelled | "Cancellation reason is required" |
+| RejectionReason | Required when Rejected | "Rejection reason is required" |
+
+---
+
+## 3. Backend Implementation
+
+### 3.1 Entities
+
+#### 3.1.1 Order Entity
 **File:** `CRM.Backend/src/CRM.Core/Entities/Order.cs`  
-**Status:** ✅ Implemented
+**Status:** ✅ Implemented (~450 lines)
 
-```csharp
-public enum OrderType
-{
-    Standard = 0,
-    Renewal = 1,
-    Upgrade = 2,
-    Downgrade = 3,
-    Amendment = 4,
-    TrialConversion = 5,
-    Trial = 6,
-    Partner = 7,
-    Internal = 8,
-    Return = 9,
-    Credit = 10,
-    MultiYear = 11
-}
-```
+**Enumerations:**
 
-#### 2.1.3 FulfillmentMethod Enum
-**File:** `CRM.Backend/src/CRM.Core/Entities/Order.cs`  
-**Status:** ✅ Implemented
+**OrderStatus** (13 values):
 
-```csharp
-public enum FulfillmentMethod
-{
-    Ship = 0,
-    Digital = 1,
-    Pickup = 2,
-    Provision = 3,
-    Activate = 4,
-    ServiceDelivery = 5,
-    ThirdParty = 6,
-    None = 7
-}
-```
+| Value | Int | Description |
+|-------|-----|-------------|
+| Draft | 0 | Order created, not submitted |
+| PendingApproval | 1 | Awaiting approval |
+| Approved | 2 | Approved for processing |
+| Processing | 3 | Being processed |
+| PartiallyFulfilled | 4 | Some items fulfilled |
+| Fulfilled | 5 | All items fulfilled |
+| Shipped | 6 | Shipped to customer |
+| Delivered | 7 | Delivered to customer |
+| Completed | 8 | Order completed |
+| Cancelled | 9 | Order cancelled |
+| OnHold | 10 | Order on hold |
+| Returned | 11 | Order returned |
+| Refunded | 12 | Order refunded |
 
-#### 2.1.4 OrderPriority Enum
-**File:** `CRM.Backend/src/CRM.Core/Entities/Order.cs`  
-**Status:** ✅ Implemented
+**OrderType** (12 values):
 
-```csharp
-public enum OrderPriority
-{
-    Normal = 0,
-    High = 1,
-    Urgent = 2,
-    Low = 3,
-    Critical = 4
-}
-```
+| Value | Int | Description |
+|-------|-----|-------------|
+| Standard | 0 | Standard order |
+| Renewal | 1 | Renewal order |
+| Amendment | 2 | Contract amendment |
+| Upgrade | 3 | Product upgrade |
+| Downgrade | 4 | Product downgrade |
+| AddOn | 5 | Add-on purchase |
+| Replacement | 6 | Replacement order |
+| Trial | 7 | Trial order |
+| Sample | 8 | Sample order |
+| Return | 9 | Return order |
+| Credit | 10 | Credit order |
+| MultiYear | 11 | Multi-year order |
 
-#### 2.1.5 Order Entity
-**File:** `CRM.Backend/src/CRM.Core/Entities/Order.cs`  
-**Status:** ✅ Implemented  
-**Line Count:** ~450 lines
+**FulfillmentMethod** (8 values):
+
+| Value | Int | Description |
+|-------|-----|-------------|
+| Ship | 0 | Physical shipping |
+| Digital | 1 | Digital delivery |
+| Pickup | 2 | Customer pickup |
+| Provision | 3 | Service provisioning |
+| Activate | 4 | License activation |
+| ServiceDelivery | 5 | Professional services |
+| ThirdParty | 6 | Third-party fulfillment |
+| None | 7 | No fulfillment required |
+
+**OrderPriority** (5 values):
+
+| Value | Int | Description |
+|-------|-----|-------------|
+| Normal | 0 | Normal priority |
+| High | 1 | High priority |
+| Urgent | 2 | Urgent |
+| Low | 3 | Low priority |
+| Critical | 4 | Critical |
+
+**Entity Properties (80+):**
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
-| **Identification** |
+| **Identification** ||||
 | Id | int | Yes | Primary key |
 | OrderNumber | string | Yes | Unique order number (ORD-YYMM-####) |
 | ExternalOrderId | string | No | External system reference |
-| **Order Details** |
-| OrderType | OrderType | Yes | Type of order (Standard, Renewal, etc.) |
+| **Order Details** ||||
+| OrderType | OrderType | Yes | Type of order |
 | Status | OrderStatus | Yes | Current order status |
 | Priority | OrderPriority | Yes | Order priority level |
 | FulfillmentMethod | FulfillmentMethod | Yes | How order is fulfilled |
@@ -156,7 +297,7 @@ public enum OrderPriority
 | InternalNotes | string | No | Internal notes |
 | CustomerPONumber | string | No | Customer purchase order number |
 | Terms | string | No | Payment/delivery terms |
-| **Date Fields** |
+| **Date Fields** ||||
 | OrderDate | DateTime | Yes | Date order was created |
 | RequestedDeliveryDate | DateTime? | No | Customer requested delivery |
 | PromisedDeliveryDate | DateTime? | No | Promised delivery date |
@@ -167,7 +308,7 @@ public enum OrderPriority
 | InvoiceDate | DateTime? | No | When invoice was generated |
 | PaymentDueDate | DateTime? | No | When payment is due |
 | ShipDate | DateTime? | No | When order was shipped |
-| **Pricing (15 fields)** |
+| **Pricing (15 fields)** ||||
 | Subtotal | decimal | Yes | Sum of line items |
 | DiscountAmount | decimal | Yes | Discount amount |
 | DiscountPercent | decimal | Yes | Discount percentage |
@@ -183,14 +324,14 @@ public enum OrderPriority
 | GrossProfit | decimal | Yes | Gross profit amount |
 | GrossProfitPercent | decimal | Yes | Gross profit percentage |
 | CommissionAmount | decimal | Yes | Commission amount |
-| **Revenue Recognition** |
+| **Revenue Recognition** ||||
 | RecognitionMethod | string | No | Revenue recognition method |
 | RecognitionStartDate | DateTime? | No | Recognition start |
 | RecognitionEndDate | DateTime? | No | Recognition end |
 | RecognizedRevenue | decimal | Yes | Recognized revenue amount |
 | DeferredRevenue | decimal | Yes | Deferred revenue amount |
 | RevenueScheduleId | int? | No | Revenue schedule reference |
-| **Billing Address (9 fields)** |
+| **Billing Address (9 fields)** ||||
 | BillingStreet | string | No | Billing street address |
 | BillingCity | string | No | Billing city |
 | BillingState | string | No | Billing state/province |
@@ -200,7 +341,7 @@ public enum OrderPriority
 | BillingContactEmail | string | No | Billing contact email |
 | BillingContactPhone | string | No | Billing contact phone |
 | BillingNotes | string | No | Billing notes |
-| **Shipping Address (10 fields)** |
+| **Shipping Address (10 fields)** ||||
 | ShippingStreet | string | No | Shipping street address |
 | ShippingCity | string | No | Shipping city |
 | ShippingState | string | No | Shipping state/province |
@@ -211,20 +352,20 @@ public enum OrderPriority
 | ShippingContactPhone | string | No | Shipping contact phone |
 | ShippingInstructions | string | No | Shipping instructions |
 | ShippingMethod | string | No | Shipping method |
-| **Shipping Details** |
+| **Shipping Details** ||||
 | TrackingNumber | string | No | Shipment tracking number |
 | Carrier | string | No | Shipping carrier |
 | EstimatedWeight | decimal | Yes | Estimated weight |
 | ShippedWeight | decimal | Yes | Actual shipped weight |
 | PackageCount | int | Yes | Number of packages |
-| **Payment Information** |
+| **Payment Information** ||||
 | PaymentMethod | string | No | Payment method |
 | PaymentStatus | string | No | Payment status |
 | PaymentReference | string | No | Payment reference |
 | PaidAmount | decimal | Yes | Amount paid |
-| BalanceDue | decimal | Yes | Outstanding balance |
+| BalanceDue | decimal | Yes | Outstanding balance (computed) |
 | PaymentTerms | string | No | Payment terms |
-| **Relationships** |
+| **Relationships** ||||
 | QuoteId | int? | No | Source quote |
 | AccountId | int? | No | Customer account |
 | ContactId | int? | No | Order contact |
@@ -235,65 +376,48 @@ public enum OrderPriority
 | ContractId | int? | No | Related contract |
 | SubscriptionId | int? | No | Related subscription |
 | InvoiceId | int? | No | Generated invoice |
-| **Notes & Attachments** |
-| Notes | string | No | General notes |
-| AttachmentsJson | string | No | JSON attachments |
-| **Workflow Dates** |
-| SubmittedDate | DateTime? | No | When submitted for approval |
-| ApprovedDate | DateTime? | No | When approved |
-| RejectedDate | DateTime? | No | When rejected |
-| **Hold Status** |
+| **Hold Status** ||||
 | IsOnHold | bool | Yes | Whether order is on hold |
 | HoldReason | string | No | Reason for hold |
 | HoldDate | DateTime? | No | When put on hold |
 | HoldReleasedDate | DateTime? | No | When released from hold |
-| **Rejection** |
+| **Rejection** ||||
 | RejectionReason | string | No | Reason for rejection |
 | RejectedById | int? | No | Who rejected |
-| **Return** |
+| **Return** ||||
 | ReturnReason | string | No | Return reason |
 | ReturnAuthorizationNumber | string | No | RMA number |
 | ReturnDate | DateTime? | No | Return date |
-| **Discount Codes** |
+| **Discount Codes** ||||
 | DiscountCode | string | No | Applied discount code |
 | CouponCode | string | No | Applied coupon code |
-| **Audit Fields** |
+| **Audit Fields** ||||
 | CreatedAt | DateTime | Yes | Creation timestamp |
 | UpdatedAt | DateTime? | No | Last update timestamp |
-| CreatedBy | int? | No | Creator user ID |
-| UpdatedBy | int? | No | Updater user ID |
 | IsDeleted | bool | Yes | Soft delete flag |
 | RowVersion | byte[] | No | Optimistic concurrency |
-| **Navigation Properties** |
-| Quote | Quote | No | Source quote navigation |
-| Account | Account | No | Account navigation |
-| Contact | Contact | No | Contact navigation |
-| Opportunity | Opportunity | No | Opportunity navigation |
-| Owner | User | No | Owner navigation |
-| ApprovedBy | User | No | Approver navigation |
-| ParentOrder | Order | No | Parent order navigation |
-| ChildOrders | ICollection | No | Child orders collection |
-| Invoice | Invoice | No | Invoice navigation |
-| Subscription | Subscription | No | Subscription navigation |
-| LineItems | ICollection | Yes | Order line items |
 
-#### 2.1.6 OrderLineItem Entity
-**File:** `CRM.Backend/src/CRM.Core/Entities/Order.cs`  
-**Status:** ✅ Implemented  
-**Line Count:** ~200 lines
+**Computed Properties:**
+- `BalanceDue` → `TotalAmount - PaidAmount`
+- `IsPaid` → `BalanceDue <= 0 && TotalAmount > 0`
+
+**Navigation Properties:**
+- `Quote`, `Account`, `Contact`, `Opportunity`, `Owner`, `ApprovedBy`, `ParentOrder`
+- `ChildOrders` (ICollection), `LineItems` (ICollection), `Invoice`, `Subscription`
+
+#### 3.1.2 OrderLineItem Entity
+**File:** `CRM.Backend/src/CRM.Core/Entities/Order.cs` (same file, ~200 lines)  
+**Status:** ✅ Implemented
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
-| **Identification** |
 | Id | int | Yes | Primary key |
-| OrderId | int | Yes | Parent order |
+| OrderId | int | Yes | Parent order FK |
 | LineNumber | int | Yes | Line sequence |
-| **Product Details** |
 | ProductId | int? | No | Product reference |
 | ProductCode | string | No | Product code |
 | ProductName | string | Yes | Product name |
 | Description | string | No | Line item description |
-| **Quantity & Pricing** |
 | Quantity | decimal | Yes | Ordered quantity |
 | UnitOfMeasure | string | No | Unit of measure |
 | UnitPrice | decimal | Yes | Price per unit |
@@ -306,111 +430,38 @@ public enum OrderPriority
 | TotalPrice | decimal | Yes | Final line total |
 | CostPrice | decimal | Yes | Cost per unit |
 | TotalCost | decimal | Yes | Total cost |
-| **Fulfillment** |
 | QuantityShipped | decimal | Yes | Quantity shipped |
 | QuantityBackordered | decimal | Yes | Backorder quantity |
 | QuantityReturned | decimal | Yes | Returned quantity |
 | FulfilledQuantity | decimal | Yes | Fulfilled quantity |
-| RemainingQuantity | decimal | Yes | Remaining to fulfill |
+| RemainingQuantity | decimal | Yes | Remaining to fulfill (computed) |
 | FulfillmentStatus | string | No | Line fulfillment status |
 | ShipDate | DateTime? | No | Line ship date |
 | DeliveryDate | DateTime? | No | Line delivery date |
-| **Subscription Details** |
 | IsSubscription | bool | Yes | Is subscription item |
 | SubscriptionTermMonths | int | Yes | Term in months |
 | SubscriptionStartDate | DateTime? | No | Subscription start |
 | SubscriptionEndDate | DateTime? | No | Subscription end |
 | BillingFrequency | string | No | Billing frequency |
 | RecurringAmount | decimal | Yes | Recurring charge |
-| **Relationships** |
 | QuoteLineItemId | int? | No | Source quote line |
-| **Audit Fields** |
 | Notes | string | No | Line notes |
 | SortOrder | int | Yes | Display order |
 | CreatedAt | DateTime | Yes | Creation timestamp |
 | UpdatedAt | DateTime? | No | Last update timestamp |
 | IsDeleted | bool | Yes | Soft delete flag |
-| **Navigation** |
-| Order | Order | No | Parent order |
-| Product | Product | No | Product navigation |
 
-### 2.2 Interfaces
+### 3.2 DTOs
 
-#### 2.2.1 IOrderService
-**File:** `CRM.Backend/src/CRM.Core/Interfaces/IOrderService.cs`  
-**Status:** ✅ Implemented  
-**Line Count:** ~160 lines
+| DTO | Location | Status |
+|-----|----------|--------|
+| OrderDto | CRM.Core/DTOs/ | ❌ Not Implemented |
+| CreateOrderDto | CRM.Core/DTOs/ | ❌ Not Implemented |
+| UpdateOrderDto | CRM.Core/DTOs/ | ❌ Not Implemented |
+| OrderLineItemDto | CRM.Core/DTOs/ | ❌ Not Implemented |
 
-**CRUD Operations:**
-```csharp
-Task<IEnumerable<Order>> GetAllAsync(int? customerId = null, OrderStatus? status = null, CancellationToken cancellationToken = default);
-Task<Order?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
-Task<Order?> GetByOrderNumberAsync(string orderNumber, CancellationToken cancellationToken = default);
-Task<Order> CreateAsync(Order order, CancellationToken cancellationToken = default);
-Task<Order> UpdateAsync(Order order, CancellationToken cancellationToken = default);
-Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
-```
+**Inline Supporting Types (defined in IOrderService.cs):**
 
-**Order Operations:**
-```csharp
-Task<Order> CreateFromQuoteAsync(int quoteId, CancellationToken cancellationToken = default);
-Task<Order> CreateFromOpportunityAsync(int opportunityId, CancellationToken cancellationToken = default);
-Task<string> GenerateOrderNumberAsync(CancellationToken cancellationToken = default);
-Task<Order> CloneOrderAsync(int orderId, CancellationToken cancellationToken = default);
-```
-
-**Status Management:**
-```csharp
-Task<Order> UpdateStatusAsync(int orderId, OrderStatus status, CancellationToken cancellationToken = default);
-Task<Order> SubmitForApprovalAsync(int orderId, CancellationToken cancellationToken = default);
-Task<Order> ApproveAsync(int orderId, int approvedById, CancellationToken cancellationToken = default);
-Task<Order> RejectAsync(int orderId, int rejectedById, string reason, CancellationToken cancellationToken = default);
-Task<Order> CancelAsync(int orderId, string reason, CancellationToken cancellationToken = default);
-Task<Order> PutOnHoldAsync(int orderId, string reason, CancellationToken cancellationToken = default);
-Task<Order> ReleaseFromHoldAsync(int orderId, CancellationToken cancellationToken = default);
-```
-
-**Fulfillment:**
-```csharp
-Task<Order> MarkAsFulfilledAsync(int orderId, CancellationToken cancellationToken = default);
-Task<Order> MarkAsPartiallyFulfilledAsync(int orderId, IEnumerable<int> fulfilledLineItemIds, CancellationToken cancellationToken = default);
-Task<Order> MarkAsDeliveredAsync(int orderId, CancellationToken cancellationToken = default);
-Task<Order> ProcessReturnAsync(int orderId, IEnumerable<OrderReturnItem> returnItems, string reason, CancellationToken cancellationToken = default);
-```
-
-**Line Items:**
-```csharp
-Task<OrderLineItem> AddLineItemAsync(int orderId, OrderLineItem lineItem, CancellationToken cancellationToken = default);
-Task<OrderLineItem> UpdateLineItemAsync(OrderLineItem lineItem, CancellationToken cancellationToken = default);
-Task<bool> RemoveLineItemAsync(int lineItemId, CancellationToken cancellationToken = default);
-Task<IEnumerable<OrderLineItem>> GetLineItemsAsync(int orderId, CancellationToken cancellationToken = default);
-```
-
-**Queries:**
-```csharp
-Task<IEnumerable<Order>> GetByStatusAsync(OrderStatus status, CancellationToken cancellationToken = default);
-Task<IEnumerable<Order>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
-Task<IEnumerable<Order>> GetOrdersRequiringActionAsync(CancellationToken cancellationToken = default);
-Task<OrderStatistics> GetStatisticsAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
-Task<IEnumerable<Order>> SearchAsync(string query, CancellationToken cancellationToken = default);
-```
-
-**Calculations:**
-```csharp
-Task<Order> RecalculateTotalsAsync(int orderId, CancellationToken cancellationToken = default);
-Task<Order> ApplyDiscountAsync(int orderId, decimal discountAmount, string? discountReason = null, CancellationToken cancellationToken = default);
-Task<Order> ApplyCouponAsync(int orderId, string couponCode, CancellationToken cancellationToken = default);
-```
-
-**Invoicing:**
-```csharp
-Task<Invoice> CreateInvoiceAsync(int orderId, CancellationToken cancellationToken = default);
-Task<IEnumerable<Invoice>> GetInvoicesAsync(int orderId, CancellationToken cancellationToken = default);
-```
-
-### 2.3 Supporting DTOs
-
-#### OrderReturnItem
 ```csharp
 public class OrderReturnItem
 {
@@ -419,10 +470,7 @@ public class OrderReturnItem
     public string? Reason { get; set; }
     public string? Condition { get; set; }
 }
-```
 
-#### OrderStatistics
-```csharp
 public class OrderStatistics
 {
     public int TotalOrders { get; set; }
@@ -438,12 +486,63 @@ public class OrderStatistics
 }
 ```
 
-### 2.4 Services
+### 3.3 Interfaces
 
-#### 2.4.1 OrderService
+#### 3.3.1 IOrderService
+**File:** `CRM.Backend/src/CRM.Core/Interfaces/IOrderService.cs`  
+**Status:** ✅ Implemented (~160 lines, 34 methods)
+
+| Category | Method | Return Type |
+|----------|--------|-------------|
+| **CRUD** |||
+| | GetAllAsync(customerId?, status?, ct) | Task\<IEnumerable\<Order>> |
+| | GetByIdAsync(id, ct) | Task\<Order?> |
+| | GetByOrderNumberAsync(orderNumber, ct) | Task\<Order?> |
+| | CreateAsync(order, ct) | Task\<Order> |
+| | UpdateAsync(order, ct) | Task\<Order> |
+| | DeleteAsync(id, ct) | Task\<bool> |
+| **Operations** |||
+| | CreateFromQuoteAsync(quoteId, ct) | Task\<Order> |
+| | CreateFromOpportunityAsync(opportunityId, ct) | Task\<Order> |
+| | GenerateOrderNumberAsync(ct) | Task\<string> |
+| | CloneOrderAsync(orderId, ct) | Task\<Order> |
+| **Status** |||
+| | UpdateStatusAsync(orderId, status, ct) | Task\<Order> |
+| | SubmitForApprovalAsync(orderId, ct) | Task\<Order> |
+| | ApproveAsync(orderId, approvedById, ct) | Task\<Order> |
+| | RejectAsync(orderId, rejectedById, reason, ct) | Task\<Order> |
+| | CancelAsync(orderId, reason, ct) | Task\<Order> |
+| | PutOnHoldAsync(orderId, reason, ct) | Task\<Order> |
+| | ReleaseFromHoldAsync(orderId, ct) | Task\<Order> |
+| **Fulfillment** |||
+| | MarkAsFulfilledAsync(orderId, ct) | Task\<Order> |
+| | MarkAsPartiallyFulfilledAsync(orderId, lineItemIds, ct) | Task\<Order> |
+| | MarkAsDeliveredAsync(orderId, ct) | Task\<Order> |
+| | ProcessReturnAsync(orderId, returnItems, reason, ct) | Task\<Order> |
+| **Line Items** |||
+| | AddLineItemAsync(orderId, lineItem, ct) | Task\<OrderLineItem> |
+| | UpdateLineItemAsync(lineItem, ct) | Task\<OrderLineItem> |
+| | RemoveLineItemAsync(lineItemId, ct) | Task\<bool> |
+| | GetLineItemsAsync(orderId, ct) | Task\<IEnumerable\<OrderLineItem>> |
+| **Queries** |||
+| | GetByStatusAsync(status, ct) | Task\<IEnumerable\<Order>> |
+| | GetByDateRangeAsync(fromDate, toDate, ct) | Task\<IEnumerable\<Order>> |
+| | GetOrdersRequiringActionAsync(ct) | Task\<IEnumerable\<Order>> |
+| | GetStatisticsAsync(fromDate?, toDate?, ct) | Task\<OrderStatistics> |
+| | SearchAsync(query, ct) | Task\<IEnumerable\<Order>> |
+| **Calculations** |||
+| | RecalculateTotalsAsync(orderId, ct) | Task\<Order> |
+| | ApplyDiscountAsync(orderId, amount, reason?, ct) | Task\<Order> |
+| | ApplyCouponAsync(orderId, couponCode, ct) | Task\<Order> |
+| **Invoicing** |||
+| | CreateInvoiceAsync(orderId, ct) | Task\<Invoice> |
+| | GetInvoicesAsync(orderId, ct) | Task\<IEnumerable\<Invoice>> |
+
+### 3.4 Services
+
+#### 3.4.1 OrderService
 **File:** `CRM.Backend/src/CRM.Infrastructure/Services/OrderService.cs`  
-**Status:** ✅ Implemented  
-**Line Count:** ~870 lines
+**Status:** ✅ Implemented (~870 lines)
 
 **Key Implementation Details:**
 
@@ -483,169 +582,65 @@ public class OrderStatistics
    - Creates InvoiceLineItem for each OrderLineItem
    - Links invoice back to order
 
-### 2.5 Controllers
+### 3.5 Controllers
 
-#### 2.5.1 OrdersController
+#### 3.5.1 OrdersController
 **File:** `CRM.Backend/src/CRM.Api/Controllers/OrdersController.cs`  
-**Status:** ❌ NOT IMPLEMENTED
+**Status:** ✅ Implemented (35 endpoints)
 
-**Required Endpoints:**
+| Method | Route | Description | Status |
+|--------|-------|-------------|--------|
+| GET | /api/orders | List orders with filtering | ✅ |
+| GET | /api/orders/{id} | Get order by ID | ✅ |
+| GET | /api/orders/by-number/{orderNumber} | Get by order number | ✅ |
+| POST | /api/orders | Create order | ✅ |
+| PUT | /api/orders/{id} | Update order | ✅ |
+| DELETE | /api/orders/{id} | Soft delete order | ✅ |
+| POST | /api/orders/from-quote/{quoteId} | Create from quote | ✅ |
+| POST | /api/orders/from-opportunity/{opportunityId} | Create from opportunity | ✅ |
+| GET | /api/orders/generate-number | Generate order number | ✅ |
+| POST | /api/orders/{id}/clone | Clone order | ✅ |
+| PATCH | /api/orders/{id}/status | Update status | ✅ |
+| POST | /api/orders/{id}/submit | Submit for approval | ✅ |
+| POST | /api/orders/{id}/approve | Approve order | ✅ |
+| POST | /api/orders/{id}/reject | Reject order | ✅ |
+| POST | /api/orders/{id}/cancel | Cancel order | ✅ |
+| POST | /api/orders/{id}/hold | Put on hold | ✅ |
+| POST | /api/orders/{id}/release | Release from hold | ✅ |
+| POST | /api/orders/{id}/fulfill | Mark fulfilled | ✅ |
+| POST | /api/orders/{id}/partial-fulfill | Mark partially fulfilled | ✅ |
+| POST | /api/orders/{id}/deliver | Mark delivered | ✅ |
+| POST | /api/orders/{id}/return | Process return | ✅ |
+| POST | /api/orders/{id}/line-items | Add line item | ✅ |
+| PUT | /api/orders/line-items/{lineItemId} | Update line item | ✅ |
+| DELETE | /api/orders/line-items/{lineItemId} | Remove line item | ✅ |
+| GET | /api/orders/{id}/line-items | Get line items | ✅ |
+| GET | /api/orders/by-status/{status} | Get by status | ✅ |
+| GET | /api/orders/by-date-range | Get by date range | ✅ |
+| GET | /api/orders/requiring-action | Get orders requiring action | ✅ |
+| GET | /api/orders/statistics | Get statistics | ✅ |
+| GET | /api/orders/search | Search orders | ✅ |
+| POST | /api/orders/{id}/recalculate | Recalculate totals | ✅ |
+| POST | /api/orders/{id}/discount | Apply discount | ✅ |
+| POST | /api/orders/{id}/coupon | Apply coupon | ✅ |
+| POST | /api/orders/{id}/invoice | Create invoice | ✅ |
+| GET | /api/orders/{id}/invoices | Get invoices | ✅ |
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | /api/orders | List orders with filtering |
-| GET | /api/orders/{id} | Get order by ID |
-| GET | /api/orders/number/{orderNumber} | Get order by order number |
-| POST | /api/orders | Create order |
-| PUT | /api/orders/{id} | Update order |
-| DELETE | /api/orders/{id} | Delete order (soft) |
-| POST | /api/orders/from-quote/{quoteId} | Create from quote |
-| POST | /api/orders/from-opportunity/{opportunityId} | Create from opportunity |
-| POST | /api/orders/{id}/clone | Clone order |
-| POST | /api/orders/{id}/submit | Submit for approval |
-| POST | /api/orders/{id}/approve | Approve order |
-| POST | /api/orders/{id}/reject | Reject order |
-| POST | /api/orders/{id}/cancel | Cancel order |
-| POST | /api/orders/{id}/hold | Put on hold |
-| POST | /api/orders/{id}/release-hold | Release from hold |
-| POST | /api/orders/{id}/fulfill | Mark fulfilled |
-| POST | /api/orders/{id}/partial-fulfill | Mark partially fulfilled |
-| POST | /api/orders/{id}/deliver | Mark delivered |
-| POST | /api/orders/{id}/return | Process return |
-| GET | /api/orders/{id}/line-items | Get line items |
-| POST | /api/orders/{id}/line-items | Add line item |
-| PUT | /api/orders/line-items/{lineItemId} | Update line item |
-| DELETE | /api/orders/line-items/{lineItemId} | Remove line item |
-| POST | /api/orders/{id}/recalculate | Recalculate totals |
-| POST | /api/orders/{id}/discount | Apply discount |
-| POST | /api/orders/{id}/coupon | Apply coupon |
-| POST | /api/orders/{id}/invoice | Create invoice |
-| GET | /api/orders/{id}/invoices | Get invoices |
-| GET | /api/orders/status/{status} | Get by status |
-| GET | /api/orders/statistics | Get statistics |
-| GET | /api/orders/requiring-action | Get orders requiring action |
-| GET | /api/orders/search | Search orders |
+### 3.6 Backend Validations
 
-### 2.6 Validations
-
-| Field | Rule | Backend | Frontend |
-|-------|------|---------|----------|
-| OrderNumber | Required, Unique, Auto-generated | ✅ | N/A |
-| OrderType | Required, Valid enum | ✅ | ⏳ |
-| Status | Required, Valid enum, Valid transition | ✅ | ⏳ |
-| AccountId | Required | ✅ | ⏳ |
-| OrderDate | Required | ✅ | ⏳ |
-| LineItems | At least one required | ✅ | ⏳ |
-| TotalAmount | Calculated, non-negative | ✅ | ⏳ |
-| HoldReason | Required when OnHold | ✅ | ⏳ |
-| CancellationReason | Required when Cancelled | ✅ | ⏳ |
-| ApprovedById | Required when Approved | ✅ | ⏳ |
-| RejectionReason | Required when Rejected | ✅ | ⏳ |
-
----
-
-## 3. Frontend Implementation
-
-### 3.1 Services
-
-#### 3.1.1 orderService.ts
-**File:** `CRM.Frontend/src/services/orderService.ts`  
-**Status:** ❌ NOT IMPLEMENTED
-
-**Required Methods:**
-```typescript
-interface OrderService {
-  // CRUD
-  getAll(customerId?: number, status?: OrderStatus): Promise<Order[]>;
-  getById(id: number): Promise<Order>;
-  getByOrderNumber(orderNumber: string): Promise<Order>;
-  create(order: OrderCreateDto): Promise<Order>;
-  update(id: number, order: OrderUpdateDto): Promise<Order>;
-  delete(id: number): Promise<void>;
-  
-  // Order Operations
-  createFromQuote(quoteId: number): Promise<Order>;
-  createFromOpportunity(opportunityId: number): Promise<Order>;
-  clone(orderId: number): Promise<Order>;
-  
-  // Status Management
-  submitForApproval(orderId: number): Promise<Order>;
-  approve(orderId: number): Promise<Order>;
-  reject(orderId: number, reason: string): Promise<Order>;
-  cancel(orderId: number, reason: string): Promise<Order>;
-  putOnHold(orderId: number, reason: string): Promise<Order>;
-  releaseFromHold(orderId: number): Promise<Order>;
-  
-  // Fulfillment
-  markFulfilled(orderId: number): Promise<Order>;
-  markPartiallyFulfilled(orderId: number, lineItemIds: number[]): Promise<Order>;
-  markDelivered(orderId: number): Promise<Order>;
-  processReturn(orderId: number, items: OrderReturnItem[], reason: string): Promise<Order>;
-  
-  // Line Items
-  getLineItems(orderId: number): Promise<OrderLineItem[]>;
-  addLineItem(orderId: number, lineItem: LineItemCreateDto): Promise<OrderLineItem>;
-  updateLineItem(lineItemId: number, lineItem: LineItemUpdateDto): Promise<OrderLineItem>;
-  removeLineItem(lineItemId: number): Promise<void>;
-  
-  // Calculations
-  recalculateTotals(orderId: number): Promise<Order>;
-  applyDiscount(orderId: number, amount: number, reason?: string): Promise<Order>;
-  applyCoupon(orderId: number, couponCode: string): Promise<Order>;
-  
-  // Invoicing
-  createInvoice(orderId: number): Promise<Invoice>;
-  getInvoices(orderId: number): Promise<Invoice[]>;
-  
-  // Queries
-  getByStatus(status: OrderStatus): Promise<Order[]>;
-  getStatistics(fromDate?: Date, toDate?: Date): Promise<OrderStatistics>;
-  getRequiringAction(): Promise<Order[]>;
-  search(query: string): Promise<Order[]>;
-}
-```
-
-### 3.2 Pages
-
-#### 3.2.1 OrdersPage.tsx
-**File:** `CRM.Frontend/src/pages/OrdersPage.tsx`  
-**Status:** ❌ NOT IMPLEMENTED
-
-**Required Features:**
-- Order list with DataGrid
-- Status filter chips
-- Date range filter
-- Account filter
-- Quick actions (Approve, Fulfill, Cancel)
-- Create order button
-- Export to CSV/PDF
-
-#### 3.2.2 OrderDetailsPage.tsx
-**File:** `CRM.Frontend/src/pages/OrderDetailsPage.tsx`  
-**Status:** ❌ NOT IMPLEMENTED
-
-**Required Sections:**
-- Order header (number, status, dates)
-- Account/Contact information
-- Line items table with edit capability
-- Pricing summary
-- Billing/Shipping addresses
-- Status history timeline
-- Related invoices
-- Action buttons based on current status
-
-### 3.3 Components
-
-| Component | Status | Description |
-|-----------|--------|-------------|
-| OrderForm.tsx | ❌ Missing | Create/Edit order form |
-| OrderLineItemsTable.tsx | ❌ Missing | Editable line items grid |
-| OrderStatusBadge.tsx | ❌ Missing | Status chip with color coding |
-| OrderTimeline.tsx | ❌ Missing | Status change history |
-| OrderSummary.tsx | ❌ Missing | Pricing summary card |
-| OrderAddressCard.tsx | ❌ Missing | Billing/Shipping address display |
-| OrderActionButtons.tsx | ❌ Missing | Context-aware action buttons |
-| OrderStatisticsCard.tsx | ❌ Missing | Dashboard statistics |
+| Field | Rule | Status |
+|-------|------|--------|
+| OrderNumber | Required, Unique, Auto-generated | ✅ |
+| OrderType | Required, Valid enum | ✅ |
+| Status | Required, Valid enum, Valid transition | ✅ |
+| AccountId | Required | ✅ |
+| OrderDate | Required | ✅ |
+| LineItems | At least one required | ✅ |
+| TotalAmount | Calculated, non-negative | ✅ |
+| HoldReason | Required when OnHold | ✅ |
+| CancellationReason | Required when Cancelled | ✅ |
+| ApprovedById | Required when Approved | ✅ |
+| RejectionReason | Required when Rejected | ✅ |
 
 ---
 
@@ -653,7 +648,7 @@ interface OrderService {
 
 ### 4.1 Tables
 
-#### Orders Table
+#### 4.1.1 Orders Table
 **Status:** ✅ Implemented via EF Core
 
 | Column | Type | Constraints |
@@ -671,15 +666,13 @@ interface OrderService {
 | Terms | VARCHAR(500) | NULL |
 | OrderDate | DATETIME | NOT NULL |
 | RequestedDeliveryDate | DATETIME | NULL |
-| PromisedDeliveryDate | DATETIME | NULL |
-| ActualDeliveryDate | DATETIME | NULL |
-| ... (80+ columns) ... |
+| ... (80+ columns total) ... | | |
 | CreatedAt | DATETIME | NOT NULL, DEFAULT NOW() |
 | UpdatedAt | DATETIME | NULL |
 | IsDeleted | BIT | NOT NULL, DEFAULT 0 |
 | RowVersion | BINARY(8) | NULL |
 
-#### OrderLineItems Table
+#### 4.1.2 OrderLineItems Table
 **Status:** ✅ Implemented via EF Core
 
 | Column | Type | Constraints |
@@ -688,12 +681,10 @@ interface OrderService {
 | OrderId | INT | FK → Orders.Id, NOT NULL |
 | LineNumber | INT | NOT NULL |
 | ProductId | INT | FK → Products.Id, NULL |
-| ProductCode | VARCHAR(50) | NULL |
 | ProductName | VARCHAR(200) | NOT NULL |
-| Description | TEXT | NULL |
 | Quantity | DECIMAL(18,4) | NOT NULL |
 | UnitPrice | DECIMAL(18,4) | NOT NULL |
-| ... (40+ columns) ... |
+| ... (40+ columns) ... | | |
 | CreatedAt | DATETIME | NOT NULL, DEFAULT NOW() |
 | UpdatedAt | DATETIME | NULL |
 | IsDeleted | BIT | NOT NULL, DEFAULT 0 |
@@ -730,59 +721,59 @@ interface OrderService {
 
 ### 5.1 Unit Tests
 
-**File:** `CRM.Backend/tests/CRM.Tests/Services/OrderServiceTests.cs`  
-**Status:** ⚠️ Partial (test file exists for controller)
-
 | Test | Description | Status |
 |------|-------------|--------|
-| GetAllAsync_ReturnsAllOrders | Returns all non-deleted orders | ⏳ |
-| GetByIdAsync_ExistingOrder_ReturnsOrder | Returns order by ID | ⏳ |
-| GetByOrderNumberAsync_ReturnsOrder | Returns order by number | ⏳ |
-| CreateAsync_ValidOrder_CreatesOrder | Creates new order | ⏳ |
-| CreateFromQuoteAsync_CopiesQuoteData | Copies quote to order | ⏳ |
-| CreateFromOpportunityAsync_CopiesOppData | Copies opp to order | ⏳ |
-| ApproveAsync_ValidOrder_ApprovesOrder | Approves pending order | ⏳ |
-| RejectAsync_SetsRejectionReason | Records rejection reason | ⏳ |
-| CancelAsync_NonFulfilledOrder_Cancels | Cancels order | ⏳ |
-| CancelAsync_FulfilledOrder_ThrowsException | Prevents fulfilled cancel | ⏳ |
-| ProcessReturnAsync_UpdatesQuantities | Updates return quantities | ⏳ |
-| RecalculateTotalsAsync_CorrectCalculation | Calculates totals correctly | ⏳ |
+| GetAllAsync_ReturnsAllOrders | Returns all non-deleted orders | ❌ Not Implemented |
+| GetByIdAsync_ExistingOrder_ReturnsOrder | Returns order by ID | ❌ Not Implemented |
+| GetByOrderNumberAsync_ReturnsOrder | Returns order by number | ❌ Not Implemented |
+| CreateAsync_ValidOrder_CreatesOrder | Creates new order | ❌ Not Implemented |
+| CreateFromQuoteAsync_CopiesQuoteData | Copies quote to order | ❌ Not Implemented |
+| CreateFromOpportunityAsync_CopiesOppData | Copies opp to order | ❌ Not Implemented |
+| ApproveAsync_ValidOrder_ApprovesOrder | Approves pending order | ❌ Not Implemented |
+| RejectAsync_SetsRejectionReason | Records rejection reason | ❌ Not Implemented |
+| CancelAsync_NonFulfilledOrder_Cancels | Cancels order | ❌ Not Implemented |
+| CancelAsync_FulfilledOrder_ThrowsException | Prevents fulfilled cancel | ❌ Not Implemented |
+| ProcessReturnAsync_UpdatesQuantities | Updates return quantities | ❌ Not Implemented |
+| RecalculateTotalsAsync_CorrectCalculation | Calculates totals correctly | ❌ Not Implemented |
 
 ### 5.2 Integration Tests
 
-**File:** `CRM.Backend/tests/Controllers/OrdersControllerTests.cs`  
-**Status:** ✅ File exists (tests for non-existent controller)
+| Test | Description | Status |
+|------|-------------|--------|
+| OrdersController_GetAll_Returns200 | GET /api/orders returns list | ❌ Not Implemented |
+| OrdersController_Create_Returns201 | POST /api/orders creates order | ❌ Not Implemented |
+| OrdersController_CreateFromQuote_Returns201 | POST /api/orders/from-quote/{id} | ❌ Not Implemented |
 
 ### 5.3 E2E Tests
 
-**File:** `e2e-tests/tests/orders/orders.spec.ts`  
-**Status:** ❌ NOT IMPLEMENTED
+| Test | Description | Status |
+|------|-------------|--------|
+| should display orders list page | Navigate to /orders | ❌ Not Implemented |
+| should create order from quote | Full create-from-quote workflow | ❌ Not Implemented |
+| should approve and fulfill order | Approval + fulfillment workflow | ❌ Not Implemented |
+| should process order return | Return processing workflow | ❌ Not Implemented |
 
 ---
 
 ## 6. Issues & Gaps
 
-### 6.1 Critical Gaps
+### 6.1 Missing Components
 
-| ID | Issue | Impact | Resolution |
-|----|-------|--------|------------|
-| GAP-001 | No OrdersController | API endpoints unavailable | Create controller |
-| GAP-002 | No frontend pages | Cannot manage orders in UI | Create OrdersPage, OrderDetailsPage |
-| GAP-003 | No frontend service | Cannot call API | Create orderService.ts |
+| Component | Type | Priority | Impact |
+|-----------|------|----------|--------|
+| OrderDto / CreateOrderDto / UpdateOrderDto | Backend DTO | P2 | Controller passes entities directly — DTOs would improve API contract |
+| OrderDetailsPage.tsx | Frontend Page | P2 | Cannot view full order details in UI |
+| OrderForm.tsx | Frontend Component | P2 | No dedicated create/edit form component |
+| OrderLineItemsTable.tsx | Frontend Component | P2 | No reusable line items editor |
 
-### 6.2 Naming Inconsistencies
-
-| Location | Issue | Recommendation |
-|----------|-------|----------------|
-| - | No issues identified | - |
-
-### 6.3 Validation Gaps
+### 6.2 Validation Gaps
 
 | Field | Missing Validation | Recommendation |
 |-------|-------------------|----------------|
-| Currency | No currency code validation | Validate against ISO 4217 |
-| Email fields | No email format validation | Add email regex validation |
-| Postal codes | No format validation | Add country-specific validation |
+| Currency | No ISO 4217 currency code validation | Validate against currency code list |
+| BillingContactEmail | No email format validation | Add email regex validation |
+| ShippingContactEmail | No email format validation | Add email regex validation |
+| BillingPostalCode | No format validation | Add country-specific validation |
 
 ---
 
@@ -790,31 +781,30 @@ interface OrderService {
 
 ### High Priority
 
-| ID | Task | Effort | Assigned |
-|----|------|--------|----------|
-| TODO-SALES002-001 | Create OrdersController.cs | 8 hrs | - |
-| TODO-SALES002-002 | Create orderService.ts | 4 hrs | - |
-| TODO-SALES002-003 | Create OrdersPage.tsx | 8 hrs | - |
-| TODO-SALES002-004 | Create OrderDetailsPage.tsx | 8 hrs | - |
+| ID | Task | Effort |
+|----|------|--------|
+| TODO-SALES002-001 | Create OrderDetailsPage.tsx | 8 hrs |
+| TODO-SALES002-002 | Create OrderDto, CreateOrderDto, UpdateOrderDto | 4 hrs |
 
 ### Medium Priority
 
-| ID | Task | Effort | Assigned |
-|----|------|--------|----------|
-| TODO-SALES002-005 | Create OrderForm.tsx | 4 hrs | - |
-| TODO-SALES002-006 | Create OrderLineItemsTable.tsx | 4 hrs | - |
-| TODO-SALES002-007 | Create OrderStatusBadge.tsx | 1 hr | - |
-| TODO-SALES002-008 | Create OrderTimeline.tsx | 2 hrs | - |
-| TODO-SALES002-009 | Add currency validation | 1 hr | - |
-| TODO-SALES002-010 | Add email format validation | 1 hr | - |
+| ID | Task | Effort |
+|----|------|--------|
+| TODO-SALES002-003 | Create OrderForm.tsx component | 4 hrs |
+| TODO-SALES002-004 | Create OrderLineItemsTable.tsx component | 4 hrs |
+| TODO-SALES002-005 | Create OrderStatusBadge.tsx component | 1 hr |
+| TODO-SALES002-006 | Create OrderTimeline.tsx component | 2 hrs |
+| TODO-SALES002-007 | Add currency code validation | 1 hr |
+| TODO-SALES002-008 | Add email format validation for billing/shipping | 1 hr |
+| TODO-SALES002-009 | Create OrderServiceTests.cs unit tests | 4 hrs |
 
 ### Low Priority
 
-| ID | Task | Effort | Assigned |
-|----|------|--------|----------|
-| TODO-SALES002-011 | Create E2E tests | 4 hrs | - |
-| TODO-SALES002-012 | Add order export (CSV/PDF) | 4 hrs | - |
-| TODO-SALES002-013 | Add order cloning UI | 2 hrs | - |
+| ID | Task | Effort |
+|----|------|--------|
+| TODO-SALES002-010 | Create E2E tests for order workflows | 4 hrs |
+| TODO-SALES002-011 | Add order export (CSV/PDF) | 4 hrs |
+| TODO-SALES002-012 | Add order cloning UI in OrderDetailsPage | 2 hrs |
 
 ---
 
@@ -863,10 +853,19 @@ interface OrderService {
 
 ### B. Related Specifications
 
-- [SPEC-SALES-001](SPEC-SALES-001-QuoteManagement.md) - Quote Management (source for orders)
-- [SPEC-SALES-003](SPEC-SALES-003-InvoiceManagement.md) - Invoice Management (created from orders)
-- [SPEC-CRM-001](SPEC-CRM-001-AccountManagement.md) - Account Management (order customer)
-- [SPEC-CRM-003](SPEC-CRM-003-OpportunityManagement.md) - Opportunity Management (source for orders)
+| Spec ID | Name | Relationship |
+|---------|------|--------------|
+| [SPEC-SALES-001](SPEC-SALES-001-QuoteManagement.md) | Quote Management | Source for orders |
+| [SPEC-SALES-003](SPEC-SALES-003-InvoiceManagement.md) | Invoice Management | Created from orders |
+| [SPEC-CRM-001](SPEC-CRM-001-AccountManagement.md) | Account Management | Order customer |
+| [SPEC-CRM-003](SPEC-CRM-003-OpportunityManagement.md) | Opportunity Management | Source for orders |
+
+### C. Change History
+
+| Date | Version | Changes |
+|------|---------|---------|
+| February 2026 | 1.0 | Initial specification created |
+| February 2026 | 2.0 | Updated statuses — OrdersController ✅, orderService.ts ✅, OrdersPage.tsx ✅ now implemented. Restructured to match SPEC-TEMPLATE format (Frontend = Section 2, Backend = Section 3). |
 
 ---
 

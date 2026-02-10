@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.9.0-blue)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![.NET](https://img.shields.io/badge/.NET-8.0-purple)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -10,7 +10,7 @@
 
 **Enterprise-Grade Customer Relationship Management System**
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [Documentation](#-documentation) • [API Reference](#-api-reference)
+[Features](#-features) • [ITSM Module](#-itsm-module) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [Documentation](#-documentation) • [API Reference](#-api-reference)
 
 </div>
 
@@ -73,6 +73,7 @@ This is a hobby side project not related to my day job - and built on weekends -
 | **Case Categories** | Hierarchical categorization and routing |
 | **Priority Management** | Escalation levels, VIP customer handling |
 | **Resolution Tracking** | Resolution codes, root cause analysis |
+| **ITSM Module** | Incident, Problem, Change Management, CMDB, Service Catalog, SLA Dashboard ([details](#-itsm-module)) |
 
 ### Automation & Workflow
 
@@ -126,7 +127,65 @@ This is a hobby side project not related to my day job - and built on weekends -
 
 ---
 
-## 🛠 Tech Stack
+## � ITSM Module
+
+The ITSM (IT Service Management) module provides ITIL-aligned processes for managing IT services. It was implemented as part of the Phase 1 remediation plan and is fully operational.
+
+> 📖 **Full user guide:** [ITSM User Guide](docs/ITSM_USER_GUIDE.md)
+
+### ITSM Capabilities
+
+| Capability | Description |
+|------------|-------------|
+| **Incident Management** | Incident lifecycle — create, assign, escalate, resolve, close, reopen. Comment threads for collaboration. |
+| **Problem Management** | Root cause analysis, known error tracking, linked incidents. |
+| **Change Management** | Change requests with approval workflow, scheduling, conflict detection, blackout periods, impacted CIs. |
+| **CMDB** | Configuration Item management, CI relationships and dependency mapping, impact analysis. |
+| **Knowledge Base** | Knowledge articles with publish/retire lifecycle, feedback/ratings, suggested & popular articles. |
+| **Service Catalog** | Browseable service catalog with categories, request submission, request-for-others, cancellation. |
+| **SLA Management** | SLA policies & instances, breach detection, pause/resume, at-risk items, SLA dashboard & metrics. |
+| **ITSM Dashboard** | Analytics — incident trends, problem analysis, change metrics, SLA compliance, team performance. |
+
+### ITSM API Endpoints
+
+| Base Route | Controller | Key Operations |
+|-----------|------------|----------------|
+| `/api/itsm/incidents` | IncidentsController | CRUD, assign, escalate, resolve, close, reopen, comments |
+| `/api/itsm/problems` | ProblemsController | CRUD, link-incident, mark-known-error, related-incidents, root-cause |
+| `/api/itsm/cmdb` | CMDBController | CRUD, search, relationships, related, impact-analysis |
+| `/api/itsm/changes` | ChangesController | CRUD, submit-approval, approve, reject, schedule, conflicts, impacted-cis, blackout-periods |
+| `/api/itsm/knowledge` | KnowledgeController | CRUD, publish, retire, feedback, suggested, popular, recent, categories |
+| `/api/itsm/catalog` | CatalogController | Items, requests, search, categories, request-for-others, cancel |
+| `/api/itsm/sla` | SLAController | Policies, instances, start/pause/resume/complete, breached, dashboard, at-risk, metrics |
+| `/api/itsm/dashboard` | ITSMDashboardController | Incident trends, problem analysis, change metrics, SLA compliance, team performance, service health |
+
+### ITSM Frontend Routes
+
+| Route | Page |
+|-------|------|
+| `/itsm/incidents` | Incident list |
+| `/itsm/incidents/:id` | Incident detail |
+| `/itsm/problems` | Problem list |
+| `/itsm/problems/:id` | Problem detail |
+| `/itsm/changes` | Change list |
+| `/itsm/changes/:id` | Change detail |
+| `/itsm/cmdb` | CMDB list |
+| `/itsm/cmdb/:id` | CI detail |
+| `/itsm/knowledge` | Knowledge Base |
+| `/itsm/knowledge/:id` | Article detail |
+| `/itsm/catalog` | Service Catalog |
+| `/itsm/catalog/request/:id` | Submit request |
+| `/itsm/sla` | SLA Dashboard |
+
+### ITSM Test Coverage
+
+- **7,722** backend unit tests passing (across 3 test projects)
+- **118 / 118** BVT (Build Verification Tests) passing — **100%**
+- Dedicated `ITSMDashboardServiceTests` covering all dashboard analytics
+
+---
+
+## �🛠 Tech Stack
 
 ### Backend (.NET 8.0)
 
@@ -506,6 +565,7 @@ crm-solution/
 | [Workflow Engine](docs/WORKFLOW_EXAMPLES.md) | Automation examples |
 | [Contact Info System](docs/features/CONSOLIDATED_CONTACT_INFO.md) | Contact management |
 | [Navigation Config](docs/guides/NAVIGATION_CONFIGURATION.md) | Menu customization |
+| [ITSM User Guide](docs/ITSM_USER_GUIDE.md) | ITSM module workflows and usage |
 
 ### Development
 
@@ -565,6 +625,14 @@ curl -H "Authorization: Bearer <token>" \
 | `/api/quotes` | ✅ | ✅ | ✅ | ✅ |
 | `/api/campaigns` | ✅ | ✅ | ✅ | ✅ |
 | `/api/servicerequests` | ✅ | ✅ | ✅ | ✅ |
+| `/api/itsm/incidents` | ✅ | ✅ | ✅ | ✅ |
+| `/api/itsm/problems` | ✅ | ✅ | ✅ | ✅ |
+| `/api/itsm/changes` | ✅ | ✅ | ✅ | ✅ |
+| `/api/itsm/cmdb` | ✅ | ✅ | ✅ | ✅ |
+| `/api/itsm/knowledge` | ✅ | ✅ | ✅ | ✅ |
+| `/api/itsm/catalog` | ✅ | ✅ | — | — |
+| `/api/itsm/sla` | ✅ | ✅ | ✅ | ✅ |
+| `/api/itsm/dashboard` | ✅ | — | — | — |
 
 ### Pagination
 
@@ -671,26 +739,32 @@ dotnet test --collect:"XPlat Code Coverage"
 
 | Metric | Value |
 |--------|-------|
-| **Version** | 0.0.25 |
-| **Database Tables** | 89 |
-| **API Controllers** | 25+ |
-| **React Components** | 50+ |
+| **Version** | 2.0.0 |
+| **Database Tables** | 95+ |
+| **API Controllers** | 35+ |
+| **React Components** | 80+ |
 | **Microservices** | 8 |
+| **Backend Unit Tests** | 7,722 passing |
+| **BVT Tests** | 118 / 118 (100%) |
 | **E2E Test Files** | 25+ |
-| **Lines of Code** | 50,000+ |
+| **Lines of Code** | 80,000+ |
 
 ---
 
-## 🔄 Recent Updates (v0.0.25)
+## 🔄 Recent Updates (v2.0.0)
 
+- ✅ **ITSM Module** — Incident, Problem, Change Management, CMDB, Service Catalog, SLA Dashboard
+- ✅ **7 ITSM Backend Services** + ITSM Dashboard analytics
+- ✅ **8 ITSM API Controllers** with full CRUD and workflow endpoints
+- ✅ **13 ITSM Frontend Pages** under `/itsm/*` routes
+- ✅ **7,722 backend tests passing**, 118/118 BVT at 100%
+- ✅ Pluggable Architecture — 7 provider categories fully implemented
 - ✅ Microservices architecture with 8 services
 - ✅ SignalR real-time notifications
 - ✅ Multi-user concurrent editing support
 - ✅ Campaign execution with A/B testing
 - ✅ Relationship management module
-- ✅ Notes system with rich text
-- ✅ Theme customization (light/dark)
-- ✅ LLM provider integration
+- ✅ LLM provider integration (Ollama, OpenAI, Azure, Anthropic, Bedrock, OpenRouter)
 - ✅ Production deployment scripts
 
 ---

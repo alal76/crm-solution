@@ -63,7 +63,6 @@
     <Compile Remove="Services\TokenRevocationServiceTests.cs" />
     <Compile Remove="Services\FieldMasterDataServiceTests.cs" />
     <Compile Remove="Services\ITSM\EmailToTicketServiceTests.cs" />
-    <Compile Remove="Services\ITSM\ServiceCatalogServiceTests.cs" />
     <Compile Remove="Services\ITSM\CICDIntegrationServiceTests.cs" />
     <Compile Remove="Services\ITSM\ArticleRecommendationServiceTests.cs" />
     <Compile Remove="Services\ITSM\BusinessHoursCalculatorTests.cs" />
@@ -129,8 +128,6 @@
     <Compile Remove="Services\UserApprovalServiceTests.cs" />
     <Compile Remove="Services\UserGroupServiceTests.cs" />
     <!-- ITSM service tests with type/property mismatches -->
-    <Compile Remove="Services\ITSM\ChangeManagementServiceTests.cs" />
-    <Compile Remove="Services\ITSM\KnowledgeManagementServiceTests.cs" />
     <Compile Remove="Services\ITSM\MonitoringIntegrationServiceTests.cs" />
     <Compile Remove="Services\ITSM\SelfServiceChatbotServiceTests.cs" />
     <Compile Remove="Services\ITSM\WebhookNotificationServiceTests.cs" />

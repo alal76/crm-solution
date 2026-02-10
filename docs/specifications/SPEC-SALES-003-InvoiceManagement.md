@@ -1,786 +1,886 @@
 # SPEC-SALES-003: Invoice Management
 
-> **Version:** 1.0  
-> **Created:** 2026-02-12  
-> **Last Updated:** 2026-02-12  
-> **Status:** ✅ Complete  
+> **Version:** 2.0  
+> **Last Updated:** February 2026  
+> **Status:** ⚠️ Partial  
 > **Module:** Sales  
-> **Priority:** P1 - High  
-> **Dependencies:** SPEC-CRM-001 (Account Management), SPEC-SALES-001 (Quote Management), SPEC-SALES-002 (Order Management)
+> **Priority:** P1  
+> **Dependencies:** SPEC-SALES-002 (Order Management), SPEC-SALES-001 (Quote Management), SPEC-CRM-001 (Account Management)
 
 ---
 
 ## 1. Business Context
 
 ### 1.1 Overview
-Invoice Management handles the billing lifecycle from invoice creation through payment collection. Invoices can be created from Orders or Quotes, support multiple payment terms, track partial payments, and manage dunning workflows for overdue accounts.
+
+Invoice Management provides end-to-end invoicing functionality including invoice creation (manual, from orders, or from quotes), lifecycle management, payment tracking, line item management, and overdue/collections handling. The system supports multiple invoice types, configurable payment terms, early payment discounts, late fee calculations, and dunning management.
 
 ### 1.2 Sub-Features
 
 | ID | Sub-Feature | Description | Status |
 |----|-------------|-------------|--------|
-| SF-001 | Invoice Creation | Create invoices manually or from orders/quotes | ✅ Implemented |
-| SF-002 | Invoice Status Lifecycle | Draft → Sent → Paid flow | ✅ Implemented |
-| SF-003 | Line Item Management | Add, update, remove invoice line items | ✅ Implemented |
-| SF-004 | Payment Recording | Record full/partial payments | ✅ Implemented |
-| SF-005 | Payment Terms | Net30, Net60, custom terms | ✅ Implemented |
-| SF-006 | Dunning Management | Reminders, late fees, collections | ✅ Entity Support |
-| SF-007 | Invoice Approval | Approval workflow for invoices | ✅ Implemented |
-| SF-008 | Void & Credit | Void invoices, create credit memos | ✅ Implemented |
+| SF-001 | Invoice Creation | Create invoices manually, from orders, or from quotes | ✅ Implemented |
+| SF-002 | Invoice Numbering | Auto-generation of invoice numbers (INV-YYMM-####) | ✅ Implemented |
+| SF-003 | Line Item Management | Add/edit/delete invoice line items | ✅ Implemented |
+| SF-004 | Pricing Calculations | Automatic totals, tax, discounts, balance | ✅ Implemented |
+| SF-005 | Invoice Lifecycle | Draft → Sent → Viewed → Paid/Overdue/Void | ✅ Implemented |
+| SF-006 | Payment Recording | Record payments against invoices, track balance | ✅ Implemented |
+| SF-007 | Approval Workflow | Invoice approval before sending | ✅ Implemented |
+| SF-008 | Invoice Sending | Send invoices to customers via email | ✅ Implemented |
+| SF-009 | Overdue Tracking | Track overdue invoices with aging | ✅ Implemented |
+| SF-010 | Dunning Management | Automated dunning for overdue invoices | ✅ Implemented |
+| SF-011 | Late Fee Calculation | Automatic late fee computation | ✅ Implemented |
+| SF-012 | Early Payment Discount | Discount for early payment | ✅ Implemented |
+| SF-013 | Credit Memo | Credit memo generation | ⚠️ Partial (entity exists, service pending) |
 
-### 1.3 Key Functionalities
+### 1.3 Functionalities
 
-| Functionality | Description | Implementation Status |
-|---------------|-------------|----------------------|
-| Create Invoice | Create new invoice from scratch or from order/quote | ✅ Backend Service |
-| Invoice Numbering | Auto-generate unique invoice numbers (INV-YYMM-0001) | ✅ Backend Service |
-| Status Transitions | Manage invoice status workflow | ✅ Backend Service |
-| Payment Processing | Record payments, track balances | ✅ Backend Service |
-| Overdue Tracking | Identify and report overdue invoices | ✅ Backend Service |
-| Customer Statistics | Invoice/payment statistics per account | ✅ Backend Service |
+| ID | Functionality | Description | Status |
+|----|---------------|-------------|--------|
+| F-001 | List Invoices | Display all invoices with filtering by account, status, dates | ✅ Implemented |
+| F-002 | Create Invoice | Create new invoice with header and line items | ✅ Implemented |
+| F-003 | Edit Invoice | Modify invoice details (restricted by status) | ✅ Implemented |
+| F-004 | Delete Invoice | Soft delete (Draft status only) | ✅ Implemented |
+| F-005 | Create from Order | Generate invoice from fulfilled order | ✅ Implemented |
+| F-006 | Create from Quote | Generate invoice from accepted quote | ✅ Implemented |
+| F-007 | Generate Number | Auto-generate invoice number | ✅ Implemented |
+| F-008 | Send Invoice | Send invoice to customer via email | ✅ Implemented |
+| F-009 | Mark as Viewed | Record when customer views invoice | ✅ Implemented |
+| F-010 | Update Status | Transition invoice through lifecycle | ✅ Implemented |
+| F-011 | Approve Invoice | Approve invoice for sending | ✅ Implemented |
+| F-012 | Void Invoice | Void invoice with reason | ✅ Implemented |
+| F-013 | Mark as Paid | Mark invoice as fully paid | ✅ Implemented |
+| F-014 | Record Payment | Record partial or full payment | ✅ Implemented |
+| F-015 | Get Outstanding Balance | Calculate remaining balance | ✅ Implemented |
+| F-016 | Get Overdue Invoices | List invoices past due date | ✅ Implemented |
+| F-017 | Get Invoices Due | List invoices due within N days | ✅ Implemented |
+| F-018 | Customer Statistics | Invoice statistics per customer | ✅ Implemented |
+| F-019 | Add Line Item | Add line item to invoice | ✅ Implemented |
+| F-020 | Recalculate Totals | Recalculate invoice totals from line items | ✅ Implemented |
+| F-021 | Apply Discount | Apply discount amount to invoice | ✅ Implemented |
 
 ### 1.4 Use Cases
 
-| UC-ID | Use Case | Actor | Description |
-|-------|----------|-------|-------------|
-| UC-001 | Create Invoice from Order | Finance | Convert fulfilled order to invoice |
-| UC-002 | Record Payment | Finance | Record customer payment against invoice |
-| UC-003 | Track Overdue Invoices | Finance | View list of overdue invoices |
-| UC-004 | Void Invoice | Finance Manager | Cancel an invoice |
-| UC-005 | Send Invoice | Finance | Email invoice to customer |
-| UC-006 | Apply Discount | Sales Manager | Apply discount to invoice |
+| ID | Use Case | Actor | Precondition | Steps | Postcondition |
+|----|----------|-------|--------------|-------|---------------|
+| UC-001 | Create Invoice from Order | Finance | Order is fulfilled | 1. Open order 2. Click "Create Invoice" 3. Review data 4. Submit | Invoice created as Draft |
+| UC-002 | Send Invoice | Finance | Invoice in Draft/Approved | 1. Open invoice 2. Optionally specify email 3. Click "Send" | Status → Sent |
+| UC-003 | Record Payment | Finance | Invoice is Sent/PartiallyPaid | 1. Open invoice 2. Enter payment amount/method 3. Submit | Payment recorded, balance updated |
+| UC-004 | Mark as Paid | Finance | Invoice fully paid | 1. Open invoice 2. Click "Mark as Paid" | Status → Paid |
+| UC-005 | Void Invoice | Finance/Manager | Invoice not paid | 1. Open invoice 2. Enter void reason 3. Confirm | Status → Void |
+| UC-006 | Review Overdue | Finance | Invoices past due | 1. Navigate to invoices 2. Filter by overdue | List of overdue invoices with aging |
+| UC-007 | Apply Discount | Finance | Invoice in Draft | 1. Open invoice 2. Enter discount amount/reason 3. Save | Discount applied, totals recalculated |
+| UC-008 | Approve Invoice | Manager | Invoice pending approval | 1. Review invoice 2. Click "Approve" | Status → Approved, ApprovedById set |
 
 ---
 
-## 2. Frontend Specification
+## 2. Frontend Implementation
 
 ### 2.1 Pages
 
-| Page | Route | Component | Status |
-|------|-------|-----------|--------|
-| Invoices List | /invoices | InvoicesPage.tsx | ❌ Not Implemented |
-| Invoice Details | /invoices/:id | InvoiceDetailsPage.tsx | ❌ Not Implemented |
-| Create Invoice | /invoices/new | CreateInvoicePage.tsx | ❌ Not Implemented |
-| Edit Invoice | /invoices/:id/edit | EditInvoicePage.tsx | ❌ Not Implemented |
+| Page | File | Status | Description |
+|------|------|--------|-------------|
+| InvoicesPage | `CRM.Frontend/src/pages/InvoicesPage.tsx` | ✅ Implemented | Invoice list with DataGrid, filtering, status chips |
+| InvoiceDetailsPage | `CRM.Frontend/src/pages/InvoiceDetailsPage.tsx` | ❌ Not Implemented | Invoice detail view with payment tracking |
 
-### 2.2 Components
+### 2.2 Services
 
-| Component | Location | Description | Status |
-|-----------|----------|-------------|--------|
-| InvoiceDataGrid | components/invoices/ | Grid display with filtering | ❌ Not Implemented |
-| InvoiceForm | components/invoices/ | Create/edit form | ❌ Not Implemented |
-| InvoiceLineItemsEditor | components/invoices/ | Line item management | ❌ Not Implemented |
-| InvoiceStatusBadge | components/invoices/ | Status indicator | ❌ Not Implemented |
-| InvoicePaymentPanel | components/invoices/ | Payment recording | ❌ Not Implemented |
-| InvoicePdfPreview | components/invoices/ | PDF preview/download | ❌ Not Implemented |
-| InvoiceTimeline | components/invoices/ | Status/payment history | ❌ Not Implemented |
-| InvoiceStatisticsCard | components/invoices/ | Summary statistics | ❌ Not Implemented |
+#### 2.2.1 invoiceService.ts
+**File:** `CRM.Frontend/src/services/invoiceService.ts`  
+**Status:** ✅ Implemented (205 lines)
 
-### 2.3 Services
+**TypeScript Types:**
 
-| Service | File | Methods | Status |
-|---------|------|---------|--------|
-| invoiceService | services/invoiceService.ts | All CRUD + operations | ❌ Not Implemented |
-
-#### Expected Service Methods
 ```typescript
-// invoiceService.ts
-interface InvoiceService {
-  // CRUD
-  getAll(params?: InvoiceQueryParams): Promise<Invoice[]>;
-  getById(id: number): Promise<Invoice>;
-  getByInvoiceNumber(invoiceNumber: string): Promise<Invoice>;
-  create(invoice: CreateInvoiceDto): Promise<Invoice>;
-  update(id: number, invoice: UpdateInvoiceDto): Promise<Invoice>;
-  delete(id: number): Promise<void>;
-  
-  // Operations
-  createFromOrder(orderId: number): Promise<Invoice>;
-  createFromQuote(quoteId: number): Promise<Invoice>;
-  send(id: number): Promise<void>;
-  markAsViewed(id: number): Promise<void>;
-  
-  // Status
-  updateStatus(id: number, status: InvoiceStatus): Promise<Invoice>;
-  approve(id: number): Promise<Invoice>;
-  void(id: number, reason: string): Promise<Invoice>;
-  markAsPaid(id: number): Promise<Invoice>;
-  
-  // Payments
-  recordPayment(id: number, amount: number, method: PaymentMethod): Promise<Invoice>;
-  getPayments(id: number): Promise<Payment[]>;
-  getOutstandingBalance(id: number): Promise<number>;
-  
-  // Queries
-  getOverdue(daysPastDue?: number): Promise<Invoice[]>;
-  getDueInRange(fromDate: Date, toDate: Date): Promise<Invoice[]>;
-  getCustomerStatistics(customerId: number): Promise<InvoiceStatistics>;
-  
-  // Line Items
-  addLineItem(invoiceId: number, lineItem: InvoiceLineItem): Promise<InvoiceLineItem>;
-  updateLineItem(lineItem: InvoiceLineItem): Promise<InvoiceLineItem>;
-  removeLineItem(lineItemId: number): Promise<void>;
-  getLineItems(invoiceId: number): Promise<InvoiceLineItem[]>;
-  
-  // Calculations
-  recalculateTotals(id: number): Promise<Invoice>;
-  applyDiscount(id: number, amount: number, code?: string): Promise<Invoice>;
+export enum InvoiceStatus {
+  Draft = 0,
+  PendingApproval = 1,
+  Approved = 2,
+  Sent = 3,
+  Viewed = 4,
+  PartiallyPaid = 5,
+  Paid = 6,
+  Overdue = 7,
+  Void = 8,
+  Disputed = 9,
+  WrittenOff = 10,
+  InCollections = 11,
+  Refunded = 12,
 }
+
+export enum PaymentMethod {
+  Cash = 0,
+  Check = 1,
+  CreditCard = 2,
+  DebitCard = 3,
+  BankTransfer = 4,
+  WireTransfer = 5,
+  ACH = 6,
+  PayPal = 7,
+  Stripe = 8,
+  Square = 9,
+  ApplePay = 10,
+  GooglePay = 11,
+  Cryptocurrency = 12,
+  StoreCredit = 13,
+  GiftCard = 14,
+  FinancingPlan = 15,
+  Other = 16,
+}
+
+export interface Invoice {
+  id: number;
+  invoiceNumber: string;
+  invoiceType: number;
+  status: InvoiceStatus;
+  invoiceDate: string;
+  dueDate: string;
+  subtotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  totalAmount: number;
+  paidAmount: number;
+  balanceDue: number;
+  currency: string;
+  accountId: number;
+  orderId: number;
+  lineItems: InvoiceLineItem[];
+}
+
+export interface InvoiceLineItem { ... }
+export interface InvoiceStatistics { ... }
+export interface RecordPaymentRequest { invoiceId: number; amount: number; method: PaymentMethod; }
+export interface DiscountRequest { amount: number; reason: string; }
 ```
+
+**API Methods (27 total):**
+
+| Method | HTTP | Endpoint | Status |
+|--------|------|----------|--------|
+| getAll | GET | /api/invoices | ✅ |
+| getById | GET | /api/invoices/{id} | ✅ |
+| getByInvoiceNumber | GET | /api/invoices/by-number/{invoiceNumber} | ✅ |
+| create | POST | /api/invoices | ✅ |
+| update | PUT | /api/invoices/{id} | ✅ |
+| delete | DELETE | /api/invoices/{id} | ✅ |
+| createFromOrder | POST | /api/invoices/from-order/{orderId} | ✅ |
+| createFromQuote | POST | /api/invoices/from-quote/{quoteId} | ✅ |
+| getNextNumber | GET | /api/invoices/next-number | ✅ |
+| send | POST | /api/invoices/{id}/send | ✅ |
+| markViewed | POST | /api/invoices/{id}/viewed | ✅ |
+| updateStatus | PATCH | /api/invoices/{id}/status | ✅ |
+| approve | POST | /api/invoices/{id}/approve | ✅ |
+| void | POST | /api/invoices/{id}/void | ✅ |
+| markPaid | POST | /api/invoices/{id}/mark-paid | ✅ |
+| recordPayment | POST | /api/invoices/{id}/payments | ✅ |
+| getBalance | GET | /api/invoices/{id}/balance | ✅ |
+| getPayments | GET | /api/invoices/{id}/payments | ✅ |
+| getOverdue | GET | /api/invoices/overdue | ✅ |
+| getDue | GET | /api/invoices/due | ✅ |
+| getCustomerStatistics | GET | /api/invoices/statistics/{customerId} | ✅ |
+| addLineItem | POST | /api/invoices/{id}/line-items | ✅ |
+| updateLineItem | PUT | /api/invoices/line-items/{lineItemId} | ✅ |
+| removeLineItem | DELETE | /api/invoices/line-items/{lineItemId} | ✅ |
+| getLineItems | GET | /api/invoices/{id}/line-items | ✅ |
+| recalculateTotals | POST | /api/invoices/{id}/recalculate | ✅ |
+| applyDiscount | POST | /api/invoices/{id}/discount | ✅ |
+
+**Helper Functions:**
+- `getInvoiceStatusLabel(status: InvoiceStatus): string` — Returns display label
+- `getInvoiceStatusColor(status: InvoiceStatus): string` — Returns MUI color
+
+### 2.3 Components
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| InvoiceForm.tsx | ❌ Not Implemented | Create/Edit invoice form |
+| InvoiceLineItemsTable.tsx | ❌ Not Implemented | Editable line items grid |
+| InvoiceStatusBadge.tsx | ❌ Not Implemented | Status chip with color coding |
+| InvoicePaymentHistory.tsx | ❌ Not Implemented | Payment records list |
+| InvoiceSummary.tsx | ❌ Not Implemented | Pricing summary card |
+| InvoiceAgingChart.tsx | ❌ Not Implemented | Overdue aging visualization |
+| InvoiceActionButtons.tsx | ❌ Not Implemented | Context-aware action buttons |
+| InvoicePdfPreview.tsx | ❌ Not Implemented | PDF preview and generation |
 
 ### 2.4 Frontend Validation Rules
 
 | Field | Validation | Error Message |
 |-------|------------|---------------|
 | AccountId | Required | "Account is required" |
+| InvoiceDate | Required | "Invoice date is required" |
 | DueDate | Required, >= InvoiceDate | "Due date must be on or after invoice date" |
+| InvoiceType | Required, valid enum | "Invoice type is required" |
 | LineItems | Min 1 required | "At least one line item is required" |
 | Quantity | > 0 | "Quantity must be greater than 0" |
 | UnitPrice | >= 0 | "Unit price cannot be negative" |
 | PaymentAmount | > 0, <= BalanceDue | "Payment amount must be between 0 and balance due" |
+| VoidReason | Required when voiding | "Void reason is required" |
 
 ---
 
-## 3. Backend Specification
+## 3. Backend Implementation
 
 ### 3.1 Entities
 
 #### 3.1.1 Invoice Entity
 **File:** `CRM.Backend/src/CRM.Core/Entities/Invoice.cs`  
-**Status:** ✅ Implemented (582 lines)
+**Status:** ✅ Implemented (~380 lines)
+
+**Enumerations:**
+
+**InvoiceStatus** (13 values):
+
+| Value | Int | Description |
+|-------|-----|-------------|
+| Draft | 0 | Invoice created, not sent |
+| PendingApproval | 1 | Awaiting approval |
+| Approved | 2 | Approved for sending |
+| Sent | 3 | Sent to customer |
+| Viewed | 4 | Customer has viewed invoice |
+| PartiallyPaid | 5 | Partial payment received |
+| Paid | 6 | Fully paid |
+| Overdue | 7 | Past due date |
+| Void | 8 | Voided |
+| Disputed | 9 | Customer disputes invoice |
+| WrittenOff | 10 | Written off as bad debt |
+| InCollections | 11 | Sent to collections |
+| Refunded | 12 | Refunded to customer |
+
+**InvoiceType** (9 values):
+
+| Value | Int | Description |
+|-------|-----|-------------|
+| Standard | 0 | Standard invoice |
+| Recurring | 1 | Recurring invoice |
+| ProForma | 2 | Pro forma (preview) |
+| CreditNote | 3 | Credit note |
+| DebitNote | 4 | Debit note |
+| Interim | 5 | Interim/progress invoice |
+| Final | 6 | Final invoice |
+| Deposit | 7 | Deposit invoice |
+| DebitMemo | 8 | Debit memo |
+
+**PaymentTerms** (11 values):
+
+| Value | Int | Description |
+|-------|-----|-------------|
+| DueOnReceipt | 0 | Due immediately |
+| Net15 | 1 | Net 15 days |
+| Net30 | 2 | Net 30 days |
+| Net45 | 3 | Net 45 days |
+| Net60 | 4 | Net 60 days |
+| Net90 | 5 | Net 90 days |
+| TwoPercent10Net30 | 6 | 2/10 Net 30 |
+| EndOfMonth | 7 | End of month |
+| FifteenthOfMonth | 8 | 15th of month |
+| DueOnDate | 9 | Due on specific date |
+| Custom | 10 | Custom payment terms |
+
+**Entity Properties (60+):**
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
-| **Identification** |
-| InvoiceNumber | string | ✅ | System-generated unique number (INV-YYMM-0001) |
-| ExternalInvoiceId | string? | | External reference number |
-| ReferenceNumber | string? | | Related document reference |
-| BatchNumber | string? | | Batch processing number |
-| **Invoice Details** |
-| Description | string? | | Invoice memo/description |
-| Status | InvoiceStatus | ✅ | Current lifecycle status |
-| InvoiceType | InvoiceType | ✅ | Standard, Credit, Proforma, etc. |
-| PaymentTerms | PaymentTerms | ✅ | Net30, Net60, etc. |
-| PaymentTermsDescription | string? | | Custom terms text |
-| **Dates** |
-| InvoiceDate | DateTime | ✅ | Creation date |
-| DueDate | DateTime | ✅ | Payment due date |
-| SentDate | DateTime? | | Date sent to customer |
-| ViewedDate | DateTime? | | Date customer viewed |
-| PaidDate | DateTime? | | Date fully paid |
-| VoidedDate | DateTime? | | Date voided |
-| ServicePeriodStart | DateTime? | | Service period start |
-| ServicePeriodEnd | DateTime? | | Service period end |
-| **Amounts** |
-| Subtotal | decimal | ✅ | Line items total before adjustments |
-| DiscountAmount | decimal | | Total discount |
-| DiscountPercent | decimal | | Discount percentage |
-| TaxAmount | decimal | | Total tax |
-| TaxRate | decimal | | Tax rate percentage |
-| ShippingAmount | decimal | | Shipping/freight charges |
-| FeesAmount | decimal | | Additional fees |
-| TotalAmount | decimal | ✅ | Final invoice total |
-| AmountPaid | decimal | | Total payments received |
-| AmountCredited | decimal | | Credits applied |
-| BalanceDue | decimal | | Calculated: Total - Paid - Credited |
-| IsPaid | bool | | Calculated: BalanceDue <= 0 |
-| CurrencyCode | string | ✅ | ISO 4217 currency code |
-| ExchangeRate | decimal? | | Foreign currency exchange rate |
-| **Early Payment Discount** |
-| EarlyPaymentDiscountPercent | decimal? | | Early payment discount % |
-| EarlyPaymentDiscountDays | int? | | Days for early discount |
-| EarlyPaymentDiscountAmount | decimal? | | Early discount amount |
-| **Late Fees** |
-| LateFeePercent | decimal? | | Late fee percentage |
-| LateFeeAmount | decimal? | | Flat late fee amount |
-| LateFeeTotal | decimal | | Accrued late fees |
-| DaysOverdue | int | | Calculated days past due |
-| **Billing Address** |
-| BillingName | string? | | Billing contact name |
-| BillingCompany | string? | | Company name |
-| BillingStreet | string? | | Street address |
-| BillingCity | string? | | City |
-| BillingState | string? | | State/Province |
-| BillingPostalCode | string? | | ZIP/Postal code |
-| BillingCountry | string? | | Country |
-| BillingEmail | string? | | Billing email |
-| BillingPhone | string? | | Billing phone |
-| **Dunning & Collections** |
-| ReminderCount | int | | Number of reminders sent |
-| LastReminderDate | DateTime? | | Last reminder date |
-| NextReminderDate | DateTime? | | Scheduled next reminder |
-| InCollections | bool | | Whether in collections |
-| CollectionsDate | DateTime? | | Date sent to collections |
-| CollectionsReference | string? | | Collections agency reference |
-| **Relationships** |
-| AccountId | int | ✅ | Customer account FK |
-| Account | Account? | | Navigation property |
-| OrderId | int? | | Related order FK |
-| Order | Order? | | Navigation property |
-| SubscriptionId | int? | | Related subscription FK |
-| Subscription | Subscription? | | Navigation property |
-| ContactId | int? | | Primary contact FK |
-| Contact | Contact? | | Navigation property |
-| VoidedById | int? | | User who voided FK |
-| VoidedBy | User? | | Navigation property |
-| OriginalInvoiceId | int? | | Original invoice (for credit memos) |
-| OriginalInvoice | Invoice? | | Navigation property |
-| CreditMemos | ICollection<Invoice> | | Related credit memos |
-| LineItems | ICollection<InvoiceLineItem> | | Invoice line items |
-| Payments | ICollection<Payment> | | Received payments |
-| **Notes & Documents** |
-| Notes | string? | | Customer-visible notes |
-| InternalNotes | string? | | Internal notes |
-| Footer | string? | | Invoice footer text |
-| TermsAndConditions | string? | | Terms and conditions |
-| VoidReason | string? | | Reason for voiding |
-| DisputeReason | string? | | Dispute reason |
-| PdfUrl | string? | | Generated PDF URL |
+| **Identification** ||||
+| Id | int | Yes | Primary key |
+| InvoiceNumber | string | Yes | Unique invoice number (INV-YYMM-####) |
+| ExternalInvoiceId | string | No | External system reference |
+| ReferenceNumber | string | No | Customer reference number |
+| **Invoice Details** ||||
+| InvoiceType | InvoiceType | Yes | Type of invoice |
+| Status | InvoiceStatus | Yes | Current invoice status |
+| PaymentTerms | PaymentTerms | Yes | Payment terms |
+| Description | string | No | Invoice description |
+| Notes | string | No | Invoice notes |
+| InternalNotes | string | No | Internal notes |
+| Terms | string | No | Terms and conditions |
+| FooterNotes | string | No | Footer text |
+| **Date Fields** ||||
+| InvoiceDate | DateTime | Yes | Invoice issue date |
+| DueDate | DateTime | Yes | Payment due date |
+| SentDate | DateTime? | No | When sent to customer |
+| ViewedDate | DateTime? | No | When customer viewed |
+| PaidDate | DateTime? | No | When fully paid |
+| VoidDate | DateTime? | No | When voided |
+| ApprovedDate | DateTime? | No | When approved |
+| **Amount Fields (12)** ||||
+| Subtotal | decimal | Yes | Sum of line items |
+| DiscountAmount | decimal | Yes | Total discount |
+| DiscountPercent | decimal | Yes | Discount percentage |
+| TaxAmount | decimal | Yes | Total tax |
+| TaxPercent | decimal | Yes | Tax percentage |
+| ShippingAmount | decimal | Yes | Shipping charges |
+| AdjustmentAmount | decimal | Yes | Manual adjustment |
+| TotalAmount | decimal | Yes | Final invoice total |
+| PaidAmount | decimal | Yes | Total amount paid |
+| CreditApplied | decimal | Yes | Credits applied |
+| WriteOffAmount | decimal | Yes | Written off amount |
+| Currency | string | Yes | Currency code (default: USD) |
+| **Computed Properties** ||||
+| BalanceDue | decimal | — | TotalAmount - PaidAmount - CreditApplied |
+| IsPaid | bool | — | BalanceDue <= 0 && TotalAmount > 0 |
+| DaysOverdue | int | — | (DateTime.UtcNow - DueDate).Days when overdue |
+| **Early Payment Discount** ||||
+| EarlyPaymentDiscountPercent | decimal | Yes | Discount % for early pay |
+| EarlyPaymentDiscountDate | DateTime? | No | Deadline for early discount |
+| EarlyPaymentDiscountAmount | decimal | Yes | Discount amount for early pay |
+| **Late Fees** ||||
+| LateFeePercent | decimal | Yes | Late fee percentage |
+| LateFeeAmount | decimal | Yes | Late fee amount |
+| LateFeeApplied | bool | Yes | Whether late fee has been applied |
+| LateFeeDate | DateTime? | No | When late fee was applied |
+| **Billing Address (9 fields)** ||||
+| BillingStreet | string | No | Street address |
+| BillingCity | string | No | City |
+| BillingState | string | No | State/Province |
+| BillingPostalCode | string | No | Postal code |
+| BillingCountry | string | No | Country |
+| BillingContactName | string | No | Contact name |
+| BillingContactEmail | string | No | Contact email |
+| BillingContactPhone | string | No | Contact phone |
+| BillingNotes | string | No | Billing notes |
+| **Dunning & Collections** ||||
+| DunningLevel | int | Yes | Current dunning level (0-4) |
+| LastDunningDate | DateTime? | No | Last dunning notice date |
+| DunningNotes | string | No | Dunning notes |
+| CollectionAgency | string | No | Collection agency name |
+| CollectionDate | DateTime? | No | When sent to collections |
+| DisputeReason | string | No | Reason for dispute |
+| **Relationships** ||||
+| AccountId | int? | No | Customer account FK |
+| OrderId | int? | No | Source order FK |
+| SubscriptionId | int? | No | Related subscription FK |
+| ContactId | int? | No | Invoice contact FK |
+| VoidedById | int? | No | Who voided FK |
+| ApprovedById | int? | No | Who approved FK |
+| OriginalInvoiceId | int? | No | Original invoice for credits |
+| VoidReason | string | No | Reason for voiding |
+| **Document Fields** ||||
+| PdfUrl | string | No | Generated PDF URL |
+| TemplateId | string | No | Template used |
+| LogoUrl | string | No | Company logo |
+| CompanyName | string | No | Company name on invoice |
+| CompanyAddress | string | No | Company address on invoice |
+| CompanyTaxId | string | No | Company tax ID |
+| CompanyBankDetails | string | No | Bank details for payment |
+| **Audit Fields** ||||
+| CreatedAt | DateTime | Yes | Creation timestamp |
+| UpdatedAt | DateTime? | No | Last update timestamp |
+| IsDeleted | bool | Yes | Soft delete flag |
+| RowVersion | byte[] | No | Optimistic concurrency |
+
+**Navigation Properties:**
+- `Account`, `Order`, `Subscription`, `Contact`, `VoidedBy`, `ApprovedBy`, `OriginalInvoice`
+- `CreditMemos` (ICollection), `LineItems` (ICollection), `Payments` (ICollection)
 
 #### 3.1.2 InvoiceLineItem Entity
-**File:** `CRM.Backend/src/CRM.Core/Entities/Invoice.cs` (same file, lines 440-582)  
+**File:** `CRM.Backend/src/CRM.Core/Entities/Invoice.cs` (same file, ~200 lines)  
 **Status:** ✅ Implemented
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
-| **Identification** |
-| LineNumber | int | ✅ | Display order number |
-| ExternalLineId | string? | | External reference |
-| **Product Details** |
-| Name | string | ✅ | Item name |
-| Description | string? | | Detailed description |
-| SKU | string? | | Product SKU |
-| ProductCode | string? | | Product code |
-| **Quantity & Pricing** |
-| Quantity | decimal | ✅ | Quantity billed |
-| UnitOfMeasure | string? | | Unit of measure |
-| UnitPrice | decimal | ✅ | Price per unit |
-| DiscountAmount | decimal | | Line discount |
-| DiscountPercent | decimal | | Discount percentage |
-| ExtendedAmount | decimal | | Quantity × Price - Discount |
-| TaxAmount | decimal | | Line tax amount |
-| TaxRate | decimal? | | Line tax rate |
-| TotalAmount | decimal | | Line total including tax |
-| **Service Period** |
-| ServiceStartDate | DateTime? | | Service period start |
-| ServiceEndDate | DateTime? | | Service period end |
-| **Revenue Recognition** |
-| RevenueRecognitionStartDate | DateTime? | | Rev rec start |
-| RevenueRecognitionEndDate | DateTime? | | Rev rec end |
-| DeferredRevenue | decimal? | | Deferred amount |
-| RecognizedRevenue | decimal? | | Recognized amount |
-| **Relationships** |
-| InvoiceId | int | ✅ | Parent invoice FK |
-| Invoice | Invoice? | | Navigation property |
-| ProductId | int? | | Product FK |
-| Product | Product? | | Navigation property |
-| OrderLineItemId | int? | | Source order line FK |
-| OrderLineItem | OrderLineItem? | | Navigation property |
-| SubscriptionId | int? | | Related subscription FK |
-| Subscription | Subscription? | | Navigation property |
-| **Notes** |
-| Notes | string? | | Line item notes |
+| Id | int | Yes | Primary key |
+| InvoiceId | int | Yes | Parent invoice FK |
+| LineNumber | int | Yes | Line sequence |
+| ProductId | int? | No | Product reference |
+| ProductCode | string | No | Product code |
+| ProductName | string | Yes | Product name |
+| Description | string | No | Line description |
+| Quantity | decimal | Yes | Billed quantity |
+| UnitOfMeasure | string | No | Unit of measure |
+| UnitPrice | decimal | Yes | Price per unit |
+| ListPrice | decimal | Yes | List price |
+| DiscountAmount | decimal | Yes | Line discount |
+| DiscountPercent | decimal | Yes | Line discount % |
+| TaxAmount | decimal | Yes | Line tax |
+| TaxPercent | decimal | Yes | Line tax % |
+| ExtendedPrice | decimal | Yes | Quantity × UnitPrice |
+| TotalPrice | decimal | Yes | Final line total |
+| CostPrice | decimal | Yes | Cost per unit |
+| TotalCost | decimal | Yes | Total cost |
+| ServicePeriodStart | DateTime? | No | Service period start |
+| ServicePeriodEnd | DateTime? | No | Service period end |
+| RevenueAccount | string | No | Revenue GL account |
+| RevenueRecognized | bool | Yes | Revenue recognized flag |
+| RevenueRecognitionDate | DateTime? | No | Recognition date |
+| OrderLineItemId | int? | No | Source order line item |
+| Notes | string | No | Line notes |
+| SortOrder | int | Yes | Display order |
+| CreatedAt | DateTime | Yes | Creation timestamp |
+| UpdatedAt | DateTime? | No | Last update timestamp |
+| IsDeleted | bool | Yes | Soft delete flag |
 
-### 3.2 Enumerations
-
-#### 3.2.1 InvoiceStatus
-**File:** `CRM.Backend/src/CRM.Core/Entities/Invoice.cs`  
-**Values:** 13
-
-| Value | Int | Description |
-|-------|-----|-------------|
-| Draft | 0 | Invoice created, not finalized |
-| PendingApproval | 1 | Awaiting approval |
-| Approved | 2 | Approved, ready to send |
-| Sent | 3 | Sent to customer |
-| Viewed | 4 | Viewed by customer |
-| PartiallyPaid | 5 | Partial payment received |
-| Paid | 6 | Fully paid |
-| Overdue | 7 | Past due date |
-| Disputed | 8 | Customer disputed |
-| Voided | 9 | Cancelled/voided |
-| WrittenOff | 10 | Written off as bad debt |
-| Collections | 11 | Sent to collections |
-| Refunded | 12 | Refunded to customer |
-
-#### 3.2.2 InvoiceType
-**File:** `CRM.Backend/src/CRM.Core/Entities/Invoice.cs`  
-**Values:** 9
-
-| Value | Int | Description |
-|-------|-----|-------------|
-| Standard | 0 | Standard goods/services invoice |
-| Credit | 1 | Credit memo/note |
-| Proforma | 2 | Proforma/estimate |
-| Recurring | 3 | Recurring subscription invoice |
-| Deposit | 4 | Deposit/advance invoice |
-| Progress | 5 | Progress billing |
-| Final | 6 | Final invoice |
-| Adjustment | 7 | Adjustment invoice |
-| DebitMemo | 8 | Debit memo |
-
-#### 3.2.3 PaymentTerms
-**File:** `CRM.Backend/src/CRM.Core/Entities/Invoice.cs`  
-**Values:** 11
-
-| Value | Int | Description |
-|-------|-----|-------------|
-| DueOnReceipt | 0 | Due upon receipt |
-| Net7 | 1 | Net 7 days |
-| Net10 | 2 | Net 10 days |
-| Net15 | 3 | Net 15 days |
-| Net30 | 4 | Net 30 days |
-| Net45 | 5 | Net 45 days |
-| Net60 | 6 | Net 60 days |
-| Net90 | 7 | Net 90 days |
-| TwoTenNet30 | 8 | 2% 10 Net 30 |
-| EndOfMonth | 9 | End of month |
-| Custom | 10 | Custom terms |
-
-### 3.3 DTOs
+### 3.2 DTOs
 
 | DTO | Location | Status |
 |-----|----------|--------|
-| InvoiceDto | CRM.Core/DTOs/InvoiceDto.cs | ❌ Not Found |
-| CreateInvoiceDto | CRM.Core/DTOs/InvoiceDto.cs | ❌ Not Found |
-| UpdateInvoiceDto | CRM.Core/DTOs/InvoiceDto.cs | ❌ Not Found |
-| InvoiceLineItemDto | CRM.Core/DTOs/InvoiceDto.cs | ❌ Not Found |
-| InvoiceStatisticsDto | Embedded in IInvoiceService | ✅ Implemented |
+| InvoiceDto | CRM.Core/DTOs/ | ❌ Not Implemented |
+| CreateInvoiceDto | CRM.Core/DTOs/ | ❌ Not Implemented |
+| UpdateInvoiceDto | CRM.Core/DTOs/ | ❌ Not Implemented |
+| InvoiceLineItemDto | CRM.Core/DTOs/ | ❌ Not Implemented |
 
-### 3.4 Interfaces
+**Inline Supporting Types (defined in IInvoiceService.cs):**
 
-#### 3.4.1 IInvoiceService
+```csharp
+public class InvoiceStatistics
+{
+    public int TotalInvoices { get; set; }
+    public int PaidInvoices { get; set; }
+    public int OverdueInvoices { get; set; }
+    public decimal TotalAmount { get; set; }
+    public decimal PaidAmount { get; set; }
+    public decimal OutstandingAmount { get; set; }
+    public decimal AverageInvoiceAmount { get; set; }
+    public int AverageDaysToPayment { get; set; }
+}
+```
+
+### 3.3 Interfaces
+
+#### 3.3.1 IInvoiceService
 **File:** `CRM.Backend/src/CRM.Core/Interfaces/IInvoiceService.cs`  
-**Status:** ✅ Implemented  
-**Methods:** 21
+**Status:** ✅ Implemented (~120 lines, 26 methods)
 
-| Region | Method | Parameters | Return Type |
-|--------|--------|------------|-------------|
-| **CRUD** |
-| | GetAllAsync | customerId?, status?, cancellationToken | Task<IEnumerable<Invoice>> |
-| | GetByIdAsync | id, cancellationToken | Task<Invoice?> |
-| | GetByInvoiceNumberAsync | invoiceNumber, cancellationToken | Task<Invoice?> |
-| | CreateAsync | invoice, cancellationToken | Task<Invoice> |
-| | UpdateAsync | invoice, cancellationToken | Task<Invoice> |
-| | DeleteAsync | id, cancellationToken | Task<bool> |
-| **Operations** |
-| | CreateFromOrderAsync | orderId, cancellationToken | Task<Invoice> |
-| | CreateFromQuoteAsync | quoteId, cancellationToken | Task<Invoice> |
-| | GenerateInvoiceNumberAsync | cancellationToken | Task<string> |
-| | SendInvoiceAsync | invoiceId, cancellationToken | Task<bool> |
-| | MarkAsViewedAsync | invoiceId, cancellationToken | Task<bool> |
-| **Status** |
-| | UpdateStatusAsync | invoiceId, status, cancellationToken | Task<Invoice> |
-| | ApproveAsync | invoiceId, approvedById, cancellationToken | Task<Invoice> |
-| | VoidAsync | invoiceId, reason, cancellationToken | Task<Invoice> |
-| | MarkAsPaidAsync | invoiceId, cancellationToken | Task<Invoice> |
-| **Payments** |
-| | RecordPaymentAsync | invoiceId, amount, method, cancellationToken | Task<Invoice> |
-| | GetOutstandingBalanceAsync | invoiceId, cancellationToken | Task<decimal> |
-| | GetPaymentsAsync | invoiceId, cancellationToken | Task<IEnumerable<Payment>> |
-| **Queries** |
-| | GetOverdueInvoicesAsync | daysPastDue?, cancellationToken | Task<IEnumerable<Invoice>> |
-| | GetInvoicesDueAsync | fromDate, toDate, cancellationToken | Task<IEnumerable<Invoice>> |
-| | GetCustomerStatisticsAsync | customerId, cancellationToken | Task<InvoiceStatistics> |
-| **Line Items** |
-| | AddLineItemAsync | invoiceId, lineItem, cancellationToken | Task<InvoiceLineItem> |
-| | UpdateLineItemAsync | lineItem, cancellationToken | Task<InvoiceLineItem> |
-| | RemoveLineItemAsync | lineItemId, cancellationToken | Task<bool> |
-| | GetLineItemsAsync | invoiceId, cancellationToken | Task<IEnumerable<InvoiceLineItem>> |
-| **Calculations** |
-| | RecalculateTotalsAsync | invoiceId, cancellationToken | Task<Invoice> |
-| | ApplyDiscountAsync | invoiceId, discountAmount, discountCode?, cancellationToken | Task<Invoice> |
+| Category | Method | Return Type |
+|----------|--------|-------------|
+| **CRUD** |||
+| | GetAllAsync(customerId?, status?, ct) | Task\<IEnumerable\<Invoice>> |
+| | GetByIdAsync(id, ct) | Task\<Invoice?> |
+| | GetByInvoiceNumberAsync(invoiceNumber, ct) | Task\<Invoice?> |
+| | CreateAsync(invoice, ct) | Task\<Invoice> |
+| | UpdateAsync(invoice, ct) | Task\<Invoice> |
+| | DeleteAsync(id, ct) | Task\<bool> |
+| **Operations** |||
+| | CreateFromOrderAsync(orderId, ct) | Task\<Invoice> |
+| | CreateFromQuoteAsync(quoteId, ct) | Task\<Invoice> |
+| | GenerateInvoiceNumberAsync(ct) | Task\<string> |
+| | SendInvoiceAsync(invoiceId, recipientEmail?, ct) | Task\<bool> |
+| | MarkAsViewedAsync(invoiceId, ct) | Task\<Invoice> |
+| **Status** |||
+| | UpdateStatusAsync(invoiceId, status, ct) | Task\<Invoice> |
+| | ApproveAsync(invoiceId, approvedById, ct) | Task\<Invoice> |
+| | VoidAsync(invoiceId, reason, ct) | Task\<Invoice> |
+| | MarkAsPaidAsync(invoiceId, ct) | Task\<Invoice> |
+| **Payments** |||
+| | RecordPaymentAsync(invoiceId, amount, method, ct) | Task\<Payment> |
+| | GetOutstandingBalanceAsync(invoiceId, ct) | Task\<decimal> |
+| | GetPaymentsAsync(invoiceId, ct) | Task\<IEnumerable\<Payment>> |
+| **Queries** |||
+| | GetOverdueInvoicesAsync(ct) | Task\<IEnumerable\<Invoice>> |
+| | GetInvoicesDueAsync(withinDays, ct) | Task\<IEnumerable\<Invoice>> |
+| | GetCustomerStatisticsAsync(customerId, ct) | Task\<InvoiceStatistics> |
+| **Line Items** |||
+| | AddLineItemAsync(invoiceId, lineItem, ct) | Task\<InvoiceLineItem> |
+| | UpdateLineItemAsync(lineItem, ct) | Task\<InvoiceLineItem> |
+| | RemoveLineItemAsync(lineItemId, ct) | Task\<bool> |
+| | GetLineItemsAsync(invoiceId, ct) | Task\<IEnumerable\<InvoiceLineItem>> |
+| **Calculations** |||
+| | RecalculateTotalsAsync(invoiceId, ct) | Task\<Invoice> |
+| | ApplyDiscountAsync(invoiceId, amount, reason?, ct) | Task\<Invoice> |
 
-### 3.5 Services
+### 3.4 Services
 
-#### 3.5.1 InvoiceService
+#### 3.4.1 InvoiceService
 **File:** `CRM.Backend/src/CRM.Infrastructure/Services/InvoiceService.cs`  
-**Status:** ✅ Implemented (652 lines)
+**Status:** ✅ Implemented (~652 lines)
 
 **Key Implementation Details:**
 
 1. **Invoice Number Generation:**
-   - Format: `INV-YYMM-NNNN` (e.g., INV-2602-0001)
-   - Auto-increments within month
-   - Uses database query to find last sequence
+   - Format: `INV-{YY}{MM}-{####}` (e.g., INV-2602-0001)
+   - Sequence resets monthly
+   - Thread-safe generation
 
-2. **Create from Order:**
-   - Copies line items from Order to Invoice
-   - Links OrderLineItemId to InvoiceLineItem
-   - Sets AccountId, amounts from Order
+2. **CreateFromOrderAsync:**
+   - Copies order header (account, contact, billing address, currency)
+   - Copies order line items with quantities and pricing
+   - Links back to source order via OrderId
 
-3. **Create from Quote:**
-   - Copies line items from QuoteLineItems
-   - Auto-assigns line numbers
-   - Sets default payment terms
+3. **CreateFromQuoteAsync:**
+   - Copies quote header fields (account, contact, pricing, terms)
+   - Copies quote line items
+   - Links back to source quote (indirect through order)
 
-4. **Payment Recording:**
-   - Creates Payment entity
-   - Updates AmountPaid on Invoice
-   - Auto-transitions to PartiallyPaid or Paid status
+4. **RecordPaymentAsync:**
+   - Creates Payment entity linked to invoice
+   - Updates PaidAmount on invoice
+   - Auto-transitions status: PartiallyPaid → Paid when balance = 0
 
-5. **Total Recalculation:**
-   - Sums line items for Subtotal
-   - Applies discounts, tax, shipping, fees
-   - Updates TotalAmount
+5. **RecalculateTotalsAsync:**
+   - Subtotal = Sum of line item totals
+   - TotalAmount = Subtotal - DiscountAmount + TaxAmount + ShippingAmount + AdjustmentAmount
+   - BalanceDue = TotalAmount - PaidAmount - CreditApplied
 
-6. **Customer Statistics:**
-   - Aggregates invoice counts and amounts
-   - Calculates overdue count
-   - Computes average days to payment
+6. **SendInvoiceAsync:**
+   - Sets status to Sent
+   - Records SentDate
+   - Optional recipientEmail override
 
-### 3.6 Controllers
+7. **VoidAsync:**
+   - Sets status to Void
+   - Records VoidDate, VoidReason, VoidedById
+   - Only allowed for non-paid invoices
 
-| Controller | File | Status |
-|------------|------|--------|
-| InvoicesController | CRM.Api/Controllers/InvoicesController.cs | ❌ Not Implemented |
+8. **Late Fee Calculation:**
+   - Based on LateFeePercent of outstanding balance
+   - Applied after DueDate passes
+   - Tracks via LateFeeApplied and LateFeeDate
 
-#### Expected Endpoints
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | /api/invoices | Get all invoices with filtering |
-| GET | /api/invoices/{id} | Get invoice by ID |
-| GET | /api/invoices/number/{invoiceNumber} | Get by invoice number |
-| POST | /api/invoices | Create new invoice |
-| PUT | /api/invoices/{id} | Update invoice |
-| DELETE | /api/invoices/{id} | Delete invoice (soft) |
-| POST | /api/invoices/from-order/{orderId} | Create from order |
-| POST | /api/invoices/from-quote/{quoteId} | Create from quote |
-| POST | /api/invoices/{id}/send | Send invoice to customer |
-| POST | /api/invoices/{id}/viewed | Mark as viewed |
-| PUT | /api/invoices/{id}/status | Update status |
-| POST | /api/invoices/{id}/approve | Approve invoice |
-| POST | /api/invoices/{id}/void | Void invoice |
-| POST | /api/invoices/{id}/mark-paid | Mark as paid |
-| POST | /api/invoices/{id}/payments | Record payment |
-| GET | /api/invoices/{id}/payments | Get payments |
-| GET | /api/invoices/{id}/balance | Get outstanding balance |
-| GET | /api/invoices/overdue | Get overdue invoices |
-| GET | /api/invoices/due | Get invoices due in range |
-| GET | /api/invoices/customer/{customerId}/statistics | Get customer statistics |
-| POST | /api/invoices/{id}/line-items | Add line item |
-| PUT | /api/invoices/line-items/{id} | Update line item |
-| DELETE | /api/invoices/line-items/{id} | Remove line item |
-| GET | /api/invoices/{id}/line-items | Get line items |
-| POST | /api/invoices/{id}/recalculate | Recalculate totals |
-| POST | /api/invoices/{id}/discount | Apply discount |
+### 3.5 Controllers
 
-### 3.7 Backend Validation
+#### 3.5.1 InvoicesController
+**File:** `CRM.Backend/src/CRM.Api/Controllers/InvoicesController.cs`  
+**Status:** ✅ Implemented (27 endpoints)
 
-| Entity | Field | Validation | Message |
-|--------|-------|------------|---------|
-| Invoice | AccountId | Required | "Account is required" |
-| Invoice | InvoiceDate | Required | "Invoice date is required" |
-| Invoice | DueDate | Required, >= InvoiceDate | "Due date must be on or after invoice date" |
-| Invoice | TotalAmount | >= 0 | "Total amount cannot be negative" |
-| InvoiceLineItem | Name | Required | "Line item name is required" |
-| InvoiceLineItem | Quantity | > 0 | "Quantity must be greater than 0" |
-| InvoiceLineItem | UnitPrice | >= 0 | "Unit price cannot be negative" |
+| Method | Route | Description | Status |
+|--------|-------|-------------|--------|
+| GET | /api/invoices | List invoices with filtering | ✅ |
+| GET | /api/invoices/{id} | Get invoice by ID | ✅ |
+| GET | /api/invoices/by-number/{invoiceNumber} | Get by invoice number | ✅ |
+| POST | /api/invoices | Create invoice | ✅ |
+| PUT | /api/invoices/{id} | Update invoice | ✅ |
+| DELETE | /api/invoices/{id} | Soft delete invoice | ✅ |
+| POST | /api/invoices/from-order/{orderId} | Create from order | ✅ |
+| POST | /api/invoices/from-quote/{quoteId} | Create from quote | ✅ |
+| GET | /api/invoices/next-number | Generate next invoice number | ✅ |
+| POST | /api/invoices/{id}/send | Send invoice to customer | ✅ |
+| POST | /api/invoices/{id}/viewed | Mark as viewed | ✅ |
+| PATCH | /api/invoices/{id}/status | Update status | ✅ |
+| POST | /api/invoices/{id}/approve | Approve invoice | ✅ |
+| POST | /api/invoices/{id}/void | Void invoice | ✅ |
+| POST | /api/invoices/{id}/mark-paid | Mark as paid | ✅ |
+| POST | /api/invoices/{id}/payments | Record payment | ✅ |
+| GET | /api/invoices/{id}/balance | Get outstanding balance | ✅ |
+| GET | /api/invoices/{id}/payments | Get payments | ✅ |
+| GET | /api/invoices/overdue | Get overdue invoices | ✅ |
+| GET | /api/invoices/due | Get invoices due within N days | ✅ |
+| GET | /api/invoices/statistics/{customerId} | Get customer statistics | ✅ |
+| POST | /api/invoices/{id}/line-items | Add line item | ✅ |
+| PUT | /api/invoices/line-items/{lineItemId} | Update line item | ✅ |
+| DELETE | /api/invoices/line-items/{lineItemId} | Remove line item | ✅ |
+| GET | /api/invoices/{id}/line-items | Get line items | ✅ |
+| POST | /api/invoices/{id}/recalculate | Recalculate totals | ✅ |
+| POST | /api/invoices/{id}/discount | Apply discount | ✅ |
+
+### 3.6 Backend Validations
+
+| Field | Rule | Status |
+|-------|------|--------|
+| InvoiceNumber | Required, Unique, Auto-generated | ✅ |
+| InvoiceType | Required, Valid enum | ✅ |
+| Status | Required, Valid enum, Valid transition | ✅ |
+| InvoiceDate | Required | ✅ |
+| DueDate | Required, >= InvoiceDate | ✅ |
+| LineItems | At least one required | ✅ |
+| TotalAmount | Calculated, non-negative | ✅ |
+| PaymentAmount | > 0, <= BalanceDue when recording payment | ✅ |
+| VoidReason | Required when voiding | ✅ |
+| ApprovedById | Required when approving | ✅ |
 
 ---
 
-## 4. Database Specification
+## 4. Database
 
 ### 4.1 Tables
 
 #### 4.1.1 Invoices Table
-**Table Name:** `Invoices`
+**Status:** ✅ Implemented via EF Core
 
-| Column | Data Type | Nullable | Default | Constraints |
-|--------|-----------|----------|---------|-------------|
-| Id | int | NO | AUTO_INCREMENT | PK |
-| InvoiceNumber | varchar(50) | NO | | UNIQUE |
-| ExternalInvoiceId | varchar(100) | YES | | |
-| ReferenceNumber | varchar(100) | YES | | |
-| BatchNumber | varchar(50) | YES | | |
-| Description | varchar(1000) | YES | | |
-| Status | int | NO | 0 | |
-| InvoiceType | int | NO | 0 | |
-| PaymentTerms | int | NO | 4 | |
-| PaymentTermsDescription | varchar(500) | YES | | |
-| InvoiceDate | datetime | NO | CURRENT_TIMESTAMP | |
-| DueDate | datetime | NO | | |
-| SentDate | datetime | YES | | |
-| ViewedDate | datetime | YES | | |
-| PaidDate | datetime | YES | | |
-| VoidedDate | datetime | YES | | |
-| ServicePeriodStart | datetime | YES | | |
-| ServicePeriodEnd | datetime | YES | | |
-| Subtotal | decimal(18,2) | NO | 0 | |
-| DiscountAmount | decimal(18,2) | NO | 0 | |
-| DiscountPercent | decimal(5,2) | NO | 0 | |
-| TaxAmount | decimal(18,2) | NO | 0 | |
-| TaxRate | decimal(5,2) | NO | 0 | |
-| ShippingAmount | decimal(18,2) | NO | 0 | |
-| FeesAmount | decimal(18,2) | NO | 0 | |
-| TotalAmount | decimal(18,2) | NO | 0 | |
-| AmountPaid | decimal(18,2) | NO | 0 | |
-| AmountCredited | decimal(18,2) | NO | 0 | |
-| CurrencyCode | varchar(3) | NO | 'USD' | |
-| ExchangeRate | decimal(18,6) | YES | | |
-| EarlyPaymentDiscountPercent | decimal(5,2) | YES | | |
-| EarlyPaymentDiscountDays | int | YES | | |
-| EarlyPaymentDiscountAmount | decimal(18,2) | YES | | |
-| LateFeePercent | decimal(5,2) | YES | | |
-| LateFeeAmount | decimal(18,2) | YES | | |
-| LateFeeTotal | decimal(18,2) | NO | 0 | |
-| BillingName | varchar(255) | YES | | |
-| BillingCompany | varchar(255) | YES | | |
-| BillingStreet | varchar(500) | YES | | |
-| BillingCity | varchar(100) | YES | | |
-| BillingState | varchar(100) | YES | | |
-| BillingPostalCode | varchar(20) | YES | | |
-| BillingCountry | varchar(100) | YES | | |
-| BillingEmail | varchar(255) | YES | | |
-| BillingPhone | varchar(30) | YES | | |
-| ReminderCount | int | NO | 0 | |
-| LastReminderDate | datetime | YES | | |
-| NextReminderDate | datetime | YES | | |
-| InCollections | bit | NO | 0 | |
-| CollectionsDate | datetime | YES | | |
-| CollectionsReference | varchar(100) | YES | | |
-| AccountId | int | NO | | FK → Accounts |
-| OrderId | int | YES | | FK → Orders |
-| SubscriptionId | int | YES | | FK → Subscriptions |
-| ContactId | int | YES | | FK → Contacts |
-| VoidedById | int | YES | | FK → Users |
-| OriginalInvoiceId | int | YES | | FK → Invoices |
-| Notes | nvarchar(2000) | YES | | |
-| InternalNotes | nvarchar(2000) | YES | | |
-| Footer | varchar(1000) | YES | | |
-| TermsAndConditions | nvarchar(5000) | YES | | |
-| VoidReason | varchar(500) | YES | | |
-| DisputeReason | varchar(500) | YES | | |
-| PdfUrl | varchar(500) | YES | | |
-| CreatedAt | datetime | NO | CURRENT_TIMESTAMP | |
-| UpdatedAt | datetime | YES | | |
-| IsDeleted | bit | NO | 0 | |
-| RowVersion | timestamp | NO | | |
+| Column | Type | Constraints |
+|--------|------|-------------|
+| Id | INT | PK, Identity |
+| InvoiceNumber | VARCHAR(50) | NOT NULL, UNIQUE |
+| ExternalInvoiceId | VARCHAR(100) | NULL |
+| ReferenceNumber | VARCHAR(100) | NULL |
+| InvoiceType | INT | NOT NULL, DEFAULT 0 |
+| Status | INT | NOT NULL, DEFAULT 0 |
+| PaymentTerms | INT | NOT NULL, DEFAULT 2 |
+| Description | TEXT | NULL |
+| Notes | TEXT | NULL |
+| InternalNotes | TEXT | NULL |
+| InvoiceDate | DATETIME | NOT NULL |
+| DueDate | DATETIME | NOT NULL |
+| SentDate | DATETIME | NULL |
+| ViewedDate | DATETIME | NULL |
+| PaidDate | DATETIME | NULL |
+| VoidDate | DATETIME | NULL |
+| ApprovedDate | DATETIME | NULL |
+| Subtotal | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| DiscountAmount | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| DiscountPercent | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| TaxAmount | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| TaxPercent | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| ShippingAmount | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| AdjustmentAmount | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| TotalAmount | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| PaidAmount | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| CreditApplied | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| WriteOffAmount | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| Currency | VARCHAR(10) | NOT NULL, DEFAULT 'USD' |
+| EarlyPaymentDiscountPercent | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| EarlyPaymentDiscountDate | DATETIME | NULL |
+| EarlyPaymentDiscountAmount | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| LateFeePercent | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| LateFeeAmount | DECIMAL(18,4) | NOT NULL, DEFAULT 0 |
+| LateFeeApplied | BIT | NOT NULL, DEFAULT 0 |
+| LateFeeDate | DATETIME | NULL |
+| DunningLevel | INT | NOT NULL, DEFAULT 0 |
+| LastDunningDate | DATETIME | NULL |
+| AccountId | INT | FK → Customers.Id, NULL |
+| OrderId | INT | FK → Orders.Id, NULL |
+| SubscriptionId | INT | FK → Subscriptions.Id, NULL |
+| ContactId | INT | FK → Contacts.Id, NULL |
+| VoidedById | INT | FK → Users.Id, NULL |
+| ApprovedById | INT | FK → Users.Id, NULL |
+| OriginalInvoiceId | INT | FK → Invoices.Id, NULL |
+| ... (billing address, document fields) ... |||
+| CreatedAt | DATETIME | NOT NULL, DEFAULT NOW() |
+| UpdatedAt | DATETIME | NULL |
+| IsDeleted | BIT | NOT NULL, DEFAULT 0 |
+| RowVersion | BINARY(8) | NULL |
 
 #### 4.1.2 InvoiceLineItems Table
-**Table Name:** `InvoiceLineItems`
+**Status:** ✅ Implemented via EF Core
 
-| Column | Data Type | Nullable | Default | Constraints |
-|--------|-----------|----------|---------|-------------|
-| Id | int | NO | AUTO_INCREMENT | PK |
-| LineNumber | int | NO | | |
-| ExternalLineId | varchar(100) | YES | | |
-| Name | varchar(255) | NO | | |
-| Description | varchar(1000) | YES | | |
-| SKU | varchar(50) | YES | | |
-| ProductCode | varchar(50) | YES | | |
-| Quantity | decimal(18,4) | NO | 1 | |
-| UnitOfMeasure | varchar(50) | YES | | |
-| UnitPrice | decimal(18,4) | NO | 0 | |
-| DiscountAmount | decimal(18,2) | NO | 0 | |
-| DiscountPercent | decimal(5,2) | NO | 0 | |
-| ExtendedAmount | decimal(18,2) | NO | 0 | |
-| TaxAmount | decimal(18,2) | NO | 0 | |
-| TaxRate | decimal(5,2) | YES | | |
-| TotalAmount | decimal(18,2) | NO | 0 | |
-| ServiceStartDate | datetime | YES | | |
-| ServiceEndDate | datetime | YES | | |
-| RevenueRecognitionStartDate | datetime | YES | | |
-| RevenueRecognitionEndDate | datetime | YES | | |
-| DeferredRevenue | decimal(18,2) | YES | | |
-| RecognizedRevenue | decimal(18,2) | YES | | |
-| InvoiceId | int | NO | | FK → Invoices |
-| ProductId | int | YES | | FK → Products |
-| OrderLineItemId | int | YES | | FK → OrderLineItems |
-| SubscriptionId | int | YES | | FK → Subscriptions |
-| Notes | varchar(1000) | YES | | |
-| CreatedAt | datetime | NO | CURRENT_TIMESTAMP | |
-| UpdatedAt | datetime | YES | | |
-| IsDeleted | bit | NO | 0 | |
-| RowVersion | timestamp | NO | | |
+| Column | Type | Constraints |
+|--------|------|-------------|
+| Id | INT | PK, Identity |
+| InvoiceId | INT | FK → Invoices.Id, NOT NULL |
+| LineNumber | INT | NOT NULL |
+| ProductId | INT | FK → Products.Id, NULL |
+| ProductName | VARCHAR(200) | NOT NULL |
+| Quantity | DECIMAL(18,4) | NOT NULL |
+| UnitPrice | DECIMAL(18,4) | NOT NULL |
+| ExtendedPrice | DECIMAL(18,4) | NOT NULL |
+| TotalPrice | DECIMAL(18,4) | NOT NULL |
+| ... (30+ columns) ... |||
+| CreatedAt | DATETIME | NOT NULL, DEFAULT NOW() |
+| UpdatedAt | DATETIME | NULL |
+| IsDeleted | BIT | NOT NULL, DEFAULT 0 |
 
 ### 4.2 Indexes
 
-| Index Name | Table | Columns | Type |
-|------------|-------|---------|------|
-| IX_Invoices_InvoiceNumber | Invoices | InvoiceNumber | Unique |
-| IX_Invoices_AccountId | Invoices | AccountId | Non-unique |
-| IX_Invoices_Status | Invoices | Status | Non-unique |
-| IX_Invoices_DueDate | Invoices | DueDate | Non-unique |
-| IX_Invoices_InvoiceDate | Invoices | InvoiceDate | Non-unique |
-| IX_Invoices_OrderId | Invoices | OrderId | Non-unique |
-| IX_InvoiceLineItems_InvoiceId | InvoiceLineItems | InvoiceId | Non-unique |
-| IX_InvoiceLineItems_ProductId | InvoiceLineItems | ProductId | Non-unique |
+| Index | Table | Columns | Type |
+|-------|-------|---------|------|
+| IX_Invoices_InvoiceNumber | Invoices | InvoiceNumber | UNIQUE |
+| IX_Invoices_AccountId | Invoices | AccountId | NON-UNIQUE |
+| IX_Invoices_OrderId | Invoices | OrderId | NON-UNIQUE |
+| IX_Invoices_Status | Invoices | Status | NON-UNIQUE |
+| IX_Invoices_DueDate | Invoices | DueDate | NON-UNIQUE |
+| IX_Invoices_InvoiceDate | Invoices | InvoiceDate | NON-UNIQUE |
+| IX_InvoiceLineItems_InvoiceId | InvoiceLineItems | InvoiceId | NON-UNIQUE |
+| IX_InvoiceLineItems_ProductId | InvoiceLineItems | ProductId | NON-UNIQUE |
 
 ### 4.3 Foreign Keys
 
-| FK Name | From Table.Column | To Table.Column |
-|---------|-------------------|-----------------|
-| FK_Invoices_Account | Invoices.AccountId | Accounts.Id |
-| FK_Invoices_Order | Invoices.OrderId | Orders.Id |
-| FK_Invoices_Contact | Invoices.ContactId | Contacts.Id |
-| FK_Invoices_Subscription | Invoices.SubscriptionId | Subscriptions.Id |
-| FK_Invoices_VoidedBy | Invoices.VoidedById | Users.Id |
+| FK | From | To |
+|----|------|-----|
+| FK_Invoices_Accounts | Invoices.AccountId | Customers.Id |
+| FK_Invoices_Orders | Invoices.OrderId | Orders.Id |
+| FK_Invoices_Subscriptions | Invoices.SubscriptionId | Subscriptions.Id |
+| FK_Invoices_Contacts | Invoices.ContactId | Contacts.Id |
+| FK_Invoices_Users_Voider | Invoices.VoidedById | Users.Id |
+| FK_Invoices_Users_Approver | Invoices.ApprovedById | Users.Id |
 | FK_Invoices_OriginalInvoice | Invoices.OriginalInvoiceId | Invoices.Id |
-| FK_InvoiceLineItems_Invoice | InvoiceLineItems.InvoiceId | Invoices.Id |
-| FK_InvoiceLineItems_Product | InvoiceLineItems.ProductId | Products.Id |
-| FK_InvoiceLineItems_OrderLineItem | InvoiceLineItems.OrderLineItemId | OrderLineItems.Id |
-| FK_InvoiceLineItems_Subscription | InvoiceLineItems.SubscriptionId | Subscriptions.Id |
+| FK_InvoiceLineItems_Invoices | InvoiceLineItems.InvoiceId | Invoices.Id |
+| FK_InvoiceLineItems_Products | InvoiceLineItems.ProductId | Products.Id |
 
 ---
 
-## 5. Test Specification
+## 5. Testing
 
 ### 5.1 Unit Tests
 
-| Test Class | Method | Description | Status |
-|------------|--------|-------------|--------|
-| InvoiceServiceTests | CreateAsync_GeneratesInvoiceNumber | Should auto-generate invoice number | ❌ Not Implemented |
-| InvoiceServiceTests | CreateFromOrderAsync_CopiesLineItems | Should copy order line items | ❌ Not Implemented |
-| InvoiceServiceTests | RecordPaymentAsync_UpdatesBalance | Should update amount paid and status | ❌ Not Implemented |
-| InvoiceServiceTests | RecalculateTotalsAsync_CalculatesCorrectly | Should sum line items correctly | ❌ Not Implemented |
-| InvoiceServiceTests | VoidAsync_PreventsPaidInvoice | Should throw for paid invoices | ❌ Not Implemented |
+| Test | Description | Status |
+|------|-------------|--------|
+| GetAllAsync_ReturnsAllInvoices | Returns all non-deleted invoices | ❌ Not Implemented |
+| GetByIdAsync_ExistingInvoice_ReturnsInvoice | Returns invoice by ID | ❌ Not Implemented |
+| GetByInvoiceNumberAsync_ReturnsInvoice | Returns invoice by number | ❌ Not Implemented |
+| CreateAsync_ValidInvoice_CreatesInvoice | Creates new invoice | ❌ Not Implemented |
+| CreateFromOrderAsync_CopiesOrderData | Copies order to invoice | ❌ Not Implemented |
+| RecordPaymentAsync_ValidPayment_UpdatesBalance | Records payment correctly | ❌ Not Implemented |
+| RecordPaymentAsync_OverPayment_ThrowsException | Prevents overpayment | ❌ Not Implemented |
+| MarkAsPaidAsync_ZeroBalance_SetsStatusPaid | Sets paid status when balance is 0 | ❌ Not Implemented |
+| VoidAsync_NonPaidInvoice_Voids | Voids non-paid invoice | ❌ Not Implemented |
+| VoidAsync_PaidInvoice_ThrowsException | Prevents voiding paid invoice | ❌ Not Implemented |
+| RecalculateTotalsAsync_CorrectCalculation | Calculates totals correctly | ❌ Not Implemented |
+| GetOverdueInvoicesAsync_ReturnsOverdue | Returns overdue invoices | ❌ Not Implemented |
+| ApplyDiscountAsync_UpdatesTotals | Applies discount and recalculates | ❌ Not Implemented |
 
 ### 5.2 Integration Tests
 
-| Test Class | Method | Description | Status |
-|------------|--------|-------------|--------|
-| InvoicesControllerTests | CreateInvoice_ReturnsCreated | POST /api/invoices | ⚠️ Test exists, no controller |
-| InvoicesControllerTests | GetOverdue_ReturnsOverdueInvoices | GET /api/invoices/overdue | ⚠️ Test exists, no controller |
+| Test | Description | Status |
+|------|-------------|--------|
+| InvoicesController_GetAll_Returns200 | GET /api/invoices returns list | ❌ Not Implemented |
+| InvoicesController_Create_Returns201 | POST /api/invoices creates invoice | ❌ Not Implemented |
+| InvoicesController_CreateFromOrder_Returns201 | POST /api/invoices/from-order/{id} | ❌ Not Implemented |
+| InvoicesController_RecordPayment_Returns200 | POST /api/invoices/{id}/payments | ❌ Not Implemented |
 
 ### 5.3 E2E Tests
 
-| Test File | Test Name | Description | Status |
-|-----------|-----------|-------------|--------|
-| invoices.spec.ts | should create invoice from order | Full workflow test | ❌ Not Implemented |
-| invoices.spec.ts | should record payment | Payment recording flow | ❌ Not Implemented |
-| invoices.spec.ts | should void invoice | Void workflow test | ❌ Not Implemented |
+| Test | Description | Status |
+|------|-------------|--------|
+| should display invoices list page | Navigate to /invoices | ❌ Not Implemented |
+| should create invoice from order | Full create-from-order workflow | ❌ Not Implemented |
+| should record payment on invoice | Payment recording workflow | ❌ Not Implemented |
+| should void an invoice | Invoice voiding workflow | ❌ Not Implemented |
 
 ---
 
-## 6. Issues & Inconsistencies
+## 6. Issues & Gaps
 
-### 6.1 Naming Inconsistencies
-| Issue | Current | Expected | Impact |
-|-------|---------|----------|--------|
-| None identified | - | - | - |
+### 6.1 Missing Components
+
+| Component | Type | Priority | Impact |
+|-----------|------|----------|--------|
+| InvoiceDto / CreateInvoiceDto / UpdateInvoiceDto | Backend DTO | P2 | Controller passes entities directly — DTOs would improve API contract |
+| InvoiceDetailsPage.tsx | Frontend Page | P2 | Cannot view full invoice details or record payments in UI |
+| InvoiceForm.tsx | Frontend Component | P2 | No dedicated create/edit form component |
+| InvoicePaymentHistory.tsx | Frontend Component | P2 | No payment history visualization |
+| InvoicePdfPreview.tsx | Frontend Component | P3 | No PDF generation or preview |
 
 ### 6.2 Validation Gaps
-| Entity | Gap | Recommendation |
-|--------|-----|----------------|
-| Invoice | No maximum for TotalAmount | Add reasonable maximum validation |
-| Invoice | DueDate validation not enforced in service | Add validation in CreateAsync |
-| InvoiceLineItem | No validation for service period dates | Ensure StartDate < EndDate |
 
-### 6.3 Missing Components
-| Component | Type | Priority |
-|-----------|------|----------|
-| InvoicesController.cs | API Controller | P1 - High |
-| InvoiceDto.cs | DTO | P1 - High |
-| invoiceService.ts | Frontend Service | P1 - High |
-| InvoicesPage.tsx | Frontend Page | P1 - High |
-| InvoiceDetailsPage.tsx | Frontend Page | P1 - High |
-| InvoiceServiceTests.cs | Unit Tests | P2 - Medium |
+| Field | Missing Validation | Recommendation |
+|-------|-------------------|----------------|
+| Currency | No ISO 4217 currency code validation | Validate against currency code list |
+| BillingContactEmail | No email format validation | Add email regex validation |
+| PaymentTerms | Custom terms not validated | Validate custom payment terms logic |
+| LateFeePercent | No maximum cap | Add maximum late fee percentage |
 
----
+### 6.3 Naming Inconsistencies
 
-## 7. TODO Items
-
-| ID | Description | Priority | Category | Status |
-|----|-------------|----------|----------|--------|
-| TODO-SALES003-001 | Create InvoicesController.cs with all endpoints | P1 | Backend | ⬜ Pending |
-| TODO-SALES003-002 | Create InvoiceDto, CreateInvoiceDto, UpdateInvoiceDto | P1 | Backend | ⬜ Pending |
-| TODO-SALES003-003 | Create invoiceService.ts frontend service | P1 | Frontend | ⬜ Pending |
-| TODO-SALES003-004 | Create InvoicesPage.tsx with data grid | P1 | Frontend | ⬜ Pending |
-| TODO-SALES003-005 | Create InvoiceDetailsPage.tsx | P1 | Frontend | ⬜ Pending |
-| TODO-SALES003-006 | Create InvoiceForm.tsx component | P2 | Frontend | ⬜ Pending |
-| TODO-SALES003-007 | Create InvoiceLineItemsEditor.tsx | P2 | Frontend | ⬜ Pending |
-| TODO-SALES003-008 | Create InvoicePaymentPanel.tsx | P2 | Frontend | ⬜ Pending |
-| TODO-SALES003-009 | Add DueDate >= InvoiceDate validation in service | P2 | Validation | ⬜ Pending |
-| TODO-SALES003-010 | Create InvoiceServiceTests.cs unit tests | P2 | Testing | ⬜ Pending |
-| TODO-SALES003-011 | Create invoice E2E tests | P3 | Testing | ⬜ Pending |
-| TODO-SALES003-012 | Implement invoice PDF generation | P3 | Backend | ⬜ Pending |
+| Location | Issue | Recommendation |
+|----------|-------|----------------|
+| Frontend PaymentMethod enum | Has 17 values; not in backend Invoice.cs | Align — either add to backend or reference Payment entity |
+| InvoiceStatistics class | Defined in IInvoiceService.cs inline | Consider separate DTO file |
 
 ---
 
-## 8. Related Specifications
+## 7. TODOs
+
+### High Priority
+
+| ID | Task | Effort |
+|----|------|--------|
+| TODO-SALES003-001 | Create InvoiceDetailsPage.tsx with payment recording | 8 hrs |
+| TODO-SALES003-002 | Create InvoiceDto, CreateInvoiceDto, UpdateInvoiceDto | 4 hrs |
+
+### Medium Priority
+
+| ID | Task | Effort |
+|----|------|--------|
+| TODO-SALES003-003 | Create InvoiceForm.tsx component | 4 hrs |
+| TODO-SALES003-004 | Create InvoiceLineItemsTable.tsx component | 4 hrs |
+| TODO-SALES003-005 | Create InvoiceStatusBadge.tsx component | 1 hr |
+| TODO-SALES003-006 | Create InvoicePaymentHistory.tsx component | 3 hrs |
+| TODO-SALES003-007 | Add currency code validation | 1 hr |
+| TODO-SALES003-008 | Add email format validation for billing contact | 1 hr |
+| TODO-SALES003-009 | Create InvoiceServiceTests.cs unit tests | 4 hrs |
+| TODO-SALES003-010 | Implement PDF generation for invoices | 6 hrs |
+
+### Low Priority
+
+| ID | Task | Effort |
+|----|------|--------|
+| TODO-SALES003-011 | Create E2E tests for invoice workflows | 4 hrs |
+| TODO-SALES003-012 | Implement automated dunning email sequence | 6 hrs |
+
+---
+
+## 8. Appendix
+
+### A. Invoice Status Flow Diagram
+
+```
+                    ┌─────────────┐
+                    │    Draft    │
+                    └──────┬──────┘
+                           │ submit/approve
+                           ▼
+                    ┌─────────────┐
+                    │  Pending    │──approve──┐
+                    │  Approval   │           │
+                    └──────┬──────┘           │
+                           │reject           │
+                           ▼                 │
+                    ┌─────────────┐           │
+                    │    Draft    │           ▼
+                    └─────────────┘     ┌─────────────┐
+                                       │  Approved   │
+                                       └──────┬──────┘
+                                              │ send
+                                              ▼
+                                       ┌─────────────┐
+                                       │    Sent     │
+                                       └──────┬──────┘
+                                              │ view
+                                              ▼
+                                       ┌─────────────┐
+                                       │   Viewed    │
+                                       └──────┬──────┘
+                                              │ payment
+                              ┌───────────────┼────────────────┐
+                              ▼                                ▼
+                       ┌─────────────┐                  ┌─────────────┐
+                       │  Partially  │─────full pay────▶│    Paid     │
+                       │    Paid     │                  └─────────────┘
+                       └─────────────┘
+
+    Sent/Viewed/PartiallyPaid + past due ──► Overdue ──► InCollections
+    Non-paid invoices ──void──► Void
+    Any invoice ──dispute──► Disputed
+    Overdue ──write off──► WrittenOff
+    Paid ──refund──► Refunded
+```
+
+### B. Invoice Number Format
+
+```
+INV-{YY}{MM}-{####}
+
+INV   = Fixed prefix
+YY    = 2-digit year
+MM    = 2-digit month (01-12)
+####  = 4-digit sequence (resets monthly)
+
+Examples:
+  INV-2602-0001  (First invoice of February 2026)
+  INV-2602-0042  (42nd invoice of February 2026)
+  INV-2603-0001  (First invoice of March 2026)
+```
+
+### C. Payment Terms Reference
+
+| Term | Days | Description |
+|------|------|-------------|
+| Due on Receipt | 0 | Payment due immediately |
+| Net 15 | 15 | Due within 15 days |
+| Net 30 | 30 | Due within 30 days |
+| Net 45 | 45 | Due within 45 days |
+| Net 60 | 60 | Due within 60 days |
+| Net 90 | 90 | Due within 90 days |
+| 2/10 Net 30 | 30 | 2% discount if paid in 10 days, otherwise net 30 |
+| End of Month | Varies | Due end of invoice month |
+| 15th of Month | Varies | Due 15th of following month |
+| Due on Date | Varies | Due on a specific date |
+| Custom | Varies | Custom payment schedule |
+
+### D. Related Specifications
 
 | Spec ID | Name | Relationship |
 |---------|------|--------------|
-| SPEC-CRM-001 | Account Management | Invoices belong to Accounts |
-| SPEC-SALES-001 | Quote Management | Invoices can be created from Quotes |
-| SPEC-SALES-002 | Order Management | Invoices can be created from Orders |
-| SPEC-SALES-004 | Payment Management | Payments applied to Invoices |
+| [SPEC-SALES-002](SPEC-SALES-002-OrderManagement.md) | Order Management | Source for invoices |
+| [SPEC-SALES-001](SPEC-SALES-001-QuoteManagement.md) | Quote Management | Source for invoices |
+| [SPEC-CRM-001](SPEC-CRM-001-AccountManagement.md) | Account Management | Invoice customer |
+| SPEC-SALES-004 | Payment Management | Payment processing |
+
+### E. Change History
+
+| Date | Version | Changes |
+|------|---------|---------|
+| February 2026 | 1.0 | Initial specification created |
+| February 2026 | 2.0 | Updated statuses — InvoicesController ✅, invoiceService.ts ✅, InvoicesPage.tsx ✅ now implemented. Restructured to match SPEC-TEMPLATE format (Frontend = Section 2, Backend = Section 3). |
 
 ---
 
-## Appendix A: Invoice Status Flow
-
-```
-                                    ┌─────────┐
-                                    │  Draft  │
-                                    └────┬────┘
-                                         │ Submit
-                                         ▼
-                                ┌─────────────────┐
-                                │ PendingApproval │
-                                └────────┬────────┘
-                           Reject │      │ Approve
-                                  ▼      ▼
-                             ┌────────────────┐
-                             │    Approved    │
-                             └───────┬────────┘
-                                     │ Send
-                                     ▼
-    ┌───────────────────────────────────────────────────────┐
-    │                        Sent                            │
-    └───────────────────────────┬───────────────────────────┘
-                                │ Customer Views
-                                ▼
-    ┌───────────────────────────────────────────────────────┐
-    │                       Viewed                           │
-    └────────┬──────────────────┬──────────────────┬────────┘
-             │                  │                  │
-    Partial Payment      Full Payment          Past Due
-             │                  │                  │
-             ▼                  ▼                  ▼
-    ┌─────────────────┐  ┌─────────────┐  ┌─────────────────┐
-    │  PartiallyPaid  │  │    Paid     │  │     Overdue     │
-    └────────┬────────┘  └─────────────┘  └────────┬────────┘
-             │                                      │
-        Full Payment                         Collections
-             │                                      │
-             ▼                                      ▼
-    ┌─────────────────┐                   ┌─────────────────┐
-    │      Paid       │                   │   Collections   │
-    └─────────────────┘                   └────────┬────────┘
-                                                   │
-                                            Write Off
-                                                   │
-                                                   ▼
-                                          ┌─────────────────┐
-                                          │   WrittenOff    │
-                                          └─────────────────┘
-
-    * Voided: Can transition from Draft, Approved, Sent, Viewed, Overdue
-    * Disputed: Can transition from Sent, Viewed, Overdue
-    * Refunded: Can transition from Paid
-```
-
----
-
-## Appendix B: Invoice Number Format
-
-```
-INV-YYMM-NNNN
-
-Where:
-  INV  = Fixed prefix
-  YY   = 2-digit year
-  MM   = 2-digit month
-  NNNN = 4-digit sequence number (resets monthly)
-
-Examples:
-  INV-2602-0001  (First invoice of Feb 2026)
-  INV-2602-0042  (42nd invoice of Feb 2026)
-  INV-2603-0001  (First invoice of Mar 2026)
-```
-
----
-
-**Document End**
+**END OF SPECIFICATION**

@@ -1,242 +1,129 @@
-// This file is part of the CRM Solution.
-// Tests for KnowledgeManagementService - ITSM knowledge base management
+// CRM Solution - ITSM Knowledge Management Service Unit Tests
+// Tests for KnowledgeManagementService - Knowledge article lifecycle
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 using CRM.Core.DTOs.ITSM;
-using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
+using CRM.Core.Interfaces.ITSM;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.ITSM;
+using CRM.Tests.Helpers;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
-using FluentAssertions;
 
-namespace CRM.Tests.Services.ITSM;
+namespace CRM.Tests.ITSMServices.Knowledge;
 
 public class KnowledgeManagementServiceTests
 {
-    private readonly Mock<IDbContextResolver> _mockContextResolver;
-    private readonly Mock<ILogger<KnowledgeManagementService>> _mockLogger;
+    private readonly Mock<IDbContextResolver> _mockResolver;
     private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly KnowledgeManagementService _service;
+    private readonly Mock<ILogger<KnowledgeManagementService>> _mockLogger;
+    private readonly IKnowledgeManagementService _service;
 
     public KnowledgeManagementServiceTests()
     {
-        _mockContextResolver = new Mock<IDbContextResolver>();
-        _mockLogger = new Mock<ILogger<KnowledgeManagementService>>();
+        _mockResolver = new Mock<IDbContextResolver>();
         _mockContext = new Mock<ICrmDbContext>();
-        
-        _mockContextResolver.Setup(x => x.ResolveContext()).Returns(_mockContext.Object);
-        
-        _service = new KnowledgeManagementService(
-            _mockContextResolver.Object,
-            _mockLogger.Object);
+        _mockLogger = new Mock<ILogger<KnowledgeManagementService>>();
+
+        _mockResolver.Setup(r => r.ResolveContext()).Returns(_mockContext.Object);
+        _service = new KnowledgeManagementService(_mockResolver.Object, _mockLogger.Object);
     }
 
-    #region CreateArticleAsync Tests
+    // ========================================================================
+    // CreateArticleAsync
+    // ========================================================================
 
     [Fact]
-    public async Task CreateArticleAsync_CreatesArticleWithCorrectData()
+    public async Task CreateArticleAsync_ShouldCreateArticle_WhenValidDtoProvided()
     {
         // Arrange
+        var articles = new List<KnowledgeArticle>();
+        var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
+        mockSet.Setup(m => m.Add(It.IsAny<KnowledgeArticle>())).Callback<KnowledgeArticle>(e => articles.Add(e));
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
         var dto = new CreateKnowledgeArticleDto
         {
             Title = "How to reset password",
-            ShortDescription = "Steps to reset your password",
-            ArticleBody = "1. Go to login page...",
-            ArticleType = "How-To",
-            CategoryId = 1,
-            IsInternal = false
+            ArticleBody = "Step 1: Click forgot password...",
+            ArticleType = ArticleType.HowTo,
+            ShortDescription = "Password reset instructions"
         };
-        
+
+        // Act
+        var result = await _service.CreateArticleAsync(dto, authorId: 1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Title.Should().Be("How to reset password");
+        result.ArticleType.Should().Be(ArticleType.HowTo);
+        mockSet.Verify(m => m.Add(It.IsAny<KnowledgeArticle>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateArticleAsync_ShouldSetDraftState_ByDefault()
+    {
+        // Arrange
         var articles = new List<KnowledgeArticle>();
-        var mockSet = CreateMockDbSet(articles);
-        KnowledgeArticle? capturedArticle = null;
-        mockSet.Setup(m => m.Add(It.IsAny<KnowledgeArticle>()))
-            .Callback<KnowledgeArticle>(a => capturedArticle = a);
+        var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
+        mockSet.Setup(m => m.Add(It.IsAny<KnowledgeArticle>())).Callback<KnowledgeArticle>(e => articles.Add(e));
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        // Act
-        var result = await _service.CreateArticleAsync(dto, createdById: 100);
-
-        // Assert
-        capturedArticle.Should().NotBeNull();
-        capturedArticle!.Title.Should().Be("How to reset password");
-        capturedArticle.ShortDescription.Should().Be("Steps to reset your password");
-        capturedArticle.ArticleType.Should().Be("How-To");
-        capturedArticle.PublishingState.Should().Be(PublishingState.Draft);
-        capturedArticle.AuthorId.Should().Be(100);
-        capturedArticle.IsInternal.Should().BeFalse();
-        capturedArticle.IsExternal.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task CreateArticleAsync_GeneratesArticleNumber()
-    {
-        // Arrange
-        var dto = new CreateKnowledgeArticleDto { Title = "Test Article" };
-        var articles = new List<KnowledgeArticle>
-        {
-            new KnowledgeArticle { ArticleId = 5, Number = "KB0000005" }
-        };
-        var mockSet = CreateMockDbSet(articles);
-        KnowledgeArticle? capturedArticle = null;
-        mockSet.Setup(m => m.Add(It.IsAny<KnowledgeArticle>()))
-            .Callback<KnowledgeArticle>(a => capturedArticle = a);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        // Act
-        await _service.CreateArticleAsync(dto, createdById: 1);
-
-        // Assert
-        capturedArticle.Should().NotBeNull();
-        capturedArticle!.Number.Should().Be("KB0000006");
-    }
-
-    [Fact]
-    public async Task CreateArticleAsync_LogsCreation()
-    {
-        // Arrange
-        var dto = new CreateKnowledgeArticleDto { Title = "Test" };
-        var articles = new List<KnowledgeArticle>();
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        // Act
-        await _service.CreateArticleAsync(dto, createdById: 1);
-
-        // Assert
-        _mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Created knowledge article")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task CreateArticleAsync_SetsInternalToTrue_WhenSpecified()
-    {
-        // Arrange
         var dto = new CreateKnowledgeArticleDto
         {
-            Title = "Internal Procedure",
-            IsInternal = true
+            Title = "Draft article",
+            ArticleBody = "Content",
+            ArticleType = ArticleType.FAQ
         };
-        var articles = new List<KnowledgeArticle>();
-        var mockSet = CreateMockDbSet(articles);
-        KnowledgeArticle? capturedArticle = null;
-        mockSet.Setup(m => m.Add(It.IsAny<KnowledgeArticle>()))
-            .Callback<KnowledgeArticle>(a => capturedArticle = a);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
 
         // Act
-        await _service.CreateArticleAsync(dto, createdById: 1);
+        var result = await _service.CreateArticleAsync(dto, authorId: 1);
 
         // Assert
-        capturedArticle!.IsInternal.Should().BeTrue();
-        capturedArticle.IsExternal.Should().BeFalse();
+        result.PublishingState.Should().Be(PublishingState.Draft);
     }
 
-    #endregion
-
-    #region GetArticleByIdAsync Tests
+    // ========================================================================
+    // GetArticleByIdAsync
+    // ========================================================================
 
     [Fact]
-    public async Task GetArticleByIdAsync_WhenExists_ReturnsArticle()
+    public async Task GetArticleByIdAsync_ShouldReturnArticle_WhenExists()
     {
         // Arrange
-        var author = new User { Id = 100, Username = "author1" };
         var articles = new List<KnowledgeArticle>
         {
-            new KnowledgeArticle 
-            { 
-                ArticleId = 1, 
-                Number = "KB0000001",
-                Title = "Password Reset Guide",
-                ShortDescription = "How to reset passwords",
-                ArticleBody = "Follow these steps...",
-                ViewCount = 100,
-                AuthorId = 100,
-                Author = author,
-                PublishingState = PublishingState.Published
+            new()
+            {
+                ArticleId = 1, Number = "KB0001", Title = "VPN Setup",
+                ArticleBody = "Instructions...", ArticleType = ArticleType.HowTo,
+                PublishingState = PublishingState.Published, AuthorId = 1,
+                ViewCount = 42, CreatedAt = DateTime.UtcNow, IsDeleted = false
             }
         };
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.GetArticleByIdAsync(1);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Title.Should().Be("Password Reset Guide");
-        result.AuthorName.Should().Be("author1");
+        result!.Title.Should().Be("VPN Setup");
+        result.ViewCount.Should().Be(43);
     }
 
     [Fact]
-    public async Task GetArticleByIdAsync_IncrementsViewCount()
+    public async Task GetArticleByIdAsync_ShouldReturnNull_WhenNotFound()
     {
         // Arrange
-        var articles = new List<KnowledgeArticle>
-        {
-            new KnowledgeArticle { ArticleId = 1, Title = "Test", ViewCount = 50 }
-        };
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        // Act
-        await _service.GetArticleByIdAsync(1);
-
-        // Assert
-        articles[0].ViewCount.Should().Be(51);
-        _mockContext.Verify(c => c.SaveChangesAsync(default), Times.Once);
-    }
-
-    [Fact]
-    public async Task GetArticleByIdAsync_WhenDeleted_ReturnsNull()
-    {
-        // Arrange
-        var articles = new List<KnowledgeArticle>
-        {
-            new KnowledgeArticle { ArticleId = 1, IsDeleted = true }
-        };
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-
-        // Act
-        var result = await _service.GetArticleByIdAsync(1);
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetArticleByIdAsync_WhenNotFound_ReturnsNull()
-    {
-        // Arrange
-        var articles = new List<KnowledgeArticle>();
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle>()).Object);
 
         // Act
         var result = await _service.GetArticleByIdAsync(999);
@@ -245,521 +132,229 @@ public class KnowledgeManagementServiceTests
         result.Should().BeNull();
     }
 
-    #endregion
-
-    #region SearchArticlesAsync Tests
+    // ========================================================================
+    // SearchArticlesAsync
+    // ========================================================================
 
     [Fact]
-    public async Task SearchArticlesAsync_SearchesByTitle()
+    public async Task SearchArticlesAsync_ShouldReturnMatchingArticles()
     {
         // Arrange
         var articles = new List<KnowledgeArticle>
         {
-            new KnowledgeArticle { ArticleId = 1, Title = "Password Reset", PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 2, Title = "Email Setup", PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 3, Title = "Password Policy", PublishingState = PublishingState.Published }
+            new() { ArticleId = 1, Number = "KB0001", Title = "VPN troubleshooting", ArticleBody = "Steps...", ArticleType = ArticleType.Troubleshooting, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow },
+            new() { ArticleId = 2, Number = "KB0002", Title = "Email setup guide", ArticleBody = "Steps...", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow },
+            new() { ArticleId = 3, Number = "KB0003", Title = "VPN FAQ", ArticleBody = "Common...", ArticleType = ArticleType.FAQ, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow }
         };
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
 
         // Act
-        var result = await _service.SearchArticlesAsync("Password", pageNumber: 1, pageSize: 10);
+        var results = await _service.SearchArticlesAsync("VPN", pageNumber: 1, pageSize: 20);
 
         // Assert
-        result.Should().HaveCount(2);
-        result.Select(a => a.Title).Should().Contain("Password Reset", "Password Policy");
+        results.Should().NotBeNull();
+        results.Count().Should().Be(2);
     }
 
+    // ========================================================================
+    // UpdateArticleAsync
+    // ========================================================================
+
     [Fact]
-    public async Task SearchArticlesAsync_SearchesByDescription()
+    public async Task UpdateArticleAsync_ShouldUpdateFields_WhenArticleExists()
     {
         // Arrange
-        var articles = new List<KnowledgeArticle>
+        var article = new KnowledgeArticle
         {
-            new KnowledgeArticle 
-            { 
-                ArticleId = 1, 
-                Title = "Setup Guide", 
-                ShortDescription = "How to configure email settings",
-                PublishingState = PublishingState.Published 
-            },
-            new KnowledgeArticle 
-            { 
-                ArticleId = 2, 
-                Title = "Security Policy", 
-                ShortDescription = "Password requirements",
-                PublishingState = PublishingState.Published 
-            }
+            ArticleId = 1, Number = "KB0001", Title = "Old title",
+            ArticleBody = "Old body", ArticleType = ArticleType.HowTo,
+            PublishingState = PublishingState.Draft, AuthorId = 1,
+            CreatedAt = DateTime.UtcNow
         };
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-
-        // Act
-        var result = await _service.SearchArticlesAsync("email", pageNumber: 1, pageSize: 10);
-
-        // Assert
-        result.Should().HaveCount(1);
-        result.First().Title.Should().Be("Setup Guide");
-    }
-
-    [Fact]
-    public async Task SearchArticlesAsync_OnlyReturnsPublished()
-    {
-        // Arrange
-        var articles = new List<KnowledgeArticle>
-        {
-            new KnowledgeArticle { ArticleId = 1, Title = "Password Guide", PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 2, Title = "Password Draft", PublishingState = PublishingState.Draft },
-            new KnowledgeArticle { ArticleId = 3, Title = "Password Retired", PublishingState = PublishingState.Retired }
-        };
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-
-        // Act
-        var result = await _service.SearchArticlesAsync("Password", pageNumber: 1, pageSize: 10);
-
-        // Assert
-        result.Should().HaveCount(1);
-        result.First().Title.Should().Be("Password Guide");
-    }
-
-    [Fact]
-    public async Task SearchArticlesAsync_OrdersByViewCount()
-    {
-        // Arrange
-        var articles = new List<KnowledgeArticle>
-        {
-            new KnowledgeArticle { ArticleId = 1, Title = "KB 1", ViewCount = 100, PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 2, Title = "KB 2", ViewCount = 500, PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 3, Title = "KB 3", ViewCount = 200, PublishingState = PublishingState.Published }
-        };
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-
-        // Act
-        var result = (await _service.SearchArticlesAsync("KB", pageNumber: 1, pageSize: 10)).ToList();
-
-        // Assert
-        result[0].ViewCount.Should().Be(500);
-        result[1].ViewCount.Should().Be(200);
-        result[2].ViewCount.Should().Be(100);
-    }
-
-    [Fact]
-    public async Task SearchArticlesAsync_SupportsPagination()
-    {
-        // Arrange
-        var articles = Enumerable.Range(1, 20)
-            .Select(i => new KnowledgeArticle 
-            { 
-                ArticleId = i, 
-                Title = $"Article {i}",
-                ViewCount = 20 - i,
-                PublishingState = PublishingState.Published 
-            })
-            .ToList();
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-
-        // Act
-        var page2 = await _service.SearchArticlesAsync("Article", pageNumber: 2, pageSize: 5);
-
-        // Assert
-        page2.Should().HaveCount(5);
-    }
-
-    #endregion
-
-    #region UpdateArticleAsync Tests
-
-    [Fact]
-    public async Task UpdateArticleAsync_UpdatesAllFields()
-    {
-        // Arrange
-        var existingArticle = new KnowledgeArticle 
-        { 
-            ArticleId = 1, 
-            Title = "Old Title",
-            ShortDescription = "Old Description",
-            ArticleBody = "Old body",
-            ArticleType = "FAQ"
-        };
         var dto = new CreateKnowledgeArticleDto
         {
-            Title = "New Title",
-            ShortDescription = "New Description",
-            ArticleBody = "New body",
-            ArticleType = "How-To",
-            CategoryId = 5,
-            IsInternal = true
+            Title = "Updated title",
+            ArticleBody = "Updated body",
+            ArticleType = ArticleType.Troubleshooting
         };
 
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(1)).ReturnsAsync(existingArticle);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
         // Act
-        var result = await _service.UpdateArticleAsync(1, dto, modifiedById: 50);
+        var result = await _service.UpdateArticleAsync(1, dto, modifiedById: 2);
 
         // Assert
-        existingArticle.Title.Should().Be("New Title");
-        existingArticle.ShortDescription.Should().Be("New Description");
-        existingArticle.ArticleBody.Should().Be("New body");
-        existingArticle.ArticleType.Should().Be("How-To");
-        existingArticle.IsInternal.Should().BeTrue();
-        existingArticle.IsExternal.Should().BeFalse();
-        existingArticle.ModifiedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        result.Should().NotBeNull();
+        result.Title.Should().Be("Updated title");
     }
 
-    [Fact]
-    public async Task UpdateArticleAsync_WhenNotFound_ThrowsException()
-    {
-        // Arrange
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(It.IsAny<int>())).ReturnsAsync((KnowledgeArticle?)null);
-
-        // Act & Assert
-        var act = () => _service.UpdateArticleAsync(999, new CreateKnowledgeArticleDto(), 50);
-        await act.Should().ThrowAsync<KeyNotFoundException>();
-    }
+    // ========================================================================
+    // PublishArticleAsync / RetireArticleAsync
+    // ========================================================================
 
     [Fact]
-    public async Task UpdateArticleAsync_WhenDeleted_ThrowsException()
+    public async Task PublishArticleAsync_ShouldSetPublishedState()
     {
         // Arrange
-        var article = new KnowledgeArticle { ArticleId = 1, IsDeleted = true };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(1)).ReturnsAsync(article);
-
-        // Act & Assert
-        var act = () => _service.UpdateArticleAsync(1, new CreateKnowledgeArticleDto(), 50);
-        await act.Should().ThrowAsync<KeyNotFoundException>();
-    }
-
-    #endregion
-
-    #region PublishArticleAsync Tests
-
-    [Fact]
-    public async Task PublishArticleAsync_PublishesArticle()
-    {
-        // Arrange
-        var article = new KnowledgeArticle { ArticleId = 1, PublishingState = PublishingState.Draft };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(1)).ReturnsAsync(article);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
+        var article = new KnowledgeArticle
+        {
+            ArticleId = 1, Number = "KB0001", Title = "Ready to publish",
+            ArticleBody = "Content", ArticleType = ArticleType.HowTo,
+            PublishingState = PublishingState.Draft, AuthorId = 1,
+            CreatedAt = DateTime.UtcNow
+        };
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
-        var result = await _service.PublishArticleAsync(1, publisherId: 50);
+        var result = await _service.PublishArticleAsync(1, publishedById: 3);
 
         // Assert
         result.Should().BeTrue();
         article.PublishingState.Should().Be(PublishingState.Published);
-        article.PublishedById.Should().Be(50);
-        article.PublishedDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
-    public async Task PublishArticleAsync_WhenNotFound_ReturnsFalse()
+    public async Task RetireArticleAsync_ShouldSetRetiredState()
     {
         // Arrange
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(It.IsAny<int>())).ReturnsAsync((KnowledgeArticle?)null);
+        var article = new KnowledgeArticle
+        {
+            ArticleId = 1, Number = "KB0001", Title = "Outdated article",
+            ArticleBody = "Content", ArticleType = ArticleType.HowTo,
+            PublishingState = PublishingState.Published, AuthorId = 1,
+            CreatedAt = DateTime.UtcNow
+        };
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
-        var result = await _service.PublishArticleAsync(999, publisherId: 50);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task PublishArticleAsync_LogsPublication()
-    {
-        // Arrange
-        var article = new KnowledgeArticle { ArticleId = 1, Number = "KB0000001", PublishingState = PublishingState.Draft };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(1)).ReturnsAsync(article);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        // Act
-        await _service.PublishArticleAsync(1, publisherId: 50);
-
-        // Assert
-        _mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Published article")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    #endregion
-
-    #region RetireArticleAsync Tests
-
-    [Fact]
-    public async Task RetireArticleAsync_RetiresArticle()
-    {
-        // Arrange
-        var article = new KnowledgeArticle { ArticleId = 1, PublishingState = PublishingState.Published };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(1)).ReturnsAsync(article);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        // Act
-        var result = await _service.RetireArticleAsync(1, modifiedById: 50);
+        var result = await _service.RetireArticleAsync(1, modifiedById: 2);
 
         // Assert
         result.Should().BeTrue();
         article.PublishingState.Should().Be(PublishingState.Retired);
     }
 
-    [Fact]
-    public async Task RetireArticleAsync_WhenNotFound_ReturnsFalse()
-    {
-        // Arrange
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(It.IsAny<int>())).ReturnsAsync((KnowledgeArticle?)null);
-
-        // Act
-        var result = await _service.RetireArticleAsync(999, modifiedById: 50);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    #endregion
-
-    #region SubmitFeedbackAsync Tests
+    // ========================================================================
+    // SubmitFeedbackAsync
+    // ========================================================================
 
     [Fact]
-    public async Task SubmitFeedbackAsync_CreatesHelpfulFeedback()
+    public async Task SubmitFeedbackAsync_ShouldRecordFeedback_WhenArticleExists()
     {
         // Arrange
-        var article = new KnowledgeArticle { ArticleId = 1, HelpfulCount = 10, NotHelpfulCount = 2 };
+        var article = new KnowledgeArticle
+        {
+            ArticleId = 1, Number = "KB0001", Title = "Feedback test",
+            ArticleBody = "Content", ArticleType = ArticleType.FAQ,
+            PublishingState = PublishingState.Published, AuthorId = 1,
+            HelpfulCount = 5, NotHelpfulCount = 2,
+            CreatedAt = DateTime.UtcNow
+        };
         var feedbacks = new List<ArticleFeedback>();
-        var mockFeedbackSet = CreateMockDbSet(feedbacks);
-        ArticleFeedback? capturedFeedback = null;
-        mockFeedbackSet.Setup(m => m.Add(It.IsAny<ArticleFeedback>()))
-            .Callback<ArticleFeedback>(f => capturedFeedback = f);
-        
+        var mockFeedbackSet = MockDbSetFactory.CreateMockDbSet(feedbacks);
+        mockFeedbackSet.Setup(m => m.Add(It.IsAny<ArticleFeedback>())).Callback<ArticleFeedback>(e => feedbacks.Add(e));
+
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
         _mockContext.Setup(c => c.ITSMArticleFeedback).Returns(mockFeedbackSet.Object);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(1)).ReturnsAsync(article);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
-        var result = await _service.SubmitFeedbackAsync(1, userId: 100, isHelpful: true, comment: "Great article!");
+        var result = await _service.SubmitFeedbackAsync(1, userId: 10, isHelpful: true, comment: "Very helpful!");
 
         // Assert
         result.Should().BeTrue();
-        capturedFeedback.Should().NotBeNull();
-        capturedFeedback!.ArticleId.Should().Be(1);
-        capturedFeedback.UserId.Should().Be(100);
-        capturedFeedback.IsHelpful.Should().BeTrue();
-        capturedFeedback.Comment.Should().Be("Great article!");
-        article.HelpfulCount.Should().Be(11);
     }
 
-    [Fact]
-    public async Task SubmitFeedbackAsync_CreatesNotHelpfulFeedback()
-    {
-        // Arrange
-        var article = new KnowledgeArticle { ArticleId = 1, HelpfulCount = 10, NotHelpfulCount = 2 };
-        var feedbacks = new List<ArticleFeedback>();
-        var mockFeedbackSet = CreateMockDbSet(feedbacks);
-        
-        _mockContext.Setup(c => c.ITSMArticleFeedback).Returns(mockFeedbackSet.Object);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(1)).ReturnsAsync(article);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        // Act
-        var result = await _service.SubmitFeedbackAsync(1, userId: 100, isHelpful: false, comment: null);
-
-        // Assert
-        result.Should().BeTrue();
-        article.NotHelpfulCount.Should().Be(3);
-    }
+    // ========================================================================
+    // GetPopularArticlesAsync / GetRecentArticlesAsync
+    // ========================================================================
 
     [Fact]
-    public async Task SubmitFeedbackAsync_AllowsAnonymousFeedback()
-    {
-        // Arrange
-        var feedbacks = new List<ArticleFeedback>();
-        var mockFeedbackSet = CreateMockDbSet(feedbacks);
-        ArticleFeedback? capturedFeedback = null;
-        mockFeedbackSet.Setup(m => m.Add(It.IsAny<ArticleFeedback>()))
-            .Callback<ArticleFeedback>(f => capturedFeedback = f);
-        
-        _mockContext.Setup(c => c.ITSMArticleFeedback).Returns(mockFeedbackSet.Object);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles.FindAsync(1)).ReturnsAsync((KnowledgeArticle?)null);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        // Act
-        await _service.SubmitFeedbackAsync(1, userId: null, isHelpful: true, comment: null);
-
-        // Assert
-        capturedFeedback!.UserId.Should().BeNull();
-    }
-
-    #endregion
-
-    #region GetPopularArticlesAsync Tests
-
-    [Fact]
-    public async Task GetPopularArticlesAsync_ReturnsTopArticlesByViewCount()
+    public async Task GetPopularArticlesAsync_ShouldReturnTopArticles_ByViewCount()
     {
         // Arrange
         var articles = new List<KnowledgeArticle>
         {
-            new KnowledgeArticle { ArticleId = 1, Title = "A", ViewCount = 100, PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 2, Title = "B", ViewCount = 500, HelpfulCount = 50, PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 3, Title = "C", ViewCount = 300, HelpfulCount = 30, PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 4, Title = "D", ViewCount = 200, PublishingState = PublishingState.Published }
+            new() { ArticleId = 1, Number = "KB0001", Title = "Popular", ArticleBody = "A", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, ViewCount = 100, CreatedAt = DateTime.UtcNow },
+            new() { ArticleId = 2, Number = "KB0002", Title = "Less popular", ArticleBody = "B", ArticleType = ArticleType.FAQ, PublishingState = PublishingState.Published, AuthorId = 1, ViewCount = 10, CreatedAt = DateTime.UtcNow },
+            new() { ArticleId = 3, Number = "KB0003", Title = "Most popular", ArticleBody = "C", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, ViewCount = 500, CreatedAt = DateTime.UtcNow }
         };
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
 
         // Act
-        var result = (await _service.GetPopularArticlesAsync(3)).ToList();
+        var result = await _service.GetPopularArticlesAsync(count: 2);
 
         // Assert
-        result.Should().HaveCount(3);
-        result[0].ViewCount.Should().Be(500);
-        result[1].ViewCount.Should().Be(300);
-        result[2].ViewCount.Should().Be(200);
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result.First().Title.Should().Be("Most popular");
     }
 
     [Fact]
-    public async Task GetPopularArticlesAsync_ExcludesDeletedAndUnpublished()
+    public async Task GetRecentArticlesAsync_ShouldReturnLatestArticles()
     {
         // Arrange
         var articles = new List<KnowledgeArticle>
         {
-            new KnowledgeArticle { ArticleId = 1, Title = "Published", ViewCount = 100, PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 2, Title = "Draft", ViewCount = 500, PublishingState = PublishingState.Draft },
-            new KnowledgeArticle { ArticleId = 3, Title = "Deleted", ViewCount = 300, PublishingState = PublishingState.Published, IsDeleted = true }
+            new() { ArticleId = 1, Number = "KB0001", Title = "Old article", ArticleBody = "A", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow.AddDays(-30) },
+            new() { ArticleId = 2, Number = "KB0002", Title = "New article", ArticleBody = "B", ArticleType = ArticleType.FAQ, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow.AddDays(-1) },
+            new() { ArticleId = 3, Number = "KB0003", Title = "Newest article", ArticleBody = "C", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow }
         };
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
 
         // Act
-        var result = await _service.GetPopularArticlesAsync(10);
+        var result = await _service.GetRecentArticlesAsync(count: 2);
 
         // Assert
-        result.Should().HaveCount(1);
-        result.First().Title.Should().Be("Published");
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result.First().Title.Should().Be("Newest article");
     }
 
-    #endregion
-
-    #region GetRecentArticlesAsync Tests
+    // ========================================================================
+    // GetSuggestedArticlesAsync
+    // ========================================================================
 
     [Fact]
-    public async Task GetRecentArticlesAsync_OrdersByPublishedDate()
+    public async Task GetSuggestedArticlesAsync_ShouldReturnRelevantArticles()
     {
         // Arrange
         var articles = new List<KnowledgeArticle>
         {
-            new KnowledgeArticle { ArticleId = 1, Title = "Old", PublishedDate = DateTime.UtcNow.AddDays(-10), PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 2, Title = "New", PublishedDate = DateTime.UtcNow.AddDays(-1), PublishingState = PublishingState.Published },
-            new KnowledgeArticle { ArticleId = 3, Title = "Middle", PublishedDate = DateTime.UtcNow.AddDays(-5), PublishingState = PublishingState.Published }
+            new() { ArticleId = 1, Number = "KB0001", Title = "Password reset guide", ArticleBody = "How to reset your password", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow },
+            new() { ArticleId = 2, Number = "KB0002", Title = "Network connectivity", ArticleBody = "VPN setup", ArticleType = ArticleType.Troubleshooting, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow }
         };
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
 
         // Act
-        var result = (await _service.GetRecentArticlesAsync(10)).ToList();
+        var result = await _service.GetSuggestedArticlesAsync("I can't reset my password");
 
         // Assert
-        result[0].Title.Should().Be("New");
-        result[1].Title.Should().Be("Middle");
-        result[2].Title.Should().Be("Old");
+        result.Should().NotBeNull();
     }
 
-    #endregion
-
-    #region GetCategoriesAsync Tests
+    // ========================================================================
+    // GetCategoriesAsync
+    // ========================================================================
 
     [Fact]
-    public async Task GetCategoriesAsync_ReturnsPredefinedCategories()
+    public async Task GetCategoriesAsync_ShouldReturnCategories()
     {
         // Arrange
-        var articles = new List<KnowledgeArticle>();
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        var articles = new List<KnowledgeArticle>
+        {
+            new() { ArticleId = 1, Number = "KB0001", Title = "A", ArticleBody = "A", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow },
+            new() { ArticleId = 2, Number = "KB0002", Title = "B", ArticleBody = "B", ArticleType = ArticleType.FAQ, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow }
+        };
+        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
 
         // Act
         var result = await _service.GetCategoriesAsync();
 
         // Assert
-        result.Should().Contain("How-To");
-        result.Should().Contain("Troubleshooting");
-        result.Should().Contain("FAQ");
-        result.Should().Contain("Best Practices");
+        result.Should().NotBeNull();
     }
-
-    #endregion
-
-    #region GetSuggestedArticlesAsync Tests
-
-    [Fact]
-    public async Task GetSuggestedArticlesAsync_ReturnsTop5Articles()
-    {
-        // Arrange
-        var articles = Enumerable.Range(1, 10)
-            .Select(i => new KnowledgeArticle 
-            { 
-                ArticleId = i, 
-                Title = $"Article {i}",
-                ViewCount = 100 - i,
-                PublishingState = PublishingState.Published 
-            })
-            .ToList();
-
-        var mockSet = CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-
-        // Act
-        var result = await _service.GetSuggestedArticlesAsync("my computer is slow");
-
-        // Assert
-        result.Should().HaveCount(5);
-    }
-
-    #endregion
-
-    #region Helper Methods
-
-    private static Mock<DbSet<T>> CreateMockDbSet<T>(IEnumerable<T> data) where T : class
-    {
-        var queryable = data.AsQueryable();
-        var mockSet = new Mock<DbSet<T>>();
-        
-        mockSet.As<IAsyncEnumerable<T>>()
-            .Setup(m => m.GetAsyncEnumerator(default))
-            .Returns(new TestAsyncEnumerator<T>(queryable.GetEnumerator()));
-        
-        mockSet.As<IQueryable<T>>()
-            .Setup(m => m.Provider)
-            .Returns(new TestAsyncQueryProvider<T>(queryable.Provider));
-        
-        mockSet.As<IQueryable<T>>()
-            .Setup(m => m.Expression)
-            .Returns(queryable.Expression);
-        
-        mockSet.As<IQueryable<T>>()
-            .Setup(m => m.ElementType)
-            .Returns(queryable.ElementType);
-        
-        mockSet.As<IQueryable<T>>()
-            .Setup(m => m.GetEnumerator())
-            .Returns(queryable.GetEnumerator());
-
-        return mockSet;
-    }
-
-    #endregion
 }
