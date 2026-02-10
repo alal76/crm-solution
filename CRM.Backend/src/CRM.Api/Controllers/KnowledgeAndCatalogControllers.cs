@@ -238,74 +238,135 @@ public class KnowledgeController : ControllerBase
     private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1");
 }
 
+/// <summary>
+/// Service Catalog API endpoints.
+/// </summary>
+/// <remarks>
+/// The Service Catalog provides a self-service portal where users can browse and request IT services,
+/// hardware, software, and other predefined catalog items. Supports categories, featured items,
+/// request creation, and request tracking.
+/// </remarks>
 [ApiController]
 [Route("api/itsm/catalog")]
 [Authorize]
 [Produces("application/json")]
+[Tags("ITSM - Service Catalog")]
 public class CatalogController : ControllerBase
 {
     private readonly IServiceCatalogService _catalogService;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="CatalogController"/>.
+    /// </summary>
+    /// <param name="catalogService">The service catalog service.</param>
     public CatalogController(IServiceCatalogService catalogService)
     {
         _catalogService = catalogService;
     }
 
+    /// <summary>
+    /// Get all catalog items, optionally filtered by category.
+    /// </summary>
+    /// <param name="categoryId">Optional category ID to filter by</param>
+    /// <returns>List of catalog items</returns>
     [HttpGet("items")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<CatalogItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CatalogItemDto>>> GetCatalogItems([FromQuery] int? categoryId)
     {
         var items = await _catalogService.GetCatalogItemsAsync(categoryId, null);
         return Ok(items);
     }
 
+    /// <summary>
+    /// Get a specific catalog item by ID.
+    /// </summary>
+    /// <param name="id">The catalog item ID</param>
+    /// <returns>The catalog item details</returns>
     [HttpGet("items/{id}")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(CatalogItemDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CatalogItemDto>> GetCatalogItem(int id)
     {
         var item = await _catalogService.GetCatalogItemByIdAsync(id);
         return item == null ? NotFound() : Ok(item);
     }
 
+    /// <summary>
+    /// Create a new catalog service request.
+    /// </summary>
+    /// <param name="dto">The catalog request details</param>
+    /// <returns>The created request ID</returns>
     [HttpPost("requests")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> CreateCatalogRequest([FromBody] CreateCatalogRequestDto dto)
     {
         var requestId = await _catalogService.CreateCatalogRequestAsync(dto, GetCurrentUserId());
         return Ok(new { requestId });
     }
 
+    /// <summary>
+    /// Get all catalog requests submitted by the current user.
+    /// </summary>
+    /// <returns>List of the current user's catalog requests</returns>
     [HttpGet("my-requests")]
+    [ProducesResponseType(typeof(IEnumerable<CatalogRequest>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CatalogRequest>>> GetMyRequests()
     {
         var requests = await _catalogService.GetMyRequestsAsync(GetCurrentUserId());
         return Ok(requests);
     }
 
+    /// <summary>
+    /// Search catalog items by term.
+    /// </summary>
+    /// <param name="searchTerm">The search term to filter catalog items</param>
+    /// <returns>List of matching catalog items</returns>
     [HttpGet("search")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<CatalogItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CatalogItemDto>>> SearchCatalog([FromQuery(Name = "term")] string? searchTerm)
     {
         var items = await _catalogService.SearchCatalogAsync(searchTerm ?? string.Empty);
         return Ok(items);
     }
 
+    /// <summary>
+    /// Get featured catalog items.
+    /// </summary>
+    /// <returns>List of featured catalog items</returns>
     [HttpGet("featured")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<CatalogItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CatalogItemDto>>> GetFeaturedItems()
     {
         var items = await _catalogService.GetCatalogItemsAsync(null, true);
         return Ok(items);
     }
 
+    /// <summary>
+    /// Get all catalog categories.
+    /// </summary>
+    /// <returns>List of catalog categories with item counts</returns>
     [HttpGet("categories")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<CatalogCategoryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CatalogCategoryDto>>> GetCategories()
     {
         var categories = await _catalogService.GetCategoriesAsync();
         return Ok(categories);
     }
 
+    /// <summary>
+    /// Create a catalog request on behalf of another user.
+    /// </summary>
+    /// <param name="dto">The request details including the target user</param>
+    /// <returns>The created request ID</returns>
     [HttpPost("requests/for-others")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> CreateRequestForOthers([FromBody] CreateCatalogRequestForOthersRequest dto)
     {
         var createDto = new CRM.Core.Interfaces.ITSM.CreateCatalogRequestForOthersDto
@@ -319,14 +380,28 @@ public class CatalogController : ControllerBase
         return Ok(new { requestId });
     }
 
+    /// <summary>
+    /// Get a specific catalog request by ID.
+    /// </summary>
+    /// <param name="requestId">The catalog request ID</param>
+    /// <returns>The catalog request details</returns>
     [HttpGet("requests/{requestId}")]
+    [ProducesResponseType(typeof(CatalogRequest), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CatalogRequest>> GetRequestById(int requestId)
     {
         var request = await _catalogService.GetRequestByIdAsync(requestId);
         return request == null ? NotFound() : Ok(request);
     }
 
+    /// <summary>
+    /// Cancel a pending catalog request.
+    /// </summary>
+    /// <param name="requestId">The catalog request ID to cancel</param>
+    /// <returns>Success or failure</returns>
     [HttpPatch("requests/{requestId}/cancel")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> CancelRequest(int requestId)
     {
         var result = await _catalogService.CancelRequestAsync(requestId, GetCurrentUserId());

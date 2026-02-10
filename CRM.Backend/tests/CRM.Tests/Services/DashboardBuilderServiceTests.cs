@@ -2,6 +2,7 @@
 // Phase 7, Task 7.4 - Tests for custom dashboard builder with drag-and-drop widgets
 
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using CRM.Tests.Helpers;
@@ -9,6 +10,9 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+
+// Alias to disambiguate from CRM.Core.Entities.DashboardWidget
+using SvcDashboardWidget = CRM.Infrastructure.Services.DashboardWidget;
 
 namespace CRM.Tests.Services;
 
@@ -28,6 +32,17 @@ public class DashboardBuilderServiceTests
             _mockLogger.Object);
     }
 
+    private CustomDashboard MakeDashboard(int userId, string name, string? description = null)
+    {
+        return new CustomDashboard
+        {
+            Name = name,
+            Description = description,
+            UserId = userId,
+            Widgets = new List<SvcDashboardWidget>()
+        };
+    }
+
     // ========================================================================
     // CreateDashboardAsync
     // ========================================================================
@@ -36,7 +51,7 @@ public class DashboardBuilderServiceTests
     public async Task CreateDashboardAsync_ShouldReturnDashboard_WithId()
     {
         // Act
-        var dashboard = await _service.CreateDashboardAsync(1, "My Dashboard", "Test description");
+        var dashboard = await _service.CreateDashboardAsync(MakeDashboard(1, "My Dashboard", "Test description"));
 
         // Assert
         dashboard.Should().NotBeNull();
@@ -52,8 +67,8 @@ public class DashboardBuilderServiceTests
     public async Task CreateDashboardAsync_ShouldGenerateUniqueIds()
     {
         // Act
-        var d1 = await _service.CreateDashboardAsync(1, "Dashboard 1", null);
-        var d2 = await _service.CreateDashboardAsync(1, "Dashboard 2", null);
+        var d1 = await _service.CreateDashboardAsync(MakeDashboard(1, "Dashboard 1"));
+        var d2 = await _service.CreateDashboardAsync(MakeDashboard(1, "Dashboard 2"));
 
         // Assert
         d1.Id.Should().NotBe(d2.Id);
@@ -67,7 +82,7 @@ public class DashboardBuilderServiceTests
     public async Task GetDashboardAsync_ShouldReturnDashboard_WhenExists()
     {
         // Arrange
-        var created = await _service.CreateDashboardAsync(1, "Test", null);
+        var created = await _service.CreateDashboardAsync(MakeDashboard(1, "Test"));
 
         // Act
         var retrieved = await _service.GetDashboardAsync(created.Id);
@@ -95,8 +110,8 @@ public class DashboardBuilderServiceTests
     public async Task GetDashboardsAsync_ShouldReturnOnlyUserDashboards()
     {
         // Arrange
-        await _service.CreateDashboardAsync(1, "User 1 Dashboard", null);
-        await _service.CreateDashboardAsync(2, "User 2 Dashboard", null);
+        await _service.CreateDashboardAsync(MakeDashboard(1, "User 1 Dashboard"));
+        await _service.CreateDashboardAsync(MakeDashboard(2, "User 2 Dashboard"));
 
         // Act
         var dashboards = await _service.GetDashboardsAsync(1);
@@ -124,7 +139,7 @@ public class DashboardBuilderServiceTests
     public async Task UpdateDashboardAsync_ShouldUpdateNameAndDescription()
     {
         // Arrange
-        var created = await _service.CreateDashboardAsync(1, "Original", "Desc");
+        var created = await _service.CreateDashboardAsync(MakeDashboard(1, "Original", "Desc"));
 
         var updated = new CustomDashboard
         {
@@ -132,7 +147,7 @@ public class DashboardBuilderServiceTests
             Name = "Updated Name",
             Description = "Updated Desc",
             UserId = 1,
-            Widgets = new List<DashboardWidget>()
+            Widgets = new List<SvcDashboardWidget>()
         };
 
         // Act
@@ -154,7 +169,7 @@ public class DashboardBuilderServiceTests
             Id = "nonexistent",
             Name = "Test",
             UserId = 1,
-            Widgets = new List<DashboardWidget>()
+            Widgets = new List<SvcDashboardWidget>()
         };
 
         // Act
@@ -168,14 +183,14 @@ public class DashboardBuilderServiceTests
     public async Task UpdateDashboardAsync_ShouldUpdateWidgets()
     {
         // Arrange
-        var created = await _service.CreateDashboardAsync(1, "Dashboard", null);
+        var created = await _service.CreateDashboardAsync(MakeDashboard(1, "Dashboard"));
 
         var withWidgets = new CustomDashboard
         {
             Id = created.Id,
             Name = "Dashboard",
             UserId = 1,
-            Widgets = new List<DashboardWidget>
+            Widgets = new List<SvcDashboardWidget>
             {
                 new() { Id = "w1", Type = "pipeline-chart", Title = "Pipeline", Column = 0, Row = 0, Width = 6, Height = 4 },
                 new() { Id = "w2", Type = "revenue-kpi", Title = "Revenue", Column = 6, Row = 0, Width = 6, Height = 4 }
@@ -197,7 +212,7 @@ public class DashboardBuilderServiceTests
     public async Task DeleteDashboardAsync_ShouldReturnTrue_WhenExists()
     {
         // Arrange
-        var created = await _service.CreateDashboardAsync(1, "To Delete", null);
+        var created = await _service.CreateDashboardAsync(MakeDashboard(1, "To Delete"));
 
         // Act
         var result = await _service.DeleteDashboardAsync(created.Id);
@@ -220,7 +235,7 @@ public class DashboardBuilderServiceTests
     public async Task DeleteDashboardAsync_ShouldRemoveDashboard()
     {
         // Arrange
-        var created = await _service.CreateDashboardAsync(1, "To Delete", null);
+        var created = await _service.CreateDashboardAsync(MakeDashboard(1, "To Delete"));
         await _service.DeleteDashboardAsync(created.Id);
 
         // Act
@@ -278,7 +293,20 @@ public class DashboardBuilderServiceTests
     [Fact]
     public async Task GetWidgetDataAsync_ShouldReturnData_ForPipelineChart()
     {
-        // Arrange
+        // Arrange - create dashboard with a pipeline-chart widget
+        var dashboard = await _service.CreateDashboardAsync(MakeDashboard(1, "Widget Test"));
+        var withWidgets = new CustomDashboard
+        {
+            Id = dashboard.Id,
+            Name = "Widget Test",
+            UserId = 1,
+            Widgets = new List<SvcDashboardWidget>
+            {
+                new() { Id = "pipeline-w1", Type = "pipeline-chart", Title = "Pipeline", Column = 0, Row = 0, Width = 6, Height = 4 }
+            }
+        };
+        await _service.UpdateDashboardAsync(withWidgets);
+
         var opps = new List<Opportunity>
         {
             new() { Id = 1, Name = "Opp A", Stage = OpportunityStage.Proposal, Amount = 10000, IsDeleted = false },
@@ -288,11 +316,11 @@ public class DashboardBuilderServiceTests
         _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
-        var result = await _service.GetWidgetDataAsync("any-widget-id", "pipeline-chart");
+        var result = await _service.GetWidgetDataAsync("pipeline-w1");
 
         // Assert
         result.Should().NotBeNull();
-        result.Type.Should().Be("pipeline-chart");
+        result!.Type.Should().Be("pipeline-chart");
         result.Data.Should().NotBeNull();
         result.FetchedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
@@ -300,7 +328,20 @@ public class DashboardBuilderServiceTests
     [Fact]
     public async Task GetWidgetDataAsync_ShouldReturnData_ForLeadSummary()
     {
-        // Arrange
+        // Arrange - create dashboard with a lead-summary widget
+        var dashboard = await _service.CreateDashboardAsync(MakeDashboard(1, "Lead Test"));
+        var withWidgets = new CustomDashboard
+        {
+            Id = dashboard.Id,
+            Name = "Lead Test",
+            UserId = 1,
+            Widgets = new List<SvcDashboardWidget>
+            {
+                new() { Id = "lead-w1", Type = "lead-summary", Title = "Leads", Column = 0, Row = 0, Width = 6, Height = 4 }
+            }
+        };
+        await _service.UpdateDashboardAsync(withWidgets);
+
         var leads = new List<Lead>
         {
             new() { Id = 1, FirstName = "A", LastName = "B", Email = "a@b.com", Status = LeadLifecycleStatus.New, IsDeleted = false },
@@ -310,21 +351,20 @@ public class DashboardBuilderServiceTests
         _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         // Act
-        var result = await _service.GetWidgetDataAsync("w1", "lead-summary");
+        var result = await _service.GetWidgetDataAsync("lead-w1");
 
         // Assert
         result.Should().NotBeNull();
-        result.Type.Should().Be("lead-summary");
+        result!.Type.Should().Be("lead-summary");
     }
 
     [Fact]
-    public async Task GetWidgetDataAsync_ShouldReturnEmptyData_ForUnknownType()
+    public async Task GetWidgetDataAsync_ShouldReturnNull_ForUnregisteredWidget()
     {
-        // Act
-        var result = await _service.GetWidgetDataAsync("w1", "unknown-type");
+        // Act - widget id not registered in any dashboard
+        var result = await _service.GetWidgetDataAsync("nonexistent-widget");
 
         // Assert
-        result.Should().NotBeNull();
-        result.Type.Should().Be("unknown-type");
+        result.Should().BeNull();
     }
 }

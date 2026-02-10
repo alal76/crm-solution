@@ -214,11 +214,11 @@ public class ReportBuilderService : IReportBuilderService
 
     private static readonly List<ReportEntitySource> EntitySources = new()
     {
-        new() { Name = "Accounts",      DisplayName = "Accounts",      Fields = new() { "Id", "Company", "Email", "Industry", "Status", "AccountType", "Category", "Tier", "CreatedAt" } },
+        new() { Name = "Accounts",      DisplayName = "Accounts",      Fields = new() { "Id", "Company", "Email", "Industry", "LifecycleStage", "AccountType", "Category", "Priority", "CreatedAt" } },
         new() { Name = "Leads",          DisplayName = "Leads",          Fields = new() { "Id", "FirstName", "LastName", "Email", "CompanyName", "Status", "Source", "Score", "CreatedAt" } },
         new() { Name = "Opportunities",  DisplayName = "Opportunities",  Fields = new() { "Id", "Name", "Stage", "Amount", "Probability", "ExpectedCloseDate", "CreatedAt" } },
-        new() { Name = "Contacts",       DisplayName = "Contacts",       Fields = new() { "Id", "FirstName", "LastName", "Email", "Phone", "Title", "CreatedAt" } },
-        new() { Name = "ServiceRequests",DisplayName = "Service Requests",Fields = new() { "Id", "Title", "Status", "Priority", "CreatedAt" } },
+        new() { Name = "Contacts",       DisplayName = "Contacts",       Fields = new() { "Id", "FirstName", "LastName", "EmailPrimary", "PhonePrimary", "JobTitle" } },
+        new() { Name = "ServiceRequests",DisplayName = "Service Requests",Fields = new() { "Id", "Subject", "Status", "Priority", "CreatedAt" } },
     };
 
     /// <summary>
@@ -354,10 +354,10 @@ public class ReportBuilderService : IReportBuilderService
             ["Company"] = e.Company,
             ["Email"] = e.Email,
             ["Industry"] = e.Industry,
-            ["Status"] = e.Status,
+            ["LifecycleStage"] = e.LifecycleStage,
             ["AccountType"] = e.AccountType,
             ["Category"] = e.Category,
-            ["Tier"] = e.Tier,
+            ["Priority"] = e.Priority,
             ["CreatedAt"] = e.CreatedAt
         }).ToList();
     }
@@ -400,7 +400,7 @@ public class ReportBuilderService : IReportBuilderService
 
     private async Task<List<Dictionary<string, object?>>> ExecuteContactsReportAsync(ReportDefinition report, CancellationToken ct)
     {
-        var query = _context.Contacts.Where(c => !c.IsDeleted);
+        var query = _context.Contacts.AsQueryable();
         var entities = await query.ToListAsync(ct);
 
         return entities.Select(e => new Dictionary<string, object?>
@@ -408,10 +408,9 @@ public class ReportBuilderService : IReportBuilderService
             ["Id"] = e.Id,
             ["FirstName"] = e.FirstName,
             ["LastName"] = e.LastName,
-            ["Email"] = e.Email,
-            ["Phone"] = e.Phone,
-            ["Title"] = e.Title,
-            ["CreatedAt"] = e.CreatedAt
+            ["Email"] = e.EmailPrimary,
+            ["Phone"] = e.PhonePrimary,
+            ["Title"] = e.JobTitle
         }).ToList();
     }
 
@@ -423,7 +422,7 @@ public class ReportBuilderService : IReportBuilderService
         return entities.Select(e => new Dictionary<string, object?>
         {
             ["Id"] = e.Id,
-            ["Title"] = e.Title,
+            ["Subject"] = e.Subject,
             ["Status"] = e.Status,
             ["Priority"] = e.Priority,
             ["CreatedAt"] = e.CreatedAt
@@ -432,11 +431,11 @@ public class ReportBuilderService : IReportBuilderService
 
     private static List<string> GetDefaultColumns(string entitySource) => entitySource switch
     {
-        "Accounts" => new() { "Id", "Company", "Email", "Industry", "Status", "CreatedAt" },
+        "Accounts" => new() { "Id", "Company", "Email", "Industry", "LifecycleStage", "CreatedAt" },
         "Leads" => new() { "Id", "FirstName", "LastName", "Email", "Status", "Score", "CreatedAt" },
         "Opportunities" => new() { "Id", "Name", "Stage", "Amount", "Probability", "CreatedAt" },
-        "Contacts" => new() { "Id", "FirstName", "LastName", "Email", "CreatedAt" },
-        "ServiceRequests" => new() { "Id", "Title", "Status", "Priority", "CreatedAt" },
+        "Contacts" => new() { "Id", "FirstName", "LastName", "Email" },
+        "ServiceRequests" => new() { "Id", "Subject", "Status", "Priority", "CreatedAt" },
         _ => new() { "Id", "CreatedAt" }
     };
 

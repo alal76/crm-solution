@@ -2,6 +2,7 @@
 // Phase 7, Task 7.3 - Tests for predictive opportunity win probability
 
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.AI;
 using CRM.Tests.Helpers;

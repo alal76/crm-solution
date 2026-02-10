@@ -2,6 +2,7 @@
 // Phase 7, Task 7.5 - Tests for custom report creation with query builder and CSV export
 
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using CRM.Tests.Helpers;
@@ -176,8 +177,8 @@ public class ReportBuilderServiceTests
         // Arrange
         var customers = new List<Account>
         {
-            new() { Id = 1, Company = "Acme Corp", Email = "acme@test.com", Industry = "Tech", Status = "Active", IsDeleted = false },
-            new() { Id = 2, Company = "Beta Inc", Email = "beta@test.com", Industry = "Finance", Status = "Active", IsDeleted = false }
+            new() { Id = 1, Company = "Acme Corp", Email = "acme@test.com", Industry = "Tech", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false },
+            new() { Id = 2, Company = "Beta Inc", Email = "beta@test.com", Industry = "Finance", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(customers);
         _mockContext.Setup(c => c.Customers).Returns(mockSet.Object);
@@ -306,7 +307,7 @@ public class ReportBuilderServiceTests
         // Arrange
         var customers = new List<Account>
         {
-            new() { Id = 1, Company = "Acme Corp", Email = "acme@test.com", Industry = "Tech", Status = "Active", IsDeleted = false }
+            new() { Id = 1, Company = "Acme Corp", Email = "acme@test.com", Industry = "Tech", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(customers);
         _mockContext.Setup(c => c.Customers).Returns(mockSet.Object);
@@ -320,10 +321,12 @@ public class ReportBuilderServiceTests
         });
 
         // Act
-        var csv = await _service.ExportToCsvAsync(report.Id);
+        var csvBytes = await _service.ExportToCsvAsync(report.Id);
 
         // Assert
-        csv.Should().NotBeNullOrEmpty();
+        csvBytes.Should().NotBeNull();
+        csvBytes.Should().NotBeEmpty();
+        var csv = System.Text.Encoding.UTF8.GetString(csvBytes!);
         csv.Should().Contain("Company");
         csv.Should().Contain("Acme Corp");
     }
@@ -332,10 +335,10 @@ public class ReportBuilderServiceTests
     public async Task ExportToCsvAsync_ShouldReturnNull_WhenReportNotFound()
     {
         // Act
-        var csv = await _service.ExportToCsvAsync("nonexistent");
+        var csvBytes = await _service.ExportToCsvAsync("nonexistent");
 
         // Assert
-        csv.Should().BeNull();
+        csvBytes.Should().BeNull();
     }
 
     [Fact]
@@ -344,7 +347,7 @@ public class ReportBuilderServiceTests
         // Arrange
         var customers = new List<Account>
         {
-            new() { Id = 1, Company = "Acme, Inc.", Email = "acme@test.com", Industry = "Tech", Status = "Active", IsDeleted = false }
+            new() { Id = 1, Company = "Acme, Inc.", Email = "acme@test.com", Industry = "Tech", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(customers);
         _mockContext.Setup(c => c.Customers).Returns(mockSet.Object);
@@ -358,10 +361,11 @@ public class ReportBuilderServiceTests
         });
 
         // Act
-        var csv = await _service.ExportToCsvAsync(report.Id);
+        var csvBytes = await _service.ExportToCsvAsync(report.Id);
 
         // Assert
-        csv.Should().NotBeNull();
+        csvBytes.Should().NotBeNull();
+        var csv = System.Text.Encoding.UTF8.GetString(csvBytes!);
         csv.Should().Contain("\"Acme, Inc.\""); // Comma-containing values should be quoted
     }
 

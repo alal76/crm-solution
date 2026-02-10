@@ -1,3 +1,16 @@
+/**
+ * STATUS: Implemented - Available for integration
+ * PURPOSE: Embeds analytics dashboards from external providers (Apache Superset, Power BI)
+ *   into the CRM UI via authenticated iframes. Supports dashboard selection, token-based auth,
+ *   fullscreen mode, refresh, and entity-scoped filters (e.g., filter by account_id).
+ * INTEGRATION: Can be used in DashboardPage, AccountDetailsPage, ReportsPage, or any page
+ *   needing embedded analytics. Requires an active analytics provider configured via
+ *   FeatureManagement.UseExternalAnalytics and Providers.Analytics settings.
+ * CREATED: Phase 0 Session 23 (Pluggable Architecture - OpenRouter + Frontend Components)
+ * DEPENDS ON: @mui/material, @mui/icons-material, apiClient (services/apiClient),
+ *   Backend endpoints: GET /api/analytics/dashboards, GET /api/analytics/dashboards/{id}/embed,
+ *   IAnalyticsPort (SupersetProvider or PowerBIProvider)
+ */
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Card, CardContent, CardHeader, Typography, CircularProgress,

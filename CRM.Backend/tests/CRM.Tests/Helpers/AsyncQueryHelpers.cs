@@ -6,7 +6,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Moq;
 
 namespace CRM.Tests.Helpers;
 
@@ -117,5 +119,74 @@ internal static class MockDbSetExtensions
     public static TestAsyncEnumerable<T> AsAsyncQueryable<T>(this IEnumerable<T> source)
     {
         return new TestAsyncEnumerable<T>(source);
+    }
+}
+
+/// <summary>
+/// Creates mock DbSet instances backed by in-memory lists for EF Core unit testing.
+/// </summary>
+internal static class MockDbSetFactory
+{
+    /// <summary>
+    /// Creates a mock DbSet&lt;T&gt; that supports async LINQ queries.
+    /// </summary>
+    public static Mock<DbSet<T>> CreateMockDbSet<T>(List<T> data) where T : class
+    {
+        var queryable = data.AsQueryable();
+        var mockSet = new Mock<DbSet<T>>();
+
+        mockSet.As<IAsyncEnumerable<T>>()
+            .Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>()))
+            .Returns(() => new TestAsyncEnumerator<T>(data.AsQueryable().GetEnumerator()));
+
+        mockSet.As<IQueryable<T>>()
+            .Setup(m => m.Provider)
+            .Returns(new TestAsyncQueryProvider<T>(queryable.Provider));
+
+        mockSet.As<IQueryable<T>>()
+            .Setup(m => m.Expression)
+            .Returns(queryable.Expression);
+
+        mockSet.As<IQueryable<T>>()
+            .Setup(m => m.ElementType)
+            .Returns(queryable.ElementType);
+
+        mockSet.As<IQueryable<T>>()
+            .Setup(m => m.GetEnumerator())
+            .Returns(() => data.AsQueryable().GetEnumerator());
+
+        // FindAsync: search the backing list by primary key
+        mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>()))
+            .Returns<object[]>(keyValues =>
+            {
+                var key = keyValues.FirstOrDefault();
+                if (key == null) return ValueTask.FromResult<T?>(default);
+
+                var typeName = typeof(T).Name;
+                var allIdProps = typeof(T).GetProperties()
+                    .Where(p => (p.PropertyType == typeof(int) || p.PropertyType == typeof(int?)) && p.Name.EndsWith("Id"))
+                    .ToList();
+
+                var idProp = allIdProps.FirstOrDefault(p => p.Name == "Id")
+                    ?? allIdProps.FirstOrDefault(p => p.Name == typeName + "Id")
+                    ?? allIdProps.FirstOrDefault(p => typeName.EndsWith(p.Name.Replace("Id", "")))
+                    ?? allIdProps.OrderBy(p => p.Name.Length).FirstOrDefault();
+
+                var entity = data.FirstOrDefault(e =>
+                {
+                    if (idProp == null) return false;
+                    var val = idProp.GetValue(e);
+                    return val != null && Equals(val, Convert.ToInt32(key));
+                });
+                return ValueTask.FromResult<T?>(entity);
+            });
+
+        // Add / AddAsync
+        mockSet.Setup(m => m.Add(It.IsAny<T>())).Callback<T>(e => data.Add(e));
+        mockSet.Setup(m => m.AddAsync(It.IsAny<T>(), It.IsAny<CancellationToken>()))
+            .Callback<T, CancellationToken>((e, _) => data.Add(e))
+            .ReturnsAsync((T e, CancellationToken _) => (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<T>)null!);
+
+        return mockSet;
     }
 }
