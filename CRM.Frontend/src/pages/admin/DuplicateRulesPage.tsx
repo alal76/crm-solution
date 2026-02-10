@@ -202,7 +202,7 @@ const DuplicateRulesPage: React.FC = () => {
   };
 
   const handleDeleteRule = async (ruleId: number) => {
-    if (!confirm('Are you sure you want to delete this rule?')) return;
+    if (!window.confirm('Are you sure you want to delete this rule?')) return;
     
     try {
       await api.delete(`/api/duplicates/rules/${ruleId}`);

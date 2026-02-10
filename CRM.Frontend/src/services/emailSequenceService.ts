@@ -1,5 +1,5 @@
-import api from 'src/services/api';
-import type { EmailSequence } from 'src/types/api';
+import api from './apiClient';
+import type { EmailSequence } from '../types/api';
 
 type Params = Record<string, any>;
 

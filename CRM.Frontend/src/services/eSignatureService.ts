@@ -1,4 +1,4 @@
-import api from 'src/services/api';
+import api from './apiClient';
 
 export const getRequests = (params?: Record<string, any>) =>
   api.get('/api/esignature/requests', { params }).then((res) => res.data);
