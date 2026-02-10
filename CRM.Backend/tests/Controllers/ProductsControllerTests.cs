@@ -158,7 +158,7 @@ public class ProductsControllerTests
         var result = await _controller.GetById(999);
 
         // Assert
-        result.Should().BeOfType<NotFoundResult>();
+        result.Should().BeOfType<NotFoundObjectResult>();
     }
 
     [Fact]

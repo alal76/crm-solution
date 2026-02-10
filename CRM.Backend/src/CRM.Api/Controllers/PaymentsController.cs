@@ -104,10 +104,6 @@ public class PaymentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating payment");
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
             return HandleServiceException(ex);
         }
     }
@@ -125,9 +121,6 @@ public class PaymentsController : ControllerBase
         }
         catch (Exception ex)
         {
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
             _logger.LogError(ex, "Error updating payment {PaymentId}", id);
             return HandleServiceException(ex);
         }

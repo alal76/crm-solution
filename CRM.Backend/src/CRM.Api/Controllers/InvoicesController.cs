@@ -124,9 +124,6 @@ public class InvoicesController : ControllerBase
         }
         catch (Exception ex)
         {
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
             _logger.LogError(ex, "Error updating invoice {InvoiceId}", id);
             return HandleServiceException(ex);
         }
@@ -191,8 +188,6 @@ public class InvoicesController : ControllerBase
             _logger.LogError(ex, "Error creating invoice from quote {QuoteId}", quoteId);
             return HandleServiceException(ex);
         }
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     }
 
     /// <summary>Generates the next invoice number.</summary>
@@ -228,9 +223,6 @@ public class InvoicesController : ControllerBase
         {
             _logger.LogError(ex, "Error sending invoice {InvoiceId}", id);
             return HandleServiceException(ex);
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         }
     }
 
@@ -410,8 +402,6 @@ public class InvoicesController : ControllerBase
         {
             _logger.LogError(ex, "Error retrieving overdue invoices");
             return HandleServiceException(ex);
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         }
     }
 
@@ -429,8 +419,6 @@ public class InvoicesController : ControllerBase
             _logger.LogError(ex, "Error retrieving invoices due between {FromDate} and {ToDate}", fromDate, toDate);
             return HandleServiceException(ex);
         }
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     }
 
     /// <summary>Gets invoice statistics for a customer.</summary>
@@ -554,10 +542,6 @@ public class InvoicesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error recalculating totals for invoice {InvoiceId}", id);
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
             return HandleServiceException(ex);
         }
     }

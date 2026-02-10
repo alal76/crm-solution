@@ -3,6 +3,7 @@
 // Licensed under the GNU Affero General Public License v3.0
 
 using CRM.Core.Entities;
+using CRM.Core.Models;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +43,7 @@ public class DashboardController : ControllerBase
         try
         {
             var customerCount = await _context.Customers.CountAsync(c => !c.IsDeleted, cancellationToken);
-            var contactCount = await _context.Contacts.CountAsync(c => !c.IsDeleted, cancellationToken);
+            var contactCount = await _context.Contacts.CountAsync(cancellationToken);
             var opportunityCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted, cancellationToken);
             var openOpportunityValue = await _context.Opportunities
                 .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
@@ -100,12 +101,12 @@ public class DashboardController : ControllerBase
 
             // MTD Revenue (ClosedWon this month)
             var mtdRevenue = await _context.Opportunities
-                .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ActualCloseDate >= startOfMonth)
+                .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= startOfMonth)
                 .SumAsync(o => o.Amount, cancellationToken);
 
             // QTD Revenue
             var qtdRevenue = await _context.Opportunities
-                .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ActualCloseDate >= startOfQuarter)
+                .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= startOfQuarter)
                 .SumAsync(o => o.Amount, cancellationToken);
 
             // Pipeline Value
@@ -119,11 +120,11 @@ public class DashboardController : ControllerBase
 
             // Deals closed this month
             var dealsClosedThisMonth = await _context.Opportunities
-                .CountAsync(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ActualCloseDate >= startOfMonth, cancellationToken);
+                .CountAsync(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= startOfMonth, cancellationToken);
 
             // Win rate calculation
             var closedDealsThisMonth = await _context.Opportunities
-                .Where(o => !o.IsDeleted && (o.Stage == OpportunityStage.ClosedWon || o.Stage == OpportunityStage.ClosedLost) && o.ActualCloseDate >= startOfMonth)
+                .Where(o => !o.IsDeleted && (o.Stage == OpportunityStage.ClosedWon || o.Stage == OpportunityStage.ClosedLost) && o.ExpectedCloseDate >= startOfMonth)
                 .ToListAsync(cancellationToken);
 
             var winRate = closedDealsThisMonth.Count > 0
@@ -285,8 +286,8 @@ public class DashboardController : ControllerBase
                     Amount = o.Amount,
                     Stage = o.Stage.ToString(),
                     Probability = o.Probability,
-                    ExpectedCloseDate = o.ExpectedCloseDate,
-                    DaysUntilClose = (int)(o.ExpectedCloseDate - DateTime.UtcNow).TotalDays
+                    ExpectedCloseDate = o.ExpectedCloseDate ?? DateTime.UtcNow,
+                    DaysUntilClose = o.ExpectedCloseDate.HasValue ? (int)(o.ExpectedCloseDate.Value - DateTime.UtcNow).TotalDays : 0
                 })
                 .ToListAsync(cancellationToken);
 
@@ -361,13 +362,13 @@ public class DashboardController : ControllerBase
                 .Select(t => new TaskSummary
                 {
                     Id = t.Id,
-                    Title = t.Title,
+                    Title = t.Subject,
                     DueDate = t.DueDate,
                     Priority = t.Priority.ToString(),
                     Status = t.Status.ToString(),
-                    AssignedToId = t.AssignedToId,
-                    EntityType = t.RelatedEntityType,
-                    EntityId = t.RelatedEntityId
+                    AssignedToId = t.AssignedToUserId,
+                    EntityType = t.AccountId != null ? "Account" : t.ContactId != null ? "Contact" : t.OpportunityId != null ? "Opportunity" : null,
+                    EntityId = t.AccountId ?? t.ContactId ?? t.OpportunityId
                 })
                 .ToListAsync(cancellationToken);
 
@@ -378,13 +379,13 @@ public class DashboardController : ControllerBase
                 .Select(t => new TaskSummary
                 {
                     Id = t.Id,
-                    Title = t.Title,
+                    Title = t.Subject,
                     DueDate = t.DueDate,
                     Priority = t.Priority.ToString(),
                     Status = t.Status.ToString(),
-                    AssignedToId = t.AssignedToId,
-                    EntityType = t.RelatedEntityType,
-                    EntityId = t.RelatedEntityId
+                    AssignedToId = t.AssignedToUserId,
+                    EntityType = t.AccountId != null ? "Account" : t.ContactId != null ? "Contact" : t.OpportunityId != null ? "Opportunity" : null,
+                    EntityId = t.AccountId ?? t.ContactId ?? t.OpportunityId
                 })
                 .ToListAsync(cancellationToken);
 
@@ -435,8 +436,8 @@ public class DashboardController : ControllerBase
             var leaderboard = await _context.Opportunities
                 .Where(o => !o.IsDeleted
                     && o.Stage == OpportunityStage.ClosedWon
-                    && o.ActualCloseDate >= from
-                    && o.ActualCloseDate <= to
+                    && o.ExpectedCloseDate >= from
+                    && o.ExpectedCloseDate <= to
                     && o.SalesOwnerId != null)
                 .GroupBy(o => o.SalesOwnerId)
                 .Select(g => new
@@ -501,9 +502,9 @@ public class DashboardController : ControllerBase
                 {
                     UserId = g.Key,
                     TotalActivities = g.Count(),
-                    Calls = g.Count(a => a.ActivityType == ActivityType.Call),
-                    Emails = g.Count(a => a.ActivityType == ActivityType.Email),
-                    Meetings = g.Count(a => a.ActivityType == ActivityType.Meeting)
+                    Calls = g.Count(a => a.ActivityType == ActivityType.CallMade || a.ActivityType == ActivityType.CallReceived),
+                    Emails = g.Count(a => a.ActivityType == ActivityType.EmailSent || a.ActivityType == ActivityType.EmailReceived),
+                    Meetings = g.Count(a => a.ActivityType == ActivityType.MeetingScheduled || a.ActivityType == ActivityType.MeetingCompleted)
                 })
                 .OrderByDescending(x => x.TotalActivities)
                 .Take(topN)
@@ -563,15 +564,15 @@ public class DashboardController : ControllerBase
                 var revenue = await _context.Opportunities
                     .Where(o => !o.IsDeleted
                         && o.Stage == OpportunityStage.ClosedWon
-                        && o.ActualCloseDate >= periodStart
-                        && o.ActualCloseDate < periodEnd)
+                        && o.ExpectedCloseDate >= periodStart
+                        && o.ExpectedCloseDate < periodEnd)
                     .SumAsync(o => o.Amount, cancellationToken);
 
                 var dealCount = await _context.Opportunities
                     .CountAsync(o => !o.IsDeleted
                         && o.Stage == OpportunityStage.ClosedWon
-                        && o.ActualCloseDate >= periodStart
-                        && o.ActualCloseDate < periodEnd, cancellationToken);
+                        && o.ExpectedCloseDate >= periodStart
+                        && o.ExpectedCloseDate < periodEnd, cancellationToken);
 
                 trends.Add(new RevenueTrendPoint
                 {
@@ -617,16 +618,16 @@ public class DashboardController : ControllerBase
                 .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to, cancellationToken);
 
             var qualifiedLeads = await _context.Leads
-                .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to && l.Status == LeadStatus.Qualified, cancellationToken);
+                .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to && l.Status == LeadLifecycleStatus.Qualified, cancellationToken);
 
             var convertedLeads = await _context.Leads
-                .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to && l.Status == LeadStatus.Converted, cancellationToken);
+                .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to && l.Status == LeadLifecycleStatus.Converted, cancellationToken);
 
             var opportunitiesFromLeads = await _context.Opportunities
                 .CountAsync(o => !o.IsDeleted && o.LeadId != null && o.CreatedAt >= from && o.CreatedAt <= to, cancellationToken);
 
             var closedWonFromLeads = await _context.Opportunities
-                .CountAsync(o => !o.IsDeleted && o.LeadId != null && o.Stage == OpportunityStage.ClosedWon && o.ActualCloseDate >= from && o.ActualCloseDate <= to, cancellationToken);
+                .CountAsync(o => !o.IsDeleted && o.LeadId != null && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= from && o.ExpectedCloseDate <= to, cancellationToken);
 
             return Ok(new LeadFunnelResponse
             {
@@ -668,8 +669,8 @@ public class DashboardController : ControllerBase
             var closedOpportunities = await _context.Opportunities
                 .Where(o => !o.IsDeleted
                     && (o.Stage == OpportunityStage.ClosedWon || o.Stage == OpportunityStage.ClosedLost)
-                    && o.ActualCloseDate >= from
-                    && o.ActualCloseDate <= to)
+                    && o.ExpectedCloseDate >= from
+                    && o.ExpectedCloseDate <= to)
                 .ToListAsync(cancellationToken);
 
             var won = closedOpportunities.Where(o => o.Stage == OpportunityStage.ClosedWon).ToList();
@@ -685,8 +686,8 @@ public class DashboardController : ControllerBase
                 WinRate = closedOpportunities.Count > 0 ? Math.Round((double)won.Count / closedOpportunities.Count * 100, 1) : 0,
                 AverageWonDealSize = won.Count > 0 ? won.Average(o => o.Amount) : 0,
                 AverageLostDealSize = lost.Count > 0 ? lost.Average(o => o.Amount) : 0,
-                AverageWonCycleTime = won.Count > 0 ? Math.Round(won.Where(o => o.CreatedAt.HasValue && o.ActualCloseDate.HasValue).Average(o => (o.ActualCloseDate!.Value - o.CreatedAt!.Value).TotalDays), 1) : 0,
-                AverageLostCycleTime = lost.Count > 0 ? Math.Round(lost.Where(o => o.CreatedAt.HasValue && o.ActualCloseDate.HasValue).Average(o => (o.ActualCloseDate!.Value - o.CreatedAt!.Value).TotalDays), 1) : 0,
+                AverageWonCycleTime = won.Count > 0 ? Math.Round(won.Where(o => o.ExpectedCloseDate.HasValue).Average(o => (o.ExpectedCloseDate!.Value - o.CreatedAt).TotalDays), 1) : 0,
+                AverageLostCycleTime = lost.Count > 0 ? Math.Round(lost.Where(o => o.ExpectedCloseDate.HasValue).Average(o => (o.ExpectedCloseDate!.Value - o.CreatedAt).TotalDays), 1) : 0,
                 FromDate = from,
                 ToDate = to
             });
@@ -722,8 +723,8 @@ public class DashboardController : ControllerBase
             var topCustomers = await _context.Opportunities
                 .Where(o => !o.IsDeleted
                     && o.Stage == OpportunityStage.ClosedWon
-                    && o.ActualCloseDate >= from
-                    && o.ActualCloseDate <= to
+                    && o.ExpectedCloseDate >= from
+                    && o.ExpectedCloseDate <= to
                     && o.AccountId != null)
                 .GroupBy(o => o.AccountId)
                 .Select(g => new
@@ -736,7 +737,7 @@ public class DashboardController : ControllerBase
                 .Take(topN)
                 .ToListAsync(cancellationToken);
 
-            var accountIds = topCustomers.Select(c => c.AccountId).Where(id => id.HasValue).Select(id => id!.Value).ToList();
+            var accountIds = topCustomers.Select(c => c.AccountId).ToList();
             var accounts = await _context.Customers
                 .Where(c => accountIds.Contains(c.Id))
                 .ToDictionaryAsync(c => c.Id, c => new { c.Company, c.Industry }, cancellationToken);
@@ -744,12 +745,12 @@ public class DashboardController : ControllerBase
             var result = topCustomers.Select((c, index) => new TopCustomerEntry
             {
                 Rank = index + 1,
-                AccountId = c.AccountId ?? 0,
-                AccountName = c.AccountId.HasValue && accounts.ContainsKey(c.AccountId.Value)
-                    ? accounts[c.AccountId.Value].Company ?? "Unknown"
+                AccountId = c.AccountId,
+                AccountName = accounts.ContainsKey(c.AccountId)
+                    ? accounts[c.AccountId].Company ?? "Unknown"
                     : "Unknown",
-                Industry = c.AccountId.HasValue && accounts.ContainsKey(c.AccountId.Value)
-                    ? accounts[c.AccountId.Value].Industry
+                Industry = accounts.ContainsKey(c.AccountId)
+                    ? accounts[c.AccountId].Industry
                     : null,
                 TotalRevenue = c.TotalRevenue,
                 DealCount = c.DealCount

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using CRM.Api.Controllers;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Api.Hubs;
 using CRM.Core.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;

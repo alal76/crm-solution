@@ -8,6 +8,7 @@ using FluentAssertions;
 using CRM.Api.Controllers;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Api.Hubs;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
