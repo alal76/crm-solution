@@ -39,19 +39,21 @@ services:
       novu-redis:
         condition: service_healthy
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=local
       - API_ROOT_URL=http://localhost:3000
       - MONGO_URL=mongodb://novu-mongo:27017/novu
       - REDIS_HOST=novu-redis
       - REDIS_PORT=6379
       - REDIS_DB_INDEX=2
-      - S3_LOCAL_STACK=
+      - S3_LOCAL_STACK=http://localhost:9000
       - S3_BUCKET_NAME=novu-local
       - S3_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=novulocalaccesskey00
+      - AWS_SECRET_ACCESS_KEY=novulocalsecretkey0000000000000
       - FRONT_BASE_URL=http://localhost:4200
       - API_PORT=3000
       - JWT_SECRET=${NOVU_JWT_SECRET:-your-jwt-secret-change-in-production}
-      - STORE_ENCRYPTION_KEY=${NOVU_ENCRYPTION_KEY:-your-encryption-key-change}
+      - STORE_ENCRYPTION_KEY=${NOVU_ENCRYPTION_KEY:-novuEncryptionKey00000000000032c}
     ports:
       - "${NOVU_API_PORT:-3000}:3000"
     healthcheck:
@@ -75,12 +77,15 @@ services:
       novu-api:
         condition: service_healthy
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=local
       - MONGO_URL=mongodb://novu-mongo:27017/novu
       - REDIS_HOST=novu-redis
       - REDIS_PORT=6379
       - REDIS_DB_INDEX=2
-      - STORE_ENCRYPTION_KEY=${NOVU_ENCRYPTION_KEY:-your-encryption-key-change}
+      - S3_LOCAL_STACK=http://localhost:9000
+      - AWS_ACCESS_KEY_ID=novulocalaccesskey00
+      - AWS_SECRET_ACCESS_KEY=novulocalsecretkey0000000000000
+      - STORE_ENCRYPTION_KEY=${NOVU_ENCRYPTION_KEY:-novuEncryptionKey00000000000032c}
     networks:
       - crm-network
 
