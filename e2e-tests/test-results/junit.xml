@@ -1,195 +1,1380 @@
-<testsuites id="" name="" tests="18" failures="1" skipped="1" errors="0" time="10.2231">
-<testsuite name="auth.setup.ts" timestamp="2026-02-02T12:12:20.319Z" hostname="setup" tests="1" failures="0" skipped="0" time="4.215" errors="0">
-<testcase name="authenticate" classname="auth.setup.ts" time="4.215">
-<system-out>
-<![CDATA[🔐 Attempting login with: admin@crm.local
-📋 Found 3 input fields
-📍 Current path: /
-✅ Authentication successful, state saved
-]]>
-</system-out>
-</testcase>
-</testsuite>
-<testsuite name="deduplication/deduplication.spec.ts" timestamp="2026-02-02T12:12:20.319Z" hostname="chromium" tests="17" failures="1" skipped="1" time="14.437" errors="0">
-<testcase name="Deduplication - API Tests › TC-DEDUP-001: Should check for duplicates with no matches" classname="deduplication/deduplication.spec.ts" time="0.856">
-<system-out>
-<![CDATA[Duplicate check response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
-</testcase>
-<testcase name="Deduplication - API Tests › TC-DEDUP-002: Should detect duplicate by email" classname="deduplication/deduplication.spec.ts" time="0.729">
-<system-out>
-<![CDATA[Duplicate detection response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
-</testcase>
-<testcase name="Deduplication - API Tests › TC-DEDUP-003: Should detect fuzzy name matches" classname="deduplication/deduplication.spec.ts" time="0.562">
-<system-out>
-<![CDATA[Fuzzy match response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
-</testcase>
-<testcase name="Deduplication - API Tests › TC-DEDUP-004: Should get active duplicate rules" classname="deduplication/deduplication.spec.ts" time="0.683">
-<system-out>
-<![CDATA[Duplicate rules response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
-</testcase>
-<testcase name="Deduplication - API Tests › TC-DEDUP-005: Should handle Contact duplicates" classname="deduplication/deduplication.spec.ts" time="0.909">
-<system-out>
-<![CDATA[Contact duplicate check: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
-</testcase>
-<testcase name="Deduplication - API Tests › TC-DEDUP-006: Should handle Account duplicates" classname="deduplication/deduplication.spec.ts" time="0.47">
-<system-out>
-<![CDATA[Account duplicate check: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
-</testcase>
-<testcase name="Deduplication - Merge Operations › TC-DEDUP-010: Should preview merge operation" classname="deduplication/deduplication.spec.ts" time="0.974">
-<system-out>
-<![CDATA[Merge preview response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
-</testcase>
-<testcase name="Deduplication - Merge Operations › TC-DEDUP-011: Should get merge history" classname="deduplication/deduplication.spec.ts" time="0.842">
-<system-out>
-<![CDATA[Merge history response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
-</testcase>
-<testcase name="Deduplication - Merge Operations › TC-DEDUP-012: Should handle invalid entity type gracefully" classname="deduplication/deduplication.spec.ts" time="0.836">
-<failure message="deduplication.spec.ts:207:7 TC-DEDUP-012: Should handle invalid entity type gracefully" type="FAILURE">
-<![CDATA[  [chromium] › deduplication/deduplication.spec.ts:207:7 › Deduplication - Merge Operations › TC-DEDUP-012: Should handle invalid entity type gracefully 
+<testsuites id="" name="" tests="336" failures="1" skipped="335" errors="0" time="0.710826">
+<testsuite name="auth.setup.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="setup" tests="1" failures="1" skipped="0" time="0.001" errors="0">
+<testcase name="authenticate" classname="auth.setup.ts" time="0.001">
+<failure message="auth.setup.ts:15:6 authenticate" type="FAILURE">
+<![CDATA[  [setup] › auth.setup.ts:15:6 › authenticate ──────────────────────────────────────────────────────
 
-    Error: expect(received).toBe(expected) // Object.is equality
-
-    Expected: 400
-    Received: 401
-
-      218 |     console.log('Invalid entity response:', JSON.stringify(response, null, 2));
-      219 |     // Should return 400 Bad Request, not 500
-    > 220 |     expect(response.status).toBe(400);
-          |                             ^
-      221 |   });
-      222 |
-      223 |   test('TC-DEDUP-013: Should require field values', async ({ page }) => {
-        at /Users/alal/Code/Git CRM Solution/crm-solution/e2e-tests/tests/deduplication/deduplication.spec.ts:220:29
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/artifacts/deduplication-deduplicatio-17103-alid-entity-type-gracefully-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/artifacts/deduplication-deduplicatio-17103-alid-entity-type-gracefully-chromium/error-context.md
+    Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-mac-arm64/chrome-headless-shell
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
 ]]>
 </failure>
-<system-out>
-<![CDATA[Invalid entity response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-
-[[ATTACHMENT|artifacts/deduplication-deduplicatio-17103-alid-entity-type-gracefully-chromium/test-failed-1.png]]
-
-[[ATTACHMENT|artifacts/deduplication-deduplicatio-17103-alid-entity-type-gracefully-chromium/error-context.md]]
-]]>
-</system-out>
 </testcase>
-<testcase name="Deduplication - Merge Operations › TC-DEDUP-013: Should require field values" classname="deduplication/deduplication.spec.ts" time="0">
+</testsuite>
+<testsuite name="bvt/itsm-api-bvt.spec.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="chromium" tests="26" failures="0" skipped="26" time="0" errors="0">
+<testcase name="ITSM Webhooks API BVT › BVTAPI001 - GET /api/itsm/webhooks/subscriptions returns subscription list" classname="bvt/itsm-api-bvt.spec.ts" time="0">
 <skipped>
 </skipped>
 </testcase>
-<testcase name="Deduplication - UI Integration › TC-DEDUP-020: Should show duplicate detection dialog on lead create" classname="deduplication/deduplication.spec.ts" time="2.962">
+<testcase name="ITSM Webhooks API BVT › BVTAPI002 - POST /api/itsm/webhooks/subscriptions creates subscription" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
 </testcase>
-<testcase name="Deduplication - UI Integration › TC-DEDUP-021: Should navigate to duplicate management page" classname="deduplication/deduplication.spec.ts" time="0.866">
-<system-out>
-<![CDATA[Has duplicate management section: [33mfalse[39m
-]]>
-</system-out>
+<testcase name="ITSM Webhooks API BVT › BVTAPI003 - GET /api/itsm/webhooks/event-types returns supported events" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
 </testcase>
-<testcase name="Deduplication - Edge Cases › TC-DEDUP-030: Should handle special characters in names" classname="deduplication/deduplication.spec.ts" time="0.767">
-<system-out>
-<![CDATA[Special chars response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
+<testcase name="ITSM Webhooks API BVT › BVTAPI004 - GET /api/itsm/webhooks/deliveries returns delivery history" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
 </testcase>
-<testcase name="Deduplication - Edge Cases › TC-DEDUP-031: Should handle unicode characters" classname="deduplication/deduplication.spec.ts" time="0.746">
-<system-out>
-<![CDATA[Unicode response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI010 - POST /api/itsm/email/inbound processes email" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
 </testcase>
-<testcase name="Deduplication - Edge Cases › TC-DEDUP-032: Should handle very long field values" classname="deduplication/deduplication.spec.ts" time="0.769">
-<system-out>
-<![CDATA[Long values response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI011 - GET /api/itsm/email/config returns email parsing config" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
 </testcase>
-<testcase name="Deduplication - Edge Cases › TC-DEDUP-033: Should handle phone number variations" classname="deduplication/deduplication.spec.ts" time="0.664">
-<system-out>
-<![CDATA[Phone format "555-123-4567" response status: [33m401[39m
-Phone format "(555) 123-4567" response status: [33m401[39m
-Phone format "5551234567" response status: [33m401[39m
-Phone format "+1 555 123 4567" response status: [33m401[39m
-Phone format "555.123.4567" response status: [33m401[39m
-]]>
-</system-out>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI012 - GET /api/itsm/email/history returns processed emails" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
 </testcase>
-<testcase name="Deduplication - Edge Cases › TC-DEDUP-034: Should handle email variations" classname="deduplication/deduplication.spec.ts" time="0.802">
-<system-out>
-<![CDATA[Email plus addressing response: {
-  "status": 401,
-  "data": "",
-  "ok": false
-}
-]]>
-</system-out>
+<testcase name="ITSM Dashboard API BVT › BVTAPI020 - GET /api/itsm/dashboard/metrics returns metrics" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI021 - GET /api/itsm/dashboard/incident-trends returns trends" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI022 - GET /api/itsm/dashboard/sla-compliance returns SLA data" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI023 - GET /api/itsm/dashboard/agent-performance returns agent metrics" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI024 - GET /api/itsm/dashboard/executive-summary returns summary" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI025 - GET /api/itsm/dashboard/category-breakdown returns categories" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI030 - POST /api/itsm/monitoring/alerts receives Prometheus alert" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI031 - GET /api/itsm/monitoring/sources returns configured sources" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI032 - GET /api/itsm/monitoring/alert-mappings returns mappings" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI040 - POST /api/itsm/cicd/deployment creates change request" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI041 - GET /api/itsm/cicd/pipelines returns registered pipelines" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI042 - POST /api/itsm/cicd/deployment-complete marks deployment done" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI050 - POST /api/itsm/chatbot/sessions creates chat session" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI051 - POST /api/itsm/chatbot/sessions/{id}/messages sends message" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI052 - GET /api/itsm/chatbot/sessions/{id} returns session history" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI053 - GET /api/itsm/chatbot/quick-actions returns available actions" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI054 - POST /api/itsm/chatbot/search searches knowledge base" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM API Health Checks › BVTAPI060 - API responds to health check" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM API Health Checks › BVTAPI061 - ITSM endpoints require authentication" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="bvt/itsm-core-api-bvt.spec.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="chromium" tests="41" failures="0" skipped="41" time="0" errors="0">
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-001: GET /api/itsm/incidents returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-002: GET /api/itsm/incidents with pagination" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-003: GET /api/itsm/incidents/{id} returns single incident" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-004: POST /api/itsm/incidents creates incident" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-005: GET /api/itsm/incidents with state filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-006: POST /api/itsm/incidents/{id}/comments adds comment" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-011: GET /api/itsm/problems returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-012: GET /api/itsm/problems/{id} returns single problem" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-013: POST /api/itsm/problems creates problem" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-014: GET /api/itsm/problems with known error filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-015: GET /api/itsm/problems/{id}/incidents returns related" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-021: GET /api/itsm/changes returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-022: GET /api/itsm/changes/{id} returns single change" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-023: POST /api/itsm/changes creates change request" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-024: GET /api/itsm/changes with approval filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-025: GET /api/itsm/changes/blackout-periods returns blackouts" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-031: GET /api/itsm/sla/policies returns policies" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-032: GET /api/itsm/sla/breached returns breached SLAs" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-033: GET /api/itsm/sla/at-risk returns at-risk SLAs" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-034: GET /api/itsm/sla/dashboard returns dashboard data" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-035: GET /api/itsm/sla/metrics returns metrics" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-041: GET /api/itsm/cmdb/cis returns CI list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-042: GET /api/itsm/cmdb/cis/{id} returns single CI" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-043: POST /api/itsm/cmdb/cis creates CI" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-044: GET /api/itsm/cmdb/cis search by type" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-045: GET /api/itsm/cmdb/cis/{id}/relationships returns relations" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-046: GET /api/itsm/cmdb/cis/{id}/impact returns impact analysis" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-051: GET /api/itsm/knowledge/articles returns articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-052: GET /api/itsm/knowledge/articles/{id} returns article" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-053: GET /api/itsm/knowledge/articles search" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-054: GET /api/itsm/knowledge/articles/popular returns top articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-055: GET /api/itsm/knowledge/articles/recent returns recent articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-056: GET /api/itsm/knowledge/categories returns categories" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-061: GET /api/itsm/catalog/items returns catalog items" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-062: GET /api/itsm/catalog/items/{id} returns single item" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-063: GET /api/itsm/catalog/items featured only" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-064: GET /api/itsm/catalog/categories returns categories" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-065: GET /api/itsm/catalog/search returns search results" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-066: GET /api/itsm/catalog/my-requests returns user requests" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Core Integration Smoke Tests › SMOKE-001: All ITSM API endpoints respond" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Core Integration Smoke Tests › SMOKE-002: ITSM health check endpoints" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="bvt/itsm-api-bvt.spec.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="firefox" tests="26" failures="0" skipped="26" time="0" errors="0">
+<testcase name="ITSM Webhooks API BVT › BVTAPI001 - GET /api/itsm/webhooks/subscriptions returns subscription list" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI002 - POST /api/itsm/webhooks/subscriptions creates subscription" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI003 - GET /api/itsm/webhooks/event-types returns supported events" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI004 - GET /api/itsm/webhooks/deliveries returns delivery history" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI010 - POST /api/itsm/email/inbound processes email" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI011 - GET /api/itsm/email/config returns email parsing config" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI012 - GET /api/itsm/email/history returns processed emails" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI020 - GET /api/itsm/dashboard/metrics returns metrics" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI021 - GET /api/itsm/dashboard/incident-trends returns trends" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI022 - GET /api/itsm/dashboard/sla-compliance returns SLA data" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI023 - GET /api/itsm/dashboard/agent-performance returns agent metrics" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI024 - GET /api/itsm/dashboard/executive-summary returns summary" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI025 - GET /api/itsm/dashboard/category-breakdown returns categories" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI030 - POST /api/itsm/monitoring/alerts receives Prometheus alert" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI031 - GET /api/itsm/monitoring/sources returns configured sources" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI032 - GET /api/itsm/monitoring/alert-mappings returns mappings" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI040 - POST /api/itsm/cicd/deployment creates change request" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI041 - GET /api/itsm/cicd/pipelines returns registered pipelines" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI042 - POST /api/itsm/cicd/deployment-complete marks deployment done" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI050 - POST /api/itsm/chatbot/sessions creates chat session" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI051 - POST /api/itsm/chatbot/sessions/{id}/messages sends message" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI052 - GET /api/itsm/chatbot/sessions/{id} returns session history" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI053 - GET /api/itsm/chatbot/quick-actions returns available actions" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI054 - POST /api/itsm/chatbot/search searches knowledge base" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM API Health Checks › BVTAPI060 - API responds to health check" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM API Health Checks › BVTAPI061 - ITSM endpoints require authentication" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="bvt/itsm-core-api-bvt.spec.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="firefox" tests="41" failures="0" skipped="41" time="0" errors="0">
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-001: GET /api/itsm/incidents returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-002: GET /api/itsm/incidents with pagination" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-003: GET /api/itsm/incidents/{id} returns single incident" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-004: POST /api/itsm/incidents creates incident" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-005: GET /api/itsm/incidents with state filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-006: POST /api/itsm/incidents/{id}/comments adds comment" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-011: GET /api/itsm/problems returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-012: GET /api/itsm/problems/{id} returns single problem" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-013: POST /api/itsm/problems creates problem" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-014: GET /api/itsm/problems with known error filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-015: GET /api/itsm/problems/{id}/incidents returns related" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-021: GET /api/itsm/changes returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-022: GET /api/itsm/changes/{id} returns single change" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-023: POST /api/itsm/changes creates change request" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-024: GET /api/itsm/changes with approval filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-025: GET /api/itsm/changes/blackout-periods returns blackouts" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-031: GET /api/itsm/sla/policies returns policies" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-032: GET /api/itsm/sla/breached returns breached SLAs" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-033: GET /api/itsm/sla/at-risk returns at-risk SLAs" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-034: GET /api/itsm/sla/dashboard returns dashboard data" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-035: GET /api/itsm/sla/metrics returns metrics" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-041: GET /api/itsm/cmdb/cis returns CI list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-042: GET /api/itsm/cmdb/cis/{id} returns single CI" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-043: POST /api/itsm/cmdb/cis creates CI" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-044: GET /api/itsm/cmdb/cis search by type" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-045: GET /api/itsm/cmdb/cis/{id}/relationships returns relations" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-046: GET /api/itsm/cmdb/cis/{id}/impact returns impact analysis" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-051: GET /api/itsm/knowledge/articles returns articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-052: GET /api/itsm/knowledge/articles/{id} returns article" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-053: GET /api/itsm/knowledge/articles search" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-054: GET /api/itsm/knowledge/articles/popular returns top articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-055: GET /api/itsm/knowledge/articles/recent returns recent articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-056: GET /api/itsm/knowledge/categories returns categories" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-061: GET /api/itsm/catalog/items returns catalog items" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-062: GET /api/itsm/catalog/items/{id} returns single item" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-063: GET /api/itsm/catalog/items featured only" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-064: GET /api/itsm/catalog/categories returns categories" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-065: GET /api/itsm/catalog/search returns search results" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-066: GET /api/itsm/catalog/my-requests returns user requests" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Core Integration Smoke Tests › SMOKE-001: All ITSM API endpoints respond" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Core Integration Smoke Tests › SMOKE-002: ITSM health check endpoints" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="bvt/itsm-api-bvt.spec.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="webkit" tests="26" failures="0" skipped="26" time="0" errors="0">
+<testcase name="ITSM Webhooks API BVT › BVTAPI001 - GET /api/itsm/webhooks/subscriptions returns subscription list" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI002 - POST /api/itsm/webhooks/subscriptions creates subscription" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI003 - GET /api/itsm/webhooks/event-types returns supported events" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI004 - GET /api/itsm/webhooks/deliveries returns delivery history" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI010 - POST /api/itsm/email/inbound processes email" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI011 - GET /api/itsm/email/config returns email parsing config" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI012 - GET /api/itsm/email/history returns processed emails" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI020 - GET /api/itsm/dashboard/metrics returns metrics" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI021 - GET /api/itsm/dashboard/incident-trends returns trends" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI022 - GET /api/itsm/dashboard/sla-compliance returns SLA data" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI023 - GET /api/itsm/dashboard/agent-performance returns agent metrics" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI024 - GET /api/itsm/dashboard/executive-summary returns summary" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI025 - GET /api/itsm/dashboard/category-breakdown returns categories" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI030 - POST /api/itsm/monitoring/alerts receives Prometheus alert" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI031 - GET /api/itsm/monitoring/sources returns configured sources" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI032 - GET /api/itsm/monitoring/alert-mappings returns mappings" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI040 - POST /api/itsm/cicd/deployment creates change request" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI041 - GET /api/itsm/cicd/pipelines returns registered pipelines" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI042 - POST /api/itsm/cicd/deployment-complete marks deployment done" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI050 - POST /api/itsm/chatbot/sessions creates chat session" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI051 - POST /api/itsm/chatbot/sessions/{id}/messages sends message" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI052 - GET /api/itsm/chatbot/sessions/{id} returns session history" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI053 - GET /api/itsm/chatbot/quick-actions returns available actions" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI054 - POST /api/itsm/chatbot/search searches knowledge base" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM API Health Checks › BVTAPI060 - API responds to health check" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM API Health Checks › BVTAPI061 - ITSM endpoints require authentication" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="bvt/itsm-core-api-bvt.spec.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="webkit" tests="41" failures="0" skipped="41" time="0" errors="0">
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-001: GET /api/itsm/incidents returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-002: GET /api/itsm/incidents with pagination" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-003: GET /api/itsm/incidents/{id} returns single incident" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-004: POST /api/itsm/incidents creates incident" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-005: GET /api/itsm/incidents with state filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-006: POST /api/itsm/incidents/{id}/comments adds comment" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-011: GET /api/itsm/problems returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-012: GET /api/itsm/problems/{id} returns single problem" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-013: POST /api/itsm/problems creates problem" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-014: GET /api/itsm/problems with known error filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-015: GET /api/itsm/problems/{id}/incidents returns related" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-021: GET /api/itsm/changes returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-022: GET /api/itsm/changes/{id} returns single change" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-023: POST /api/itsm/changes creates change request" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-024: GET /api/itsm/changes with approval filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-025: GET /api/itsm/changes/blackout-periods returns blackouts" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-031: GET /api/itsm/sla/policies returns policies" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-032: GET /api/itsm/sla/breached returns breached SLAs" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-033: GET /api/itsm/sla/at-risk returns at-risk SLAs" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-034: GET /api/itsm/sla/dashboard returns dashboard data" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-035: GET /api/itsm/sla/metrics returns metrics" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-041: GET /api/itsm/cmdb/cis returns CI list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-042: GET /api/itsm/cmdb/cis/{id} returns single CI" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-043: POST /api/itsm/cmdb/cis creates CI" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-044: GET /api/itsm/cmdb/cis search by type" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-045: GET /api/itsm/cmdb/cis/{id}/relationships returns relations" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-046: GET /api/itsm/cmdb/cis/{id}/impact returns impact analysis" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-051: GET /api/itsm/knowledge/articles returns articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-052: GET /api/itsm/knowledge/articles/{id} returns article" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-053: GET /api/itsm/knowledge/articles search" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-054: GET /api/itsm/knowledge/articles/popular returns top articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-055: GET /api/itsm/knowledge/articles/recent returns recent articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-056: GET /api/itsm/knowledge/categories returns categories" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-061: GET /api/itsm/catalog/items returns catalog items" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-062: GET /api/itsm/catalog/items/{id} returns single item" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-063: GET /api/itsm/catalog/items featured only" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-064: GET /api/itsm/catalog/categories returns categories" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-065: GET /api/itsm/catalog/search returns search results" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-066: GET /api/itsm/catalog/my-requests returns user requests" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Core Integration Smoke Tests › SMOKE-001: All ITSM API endpoints respond" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Core Integration Smoke Tests › SMOKE-002: ITSM health check endpoints" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="bvt/itsm-api-bvt.spec.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="Mobile Chrome" tests="26" failures="0" skipped="26" time="0" errors="0">
+<testcase name="ITSM Webhooks API BVT › BVTAPI001 - GET /api/itsm/webhooks/subscriptions returns subscription list" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI002 - POST /api/itsm/webhooks/subscriptions creates subscription" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI003 - GET /api/itsm/webhooks/event-types returns supported events" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI004 - GET /api/itsm/webhooks/deliveries returns delivery history" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI010 - POST /api/itsm/email/inbound processes email" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI011 - GET /api/itsm/email/config returns email parsing config" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI012 - GET /api/itsm/email/history returns processed emails" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI020 - GET /api/itsm/dashboard/metrics returns metrics" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI021 - GET /api/itsm/dashboard/incident-trends returns trends" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI022 - GET /api/itsm/dashboard/sla-compliance returns SLA data" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI023 - GET /api/itsm/dashboard/agent-performance returns agent metrics" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI024 - GET /api/itsm/dashboard/executive-summary returns summary" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI025 - GET /api/itsm/dashboard/category-breakdown returns categories" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI030 - POST /api/itsm/monitoring/alerts receives Prometheus alert" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI031 - GET /api/itsm/monitoring/sources returns configured sources" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI032 - GET /api/itsm/monitoring/alert-mappings returns mappings" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI040 - POST /api/itsm/cicd/deployment creates change request" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI041 - GET /api/itsm/cicd/pipelines returns registered pipelines" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI042 - POST /api/itsm/cicd/deployment-complete marks deployment done" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI050 - POST /api/itsm/chatbot/sessions creates chat session" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI051 - POST /api/itsm/chatbot/sessions/{id}/messages sends message" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI052 - GET /api/itsm/chatbot/sessions/{id} returns session history" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI053 - GET /api/itsm/chatbot/quick-actions returns available actions" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI054 - POST /api/itsm/chatbot/search searches knowledge base" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM API Health Checks › BVTAPI060 - API responds to health check" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM API Health Checks › BVTAPI061 - ITSM endpoints require authentication" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="bvt/itsm-core-api-bvt.spec.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="Mobile Chrome" tests="41" failures="0" skipped="41" time="0" errors="0">
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-001: GET /api/itsm/incidents returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-002: GET /api/itsm/incidents with pagination" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-003: GET /api/itsm/incidents/{id} returns single incident" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-004: POST /api/itsm/incidents creates incident" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-005: GET /api/itsm/incidents with state filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-006: POST /api/itsm/incidents/{id}/comments adds comment" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-011: GET /api/itsm/problems returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-012: GET /api/itsm/problems/{id} returns single problem" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-013: POST /api/itsm/problems creates problem" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-014: GET /api/itsm/problems with known error filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-015: GET /api/itsm/problems/{id}/incidents returns related" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-021: GET /api/itsm/changes returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-022: GET /api/itsm/changes/{id} returns single change" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-023: POST /api/itsm/changes creates change request" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-024: GET /api/itsm/changes with approval filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-025: GET /api/itsm/changes/blackout-periods returns blackouts" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-031: GET /api/itsm/sla/policies returns policies" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-032: GET /api/itsm/sla/breached returns breached SLAs" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-033: GET /api/itsm/sla/at-risk returns at-risk SLAs" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-034: GET /api/itsm/sla/dashboard returns dashboard data" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-035: GET /api/itsm/sla/metrics returns metrics" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-041: GET /api/itsm/cmdb/cis returns CI list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-042: GET /api/itsm/cmdb/cis/{id} returns single CI" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-043: POST /api/itsm/cmdb/cis creates CI" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-044: GET /api/itsm/cmdb/cis search by type" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-045: GET /api/itsm/cmdb/cis/{id}/relationships returns relations" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-046: GET /api/itsm/cmdb/cis/{id}/impact returns impact analysis" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-051: GET /api/itsm/knowledge/articles returns articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-052: GET /api/itsm/knowledge/articles/{id} returns article" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-053: GET /api/itsm/knowledge/articles search" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-054: GET /api/itsm/knowledge/articles/popular returns top articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-055: GET /api/itsm/knowledge/articles/recent returns recent articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-056: GET /api/itsm/knowledge/categories returns categories" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-061: GET /api/itsm/catalog/items returns catalog items" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-062: GET /api/itsm/catalog/items/{id} returns single item" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-063: GET /api/itsm/catalog/items featured only" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-064: GET /api/itsm/catalog/categories returns categories" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-065: GET /api/itsm/catalog/search returns search results" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-066: GET /api/itsm/catalog/my-requests returns user requests" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Core Integration Smoke Tests › SMOKE-001: All ITSM API endpoints respond" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Core Integration Smoke Tests › SMOKE-002: ITSM health check endpoints" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="bvt/itsm-api-bvt.spec.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="Mobile Safari" tests="26" failures="0" skipped="26" time="0" errors="0">
+<testcase name="ITSM Webhooks API BVT › BVTAPI001 - GET /api/itsm/webhooks/subscriptions returns subscription list" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI002 - POST /api/itsm/webhooks/subscriptions creates subscription" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI003 - GET /api/itsm/webhooks/event-types returns supported events" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Webhooks API BVT › BVTAPI004 - GET /api/itsm/webhooks/deliveries returns delivery history" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI010 - POST /api/itsm/email/inbound processes email" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI011 - GET /api/itsm/email/config returns email parsing config" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Email-to-Ticket API BVT › BVTAPI012 - GET /api/itsm/email/history returns processed emails" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI020 - GET /api/itsm/dashboard/metrics returns metrics" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI021 - GET /api/itsm/dashboard/incident-trends returns trends" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI022 - GET /api/itsm/dashboard/sla-compliance returns SLA data" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI023 - GET /api/itsm/dashboard/agent-performance returns agent metrics" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI024 - GET /api/itsm/dashboard/executive-summary returns summary" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Dashboard API BVT › BVTAPI025 - GET /api/itsm/dashboard/category-breakdown returns categories" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI030 - POST /api/itsm/monitoring/alerts receives Prometheus alert" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI031 - GET /api/itsm/monitoring/sources returns configured sources" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Monitoring Integration API BVT › BVTAPI032 - GET /api/itsm/monitoring/alert-mappings returns mappings" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI040 - POST /api/itsm/cicd/deployment creates change request" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI041 - GET /api/itsm/cicd/pipelines returns registered pipelines" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM CI/CD Integration API BVT › BVTAPI042 - POST /api/itsm/cicd/deployment-complete marks deployment done" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI050 - POST /api/itsm/chatbot/sessions creates chat session" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI051 - POST /api/itsm/chatbot/sessions/{id}/messages sends message" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI052 - GET /api/itsm/chatbot/sessions/{id} returns session history" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI053 - GET /api/itsm/chatbot/quick-actions returns available actions" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Self-Service Chatbot API BVT › BVTAPI054 - POST /api/itsm/chatbot/search searches knowledge base" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM API Health Checks › BVTAPI060 - API responds to health check" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM API Health Checks › BVTAPI061 - ITSM endpoints require authentication" classname="bvt/itsm-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="bvt/itsm-core-api-bvt.spec.ts" timestamp="2026-02-10T13:42:07.987Z" hostname="Mobile Safari" tests="41" failures="0" skipped="41" time="0" errors="0">
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-001: GET /api/itsm/incidents returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-002: GET /api/itsm/incidents with pagination" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-003: GET /api/itsm/incidents/{id} returns single incident" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-004: POST /api/itsm/incidents creates incident" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-005: GET /api/itsm/incidents with state filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Incident Management › BVT-15-006: POST /api/itsm/incidents/{id}/comments adds comment" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-011: GET /api/itsm/problems returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-012: GET /api/itsm/problems/{id} returns single problem" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-013: POST /api/itsm/problems creates problem" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-014: GET /api/itsm/problems with known error filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Problem Management › BVT-15-015: GET /api/itsm/problems/{id}/incidents returns related" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-021: GET /api/itsm/changes returns list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-022: GET /api/itsm/changes/{id} returns single change" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-023: POST /api/itsm/changes creates change request" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-024: GET /api/itsm/changes with approval filter" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Change Management › BVT-15-025: GET /api/itsm/changes/blackout-periods returns blackouts" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-031: GET /api/itsm/sla/policies returns policies" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-032: GET /api/itsm/sla/breached returns breached SLAs" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-033: GET /api/itsm/sla/at-risk returns at-risk SLAs" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-034: GET /api/itsm/sla/dashboard returns dashboard data" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › SLA Management › BVT-15-035: GET /api/itsm/sla/metrics returns metrics" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-041: GET /api/itsm/cmdb/cis returns CI list" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-042: GET /api/itsm/cmdb/cis/{id} returns single CI" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-043: POST /api/itsm/cmdb/cis creates CI" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-044: GET /api/itsm/cmdb/cis search by type" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-045: GET /api/itsm/cmdb/cis/{id}/relationships returns relations" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › CMDB › BVT-15-046: GET /api/itsm/cmdb/cis/{id}/impact returns impact analysis" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-051: GET /api/itsm/knowledge/articles returns articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-052: GET /api/itsm/knowledge/articles/{id} returns article" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-053: GET /api/itsm/knowledge/articles search" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-054: GET /api/itsm/knowledge/articles/popular returns top articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-055: GET /api/itsm/knowledge/articles/recent returns recent articles" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Knowledge Management › BVT-15-056: GET /api/itsm/knowledge/categories returns categories" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-061: GET /api/itsm/catalog/items returns catalog items" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-062: GET /api/itsm/catalog/items/{id} returns single item" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-063: GET /api/itsm/catalog/items featured only" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-064: GET /api/itsm/catalog/categories returns categories" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-065: GET /api/itsm/catalog/search returns search results" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="BVT-15: ITSM Core API Tests › Service Catalog › BVT-15-066: GET /api/itsm/catalog/my-requests returns user requests" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Core Integration Smoke Tests › SMOKE-001: All ITSM API endpoints respond" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="ITSM Core Integration Smoke Tests › SMOKE-002: ITSM health check endpoints" classname="bvt/itsm-core-api-bvt.spec.ts" time="0">
+<skipped>
+</skipped>
 </testcase>
 </testsuite>
 </testsuites>
