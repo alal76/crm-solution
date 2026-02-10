@@ -487,6 +487,13 @@ builder.Services.AddHttpClient<ILLMService, LLMService>();
 builder.Services.AddSingleton<IResilienceService, ResilienceService>();
 builder.Services.AddScoped<ILLMSettingsService, LLMSettingsService>();
 
+// Phase 7 services - AI/Analytics Enhancements (KB search, Lead scoring, Opportunity scoring, Dashboards, Reports)
+builder.Services.AddSingleton<IAIKnowledgeSearchService, AIKnowledgeSearchService>();
+builder.Services.AddScoped<IAILeadScoringService, AILeadScoringService>();
+builder.Services.AddScoped<IAIOpportunityScoringService, AIOpportunityScoringService>();
+builder.Services.AddSingleton<IDashboardBuilderService, DashboardBuilderService>();
+builder.Services.AddSingleton<IReportBuilderService, ReportBuilderService>();
+
 // Allen AI Services (OLMo/Tulu models for lead scoring, insights, churn prediction)
 builder.Services.Configure<AllenAIConfiguration>(builder.Configuration.GetSection("AllenAI"));
 builder.Services.AddHttpClient("AllenAI", client =>
