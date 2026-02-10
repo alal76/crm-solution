@@ -485,3 +485,4 @@ services:
 networks:
   crm-network:
     external: true
+    name: docker_crm-network
