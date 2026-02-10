@@ -1,0 +1,30 @@
+{
+  "summary": {
+    "startTime": "2026-02-10T13:42:07.909Z",
+    "totalTests": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "duration": 712,
+    "modules": {
+      "auth.setup.ts": {
+        "total": 1,
+        "passed": 0,
+        "failed": 1,
+        "skipped": 0
+      }
+    },
+    "endTime": "2026-02-10T13:42:08.621Z"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-02-10T13:42:08.611Z",
+      "testId": "TC-UNKNOWN",
+      "testName": "authenticate",
+      "module": "auth.setup.ts",
+      "status": "FAIL",
+      "duration": 1,
+      "error": "Error: browserType.launch: Executable doesn't exist at /Users/alal/Library/Caches/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-mac-arm64/chrome-headless-shell\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝"
+    }
+  ]
+}
