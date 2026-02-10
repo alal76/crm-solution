@@ -1,549 +1,455 @@
-# CRM Solution - Master Todo List
+# CRM Solution - Master TODO List (Pending Items Only)
 
-**Last Updated:** February 13, 2026  
-**Document Purpose:** Consolidated list of all planned enhancements, pending items, and future roadmap features
+> **Last Updated:** February 14, 2026
+> **Purpose:** Consolidated list of all PENDING enhancements and action items
+> **Total Pending Items:** 119
+> **Completed items have been archived — see git history for prior state**
 
 ---
 
-## Implementation Plan
+## Implementation Plan Reference
 
-> **IMPORTANT:** A detailed 16-week implementation plan for all 40 feature specifications is available:
-> 
-> **[specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md)** - Complete step-by-step guide
-> 
-> | Phase | Timeline | Modules | Specs |
-> |-------|----------|---------|-------|
-> | Phase 1 | Weeks 1-4 | Core CRM Foundation | Contact, Activity, Pipeline, Task (4) |
-> | Phase 2 | Weeks 5-8 | Sales Module | Quote, Order, Invoice, Payment, Contract, Subscription, Commission (7) |
-> | Phase 3 | Weeks 9-12 | Marketing & Service Desk | Campaign, Templates, Sequences, Forms, Tracking, ServiceRdo equest, KB, SLA, Workflow, Escalation (10) |
-> | Phase 4 | Weeks 13-16 | ITSM, System & Integrations | Incident, Problem, Change, CMDB, Users, Auth, Permissions, Settings, Audit, AI (4), Integration (3) (16) |
-> 
-> **Current Progress:** 3/40 specs complete (7.5%) - 3 complete in Core CRM module
+> **[specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md)** - Detailed 16-week implementation guide
 >
-> **Audit Status (Feb 13, 2026):** 7,722 tests passing, 0 build errors, 48 TODO items tracked
-
----
-
-## Feature Specification TODOs (New - from Specs)
-
-> TODOs extracted from feature specifications. See [docs/specifications/INDEX.md](specifications/INDEX.md) for full context.
-
-### From SPEC-CRM-001: Account Management
-
-| TODO ID | Description | Priority | Category |
-|---------|-------------|----------|----------|
-| TODO-CRM001-001 | Create AccountForm.tsx component | P2 | Frontend |
-| TODO-CRM001-002 | Create AccountCard.tsx component | P3 | Frontend |
-| TODO-CRM001-003 | Create AccountTimeline.tsx component | P2 | Frontend |
-| TODO-CRM001-004 | Create AccountRelationships.tsx component | P2 | Frontend |
-| TODO-CRM001-005 | Add phone format validation to backend | P2 | Validation |
-| TODO-CRM001-006 | Add URL format validation for Website | P3 | Validation |
-| TODO-CRM001-007 | Add category-specific validation (Individual requires names, Organization requires Company) | P1 | Validation |
-| TODO-CRM001-008 | Implement full territory service (GetAssignedAccounts, AssignToTerritory) | P2 | Backend |
-| TODO-CRM001-009 | Create AccountServiceTests.cs unit tests | P2 | Testing |
-| TODO-CRM001-010 | Create E2E tests for account workflows | P2 | Testing |
-
-### From SPEC-CRM-002: Lead Management
-
-| TODO ID | Description | Priority | Category |
-|---------|-------------|----------|----------|
-| TODO-CRM002-001 | Standardize CompanyName vs Company naming | P3 | Consistency |
-| TODO-CRM002-002 | Implement lead merge UI | P2 | Frontend |
-| TODO-CRM002-003 | Complete web tracking integration | P2 | Backend |
-| TODO-CRM002-004 | Complete lead import/export UI | P2 | Frontend |
-| TODO-CRM002-005 | Add phone format validation | P2 | Validation |
-| TODO-CRM002-006 | Add website URL validation | P3 | Validation |
-| TODO-CRM002-007 | Create E2E tests for leads | P2 | Testing |
-| TODO-CRM002-008 | Create integration tests for LeadRoutingController | P2 | Testing |
-
-### From SPEC-CRM-003: Opportunity Management
-
-| TODO ID | Description | Priority | Category |
-|---------|-------------|----------|----------|
-| TODO-CRM003-001 | Standardize Opportunity vs Deal terminology | P3 | Consistency |
-| TODO-CRM003-002 | Complete competitor tracking UI | P2 | Frontend |
-| TODO-CRM003-003 | Complete team selling UI | P2 | Frontend |
-| TODO-CRM003-004 | Implement rule-based probability calculation | P2 | Backend |
-| TODO-CRM003-005 | Add Amount max limit validation | P3 | Validation |
-| TODO-CRM003-006 | Enforce valid stage transitions | P2 | Validation |
-| TODO-CRM003-007 | Create OpportunityServiceTests | P2 | Testing |
-| TODO-CRM003-008 | Create E2E tests for opportunities | P2 | Testing |
-
-### From SPEC-SALES-006: Subscription Management
-
-| TODO ID | Description | Priority | Category |
-|---------|-------------|----------|----------|
-| TODO-SALES006-001 | Create SubscriptionsController with REST endpoints covering CRUD/lifecycle/billing/usage to match service | P1 | Backend/API |
-| TODO-SALES006-002 | Build frontend subscriptions pages, components, and API client | P2 | Frontend |
-| TODO-SALES006-003 | Implement usage limits persistence and wire GetUsageLimitsAsync | P2 | Backend |
-| TODO-SALES006-004 | Add validations for required AccountId, Amount>=0, allowed BillingCycle, Start/End date ordering, and full billing detail updates | P1 | Validation |
-| TODO-SALES006-005 | Make invoice number generation deterministic/unique and enforce SubscriptionNumber uniqueness | P2 | Backend |
-
-### From SPEC-SALES-007: Commission Management
-
-| TODO ID | Description | Priority | Category |
-|---------|-------------|----------|----------|
-| TODO-SALES007-001 | Implement CommissionsController/Plans/Statements with DTOs and feature flag guards | P2 | Backend |
-| TODO-SALES007-002 | Persist CommissionPlanAssignment with effective dating and lookups in CommissionService | P1 | Backend |
-| TODO-SALES007-003 | Implement commission calculation rules (caps, tiers, triggers, splits, validation) and numbering | P1 | Backend |
-| TODO-SALES007-004 | Build frontend pages/services for commissions, plans, statements with validations | P2 | Frontend |
-| TODO-SALES007-005 | Add unit/integration/E2E tests for commissions, plans, statements, assignments | P2 | Testing |
-
-### Specification TODO Summary
-
-| Priority | Count | Categories |
-|----------|-------|------------|
-| P1 | 5 | Backend/API (3), Validation (2) |
-| P2 | 25 | Frontend (9), Backend (6), Validation (3), Testing (7) |
-| P3 | 6 | Consistency (3), Validation (2), Frontend (1) |
-| **Total** | **36** | |
-
-### From Audit Remediation (February 13, 2026)
-
-> TODOs extracted from comprehensive multi-agent audit of the entire solution.
-
-#### Frontend: Orphaned Components
-
-| TODO ID | Description | Priority | Category |
-|---------|-------------|----------|----------|
-| TODO-AUDIT-001 | Wire 16 orphaned ITSM components into ITSM pages (AssetLifecycleTracker, ChangeCalendar, ChangeImpactAnalysis, CIRelationshipDiagram, CITypeSelector, CMDBExplorer, CMDBSearchBar, IncidentTimeline, ITSMDashboard, KnowledgeArticleEditor, KnowledgeSearchBar, ProblemAnalysisPanel, ProblemKnownErrorList, ReleaseTracker, SLACountdownWidget, ServiceCatalogBrowser) | P2 | Frontend |
-| TODO-AUDIT-002 | Wire 3 orphaned admin pages into App.tsx routes (DatabaseSettingsPage, DuplicateRulesPage, LeadScoreRulesPage) | P2 | Frontend |
-| TODO-AUDIT-003 | Consolidate 3 copies of ModuleFieldSettings (common/, settings/, ModuleFieldSettings/) into 1 | P3 | Frontend |
-
-#### Frontend: Dead Code Cleanup
-
-| TODO ID | Description | Priority | Category |
-|---------|-------------|----------|----------|
-| TODO-AUDIT-004 | Remove 3 dead custom hooks (useConcurrencyControl, useDuplicateDetection, useFormValidation) — not imported anywhere | P3 | Frontend |
-| TODO-AUDIT-005 | Remove legacy ITSM alias routes once no external links depend on them (/itsm/incidents → /itsm/incident-management etc.) | P3 | Frontend |
-
-#### Frontend: Architecture Gaps
-
-| TODO ID | Description | Priority | Category |
-|---------|-------------|----------|----------|
-| TODO-AUDIT-006 | Create centralized itsmService.ts to replace raw axios calls in 31 ITSM pages | P2 | Frontend |
-| TODO-AUDIT-007 | Migrate 31 ITSM pages from Tailwind CSS to MUI components for consistency | P3 | Frontend |
-
-#### Backend: Missing Services
-
-| TODO ID | Description | Priority | Category |
-|---------|-------------|----------|----------|
-| TODO-AUDIT-008 | Create DepartmentService (currently only seeded in DbSeed, no dedicated service) | P3 | Backend |
-| TODO-AUDIT-009 | Create ConversationService (entity exists, no service) | P3 | Backend |
-| TODO-AUDIT-010 | Create EventAttendeeService (entity exists, no service) | P3 | Backend |
-| TODO-AUDIT-011 | Create SalesQuota/SalesForecast services (entities exist, no services) | P2 | Backend |
-
-#### Backend: Test Coverage
-
-| TODO ID | Description | Priority | Category |
-|---------|-------------|----------|----------|
-| TODO-AUDIT-012 | Re-enable ~87 excluded test files in CRM.Tests.csproj (entity property drift, mock setup changes) | P2 | Testing |
-
-#### Audit TODO Summary
-
-| Priority | Count | Categories |
-|----------|-------|------------|
-| P2 | 5 | Frontend (3), Backend (1), Testing (1) |
-| P3 | 7 | Frontend (4), Backend (3) |
-| **Total** | **12** | |
-
----
-
-## Recently Completed (February 3, 2026)
-
-### ITSM Phase 4 Testing Suite - ✅ COMPLETE
-
-| Category | File | Tests | Status |
-|----------|------|-------|--------|
-| Backend BVT | `CRM.Backend/tests/BVT/ITSMPhase4BVTTests.cs` | 20 tests | ✅ Created |
-| Backend BVT (Extended) | `CRM.Backend/tests/BVT/CriticalPathBVTTests.cs` | +10 ITSM tests (BVT111-120) | ✅ Updated |
-| E2E API Smoke | `e2e-tests/tests/bvt/itsm-api-bvt.spec.ts` | 25 tests | ✅ Created |
-| E2E API BVT (Extended) | `e2e-tests/tests/bvt/api-bvt.spec.ts` | +10 tests (BVT-14-xxx) | ✅ Updated |
-| Backend Functional | `CRM.Backend/tests/Functional/ITSMPhase4FunctionalTests.cs` | 30 tests | ✅ Created |
-| Backend Unit | `CRM.Backend/tests/CRM.Tests/Services/ITSM/Phase4ServiceTests.cs` | 25 tests | ✅ Created |
-| Frontend UI | `CRM.Frontend/src/__tests__/ITSMPhase4Pages.test.tsx` | 45 tests | ✅ Created |
-| E2E UI Functional | `e2e-tests/tests/functional/itsm-ui-functional.spec.ts` | 25 tests | ✅ Created |
-
-**Coverage includes:**
-- Webhook Notification Service (subscriptions, delivery, retry logic, HMAC signatures)
-- Email-to-Ticket Service (inbound parsing, incident creation, attachment handling)
-- ITSM Dashboard Service (metrics, trends, SLA compliance, executive summary)
-- Monitoring Integration (Prometheus, Datadog, alert mapping, deduplication)
-- CI/CD Integration (pipeline registration, deployment change requests, approval workflow)
-- Self-Service Chatbot (session management, intent recognition, quick actions, KB search)
+> **Specification Progress:** 9/40 complete (22.5%) — see [specifications/INDEX.md](specifications/INDEX.md)
 
 ---
 
 ## Table of Contents
 
-1. [ITSM Module - Remaining Items](#1-itsm-module---remaining-items)
-2. [Infrastructure & DevOps Enhancements](#2-infrastructure--devops-enhancements)
-3. [Self-Service Portal Features](#3-self-service-portal-features)
-4. [Documentation Backlog](#4-documentation-backlog)
-5. [UX/UI Improvements](#5-uxui-improvements)
-6. [AI & Intelligence Platform](#6-ai--intelligence-platform)
-7. [Analytics & Reporting](#7-analytics--reporting)
-8. [Integration & Marketplace](#8-integration--marketplace)
-9. [Advanced Customization](#9-advanced-customization)
-10. [CRM Feature Gaps](#10-crm-feature-gaps)
-11. [Priority Matrix](#11-priority-matrix)
+1. [Feature Specification TODOs](#1-feature-specification-todos)
+2. [Audit Remediation TODOs](#2-audit-remediation-todos)
+3. [ITSM Remaining Work](#3-itsm-remaining-work)
+4. [Infrastructure & DevOps](#4-infrastructure--devops)
+5. [Self-Service Portal](#5-self-service-portal)
+6. [Documentation](#6-documentation)
+7. [UX/UI Improvements](#7-uxui-improvements)
+8. [AI & Machine Learning](#8-ai--machine-learning)
+9. [Analytics & Reporting](#9-analytics--reporting)
+10. [Integration Framework](#10-integration-framework)
+11. [Customization Engine](#11-customization-engine)
+12. [CRM Gaps](#12-crm-gaps)
+13. [Priority Matrix](#13-priority-matrix)
 
 ---
 
-## 1. ITSM Module - Remaining Items
+## 1. Feature Specification TODOs
 
-### 1.1 Infrastructure (Plan Only)
+*Extracted from completed feature specifications. See individual spec files for full context.*
 
-| ID | Item | Description | Complexity | Priority | Status |
-|----|------|-------------|------------|----------|--------|
-| ITSM-INF-001 | Hangfire Integration | Replace basic HostedService with Hangfire for background job processing with dashboard, retries, and scheduling | Medium | P2 | 📋 Planned |
-| ITSM-INF-002 | RabbitMQ Message Queue | Implement async processing with RabbitMQ for high-volume incident/change events | High | P2 | 📋 Planned |
-| ITSM-INF-003 | Elasticsearch Integration | Replace SQL LIKE search with Elasticsearch for full-text KB article search | High | P3 | 📋 Planned |
+### SPEC-CRM-001 (Account Management) — 10 Items
 
-### 1.2 Database & Testing (Pending)
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-CRM001-01 | P1 | Implement frontend field-level validation matching backend rules | 2.3 |
+| TODO-CRM001-02 | P2 | Add bulk import/export functionality for accounts | 2.2 |
+| TODO-CRM001-03 | P2 | Implement account merge UI for duplicate resolution | 2.2 |
+| TODO-CRM001-04 | P2 | Add account hierarchy visualization (parent/child tree) | 2.2 |
+| TODO-CRM001-05 | P2 | Implement territory assignment UI in account details | 2.2 |
+| TODO-CRM001-06 | P2 | Add health score calculation service and display | 2.2 |
+| TODO-CRM001-07 | P3 | Implement account timeline aggregation from all related entities | 2.2 |
+| TODO-CRM001-08 | P1 | Add missing backend validations (duplicate email check, phone format) | 3.5 |
+| TODO-CRM001-09 | P2 | Implement soft delete cascade for related contacts/opportunities | 3.4 |
+| TODO-CRM001-10 | P1 | Add database indexes for frequently queried columns | 4.5 |
 
-| ID | Item | Description | Complexity | Priority | Status |
-|----|------|-------------|------------|----------|--------|
-| ITSM-DB-001 | Execute 010_itsm_module.sql | Run ITSM database migration to create 28 tables | Low | P0 | ⏳ Pending |
-| ITSM-DB-002 | Verify Full-Text Search Index | Confirm idx_knowledge_search on KnowledgeArticles is active | Low | P1 | ⏳ Pending |
-| ITSM-TST-001 | Re-enable Integration Tests | Rename .cs.disabled files back to .cs and fix entity property references | Medium | P1 | ⏳ Pending |
-| ITSM-TST-002 | Re-enable IncidentServiceTests | Fix entity alignment issues in unit tests | Medium | P1 | ⏳ Pending |
-| ITSM-TST-003 | Re-enable ProblemServiceTests | Fix entity alignment issues in unit tests | Medium | P1 | ⏳ Pending |
+### SPEC-CRM-002 (Lead Management) — 8 Items
 
-### 1.3 UI Enhancements (Pending)
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-CRM002-01 | P2 | Implement lead scoring algorithm with configurable weights | 2.2 |
+| TODO-CRM002-02 | P1 | Implement lead conversion workflow (Lead → Account + Contact + Opportunity) | 2.2 |
+| TODO-CRM002-03 | P2 | Add lead source tracking and attribution | 2.2 |
+| TODO-CRM002-04 | P2 | Implement web-to-lead form builder integration | 2.2 |
+| TODO-CRM002-05 | P2 | Add duplicate lead detection during creation | 3.5 |
+| TODO-CRM002-06 | P2 | Implement lead nurturing campaign integration | 2.2 |
+| TODO-CRM002-07 | P3 | Add lead aging alerts and stale lead notifications | 2.2 |
+| TODO-CRM002-08 | P3 | Implement lead qualification matrix (BANT/MEDDIC) | 2.2 |
 
-| ID | Item | Description | Complexity | Priority | Status |
-|----|------|-------------|------------|----------|--------|
-| ITSM-UI-001 | Mobile Responsiveness | Verify all ITSM pages work properly on mobile devices | Medium | P2 | ⏳ Pending |
+### SPEC-CRM-003 (Opportunity Management) — 8 Items
 
----
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-CRM003-01 | P2 | Implement weighted pipeline value calculation | 2.2 |
+| TODO-CRM003-02 | P1 | Add sales stage probability automation | 2.2 |
+| TODO-CRM003-03 | P2 | Implement competitor tracking on opportunities | 2.2 |
+| TODO-CRM003-04 | P2 | Add opportunity product line items management | 2.2 |
+| TODO-CRM003-05 | P2 | Implement win/loss analysis reports | 2.2 |
+| TODO-CRM003-06 | P3 | Add opportunity cloning functionality | 2.2 |
+| TODO-CRM003-07 | P2 | Implement forecast category assignment | 2.2 |
+| TODO-CRM003-08 | P2 | Add opportunity team/split commission tracking | 2.2 |
 
-## 2. Infrastructure & DevOps Enhancements
+### SPEC-SALES-006 (Subscription Management) — 5 Items
 
-### 2.1 Background Processing
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-SALES006-01 | P2 | Implement MRR/ARR dashboard widgets | 2.2 |
+| TODO-SALES006-02 | P2 | Add usage-based billing metering | 3.4 |
+| TODO-SALES006-03 | P2 | Implement subscription upgrade/downgrade proration | 3.4 |
+| TODO-SALES006-04 | P3 | Add churn prediction integration with AI module | 3.4 |
+| TODO-SALES006-05 | P2 | Implement dunning management for failed payments | 3.4 |
 
-| ID | Item | Description | Components | Priority | Status |
-|----|------|-------------|------------|----------|--------|
-| INF-001 | Hangfire Dashboard | Web dashboard for job monitoring | `Hangfire.AspNetCore`, `/hangfire` endpoint | P2 | 📋 Planned |
-| INF-002 | Recurring Jobs | Scheduled tasks: SLA checks, auto-close, report generation | `RecurringJob.AddOrUpdate()` | P2 | 📋 Planned |
-| INF-003 | Job Retry Policies | Configurable retry with exponential backoff | `AutomaticRetryAttribute` | P2 | 📋 Planned |
+### SPEC-SALES-007 (Commission Management) — 5 Items
 
-### 2.2 Message Queue Architecture
-
-| ID | Item | Description | Components | Priority | Status |
-|----|------|-------------|------------|----------|--------|
-| INF-004 | RabbitMQ Setup | Message broker for async processing | Docker container, connection factory | P2 | 📋 Planned |
-| INF-005 | Event Publishers | Publish domain events to queues | `IEventPublisher`, exchange setup | P2 | 📋 Planned |
-| INF-006 | Event Consumers | Background workers to process events | `IHostedService` consumers | P2 | 📋 Planned |
-| INF-007 | Dead Letter Queue | Handle failed message processing | DLQ configuration, retry logic | P3 | 📋 Planned |
-
-### 2.3 Search Infrastructure
-
-| ID | Item | Description | Components | Priority | Status |
-|----|------|-------------|------------|----------|--------|
-| INF-008 | Elasticsearch Cluster | Full-text search for KB, incidents, CIs | Docker setup, index configuration | P3 | 📋 Planned |
-| INF-009 | Search Indexer Service | Sync database changes to Elasticsearch | Change Data Capture, bulk indexing | P3 | 📋 Planned |
-| INF-010 | Search API | Unified search across entities | `ISearchService`, aggregations | P3 | 📋 Planned |
-
----
-
-## 3. Self-Service Portal Features
-
-### 3.1 User Community
-
-| ID | Item | Description | Components | Priority | Status |
-|----|------|-------------|------------|----------|--------|
-| SSP-001 | Community Forum | End-user discussion forum for peer support | `ForumCategory`, `ForumTopic`, `ForumPost`, `ForumReply` | P3 | 📋 Planned |
-| SSP-002 | User Reputation System | Gamification with points, badges, rankings | `UserReputation`, `Badge`, `Achievement` | P3 | 📋 Planned |
-| SSP-003 | Solution Marking | Mark posts as accepted solutions | `AcceptedSolution` flag, solution indexing | P3 | 📋 Planned |
-| SSP-004 | Community Moderation | Flagging, moderation queue, auto-moderation | `ModerationQueue`, `ContentFlag` | P3 | 📋 Planned |
-
-### 3.2 Personalization
-
-| ID | Item | Description | Components | Priority | Status |
-|----|------|-------------|------------|----------|--------|
-| SSP-005 | Personalized Dashboards | User-specific dashboard widgets and layouts | `UserDashboardConfig`, `WidgetPreference` | P2 | 📋 Planned |
-| SSP-006 | Saved Searches | Save and reuse frequent search queries | `SavedSearch`, `SearchHistory` | P2 | 📋 Planned |
-| SSP-007 | Favorites/Bookmarks | Bookmark articles, CIs, services | `UserFavorite` entity | P3 | 📋 Planned |
-| SSP-008 | Recently Viewed | Track and display recently accessed items | `RecentlyViewed` tracking | P3 | 📋 Planned |
-
-### 3.3 Mobile & Progressive Web App
-
-| ID | Item | Description | Components | Priority | Status |
-|----|------|-------------|------------|----------|--------|
-| SSP-009 | PWA Manifest | Progressive Web App for mobile | `manifest.json`, service worker | P2 | 📋 Planned |
-| SSP-010 | Offline Support | Cache critical pages for offline access | Service worker caching strategy | P3 | 📋 Planned |
-| SSP-011 | Push Notifications | Browser push for ticket updates, SLA alerts | Web Push API, notification service | P2 | 📋 Planned |
-| SSP-012 | Mobile App Shell | Optimized mobile navigation and touch | Responsive redesign, touch gestures | P2 | 📋 Planned |
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-SALES007-01 | P2 | Implement tiered commission calculation engine | 3.4 |
+| TODO-SALES007-02 | P2 | Add commission statement PDF generation | 3.4 |
+| TODO-SALES007-03 | P2 | Implement accelerator/decelerator rules | 3.4 |
+| TODO-SALES007-04 | P3 | Add commission forecast based on pipeline | 3.4 |
+| TODO-SALES007-05 | P2 | Implement clawback automation for churned deals | 3.4 |
 
 ---
 
-## 4. Documentation Backlog
+## 2. Audit Remediation TODOs
 
-### 4.1 ITSM Documentation
+*From Phase 9 multi-agent audit (February 13, 2026). See SOLUTION_GAPS_REMEDIATION_PLAN.md Phase 9.4.*
 
-| ID | Document | Description | Pages (Est.) | Priority | Status |
-|----|----------|-------------|--------------|----------|--------|
-| DOC-001 | ITSM User Guide | End-user documentation for all ITSM modules | 40-60 | P1 | ⏳ Pending |
-| DOC-002 | ITSM Admin Guide | Configuration, SLA policies, workflows, permissions | 30-40 | P1 | ⏳ Pending |
-| DOC-003 | ITIL Process Guide | How ITSM maps to ITIL best practices | 20-30 | P2 | ⏳ Pending |
+### 2.1 Orphaned Frontend Components (21 total)
 
-### 4.2 General Documentation
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-AUDIT-01 | P2 | Wire 16 orphaned ITSM components into ITSM pages (AssetLifecycleTracker, ChangeCalendar, ChangeImpactAnalysis, CIRelationshipDiagram, CITypeSelector, CMDBExplorer, CMDBSearchBar, IncidentTimeline, ITSMDashboard, KnowledgeArticleEditor, KnowledgeSearchBar, ProblemAnalysisPanel, ProblemKnownErrorList, ReleaseTracker, SLACountdownWidget, ServiceCatalogBrowser) |
+| TODO-AUDIT-02 | P3 | Evaluate ChatTimelineItem.tsx and AnalyticsEmbed.tsx — integrate or remove |
+| TODO-AUDIT-03 | P3 | Consolidate ModuleFieldSettings (3 copies in common/, settings/, ModuleFieldSettings/ → 1) |
 
-| ID | Document | Description | Pages (Est.) | Priority | Status |
-|----|----------|-------------|--------------|----------|--------|
-| DOC-004 | API Reference | Complete REST API documentation with examples | 50+ | P1 | ⏳ Pending |
-| DOC-005 | Developer Guide | Extension development, custom integrations | 30-40 | P2 | ⏳ Pending |
-| DOC-006 | Deployment Guide | Production deployment, scaling, security | 25-30 | P1 | ✅ Partial |
-| DOC-007 | Integration Guide | Third-party integrations, webhooks, SSO | 20-30 | P2 | ⏳ Pending |
+### 2.2 Orphaned Admin Pages (3)
 
----
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-AUDIT-04 | P2 | Add routes for DatabaseSettingsPage, DuplicateRulesPage, LeadScoreRulesPage in App.tsx |
 
-## 5. UX/UI Improvements
+### 2.3 Dead Custom Hooks (3)
 
-### 5.1 Critical (WCAG Compliance)
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-AUDIT-05 | P3 | Remove dead hooks: useConcurrencyControl, useDuplicateDetection, useFormValidation |
 
-| ID | Item | Description | Impact | Priority | Status |
-|----|------|-------------|--------|----------|--------|
-| UX-001 | ARIA Labels | Add comprehensive ARIA labels across all forms | Accessibility | P0 | ⏳ Pending |
-| UX-002 | Inline Validation | Real-time form validation instead of submit-only | User Experience | P1 | ⏳ Pending |
-| UX-003 | Keyboard Navigation | Complete keyboard support for all interactions | Accessibility | P0 | ⏳ Pending |
-| UX-004 | Empty States | Meaningful empty state designs with CTAs | First Impression | P1 | ⏳ Pending |
-| UX-005 | Onboarding Tour | Guided tour and contextual help for new users | Adoption | P1 | ⏳ Pending |
+### 2.4 ITSM Architecture Gap
 
-### 5.2 Important
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-AUDIT-06 | P2 | Create centralized itsmService.ts (ITSM pages use raw axios, rest of app uses typed services) |
+| TODO-AUDIT-07 | P3 | Migrate 31 ITSM pages from Tailwind CSS to MUI components |
 
-| ID | Item | Description | Impact | Priority | Status |
-|----|------|-------------|--------|----------|--------|
-| UX-006 | Error Messages | Replace generic errors with actionable messages | Error Recovery | P1 | ⏳ Pending |
-| UX-007 | Form Auto-save | Draft saving functionality for long forms | Data Loss Prevention | P2 | ⏳ Pending |
-| UX-008 | Undo/Redo | Undo for destructive actions (delete, bulk ops) | User Confidence | P2 | ⏳ Pending |
-| UX-009 | Progress Indicators | Step indicators for multi-step processes | User Orientation | P2 | ⏳ Pending |
-| UX-010 | Mobile Optimization | Comprehensive responsive design testing | Mobile UX | P2 | ⏳ Pending |
+### 2.5 Backend Test Coverage
 
-### 5.3 Enhancements
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-AUDIT-08 | P2 | Re-enable ~87 excluded test files in CRM.Tests.csproj (entity property drift, mock setup) |
+| TODO-AUDIT-09 | P3 | Add services for uncovered entities: Department, SalesQuota, SalesForecast, Conversation, EventAttendee |
+| TODO-AUDIT-10 | P3 | Remove legacy ITSM alias routes from App.tsx once no external links depend on them |
 
-| ID | Item | Description | Impact | Priority | Status |
-|----|------|-------------|--------|----------|--------|
-| UX-011 | Micro-animations | Subtle transitions and feedback animations | Polish | P3 | 📋 Planned |
-| UX-012 | Dark Mode | Complete dark theme support | User Preference | P2 | ⏳ Partial |
-| UX-013 | User Preferences | Extensive personalization options | Satisfaction | P2 | 📋 Planned |
-| UX-014 | Search History | Recent and saved searches | Efficiency | P3 | 📋 Planned |
-| UX-015 | Bulk Action Feedback | Progress and results for bulk operations | Power Users | P2 | ⏳ Pending |
+### 2.6 Remaining Service Gaps
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-AUDIT-11 | P2 | Complete DuplicateMergeService merge logic |
+| TODO-AUDIT-12 | P2 | Align ITSM_ADVANCED entity models (28 services, 460+ build errors from property mismatches) |
 
 ---
 
-## 6. AI & Intelligence Platform
+## 3. ITSM Remaining Work
 
-### 6.1 Predictive Analytics
+### 3.1 ITSM Advanced Services (Deferred)
 
-| ID | Feature | Description | Entities/Components | Priority | Status |
-|----|---------|-------------|---------------------|----------|--------|
-| AI-001 | Predictive Lead Scoring | ML-based lead scoring with confidence | `LeadScoreModel`, `LeadScorePrediction` | P0 | ⏳ Pending |
-| AI-002 | Opportunity Win Probability | Deal win/loss prediction | `OpportunityPrediction`, `WinLossFactor` | P0 | ⏳ Pending |
-| AI-003 | Next Best Action Engine | AI-recommended actions for sales/support | `ActionRecommendation`, `ActionTemplate` | P0 | ⏳ Pending |
-| AI-004 | Churn Prediction | Customer health and churn risk | `ChurnRiskScore`, `ChurnIndicator` | P0 | ⏳ Pending |
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-ITSM-01 | P3 | Align entity models for 28 ITSM_ADVANCED services (currently in Directory.Build.props, commented out) |
+| TODO-ITSM-02 | P3 | Fix 460+ build errors in advanced services (AssetLifecycle, KCSWorkflow, ImpactAnalysis, CABWorkflow, etc.) |
+| TODO-ITSM-03 | P2 | Implement KnowledgeManagementService AI-powered semantic search |
 
-### 6.2 Conversational AI
+### 3.2 Database & Testing
 
-| ID | Feature | Description | Entities/Components | Priority | Status |
-|----|---------|-------------|---------------------|----------|--------|
-| AI-005 | Email AI Assistant | Smart email suggestions, tone analysis | `EmailSuggestion`, `ToneAnalysis` | P1 | 📋 Planned |
-| AI-006 | Meeting Intelligence | Transcription, summaries, action items | `MeetingTranscript`, `MeetingSummary` | P1 | 📋 Planned |
-| AI-007 | Conversation Intelligence | Call analysis, talk ratios, key moments | `CallRecording`, `CallAnalysis` | P1 | 📋 Planned |
-| AI-008 | AI Sales Coach | Rep performance insights, skill gaps | `CoachingInsight`, `SkillGap` | P2 | 📋 Planned |
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-ITSM-04 | P2 | Execute database migration 010_itsm_module.sql on production |
+| TODO-ITSM-05 | P2 | Execute seed data 011_itsm_seed_data.sql on production |
+| TODO-ITSM-06 | P2 | Create ITSM service unit tests (7 files for core ITSM services) |
+| TODO-ITSM-07 | P2 | Create ITSM controller integration tests |
+| TODO-ITSM-08 | P3 | Create Playwright E2E tests for ITSM flows |
 
-### 6.3 Revenue Intelligence
+### 3.3 Frontend
 
-| ID | Feature | Description | Entities/Components | Priority | Status |
-|----|---------|-------------|---------------------|----------|--------|
-| AI-009 | Revenue Insights | Deal risks, pipeline health | `RevenueInsight`, `DealRisk` | P1 | 📋 Planned |
-| AI-010 | Forecast Accuracy | AI-enhanced forecasting | Enhanced `SalesForecast` | P1 | 📋 Planned |
-
----
-
-## 7. Analytics & Reporting
-
-### 7.1 Report Builder
-
-| ID | Feature | Description | Components | Priority | Status |
-|----|---------|-------------|------------|----------|--------|
-| RPT-001 | Visual Report Builder | Drag-drop report creation | `ReportDefinition`, `ReportColumn`, `ReportFilter` | P0 | 📋 Planned |
-| RPT-002 | Scheduled Reports | Automated report generation and delivery | `ReportSchedule`, `ReportExecution` | P0 | 📋 Planned |
-| RPT-003 | Custom Dashboards | Drag-drop dashboard builder | Enhanced `DashboardWidget` | P0 | 📋 Planned |
-| RPT-004 | Report Templates | Pre-built industry-standard reports | Template library | P1 | 📋 Planned |
-
-### 7.2 Advanced Analytics
-
-| ID | Feature | Description | Components | Priority | Status |
-|----|---------|-------------|------------|----------|--------|
-| RPT-005 | Embedded BI | Power BI/Tableau integration | `BIIntegration`, `EmbedToken` | P1 | 📋 Planned |
-| RPT-006 | Real-Time Analytics | Live dashboards with streaming data | `RealTimeMetric`, `MetricStream` | P1 | 📋 Planned |
-| RPT-007 | Cohort Analysis | Customer cohort tracking | `CohortDefinition`, `CohortAnalysis` | P1 | 📋 Planned |
-| RPT-008 | Funnel Analytics | Conversion funnel visualization | `FunnelDefinition`, `FunnelStage` | P1 | 📋 Planned |
-| RPT-009 | Custom KPI Builder | User-defined KPI calculations | `KPIDefinition`, `KPICalculation` | P2 | 📋 Planned |
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-ITSM-09 | P2 | Create frontend unit tests (Jest) for ITSM components |
 
 ---
 
-## 8. Integration & Marketplace
+## 4. Infrastructure & DevOps
 
-### 8.1 Integration Framework
+### 4.1 Background Processing
 
-| ID | Feature | Description | Components | Priority | Status |
-|----|---------|-------------|------------|----------|--------|
-| INT-001 | Connector Framework | Reusable integration architecture | `Connector`, `ConnectorAuth`, `ConnectorMapping` | P0 | 📋 Planned |
-| INT-002 | App Marketplace | Extension/app registry and management | `AppListing`, `AppInstall`, `AppReview` | P1 | 📋 Planned |
-| INT-003 | GraphQL API | Alternative to REST for complex queries | Schema generation, resolvers | P2 | 📋 Planned |
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-INFRA-01 | P2 | Implement background job processing (Hangfire or Quartz.NET) |
+| TODO-INFRA-02 | P2 | Add retry policies for external provider calls |
+| TODO-INFRA-03 | P2 | Implement circuit breaker for provider failover |
 
-### 8.2 Native Integrations
+### 4.2 Message Queue
 
-| ID | Integration | Description | Priority | Status |
-|----|-------------|-------------|----------|--------|
-| INT-004 | Stripe/PayPal | Payment processing | P0 | 📋 Planned |
-| INT-005 | Twilio (SMS/Voice) | Communications automation | P0 | 📋 Planned |
-| INT-006 | SendGrid/Mailgun | Transactional email delivery | P0 | 📋 Planned |
-| INT-007 | Slack/Teams | Collaboration notifications | P0 | 📋 Planned |
-| INT-008 | QuickBooks/Xero | Accounting sync | P1 | 📋 Planned |
-| INT-009 | DocuSign/Adobe Sign | E-signature integration | P0 | 📋 Planned |
-| INT-010 | Zoom/Google Meet | Video conferencing | P1 | 📋 Planned |
-| INT-011 | LinkedIn Sales Navigator | Social selling | P1 | 📋 Planned |
-| INT-012 | Zapier/Make Connector | No-code automation | P1 | 📋 Planned |
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-INFRA-04 | P3 | Add RabbitMQ/Redis Streams for async event processing |
+| TODO-INFRA-05 | P3 | Implement event sourcing for audit-critical entities |
+| TODO-INFRA-06 | P3 | Add dead letter queue handling |
+| TODO-INFRA-07 | P3 | Implement saga pattern for distributed transactions |
 
----
+### 4.3 Search
 
-## 9. Advanced Customization
-
-### 9.1 Dynamic Objects
-
-| ID | Feature | Description | Components | Priority | Status |
-|----|---------|-------------|------------|----------|--------|
-| CUS-001 | Custom Objects | User-defined entities without code | `CustomObject`, `CustomObjectField` | P0 | 📋 Planned |
-| CUS-002 | Custom Object UI | Dynamic form generation for custom objects | Form builder, field types | P0 | 📋 Planned |
-| CUS-003 | Custom Relationships | Define relationships between objects | `CustomRelationship` | P1 | 📋 Planned |
-
-### 9.2 UI Customization
-
-| ID | Feature | Description | Components | Priority | Status |
-|----|---------|-------------|------------|----------|--------|
-| CUS-004 | Page Layouts | Custom layouts per record type | `PageLayout`, `LayoutSection` | P0 | 📋 Planned |
-| CUS-005 | Record Types | Different processes for same object | `RecordType`, `RecordTypeMapping` | P1 | 📋 Planned |
-| CUS-006 | Dynamic Forms | Conditional field visibility | Field dependencies, rules | P1 | 📋 Planned |
-
-### 9.3 Calculated Fields
-
-| ID | Feature | Description | Components | Priority | Status |
-|----|---------|-------------|------------|----------|--------|
-| CUS-007 | Formula Fields | Calculated fields with formulas | `FormulaField`, `FormulaEngine` | P1 | 📋 Planned |
-| CUS-008 | Roll-Up Summary | Aggregate child records | `RollUpField`, `RollUpDefinition` | P1 | 📋 Planned |
-| CUS-009 | Validation Rules | Custom data validation | `ValidationRule`, `ValidationFormula` | P0 | 📋 Planned |
-
-### 9.4 Environment Management
-
-| ID | Feature | Description | Components | Priority | Status |
-|----|---------|-------------|------------|----------|--------|
-| CUS-010 | Sandbox Environments | Dev/test environment cloning | `Sandbox`, `SandboxRefresh` | P1 | 📋 Planned |
-| CUS-011 | Change Sets | Deploy customizations between envs | `ChangeSet`, `ChangeSetComponent` | P1 | 📋 Planned |
-| CUS-012 | Metadata API | Full config export/import | XML/JSON metadata format | P2 | 📋 Planned |
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-INFRA-08 | P2 | Implement full-text search indexing for all entities |
+| TODO-INFRA-09 | P2 | Add search result highlighting and faceted search |
+| TODO-INFRA-10 | P3 | Implement search analytics (popular queries, zero results) |
 
 ---
 
-## 10. CRM Feature Gaps
+## 5. Self-Service Portal
 
-### 10.1 Sales Gaps
+### 5.1 Community Features
 
-| ID | Feature | Gap Type | Competitor Comparison | Priority | Status |
-|----|---------|----------|----------------------|----------|--------|
-| GAP-001 | Path/Sales Playbooks | Missing | Salesforce ✅, Dynamics ✅ | P1 | 📋 Planned |
-| GAP-002 | Guided Selling | Missing | Salesforce ✅, Dynamics ✅ | P1 | 📋 Planned |
-| GAP-003 | Org Chart Visualization | Missing | Salesforce ✅, Dynamics ✅ | P2 | 📋 Planned |
-| GAP-004 | LinkedIn Integration | Missing | Salesforce ✅, Dynamics ✅ | P1 | 📋 Planned |
-| GAP-005 | Opportunity AI Scoring | Partial | Salesforce Einstein, Dynamics Copilot | P1 | ⏳ Pending |
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-PORTAL-01 | P3 | Customer portal with ticket submission and tracking |
+| TODO-PORTAL-02 | P3 | Self-service KB search with article feedback |
+| TODO-PORTAL-03 | P3 | Partner portal with deal registration |
+| TODO-PORTAL-04 | P3 | Community forums with moderation tools |
 
-### 10.2 CPQ Gaps
+### 5.2 Personalization
 
-| ID | Feature | Gap Type | Competitor Comparison | Priority | Status |
-|----|---------|----------|----------------------|----------|--------|
-| GAP-006 | Contract Generation | Partial | Salesforce ✅ | P2 | 📋 Planned |
-| GAP-007 | Guided Selling Rules | Missing | Salesforce CPQ ✅ | P2 | 📋 Planned |
-| GAP-008 | Product Configurator (3D) | Missing | Salesforce ✅, Dynamics ✅ | P3 | 📋 Planned |
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-PORTAL-05 | P3 | User-configurable dashboard layouts |
+| TODO-PORTAL-06 | P3 | Saved search and filter presets |
+| TODO-PORTAL-07 | P3 | Custom notification preferences per entity type |
+| TODO-PORTAL-08 | P3 | Personalized email digest configuration |
 
-### 10.3 Lead Intelligence Gap
+### 5.3 Mobile & PWA
 
-| ID | Feature | Gap Type | Competitor Comparison | Priority | Status |
-|----|---------|----------|----------------------|----------|--------|
-| GAP-009 | Lead Intelligence (AI) | Basic | Salesforce Einstein, HubSpot ✅ | P1 | ⏳ Pending |
-
----
-
-## 11. Priority Matrix
-
-### P0 - Critical (Must Have)
-
-| Category | Items | Count |
-|----------|-------|-------|
-| UX/Accessibility | ARIA Labels, Keyboard Navigation | 2 |
-| ITSM | Database Migration, Integration Tests | 2 |
-| AI Platform | Lead Scoring, Win Probability, NBA, Churn | 4 |
-| Reporting | Report Builder, Scheduled Reports, Dashboards | 3 |
-| Customization | Custom Objects, Page Layouts, Validation Rules | 3 |
-| Integrations | Payment, Communications, Email, Collaboration, E-Sign | 5 |
-| **Total P0** | | **19** |
-
-### P1 - High Priority (Should Have)
-
-| Category | Items | Count |
-|----------|-------|-------|
-| Documentation | User Guide, Admin Guide, API Reference | 3 |
-| UX | Inline Validation, Empty States, Onboarding, Error Messages | 4 |
-| AI | Email AI, Meetings, Conversations, Revenue | 4 |
-| Reporting | Embedded BI, Real-Time, Cohort, Funnel | 4 |
-| Integrations | Accounting, Video, LinkedIn, Zapier | 4 |
-| Customization | Record Types, Formula Fields, Roll-Ups, Sandbox | 4 |
-| CRM Gaps | Playbooks, Guided Selling, LinkedIn, AI Scoring | 4 |
-| **Total P1** | | **27** |
-
-### P2 - Medium Priority (Nice to Have)
-
-| Category | Items | Count |
-|----------|-------|-------|
-| Infrastructure | Hangfire, RabbitMQ | 2 |
-| Self-Service | Personalized Dashboards, PWA, Push Notifications | 3 |
-| Documentation | ITIL Guide, Developer Guide, Integration Guide | 3 |
-| UX | Auto-save, Undo, Progress, Mobile, Dark Mode, Bulk Actions | 6 |
-| AI | Sales Coach | 1 |
-| Customization | GraphQL, Change Sets | 2 |
-| **Total P2** | | **17** |
-
-### P3 - Low Priority (Future)
-
-| Category | Items | Count |
-|----------|-------|-------|
-| Infrastructure | Elasticsearch | 1 |
-| Self-Service | Community Forum, Favorites, Recently Viewed, Offline | 4 |
-| UX | Animations, Search History | 2 |
-| CRM Gaps | 3D Configurator | 1 |
-| **Total P3** | | **8** |
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-PORTAL-09 | P3 | Progressive Web App (PWA) support |
+| TODO-PORTAL-10 | P3 | Offline mode for core CRM features |
+| TODO-PORTAL-11 | P3 | Push notifications for mobile |
+| TODO-PORTAL-12 | P3 | Touch-optimized UI for tablets |
 
 ---
 
-## Summary
+## 6. Documentation
 
-| Priority | Count | % of Total |
-|----------|-------|------------|
-| P0 (Critical) | 19 | 27% |
-| P1 (High) | 27 | 38% |
-| P2 (Medium) | 17 | 24% |
-| P3 (Low) | 8 | 11% |
-| **Total** | **71** | 100% |
+### 6.1 ITSM Documentation
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-DOC-01 | P2 | Create ITSM User Guide |
+| TODO-DOC-02 | P2 | Update README.md with ITSM module section |
+| TODO-DOC-03 | P2 | Update architecture diagrams for ITSM services |
+
+### 6.2 General Documentation
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-DOC-04 | P2 | Update Swagger/OpenAPI documentation for all new endpoints |
+| TODO-DOC-05 | P3 | Fix critical StyleCop warnings (~1895 remaining) |
+| TODO-DOC-06 | P3 | Add missing XML documentation to public APIs |
+| TODO-DOC-07 | P2 | Final integration testing documentation |
+
+---
+
+## 7. UX/UI Improvements
+
+### 7.1 Accessibility (WCAG 2.1 AA)
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-UX-01 | P2 | Add ARIA labels to all interactive components |
+| TODO-UX-02 | P2 | Implement keyboard navigation for data grids |
+| TODO-UX-03 | P2 | Add screen reader support for charts and dashboards |
+| TODO-UX-04 | P3 | High contrast theme option |
+| TODO-UX-05 | P3 | Font size adjustment controls |
+
+### 7.2 Important UI Features
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-UX-06 | P1 | Implement global search with typeahead |
+| TODO-UX-07 | P1 | Add inline editing for data grid cells |
+| TODO-UX-08 | P2 | Implement drag-and-drop pipeline board |
+| TODO-UX-09 | P2 | Add bulk action toolbar for list views |
+| TODO-UX-10 | P2 | Implement advanced filter builder UI |
+
+### 7.3 Nice-to-Have Enhancements
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-UX-11 | P3 | Dark mode toggle |
+| TODO-UX-12 | P3 | Customizable sidebar navigation |
+| TODO-UX-13 | P3 | Split view for comparing records |
+| TODO-UX-14 | P3 | Breadcrumb navigation |
+| TODO-UX-15 | P3 | Recent items quick access |
+
+---
+
+## 8. AI & Machine Learning
+
+### 8.1 Predictive Analytics
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-AI-01 | P2 | ML-based lead scoring model |
+| TODO-AI-02 | P2 | Predictive opportunity win probability |
+| TODO-AI-03 | P3 | Customer churn prediction |
+| TODO-AI-04 | P3 | Next best action recommendations |
+
+### 8.2 Conversational AI
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-AI-05 | P2 | AI-powered KB semantic search with embeddings |
+| TODO-AI-06 | P3 | AI email draft assistant |
+| TODO-AI-07 | P3 | Automated email sentiment analysis |
+| TODO-AI-08 | P3 | Meeting summary generation |
+
+### 8.3 Revenue Intelligence
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-AI-09 | P3 | Deal risk scoring |
+| TODO-AI-10 | P3 | Revenue forecasting with ML |
+
+---
+
+## 9. Analytics & Reporting
+
+### 9.1 Report Builder
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-RPT-01 | P2 | Custom report designer component |
+| TODO-RPT-02 | P2 | Scheduled report delivery (email PDF/CSV) |
+| TODO-RPT-03 | P2 | Report sharing and permissions |
+| TODO-RPT-04 | P3 | Report templates marketplace |
+
+### 9.2 Advanced Analytics
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-RPT-05 | P2 | Custom dashboard builder with drag-and-drop widgets |
+| TODO-RPT-06 | P2 | Real-time dashboard with WebSocket live updates |
+| TODO-RPT-07 | P2 | Cohort analysis and customer segmentation |
+| TODO-RPT-08 | P3 | Funnel visualization with stage conversion rates |
+| TODO-RPT-09 | P3 | Geographic data visualization (map charts) |
+
+---
+
+## 10. Integration Framework
+
+### 10.1 Framework Enhancements
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-INT-01 | P2 | Add Stripe webhook handlers for payment processing |
+| TODO-INT-02 | P2 | Add SendGrid event tracking integration |
+| TODO-INT-03 | P2 | Complete Chatwoot timeline integration |
+
+### 10.2 Native Integrations
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-INT-04 | P2 | Google Workspace (Calendar, Contacts, Drive) |
+| TODO-INT-05 | P2 | Microsoft 365 (Outlook, Teams, SharePoint) |
+| TODO-INT-06 | P2 | Slack integration for notifications |
+| TODO-INT-07 | P3 | Twilio enhanced voice call logging |
+| TODO-INT-08 | P3 | QuickBooks/Xero accounting sync |
+| TODO-INT-09 | P3 | Mailchimp/HubSpot marketing sync |
+| TODO-INT-10 | P3 | LinkedIn Sales Navigator integration |
+| TODO-INT-11 | P3 | Calendly/Cal.com scheduling integration |
+| TODO-INT-12 | P3 | Jira/Azure DevOps project management sync |
+
+---
+
+## 11. Customization Engine
+
+### 11.1 Dynamic Fields
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-CUST-01 | P2 | Custom field builder with drag-and-drop UI |
+| TODO-CUST-02 | P2 | Custom field validation rules |
+| TODO-CUST-03 | P2 | Custom field search and filtering |
+
+### 11.2 UI Customization
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-CUST-04 | P3 | Custom page layouts per entity type |
+| TODO-CUST-05 | P3 | Configurable list view columns |
+| TODO-CUST-06 | P3 | Custom button/action definitions |
+
+### 11.3 Calculated Fields & Environments
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-CUST-07 | P3 | Formula fields with expression engine |
+| TODO-CUST-08 | P3 | Rollup summary fields |
+| TODO-CUST-09 | P3 | Cross-object formula references |
+| TODO-CUST-10 | P3 | Sandbox environment support |
+| TODO-CUST-11 | P3 | Configuration migration between environments |
+| TODO-CUST-12 | P3 | Feature flag management UI |
+
+---
+
+## 12. CRM Gaps
+
+### 12.1 Sales Process
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-GAP-01 | P1 | Complete DuplicateMergeService merge logic |
+| TODO-GAP-02 | P1 | Implement lead conversion workflow end-to-end |
+| TODO-GAP-03 | P2 | Add sales forecasting service implementation |
+| TODO-GAP-04 | P2 | Implement territory-based lead assignment |
+| TODO-GAP-05 | P2 | Add multi-currency support for opportunities/quotes |
+
+### 12.2 CPQ Enhancements
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-GAP-06 | P2 | Bundle configuration wizard UI |
+| TODO-GAP-07 | P2 | Dynamic pricing rules engine integration |
+| TODO-GAP-08 | P2 | Quote approval workflow with email notifications |
+
+### 12.3 Lead Intelligence
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-GAP-09 | P2 | Company enrichment from external data sources |
+
+---
+
+## 13. Priority Matrix
+
+### Summary by Priority
+
+| Priority | Count | Description |
+|----------|-------|-------------|
+| **P0 — Critical** | 0 | No critical blockers |
+| **P1 — High** | 7 | Core functionality gaps: validations, lead conversion, global search, inline editing, duplicate merge |
+| **P2 — Medium** | 65 | Service completion, testing, integrations, reporting, AI features |
+| **P3 — Low** | 47 | Portal, mobile, advanced customization, nice-to-have UX |
+| **Total** | **119** | |
 
 ### Recommended Implementation Order
 
-1. **Phase 1 (Q1 2026):** P0 items - Core platform stability, accessibility, ITSM completion
-2. **Phase 2 (Q2 2026):** P1 Documentation + AI Platform foundation
-3. **Phase 3 (Q3 2026):** P1 Reporting + Integrations
-4. **Phase 4 (Q4 2026):** P1 Customization + P2 Infrastructure
-5. **Phase 5 (2027):** P2 UX + P3 Community features
+| Phase | Focus | Items | Timeline |
+|-------|-------|-------|----------|
+| **Next Sprint** | P1 items + Test coverage | ~12 | Q1 2026 |
+| **Sprint 2** | ITSM wiring + Audit cleanup | ~15 | Q1 2026 |
+| **Sprint 3** | Documentation + Integration framework | ~15 | Q1 2026 |
+| **Sprint 4** | AI/Analytics + Reporting | ~20 | Q2 2026 |
+| **Backlog** | Portal, Mobile, Customization | ~57 | 2026-2027 |
 
 ---
 
-*This document is auto-generated and should be updated as items are completed.*
+**END OF MASTER TODO LIST**
