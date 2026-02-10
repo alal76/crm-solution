@@ -1,3 +1,6 @@
+// TODO: Integration target — reports page
+// This component is currently orphaned (not imported by any page).
+
 /**
  * ReportDesigner Component
  * 

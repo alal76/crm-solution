@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/apiClient';
 import {
   ApprovalWorkflowPanel,
   RiskAssessmentForm,
@@ -30,12 +30,12 @@ const ChangeDetailPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await axios.get(`/api/changes/${id}`);
+        const response = await apiClient.get(`/changes/${id}`);
         setChange(response.data);
         // Load approval steps and conflicts (best-effort)
         const [approvalResp, conflictResp] = await Promise.allSettled([
-          axios.get(`/api/changes/${id}/approvals`),
-          axios.get(`/api/changes/${id}/conflicts`),
+          apiClient.get(`/changes/${id}/approvals`),
+          apiClient.get(`/changes/${id}/conflicts`),
         ]);
         if (approvalResp.status === 'fulfilled') setApprovalSteps(approvalResp.value.data ?? []);
         if (conflictResp.status === 'fulfilled') setConflicts(conflictResp.value.data ?? []);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 interface ConfigurationItem {
   ciId: number;
@@ -22,8 +22,8 @@ const CMDBRelationshipMapPage: React.FC = () => {
     const load = async () => {
       try {
         const [ciResponse, relatedResponse] = await Promise.all([
-          axios.get(`/api/cmdb/${id}`),
-          axios.get(`/api/cmdb/${id}/related`),
+          apiClient.get(`/api/cmdb/${id}`),
+          apiClient.get(`/api/cmdb/${id}/related`),
         ]);
         setCi(ciResponse.data ?? null);
         setRelated(relatedResponse.data ?? []);

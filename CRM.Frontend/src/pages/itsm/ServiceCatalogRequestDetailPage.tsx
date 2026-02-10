@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 interface CatalogRequestDetail {
   requestId: number;
@@ -27,8 +27,8 @@ const ServiceCatalogRequestDetailPage: React.FC = () => {
     const load = async () => {
       try {
         const [requestResponse, catalogResponse] = await Promise.all([
-          axios.get('/api/catalog/requests'),
-          axios.get('/api/catalog/items')
+          apiClient.get('/api/catalog/requests'),
+          apiClient.get('/api/catalog/items')
         ]);
         const items: CatalogRequestDetail[] = requestResponse.data ?? [];
         const found = items.find((item) => item.requestId === Number(id));

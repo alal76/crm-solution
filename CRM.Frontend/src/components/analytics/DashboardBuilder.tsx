@@ -1,3 +1,6 @@
+// TODO: Integration target — analytics/dashboard page
+// This component is currently orphaned (not imported by any page).
+
 /**
  * DashboardBuilder Component
  * 

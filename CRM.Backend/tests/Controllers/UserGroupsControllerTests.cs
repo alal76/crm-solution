@@ -38,7 +38,6 @@ public class UserGroupsControllerTests
 
         _controller = new UserGroupsController(
             _mockUserGroupService.Object,
-            _mockNotificationService.Object,
             _mockLogger.Object);
 
         SetupUserContext();

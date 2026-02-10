@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 const SLAPolicyFormPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const SLAPolicyFormPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await axios.post('/api/sla/policies', formData);
+      await apiClient.post('/api/sla/policies', formData);
       navigate('/itsm/sla/policies');
     } catch (error) {
       console.error('Failed to create SLA policy', error);

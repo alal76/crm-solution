@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/apiClient';
 
 const ChangeFormPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ const ChangeFormPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await axios.post('/api/changes', formData);
+      await apiClient.post('/changes', formData);
       navigate('/itsm/changes');
     } catch (error) {
       console.error('Failed to create change', error);

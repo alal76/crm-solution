@@ -32,104 +32,229 @@ public class ITSMDashboardController : ControllerBase
         _logger = logger;
     }
 
-    // ===== BVT Stub Endpoints =====
+    // ===== Dashboard Aggregate Endpoints =====
 
     /// <summary>
-    /// Get overall ITSM metrics (BVT endpoint).
+    /// Get overall ITSM metrics — aggregated from incident, problem, change, and SLA services.
     /// </summary>
     [HttpGet("metrics")]
-    public ActionResult GetMetrics()
+    public async Task<ActionResult> GetMetrics(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate)
     {
-        return Ok(new
+        var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
+
+        try
         {
-            totalIncidents = 0,
-            openIncidents = 0,
-            resolvedIncidents = 0,
-            closedIncidents = 0,
-            totalProblems = 0,
-            openProblems = 0,
-            totalChanges = 0,
-            pendingChanges = 0,
-            averageResolutionTimeHours = 0.0,
-            slaCompliancePercent = 100.0,
-            mttr = 0.0,
-            customerSatisfaction = 0.0,
-            timestamp = DateTime.UtcNow
-        });
+            var incidents = await _dashboardService.GetIncidentTrendsAsync(start, end);
+            var problems = await _dashboardService.GetProblemAnalyticsAsync(start, end);
+            var changes = await _dashboardService.GetChangeStatisticsAsync(start, end);
+            var sla = await _dashboardService.GetSLAComplianceAsync(start, end);
+
+            return Ok(new
+            {
+                totalIncidents = incidents.TotalIncidents,
+                openIncidents = incidents.OpenIncidents,
+                resolvedIncidents = incidents.ResolvedIncidents,
+                closedIncidents = incidents.ClosedIncidents,
+                totalProblems = problems.TotalProblems,
+                openProblems = problems.OpenProblems,
+                totalChanges = changes.TotalChanges,
+                pendingChanges = changes.ScheduledChanges,
+                averageResolutionTimeHours = incidents.AverageResolutionTimeHours,
+                slaCompliancePercent = sla.OverallComplianceRate,
+                mttr = incidents.AverageResolutionTimeHours,
+                customerSatisfaction = 0.0, // TODO: Integrate customer satisfaction survey data
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch ITSM dashboard metrics from services");
+            return Ok(new
+            {
+                totalIncidents = 0, openIncidents = 0, resolvedIncidents = 0, closedIncidents = 0,
+                totalProblems = 0, openProblems = 0, totalChanges = 0, pendingChanges = 0,
+                averageResolutionTimeHours = 0.0, slaCompliancePercent = 0.0, mttr = 0.0,
+                customerSatisfaction = 0.0, timestamp = DateTime.UtcNow
+            });
+        }
     }
 
     /// <summary>
-    /// Get incident trends (BVT endpoint).
+    /// Get incident trends and creation/resolution counts.
     /// </summary>
     [HttpGet("incident-trends")]
-    public ActionResult GetIncidentTrendsBvt()
+    public async Task<ActionResult> GetIncidentTrendsBvt(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate)
     {
-        return Ok(new
+        var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
+
+        try
         {
-            period = "last30days",
-            trends = new List<object>(),
-            totalCreated = 0,
-            totalResolved = 0
-        });
+            var trends = await _dashboardService.GetIncidentTrendsAsync(start, end);
+            return Ok(new
+            {
+                period = "last30days",
+                trends = trends.ByPriority ?? new List<PriorityBreakdown>(),
+                totalCreated = trends.TotalIncidents,
+                totalResolved = trends.ResolvedIncidents
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch incident trends");
+            return Ok(new { period = "last30days", trends = new List<object>(), totalCreated = 0, totalResolved = 0 });
+        }
     }
 
     /// <summary>
-    /// Get SLA compliance data (BVT endpoint).
+    /// Get SLA compliance data.
     /// </summary>
     [HttpGet("sla-compliance")]
-    public ActionResult GetSlaComplianceBvt()
+    public async Task<ActionResult> GetSlaComplianceBvt(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate)
     {
-        return Ok(new
+        var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
+
+        try
         {
-            overallCompliance = 100.0,
-            responseTimeCompliance = 100.0,
-            resolutionTimeCompliance = 100.0,
-            byPriority = new List<object>(),
-            byCategory = new List<object>(),
-            period = "last30days"
-        });
+            var sla = await _dashboardService.GetSLAComplianceAsync(start, end);
+            return Ok(new
+            {
+                overallCompliance = sla.OverallComplianceRate,
+                responseTimeCompliance = sla.OverallComplianceRate, // Same metric until response/resolution split available
+                resolutionTimeCompliance = sla.OverallComplianceRate,
+                byPriority = sla.ByPriority ?? new List<SLAByPriority>(),
+                byCategory = sla.ByCategory ?? new List<SLAByCategory>(),
+                period = "last30days"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch SLA compliance data");
+            return Ok(new { overallCompliance = 0.0, responseTimeCompliance = 0.0, resolutionTimeCompliance = 0.0,
+                byPriority = new List<object>(), byCategory = new List<object>(), period = "last30days" });
+        }
     }
 
     /// <summary>
-    /// Get agent performance metrics (BVT endpoint).
+    /// Get agent performance metrics.
     /// </summary>
     [HttpGet("agent-performance")]
-    public ActionResult GetAgentPerformanceBvt()
+    public async Task<ActionResult> GetAgentPerformanceBvt(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate)
     {
-        return Ok(new List<object>());
+        var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
+
+        try
+        {
+            var agents = await _dashboardService.GetAgentPerformanceAsync(start, end);
+            return Ok(agents);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch agent performance data");
+            return Ok(new List<object>());
+        }
     }
 
     /// <summary>
-    /// Get executive summary (BVT endpoint).
+    /// Get executive summary — composite view from all ITSM domains.
     /// </summary>
     [HttpGet("executive-summary")]
-    public ActionResult GetExecutiveSummaryBvt()
+    public async Task<ActionResult> GetExecutiveSummaryBvt(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate)
     {
-        return Ok(new
+        var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
+
+        try
         {
-            period = "last30days",
-            incidentSummary = new { total = 0, open = 0, resolved = 0, critical = 0 },
-            problemSummary = new { total = 0, open = 0, resolved = 0 },
-            changeSummary = new { total = 0, pending = 0, approved = 0, implemented = 0 },
-            slaCompliance = 100.0,
-            customerSatisfaction = 0.0,
-            topCategories = new List<object>(),
-            highlights = new List<string>()
-        });
+            var incidents = await _dashboardService.GetIncidentTrendsAsync(start, end);
+            var problems = await _dashboardService.GetProblemAnalyticsAsync(start, end);
+            var changes = await _dashboardService.GetChangeStatisticsAsync(start, end);
+            var sla = await _dashboardService.GetSLAComplianceAsync(start, end);
+
+            return Ok(new
+            {
+                period = "last30days",
+                incidentSummary = new
+                {
+                    total = incidents.TotalIncidents,
+                    open = incidents.OpenIncidents,
+                    resolved = incidents.ResolvedIncidents,
+                    critical = incidents.ByPriority?.FirstOrDefault(p => p.PriorityLabel == "Critical")?.Count ?? 0
+                },
+                problemSummary = new
+                {
+                    total = problems.TotalProblems,
+                    open = problems.OpenProblems,
+                    resolved = problems.TotalProblems - problems.OpenProblems
+                },
+                changeSummary = new
+                {
+                    total = changes.TotalChanges,
+                    pending = changes.ScheduledChanges,
+                    approved = changes.CompletedChanges,
+                    implemented = changes.CompletedChanges
+                },
+                slaCompliance = sla.OverallComplianceRate,
+                customerSatisfaction = 0.0, // TODO: Integrate customer satisfaction survey data
+                topCategories = sla.ByCategory?.Take(5) ?? Enumerable.Empty<SLAByCategory>(),
+                highlights = new List<string>()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch executive summary");
+            return Ok(new
+            {
+                period = "last30days",
+                incidentSummary = new { total = 0, open = 0, resolved = 0, critical = 0 },
+                problemSummary = new { total = 0, open = 0, resolved = 0 },
+                changeSummary = new { total = 0, pending = 0, approved = 0, implemented = 0 },
+                slaCompliance = 0.0, customerSatisfaction = 0.0,
+                topCategories = new List<object>(), highlights = new List<string>()
+            });
+        }
     }
 
     /// <summary>
-    /// Get category breakdown (BVT endpoint).
+    /// Get incident category breakdown.
     /// </summary>
     [HttpGet("category-breakdown")]
-    public ActionResult GetCategoryBreakdown()
+    public async Task<ActionResult> GetCategoryBreakdown(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate)
     {
-        return Ok(new
+        var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
+
+        try
         {
-            categories = new List<object>(),
-            totalIncidents = 0,
-            period = "last30days"
-        });
+            var sla = await _dashboardService.GetSLAComplianceAsync(start, end);
+            var incidents = await _dashboardService.GetIncidentTrendsAsync(start, end);
+            return Ok(new
+            {
+                categories = sla.ByCategory ?? new List<SLAByCategory>(),
+                totalIncidents = incidents.TotalIncidents,
+                period = "last30days"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch category breakdown");
+            return Ok(new { categories = new List<object>(), totalIncidents = 0, period = "last30days" });
+        }
     }
 
     // ===== Service-backed Endpoints =====

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/apiClient';
 
 const ProblemFormPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const ProblemFormPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await axios.post('/api/problems', formData);
+      await apiClient.post('/problems', formData);
       navigate('/itsm/problems');
     } catch (error) {
       console.error('Failed to create problem', error);

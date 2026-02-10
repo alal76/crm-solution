@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 import { CatalogCategoryBrowser } from '../../components/itsm';
 import type { CatalogCategory } from '../../components/itsm';
 
@@ -26,7 +26,7 @@ export const ServiceCatalogPage: React.FC = () => {
       setLoading(true);
       try {
         const params = searchTerm ? `?searchTerm=${searchTerm}` : '';
-        const response = await axios.get(`/api/catalog/search${params}`);
+        const response = await apiClient.get(`/api/catalog/search${params}`);
         setItems(response.data ?? []);
       } catch (error) {
         console.error('Failed to load catalog', error);
@@ -41,7 +41,7 @@ export const ServiceCatalogPage: React.FC = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const response = await axios.get('/api/catalog/categories');
+        const response = await apiClient.get('/api/catalog/categories');
         setCategories(response.data ?? []);
       } catch (error) {
         console.error('Failed to load categories', error);

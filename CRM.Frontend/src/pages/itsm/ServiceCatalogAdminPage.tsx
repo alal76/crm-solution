@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 interface CatalogAdminItem {
   catalogItemId: number;
@@ -22,7 +22,7 @@ const ServiceCatalogAdminPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await axios.get('/api/catalog/items');
+        const response = await apiClient.get('/api/catalog/items');
         setItems(response.data ?? []);
       } catch (loadError) {
         console.error('Failed to load catalog items', loadError);

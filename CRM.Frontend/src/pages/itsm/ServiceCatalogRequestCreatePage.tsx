@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 import { CatalogRequestForm } from '../../components/itsm';
 import type { CatalogItemDetails } from '../../components/itsm';
 
@@ -14,7 +14,7 @@ const ServiceCatalogRequestCreatePage: React.FC = () => {
   useEffect(() => {
     const loadCatalogItem = async () => {
       try {
-        const response = await axios.get(`/api/catalog/items/${id}`);
+        const response = await apiClient.get(`/api/catalog/items/${id}`);
         setCatalogItem(response.data);
       } catch (error) {
         console.error('Failed to load catalog item', error);
@@ -28,7 +28,7 @@ const ServiceCatalogRequestCreatePage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await axios.post('/api/catalog/requests', {
+      await apiClient.post('/api/catalog/requests', {
         catalogItemId: Number(id),
         requestedForId: Number(requestedForId)
       });
@@ -88,7 +88,7 @@ const ServiceCatalogRequestCreatePage: React.FC = () => {
             onSubmit={async (data) => {
               setSubmitting(true);
               try {
-                await axios.post('/api/catalog/requests', {
+                await apiClient.post('/api/catalog/requests', {
                   catalogItemId: Number(id),
                   ...data,
                 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/apiClient';
 
 interface Problem {
   problemId: number;
@@ -26,7 +26,7 @@ const ProblemListPage: React.FC = () => {
           pageNumber: '1',
           pageSize: '20'
         });
-        const response = await axios.get(`/api/problems?${params}`);
+        const response = await apiClient.get(`/problems?${params}`);
         setItems(response.data.items ?? response.data ?? []);
       } catch (error) {
         console.error('Failed to load problems', error);

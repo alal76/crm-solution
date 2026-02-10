@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/apiClient';
 
 interface ChangeItem {
   changeId: number;
@@ -26,7 +26,7 @@ const ChangeListPage: React.FC = () => {
           pageNumber: '1',
           pageSize: '20'
         });
-        const response = await axios.get(`/api/changes?${params}`);
+        const response = await apiClient.get(`/changes?${params}`);
         setItems(response.data.items ?? response.data ?? []);
       } catch (error) {
         console.error('Failed to load changes', error);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 interface ConfigurationItem {
   ciId: number;
@@ -25,7 +25,7 @@ const CMDBListPage: React.FC = () => {
           pageNumber: '1',
           pageSize: '20'
         });
-        const response = await axios.get(`/api/cmdb?${params}`);
+        const response = await apiClient.get(`/api/cmdb?${params}`);
         setItems(response.data ?? []);
       } catch (error) {
         console.error('Failed to load configuration items', error);

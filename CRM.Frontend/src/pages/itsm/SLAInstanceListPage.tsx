@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 interface SLAInstance {
   slaInstanceId: number;
@@ -19,7 +19,7 @@ const SLAInstanceListPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await axios.get('/api/sla/breached');
+        const response = await apiClient.get('/api/sla/breached');
         setItems(response.data ?? []);
       } catch (error) {
         console.error('Failed to load SLA instances', error);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 import { ArticleFeedbackWidget } from '../../components/itsm';
 
 interface Article {
@@ -23,7 +23,7 @@ export const KnowledgeArticleDetailPage: React.FC = () => {
   useEffect(() => {
     const loadArticle = async () => {
       try {
-        const response = await axios.get(`/api/knowledge/${id}`);
+        const response = await apiClient.get(`/api/knowledge/${id}`);
         setArticle(response.data);
       } catch (error) {
         console.error('Failed to load article', error);
@@ -37,7 +37,7 @@ export const KnowledgeArticleDetailPage: React.FC = () => {
 
   const handleFeedback = async (helpful: boolean) => {
     try {
-      await axios.post(`/api/knowledge/${id}/feedback`, { helpful });
+      await apiClient.post(`/api/knowledge/${id}/feedback`, { helpful });
       setFeedbackGiven(true);
     } catch (error) {
       console.error('Failed to submit feedback', error);
@@ -93,7 +93,7 @@ export const KnowledgeArticleDetailPage: React.FC = () => {
             showStats
             showRating
             onSubmitFeedback={async (feedback) => {
-              await axios.post(`/api/knowledge/${id}/feedback`, feedback);
+              await apiClient.post(`/api/knowledge/${id}/feedback`, feedback);
               setFeedbackGiven(true);
             }}
           />

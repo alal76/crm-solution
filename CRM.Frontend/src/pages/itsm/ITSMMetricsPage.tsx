@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 interface PagedResult<T> {
   items: T[];
@@ -59,11 +59,11 @@ const ITSMMetricsPage: React.FC = () => {
     const load = async () => {
       try {
         const [incidentResponse, problemResponse, changeResponse, knowledgeResponse, slaResponse] = await Promise.all([
-          axios.get<PagedResult<IncidentSummary>>('/api/incidents?pageNumber=1&pageSize=5'),
-          axios.get<PagedResult<ProblemSummary>>('/api/problems?pageNumber=1&pageSize=5'),
-          axios.get<PagedResult<ChangeSummary>>('/api/changes?pageNumber=1&pageSize=5'),
-          axios.get<KnowledgeSummary[]>('/api/knowledge/search?searchTerm='),
-          axios.get<SLAInstance[]>('/api/sla/breached'),
+          apiClient.get<PagedResult<IncidentSummary>>('/api/incidents?pageNumber=1&pageSize=5'),
+          apiClient.get<PagedResult<ProblemSummary>>('/api/problems?pageNumber=1&pageSize=5'),
+          apiClient.get<PagedResult<ChangeSummary>>('/api/changes?pageNumber=1&pageSize=5'),
+          apiClient.get<KnowledgeSummary[]>('/api/knowledge/search?searchTerm='),
+          apiClient.get<SLAInstance[]>('/api/sla/breached'),
         ]);
 
         setIncidents(incidentResponse.data);

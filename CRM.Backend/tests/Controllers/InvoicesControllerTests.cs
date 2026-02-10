@@ -45,7 +45,7 @@ public class InvoicesControllerTests
         _mockNotificationService.Setup(x => x.NotifyRecordDeletedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
 
-        _controller = new InvoicesController(_mockInvoiceService.Object, _mockLogger.Object, _mockNotificationService.Object);
+        _controller = new InvoicesController(_mockInvoiceService.Object, _mockLogger.Object);
 
         var httpContext = new DefaultHttpContext();
         var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "1") };

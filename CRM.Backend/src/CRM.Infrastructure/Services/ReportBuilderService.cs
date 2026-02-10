@@ -1,12 +1,15 @@
 // CRM Solution - Custom Report Builder Service
 // Phase 7, Task 7.5 - Custom report creation with query builder, CSV export, and scheduling
 
-using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ReportEntity = CRM.Core.Entities.Reports.ReportDefinition;
+using ReportEntityType = CRM.Core.Entities.Reports.ReportType;
+using ReportEntityDataSource = CRM.Core.Entities.Reports.ReportDataSource;
 
 namespace CRM.Infrastructure.Services;
 
@@ -199,18 +202,15 @@ public class ReportEntitySource
 #endregion
 
 /// <summary>
-/// In-memory report builder service.
-/// Stores report definitions in ConcurrentDictionary and queries CRM entities for data.
+/// EF Core-backed report builder service.
+/// Stores report definitions in the database and queries CRM entities for data.
 /// </summary>
 public class ReportBuilderService : IReportBuilderService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<ReportBuilderService> _logger;
 
-    // In-memory storage: ReportId → ReportDefinition
-    private readonly ConcurrentDictionary<string, ReportDefinition> _reports = new();
-
-    private static int _idCounter;
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     private static readonly List<ReportEntitySource> EntitySources = new()
     {
@@ -231,63 +231,109 @@ public class ReportBuilderService : IReportBuilderService
     }
 
     /// <inheritdoc />
-    public Task<IEnumerable<ReportDefinition>> GetReportsAsync(int userId, CancellationToken ct = default)
+    public async Task<IEnumerable<ReportDefinition>> GetReportsAsync(int userId, CancellationToken ct = default)
     {
-        var reports = _reports.Values
-            .Where(r => r.UserId == userId)
+        var entities = await _context.ReportDefinitions
+            .Where(r => !r.IsDeleted && r.CreatedByUserId == userId)
             .OrderBy(r => r.Name)
-            .AsEnumerable();
-        return Task.FromResult(reports);
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        return entities.Select(MapToDto);
     }
 
     /// <inheritdoc />
-    public Task<ReportDefinition?> GetReportAsync(string reportId, CancellationToken ct = default)
+    public async Task<ReportDefinition?> GetReportAsync(string reportId, CancellationToken ct = default)
     {
-        _reports.TryGetValue(reportId, out var report);
-        return Task.FromResult(report);
+        if (!int.TryParse(reportId, out var id))
+            return null;
+
+        var entity = await _context.ReportDefinitions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, ct);
+
+        return entity == null ? null : MapToDto(entity);
     }
 
     /// <inheritdoc />
-    public Task<ReportDefinition> CreateReportAsync(ReportDefinition report, CancellationToken ct = default)
+    public async Task<ReportDefinition> CreateReportAsync(ReportDefinition report, CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(report.Id))
-            report.Id = $"rpt-{Interlocked.Increment(ref _idCounter)}";
+        var entity = MapToEntity(report);
 
-        report.CreatedAt = DateTime.UtcNow;
-        report.UpdatedAt = DateTime.UtcNow;
-        _reports[report.Id] = report;
+        _context.ReportDefinitions.Add(entity);
+        await _context.SaveChangesAsync(ct);
 
         _logger.LogInformation("Created report {ReportId} ({ReportName}) for user {UserId}",
-            report.Id, report.Name, report.UserId);
+            entity.Id, entity.Name, report.UserId);
 
-        return Task.FromResult(report);
+        return MapToDto(entity);
     }
 
     /// <inheritdoc />
-    public Task<ReportDefinition?> UpdateReportAsync(ReportDefinition report, CancellationToken ct = default)
+    public async Task<ReportDefinition?> UpdateReportAsync(ReportDefinition report, CancellationToken ct = default)
     {
-        if (!_reports.ContainsKey(report.Id))
-            return Task.FromResult<ReportDefinition?>(null);
+        if (!int.TryParse(report.Id, out var id))
+            return null;
 
-        report.UpdatedAt = DateTime.UtcNow;
-        _reports[report.Id] = report;
-        return Task.FromResult<ReportDefinition?>(report);
+        var entity = await _context.ReportDefinitions
+            .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, ct);
+
+        if (entity == null)
+            return null;
+
+        entity.Name = report.Name;
+        entity.Description = report.Description;
+        entity.ReportType = MapReportType(report.Type);
+        entity.DataSource = MapEntitySource(report.EntitySource);
+        entity.ColumnsJson = JsonSerializer.Serialize(report.Columns, JsonOptions);
+        entity.FiltersJson = report.Filters.Count > 0 ? JsonSerializer.Serialize(report.Filters, JsonOptions) : null;
+        entity.SortByJson = report.SortBy != null
+            ? JsonSerializer.Serialize(new { field = report.SortBy, direction = report.SortDirection }, JsonOptions)
+            : null;
+        entity.GroupByJson = report.GroupBy != null
+            ? JsonSerializer.Serialize(new { field = report.GroupBy }, JsonOptions)
+            : null;
+        entity.RowLimit = report.MaxRows;
+        entity.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(ct);
+        return MapToDto(entity);
     }
 
     /// <inheritdoc />
-    public Task<bool> DeleteReportAsync(string reportId, CancellationToken ct = default)
+    public async Task<bool> DeleteReportAsync(string reportId, CancellationToken ct = default)
     {
-        var removed = _reports.TryRemove(reportId, out _);
-        if (removed)
-            _logger.LogInformation("Deleted report {ReportId}", reportId);
-        return Task.FromResult(removed);
+        if (!int.TryParse(reportId, out var id))
+            return false;
+
+        var entity = await _context.ReportDefinitions
+            .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, ct);
+
+        if (entity == null)
+            return false;
+
+        entity.IsDeleted = true;
+        entity.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Deleted report {ReportId}", reportId);
+        return true;
     }
 
     /// <inheritdoc />
     public async Task<ReportExecutionResult?> ExecuteReportAsync(string reportId, CancellationToken ct = default)
     {
-        if (!_reports.TryGetValue(reportId, out var report))
+        if (!int.TryParse(reportId, out var id))
             return null;
+
+        var entity = await _context.ReportDefinitions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, ct);
+
+        if (entity == null)
+            return null;
+
+        var report = MapToDto(entity);
 
         var rows = report.EntitySource switch
         {
@@ -340,6 +386,142 @@ public class ReportBuilderService : IReportBuilderService
 
     /// <inheritdoc />
     public IEnumerable<ReportEntitySource> GetAvailableSources() => EntitySources;
+
+    #region Entity ↔ DTO Mapping
+
+    private static ReportDefinition MapToDto(ReportEntity entity)
+    {
+        var dto = new ReportDefinition
+        {
+            Id = entity.Id.ToString(),
+            Name = entity.Name,
+            Description = entity.Description,
+            UserId = entity.CreatedByUserId,
+            Type = MapEntityReportType(entity.ReportType),
+            EntitySource = MapDataSourceToEntitySource(entity.DataSource),
+            Columns = DeserializeStringList(entity.ColumnsJson),
+            Filters = DeserializeFilters(entity.FiltersJson),
+            MaxRows = entity.RowLimit ?? 1000,
+            CreatedAt = entity.CreatedAt,
+            UpdatedAt = entity.UpdatedAt ?? entity.CreatedAt
+        };
+
+        if (!string.IsNullOrWhiteSpace(entity.SortByJson))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(entity.SortByJson);
+                if (doc.RootElement.TryGetProperty("field", out var f))
+                    dto.SortBy = f.GetString();
+                if (doc.RootElement.TryGetProperty("direction", out var d))
+                    dto.SortDirection = d.GetString() ?? "Asc";
+            }
+            catch { /* ignore parse errors */ }
+        }
+
+        if (!string.IsNullOrWhiteSpace(entity.GroupByJson))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(entity.GroupByJson);
+                if (doc.RootElement.TryGetProperty("field", out var f))
+                    dto.GroupBy = f.GetString();
+            }
+            catch { /* ignore parse errors */ }
+        }
+
+        return dto;
+    }
+
+    private static ReportEntity MapToEntity(ReportDefinition dto) => new()
+    {
+        Name = dto.Name,
+        Description = dto.Description,
+        CreatedByUserId = dto.UserId,
+        ReportType = MapReportType(dto.Type),
+        DataSource = MapEntitySource(dto.EntitySource),
+        Status = CRM.Core.Entities.Reports.ReportStatus.Active,
+        AccessLevel = CRM.Core.Entities.Reports.ReportAccessLevel.Private,
+        ColumnsJson = JsonSerializer.Serialize(dto.Columns, JsonOptions),
+        FiltersJson = dto.Filters.Count > 0 ? JsonSerializer.Serialize(dto.Filters, JsonOptions) : null,
+        SortByJson = dto.SortBy != null
+            ? JsonSerializer.Serialize(new { field = dto.SortBy, direction = dto.SortDirection }, JsonOptions)
+            : null,
+        GroupByJson = dto.GroupBy != null
+            ? JsonSerializer.Serialize(new { field = dto.GroupBy }, JsonOptions)
+            : null,
+        RowLimit = dto.MaxRows,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    private static ReportEntityType MapReportType(ReportType type) => type switch
+    {
+        ReportType.Tabular => ReportEntityType.Table,
+        ReportType.Summary => ReportEntityType.SummaryCards,
+        ReportType.Matrix => ReportEntityType.Matrix,
+        _ => ReportEntityType.Table
+    };
+
+    private static ReportType MapEntityReportType(ReportEntityType type) => type switch
+    {
+        ReportEntityType.Table => ReportType.Tabular,
+        ReportEntityType.SummaryCards => ReportType.Summary,
+        ReportEntityType.Matrix => ReportType.Matrix,
+        _ => ReportType.Tabular
+    };
+
+    private static ReportEntityDataSource MapEntitySource(string source) => source switch
+    {
+        "Accounts" => ReportEntityDataSource.Customers,
+        "Leads" => ReportEntityDataSource.Leads,
+        "Opportunities" => ReportEntityDataSource.Opportunities,
+        "Contacts" => ReportEntityDataSource.Contacts,
+        "ServiceRequests" => ReportEntityDataSource.SupportCases,
+        _ => ReportEntityDataSource.CustomQuery
+    };
+
+    private static string MapDataSourceToEntitySource(ReportEntityDataSource ds) => ds switch
+    {
+        ReportEntityDataSource.Customers => "Accounts",
+        ReportEntityDataSource.Leads => "Leads",
+        ReportEntityDataSource.Opportunities => "Opportunities",
+        ReportEntityDataSource.Contacts => "Contacts",
+        ReportEntityDataSource.SupportCases => "ServiceRequests",
+        _ => "Custom"
+    };
+
+    private static List<string> DeserializeStringList(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return new List<string>();
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(json, JsonOptions) ?? new List<string>();
+        }
+        catch
+        {
+            return new List<string>();
+        }
+    }
+
+    private static List<ReportFilter> DeserializeFilters(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return new List<ReportFilter>();
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<ReportFilter>>(json, JsonOptions) ?? new List<ReportFilter>();
+        }
+        catch
+        {
+            return new List<ReportFilter>();
+        }
+    }
+
+    #endregion
 
     #region Private Query Methods
 

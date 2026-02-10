@@ -203,6 +203,13 @@ public interface ICrmDbContext
     // Event Attendees
     DbSet<EventAttendee> EventAttendees { get; }
 
+    // Dashboard and Analytics
+    DbSet<Dashboard> Dashboards { get; }
+    DbSet<DashboardWidget> DashboardWidgets { get; }
+
+    // Reports
+    DbSet<CRM.Core.Entities.Reports.ReportDefinition> ReportDefinitions { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/apiClient';
 import {
   IncidentTimeline,
   SLACountdownWidget,
@@ -41,14 +41,14 @@ export const IncidentDetailPage: React.FC = () => {
   useEffect(() => {
     const loadIncident = async () => {
       try {
-        const response = await axios.get(`/api/incidents/${id}`);
+        const response = await apiClient.get(`/incidents/${id}`);
         setIncident(response.data);
         // Load supplementary data for ITSM components (best-effort)
         const [timelineResp, slaResp, breachResp, relatedResp] = await Promise.allSettled([
-          axios.get(`/api/incidents/${id}/timeline`),
-          axios.get(`/api/incidents/${id}/sla`),
-          axios.get(`/api/incidents/${id}/sla/breaches`),
-          axios.get(`/api/incidents/${id}/related`),
+          apiClient.get(`/incidents/${id}/timeline`),
+          apiClient.get(`/incidents/${id}/sla`),
+          apiClient.get(`/incidents/${id}/sla/breaches`),
+          apiClient.get(`/incidents/${id}/related`),
         ]);
         if (timelineResp.status === 'fulfilled') setTimelineActivities(timelineResp.value.data ?? []);
         if (slaResp.status === 'fulfilled') setSlaInstances(slaResp.value.data ?? []);
