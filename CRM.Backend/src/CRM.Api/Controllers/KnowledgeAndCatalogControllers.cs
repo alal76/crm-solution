@@ -20,7 +20,7 @@ namespace CRM.Api.Controllers;
 /// Key features include: article CRUD, publishing workflow, feedback collection, article suggestions, and full-text search.
 /// </remarks>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/itsm/knowledge")]
 [Authorize]
 [Produces("application/json")]
 [Consumes("application/json")]
@@ -217,7 +217,7 @@ public class KnowledgeController : ControllerBase
 }
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/itsm/catalog")]
 [Authorize]
 [Produces("application/json")]
 public class CatalogController : ControllerBase
@@ -252,7 +252,7 @@ public class CatalogController : ControllerBase
         return Ok(new { requestId });
     }
 
-    [HttpGet("requests")]
+    [HttpGet("my-requests")]
     public async Task<ActionResult<IEnumerable<CatalogRequest>>> GetMyRequests()
     {
         var requests = await _catalogService.GetMyRequestsAsync(GetCurrentUserId());
@@ -339,7 +339,7 @@ public class CatalogCategoryDto
 /// Key features include: SLA policies, breach detection, compliance metrics, pause/resume capabilities, and dashboard analytics.
 /// </remarks>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/itsm/sla")]
 [Authorize]
 [Produces("application/json")]
 [Consumes("application/json")]

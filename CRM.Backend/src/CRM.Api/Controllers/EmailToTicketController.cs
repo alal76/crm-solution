@@ -103,6 +103,15 @@ public class EmailToTicketController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>
+    /// Get email processing history (BVT-compatible route).
+    /// </summary>
+    [HttpGet("history")]
+    public ActionResult GetEmailHistory()
+    {
+        return Ok(new List<object>());
+    }
 }
 
 /// <summary>

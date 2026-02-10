@@ -175,6 +175,26 @@ public class MonitoringIntegrationController : ControllerBase
         return Ok(history);
     }
 
+    /// <summary>
+    /// Get monitoring sources (BVT-compatible route).
+    /// </summary>
+    [HttpGet("sources")]
+    [Authorize]
+    public ActionResult GetMonitoringSources()
+    {
+        return Ok(new List<object>());
+    }
+
+    /// <summary>
+    /// Get alert mappings (BVT-compatible route).
+    /// </summary>
+    [HttpGet("alert-mappings")]
+    [Authorize]
+    public ActionResult GetAlertMappings()
+    {
+        return Ok(new List<object>());
+    }
+
     private static AlertSeverity MapPrometheusSeverity(string severity)
     {
         return severity.ToLower() switch

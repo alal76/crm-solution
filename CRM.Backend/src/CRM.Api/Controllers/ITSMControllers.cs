@@ -19,7 +19,7 @@ namespace CRM.Api.Controllers;
 /// Key features include: problem creation, incident linking, root cause analysis, and known error management.
 /// </remarks>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/itsm/problems")]
 [Authorize]
 [Produces("application/json")]
 [Consumes("application/json")]
@@ -185,7 +185,7 @@ public class UpdateRCADto
 /// relationship mapping, impact analysis, and service mapping.
 /// </remarks>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/itsm/cmdb")]
 [Authorize]
 [Produces("application/json")]
 [Consumes("application/json")]
@@ -364,7 +364,7 @@ public class CreateRelationshipDto
 /// of all changes. Key features include: change requests, approvals, scheduling, conflict detection, and blackout periods.
 /// </remarks>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/itsm/changes")]
 [Authorize]
 [Produces("application/json")]
 [Consumes("application/json")]

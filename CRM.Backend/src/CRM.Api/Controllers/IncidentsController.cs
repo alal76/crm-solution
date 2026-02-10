@@ -20,7 +20,7 @@ namespace CRM.Api.Controllers;
 /// Key features include: incident creation, assignment, escalation, resolution, and SLA tracking.
 /// </remarks>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/itsm/incidents")]
 [Authorize]
 [Produces("application/json")]
 [Consumes("application/json")]
