@@ -76,8 +76,9 @@ This index provides a centralized catalog of all feature specifications in the C
 | SPEC-SYS-001 | User Management | ⏳ Pending | P0 | - |
 | SPEC-SYS-002 | Authentication | ⏳ Pending | P0 | SYS-001 |
 | SPEC-SYS-003 | User Groups & Permissions | ⏳ Pending | P0 | SYS-001 |
-| SPEC-SYS-004 | System Settings | ⏳ Pending | P1 | - |
-| SPEC-SYS-005 | Audit Logging | ⏳ Pending | P2 | - |
+| [SPEC-SYS-004](SPEC-SYS-004-FeatureFlagManagement.md) | Feature Flag Management | ✅ Complete | P2 | - |
+| SPEC-SYS-005 | System Settings | ⏳ Pending | P1 | - |
+| SPEC-SYS-006 | Audit Logging | ⏳ Pending | P2 | - |
 
 ### AI & Analytics Module
 | Spec ID | Feature | Status | Priority | Dependencies |
@@ -113,14 +114,14 @@ This index provides a centralized catalog of all feature specifications in the C
 | Module | Total | Complete | Pending | In Progress |
 |--------|-------|----------|---------|-------------|
 | Core CRM | 7 | 7 | 0 | 0 |
-| Sales | 7 | 1 | 6 | 0 |
+| Sales | 7 | 2 | 5 | 0 |
 | Marketing | 5 | 0 | 5 | 0 |
 | Service Desk | 5 | 0 | 5 | 0 |
 | ITSM | 4 | 0 | 4 | 0 |
-| System | 5 | 0 | 5 | 0 |
+| System | 6 | 1 | 5 | 0 |
 | AI & Analytics | 4 | 0 | 4 | 0 |
 | Integration | 3 | 0 | 3 | 0 |
-| **Total** | **40** | **8** | **32** | **0** |
+| **Total** | **41** | **10** | **31** | **0** |
 
 ### TODO Items Extracted
 | Spec | TODO Count | High Priority | Medium Priority | Low Priority |

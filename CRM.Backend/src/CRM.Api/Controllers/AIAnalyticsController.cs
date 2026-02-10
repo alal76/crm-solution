@@ -69,8 +69,8 @@ public class AIAnalyticsController : ControllerBase
     [HttpPost("kb-reindex")]
     public async Task<IActionResult> ReindexKnowledgeBase(CancellationToken ct)
     {
-        var count = await _kbSearch.ReindexAllAsync(ct);
-        return Ok(new { indexed = count, timestamp = DateTime.UtcNow });
+        await _kbSearch.ReindexAllAsync(ct);
+        return Ok(new { status = "reindex_complete", timestamp = DateTime.UtcNow });
     }
 
     // =========================================================================

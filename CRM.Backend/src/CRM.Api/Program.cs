@@ -29,6 +29,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.FeatureManagement;
+using Microsoft.OpenApi.Models;
 using CRM.Infrastructure.DependencyInjection;
 using AspNetCoreRateLimit;
 using Serilog;
@@ -204,7 +205,59 @@ builder.Services.AddInMemoryRateLimiting();
 // Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "CRM Solution API",
+        Version = "v2.0.0",
+        Description = "Enterprise CRM Solution with Pluggable Architecture. Supports Accounts, Contacts, Leads, Opportunities, Products, Campaigns, Service Desk, ITSM, and AI/Analytics modules.",
+        Contact = new OpenApiContact
+        {
+            Name = "CRM Solution Team",
+            Email = "support@crm.local"
+        },
+        License = new OpenApiLicense
+        {
+            Name = "AGPL-3.0",
+            Url = new Uri("https://www.gnu.org/licenses/agpl-3.0.html")
+        }
+    });
+
+    // JWT Bearer authentication
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter JWT token"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    // Include XML comments for API documentation
+    var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+});
 
 // Add SignalR for real-time notifications
 builder.Services.AddSignalR(options =>
@@ -488,11 +541,11 @@ builder.Services.AddSingleton<IResilienceService, ResilienceService>();
 builder.Services.AddScoped<ILLMSettingsService, LLMSettingsService>();
 
 // Phase 7 services - AI/Analytics Enhancements (KB search, Lead scoring, Opportunity scoring, Dashboards, Reports)
-builder.Services.AddSingleton<IAIKnowledgeSearchService, AIKnowledgeSearchService>();
+builder.Services.AddScoped<IAIKnowledgeSearchService, AIKnowledgeSearchService>();
 builder.Services.AddScoped<IAILeadScoringService, AILeadScoringService>();
 builder.Services.AddScoped<IAIOpportunityScoringService, AIOpportunityScoringService>();
-builder.Services.AddSingleton<IDashboardBuilderService, DashboardBuilderService>();
-builder.Services.AddSingleton<IReportBuilderService, ReportBuilderService>();
+builder.Services.AddScoped<IDashboardBuilderService, DashboardBuilderService>();
+builder.Services.AddScoped<IReportBuilderService, ReportBuilderService>();
 
 // Allen AI Services (OLMo/Tulu models for lead scoring, insights, churn prediction)
 builder.Services.Configure<AllenAIConfiguration>(builder.Configuration.GetSection("AllenAI"));
@@ -748,7 +801,11 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CRM API V1"));
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CRM Solution API v2.0.0");
+        c.DocumentTitle = "CRM Solution API Documentation";
+    });
 }
 
 // Only use HTTPS redirect if we have SSL enabled and not in development

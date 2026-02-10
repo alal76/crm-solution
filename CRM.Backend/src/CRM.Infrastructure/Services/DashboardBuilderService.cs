@@ -400,7 +400,7 @@ public class DashboardBuilderService : IDashboardBuilderService
     private async Task<Dictionary<string, object>> GetOpenTicketsAsync(CancellationToken ct)
     {
         var count = await _context.ServiceRequests
-            .CountAsync(sr => !sr.IsDeleted && sr.Status != "Closed" && sr.Status != "Resolved", ct);
+            .CountAsync(sr => !sr.IsDeleted && sr.Status != CRM.Core.Entities.ServiceRequestStatus.Closed && sr.Status != CRM.Core.Entities.ServiceRequestStatus.Resolved, ct);
 
         return new Dictionary<string, object>
         {
@@ -415,7 +415,7 @@ public class DashboardBuilderService : IDashboardBuilderService
             .ToListAsync(ct);
 
         var avgDays = wonOpps.Count > 0
-            ? wonOpps.Average(o => (o.UpdatedAt - o.CreatedAt).TotalDays)
+            ? wonOpps.Where(o => o.UpdatedAt.HasValue).Average(o => (o.UpdatedAt!.Value - o.CreatedAt).TotalDays)
             : 0;
 
         return new Dictionary<string, object>

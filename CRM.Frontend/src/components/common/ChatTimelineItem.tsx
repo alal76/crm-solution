@@ -1,3 +1,15 @@
+/**
+ * STATUS: Implemented - Available for integration
+ * PURPOSE: Renders chat messages in the activity timeline with multi-channel support.
+ *   Displays incoming/outgoing chat messages from Chatwoot, Intercom, or other providers
+ *   with channel-specific icons (WhatsApp, Facebook, Instagram, SMS, Email, Web).
+ * INTEGRATION: Can be used in AccountDetailsPage, ContactDetailsPage, or any entity
+ *   timeline view that displays Activity records with activityType === 'ChatMessage'.
+ *   Wire into timeline components alongside other activity types (calls, emails, notes).
+ * CREATED: Phase 0 Session 23 (Pluggable Architecture - OpenRouter + Frontend Components)
+ * DEPENDS ON: @mui/material, @mui/icons-material, Activity entity with ChatMessage type,
+ *   Chatwoot/Intercom webhook integration (ChatwootWebhookController, IntercomWebhookController)
+ */
 import React from 'react';
 import {
   Box, Paper, Typography, Chip, IconButton, Tooltip, Avatar,

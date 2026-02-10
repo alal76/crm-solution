@@ -2,6 +2,7 @@
 // Phase 7, Task 7.1 - Tests for AI-powered semantic search over knowledge base
 
 using CRM.Core.Entities.ITSM;
+using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.AI;
@@ -135,7 +136,7 @@ public class AIKnowledgeSearchServiceTests
     // ========================================================================
 
     [Fact]
-    public async Task IndexArticleAsync_ShouldReturnTrue_WhenArticleExists()
+    public async Task IndexArticleAsync_ShouldComplete_WhenArticleExists()
     {
         // Arrange
         var articles = new List<KnowledgeArticle>
@@ -145,26 +146,20 @@ public class AIKnowledgeSearchServiceTests
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
-        // Act
-        var result = await _service.IndexArticleAsync(1);
-
-        // Assert
-        result.Should().BeTrue();
+        // Act & Assert - should complete without throwing
+        await _service.IndexArticleAsync(1);
     }
 
     [Fact]
-    public async Task IndexArticleAsync_ShouldReturnFalse_WhenArticleNotFound()
+    public async Task IndexArticleAsync_ShouldComplete_WhenArticleNotFound()
     {
         // Arrange
         var articles = new List<KnowledgeArticle>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
-        // Act
-        var result = await _service.IndexArticleAsync(999);
-
-        // Assert
-        result.Should().BeFalse();
+        // Act & Assert - should complete without throwing even if article not found
+        await _service.IndexArticleAsync(999);
     }
 
     // ========================================================================
@@ -172,7 +167,7 @@ public class AIKnowledgeSearchServiceTests
     // ========================================================================
 
     [Fact]
-    public async Task ReindexAllAsync_ShouldReturnCountOfPublishedArticles()
+    public async Task ReindexAllAsync_ShouldProcessPublishedArticles()
     {
         // Arrange
         var articles = new List<KnowledgeArticle>
@@ -184,15 +179,12 @@ public class AIKnowledgeSearchServiceTests
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
-        // Act
-        var count = await _service.ReindexAllAsync();
-
-        // Assert
-        count.Should().Be(2);
+        // Act & Assert - should complete without throwing
+        await _service.ReindexAllAsync();
     }
 
     [Fact]
-    public async Task ReindexAllAsync_ShouldReturnZero_WhenNoPublishedArticles()
+    public async Task ReindexAllAsync_ShouldHandleNoPublishedArticles()
     {
         // Arrange
         var articles = new List<KnowledgeArticle>
@@ -202,11 +194,8 @@ public class AIKnowledgeSearchServiceTests
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
-        // Act
-        var count = await _service.ReindexAllAsync();
-
-        // Assert
-        count.Should().Be(0);
+        // Act & Assert - should complete without throwing
+        await _service.ReindexAllAsync();
     }
 
     // ========================================================================

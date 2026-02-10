@@ -589,7 +589,14 @@ public class ChangesController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Get the change calendar showing scheduled changes and blackout periods.
+    /// </summary>
+    /// <param name="startDate">Start of date range (default: 7 days ago)</param>
+    /// <param name="endDate">End of date range (default: 30 days from now)</param>
+    /// <returns>Calendar data with changes and blackout periods</returns>
     [HttpGet("calendar")]
+    [ProducesResponseType(typeof(ChangeCalendarDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ChangeCalendarDto>> GetChangeCalendar([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
     {
         var start = startDate ?? DateTime.UtcNow.AddDays(-7);
