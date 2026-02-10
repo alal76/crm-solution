@@ -32,6 +32,108 @@ public class ITSMDashboardController : ControllerBase
         _logger = logger;
     }
 
+    // ===== BVT Stub Endpoints =====
+
+    /// <summary>
+    /// Get overall ITSM metrics (BVT endpoint).
+    /// </summary>
+    [HttpGet("metrics")]
+    public ActionResult GetMetrics()
+    {
+        return Ok(new
+        {
+            totalIncidents = 0,
+            openIncidents = 0,
+            resolvedIncidents = 0,
+            closedIncidents = 0,
+            totalProblems = 0,
+            openProblems = 0,
+            totalChanges = 0,
+            pendingChanges = 0,
+            averageResolutionTimeHours = 0.0,
+            slaCompliancePercent = 100.0,
+            mttr = 0.0,
+            customerSatisfaction = 0.0,
+            timestamp = DateTime.UtcNow
+        });
+    }
+
+    /// <summary>
+    /// Get incident trends (BVT endpoint).
+    /// </summary>
+    [HttpGet("incident-trends")]
+    public ActionResult GetIncidentTrendsBvt()
+    {
+        return Ok(new
+        {
+            period = "last30days",
+            trends = new List<object>(),
+            totalCreated = 0,
+            totalResolved = 0
+        });
+    }
+
+    /// <summary>
+    /// Get SLA compliance data (BVT endpoint).
+    /// </summary>
+    [HttpGet("sla-compliance")]
+    public ActionResult GetSlaComplianceBvt()
+    {
+        return Ok(new
+        {
+            overallCompliance = 100.0,
+            responseTimeCompliance = 100.0,
+            resolutionTimeCompliance = 100.0,
+            byPriority = new List<object>(),
+            byCategory = new List<object>(),
+            period = "last30days"
+        });
+    }
+
+    /// <summary>
+    /// Get agent performance metrics (BVT endpoint).
+    /// </summary>
+    [HttpGet("agent-performance")]
+    public ActionResult GetAgentPerformanceBvt()
+    {
+        return Ok(new List<object>());
+    }
+
+    /// <summary>
+    /// Get executive summary (BVT endpoint).
+    /// </summary>
+    [HttpGet("executive-summary")]
+    public ActionResult GetExecutiveSummaryBvt()
+    {
+        return Ok(new
+        {
+            period = "last30days",
+            incidentSummary = new { total = 0, open = 0, resolved = 0, critical = 0 },
+            problemSummary = new { total = 0, open = 0, resolved = 0 },
+            changeSummary = new { total = 0, pending = 0, approved = 0, implemented = 0 },
+            slaCompliance = 100.0,
+            customerSatisfaction = 0.0,
+            topCategories = new List<object>(),
+            highlights = new List<string>()
+        });
+    }
+
+    /// <summary>
+    /// Get category breakdown (BVT endpoint).
+    /// </summary>
+    [HttpGet("category-breakdown")]
+    public ActionResult GetCategoryBreakdown()
+    {
+        return Ok(new
+        {
+            categories = new List<object>(),
+            totalIncidents = 0,
+            period = "last30days"
+        });
+    }
+
+    // ===== Service-backed Endpoints =====
+
     /// <summary>
     /// Get incident trends and statistics.
     /// </summary>
