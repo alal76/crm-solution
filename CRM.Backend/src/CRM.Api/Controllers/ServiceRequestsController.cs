@@ -37,16 +37,19 @@ using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// API controller for managing service requests
+/// API controller for managing service requests (support tickets).
+/// Provides comprehensive CRUD operations, status management, assignments, and statistics.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class ServiceRequestsController : ControllerBase
 {
     private readonly IServiceRequestService _serviceRequestService;
@@ -69,9 +72,15 @@ public class ServiceRequestsController : ControllerBase
     #region CRUD Operations
 
     /// <summary>
-    /// Get service requests with filtering and pagination
+    /// Get service requests with filtering and pagination.
     /// </summary>
+    /// <param name="filter">Filter criteria for service requests</param>
+    /// <returns>Paged list of service requests</returns>
+    /// <response code="200">Returns the list of service requests</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet]
+    [ProducesResponseType(typeof(PagedServiceRequestResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PagedServiceRequestResult>> GetServiceRequests([FromQuery] ServiceRequestFilterDto filter)
     {
         try
@@ -87,9 +96,17 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Get a service request by ID
+    /// Get a service request by ID.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <returns>The service request details</returns>
+    /// <response code="200">Returns the service request</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> GetServiceRequest(int id)
     {
         try
@@ -107,9 +124,17 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Get a service request by ticket number
+    /// Get a service request by ticket number.
     /// </summary>
+    /// <param name="ticketNumber">The ticket number</param>
+    /// <returns>The service request details</returns>
+    /// <response code="200">Returns the service request</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("ticket/{ticketNumber}")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> GetServiceRequestByTicketNumber(string ticketNumber)
     {
         try
@@ -127,9 +152,17 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new service request
+    /// Create a new service request.
     /// </summary>
+    /// <param name="dto">The service request creation data</param>
+    /// <returns>The created service request</returns>
+    /// <response code="201">Returns the newly created service request</response>
+    /// <response code="400">If the request data is invalid</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> CreateServiceRequest([FromBody] CreateServiceRequestDto dto)
     {
         try
@@ -146,9 +179,20 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Update an existing service request
+    /// Update an existing service request.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="dto">The service request update data</param>
+    /// <returns>The updated service request</returns>
+    /// <response code="200">Returns the updated service request</response>
+    /// <response code="400">If the request data is invalid</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> UpdateServiceRequest(int id, [FromBody] UpdateServiceRequestDto dto)
     {
         try
@@ -169,9 +213,20 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Update custom field values for a service request
+    /// Update custom field values for a service request.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="values">The custom field values to set</param>
+    /// <returns>The updated service request</returns>
+    /// <response code="200">Returns the updated service request</response>
+    /// <response code="400">If the custom field values are invalid</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPut("{id}/custom-fields")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> UpdateCustomFields(int id, [FromBody] List<SetCustomFieldValueDto> values)
     {
         try
@@ -199,9 +254,17 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Delete a service request (soft delete)
+    /// Delete a service request (soft delete).
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">Service request deleted successfully</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteServiceRequest(int id)
     {
         try
@@ -223,9 +286,15 @@ public class ServiceRequestsController : ControllerBase
     #region Query Operations
 
     /// <summary>
-    /// Get service requests by customer
+    /// Get service requests by customer.
     /// </summary>
+    /// <param name="customerId">The customer ID</param>
+    /// <returns>List of service requests for the customer</returns>
+    /// <response code="200">Returns the list of service requests</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("customer/{customerId}")]
+    [ProducesResponseType(typeof(List<ServiceRequestListDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ServiceRequestListDto>>> GetByCustomer(int customerId)
     {
         try
@@ -241,9 +310,15 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Get service requests by contact
+    /// Get service requests by contact.
     /// </summary>
+    /// <param name="contactId">The contact ID</param>
+    /// <returns>List of service requests for the contact</returns>
+    /// <response code="200">Returns the list of service requests</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("contact/{contactId}")]
+    [ProducesResponseType(typeof(List<ServiceRequestListDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ServiceRequestListDto>>> GetByContact(int contactId)
     {
         try
@@ -259,9 +334,15 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Get service requests assigned to a user
+    /// Get service requests assigned to a user.
     /// </summary>
+    /// <param name="userId">The assignee's user ID</param>
+    /// <returns>List of service requests for the assignee</returns>
+    /// <response code="200">Returns the list of service requests</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("assignee/{userId}")]
+    [ProducesResponseType(typeof(List<ServiceRequestListDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ServiceRequestListDto>>> GetByAssignee(int userId)
     {
         try
@@ -277,9 +358,16 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Get my assigned service requests
+    /// Get my assigned service requests.
     /// </summary>
+    /// <returns>List of service requests assigned to the current user</returns>
+    /// <response code="200">Returns the list of service requests</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("my-requests")]
+    [ProducesResponseType(typeof(List<ServiceRequestListDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ServiceRequestListDto>>> GetMyRequests()
     {
         try
@@ -299,9 +387,15 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Get service requests assigned to a group
+    /// Get service requests assigned to a group.
     /// </summary>
+    /// <param name="groupId">The group ID</param>
+    /// <returns>List of service requests for the group</returns>
+    /// <response code="200">Returns the list of service requests</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("group/{groupId}")]
+    [ProducesResponseType(typeof(List<ServiceRequestListDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ServiceRequestListDto>>> GetByGroup(int groupId)
     {
         try
@@ -321,9 +415,20 @@ public class ServiceRequestsController : ControllerBase
     #region Status Operations
 
     /// <summary>
-    /// Update service request status
+    /// Update service request status.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="newStatus">The new status</param>
+    /// <returns>The updated service request</returns>
+    /// <response code="200">Returns the updated service request</response>
+    /// <response code="400">If the status transition is invalid</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPatch("{id}/status")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> UpdateStatus(int id, [FromBody] ServiceRequestStatus newStatus)
     {
         try
@@ -344,9 +449,17 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Mark first response on a service request
+    /// Mark first response on a service request.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <returns>The updated service request</returns>
+    /// <response code="200">Returns the updated service request</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/first-response")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> MarkFirstResponse(int id)
     {
         try
@@ -367,9 +480,20 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Resolve a service request
+    /// Resolve a service request.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="dto">The resolution details</param>
+    /// <returns>The resolved service request</returns>
+    /// <response code="200">Returns the resolved service request</response>
+    /// <response code="400">If the resolution data is invalid</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/resolve")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> Resolve(int id, [FromBody] ResolveServiceRequestDto dto)
     {
         try
@@ -391,9 +515,19 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Close a service request
+    /// Close a service request.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <returns>The closed service request</returns>
+    /// <response code="200">Returns the closed service request</response>
+    /// <response code="400">If the request cannot be closed</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/close")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> Close(int id)
     {
         try
@@ -414,9 +548,20 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Reopen a service request
+    /// Reopen a service request.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="dto">The reopen reason</param>
+    /// <returns>The reopened service request</returns>
+    /// <response code="200">Returns the reopened service request</response>
+    /// <response code="400">If the request cannot be reopened</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/reopen")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> Reopen(int id, [FromBody] ReopenServiceRequestDto dto)
     {
         try
@@ -437,9 +582,20 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Escalate a service request
+    /// Escalate a service request.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="dto">The escalation reason</param>
+    /// <returns>The escalated service request</returns>
+    /// <response code="200">Returns the escalated service request</response>
+    /// <response code="400">If the escalation reason is invalid</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/escalate")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> Escalate(int id, [FromBody] EscalateServiceRequestDto dto)
     {
         try
@@ -464,9 +620,18 @@ public class ServiceRequestsController : ControllerBase
     #region Assignment Operations
 
     /// <summary>
-    /// Assign service request to a user
+    /// Assign service request to a user.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="userId">The user ID to assign to</param>
+    /// <returns>The updated service request</returns>
+    /// <response code="200">Returns the updated service request</response>
+    /// <response code="404">If the service request or user is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/assign/user/{userId}")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> AssignToUser(int id, int userId)
     {
         try
@@ -487,9 +652,18 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Assign service request to a group
+    /// Assign service request to a group.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="groupId">The group ID to assign to</param>
+    /// <returns>The updated service request</returns>
+    /// <response code="200">Returns the updated service request</response>
+    /// <response code="404">If the service request or group is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/assign/group/{groupId}")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> AssignToGroup(int id, int groupId)
     {
         try
@@ -510,9 +684,17 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Unassign service request
+    /// Unassign a service request.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <returns>The updated service request</returns>
+    /// <response code="200">Returns the unassigned service request</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/unassign")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> Unassign(int id)
     {
         try
@@ -537,9 +719,20 @@ public class ServiceRequestsController : ControllerBase
     #region Feedback
 
     /// <summary>
-    /// Submit customer feedback
+    /// Submit feedback for a service request.
     /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="dto">The feedback details including rating and comments</param>
+    /// <returns>The updated service request</returns>
+    /// <response code="200">Returns the updated service request with feedback</response>
+    /// <response code="400">If the feedback data is invalid</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/feedback")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> SubmitFeedback(int id, [FromBody] SubmitFeedbackDto dto)
     {
         try
@@ -563,9 +756,14 @@ public class ServiceRequestsController : ControllerBase
     #region Statistics
 
     /// <summary>
-    /// Get service request statistics
+    /// Get service request statistics.
     /// </summary>
+    /// <returns>Statistics summary for service requests</returns>
+    /// <response code="200">Returns service request statistics</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("statistics")]
+    [ProducesResponseType(typeof(ServiceRequestStatisticsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestStatisticsDto>> GetStatistics()
     {
         try
@@ -581,9 +779,14 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Get open requests count
+    /// Get count of open service requests.
     /// </summary>
+    /// <returns>The number of open service requests</returns>
+    /// <response code="200">Returns the count of open service requests</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("count/open")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<int>> GetOpenCount()
     {
         try
@@ -599,9 +802,14 @@ public class ServiceRequestsController : ControllerBase
     }
 
     /// <summary>
-    /// Get SLA breached requests count
+    /// Get count of SLA breached service requests.
     /// </summary>
+    /// <returns>The number of service requests with breached SLA</returns>
+    /// <response code="200">Returns the count of SLA breached service requests</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("count/sla-breached")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<int>> GetSlaBreachedCount()
     {
         try

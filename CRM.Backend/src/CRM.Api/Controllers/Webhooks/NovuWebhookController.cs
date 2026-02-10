@@ -211,72 +211,165 @@ public class NovuWebhookController : ControllerBase
         }
     }
 
-    private Task HandleNotificationSentAsync(NovuWebhookEvent evt)
+    private async Task HandleNotificationSentAsync(NovuWebhookEvent evt)
     {
         _logger.LogInformation(
             "Notification sent. TransactionId: {TransactionId}, Channel: {Channel}",
             evt.TransactionId, evt.Channel);
 
-        // TODO: Create Activity record for sent notification
-        // await _activityService.CreateAsync(new Activity { ... });
-
-        return Task.CompletedTask;
+        await _activityService.CreateAsync(new Activity
+        {
+            ActivityType = MapActivityType(evt.Channel, ActivityType.EmailSent),
+            Title = "Notification sent",
+            Description = $"Notification sent via {evt.Channel ?? "unknown"}",
+            Details = JsonSerializer.Serialize(new
+            {
+                evt.TransactionId,
+                evt.NotificationId,
+                evt.SubscriberId,
+                evt.Channel,
+                evt.Status
+            }),
+            ActivityDate = DateTime.UtcNow,
+            IsSystem = true,
+            Source = "Novu"
+        });
     }
 
-    private Task HandleNotificationDeliveredAsync(NovuWebhookEvent evt)
+    private async Task HandleNotificationDeliveredAsync(NovuWebhookEvent evt)
     {
         _logger.LogInformation(
             "Notification delivered. TransactionId: {TransactionId}, Channel: {Channel}",
             evt.TransactionId, evt.Channel);
 
-        // TODO: Update Activity record with delivery confirmation
-
-        return Task.CompletedTask;
+        await _activityService.CreateAsync(new Activity
+        {
+            ActivityType = ActivityType.StatusChanged,
+            Title = "Notification delivered",
+            Description = $"Notification delivered via {evt.Channel ?? "unknown"}",
+            Details = JsonSerializer.Serialize(new
+            {
+                evt.TransactionId,
+                evt.NotificationId,
+                evt.SubscriberId,
+                evt.Channel,
+                Status = "delivered"
+            }),
+            ActivityDate = DateTime.UtcNow,
+            IsSystem = true,
+            Source = "Novu"
+        });
     }
 
-    private Task HandleNotificationBouncedAsync(NovuWebhookEvent evt)
+    private async Task HandleNotificationBouncedAsync(NovuWebhookEvent evt)
     {
         _logger.LogWarning(
             "Notification bounced. TransactionId: {TransactionId}, Channel: {Channel}",
             evt.TransactionId, evt.Channel);
 
-        // TODO: Update Activity record with bounce status
-        // TODO: Potentially mark contact email as invalid
-
-        return Task.CompletedTask;
+        await _activityService.CreateAsync(new Activity
+        {
+            ActivityType = ActivityType.StatusChanged,
+            Title = "Notification bounced",
+            Description = $"Notification bounced via {evt.Channel ?? "unknown"}",
+            Details = JsonSerializer.Serialize(new
+            {
+                evt.TransactionId,
+                evt.NotificationId,
+                evt.SubscriberId,
+                evt.Channel,
+                Status = "bounced"
+            }),
+            ActivityDate = DateTime.UtcNow,
+            IsSystem = true,
+            Source = "Novu"
+        });
     }
 
-    private Task HandleNotificationOpenedAsync(NovuWebhookEvent evt)
+    private async Task HandleNotificationOpenedAsync(NovuWebhookEvent evt)
     {
         _logger.LogInformation(
             "Notification opened. TransactionId: {TransactionId}",
             evt.TransactionId);
 
-        // TODO: Create Activity for email open tracking
-
-        return Task.CompletedTask;
+        await _activityService.CreateAsync(new Activity
+        {
+            ActivityType = ActivityType.Other,
+            Title = "Notification opened",
+            Description = "Notification opened",
+            Details = JsonSerializer.Serialize(new
+            {
+                evt.TransactionId,
+                evt.NotificationId,
+                evt.SubscriberId,
+                evt.Channel,
+                Status = "opened"
+            }),
+            ActivityDate = DateTime.UtcNow,
+            IsSystem = true,
+            Source = "Novu"
+        });
     }
 
-    private Task HandleNotificationClickedAsync(NovuWebhookEvent evt)
+    private async Task HandleNotificationClickedAsync(NovuWebhookEvent evt)
     {
         _logger.LogInformation(
             "Link clicked in notification. TransactionId: {TransactionId}",
             evt.TransactionId);
 
-        // TODO: Create Activity for click tracking
-
-        return Task.CompletedTask;
+        await _activityService.CreateAsync(new Activity
+        {
+            ActivityType = ActivityType.Other,
+            Title = "Notification link clicked",
+            Description = "Notification link clicked",
+            Details = JsonSerializer.Serialize(new
+            {
+                evt.TransactionId,
+                evt.NotificationId,
+                evt.SubscriberId,
+                evt.Channel,
+                Status = "clicked"
+            }),
+            ActivityDate = DateTime.UtcNow,
+            IsSystem = true,
+            Source = "Novu"
+        });
     }
 
-    private Task HandleUnsubscribedAsync(NovuWebhookEvent evt)
+    private async Task HandleUnsubscribedAsync(NovuWebhookEvent evt)
     {
         _logger.LogInformation(
             "Subscriber unsubscribed. SubscriberId: {SubscriberId}",
             evt.SubscriberId);
 
-        // TODO: Update contact preferences to reflect unsubscription
+        await _activityService.CreateAsync(new Activity
+        {
+            ActivityType = ActivityType.StatusChanged,
+            Title = "Subscriber unsubscribed",
+            Description = "Subscriber unsubscribed from notifications",
+            Details = JsonSerializer.Serialize(new
+            {
+                evt.TransactionId,
+                evt.NotificationId,
+                evt.SubscriberId,
+                evt.Channel,
+                Status = "unsubscribed"
+            }),
+            ActivityDate = DateTime.UtcNow,
+            IsSystem = true,
+            Source = "Novu"
+        });
+    }
 
-        return Task.CompletedTask;
+    private static ActivityType MapActivityType(string? channel, ActivityType fallback)
+    {
+        return channel?.ToLowerInvariant() switch
+        {
+            "sms" => ActivityType.SMSSent,
+            "push" => ActivityType.PushSent,
+            "email" => ActivityType.EmailSent,
+            _ => fallback
+        };
     }
 
     #endregion

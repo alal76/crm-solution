@@ -31,60 +31,33 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class LeadsController : ControllerBase
 {
-    private readonly ICrmDbContext _context;
+    private readonly ILeadService _leadService;
     private readonly ILogger<LeadsController> _logger;
-    private readonly IEntityEventDispatcher _eventDispatcher;
 
-    public LeadsController(ICrmDbContext context, ILogger<LeadsController> logger, IEntityEventDispatcher eventDispatcher)
+    public LeadsController(ILeadService leadService, ILogger<LeadsController> logger)
     {
-        _context = context;
+        _leadService = leadService;
         _logger = logger;
-        _eventDispatcher = eventDispatcher;
     }
 
     /// <summary>
     /// Get all leads with pagination
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(typeof(object), 200)]
+    [ProducesResponseType(500)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 25)
     {
         try
         {
-            var query = _context.Set<Lead>()
-                .Where(l => !l.IsDeleted)
-                .OrderByDescending(l => l.CreatedAt);
-
-            var totalCount = await query.CountAsync();
-            var leads = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(l => new
-                {
-                    l.Id,
-                    l.FirstName,
-                    l.LastName,
-                    l.Email,
-                    l.Phone,
-                    l.CompanyName,
-                    l.Title,
-                    Status = l.Status.ToString(),
-                    Source = l.Source.ToString(),
-                    l.Score,
-                    l.FitScore,
-                    l.EngagementScore,
-                    l.OwnerId,
-                    l.CreatedAt,
-                    l.UpdatedAt
-                })
-                .ToListAsync();
-
+            var (items, totalCount, p, ps, totalPages) = await _leadService.GetAllAsync(page, pageSize);
             return Ok(new
             {
-                data = leads,
+                data = items,
                 totalCount,
-                page,
-                pageSize,
-                totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                page = p,
+                pageSize = ps,
+                totalPages
             });
         }
         catch (Exception ex)
@@ -98,43 +71,16 @@ public class LeadsController : ControllerBase
     /// Get lead by ID
     /// </summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(Lead), 200)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
     public async Task<IActionResult> GetById(int id)
     {
         try
         {
-            var lead = await _context.Set<Lead>()
-                .Where(l => l.Id == id && !l.IsDeleted)
-                .Select(l => new
-                {
-                    l.Id,
-                    l.FirstName,
-                    l.LastName,
-                    l.Email,
-                    l.Phone,
-                    l.CompanyName,
-                    l.Title,
-                    Status = l.Status.ToString(),
-                    Source = l.Source.ToString(),
-                    l.Score,
-                    l.FitScore,
-                    l.EngagementScore,
-                    l.QualificationNotes,
-                    l.Region,
-                    l.Website,
-                    l.OwnerId,
-                    l.AccountId,
-                    l.ContactId,
-                    l.CampaignId,
-                    l.MqlDate,
-                    l.SqlDate,
-                    l.CreatedAt,
-                    l.UpdatedAt
-                })
-                .FirstOrDefaultAsync();
-
+            var lead = await _leadService.GetByIdAsync(id);
             if (lead == null)
                 return NotFound(new { message = $"Lead with ID {id} not found" });
-
             return Ok(lead);
         }
         catch (Exception ex)
@@ -148,6 +94,9 @@ public class LeadsController : ControllerBase
     /// Create a new lead
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(500)]
     public async Task<IActionResult> Create([FromBody] CreateLeadDto request)
     {
         try
@@ -160,23 +109,16 @@ public class LeadsController : ControllerBase
                 Phone = request.Phone,
                 CompanyName = request.Company ?? request.CompanyName ?? string.Empty,
                 Title = request.Title,
-                Status = LeadLifecycleStatus.New,
                 Source = Enum.TryParse<LeadSource>(request.Source, out var source) ? source : LeadSource.Manual,
                 Region = request.Region,
                 Website = request.Website,
                 QualificationNotes = request.Notes ?? request.Description,
                 OwnerId = request.OwnerId,
-                CampaignId = request.CampaignId,
-                CreatedAt = DateTime.UtcNow
+                CampaignId = request.CampaignId
             };
 
-            _context.Set<Lead>().Add(lead);
-            await _context.SaveChangesAsync();
-
-            // Fire workflow triggers for entity creation
-            _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnCreate);
-
-            return CreatedAtAction(nameof(GetById), new { id = lead.Id }, new { id = lead.Id, message = "Lead created successfully" });
+            var id = await _leadService.CreateAsync(lead);
+            return CreatedAtAction(nameof(GetById), new { id }, new { id, message = "Lead created successfully" });
         }
         catch (Exception ex)
         {
@@ -189,36 +131,36 @@ public class LeadsController : ControllerBase
     /// Update a lead
     /// </summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(500)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateLeadDto request)
     {
         try
         {
-            var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
-            if (lead == null)
+            var updated = await _leadService.UpdateAsync(id, lead =>
+            {
+                if (!string.IsNullOrEmpty(request.FirstName)) lead.FirstName = request.FirstName;
+                if (!string.IsNullOrEmpty(request.LastName)) lead.LastName = request.LastName;
+                if (!string.IsNullOrEmpty(request.Email)) lead.Email = request.Email;
+                if (!string.IsNullOrEmpty(request.Phone)) lead.Phone = request.Phone;
+                if (!string.IsNullOrEmpty(request.CompanyName)) lead.CompanyName = request.CompanyName;
+                if (!string.IsNullOrEmpty(request.Title)) lead.Title = request.Title;
+                if (!string.IsNullOrEmpty(request.Status) && Enum.TryParse<LeadLifecycleStatus>(request.Status, out var status))
+                    lead.Status = status;
+                if (!string.IsNullOrEmpty(request.Source) && Enum.TryParse<LeadSource>(request.Source, out var src))
+                    lead.Source = src;
+                if (!string.IsNullOrEmpty(request.Region)) lead.Region = request.Region;
+                if (!string.IsNullOrEmpty(request.Website)) lead.Website = request.Website;
+                if (!string.IsNullOrEmpty(request.Notes)) lead.QualificationNotes = request.Notes;
+                if (request.Score.HasValue) lead.Score = request.Score.Value;
+                if (request.OwnerId.HasValue) lead.OwnerId = request.OwnerId.Value;
+                if (request.CampaignId.HasValue) lead.CampaignId = request.CampaignId.Value;
+            });
+
+            if (!updated)
                 return NotFound(new { message = $"Lead with ID {id} not found" });
-
-            if (!string.IsNullOrEmpty(request.FirstName)) lead.FirstName = request.FirstName;
-            if (!string.IsNullOrEmpty(request.LastName)) lead.LastName = request.LastName;
-            if (!string.IsNullOrEmpty(request.Email)) lead.Email = request.Email;
-            if (!string.IsNullOrEmpty(request.Phone)) lead.Phone = request.Phone;
-            if (!string.IsNullOrEmpty(request.CompanyName)) lead.CompanyName = request.CompanyName;
-            if (!string.IsNullOrEmpty(request.Title)) lead.Title = request.Title;
-            if (!string.IsNullOrEmpty(request.Status) && Enum.TryParse<LeadLifecycleStatus>(request.Status, out var status))
-                lead.Status = status;
-            if (!string.IsNullOrEmpty(request.Source) && Enum.TryParse<LeadSource>(request.Source, out var src))
-                lead.Source = src;
-            if (!string.IsNullOrEmpty(request.Region)) lead.Region = request.Region;
-            if (!string.IsNullOrEmpty(request.Website)) lead.Website = request.Website;
-            if (!string.IsNullOrEmpty(request.Notes)) lead.QualificationNotes = request.Notes;
-            if (request.Score.HasValue) lead.Score = request.Score.Value;
-            if (request.OwnerId.HasValue) lead.OwnerId = request.OwnerId.Value;
-            if (request.CampaignId.HasValue) lead.CampaignId = request.CampaignId.Value;
-
-            lead.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            // Fire workflow triggers for entity update
-            _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
 
             return Ok(new { message = "Lead updated successfully" });
         }
@@ -233,21 +175,16 @@ public class LeadsController : ControllerBase
     /// Delete a lead (soft delete)
     /// </summary>
     [HttpDelete("{id}")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
     public async Task<IActionResult> Delete(int id)
     {
         try
         {
-            var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
-            if (lead == null)
+            var deleted = await _leadService.DeleteAsync(id);
+            if (!deleted)
                 return NotFound(new { message = $"Lead with ID {id} not found" });
-
-            lead.IsDeleted = true;
-            lead.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            // Fire workflow triggers for entity deletion
-            _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnDelete);
-
             return Ok(new { message = "Lead deleted successfully" });
         }
         catch (Exception ex)
@@ -261,45 +198,19 @@ public class LeadsController : ControllerBase
     /// Convert a lead to an opportunity
     /// </summary>
     [HttpPost("{id}/convert")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
     public async Task<IActionResult> Convert(int id, [FromBody] ConvertLeadDto request)
     {
         try
         {
-            var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
-            if (lead == null)
-                return NotFound(new { message = $"Lead with ID {id} not found" });
-
-            if (lead.Status == LeadLifecycleStatus.Converted)
-                return BadRequest(new { message = "Lead has already been converted" });
-
-            // Create opportunity
-            var opportunity = new Opportunity
-            {
-                Name = request.OpportunityName ?? $"{lead.CompanyName} - Opportunity",
-                AccountId = request.AccountId ?? lead.AccountId ?? 0,
-                PrimaryContactId = lead.ContactId,
-                Amount = request.EstimatedValue ?? 0,
-                Stage = OpportunityStage.Discovery,
-                Probability = 10,
-                ExpectedCloseDate = request.ExpectedCloseDate ?? DateTime.UtcNow.AddMonths(3),
-                SalesOwnerId = lead.OwnerId,
-                LeadId = lead.Id,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Set<Opportunity>().Add(opportunity);
-
-            // Update lead status
-            lead.Status = LeadLifecycleStatus.Converted;
-            lead.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
+            var (opportunityId, leadId) = await _leadService.ConvertAsync(id, request.OpportunityName, request.AccountId, request.EstimatedValue, request.ExpectedCloseDate);
             return Ok(new
             {
                 message = "Lead converted successfully",
-                opportunityId = opportunity.Id,
-                leadId = lead.Id
+                opportunityId,
+                leadId
             });
         }
         catch (Exception ex)
@@ -313,6 +224,9 @@ public class LeadsController : ControllerBase
     /// Get leads by status
     /// </summary>
     [HttpGet("status/{status}")]
+    [ProducesResponseType(typeof(IEnumerable<Lead>), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(500)]
     public async Task<IActionResult> GetByStatus(string status)
     {
         try
@@ -320,22 +234,7 @@ public class LeadsController : ControllerBase
             if (!Enum.TryParse<LeadLifecycleStatus>(status, true, out var leadStatus))
                 return BadRequest(new { message = $"Invalid status: {status}" });
 
-            var leads = await _context.Set<Lead>()
-                .Where(l => l.Status == leadStatus && !l.IsDeleted)
-                .OrderByDescending(l => l.Score)
-                .Select(l => new
-                {
-                    l.Id,
-                    l.FirstName,
-                    l.LastName,
-                    l.Email,
-                    l.CompanyName,
-                    Status = l.Status.ToString(),
-                    l.Score,
-                    l.CreatedAt
-                })
-                .ToListAsync();
-
+            var leads = await _leadService.GetByStatusAsync(leadStatus);
             return Ok(leads);
         }
         catch (Exception ex)
@@ -349,21 +248,13 @@ public class LeadsController : ControllerBase
     /// Get leads summary/stats
     /// </summary>
     [HttpGet("stats")]
+    [ProducesResponseType(typeof(object), 200)]
+    [ProducesResponseType(500)]
     public async Task<IActionResult> GetStats()
     {
         try
         {
-            var stats = new
-            {
-                total = await _context.Set<Lead>().CountAsync(l => !l.IsDeleted),
-                newLeads = await _context.Set<Lead>().CountAsync(l => l.Status == LeadLifecycleStatus.New && !l.IsDeleted),
-                working = await _context.Set<Lead>().CountAsync(l => l.Status == LeadLifecycleStatus.Working && !l.IsDeleted),
-                qualified = await _context.Set<Lead>().CountAsync(l => l.Status == LeadLifecycleStatus.Qualified && !l.IsDeleted),
-                converted = await _context.Set<Lead>().CountAsync(l => l.Status == LeadLifecycleStatus.Converted && !l.IsDeleted),
-                disqualified = await _context.Set<Lead>().CountAsync(l => l.Status == LeadLifecycleStatus.Disqualified && !l.IsDeleted),
-                avgScore = await _context.Set<Lead>().Where(l => !l.IsDeleted).AverageAsync(l => (double?)l.Score) ?? 0
-            };
-
+            var stats = await _leadService.GetStatsAsync();
             return Ok(stats);
         }
         catch (Exception ex)

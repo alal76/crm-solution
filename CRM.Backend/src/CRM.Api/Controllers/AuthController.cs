@@ -18,15 +18,18 @@ using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// Authentication Controller for user login, registration, and token management
+/// Authentication Controller for user login, registration, token management, and two-factor authentication.
+/// Provides endpoints for secure user authentication, password management, and OAuth integration.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthenticationService _authenticationService;
@@ -39,10 +42,18 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Register a new user
+    /// Register a new user account.
     /// </summary>
+    /// <param name="request">The registration request containing user details</param>
+    /// <returns>The authentication response with tokens</returns>
+    /// <response code="200">Returns the authentication tokens for the new user</response>
+    /// <response code="400">If the registration data is invalid or email already exists</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("register")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         try
@@ -71,10 +82,20 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Login with email and password
+    /// Login with email and password credentials.
     /// </summary>
+    /// <param name="request">The login request containing email and password</param>
+    /// <returns>The authentication response with tokens or 2FA challenge</returns>
+    /// <response code="200">Returns authentication tokens or 2FA token if enabled</response>
+    /// <response code="400">If the login data is invalid</response>
+    /// <response code="401">If credentials are incorrect or account is locked</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("login")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         try
@@ -98,10 +119,20 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Verify 2FA code during login
+    /// Verify 2FA code during login to complete authentication.
     /// </summary>
+    /// <param name="request">The 2FA verification request with token and code</param>
+    /// <returns>The authentication response with tokens</returns>
+    /// <response code="200">Returns authentication tokens upon successful 2FA verification</response>
+    /// <response code="400">If the verification data is invalid</response>
+    /// <response code="401">If the 2FA code is incorrect or expired</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("login/2fa")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> LoginWith2FA([FromBody] TwoFactorLoginRequest request)
     {
         try
@@ -125,10 +156,18 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Login with OAuth provider
+    /// Login using OAuth provider (Google, Microsoft, etc.).
     /// </summary>
+    /// <param name="request">The OAuth login request with provider and access token</param>
+    /// <returns>The authentication response with tokens</returns>
+    /// <response code="200">Returns authentication tokens for the OAuth user</response>
+    /// <response code="400">If the OAuth data is invalid</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("oauth-login")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> OAuthLogin([FromBody] OAuthLoginRequest request)
     {
         try
@@ -147,10 +186,18 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Verify JWT token
+    /// Verify if a JWT token is valid.
     /// </summary>
+    /// <param name="token">The JWT token to verify</param>
+    /// <returns>Token validity status</returns>
+    /// <response code="200">Returns token validity status</response>
+    /// <response code="401">If the request is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("verify")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> VerifyToken([FromBody] string token)
     {
         try
@@ -166,10 +213,19 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Get current user profile
+    /// Get the current authenticated user's profile.
     /// </summary>
+    /// <returns>The current user's basic profile information</returns>
+    /// <response code="200">Returns the current user's profile</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="404">If the user is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("me")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetCurrentUser()
     {
         try
@@ -192,10 +248,17 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Setup two-factor authentication
+    /// Setup two-factor authentication for the current user.
     /// </summary>
+    /// <returns>The 2FA setup response with QR code and secret</returns>
+    /// <response code="200">Returns 2FA setup details including QR code</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("2fa/setup")]
     [Authorize]
+    [ProducesResponseType(typeof(TwoFactorSetupResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Setup2FA()
     {
         try
@@ -215,10 +278,20 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Verify and enable two-factor authentication
+    /// Verify and enable two-factor authentication with a code from authenticator app.
     /// </summary>
+    /// <param name="request">The verification request containing the 2FA code</param>
+    /// <returns>Verification success status</returns>
+    /// <response code="200">Returns success message if verification passed</response>
+    /// <response code="400">If the verification code is invalid</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("2fa/verify")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Verify2FA([FromBody] TwoFactorVerification request)
     {
         try
@@ -244,10 +317,20 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Enable two-factor authentication with secret and backup codes
+    /// Enable two-factor authentication with secret and backup codes.
     /// </summary>
+    /// <param name="request">The enable request containing secret and backup codes</param>
+    /// <returns>Success message</returns>
+    /// <response code="200">Returns success message if 2FA enabled</response>
+    /// <response code="400">If the request data is invalid</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("2fa/enable")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Enable2FA([FromBody] TwoFactorEnableRequest request)
     {
         try
@@ -270,10 +353,17 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Disable two-factor authentication
+    /// Disable two-factor authentication for the current user.
     /// </summary>
+    /// <returns>Success message</returns>
+    /// <response code="200">Returns success message if 2FA disabled</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("2fa/disable")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Disable2FA()
     {
         try
@@ -293,10 +383,18 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Request password reset
+    /// Request a password reset email.
     /// </summary>
+    /// <param name="request">The password reset request containing email</param>
+    /// <returns>Confirmation message (does not reveal if email exists)</returns>
+    /// <response code="200">Returns confirmation message</response>
+    /// <response code="400">If the request data is invalid</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("password-reset/request")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RequestPasswordReset([FromBody] PasswordResetRequest request)
     {
         try
@@ -322,10 +420,18 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Confirm password reset
+    /// Confirm password reset with token and new password.
     /// </summary>
+    /// <param name="request">The confirmation request with token and new password</param>
+    /// <returns>Success message</returns>
+    /// <response code="200">Returns success message if password reset</response>
+    /// <response code="400">If the token is invalid/expired or passwords don't match</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("password-reset/confirm")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ConfirmPasswordReset([FromBody] PasswordResetConfirm request)
     {
         try
@@ -352,10 +458,23 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Admin reset user password (by user ID)
+    /// Admin reset user password by user ID. Requires admin role.
     /// </summary>
+    /// <param name="userId">The ID of the user to reset password for</param>
+    /// <param name="request">The admin password reset request containing new password</param>
+    /// <returns>Success message</returns>
+    /// <response code="200">Returns success message if password reset</response>
+    /// <response code="400">If the request data is invalid</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="403">If the user is not an admin</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("reset-password/{userId}")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AdminResetPassword(int userId, [FromBody] AdminPasswordResetRequest request)
     {
         try
@@ -389,10 +508,20 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Set password for first-time login or expired password
+    /// Set password for first-time login or expired password.
     /// </summary>
+    /// <param name="request">The set password request with new password</param>
+    /// <returns>The authentication response with tokens</returns>
+    /// <response code="200">Returns authentication tokens after password set</response>
+    /// <response code="400">If the password doesn't meet requirements</response>
+    /// <response code="401">If the setup token is invalid or expired</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("setup-password")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SetupPassword([FromBody] SetPasswordRequest request)
     {
         try
@@ -421,10 +550,15 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Get password complexity requirements (for client-side validation)
+    /// Get password complexity requirements for client-side validation.
     /// </summary>
+    /// <returns>The password complexity requirements</returns>
+    /// <response code="200">Returns password complexity requirements</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("password-requirements")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(PasswordRequirements), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPasswordRequirements()
     {
         try

@@ -8,6 +8,7 @@ using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Services.AI;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
@@ -15,12 +16,18 @@ using System.Text;
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// AI Chatbot controller for CRM Assistant functionality
-/// Provides conversational AI interface with CRM documentation context
+/// AI Chatbot controller for CRM Assistant functionality.
+/// Provides conversational AI interface with CRM documentation context,
+/// including chat messaging, contextual suggestions, and health monitoring.
 /// </summary>
+/// <remarks>
+/// Most endpoints require authentication. The chatbot uses configured LLM providers
+/// to generate contextual responses about CRM features and customer data.
+/// </remarks>
 [ApiController]
 [Route("api/ai/chatbot")]
 [Authorize]
+[Produces("application/json")]
 public class AIChatbotController : ControllerBase
 {
     private readonly CrmDbContext _context;
@@ -46,10 +53,13 @@ public class AIChatbotController : ControllerBase
     }
 
     /// <summary>
-    /// Check AI service health status
+    /// Check AI service health status.
     /// </summary>
+    /// <returns>Health status including provider, model, and response time.</returns>
+    /// <response code="200">Returns the AI service health status.</response>
     [HttpGet("health")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetHealth()
     {
         try
@@ -132,9 +142,14 @@ public class AIChatbotController : ControllerBase
     }
 
     /// <summary>
-    /// Initialize chatbot context by loading CRM documentation
+    /// Initialize chatbot context by loading CRM documentation.
     /// </summary>
+    /// <returns>Success status and message.</returns>
+    /// <response code="200">Returns initialization status.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
     [HttpPost("initialize")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Initialize()
     {
         try
@@ -150,9 +165,17 @@ public class AIChatbotController : ControllerBase
     }
 
     /// <summary>
-    /// Send a message to the AI chatbot
+    /// Send a message to the AI chatbot.
     /// </summary>
+    /// <param name="request">The chat message request including message, conversation history, and optional account context.</param>
+    /// <returns>AI-generated response based on CRM context.</returns>
+    /// <response code="200">Returns the AI chatbot response.</response>
+    /// <response code="400">Message cannot be empty.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
     [HttpPost("message")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SendMessage([FromBody] ChatMessageRequest request)
     {
         try
@@ -263,9 +286,15 @@ public class AIChatbotController : ControllerBase
     }
 
     /// <summary>
-    /// Get quick suggestions based on context
+    /// Get quick suggestions based on context.
     /// </summary>
+    /// <param name="context">Optional context string (e.g., "customer", "account") to tailor suggestions.</param>
+    /// <returns>List of suggested questions for the chatbot.</returns>
+    /// <response code="200">Returns list of contextual suggestions.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
     [HttpGet("suggestions")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public IActionResult GetSuggestions([FromQuery] string? context = null)
     {
         var suggestions = new List<string>

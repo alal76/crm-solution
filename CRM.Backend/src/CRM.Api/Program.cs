@@ -381,6 +381,10 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
 // SLA Enforcement Background Service - runs continuously to monitor and enforce SLAs
 builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.SLAEnforcementHostedService>();
+// Auto-close resolved items background service (auto-closes incidents, service requests, changes, problems)
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.AutoCloseHostedService>();
+// Escalation background service (auto-escalates incidents/service requests based on SLA thresholds)
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.EscalationHostedService>();
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();
@@ -435,6 +439,13 @@ builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ICommissionService, CommissionService>();
 builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
+// Email Sequence service (drip campaigns)
+builder.Services.AddScoped<CRM.Core.Interfaces.IEmailSequenceService, CRM.Infrastructure.Services.EmailSequenceService>();
+// Pricing & Bundles
+builder.Services.AddScoped<CRM.Core.Interfaces.IPricingService, CRM.Infrastructure.Services.PricingService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IProductBundleService, CRM.Infrastructure.Services.ProductBundleService>();
+// Credit Memo service
+builder.Services.AddScoped<ICreditMemoService, CreditMemoService>();
 // Master data - Field-to-master-data linking service
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
 // Master data seeder - seeds ZipCodes and ColorPalettes on startup if empty
@@ -778,4 +789,6 @@ if (Directory.Exists(frontendBuildPath))
 }
 
 app.Run();
+
+public partial class Program { }
 

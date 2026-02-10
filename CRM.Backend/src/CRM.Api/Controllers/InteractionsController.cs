@@ -19,14 +19,23 @@ using CRM.Core.Models;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
+/// <summary>
+/// API endpoints for managing customer interactions.
+/// </summary>
+/// <remarks>
+/// Interactions track all customer touchpoints including calls, emails, meetings, and social media.
+/// Supports linking to accounts, contacts, opportunities, and service requests.
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class InteractionsController : ControllerBase
 {
     private readonly CrmDbContext _context;
@@ -40,7 +49,24 @@ public class InteractionsController : ControllerBase
         _normalization = normalization;
     }
 
+    /// <summary>
+    /// Get all interactions with optional filtering.
+    /// </summary>
+    /// <param name="customerId">Filter by customer/account ID.</param>
+    /// <param name="opportunityId">Filter by opportunity ID.</param>
+    /// <param name="assignedToUserId">Filter by assigned user ID.</param>
+    /// <param name="interactionType">Filter by interaction type (Email, Phone, Meeting, etc.).</param>
+    /// <param name="outcome">Filter by interaction outcome.</param>
+    /// <param name="fromDate">Filter interactions from this date.</param>
+    /// <param name="toDate">Filter interactions to this date.</param>
+    /// <returns>List of interactions matching the filter criteria.</returns>
+    /// <response code="200">Returns the list of interactions.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Interaction>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Interaction>>> GetInteractions(
         [FromQuery] int? customerId = null,
         [FromQuery] int? opportunityId = null,
@@ -83,7 +109,20 @@ public class InteractionsController : ControllerBase
         return Ok(interactions);
     }
 
+    /// <summary>
+    /// Get an interaction by ID.
+    /// </summary>
+    /// <param name="id">The interaction ID.</param>
+    /// <returns>The interaction with the specified ID.</returns>
+    /// <response code="200">Returns the interaction.</response>
+    /// <response code="404">Interaction not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(Interaction), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Interaction>> GetInteraction(int id)
     {
         var interaction = await _context.Interactions
@@ -104,7 +143,20 @@ public class InteractionsController : ControllerBase
         return Ok(interaction);
     }
 
+    /// <summary>
+    /// Create a new interaction.
+    /// </summary>
+    /// <param name="interaction">The interaction data to create.</param>
+    /// <returns>The created interaction.</returns>
+    /// <response code="201">Returns the newly created interaction.</response>
+    /// <response code="400">Invalid interaction data provided.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost]
+    [ProducesResponseType(typeof(Interaction), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Interaction>> CreateInteraction(Interaction interaction)
     {
         interaction.CreatedAt = DateTime.UtcNow;
@@ -130,7 +182,23 @@ public class InteractionsController : ControllerBase
         return CreatedAtAction(nameof(GetInteraction), new { id = interaction.Id }, interaction);
     }
 
+    /// <summary>
+    /// Update an existing interaction.
+    /// </summary>
+    /// <param name="id">The interaction ID to update.</param>
+    /// <param name="interaction">The updated interaction data.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">Interaction was successfully updated.</response>
+    /// <response code="400">Invalid data or ID mismatch.</response>
+    /// <response code="404">Interaction not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateInteraction(int id, Interaction interaction)
     {
         if (id != interaction.Id)
@@ -147,7 +215,20 @@ public class InteractionsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Delete an interaction.
+    /// </summary>
+    /// <param name="id">The interaction ID to delete.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">Interaction was successfully deleted.</response>
+    /// <response code="404">Interaction not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteInteraction(int id)
     {
         var interaction = await _context.Interactions.FindAsync(id);
@@ -160,7 +241,21 @@ public class InteractionsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Mark an interaction as completed.
+    /// </summary>
+    /// <param name="id">The interaction ID.</param>
+    /// <param name="request">Optional completion details including outcome and notes.</param>
+    /// <returns>The updated interaction.</returns>
+    /// <response code="200">Returns the completed interaction.</response>
+    /// <response code="404">Interaction not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("{id}/complete")]
+    [ProducesResponseType(typeof(Interaction), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CompleteInteraction(int id, [FromBody] CompleteInteractionRequest? request = null)
     {
         var interaction = await _context.Interactions.FindAsync(id);
@@ -183,7 +278,20 @@ public class InteractionsController : ControllerBase
         return Ok(interaction);
     }
 
+    /// <summary>
+    /// Quick log an interaction (auto-completes).
+    /// </summary>
+    /// <param name="request">The interaction details to log.</param>
+    /// <returns>The created interaction.</returns>
+    /// <response code="201">Returns the newly logged interaction.</response>
+    /// <response code="400">Invalid interaction data provided.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("log")]
+    [ProducesResponseType(typeof(Interaction), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Interaction>> LogInteraction([FromBody] LogInteractionRequest request)
     {
         var interaction = new Interaction
@@ -222,7 +330,19 @@ public class InteractionsController : ControllerBase
         return CreatedAtAction(nameof(GetInteraction), new { id = interaction.Id }, interaction);
     }
 
+    /// <summary>
+    /// Get interaction history for a specific customer.
+    /// </summary>
+    /// <param name="customerId">The customer/account ID.</param>
+    /// <param name="limit">Maximum number of interactions to return. Default is 50.</param>
+    /// <returns>List of interactions for the customer, ordered by most recent.</returns>
+    /// <response code="200">Returns the customer's interaction history.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("customer/{customerId}/history")]
+    [ProducesResponseType(typeof(IEnumerable<Interaction>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Interaction>>> GetCustomerHistory(int customerId, [FromQuery] int limit = 50)
     {
         var interactions = await _context.Interactions
@@ -244,7 +364,18 @@ public class InteractionsController : ControllerBase
         return Ok(interactions);
     }
 
+    /// <summary>
+    /// Get interactions with follow-ups due within the next 7 days.
+    /// </summary>
+    /// <param name="userId">Optional filter by assigned user ID.</param>
+    /// <returns>List of interactions with pending follow-ups.</returns>
+    /// <response code="200">Returns interactions requiring follow-up.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("follow-ups")]
+    [ProducesResponseType(typeof(IEnumerable<Interaction>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Interaction>>> GetFollowUps([FromQuery] int? userId = null)
     {
         var query = _context.Interactions
@@ -269,7 +400,19 @@ public class InteractionsController : ControllerBase
         return Ok(interactions);
     }
 
+    /// <summary>
+    /// Get interaction statistics for a date range.
+    /// </summary>
+    /// <param name="fromDate">Start date for statistics. Defaults to 30 days ago.</param>
+    /// <param name="toDate">End date for statistics. Defaults to today.</param>
+    /// <returns>Statistics including counts by type, outcome, direction, and completion rates.</returns>
+    /// <response code="200">Returns the interaction statistics.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("stats")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GetInteractionStats([FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
     {
         var from = fromDate ?? DateTime.UtcNow.AddDays(-30);
@@ -305,9 +448,22 @@ public class InteractionsController : ControllerBase
     }
 
     /// <summary>
-    /// Create a service request from an interaction
+    /// Create a service request from an interaction.
     /// </summary>
+    /// <param name="id">The interaction ID.</param>
+    /// <param name="request">The service request creation details.</param>
+    /// <returns>The created service request.</returns>
+    /// <response code="201">Returns the newly created service request.</response>
+    /// <response code="400">Interaction is not linked to a customer.</response>
+    /// <response code="404">Interaction not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("{id}/create-service-request")]
+    [ProducesResponseType(typeof(ServiceRequest), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequest>> CreateServiceRequestFromInteraction(
         int id,
         [FromBody] CreateServiceRequestFromInteractionRequest request)
@@ -381,9 +537,22 @@ public class InteractionsController : ControllerBase
     }
 
     /// <summary>
-    /// Create a contact from an interaction
+    /// Create a contact from an interaction.
     /// </summary>
+    /// <param name="id">The interaction ID.</param>
+    /// <param name="request">The contact creation details.</param>
+    /// <returns>The created contact and customer IDs.</returns>
+    /// <response code="200">Returns the created contact and customer IDs.</response>
+    /// <response code="400">Customer ID is required or CreateCustomerIfNeeded must be true.</response>
+    /// <response code="404">Interaction not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("{id}/create-contact")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> CreateContactFromInteraction(
         int id,
         [FromBody] CreateContactFromInteractionRequest request)
@@ -453,9 +622,22 @@ public class InteractionsController : ControllerBase
     }
 
     /// <summary>
-    /// Link an interaction to entities (customer, contact, opportunity, service request)
+    /// Link an interaction to entities (customer, contact, opportunity, service request).
     /// </summary>
+    /// <param name="id">The interaction ID.</param>
+    /// <param name="request">The linking details including entity IDs.</param>
+    /// <returns>The updated interaction.</returns>
+    /// <response code="200">Returns the updated interaction with links.</response>
+    /// <response code="400">Referenced entity not found.</response>
+    /// <response code="404">Interaction not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("{id}/link")]
+    [ProducesResponseType(typeof(Interaction), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> LinkInteraction(int id, [FromBody] LinkInteractionRequest request)
     {
         try
@@ -508,9 +690,20 @@ public class InteractionsController : ControllerBase
     }
 
     /// <summary>
-    /// Add a note to an interaction
+    /// Add a note to an interaction.
     /// </summary>
+    /// <param name="id">The interaction ID.</param>
+    /// <param name="request">The note content and type (internal or external).</param>
+    /// <returns>Success confirmation.</returns>
+    /// <response code="200">Note was successfully added.</response>
+    /// <response code="404">Interaction not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("{id}/notes")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddNote(int id, [FromBody] AddInteractionNoteRequest request)
     {
         try
@@ -537,9 +730,20 @@ public class InteractionsController : ControllerBase
     }
 
     /// <summary>
-    /// Update tags for an interaction
+    /// Update tags for an interaction.
     /// </summary>
+    /// <param name="id">The interaction ID.</param>
+    /// <param name="request">The list of tags to apply.</param>
+    /// <returns>Success confirmation with updated tags.</returns>
+    /// <response code="200">Tags were successfully updated.</response>
+    /// <response code="404">Interaction not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("{id}/tags")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateTags(int id, [FromBody] TagInteractionRequest request)
     {
         try
@@ -562,9 +766,17 @@ public class InteractionsController : ControllerBase
     }
 
     /// <summary>
-    /// Get interactions that need attention (follow-ups due, unlinked, etc.)
+    /// Get interactions that need attention (follow-ups due, unlinked, etc.).
     /// </summary>
+    /// <param name="limit">Maximum number of interactions to return. Default is 50.</param>
+    /// <returns>List of interactions requiring attention, prioritized by urgency.</returns>
+    /// <response code="200">Returns interactions needing attention.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("needs-attention")]
+    [ProducesResponseType(typeof(IEnumerable<Interaction>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Interaction>>> GetNeedsAttention([FromQuery] int limit = 50)
     {
         var now = DateTime.UtcNow;

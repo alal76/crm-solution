@@ -16,6 +16,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class SubscriptionsController : ControllerBase
 {
     private static readonly HashSet<string> AllowedBillingCycles = new(StringComparer.OrdinalIgnoreCase)
@@ -40,6 +41,9 @@ public class SubscriptionsController : ControllerBase
     /// Get all subscriptions with optional filtering.
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Subscription>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Subscription>>> GetAll(
         [FromQuery] int? accountId = null,
         [FromQuery] SubscriptionStatus? status = null,
@@ -53,6 +57,9 @@ public class SubscriptionsController : ControllerBase
     /// Get a subscription by ID.
     /// </summary>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<Subscription>> GetById(int id, CancellationToken cancellationToken)
     {
         var subscription = await _subscriptionService.GetByIdAsync(id, cancellationToken);
@@ -68,6 +75,10 @@ public class SubscriptionsController : ControllerBase
     /// Create a subscription.
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Subscription>> Create(
         [FromBody] SubscriptionCreateRequest request,
         CancellationToken cancellationToken)
@@ -105,6 +116,10 @@ public class SubscriptionsController : ControllerBase
     /// Update a subscription.
     /// </summary>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<Subscription>> Update(
         int id,
         [FromBody] SubscriptionUpdateRequest request,
@@ -154,6 +169,9 @@ public class SubscriptionsController : ControllerBase
     /// Delete (soft delete) a subscription.
     /// </summary>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
         var deleted = await _subscriptionService.DeleteAsync(id, cancellationToken);
@@ -169,13 +187,25 @@ public class SubscriptionsController : ControllerBase
 
     #region Lifecycle
 
+    /// <summary>
+    /// Activate a subscription.
+    /// </summary>
     [HttpPost("{id:int}/activate")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> Activate(int id, CancellationToken cancellationToken)
     {
         return await ExecuteLifecycle(id, s => _subscriptionService.ActivateAsync(s, cancellationToken));
     }
 
+    /// <summary>
+    /// Pause a subscription.
+    /// </summary>
     [HttpPost("{id:int}/pause")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> Pause(
         int id,
         [FromBody] PauseRequest request,
@@ -184,13 +214,25 @@ public class SubscriptionsController : ControllerBase
         return await ExecuteLifecycle(id, s => _subscriptionService.PauseAsync(s, request.Reason, cancellationToken));
     }
 
+    /// <summary>
+    /// Resume a paused subscription.
+    /// </summary>
     [HttpPost("{id:int}/resume")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> Resume(int id, CancellationToken cancellationToken)
     {
         return await ExecuteLifecycle(id, s => _subscriptionService.ResumeAsync(s, cancellationToken));
     }
 
+    /// <summary>
+    /// Cancel a subscription.
+    /// </summary>
     [HttpPost("{id:int}/cancel")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> Cancel(
         int id,
         [FromBody] CancelRequest request,
@@ -204,7 +246,13 @@ public class SubscriptionsController : ControllerBase
         return await ExecuteLifecycle(id, s => _subscriptionService.CancelAsync(s, request.Reason, request.Immediate, cancellationToken));
     }
 
+    /// <summary>
+    /// Suspend a subscription.
+    /// </summary>
     [HttpPost("{id:int}/suspend")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> Suspend(
         int id,
         [FromBody] SuspendRequest request,
@@ -218,13 +266,25 @@ public class SubscriptionsController : ControllerBase
         return await ExecuteLifecycle(id, s => _subscriptionService.SuspendAsync(s, request.Reason, cancellationToken));
     }
 
+    /// <summary>
+    /// Reactivate a suspended subscription.
+    /// </summary>
     [HttpPost("{id:int}/reactivate")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> Reactivate(int id, CancellationToken cancellationToken)
     {
         return await ExecuteLifecycle(id, s => _subscriptionService.ReactivateAsync(s, cancellationToken));
     }
 
+    /// <summary>
+    /// Renew a subscription.
+    /// </summary>
     [HttpPost("{id:int}/renew")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> Renew(int id, CancellationToken cancellationToken)
     {
         return await ExecuteLifecycle(id, s => _subscriptionService.RenewAsync(s, cancellationToken));
@@ -234,7 +294,13 @@ public class SubscriptionsController : ControllerBase
 
     #region Plan Changes & Add-ons
 
+    /// <summary>
+    /// Change the plan for a subscription.
+    /// </summary>
     [HttpPost("{id:int}/plan")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> ChangePlan(
         int id,
         [FromBody] ChangePlanRequest request,
@@ -248,7 +314,13 @@ public class SubscriptionsController : ControllerBase
         return await ExecuteLifecycle(id, s => _subscriptionService.ChangePlanAsync(s, request.NewPlanId, request.ChangeType, cancellationToken));
     }
 
+    /// <summary>
+    /// Add an addon to a subscription.
+    /// </summary>
     [HttpPost("{id:int}/addons")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> AddAddon(
         int id,
         [FromBody] AddonRequest request,
@@ -262,7 +334,12 @@ public class SubscriptionsController : ControllerBase
         return await ExecuteLifecycle(id, s => _subscriptionService.AddAddonAsync(s, request.AddonId, request.Quantity, cancellationToken));
     }
 
+    /// <summary>
+    /// Remove an addon from a subscription.
+    /// </summary>
     [HttpDelete("{id:int}/addons/{addonId:int}")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> RemoveAddon(
         int id,
         int addonId,
@@ -275,7 +352,13 @@ public class SubscriptionsController : ControllerBase
 
     #region Billing
 
+    /// <summary>
+    /// Generate an invoice for a subscription.
+    /// </summary>
     [HttpPost("{id:int}/invoice")]
+    [ProducesResponseType(typeof(Invoice), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Invoice>> GenerateInvoice(int id, CancellationToken cancellationToken)
     {
         try
@@ -290,14 +373,25 @@ public class SubscriptionsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get billing history for a subscription.
+    /// </summary>
     [HttpGet("{id:int}/billing-history")]
+    [ProducesResponseType(typeof(IEnumerable<Invoice>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<Invoice>>> GetBillingHistory(int id, CancellationToken cancellationToken)
     {
         var history = await _subscriptionService.GetBillingHistoryAsync(id, cancellationToken);
         return Ok(history);
     }
 
+    /// <summary>
+    /// Update billing details for a subscription.
+    /// </summary>
     [HttpPost("{id:int}/billing-details")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> UpdateBillingDetails(
         int id,
         [FromBody] BillingDetailsRequest request,
@@ -331,7 +425,14 @@ public class SubscriptionsController : ControllerBase
 
     #region Usage
 
+    /// <summary>
+    /// Record usage for a subscription.
+    /// </summary>
     [HttpPost("{id:int}/usage")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> RecordUsage(
         int id,
         [FromBody] RecordUsageRequest request,
@@ -354,7 +455,13 @@ public class SubscriptionsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get usage data for a subscription within a date range.
+    /// </summary>
     [HttpGet("{id:int}/usage")]
+    [ProducesResponseType(typeof(SubscriptionUsageData), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<SubscriptionUsageData>> GetUsage(
         int id,
         [FromQuery] DateTime fromDate,
@@ -370,7 +477,12 @@ public class SubscriptionsController : ControllerBase
         return Ok(usage);
     }
 
+    /// <summary>
+    /// Get usage limits for a subscription.
+    /// </summary>
     [HttpGet("{id:int}/usage-limits")]
+    [ProducesResponseType(typeof(IEnumerable<UsageLimit>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<UsageLimit>>> GetUsageLimits(int id, CancellationToken cancellationToken)
     {
         var limits = await _subscriptionService.GetUsageLimitsAsync(id, cancellationToken);
@@ -381,7 +493,11 @@ public class SubscriptionsController : ControllerBase
 
     #region Queries
 
+    /// <summary>
+    /// Get subscriptions due for renewal within a specified number of days.
+    /// </summary>
     [HttpGet("renewals")]
+    [ProducesResponseType(typeof(IEnumerable<Subscription>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<Subscription>>> GetDueForRenewal(
         [FromQuery] int withinDays = 30,
         CancellationToken cancellationToken = default)
@@ -390,7 +506,11 @@ public class SubscriptionsController : ControllerBase
         return Ok(subscriptions);
     }
 
+    /// <summary>
+    /// Get subscription statistics for a date range.
+    /// </summary>
     [HttpGet("statistics")]
+    [ProducesResponseType(typeof(SubscriptionStatistics), StatusCodes.Status200OK)]
     public async Task<ActionResult<SubscriptionStatistics>> GetStatistics(
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
@@ -400,7 +520,11 @@ public class SubscriptionsController : ControllerBase
         return Ok(stats);
     }
 
+    /// <summary>
+    /// Get active subscriptions for a specific account.
+    /// </summary>
     [HttpGet("active/{accountId:int}")]
+    [ProducesResponseType(typeof(IEnumerable<Subscription>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<Subscription>>> GetActiveForAccount(
         int accountId,
         CancellationToken cancellationToken = default)

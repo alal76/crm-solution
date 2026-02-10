@@ -18,17 +18,19 @@ using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// API endpoints for managing quotes
+/// API endpoints for managing quotes and quote line items
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class QuotesController : ControllerBase
 {
     private readonly CrmDbContext _context;
@@ -45,7 +47,16 @@ public class QuotesController : ControllerBase
     /// <summary>
     /// Get all quotes with optional filtering
     /// </summary>
+    /// <param name="customerId">Filter by customer/account ID</param>
+    /// <param name="opportunityId">Filter by opportunity ID</param>
+    /// <param name="status">Filter by quote status</param>
+    /// <param name="expired">Filter by expired status (shared but past expiration date)</param>
+    /// <returns>List of quotes matching the filters</returns>
+    /// <response code="200">Returns the list of quotes</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Quote>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Quote>>> GetQuotes(
         [FromQuery] int? customerId = null,
         [FromQuery] int? opportunityId = null,
@@ -84,7 +95,15 @@ public class QuotesController : ControllerBase
     /// <summary>
     /// Get a quote by ID
     /// </summary>
+    /// <param name="id">The unique identifier of the quote</param>
+    /// <returns>The quote with the specified ID</returns>
+    /// <response code="200">Returns the quote</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Quote>> GetQuote(int id)
     {
         var quote = await _context.Quotes
@@ -110,7 +129,15 @@ public class QuotesController : ControllerBase
     /// <summary>
     /// Get a quote by quote number
     /// </summary>
+    /// <param name="quoteNumber">The quote number (e.g., Q-2024-00001)</param>
+    /// <returns>The quote with the specified quote number</returns>
+    /// <response code="200">Returns the quote</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("number/{quoteNumber}")]
+    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Quote>> GetQuoteByNumber(string quoteNumber)
     {
         var quote = await _context.Quotes
@@ -132,7 +159,15 @@ public class QuotesController : ControllerBase
     /// <summary>
     /// Create a new quote
     /// </summary>
+    /// <param name="quote">The quote to create</param>
+    /// <returns>The created quote</returns>
+    /// <response code="201">Returns the newly created quote</response>
+    /// <response code="400">If the quote data is invalid</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost]
+    [ProducesResponseType(typeof(Quote), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Quote>> CreateQuote(Quote quote)
     {
         // Generate quote number if not provided
@@ -166,7 +201,18 @@ public class QuotesController : ControllerBase
     /// <summary>
     /// Update an existing quote
     /// </summary>
+    /// <param name="id">The unique identifier of the quote to update</param>
+    /// <param name="quote">The updated quote data</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">Quote was successfully updated</response>
+    /// <response code="400">If the ID mismatch or quote has been accepted/rejected</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateQuote(int id, Quote quote)
     {
         if (id != quote.Id)
@@ -192,9 +238,19 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Delete a quote
+    /// Delete a quote (only draft quotes can be deleted)
     /// </summary>
+    /// <param name="id">The unique identifier of the quote to delete</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">Quote was successfully deleted</response>
+    /// <response code="400">If the quote is not in draft status</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteQuote(int id)
     {
         var quote = await _context.Quotes.FindAsync(id);
@@ -215,9 +271,17 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Send a quote to customer
+    /// Send a quote to customer (changes status to Shared)
     /// </summary>
+    /// <param name="id">The unique identifier of the quote</param>
+    /// <returns>The updated quote</returns>
+    /// <response code="200">Returns the updated quote</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/send")]
+    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SendQuote(int id)
     {
         var quote = await _context.Quotes.FindAsync(id);
@@ -235,9 +299,17 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Mark quote as viewed
+    /// Mark quote as viewed by customer
     /// </summary>
+    /// <param name="id">The unique identifier of the quote</param>
+    /// <returns>The updated quote</returns>
+    /// <response code="200">Returns the updated quote</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/viewed")]
+    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> MarkViewed(int id)
     {
         var quote = await _context.Quotes.FindAsync(id);
@@ -256,9 +328,18 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Accept a quote
+    /// Accept a quote (customer approval)
     /// </summary>
+    /// <param name="id">The unique identifier of the quote</param>
+    /// <param name="request">Optional signature details</param>
+    /// <returns>The updated quote</returns>
+    /// <response code="200">Returns the accepted quote</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/accept")]
+    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AcceptQuote(int id, [FromBody] AcceptQuoteRequest? request = null)
     {
         var quote = await _context.Quotes.FindAsync(id);
@@ -283,9 +364,18 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Reject a quote
+    /// Reject a quote (customer rejection)
     /// </summary>
+    /// <param name="id">The unique identifier of the quote</param>
+    /// <param name="request">Optional rejection reason</param>
+    /// <returns>The updated quote</returns>
+    /// <response code="200">Returns the rejected quote</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/reject")]
+    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RejectQuote(int id, [FromBody] RejectQuoteRequest? request = null)
     {
         var quote = await _context.Quotes.FindAsync(id);
@@ -310,7 +400,15 @@ public class QuotesController : ControllerBase
     /// <summary>
     /// Create a revision of an existing quote
     /// </summary>
+    /// <param name="id">The unique identifier of the original quote</param>
+    /// <returns>The newly created revision quote</returns>
+    /// <response code="201">Returns the newly created revision</response>
+    /// <response code="404">If the original quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/revise")]
+    [ProducesResponseType(typeof(Quote), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Quote>> CreateRevision(int id)
     {
         var originalQuote = await _context.Quotes.FindAsync(id);
@@ -398,7 +496,15 @@ public class QuotesController : ControllerBase
     /// <summary>
     /// Get all line items for a quote
     /// </summary>
+    /// <param name="quoteId">The unique identifier of the quote</param>
+    /// <returns>List of line items for the quote</returns>
+    /// <response code="200">Returns the list of line items</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("{quoteId}/lineitems")]
+    [ProducesResponseType(typeof(IEnumerable<QuoteLineItem>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<QuoteLineItem>>> GetLineItems(int quoteId)
     {
         var quote = await _context.Quotes.FindAsync(quoteId);
@@ -415,9 +521,18 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Get a specific line item
+    /// Get a specific line item from a quote
     /// </summary>
+    /// <param name="quoteId">The unique identifier of the quote</param>
+    /// <param name="lineItemId">The unique identifier of the line item</param>
+    /// <returns>The line item</returns>
+    /// <response code="200">Returns the line item</response>
+    /// <response code="404">If the quote or line item is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("{quoteId}/lineitems/{lineItemId}")]
+    [ProducesResponseType(typeof(QuoteLineItem), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<QuoteLineItem>> GetLineItem(int quoteId, int lineItemId)
     {
         var lineItem = await _context.Set<QuoteLineItem>()
@@ -433,7 +548,18 @@ public class QuotesController : ControllerBase
     /// <summary>
     /// Add a line item to a quote
     /// </summary>
+    /// <param name="quoteId">The unique identifier of the quote</param>
+    /// <param name="lineItem">The line item to add</param>
+    /// <returns>The created line item</returns>
+    /// <response code="201">Returns the newly created line item</response>
+    /// <response code="400">If the line item data is invalid</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{quoteId}/lineitems")]
+    [ProducesResponseType(typeof(QuoteLineItem), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<QuoteLineItem>> AddLineItem(int quoteId, [FromBody] QuoteLineItem lineItem)
     {
         var quote = await _context.Quotes
@@ -483,9 +609,21 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Update a line item
+    /// Update a line item in a quote
     /// </summary>
+    /// <param name="quoteId">The unique identifier of the quote</param>
+    /// <param name="lineItemId">The unique identifier of the line item</param>
+    /// <param name="lineItem">The updated line item data</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">Line item was successfully updated</response>
+    /// <response code="400">If the line item ID mismatch</response>
+    /// <response code="404">If the quote or line item is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPut("{quoteId}/lineitems/{lineItemId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateLineItem(int quoteId, int lineItemId, [FromBody] QuoteLineItem lineItem)
     {
         if (lineItemId != lineItem.Id)
@@ -538,9 +676,18 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Delete a line item
+    /// Delete a line item from a quote (soft delete)
     /// </summary>
+    /// <param name="quoteId">The unique identifier of the quote</param>
+    /// <param name="lineItemId">The unique identifier of the line item to delete</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">Line item was successfully deleted</response>
+    /// <response code="404">If the quote or line item is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpDelete("{quoteId}/lineitems/{lineItemId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteLineItem(int quoteId, int lineItemId)
     {
         var lineItem = await _context.Set<QuoteLineItem>()
@@ -570,9 +717,20 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Reorder line items
+    /// Reorder line items in a quote
     /// </summary>
+    /// <param name="quoteId">The unique identifier of the quote</param>
+    /// <param name="lineItemIds">List of line item IDs in the desired order</param>
+    /// <returns>OK on success</returns>
+    /// <response code="200">Line items were successfully reordered</response>
+    /// <response code="400">If the line item IDs are invalid</response>
+    /// <response code="404">If the quote is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{quoteId}/lineitems/reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ReorderLineItems(int quoteId, [FromBody] List<int> lineItemIds)
     {
         var quote = await _context.Quotes.FindAsync(quoteId);

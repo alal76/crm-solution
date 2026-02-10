@@ -10,6 +10,7 @@ namespace CRM.Infrastructure.Services;
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,13 +23,16 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<ApprovalWorkflowService> _logger;
+    private readonly INotificationPort? _notificationPort;
 
     public ApprovalWorkflowService(
         ICrmDbContext context,
-        ILogger<ApprovalWorkflowService> logger)
+        ILogger<ApprovalWorkflowService> logger,
+        INotificationPort? notificationPort = null)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _notificationPort = notificationPort;
     }
 
     #region Approval Matrix Management
@@ -907,9 +911,32 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
         {
             step.ReminderSent = true;
             step.ReminderSentAt = DateTime.UtcNow;
-            // TODO: Send actual notification via INotificationPort
+
             _logger.LogInformation("Sending reminder for overdue step {StepId} assigned to user {UserId}",
                 step.Id, step.AssignedToId);
+
+            if (_notificationPort != null && step.AssignedTo?.Email != null)
+            {
+                try
+                {
+                    var email = new EmailNotificationRequest
+                    {
+                        To = step.AssignedTo.Email,
+                        Subject = $"Reminder: Approval request #{step.ApprovalRequestId} is overdue",
+                        Body = $"<p>Your approval for request <strong>#{step.ApprovalRequestId}</strong> " +
+                               $"(Step {step.StepOrder}) is overdue.</p>" +
+                               $"<p>Originally due: {step.DueAt:yyyy-MM-dd HH:mm} UTC</p>" +
+                               $"<p>Please review and take action at your earliest convenience.</p>",
+                        IsHtml = true,
+                    };
+                    await _notificationPort.SendEmailAsync(email, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to send overdue reminder email for step {StepId} to {Email}",
+                        step.Id, step.AssignedTo.Email);
+                }
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);

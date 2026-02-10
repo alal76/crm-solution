@@ -8,6 +8,7 @@ using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Services.AI;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -15,17 +16,18 @@ using System.Text.Json;
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// AI Email Intelligence Controller
-/// Provides AI-powered email analysis and assistance:
-/// - Sentiment analysis
-/// - Response suggestions
-/// - Subject line optimization
-/// - Tone matching
-/// - Key entity extraction
+/// AI Email Intelligence Controller.
+/// Provides AI-powered email analysis and assistance including sentiment analysis,
+/// response suggestions, subject line optimization, tone matching, and key entity extraction.
 /// </summary>
+/// <remarks>
+/// All endpoints require authentication and a configured LLM provider.
+/// Returns success=false if AI service is not configured.
+/// </remarks>
 [ApiController]
 [Route("api/ai/email")]
 [Authorize]
+[Produces("application/json")]
 public class AIEmailController : ControllerBase
 {
     private readonly CrmDbContext _context;
@@ -46,9 +48,19 @@ public class AIEmailController : ControllerBase
     }
 
     /// <summary>
-    /// Analyze an email for sentiment, key entities, and suggested actions
+    /// Analyze an email for sentiment, key entities, and suggested actions.
     /// </summary>
+    /// <param name="request">The email content and optional metadata to analyze.</param>
+    /// <returns>Analysis including sentiment, urgency, classification, entities, and suggested actions.</returns>
+    /// <response code="200">Returns the email analysis results.</response>
+    /// <response code="400">Email content cannot be empty.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("analyze")]
+    [ProducesResponseType(typeof(EmailAnalysisResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AnalyzeEmail([FromBody] EmailAnalysisRequest request)
     {
         try
@@ -158,9 +170,19 @@ Respond ONLY with valid JSON in this exact format:
     }
 
     /// <summary>
-    /// Generate response suggestions for an email
+    /// Generate response suggestions for an email.
     /// </summary>
+    /// <param name="request">The email content, tone preference, and number of suggestions.</param>
+    /// <returns>Multiple response suggestions with different tones and quick reply options.</returns>
+    /// <response code="200">Returns the response suggestions.</response>
+    /// <response code="400">Email content cannot be empty.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("suggest-response")]
+    [ProducesResponseType(typeof(ResponseSuggestionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SuggestResponse([FromBody] ResponseSuggestionRequest request)
     {
         try
@@ -282,9 +304,19 @@ Respond with JSON in this format:
     }
 
     /// <summary>
-    /// Optimize an email subject line for better engagement
+    /// Optimize an email subject line for better engagement.
     /// </summary>
+    /// <param name="request">The subject line and/or email body with purpose context.</param>
+    /// <returns>Optimized subject line suggestions with scores and improvement tips.</returns>
+    /// <response code="200">Returns subject line optimization suggestions.</response>
+    /// <response code="400">Subject or email body is required.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("optimize-subject")]
+    [ProducesResponseType(typeof(SubjectOptimizationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> OptimizeSubject([FromBody] SubjectOptimizationRequest request)
     {
         try
@@ -398,9 +430,19 @@ Respond with JSON:
     }
 
     /// <summary>
-    /// Improve email writing - grammar, tone, clarity
+    /// Improve email writing - grammar, tone, clarity.
     /// </summary>
+    /// <param name="request">The email content and improvement areas to focus on.</param>
+    /// <returns>Improved email with change list and quality scores.</returns>
+    /// <response code="200">Returns the improved email with detailed changes.</response>
+    /// <response code="400">Email content cannot be empty.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("improve")]
+    [ProducesResponseType(typeof(EmailImproveResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ImproveEmail([FromBody] EmailImproveRequest request)
     {
         try

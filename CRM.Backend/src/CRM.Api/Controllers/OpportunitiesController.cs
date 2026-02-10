@@ -22,15 +22,23 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
 
+/// <summary>
+/// API controller for managing sales opportunities.
+/// Provides endpoints for CRUD operations and pipeline analytics.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class OpportunitiesController : ControllerBase
 {
     private readonly IOpportunityService _opportunityService;
     private readonly ILogger<OpportunitiesController> _logger;
     private readonly ICrmNotificationService _notificationService;
 
+    /// <summary>
+    /// Initializes the opportunities controller with required services.
+    /// </summary>
     public OpportunitiesController(
         IOpportunityService opportunityService,
         ILogger<OpportunitiesController> logger,
@@ -41,7 +49,15 @@ public class OpportunitiesController : ControllerBase
         _notificationService = notificationService;
     }
 
+    /// <summary>
+    /// Gets all open opportunities.
+    /// </summary>
+    /// <returns>List of open opportunities</returns>
+    /// <response code="200">Returns the list of open opportunities</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Opportunity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetOpen()
     {
         try
@@ -56,24 +72,44 @@ public class OpportunitiesController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets an opportunity by its unique identifier.
+    /// </summary>
+    /// <param name="id">The opportunity ID</param>
+    /// <returns>The opportunity if found</returns>
+    /// <response code="200">Returns the opportunity</response>
+    /// <response code="404">If the opportunity is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(Opportunity), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id)
     {
         try
         {
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
             if (opportunity == null)
-                return NotFound();
+                return NotFound(new { message = $"Opportunity with ID {id} not found" });
             return Ok(opportunity);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving opportunity {id}");
+            _logger.LogError(ex, "Error retrieving opportunity {OpportunityId}", id);
             return StatusCode(500, "Internal server error");
         }
     }
 
+    /// <summary>
+    /// Gets all opportunities for a specific customer/account.
+    /// </summary>
+    /// <param name="customerId">The customer/account ID</param>
+    /// <returns>List of opportunities for the customer</returns>
+    /// <response code="200">Returns the list of opportunities</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("customer/{customerId}")]
+    [ProducesResponseType(typeof(IEnumerable<Opportunity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByCustomerId(int customerId)
     {
         try
@@ -83,12 +119,20 @@ public class OpportunitiesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving opportunities for customer {customerId}");
+            _logger.LogError(ex, "Error retrieving opportunities for customer {CustomerId}", customerId);
             return StatusCode(500, "Internal server error");
         }
     }
 
+    /// <summary>
+    /// Gets the total pipeline value across all open opportunities.
+    /// </summary>
+    /// <returns>The total pipeline value</returns>
+    /// <response code="200">Returns the total pipeline value</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("pipeline/total")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTotalPipeline()
     {
         try
@@ -103,11 +147,25 @@ public class OpportunitiesController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Creates a new opportunity.
+    /// </summary>
+    /// <param name="opportunity">The opportunity to create</param>
+    /// <returns>The created opportunity</returns>
+    /// <response code="201">Returns the newly created opportunity</response>
+    /// <response code="400">If the opportunity data is invalid</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost]
-    public async Task<IActionResult> Create(Opportunity opportunity)
+    [ProducesResponseType(typeof(Opportunity), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Create([FromBody] Opportunity opportunity)
     {
         try
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var id = await _opportunityService.CreateOpportunityAsync(opportunity);
             opportunity.Id = id;
 
@@ -124,11 +182,28 @@ public class OpportunitiesController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Updates an existing opportunity.
+    /// </summary>
+    /// <param name="id">The opportunity ID</param>
+    /// <param name="opportunity">The updated opportunity data</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">If the opportunity was updated successfully</response>
+    /// <response code="400">If the opportunity data is invalid</response>
+    /// <response code="404">If the opportunity is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, Opportunity opportunity)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Update(int id, [FromBody] Opportunity opportunity)
     {
         try
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             opportunity.Id = id;
             await _opportunityService.UpdateOpportunityAsync(opportunity);
 
@@ -140,12 +215,23 @@ public class OpportunitiesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error updating opportunity {id}");
+            _logger.LogError(ex, "Error updating opportunity {OpportunityId}", id);
             return StatusCode(500, "Internal server error");
         }
     }
 
+    /// <summary>
+    /// Deletes an opportunity (soft delete).
+    /// </summary>
+    /// <param name="id">The opportunity ID</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">If the opportunity was deleted successfully</response>
+    /// <response code="404">If the opportunity is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id)
     {
         try
@@ -160,7 +246,7 @@ public class OpportunitiesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error deleting opportunity {id}");
+            _logger.LogError(ex, "Error deleting opportunity {OpportunityId}", id);
             return StatusCode(500, "Internal server error");
         }
     }

@@ -18,17 +18,21 @@ using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// API endpoints for managing CRM tasks
+/// API endpoints for managing CRM tasks.
+/// Provides comprehensive task management including creation, updates, completion tracking,
+/// filtering by status/priority/assignee, and user queue management.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class TasksController : ControllerBase
 {
     private readonly CrmDbContext _context;
@@ -43,9 +47,22 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Get all tasks with optional filtering
+    /// Get all tasks with optional filtering.
     /// </summary>
+    /// <param name="customerId">Filter by customer/account ID.</param>
+    /// <param name="opportunityId">Filter by opportunity ID.</param>
+    /// <param name="assignedToUserId">Filter by assigned user ID.</param>
+    /// <param name="status">Filter by task status.</param>
+    /// <param name="priority">Filter by task priority.</param>
+    /// <param name="overdue">Filter to show only overdue tasks.</param>
+    /// <returns>A list of tasks matching the filter criteria.</returns>
+    /// <response code="200">Returns the list of tasks.</response>
+    /// <response code="401">Unauthorized - user is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<CrmTask>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<CrmTask>>> GetTasks(
         [FromQuery] int? customerId = null,
         [FromQuery] int? opportunityId = null,
@@ -90,9 +107,19 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Get a task by ID
+    /// Get a task by ID.
     /// </summary>
+    /// <param name="id">The unique identifier of the task.</param>
+    /// <returns>The task with the specified ID.</returns>
+    /// <response code="200">Returns the task.</response>
+    /// <response code="401">Unauthorized - user is not authenticated.</response>
+    /// <response code="404">Task not found.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(CrmTask), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CrmTask>> GetTask(int id)
     {
         var task = await _context.CrmTasks
@@ -114,9 +141,19 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new task
+    /// Create a new task.
     /// </summary>
+    /// <param name="task">The task to create.</param>
+    /// <returns>The created task with generated ID.</returns>
+    /// <response code="201">Task created successfully.</response>
+    /// <response code="400">Invalid task data provided.</response>
+    /// <response code="401">Unauthorized - user is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost]
+    [ProducesResponseType(typeof(CrmTask), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CrmTask>> CreateTask(CrmTask task)
     {
         task.CreatedAt = DateTime.UtcNow;
@@ -130,9 +167,22 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Update an existing task
+    /// Update an existing task.
     /// </summary>
+    /// <param name="id">The unique identifier of the task to update.</param>
+    /// <param name="task">The updated task data.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">Task updated successfully.</response>
+    /// <response code="400">Invalid task data or ID mismatch.</response>
+    /// <response code="401">Unauthorized - user is not authenticated.</response>
+    /// <response code="404">Task not found.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateTask(int id, CrmTask task)
     {
         if (id != task.Id)
@@ -157,9 +207,19 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Delete a task
+    /// Delete a task.
     /// </summary>
+    /// <param name="id">The unique identifier of the task to delete.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">Task deleted successfully.</response>
+    /// <response code="401">Unauthorized - user is not authenticated.</response>
+    /// <response code="404">Task not found.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteTask(int id)
     {
         var task = await _context.CrmTasks.FindAsync(id);
@@ -174,9 +234,19 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Mark a task as complete
+    /// Mark a task as complete.
     /// </summary>
+    /// <param name="id">The unique identifier of the task to complete.</param>
+    /// <returns>The completed task.</returns>
+    /// <response code="200">Task marked as complete successfully.</response>
+    /// <response code="401">Unauthorized - user is not authenticated.</response>
+    /// <response code="404">Task not found.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("{id}/complete")]
+    [ProducesResponseType(typeof(CrmTask), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CompleteTask(int id)
     {
         var task = await _context.CrmTasks.FindAsync(id);
@@ -193,9 +263,16 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Get tasks due today
+    /// Get tasks due today.
     /// </summary>
+    /// <returns>A list of tasks due today that are not yet completed.</returns>
+    /// <response code="200">Returns the list of tasks due today.</response>
+    /// <response code="401">Unauthorized - user is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("due-today")]
+    [ProducesResponseType(typeof(IEnumerable<CrmTask>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<CrmTask>>> GetTasksDueToday()
     {
         var today = DateTime.UtcNow.Date;
@@ -212,9 +289,16 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Get overdue tasks
+    /// Get overdue tasks.
     /// </summary>
+    /// <returns>A list of tasks that are past their due date and not completed or cancelled.</returns>
+    /// <response code="200">Returns the list of overdue tasks.</response>
+    /// <response code="401">Unauthorized - user is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("overdue")]
+    [ProducesResponseType(typeof(IEnumerable<CrmTask>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<CrmTask>>> GetOverdueTasks()
     {
         var tasks = await _context.CrmTasks
@@ -228,10 +312,19 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Get My Queue - tasks where action is pending for the logged-in user's group
-    /// For workflow admin users (CanActivateWorkflows), return all tasks with all statuses
+    /// Get My Queue - tasks where action is pending for the logged-in user's group.
+    /// For workflow admin users (CanActivateWorkflows), return all tasks with all statuses.
     /// </summary>
+    /// <returns>A list of tasks assigned to the current user or their groups with queue statistics.</returns>
+    /// <response code="200">Returns the user's task queue with statistics.</response>
+    /// <response code="400">Error retrieving queue.</response>
+    /// <response code="401">Unauthorized - user is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("my-queue")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<object>> GetMyQueue()
     {
         try

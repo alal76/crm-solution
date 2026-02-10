@@ -18,6 +18,7 @@ using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -102,13 +103,17 @@ public class QuickNoteDto
 }
 
 /// <summary>
-/// API endpoints for managing notes with RBAC
-/// Notes can be attached to any entity type (Customer, Contact, Lead, Opportunity, Campaign, Quote, ServiceRequest, Product, etc.)
-/// Edit/Delete permissions: Creator or users with NotesAdmin/SystemAdmin roles
+/// API endpoints for managing notes with RBAC.
 /// </summary>
+/// <remarks>
+/// Notes can be attached to any entity type (Customer, Contact, Lead, Opportunity, Campaign, Quote, ServiceRequest, Product, etc.).
+/// Edit/Delete permissions: Creator or users with NotesAdmin/SystemAdmin roles.
+/// Supports both polymorphic (EntityType/EntityId) and legacy FK attachment methods.
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class NotesController : ControllerBase
 {
     private readonly CrmDbContext _context;
@@ -197,9 +202,28 @@ public class NotesController : ControllerBase
     }
 
     /// <summary>
-    /// Get all notes with optional filtering
+    /// Get all notes with optional filtering.
     /// </summary>
+    /// <param name="customerId">Filter by customer/account ID.</param>
+    /// <param name="contactId">Filter by contact ID.</param>
+    /// <param name="opportunityId">Filter by opportunity ID.</param>
+    /// <param name="leadId">Filter by lead ID.</param>
+    /// <param name="campaignId">Filter by campaign ID.</param>
+    /// <param name="quoteId">Filter by quote ID.</param>
+    /// <param name="serviceRequestId">Filter by service request ID.</param>
+    /// <param name="productId">Filter by product ID.</param>
+    /// <param name="entityType">Filter by entity type (polymorphic).</param>
+    /// <param name="entityId">Filter by entity ID (polymorphic).</param>
+    /// <param name="noteType">Filter by note type.</param>
+    /// <param name="pinned">Filter to only pinned notes.</param>
+    /// <returns>List of notes matching the filter criteria.</returns>
+    /// <response code="200">Returns the list of notes.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<NoteResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<NoteResponseDto>>> GetNotes(
         [FromQuery] int? customerId = null,
         [FromQuery] int? contactId = null,
@@ -285,9 +309,19 @@ public class NotesController : ControllerBase
     }
 
     /// <summary>
-    /// Get a note by ID
+    /// Get a note by ID.
     /// </summary>
+    /// <param name="id">The note ID.</param>
+    /// <returns>The note with the specified ID.</returns>
+    /// <response code="200">Returns the note.</response>
+    /// <response code="404">Note not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(NoteResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<NoteResponseDto>> GetNote(int id)
     {
         var currentUserId = GetCurrentUserId();
@@ -309,9 +343,19 @@ public class NotesController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new note
+    /// Create a new note.
     /// </summary>
+    /// <param name="dto">The note data to create.</param>
+    /// <returns>The created note with response metadata.</returns>
+    /// <response code="201">Returns the newly created note.</response>
+    /// <response code="400">Invalid note data provided.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost]
+    [ProducesResponseType(typeof(NoteResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<NoteResponseDto>> CreateNote(NoteDto dto)
     {
         var currentUserId = GetCurrentUserId();
@@ -374,9 +418,27 @@ public class NotesController : ControllerBase
     }
 
     /// <summary>
-    /// Update an existing note (RBAC: Creator or Admin roles only)
+    /// Update an existing note.
     /// </summary>
+    /// <remarks>
+    /// RBAC: Only the creator or users with Admin role can update notes.
+    /// </remarks>
+    /// <param name="id">The note ID to update.</param>
+    /// <param name="dto">The updated note data.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">Note was successfully updated.</response>
+    /// <response code="400">Invalid data or ID mismatch.</response>
+    /// <response code="403">Forbidden - User is not the creator or admin.</response>
+    /// <response code="404">Note not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateNote(int id, NoteDto dto)
     {
         if (id != dto.Id)
@@ -418,9 +480,24 @@ public class NotesController : ControllerBase
     }
 
     /// <summary>
-    /// Delete a note (soft delete, RBAC: Creator or Admin roles only)
+    /// Delete a note (soft delete).
     /// </summary>
+    /// <remarks>
+    /// RBAC: Only the creator or users with Admin role can delete notes.
+    /// </remarks>
+    /// <param name="id">The note ID to delete.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">Note was successfully deleted.</response>
+    /// <response code="403">Forbidden - User is not the creator or admin.</response>
+    /// <response code="404">Note not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteNote(int id)
     {
         var currentUserId = GetCurrentUserId();
@@ -449,9 +526,19 @@ public class NotesController : ControllerBase
     }
 
     /// <summary>
-    /// Toggle pin status of a note
+    /// Toggle the pinned status of a note.
     /// </summary>
+    /// <param name="id">The note ID to toggle.</param>
+    /// <returns>The updated note with new pinned status.</returns>
+    /// <response code="200">Returns the note with updated pinned status.</response>
+    /// <response code="404">Note not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("{id}/toggle-pin")]
+    [ProducesResponseType(typeof(NoteResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> TogglePin(int id)
     {
         var currentUserId = GetCurrentUserId();
@@ -470,9 +557,19 @@ public class NotesController : ControllerBase
     }
 
     /// <summary>
-    /// Toggle important status of a note
+    /// Toggle the important flag of a note.
     /// </summary>
+    /// <param name="id">The note ID to toggle.</param>
+    /// <returns>The updated note with new important status.</returns>
+    /// <response code="200">Returns the note with updated important status.</response>
+    /// <response code="404">Note not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("{id}/toggle-important")]
+    [ProducesResponseType(typeof(NoteResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ToggleImportant(int id)
     {
         var currentUserId = GetCurrentUserId();
@@ -491,9 +588,21 @@ public class NotesController : ControllerBase
     }
 
     /// <summary>
-    /// Get notes for a specific entity (supports all entity types)
+    /// Get notes for a specific entity.
     /// </summary>
+    /// <remarks>
+    /// Supports all entity types via polymorphic lookup (Customer, Contact, Opportunity, Lead, Campaign, Quote, ServiceRequest, Product, Task, Interaction).
+    /// </remarks>
+    /// <param name="entityType">The type of entity (e.g., "customer", "contact", "opportunity").</param>
+    /// <param name="entityId">The entity ID.</param>
+    /// <returns>List of notes attached to the specified entity.</returns>
+    /// <response code="200">Returns the list of notes for the entity.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("entity/{entityType}/{entityId}")]
+    [ProducesResponseType(typeof(IEnumerable<NoteResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<NoteResponseDto>>> GetNotesByEntity(string entityType, int entityId)
     {
         var currentUserId = GetCurrentUserId();
@@ -541,9 +650,18 @@ public class NotesController : ControllerBase
     }
 
     /// <summary>
-    /// Get note count for an entity
+    /// Get the note count for an entity.
     /// </summary>
+    /// <param name="entityType">The type of entity (e.g., "customer", "contact", "opportunity").</param>
+    /// <param name="entityId">The entity ID.</param>
+    /// <returns>The count of notes attached to the specified entity.</returns>
+    /// <response code="200">Returns the note count.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("entity/{entityType}/{entityId}/count")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<int>> GetNoteCountByEntity(string entityType, int entityId)
     {
         var normalizedType = entityType.ToLower();
@@ -567,9 +685,23 @@ public class NotesController : ControllerBase
     }
 
     /// <summary>
-    /// Quick add note from context (e.g., from chatbot flyout)
+    /// Quick add a note from context.
     /// </summary>
+    /// <remarks>
+    /// Simplified note creation for use from chatbot flyout or quick-entry interfaces.
+    /// Creates a note with default NoteType.General and NoteVisibility.Team.
+    /// </remarks>
+    /// <param name="dto">The quick note data to create.</param>
+    /// <returns>The created note with response metadata.</returns>
+    /// <response code="201">Returns the newly created note.</response>
+    /// <response code="400">Invalid note data provided.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("quick-add")]
+    [ProducesResponseType(typeof(NoteResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<NoteResponseDto>> QuickAddNote([FromBody] QuickNoteDto dto)
     {
         var currentUserId = GetCurrentUserId();
