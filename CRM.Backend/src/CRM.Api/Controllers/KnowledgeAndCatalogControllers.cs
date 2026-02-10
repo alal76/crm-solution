@@ -53,7 +53,8 @@ public class KnowledgeController : ControllerBase
     /// </summary>
     /// <param name="id">The article ID</param>
     /// <returns>The article details</returns>
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
+    [HttpGet("articles/{id:int}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(KnowledgeArticleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -105,7 +106,7 @@ public class KnowledgeController : ControllerBase
     /// <param name="id">The article ID</param>
     /// <param name="dto">Updated article data</param>
     /// <returns>The updated article</returns>
-    [HttpPut("{id}")]
+    [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(KnowledgeArticleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<KnowledgeArticleDto>> UpdateArticle(int id, [FromBody] CreateKnowledgeArticleDto dto)
@@ -119,7 +120,7 @@ public class KnowledgeController : ControllerBase
     /// </summary>
     /// <param name="id">The article ID</param>
     /// <returns>Success status</returns>
-    [HttpPatch("{id}/publish")]
+    [HttpPatch("{id:int}/publish")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> PublishArticle(int id)
@@ -133,7 +134,7 @@ public class KnowledgeController : ControllerBase
     /// </summary>
     /// <param name="id">The article ID</param>
     /// <returns>Success status</returns>
-    [HttpPatch("{id}/retire")]
+    [HttpPatch("{id:int}/retire")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> RetireArticle(int id)
@@ -148,7 +149,7 @@ public class KnowledgeController : ControllerBase
     /// <param name="id">The article ID</param>
     /// <param name="dto">Feedback details</param>
     /// <returns>Success status</returns>
-    [HttpPost("{id}/feedback")]
+    [HttpPost("{id:int}/feedback")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -178,6 +179,7 @@ public class KnowledgeController : ControllerBase
     /// <param name="count">Number of articles to return (default: 10)</param>
     /// <returns>List of popular articles</returns>
     [HttpGet("popular")]
+    [HttpGet("articles/popular")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<KnowledgeArticleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<KnowledgeArticleDto>>> GetPopularArticles([FromQuery] int count = 10)
@@ -192,11 +194,31 @@ public class KnowledgeController : ControllerBase
     /// <param name="count">Number of articles to return (default: 10)</param>
     /// <returns>List of recent articles</returns>
     [HttpGet("recent")]
+    [HttpGet("articles/recent")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<KnowledgeArticleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<KnowledgeArticleDto>>> GetRecentArticles([FromQuery] int count = 10)
     {
         var articles = await _knowledgeService.GetRecentArticlesAsync(count);
+        return Ok(articles);
+    }
+
+    /// <summary>
+    /// List or search knowledge articles via /articles path.
+    /// </summary>
+    /// <param name="search">Optional search term</param>
+    /// <param name="pageNumber">Page number (default: 1)</param>
+    /// <param name="pageSize">Page size (default: 20)</param>
+    /// <returns>Matching articles</returns>
+    [HttpGet("articles")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<KnowledgeArticleDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<KnowledgeArticleDto>>> ListArticles(
+        [FromQuery] string? search = null,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var articles = await _knowledgeService.SearchArticlesAsync(search ?? string.Empty, pageNumber, pageSize);
         return Ok(articles);
     }
 
@@ -261,9 +283,9 @@ public class CatalogController : ControllerBase
 
     [HttpGet("search")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<CatalogItemDto>>> SearchCatalog([FromQuery] string searchTerm)
+    public async Task<ActionResult<IEnumerable<CatalogItemDto>>> SearchCatalog([FromQuery(Name = "term")] string? searchTerm)
     {
-        var items = await _catalogService.SearchCatalogAsync(searchTerm);
+        var items = await _catalogService.SearchCatalogAsync(searchTerm ?? string.Empty);
         return Ok(items);
     }
 
