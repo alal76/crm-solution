@@ -59,6 +59,7 @@ function RoleBasedRoute({
   if (requiredPage) {
     // Map page names to menu names for canAccessMenu check
     const pageToMenuMap: Record<string, string> = {
+      // Core CRM pages
       'Dashboard': 'Dashboard',
       'Customers': 'Customers',
       'Contacts': 'Contacts',
@@ -74,6 +75,33 @@ function RoleBasedRoute({
       'Workflows': 'Workflows',
       'Reports': 'Reports',
       'Settings': 'Settings',
+      // Service & Communication pages
+      'ServiceRequests': 'ServiceRequests',
+      'Communications': 'Communications',
+      'Interactions': 'Interactions',
+      // Admin pages
+      'User Management': 'User Management',
+      // ITSM pages
+      'ITSMOverview': 'ITSMOverview',
+      'ITSMIncidents': 'ITSMIncidents',
+      'ITSMProblems': 'ITSMProblems',
+      'ITSMChanges': 'ITSMChanges',
+      'ITSMCMDB': 'ITSMCMDB',
+      'ITSMKnowledge': 'ITSMKnowledge',
+      'ITSMCatalog': 'ITSMCatalog',
+      'ITSMSLA': 'ITSMSLA',
+      'ITSMMetrics': 'ITSMMetrics',
+      // Mapped aliases — pages that map to a parent permission
+      'Orders': 'Quotes',
+      'Invoices': 'Quotes',
+      'Payments': 'Quotes',
+      'Contracts': 'Quotes',
+      'Subscriptions': 'Quotes',
+      'Teams': 'Settings',
+      'Commissions': 'Settings',
+      'KnowledgeBase': 'ITSMKnowledge',
+      'Forms': 'Campaigns',
+      'LandingPages': 'Campaigns',
     };
     
     const menuName = pageToMenuMap[requiredPage];

@@ -363,7 +363,7 @@ function ThemedApp() {
                 path="/relationships"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Customers">
                       <RelationshipsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -373,7 +373,7 @@ function ThemedApp() {
                 path="/territories"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <TerritoriesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -383,7 +383,7 @@ function ThemedApp() {
                 path="/lead-routing"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Leads">
                       <LeadRoutingPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -393,7 +393,7 @@ function ThemedApp() {
                 path="/approvals"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <ApprovalsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -403,7 +403,7 @@ function ThemedApp() {
                 path="/leads"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Leads">
                       <LeadsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -413,7 +413,7 @@ function ThemedApp() {
                 path="/services"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Services">
                       <ServicesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -433,7 +433,7 @@ function ThemedApp() {
                 path="/service-request-settings"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <ServiceRequestSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -455,7 +455,7 @@ function ThemedApp() {
                 path="/users"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="User Management">
                       <UserManagementPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -465,7 +465,7 @@ function ThemedApp() {
                 path="/departments"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="User Management">
                       <DepartmentManagementPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -475,7 +475,7 @@ function ThemedApp() {
                 path="/profiles"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="User Management">
                       <ProfileManagementPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -485,7 +485,7 @@ function ThemedApp() {
                 path="/settings"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <SettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -495,7 +495,7 @@ function ThemedApp() {
                 path="/my-queue"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Tasks">
                       <TasksPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -505,7 +505,7 @@ function ThemedApp() {
                 path="/quotes"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Quotes">
                       <QuotesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -515,7 +515,7 @@ function ThemedApp() {
                 path="/contracts"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Contracts">
                       <ContractsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -525,7 +525,7 @@ function ThemedApp() {
                 path="/commissions"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Commissions">
                       <CommissionsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -535,7 +535,7 @@ function ThemedApp() {
                 path="/invoices"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Invoices">
                       <InvoicesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -545,7 +545,7 @@ function ThemedApp() {
                 path="/payments"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Payments">
                       <PaymentsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -555,7 +555,7 @@ function ThemedApp() {
                 path="/orders"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Orders">
                       <OrdersPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -565,7 +565,7 @@ function ThemedApp() {
                 path="/subscriptions"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Subscriptions">
                       <SubscriptionsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -575,7 +575,7 @@ function ThemedApp() {
                 path="/teams"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Teams">
                       <TeamsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -585,7 +585,7 @@ function ThemedApp() {
                 path="/forms"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Forms">
                       <FormBuilderPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -595,7 +595,7 @@ function ThemedApp() {
                 path="/landing-pages"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="LandingPages">
                       <LandingPagesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -605,7 +605,7 @@ function ThemedApp() {
                 path="/knowledge-base"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="KnowledgeBase">
                       <KnowledgeBasePage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -615,7 +615,7 @@ function ThemedApp() {
                 path="/notes"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Notes">
                       <NotesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -625,7 +625,7 @@ function ThemedApp() {
                 path="/activities"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Activities">
                       <ActivitiesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -655,7 +655,7 @@ function ThemedApp() {
                 path="/channel-settings"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <ChannelSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -667,7 +667,7 @@ function ThemedApp() {
                 path="/itsm"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMOverview" moduleName="ITSM">
                       <ITSMOverviewPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -677,7 +677,7 @@ function ThemedApp() {
                 path="/itsm/metrics"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMMetrics" moduleName="ITSM">
                       <ITSMMetricsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -688,7 +688,7 @@ function ThemedApp() {
                 path="/itsm/incidents"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMIncidents" moduleName="ITSM">
                       <IncidentListPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -698,7 +698,7 @@ function ThemedApp() {
                 path="/itsm/incidents/create"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMIncidents" moduleName="ITSM">
                       <IncidentFormPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -708,7 +708,7 @@ function ThemedApp() {
                 path="/itsm/incidents/:id"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMIncidents" moduleName="ITSM">
                       <IncidentDetailPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -719,7 +719,7 @@ function ThemedApp() {
                 path="/itsm/problems"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMProblems" moduleName="ITSM">
                       <ProblemListPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -729,7 +729,7 @@ function ThemedApp() {
                 path="/itsm/problems/create"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMProblems" moduleName="ITSM">
                       <ProblemFormPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -739,7 +739,7 @@ function ThemedApp() {
                 path="/itsm/problems/:id"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMProblems" moduleName="ITSM">
                       <ProblemDetailPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -749,7 +749,7 @@ function ThemedApp() {
                 path="/itsm/problems/:id/edit"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMProblems" moduleName="ITSM">
                       <ProblemFormPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -760,7 +760,7 @@ function ThemedApp() {
                 path="/itsm/cmdb"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMCMDB" moduleName="ITSM">
                       <CMDBListPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -770,7 +770,7 @@ function ThemedApp() {
                 path="/itsm/cmdb/create"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMCMDB" moduleName="ITSM">
                       <CMDBFormPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -780,7 +780,7 @@ function ThemedApp() {
                 path="/itsm/cmdb/:id"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMCMDB" moduleName="ITSM">
                       <CMDBDetailPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -790,7 +790,7 @@ function ThemedApp() {
                 path="/itsm/cmdb/:id/relationships"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMCMDB" moduleName="ITSM">
                       <CMDBRelationshipMapPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -800,7 +800,7 @@ function ThemedApp() {
                 path="/itsm/cmdb/:id/impact"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMCMDB" moduleName="ITSM">
                       <CMDBImpactAnalysisPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -811,7 +811,7 @@ function ThemedApp() {
                 path="/itsm/changes"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMChanges" moduleName="ITSM">
                       <ChangeListPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -821,7 +821,7 @@ function ThemedApp() {
                 path="/itsm/changes/create"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMChanges" moduleName="ITSM">
                       <ChangeFormPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -831,7 +831,7 @@ function ThemedApp() {
                 path="/itsm/changes/calendar"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMChanges" moduleName="ITSM">
                       <ChangeCalendarPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -841,7 +841,7 @@ function ThemedApp() {
                 path="/itsm/changes/:id"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMChanges" moduleName="ITSM">
                       <ChangeDetailPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -851,7 +851,7 @@ function ThemedApp() {
                 path="/itsm/changes/:id/edit"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMChanges" moduleName="ITSM">
                       <ChangeFormPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -861,7 +861,7 @@ function ThemedApp() {
                 path="/itsm/changes/:id/approval"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMChanges" moduleName="ITSM">
                       <ChangeApprovalPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -872,7 +872,7 @@ function ThemedApp() {
                 path="/itsm/knowledge"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMKnowledge" moduleName="ITSM">
                       <KnowledgeBaseListPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -882,7 +882,7 @@ function ThemedApp() {
                 path="/itsm/knowledge/editor"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMKnowledge" moduleName="ITSM">
                       <KnowledgeArticleEditorPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -892,7 +892,7 @@ function ThemedApp() {
                 path="/itsm/knowledge/approvals"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMKnowledge" moduleName="ITSM">
                       <KnowledgeArticleApprovalPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -902,7 +902,7 @@ function ThemedApp() {
                 path="/itsm/knowledge/:id"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMKnowledge" moduleName="ITSM">
                       <KnowledgeArticleDetailPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -913,7 +913,7 @@ function ThemedApp() {
                 path="/itsm/catalog"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMCatalog" moduleName="ITSM">
                       <ServiceCatalogPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -923,7 +923,7 @@ function ThemedApp() {
                 path="/itsm/catalog/admin"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMCatalog" moduleName="ITSM">
                       <ServiceCatalogAdminPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -933,7 +933,7 @@ function ThemedApp() {
                 path="/itsm/catalog/requests"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMCatalog" moduleName="ITSM">
                       <ServiceCatalogRequestListPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -943,7 +943,7 @@ function ThemedApp() {
                 path="/itsm/catalog/requests/:id"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMCatalog" moduleName="ITSM">
                       <ServiceCatalogRequestDetailPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -953,7 +953,7 @@ function ThemedApp() {
                 path="/itsm/catalog/:id/request"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMCatalog" moduleName="ITSM">
                       <ServiceCatalogRequestCreatePage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -964,7 +964,7 @@ function ThemedApp() {
                 path="/itsm/sla"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMSLA" moduleName="ITSM">
                       <SLADashboardPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -974,7 +974,7 @@ function ThemedApp() {
                 path="/itsm/sla/policies"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMSLA" moduleName="ITSM">
                       <SLAPolicyListPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -984,7 +984,7 @@ function ThemedApp() {
                 path="/itsm/sla/policies/create"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMSLA" moduleName="ITSM">
                       <SLAPolicyFormPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -994,7 +994,7 @@ function ThemedApp() {
                 path="/itsm/sla/instances"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="ITSMSLA" moduleName="ITSM">
                       <SLAInstanceListPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1010,7 +1010,7 @@ function ThemedApp() {
                 path="/admin/deployment"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <DeploymentSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1020,7 +1020,7 @@ function ThemedApp() {
                 path="/admin/monitoring"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <MonitoringSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1030,7 +1030,7 @@ function ThemedApp() {
                 path="/admin/security"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <SecuritySettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1040,7 +1040,7 @@ function ThemedApp() {
                 path="/admin/features"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <FeatureManagementPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1050,7 +1050,7 @@ function ThemedApp() {
                 path="/admin/users"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="User Management">
                       <UserManagementSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1060,7 +1060,7 @@ function ThemedApp() {
                 path="/admin/approvals"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="User Management">
                       <UserApprovalPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1070,7 +1070,7 @@ function ThemedApp() {
                 path="/admin/groups"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="User Management">
                       <GroupManagementPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1080,7 +1080,7 @@ function ThemedApp() {
                 path="/admin/social-login"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <SocialLoginSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1090,7 +1090,7 @@ function ThemedApp() {
                 path="/admin/branding"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <BrandingSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1100,7 +1100,7 @@ function ThemedApp() {
                 path="/admin/navigation"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <NavigationSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1110,7 +1110,7 @@ function ThemedApp() {
                 path="/admin/modules"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <ModuleFieldSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1120,7 +1120,7 @@ function ThemedApp() {
                 path="/admin/service-requests"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <ServiceRequestDefinitionsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1130,7 +1130,7 @@ function ThemedApp() {
                 path="/admin/master-data"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <MasterDataSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1140,7 +1140,7 @@ function ThemedApp() {
                 path="/admin/dashboards"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <DashboardSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1150,7 +1150,7 @@ function ThemedApp() {
                 path="/admin/workflows"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <WorkflowListPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1160,7 +1160,7 @@ function ThemedApp() {
                 path="/admin/workflows/:id/designer"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <WorkflowDesignerPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1170,7 +1170,7 @@ function ThemedApp() {
                 path="/admin/workflows/monitor"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <WorkflowMonitorPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1180,7 +1180,7 @@ function ThemedApp() {
                 path="/admin/workflows/:workflowId/monitor"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <WorkflowMonitorPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1190,7 +1190,7 @@ function ThemedApp() {
                 path="/admin/test-results"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <TestResultsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1200,7 +1200,7 @@ function ThemedApp() {
                 path="/admin/llm"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <LLMSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1210,7 +1210,7 @@ function ThemedApp() {
                 path="/admin/database-settings"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <DatabaseSettingsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1220,7 +1220,7 @@ function ThemedApp() {
                 path="/admin/duplicate-rules"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <DuplicateRulesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1230,7 +1230,7 @@ function ThemedApp() {
                 path="/admin/lead-score-rules"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
                       <LeadScoreRulesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1240,7 +1240,7 @@ function ThemedApp() {
                 path="/accounts/:id"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute>
+                    <RoleBasedRoute requiredPage="Customers">
                       <AccountPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
