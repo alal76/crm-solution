@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import lookupService, { LookupItem } from '../services/lookupService';
-import { LookupContext } from '../context/LookupContext';
+import { LookupContext } from '../contexts/LookupContext';
 
 interface Props {
   category: string;

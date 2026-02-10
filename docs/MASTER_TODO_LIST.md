@@ -1,6 +1,6 @@
 # CRM Solution - Master Todo List
 
-**Last Updated:** February 8, 2026  
+**Last Updated:** February 13, 2026  
 **Document Purpose:** Consolidated list of all planned enhancements, pending items, and future roadmap features
 
 ---
@@ -19,6 +19,8 @@
 > | Phase 4 | Weeks 13-16 | ITSM, System & Integrations | Incident, Problem, Change, CMDB, Users, Auth, Permissions, Settings, Audit, AI (4), Integration (3) (16) |
 > 
 > **Current Progress:** 3/40 specs complete (7.5%) - 3 complete in Core CRM module
+>
+> **Audit Status (Feb 13, 2026):** 7,722 tests passing, 0 build errors, 48 TODO items tracked
 
 ---
 
@@ -95,6 +97,55 @@
 | P2 | 25 | Frontend (9), Backend (6), Validation (3), Testing (7) |
 | P3 | 6 | Consistency (3), Validation (2), Frontend (1) |
 | **Total** | **36** | |
+
+### From Audit Remediation (February 13, 2026)
+
+> TODOs extracted from comprehensive multi-agent audit of the entire solution.
+
+#### Frontend: Orphaned Components
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-AUDIT-001 | Wire 16 orphaned ITSM components into ITSM pages (AssetLifecycleTracker, ChangeCalendar, ChangeImpactAnalysis, CIRelationshipDiagram, CITypeSelector, CMDBExplorer, CMDBSearchBar, IncidentTimeline, ITSMDashboard, KnowledgeArticleEditor, KnowledgeSearchBar, ProblemAnalysisPanel, ProblemKnownErrorList, ReleaseTracker, SLACountdownWidget, ServiceCatalogBrowser) | P2 | Frontend |
+| TODO-AUDIT-002 | Wire 3 orphaned admin pages into App.tsx routes (DatabaseSettingsPage, DuplicateRulesPage, LeadScoreRulesPage) | P2 | Frontend |
+| TODO-AUDIT-003 | Consolidate 3 copies of ModuleFieldSettings (common/, settings/, ModuleFieldSettings/) into 1 | P3 | Frontend |
+
+#### Frontend: Dead Code Cleanup
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-AUDIT-004 | Remove 3 dead custom hooks (useConcurrencyControl, useDuplicateDetection, useFormValidation) — not imported anywhere | P3 | Frontend |
+| TODO-AUDIT-005 | Remove legacy ITSM alias routes once no external links depend on them (/itsm/incidents → /itsm/incident-management etc.) | P3 | Frontend |
+
+#### Frontend: Architecture Gaps
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-AUDIT-006 | Create centralized itsmService.ts to replace raw axios calls in 31 ITSM pages | P2 | Frontend |
+| TODO-AUDIT-007 | Migrate 31 ITSM pages from Tailwind CSS to MUI components for consistency | P3 | Frontend |
+
+#### Backend: Missing Services
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-AUDIT-008 | Create DepartmentService (currently only seeded in DbSeed, no dedicated service) | P3 | Backend |
+| TODO-AUDIT-009 | Create ConversationService (entity exists, no service) | P3 | Backend |
+| TODO-AUDIT-010 | Create EventAttendeeService (entity exists, no service) | P3 | Backend |
+| TODO-AUDIT-011 | Create SalesQuota/SalesForecast services (entities exist, no services) | P2 | Backend |
+
+#### Backend: Test Coverage
+
+| TODO ID | Description | Priority | Category |
+|---------|-------------|----------|----------|
+| TODO-AUDIT-012 | Re-enable ~87 excluded test files in CRM.Tests.csproj (entity property drift, mock setup changes) | P2 | Testing |
+
+#### Audit TODO Summary
+
+| Priority | Count | Categories |
+|----------|-------|------------|
+| P2 | 5 | Frontend (3), Backend (1), Testing (1) |
+| P3 | 7 | Frontend (4), Backend (3) |
+| **Total** | **12** | |
 
 ---
 
