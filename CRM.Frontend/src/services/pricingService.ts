@@ -1,4 +1,4 @@
-import api from 'src/services/api';
+import api from './apiClient';
 
 type Params = Record<string, any>;
 
