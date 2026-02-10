@@ -32,6 +32,14 @@ module.exports = {
         name: `${env}-${process.env.npm_package_version}`,
       };
 
+      // Fix ESM module resolution for @mui packages (fullySpecified issue)
+      webpackConfig.module.rules.push({
+        test: /\.m?js$/,
+        resolve: {
+          fullySpecified: false,
+        },
+      });
+
       // Optimize for production builds
       if (env === 'production') {
         // Use parallel terser for faster minification
