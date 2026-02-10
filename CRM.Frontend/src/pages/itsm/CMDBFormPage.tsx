@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 const CMDBFormPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const CMDBFormPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await axios.post('/api/cmdb', formData);
+      await apiClient.post('/api/cmdb', formData);
       navigate('/itsm/cmdb');
     } catch (error) {
       console.error('Failed to create configuration item', error);

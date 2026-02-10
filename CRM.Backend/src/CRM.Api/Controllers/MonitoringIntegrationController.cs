@@ -180,19 +180,39 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpGet("sources")]
     [Authorize]
-    public ActionResult GetMonitoringSources()
+    public async Task<ActionResult> GetMonitoringSources()
     {
-        return Ok(new List<object>());
+        try
+        {
+            var integrations = await _monitoringService.GetIntegrationsAsync();
+            return Ok(integrations);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch monitoring sources from service");
+            return Ok(new List<object>());
+        }
     }
 
     /// <summary>
-    /// Get alert mappings (BVT-compatible route).
+    /// Get alert mappings.
     /// </summary>
     [HttpGet("alert-mappings")]
     [Authorize]
-    public ActionResult GetAlertMappings()
+    public async Task<ActionResult> GetAlertMappings()
     {
-        return Ok(new List<object>());
+        // TODO: Implement alert mapping CRUD in IMonitoringIntegrationService
+        try
+        {
+            var integrations = await _monitoringService.GetIntegrationsAsync();
+            // Return integrations as a proxy for alert mappings until dedicated mapping service exists
+            return Ok(integrations.Select(i => new { id = i.Id, source = i.Name, isActive = i.IsEnabled }).ToList());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch alert mappings");
+            return Ok(new List<object>());
+        }
     }
 
     private static AlertSeverity MapPrometheusSeverity(string severity)

@@ -89,7 +89,13 @@
     <Compile Remove="BVT\MarketingIrmApiBVTTests.cs" />
     <Compile Remove="BVT\SalesApiBVTTests.cs" />
     <Compile Remove="BVT\IntegrationApiBVTTests.cs" />
-    <!-- Controller tests with constructor/interface signature mismatches (2698-error batch) -->
+    <!-- Controller tests: ALL excluded due to deep API surface drift (1554 errors).
+         Constructor fixes applied to 6 files but insufficient — service interfaces,
+         DTOs, and controller action methods have all been renamed/removed since
+         these tests were written. Full rewrite required per file. See audit below.
+         Error counts: Auth=238, Contacts=180, UserGroups=134, Invoices=230,
+         Leads=298, Orders=230, ServiceRequests=244, plus 6 DbContext-pattern files,
+         1 complex-constructor file, and 8 nonexistent-controller/service files. -->
     <Compile Remove="Controllers\AuthControllerTests.cs" />
     <Compile Remove="Controllers\ActivitiesControllerTests.cs" />
     <Compile Remove="Controllers\ContactsControllerTests.cs" />
@@ -116,7 +122,8 @@
     <Compile Remove="Services\ContactInfoServiceTests.cs" />
     <Compile Remove="Services\DatabaseBackupServiceTests.cs" />
     <Compile Remove="Services\DatabaseSyncServiceTests.cs" />
-    <Compile Remove="Services\JwtTokenServiceTests.cs" />
+    <!-- FIXED: Re-enabled JwtTokenServiceTests.cs (removed ILogger, deleted GetPrincipalFromToken, fixed return types) -->
+    <!-- <Compile Remove="Services\JwtTokenServiceTests.cs" /> -->
     <Compile Remove="Services\LLMSettingsServiceTests.cs" />
     <Compile Remove="Services\LandingPageServiceTests.cs" />
     <Compile Remove="Services\ModuleFieldConfigurationServiceTests.cs" />

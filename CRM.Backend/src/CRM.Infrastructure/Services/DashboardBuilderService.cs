@@ -1,10 +1,12 @@
 // CRM Solution - Custom Dashboard Builder Service
 // Phase 7, Task 7.4 - Drag-and-drop dashboard widget configuration with data from CRM entities
 
-using System.Collections.Concurrent;
+using System.Text.Json;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using DashboardEntity = CRM.Core.Entities.Dashboard;
+using DashboardWidgetEntity = CRM.Core.Entities.DashboardWidget;
 
 namespace CRM.Infrastructure.Services;
 
@@ -176,21 +178,15 @@ public class WidgetData
 #endregion
 
 /// <summary>
-/// In-memory dashboard builder service.
-/// Stores dashboard configurations in ConcurrentDictionary and queries CRM data for widget content.
+/// EF Core-backed dashboard builder service.
+/// Stores dashboard configurations in the database and queries CRM data for widget content.
 /// </summary>
 public class DashboardBuilderService : IDashboardBuilderService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<DashboardBuilderService> _logger;
 
-    // In-memory storage: DashboardId → Dashboard
-    private readonly ConcurrentDictionary<string, CustomDashboard> _dashboards = new();
-
-    // Widget → Dashboard reverse lookup
-    private readonly ConcurrentDictionary<string, string> _widgetToDashboard = new();
-
-    private static int _idCounter;
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     private static readonly List<WidgetTemplate> WidgetCatalog = new()
     {
@@ -216,102 +212,154 @@ public class DashboardBuilderService : IDashboardBuilderService
     }
 
     /// <inheritdoc />
-    public Task<IEnumerable<CustomDashboard>> GetDashboardsAsync(int userId, CancellationToken ct = default)
+    public async Task<IEnumerable<CustomDashboard>> GetDashboardsAsync(int userId, CancellationToken ct = default)
     {
-        var dashboards = _dashboards.Values
-            .Where(d => d.UserId == userId)
+        var entities = await _context.Dashboards
+            .Include(d => d.Widgets)
+            .Where(d => !d.IsDeleted && d.OwnerId == userId)
             .OrderByDescending(d => d.IsDefault)
             .ThenBy(d => d.Name)
-            .AsEnumerable();
-        return Task.FromResult(dashboards);
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        return entities.Select(MapToDto);
     }
 
     /// <inheritdoc />
-    public Task<CustomDashboard?> GetDashboardAsync(string dashboardId, CancellationToken ct = default)
+    public async Task<CustomDashboard?> GetDashboardAsync(string dashboardId, CancellationToken ct = default)
     {
-        _dashboards.TryGetValue(dashboardId, out var dashboard);
-        return Task.FromResult(dashboard);
+        if (!int.TryParse(dashboardId, out var id))
+            return null;
+
+        var entity = await _context.Dashboards
+            .Include(d => d.Widgets)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted, ct);
+
+        return entity == null ? null : MapToDto(entity);
     }
 
     /// <inheritdoc />
-    public Task<CustomDashboard> CreateDashboardAsync(CustomDashboard dashboard, CancellationToken ct = default)
+    public async Task<CustomDashboard> CreateDashboardAsync(CustomDashboard dashboard, CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(dashboard.Id))
-            dashboard.Id = $"dash-{Interlocked.Increment(ref _idCounter)}";
+        var entity = new DashboardEntity
+        {
+            Name = dashboard.Name,
+            Description = dashboard.Description,
+            OwnerId = dashboard.UserId,
+            IsDefault = dashboard.IsDefault,
+            Visibility = CRM.Core.Entities.DashboardVisibility.Private,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-        dashboard.CreatedAt = DateTime.UtcNow;
-        dashboard.UpdatedAt = DateTime.UtcNow;
-
-        // Assign widget IDs
         foreach (var widget in dashboard.Widgets)
         {
-            if (string.IsNullOrEmpty(widget.Id))
-                widget.Id = $"widget-{Interlocked.Increment(ref _idCounter)}";
-            _widgetToDashboard[widget.Id] = dashboard.Id;
+            entity.Widgets.Add(MapWidgetToEntity(widget));
         }
 
-        _dashboards[dashboard.Id] = dashboard;
+        _context.Dashboards.Add(entity);
+        await _context.SaveChangesAsync(ct);
+
         _logger.LogInformation("Created dashboard {DashboardId} for user {UserId} with {WidgetCount} widgets",
-            dashboard.Id, dashboard.UserId, dashboard.Widgets.Count);
+            entity.Id, dashboard.UserId, entity.Widgets.Count);
 
-        return Task.FromResult(dashboard);
+        return MapToDto(entity);
     }
 
     /// <inheritdoc />
-    public Task<CustomDashboard?> UpdateDashboardAsync(CustomDashboard dashboard, CancellationToken ct = default)
+    public async Task<CustomDashboard?> UpdateDashboardAsync(CustomDashboard dashboard, CancellationToken ct = default)
     {
-        if (!_dashboards.ContainsKey(dashboard.Id))
-            return Task.FromResult<CustomDashboard?>(null);
+        if (!int.TryParse(dashboard.Id, out var id))
+            return null;
 
-        dashboard.UpdatedAt = DateTime.UtcNow;
+        var entity = await _context.Dashboards
+            .Include(d => d.Widgets)
+            .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted, ct);
 
-        // Clear old widget mappings
-        foreach (var kvp in _widgetToDashboard.Where(w => w.Value == dashboard.Id).ToList())
-            _widgetToDashboard.TryRemove(kvp.Key, out _);
+        if (entity == null)
+            return null;
 
-        // Re-register widget mappings
+        entity.Name = dashboard.Name;
+        entity.Description = dashboard.Description;
+        entity.IsDefault = dashboard.IsDefault;
+        entity.UpdatedAt = DateTime.UtcNow;
+
+        // Remove existing widgets and replace with new set
+        _context.DashboardWidgets.RemoveRange(entity.Widgets);
+
+        var newWidgets = new List<DashboardWidgetEntity>();
         foreach (var widget in dashboard.Widgets)
         {
-            if (string.IsNullOrEmpty(widget.Id))
-                widget.Id = $"widget-{Interlocked.Increment(ref _idCounter)}";
-            _widgetToDashboard[widget.Id] = dashboard.Id;
+            var we = MapWidgetToEntity(widget);
+            we.DashboardId = entity.Id;
+            _context.DashboardWidgets.Add(we);
+            newWidgets.Add(we);
         }
 
-        _dashboards[dashboard.Id] = dashboard;
-        return Task.FromResult<CustomDashboard?>(dashboard);
+        await _context.SaveChangesAsync(ct);
+
+        return new CustomDashboard
+        {
+            Id = entity.Id.ToString(),
+            Name = entity.Name,
+            Description = entity.Description,
+            UserId = entity.OwnerId ?? 0,
+            IsDefault = entity.IsDefault,
+            CreatedAt = entity.CreatedAt,
+            UpdatedAt = entity.UpdatedAt ?? entity.CreatedAt,
+            Widgets = newWidgets.Select(MapWidgetToDto).ToList()
+        };
     }
 
     /// <inheritdoc />
-    public Task<bool> DeleteDashboardAsync(string dashboardId, CancellationToken ct = default)
+    public async Task<bool> DeleteDashboardAsync(string dashboardId, CancellationToken ct = default)
     {
-        if (!_dashboards.TryRemove(dashboardId, out var removed))
-            return Task.FromResult(false);
+        if (!int.TryParse(dashboardId, out var id))
+            return false;
 
-        foreach (var widget in removed.Widgets)
-            _widgetToDashboard.TryRemove(widget.Id, out _);
+        var entity = await _context.Dashboards
+            .Include(d => d.Widgets)
+            .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted, ct);
 
+        if (entity == null)
+            return false;
+
+        entity.IsDeleted = true;
+        entity.UpdatedAt = DateTime.UtcNow;
+
+        // Soft-delete child widgets as well
+        foreach (var w in entity.Widgets)
+        {
+            w.IsDeleted = true;
+            w.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync(ct);
         _logger.LogInformation("Deleted dashboard {DashboardId}", dashboardId);
-        return Task.FromResult(true);
+        return true;
     }
 
     /// <inheritdoc />
     public async Task<WidgetData?> GetWidgetDataAsync(string widgetId, CancellationToken ct = default)
     {
-        if (!_widgetToDashboard.TryGetValue(widgetId, out var dashboardId))
+        if (!int.TryParse(widgetId, out var id))
             return null;
 
-        if (!_dashboards.TryGetValue(dashboardId, out var dashboard))
+        var widgetEntity = await _context.DashboardWidgets
+            .AsNoTracking()
+            .FirstOrDefaultAsync(w => w.Id == id && !w.IsDeleted, ct);
+
+        if (widgetEntity == null)
             return null;
 
-        var widget = dashboard.Widgets.FirstOrDefault(w => w.Id == widgetId);
-        if (widget == null)
-            return null;
+        var dtoWidget = MapWidgetToDto(widgetEntity);
+        var data = await FetchWidgetDataAsync(dtoWidget, ct);
 
-        var data = await FetchWidgetDataAsync(widget, ct);
         return new WidgetData
         {
             WidgetId = widgetId,
-            Type = widget.Type,
+            Type = widgetEntity.DataSource,
             Data = data,
             FetchedAt = DateTime.UtcNow
         };
@@ -319,6 +367,67 @@ public class DashboardBuilderService : IDashboardBuilderService
 
     /// <inheritdoc />
     public IEnumerable<WidgetTemplate> GetAvailableWidgets() => WidgetCatalog;
+
+    #region Entity ↔ DTO Mapping
+
+    private static CustomDashboard MapToDto(DashboardEntity entity) => new()
+    {
+        Id = entity.Id.ToString(),
+        Name = entity.Name,
+        Description = entity.Description,
+        UserId = entity.OwnerId ?? 0,
+        IsDefault = entity.IsDefault,
+        CreatedAt = entity.CreatedAt,
+        UpdatedAt = entity.UpdatedAt ?? entity.CreatedAt,
+        Widgets = entity.Widgets
+            .Where(w => !w.IsDeleted)
+            .Select(MapWidgetToDto)
+            .ToList()
+    };
+
+    private static DashboardWidget MapWidgetToDto(DashboardWidgetEntity entity) => new()
+    {
+        Id = entity.Id.ToString(),
+        Type = entity.DataSource,
+        Title = entity.Title,
+        Column = entity.ColumnIndex,
+        Row = entity.RowIndex,
+        Width = entity.ColumnSpan,
+        Height = entity.RowSpan,
+        Config = DeserializeConfig(entity.ConfigJson)
+    };
+
+    private static DashboardWidgetEntity MapWidgetToEntity(DashboardWidget dto) => new()
+    {
+        Title = dto.Title,
+        DataSource = dto.Type,
+        ColumnIndex = dto.Column,
+        RowIndex = dto.Row,
+        ColumnSpan = dto.Width,
+        RowSpan = dto.Height,
+        ConfigJson = JsonSerializer.Serialize(dto.Config, JsonOptions),
+        IsVisible = true,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    private static Dictionary<string, object> DeserializeConfig(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, object>();
+
+        try
+        {
+            return JsonSerializer.Deserialize<Dictionary<string, object>>(json, JsonOptions)
+                ?? new Dictionary<string, object>();
+        }
+        catch
+        {
+            return new Dictionary<string, object>();
+        }
+    }
+
+    #endregion
 
     #region Private Data Fetching
 

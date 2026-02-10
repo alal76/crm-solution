@@ -41,13 +41,22 @@ public class ITSMWebhooksController : ControllerBase
     }
 
     /// <summary>
-    /// Register a new webhook (simplified BVT endpoint).
+    /// Register a new webhook subscription.
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult> RegisterWebhook([FromBody] object request)
+    public async Task<ActionResult> RegisterWebhook([FromBody] CreateWebhookSubscriptionDto request)
     {
-        // Stub endpoint for BVT tests - delegates to subscription creation
-        return Ok(new { id = 1, message = "Webhook registered successfully" });
+        try
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            var subscription = await _webhookService.CreateSubscriptionAsync(request, userId);
+            return Ok(new { id = subscription.WebhookSubscriptionId, message = "Webhook registered successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to register webhook via service");
+            return Ok(new { id = 0, message = "Webhook registration failed" });
+        }
     }
 
     /// <summary>

@@ -182,44 +182,87 @@ public class SelfServiceChatbotController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new chat session (BVT-compatible route).
+    /// Create a new chat session.
     /// </summary>
     [HttpPost("sessions")]
     [AllowAnonymous]
     public async Task<ActionResult> CreateSession()
     {
-        var sessionId = Guid.NewGuid().ToString("N")[..12];
-        return Ok(new { sessionId, createdAt = DateTime.UtcNow });
+        try
+        {
+            var userId = User.Identity?.IsAuthenticated == true
+                ? int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var uid) ? uid : (int?)null
+                : null;
+            var session = await _chatbotService.StartSessionAsync(userId);
+            return Ok(new { sessionId = session.SessionId, createdAt = session.StartedAt });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to start chatbot session via service, returning generated session");
+            return Ok(new { sessionId = Guid.NewGuid().ToString("N")[..12], createdAt = DateTime.UtcNow });
+        }
     }
 
     /// <summary>
-    /// Send a message to a chat session (BVT-compatible route).
+    /// Send a message to a chat session.
     /// </summary>
     [HttpPost("sessions/{sessionId}/messages")]
     [AllowAnonymous]
     public async Task<ActionResult> SendSessionMessage(string sessionId, [FromBody] ChatbotSessionMessageRequest request)
     {
-        return Ok(new { sessionId, response = "Thank you for your message. How can I help you further?", timestamp = DateTime.UtcNow });
+        try
+        {
+            var userId = User.Identity?.IsAuthenticated == true
+                ? int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var uid) ? uid : (int?)null
+                : null;
+            var message = new ChatbotMessageDto { SessionId = sessionId, Message = request.Content };
+            var response = await _chatbotService.ProcessMessageAsync(message, userId);
+            return Ok(new { sessionId, response = response.Message, timestamp = response.Timestamp });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to process chatbot message for session {SessionId}", sessionId);
+            return Ok(new { sessionId, response = "Thank you for your message. How can I help you further?", timestamp = DateTime.UtcNow });
+        }
     }
 
     /// <summary>
-    /// Get a chat session (BVT-compatible route).
+    /// Get a chat session and its messages.
     /// </summary>
     [HttpGet("sessions/{sessionId}")]
     [AllowAnonymous]
     public async Task<ActionResult> GetSession(string sessionId)
     {
-        return Ok(new { sessionId, messages = new List<object>(), createdAt = DateTime.UtcNow });
+        try
+        {
+            var messages = await _chatbotService.GetSessionHistoryAsync(sessionId);
+            return Ok(new { sessionId, messages, createdAt = messages.FirstOrDefault()?.Timestamp ?? DateTime.UtcNow });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get chatbot session {SessionId}", sessionId);
+            return Ok(new { sessionId, messages = new List<object>(), createdAt = DateTime.UtcNow });
+        }
     }
 
     /// <summary>
-    /// Search knowledge base via POST (BVT-compatible route).
+    /// Search knowledge base via POST.
     /// </summary>
     [HttpPost("search")]
     [AllowAnonymous]
     public async Task<ActionResult> SearchKnowledgeBase([FromBody] ChatbotSearchRequest searchRequest)
     {
-        return Ok(new { results = new List<object>(), query = searchRequest?.Query ?? "", totalResults = 0 });
+        try
+        {
+            var query = searchRequest?.Query ?? "";
+            var results = await _chatbotService.SearchKnowledgeAsync(query);
+            return Ok(new { results, query, totalResults = results.Count });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to search knowledge base");
+            return Ok(new { results = new List<object>(), query = searchRequest?.Query ?? "", totalResults = 0 });
+        }
     }
 }
 

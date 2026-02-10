@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/apiClient';
 
 interface ChangeApprovalDetail {
   changeId: number;
@@ -23,7 +23,7 @@ const ChangeApprovalPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await axios.get(`/api/changes/${id}`);
+        const response = await apiClient.get(`/changes/${id}`);
         setChange(response.data);
       } catch (error) {
         console.error('Failed to load change', error);
@@ -45,7 +45,7 @@ const ChangeApprovalPage: React.FC = () => {
     setSubmitError(null);
 
     try {
-      await axios.post(`/api/changes/${id}/approvals`, { comments });
+      await apiClient.post(`/changes/${id}/approvals`, { comments });
       setSubmitted(true);
     } catch (error) {
       console.error('Failed to approve change', error);
@@ -61,7 +61,7 @@ const ChangeApprovalPage: React.FC = () => {
     setSubmitError(null);
 
     try {
-      await axios.post(`/api/changes/${id}/rejections`, { comments });
+      await apiClient.post(`/changes/${id}/rejections`, { comments });
       setSubmitted(true);
     } catch (error) {
       console.error('Failed to reject change', error);

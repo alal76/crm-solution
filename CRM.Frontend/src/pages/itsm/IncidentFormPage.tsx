@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/apiClient';
 import { ImpactUrgencyMatrix } from '../../components/itsm';
 import type { ImpactLevel, UrgencyLevel } from '../../components/itsm';
 
@@ -20,7 +20,7 @@ export const IncidentFormPage: React.FC = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await axios.post('/api/incidents', formData);
+      await apiClient.post('/incidents', formData);
       navigate('/incidents');
     } catch (error) {
       console.error('Failed to create incident', error);

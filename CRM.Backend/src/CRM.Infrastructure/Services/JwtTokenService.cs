@@ -121,7 +121,7 @@ public class JwtTokenService : IJwtTokenService
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
 
-            var userIdClaim = jwtToken?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+            var userIdClaim = jwtToken?.Claims.FirstOrDefault(x => x.Type == "nameid" || x.Type == ClaimTypes.NameIdentifier);
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
             {
                 return userId;

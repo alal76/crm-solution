@@ -130,33 +130,8 @@ const DuplicateRulesPage: React.FC = () => {
       setRules(data);
     } catch (err: any) {
       console.error('Failed to load rules:', err);
-      // For now, use sample data if API is not available
-      setRules([
-        {
-          id: 1,
-          name: 'Email Exact Match',
-          entityType: selectedEntityType,
-          isActive: true,
-          matchThreshold: 100,
-          description: 'Match records with identical email addresses',
-          matchFields: [
-            { id: 1, fieldName: 'Email', matchType: 'Exact', weight: 100 }
-          ]
-        },
-        {
-          id: 2,
-          name: 'Name + Phone Fuzzy',
-          entityType: selectedEntityType,
-          isActive: true,
-          matchThreshold: 85,
-          description: 'Match records with similar names and phone numbers',
-          matchFields: [
-            { id: 2, fieldName: selectedEntityType === 'Account' ? 'Name' : 'FirstName', matchType: 'Fuzzy', weight: 40 },
-            { id: 3, fieldName: selectedEntityType === 'Account' ? 'Name' : 'LastName', matchType: 'Fuzzy', weight: 40 },
-            { id: 4, fieldName: 'Phone', matchType: 'Exact', weight: 20 }
-          ]
-        }
-      ]);
+      setError(err?.response?.data?.message || err?.message || 'Failed to load duplicate rules. Please try again.');
+      setRules([]);
     } finally {
       setLoading(false);
     }

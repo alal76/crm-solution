@@ -25,22 +25,16 @@ namespace CRM.Tests.Controllers;
 public class AuthControllerTests
 {
     private readonly Mock<IAuthenticationService> _mockAuthService;
-    private readonly Mock<IUserService> _mockUserService;
-    private readonly Mock<IJwtTokenService> _mockJwtService;
     private readonly Mock<ILogger<AuthController>> _mockLogger;
     private readonly AuthController _controller;
 
     public AuthControllerTests()
     {
         _mockAuthService = new Mock<IAuthenticationService>();
-        _mockUserService = new Mock<IUserService>();
-        _mockJwtService = new Mock<IJwtTokenService>();
         _mockLogger = new Mock<ILogger<AuthController>>();
 
         _controller = new AuthController(
             _mockAuthService.Object,
-            _mockUserService.Object,
-            _mockJwtService.Object,
             _mockLogger.Object);
 
         var httpContext = new DefaultHttpContext();
@@ -988,9 +982,9 @@ public class AuthControllerTests
         var identity = new ClaimsIdentity(claims, "Test");
         _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
 
-        var user = new UserDto { Id = 1, Email = "user@example.com", FirstName = "John" };
+        var user = new User { Id = 1, Email = "user@example.com", FirstName = "John", Username = "john", LastName = "Doe", PasswordHash = "hash" };
 
-        _mockUserService.Setup(s => s.GetByIdAsync(1))
+        _mockAuthService.Setup(s => s.GetUserByIdAsync(1))
             .ReturnsAsync(user);
 
         // Act

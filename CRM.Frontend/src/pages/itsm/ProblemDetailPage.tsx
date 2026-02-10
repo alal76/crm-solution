@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/apiClient';
 import { RootCauseAnalysisTemplate, RelatedIncidentsWidget } from '../../components/itsm';
 import type { RelatedIncident } from '../../components/itsm';
 
@@ -26,11 +26,11 @@ const ProblemDetailPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await axios.get(`/api/problems/${id}`);
+        const response = await apiClient.get(`/problems/${id}`);
         setProblem(response.data);
         // Load related incidents (best-effort)
         try {
-          const relResp = await axios.get(`/api/problems/${id}/incidents`);
+          const relResp = await apiClient.get(`/problems/${id}/incidents`);
           setRelatedIncidents(relResp.data ?? []);
         } catch { /* non-critical */ }
       } catch (error) {

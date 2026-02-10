@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 interface CatalogRequestItem {
   requestId: number;
@@ -24,8 +24,8 @@ const ServiceCatalogRequestListPage: React.FC = () => {
     const load = async () => {
       try {
         const [requestResponse, catalogResponse] = await Promise.all([
-          axios.get('/api/catalog/requests'),
-          axios.get('/api/catalog/items')
+          apiClient.get('/api/catalog/requests'),
+          apiClient.get('/api/catalog/items')
         ]);
         setItems(requestResponse.data ?? []);
         setCatalogItems(catalogResponse.data ?? []);

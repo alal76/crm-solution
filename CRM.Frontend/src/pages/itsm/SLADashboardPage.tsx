@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 import { SLACountdownWidget, SLABreachBanner } from '../../components/itsm';
 import type { SLAInstanceData, SLABreachInfo } from '../../components/itsm';
 
@@ -31,10 +31,10 @@ const SLADashboardPage: React.FC = () => {
     const load = async () => {
       try {
         const [policiesResp, breachedResp, instancesResp, breachInfoResp] = await Promise.allSettled([
-          axios.get('/api/sla/policies'),
-          axios.get('/api/sla/breached'),
-          axios.get('/api/sla/instances/active'),
-          axios.get('/api/sla/breach-alerts'),
+          apiClient.get('/api/sla/policies'),
+          apiClient.get('/api/sla/breached'),
+          apiClient.get('/api/sla/instances/active'),
+          apiClient.get('/api/sla/breach-alerts'),
         ]);
         if (policiesResp.status === 'fulfilled') {
           const policies: SLAPolicySummary[] = policiesResp.value.data ?? [];

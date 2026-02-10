@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 interface KnowledgeApprovalItem {
   articleId: number;
@@ -21,7 +21,7 @@ const KnowledgeArticleApprovalPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await axios.get('/api/knowledge/pending');
+        const response = await apiClient.get('/api/knowledge/pending');
         setItems(response.data ?? []);
       } catch (loadError) {
         console.error('Failed to load pending articles', loadError);
@@ -39,7 +39,7 @@ const KnowledgeArticleApprovalPage: React.FC = () => {
     setError(null);
 
     try {
-      await axios.patch(`/api/knowledge/${articleId}/publish`);
+      await apiClient.patch(`/api/knowledge/${articleId}/publish`);
       setItems((prev) => prev.filter((item) => item.articleId !== articleId));
     } catch (publishError) {
       console.error('Failed to publish article', publishError);
@@ -54,7 +54,7 @@ const KnowledgeArticleApprovalPage: React.FC = () => {
     setError(null);
 
     try {
-      await axios.patch(`/api/knowledge/${articleId}/retire`);
+      await apiClient.patch(`/api/knowledge/${articleId}/retire`);
       setItems((prev) => prev.filter((item) => item.articleId !== articleId));
     } catch (rejectError) {
       console.error('Failed to reject article', rejectError);

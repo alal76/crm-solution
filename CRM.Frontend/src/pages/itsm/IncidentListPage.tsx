@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/apiClient';
 
 interface Incident {
   incidentId: number;
@@ -28,7 +28,7 @@ export const IncidentListPage: React.FC = () => {
           pageNumber: pageNumber.toString(),
           pageSize: '20'
         });
-        const response = await axios.get(`/api/incidents?${params}`);
+        const response = await apiClient.get(`/incidents?${params}`);
         setIncidents(response.data.items ?? []);
       } catch (error) {
         console.error('Failed to load incidents', error);

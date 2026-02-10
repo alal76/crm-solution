@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 const KnowledgeArticleEditorPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ const KnowledgeArticleEditorPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await axios.post('/api/knowledge', formData);
+      await apiClient.post('/api/knowledge', formData);
       navigate('/itsm/knowledge');
     } catch (error) {
       console.error('Failed to create article', error);

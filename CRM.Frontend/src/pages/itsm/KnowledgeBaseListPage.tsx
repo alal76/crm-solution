@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 
 interface Article {
   articleId: number;
@@ -27,7 +27,7 @@ export const KnowledgeBaseListPage: React.FC = () => {
           pageNumber: '1',
           pageSize: '20'
         });
-        const response = await axios.get(`/api/knowledge/search?${params}`);
+        const response = await apiClient.get(`/api/knowledge/search?${params}`);
         setArticles(response.data ?? []);
       } catch (error) {
         console.error('Failed to load articles', error);

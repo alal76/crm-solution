@@ -44,7 +44,7 @@ public class LeadsControllerTests
         _mockNotificationService.Setup(x => x.NotifyRecordDeletedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
 
-        _controller = new LeadsController(_mockLeadService.Object, _mockLogger.Object, _mockNotificationService.Object);
+        _controller = new LeadsController(_mockLeadService.Object, _mockLogger.Object);
 
         var httpContext = new DefaultHttpContext();
         _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

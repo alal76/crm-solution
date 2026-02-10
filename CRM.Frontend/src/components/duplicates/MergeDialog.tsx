@@ -1,3 +1,6 @@
+// TODO: Integration target — account/contact list pages
+// This component is currently orphaned (not imported by any page).
+
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 // Merge Dialog - Dialog for merging duplicate records

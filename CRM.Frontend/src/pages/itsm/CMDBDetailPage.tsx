@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../services/api';
 import { RelationshipDiagram, ServiceMap } from '../../components/itsm';
 import type { ConfigurationItemNode, ServiceNode } from '../../components/itsm';
 
@@ -26,12 +26,12 @@ const CMDBDetailPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await axios.get(`/api/cmdb/${id}`);
+        const response = await apiClient.get(`/api/cmdb/${id}`);
         setCi(response.data);
         // Load relationships and service map (best-effort)
         const [relResp, svcResp] = await Promise.allSettled([
-          axios.get(`/api/cmdb/${id}/relationships`),
-          axios.get(`/api/cmdb/${id}/services`),
+          apiClient.get(`/api/cmdb/${id}/relationships`),
+          apiClient.get(`/api/cmdb/${id}/services`),
         ]);
         if (relResp.status === 'fulfilled') {
           setRelatedCIs(relResp.value.data?.relatedCIs ?? []);

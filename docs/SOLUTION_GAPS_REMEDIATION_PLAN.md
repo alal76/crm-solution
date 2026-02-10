@@ -1,29 +1,29 @@
 # CRM Solution Gaps Remediation Plan
 
 > **Created:** February 8, 2026
-> **Last Updated:** February 18, 2026
-> **Status:** Active — 7 of 9 Phases Complete, 2 Remaining
-> **Total Phases:** 9
-> **Overall Progress:** 88% (31 of 49 hours spent)
+> **Last Updated:** February 19, 2026
+> **Status:** Active — 8 of 10 Phases Complete, Phase 10 In Progress
+> **Total Phases:** 10
+> **Overall Progress:** 80% (35 of 55 hours spent)
 
 ---
 
 ## Executive Summary
 
-This document tracks the remediation of solution gaps identified through code analysis, test results, and multi-agent audits. Completed phases are summarized below; remaining work is detailed in full.
+This document tracks the remediation of solution gaps identified through code analysis, test results, and multi-agent audits. Completed phases are summarized below; remaining work is detailed in full. **Phase 10** was added following a comprehensive full-solution audit on February 19, 2026.
 
 ### Current State
 
 | Metric | Value |
 |--------|-------|
-| **Build Status** | ✅ 0 Errors (backend), 1928 warnings (StyleCop) |
-| **Test Status** | ✅ 7855+ Tests Passing (4492 + 2854 + 489 + 20 new) |
+| **Build Status** | ✅ 0 Errors (backend), ~1928 warnings (StyleCop) |
+| **Test Status** | ✅ 7935+ Tests Passing (7855 + 80 Phase 7) |
 | **BVT Status** | ✅ **118/118 Passing (100%)** |
 | **Pre-existing Test Failures** | 43 (entity property drift in CRM.Tests) + 18 ITSM functional (require server) |
-| **Phases Complete** | 7 of 9 (Phases 1, 2, 3, 4, 5, 6, 9) |
-| **Phases Remaining** | 2 (Phases 7, 8) |
-| **Hours Spent** | 31 |
-| **Hours Remaining** | ~18 |
+| **Phases Complete** | 8 of 10 (Phases 1, 2, 3, 4, 5, 6, 7, 9) |
+| **Phases Remaining** | 2 (Phases 8, 10) |
+| **Hours Spent** | 35 |
+| **Hours Remaining** | ~20 |
 
 ---
 
@@ -37,9 +37,10 @@ This document tracks the remediation of solution gaps identified through code an
 | Phase 4 | Frontend Components | ✅ Complete | 4 frontend services, 3 pages (Territories, LeadRouting, Approvals), routing + navigation |
 | Phase 5 | Test Coverage | ✅ Complete | 258 new tests (7 ITSM service + 7 ITSM controller test files), AsyncQueryTestHelpers shared helpers |
 | Phase 6 | Webhooks | ✅ Complete | NovuWebhookController Activity creation for 5 webhook events |
-| Phase 7 | AI/Analytics | ⬜ Not Started | AI-powered KB search, ML scoring, dashboard/report builder |
-| Phase 8 | Documentation | 🟡 60% | README v2.0.0 updated, ITSM User Guide created, SPEC-SALES-002/003 completed |
+| Phase 7 | AI/Analytics | ✅ Complete | AIKnowledgeSearchService, AILeadScoringService, AIOpportunityScoringService, DashboardBuilderService, ReportBuilderService + AIAnalyticsController + 80 tests |
+| Phase 8 | Documentation | 🟡 80% | README v2.0.0 updated, ITSM User Guide created, SPEC-SALES-002/003, Swagger enhanced, ITSM_ARCHITECTURE.md |
 | Phase 9 | Audit Remediation | ✅ Complete | DI fix (ILeadService), EntitySelect dedup, context/ consolidation, documented 21 orphaned components |
+| Phase 10 | Full Solution Audit | 🔄 In Progress | Comprehensive audit: 14 BVT stubs, 5 missing controllers, 13 orphaned components, 31 ITSM Tailwind pages, in-memory storage gaps |
 
 ---
 
@@ -143,20 +144,23 @@ These items were identified during completed phases but deferred for future work
 
 ---
 
-## Phase 7: AI/Analytics Enhancements (Not Started)
+## Phase 7: AI/Analytics Enhancements — ✅ COMPLETE
 
 **Priority:** 🟢 Low
-**Estimated Hours:** 10
+**Status:** ✅ Complete — 5 services + 1 controller + 80 tests (Session 14)
+**Hours Spent:** 4
 
-### Tasks
+### Deliverables
 
-| # | Task | Description |
-|---|------|-------------|
-| 7.1 | AI-powered KB semantic search | Implement embeddings-based search in KnowledgeManagementService |
-| 7.2 | Enhanced lead scoring | ML model for predictive lead scoring |
-| 7.3 | Predictive opportunity scoring | Win probability based on historical data |
-| 7.4 | Custom dashboard builder | Drag-and-drop dashboard widget configuration |
-| 7.5 | Report designer component | Custom report creation with query builder |
+| # | Task | Description | Status |
+|---|------|-------------|--------|
+| 7.1 | AI-powered KB semantic search | AIKnowledgeSearchService with keyword→embedding fallback, 200-item cache | ✅ Complete |
+| 7.2 | Enhanced lead scoring | AILeadScoringService with 8-factor weighted model (0-100 score) | ✅ Complete |
+| 7.3 | Predictive opportunity scoring | AIOpportunityScoringService with multi-factor win probability + risk factors | ✅ Complete |
+| 7.4 | Custom dashboard builder | DashboardBuilderService with widget templates (⚠️ in-memory — see Phase 10) | ✅ Complete |
+| 7.5 | Report designer component | ReportBuilderService with CSV export (⚠️ in-memory — see Phase 10) | ✅ Complete |
+| 7.6 | REST API controller | AIAnalyticsController with endpoints for all 5 services | ✅ Complete |
+| 7.7 | Unit tests | 80 tests across 5 test files — ALL PASS | ✅ Complete |
 
 ---
 
@@ -177,6 +181,138 @@ These items were identified during completed phases but deferred for future work
 | 8.5 | Fix critical StyleCop warnings | Address ~1895 remaining warnings | ⬜ Pending |
 | 8.6 | Add missing XML documentation | Added XML docs to CatalogController (class + 10 methods) + GetChangeCalendar, [ProducesResponseType] attributes, [Tags] attribute | ✅ Complete |
 | 8.7 | Final integration testing | End-to-end validation documentation | ⬜ Pending |
+
+---
+
+## Phase 10: Full Solution Audit Remediation — 🔄 IN PROGRESS
+
+**Priority:** 🔴 High
+**Status:** Audit Complete, Remediation In Progress
+**Estimated Hours:** ~15
+**Audit Date:** February 19, 2026
+
+### 10.1 Backend — In-Memory Storage → Database Persistence (🔴 HIGH)
+
+| # | Service | Issue | Fix |
+|---|---------|-------|-----|
+| 10.1.1 | DashboardBuilderService.cs | Uses ConcurrentDictionary — dashboards/widgets lost on restart | Migrate to EF Core using existing Dashboards + DashboardWidgets DbSets |
+| ~~10.1.2~~ | ~~ReportBuilderService.cs~~ | ~~Uses ConcurrentDictionary~~ | ✅ **DONE** — Already migrated to EF Core using _context.ReportDefinitions with full DTO↔entity mapping |
+
+### 10.2 Backend — BVT Stub Endpoints to Remove (🟡 MEDIUM)
+
+| # | Controller | Stubs | Issue |
+|---|-----------|-------|-------|
+| 10.2.1 | ITSMDashboardController.cs | 6 endpoints | Return hardcoded zeros/empty — real service-backed endpoints exist below |
+| 10.2.2 | ITSMChatbotController.cs | 4 endpoints | Return hardcoded session/response objects |
+| 10.2.3 | ITSMCICDController.cs | 2 endpoints | Return hardcoded deployment success |
+| 10.2.4 | ITSMReleaseController.cs | 1 endpoint | Returns empty list |
+| 10.2.5 | ITSMWebhooksController.cs | 1 endpoint | Hardcoded success bypasses real create |
+
+### 10.3 Backend — Missing Controllers (🟡 MEDIUM)
+
+| # | Service | Interface | Controller Needed |
+|---|---------|-----------|-------------------|
+| 10.3.1 | SalesForecastService | ISalesForecastService | SalesForecastsController |
+| 10.3.2 | SalesQuotaService | ISalesQuotaService | SalesQuotasController |
+| 10.3.3 | EventAttendeeService | IEventAttendeeService | EventAttendeesController |
+| 10.3.4 | NormalizationService | INormalizationService | NormalizationController |
+| 10.3.5 | ConversationService | IConversationService | ConversationsController |
+
+### 10.4 Backend — CommunicationsController Mock Implementations (🟡 MEDIUM)
+
+| # | Area | Count | Issue |
+|---|------|-------|-------|
+| 10.4.1 | Channel test methods | 6 | test-smtp, test-whatsapp, etc. return success without testing |
+| 10.4.2 | Message send methods | 6 | send-email, send-tweet, etc. log only, never deliver |
+
+### 10.5 Backend — Incomplete Controllers (🟡 MEDIUM)
+
+| # | Controller | Issue |
+|---|-----------|-------|
+| 10.5.1 | ImportExportController | Missing POST import/{entityType} endpoint |
+| 10.5.2 | EmailSequencesController | Missing GET/GET by id/PUT/DELETE CRUD — only has POST create + enroll/stop. Also located in wrong directory (CRM.Frontend root instead of CRM.Api) |
+
+### 10.6 Frontend — Orphaned Components (🟡 MEDIUM, ~4,890 lines)
+
+| # | Component | Lines | Description |
+|---|-----------|-------|-------------|
+| 10.6.1 | ChatTimelineItem.tsx | ~250 | Chat messages in activity timeline |
+| 10.6.2 | AnalyticsEmbed.tsx | ~280 | Superset/PowerBI dashboard embed |
+| 10.6.3 | EmailAIAssist.tsx | ~850 | AI email draft assistant |
+| 10.6.4 | ConcurrencyConflictDialog.tsx | ~110 | Concurrent edit conflict resolution |
+| 10.6.5 | UserEditingIndicator.tsx | ~210 | Real-time editing indicator |
+| 10.6.6 | DashboardBuilder.tsx | ~550 | Drag-and-drop dashboard builder |
+| 10.6.7 | ReportDesigner.tsx | ~850 | Custom report creation UI |
+| 10.6.8 | DuplicateDetectionDialog.tsx | ~360 | Duplicate detection dialog |
+| 10.6.9 | MergeDialog.tsx | ~450 | Record merge workflow |
+| 10.6.10 | MergeHistoryPanel.tsx | ~360 | Merge audit trail |
+| 10.6.11 | AIAnalyticsDashboard.tsx | ~620 | AI analytics for workflows |
+| 10.6.12 | ModuleSettingsTab.tsx | Dead | Superseded by ModuleFieldSettingsTabNew |
+| 10.6.13 | MonitoringSettingsTab.tsx | Dead | Not imported by any page |
+
+### 10.7 Frontend — itsmService.ts Dead Code (🔴 HIGH)
+
+| # | Issue | Details |
+|---|-------|---------|
+| 10.7.1 | itsmService.ts (488 lines) | 8 typed service objects, 69+ methods, 15+ interfaces — **ZERO imports across entire codebase**. All 31 ITSM pages use raw `axios` instead. |
+
+### 10.8 Frontend — ITSM Pages: Tailwind + Raw Axios (🔴 HIGH, 31 pages)
+
+All 31 ITSM pages violate two architecture standards:
+1. Use Tailwind CSS instead of MUI components
+2. Use raw `axios` instead of `apiClient` (bypasses auth token, base URL, error handling)
+
+| Category | Pages |
+|----------|-------|
+| Incidents (3) | IncidentListPage, IncidentFormPage, IncidentDetailPage |
+| Problems (3) | ProblemListPage, ProblemFormPage, ProblemDetailPage |
+| Changes (5) | ChangeListPage, ChangeFormPage, ChangeDetailPage, ChangeApprovalPage, ChangeCalendarPage |
+| CMDB (5) | CMDBListPage, CMDBFormPage, CMDBDetailPage, CMDBRelationshipMapPage, CMDBImpactAnalysisPage |
+| Knowledge (4) | KnowledgeBaseListPage, KnowledgeArticleDetailPage, KnowledgeArticleEditorPage, KnowledgeArticleApprovalPage |
+| Service Catalog (5) | ServiceCatalogPage, ServiceCatalogAdminPage, ServiceCatalogRequestListPage, ServiceCatalogRequestDetailPage, ServiceCatalogRequestCreatePage |
+| SLA (4) | SLADashboardPage, SLAPolicyListPage, SLAPolicyFormPage, SLAInstanceListPage |
+| Dashboard (2) | ITSMOverviewPage, ITSMMetricsPage |
+
+### 10.9 Frontend — Stub Pages (🟡 MEDIUM)
+
+| # | Page | Issue |
+|---|------|-------|
+| 10.9.1 | CMDBRelationshipMapPage | Right panel shows "Visualization placeholder" — no graph rendered |
+| 10.9.2 | RelationshipsPage | MUI Alert: "Interactive graph visualization coming soon" |
+| 10.9.3 | DuplicateRulesPage | Catch block silently replaces API response with 2 hardcoded sample rules |
+
+### 10.10 Test Coverage Gaps (🟠 HIGH)
+
+| # | Category | Count | Details |
+|---|----------|-------|---------|
+| 10.10.1 | Excluded test files | 87 | In CRM.Tests.csproj via Compile Remove (entity property drift) |
+| 10.10.2 | Services without tests | ~70 | 25.5% coverage (24/94 services have active tests) |
+| 10.10.3 | Controllers without tests | ~76 | 8.4% coverage (7/83 controllers have active tests) |
+| 10.10.4 | Skipped E2E tests | ~47 | Across 7 spec files |
+| 10.10.5 | Backend skipped tests | 8 | Performance tests marked Skip = "run manually" |
+
+### 10.11 Controller Documentation Gap (🟢 LOW)
+
+| # | Issue | Count |
+|---|-------|-------|
+| 10.11.1 | Controllers missing [ProducesResponseType] | ~72 of 80+ |
+| 10.11.2 | API routes not in SOLUTION_CONTEXT.md | ~65+ |
+
+### 10.12 Structural Issues (🟢 LOW)
+
+| # | Issue | Details |
+|---|-------|---------|
+| 10.12.1 | Backup files | CustomersController.cs.bak, ICustomerService.cs.bak in controllers directory |
+| 10.12.2 | Orphan controller file | EmailSequencesController.cs in CRM.Frontend/ root, not in CRM.Api |
+| 10.12.3 | AuthenticationService shortcuts | 5 areas: refresh tokens not in separate table, OAuth token not verified with provider, Google/Microsoft JWT signatures not verified, password reset email not sent |
+
+### Phase 10 Summary
+
+| Severity | Items | Description |
+|----------|-------|-------------|
+| 🔴 HIGH | 5 | In-memory persistence (2), ITSM axios bypass (31 pages), dead itsmService.ts |
+| 🟡 MEDIUM | 12 | BVT stubs (14), missing controllers (5), orphaned components (13), stub pages (3), incomplete controllers (2), mock communications (12) |
+| 🟢 LOW | 3 | ProducesResponseType gaps (72), structural cleanup, auth shortcuts |
 
 ---
 
@@ -210,8 +346,9 @@ These inline TODO comments remain in source code:
 ### Medium-term
 
 - [x] Phase 5: ITSM service tests, controller integration tests
-- [ ] Phase 7: AI/Analytics enhancements
-- [ ] Phase 8: Documentation (remaining: Swagger, architecture, StyleCop, XML docs)
+- [x] Phase 7: AI/Analytics enhancements (5 services + controller + 80 tests)
+- [ ] Phase 8: Documentation (remaining: StyleCop, final integration testing)
+- [ ] Phase 10: Full solution audit remediation (in progress)
 - [ ] Re-enable excluded test files (~87 files)
 - [ ] Migrate 31 ITSM pages from Tailwind to MUI
 
@@ -235,6 +372,7 @@ These inline TODO comments remain in source code:
 | 2026-02-16 | 12 | **BVT 100% pass rate achieved** — Fixed ITSM controller route mismatches (articles/* aliases, cis/* aliases, catalog search param, problems/incidents alias), fixed BVT auth credentials (admin@crm.local/Admin@123), fixed accessToken field name. Final: **118/118 BVT passing (100%)** |
 | 2026-02-17 | 13 | **Phase 5 COMPLETE + Phase 8 60%** — Multi-agent deployment: 4 parallel subagents created 7 ITSM service test files (39 tests), 7 controller test files (94 tests), README v2.0.0, ITSM_USER_GUIDE.md, SPEC-SALES-002/003. Fixed 32 test failures (MockDbSetFactory FindAsync with EF convention PK detection). AsyncQueryTestHelpers shared infrastructure. Commit 93a9874. **BVT: 118/118 (100%)** |
 | 2026-02-18 | 14 | **Phase 8 → 80%** — 5 deferred items completed: (1) Swagger/OpenAPI enhanced with OpenApiInfo, JWT security def, XML comments in Program.cs + GenerateDocumentationFile in .csproj; (2) Created docs/architecture/ITSM_ARCHITECTURE.md (~350 lines); (3) XML docs added to CatalogController (class + 10 methods + [Tags] + [ProducesResponseType]) and GetChangeCalendar in ITSMControllers.cs; (4) Created SPEC-SYS-004-FeatureFlagManagement.md (~300 lines); (5) Status/integration comments added to ChatTimelineItem.tsx and AnalyticsEmbed.tsx |
+| 2026-02-19 | 15 | **Phase 10 AUDIT COMPLETE** — 4 parallel audit agents scanned full codebase: backend services (4 HIGH, 2 MED, 4 LOW), controllers/API (5 missing controllers, 14 BVT stubs, 15 mock methods), frontend (13 orphaned components, 31 Tailwind ITSM pages, dead itsmService.ts), tests/DB (87 excluded test files, 25.5% service coverage, 8.4% controller coverage). Phase 10 section added to remediation plan. 10 parallel fix agents deployed. |
 
 ---
 

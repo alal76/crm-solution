@@ -1,3 +1,6 @@
+// TODO: Integration target — account/contact create and edit pages
+// This component is currently orphaned (not imported by any page).
+
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 // Duplicate Detection Dialog - Shows potential duplicates when creating/updating records
