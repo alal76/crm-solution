@@ -1,8 +1,8 @@
 # CRM Solution - Master TODO List (Pending Items Only)
 
-> **Last Updated:** February 14, 2026
+> **Last Updated:** February 15, 2026
 > **Purpose:** Consolidated list of all PENDING enhancements and action items
-> **Total Pending Items:** 119
+> **Total Pending Items:** 109
 > **Completed items have been archived — see git history for prior state**
 
 ---
@@ -108,27 +108,27 @@
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| TODO-AUDIT-01 | P2 | Wire 16 orphaned ITSM components into ITSM pages (AssetLifecycleTracker, ChangeCalendar, ChangeImpactAnalysis, CIRelationshipDiagram, CITypeSelector, CMDBExplorer, CMDBSearchBar, IncidentTimeline, ITSMDashboard, KnowledgeArticleEditor, KnowledgeSearchBar, ProblemAnalysisPanel, ProblemKnownErrorList, ReleaseTracker, SLACountdownWidget, ServiceCatalogBrowser) |
+| ~~TODO-AUDIT-01~~ | ~~P2~~ | ✅ **DONE** — Wired 16 ITSM components into 9 pages (IncidentDetail, ProblemDetail, CMDBDetail, SLADashboard, ChangeDetail, KnowledgeArticleDetail, ServiceCatalog, ServiceCatalogRequestCreate, IncidentForm) |
 | TODO-AUDIT-02 | P3 | Evaluate ChatTimelineItem.tsx and AnalyticsEmbed.tsx — integrate or remove |
-| TODO-AUDIT-03 | P3 | Consolidate ModuleFieldSettings (3 copies in common/, settings/, ModuleFieldSettings/ → 1) |
+| ~~TODO-AUDIT-03~~ | ~~P3~~ | ✅ **DONE** — Deleted dead ModuleFieldSettingsTab.tsx (superseded by ModuleFieldSettingsTabNew.tsx) |
 
 ### 2.2 Orphaned Admin Pages (3)
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| TODO-AUDIT-04 | P2 | Add routes for DatabaseSettingsPage, DuplicateRulesPage, LeadScoreRulesPage in App.tsx |
+| ~~TODO-AUDIT-04~~ | ~~P2~~ | ✅ **DONE** — Added lazy imports + routes for /admin/database-settings, /admin/duplicate-rules, /admin/lead-score-rules |
 
 ### 2.3 Dead Custom Hooks (3)
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| TODO-AUDIT-05 | P3 | Remove dead hooks: useConcurrencyControl, useDuplicateDetection, useFormValidation |
+| ~~TODO-AUDIT-05~~ | ~~P3~~ | ✅ **DONE** — Deleted 3 hook files + removed barrel export |
 
 ### 2.4 ITSM Architecture Gap
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| TODO-AUDIT-06 | P2 | Create centralized itsmService.ts (ITSM pages use raw axios, rest of app uses typed services) |
+| ~~TODO-AUDIT-06~~ | ~~P2~~ | ✅ **DONE** — Created itsmService.ts with 8 typed service objects + ~15 interfaces |
 | TODO-AUDIT-07 | P3 | Migrate 31 ITSM pages from Tailwind CSS to MUI components |
 
 ### 2.5 Backend Test Coverage
@@ -136,14 +136,14 @@
 | ID | Priority | Description |
 |----|----------|-------------|
 | TODO-AUDIT-08 | P2 | Re-enable ~87 excluded test files in CRM.Tests.csproj (entity property drift, mock setup) |
-| TODO-AUDIT-09 | P3 | Add services for uncovered entities: Department, SalesQuota, SalesForecast, Conversation, EventAttendee |
-| TODO-AUDIT-10 | P3 | Remove legacy ITSM alias routes from App.tsx once no external links depend on them |
+| ~~TODO-AUDIT-09~~ | ~~P3~~ | ✅ **DONE** — Created 5 interfaces + 5 service implementations + 6 DbSets + DI registration |
+| ~~TODO-AUDIT-10~~ | ~~P3~~ | ✅ **DONE** — Removed 7 legacy alias routes (/incidents, /knowledge, /catalog) from App.tsx |
 
 ### 2.6 Remaining Service Gaps
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| TODO-AUDIT-11 | P2 | Complete DuplicateMergeService merge logic |
+| ~~TODO-AUDIT-11~~ | ~~P2~~ | ✅ **DONE** — Implemented RestoreEntityFromSnapshot, ReverseRelatedRecordRelinking, ReverseFieldOverrides in MergeService.cs |
 | TODO-AUDIT-12 | P2 | Align ITSM_ADVANCED entity models (28 services, 460+ build errors from property mismatches) |
 
 ---
@@ -406,7 +406,7 @@
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| TODO-GAP-01 | P1 | Complete DuplicateMergeService merge logic |
+| ~~TODO-GAP-01~~ | ~~P1~~ | ✅ **DONE** — MergeService UnmergeRecords fully implemented with reflection-based snapshot restoration |
 | TODO-GAP-02 | P1 | Implement lead conversion workflow end-to-end |
 | TODO-GAP-03 | P2 | Add sales forecasting service implementation |
 | TODO-GAP-04 | P2 | Implement territory-based lead assignment |
@@ -435,10 +435,10 @@
 | Priority | Count | Description |
 |----------|-------|-------------|
 | **P0 — Critical** | 0 | No critical blockers |
-| **P1 — High** | 7 | Core functionality gaps: validations, lead conversion, global search, inline editing, duplicate merge |
-| **P2 — Medium** | 65 | Service completion, testing, integrations, reporting, AI features |
-| **P3 — Low** | 47 | Portal, mobile, advanced customization, nice-to-have UX |
-| **Total** | **119** | |
+| **P1 — High** | 6 | Core functionality gaps: validations, lead conversion, global search, inline editing |
+| **P2 — Medium** | 61 | Service completion, testing, integrations, reporting, AI features |
+| **P3 — Low** | 42 | Portal, mobile, advanced customization, nice-to-have UX |
+| **Total** | **109** | |
 
 ### Recommended Implementation Order
 

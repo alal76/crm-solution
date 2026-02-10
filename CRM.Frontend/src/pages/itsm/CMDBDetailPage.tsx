@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { RelationshipDiagram, ServiceMap } from '../../components/itsm';
+import type { ConfigurationItemNode, ServiceNode } from '../../components/itsm';
 
 interface ConfigurationItemDetail {
   ciId: number;
@@ -17,12 +19,25 @@ const CMDBDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [ci, setCi] = useState<ConfigurationItemDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [relatedCIs, setRelatedCIs] = useState<ConfigurationItemNode[]>([]);
+  const [ciRelationships, setCiRelationships] = useState<any[]>([]);
+  const [serviceNodes, setServiceNodes] = useState<ServiceNode[]>([]);
 
   useEffect(() => {
     const load = async () => {
       try {
         const response = await axios.get(`/api/cmdb/${id}`);
         setCi(response.data);
+        // Load relationships and service map (best-effort)
+        const [relResp, svcResp] = await Promise.allSettled([
+          axios.get(`/api/cmdb/${id}/relationships`),
+          axios.get(`/api/cmdb/${id}/services`),
+        ]);
+        if (relResp.status === 'fulfilled') {
+          setRelatedCIs(relResp.value.data?.relatedCIs ?? []);
+          setCiRelationships(relResp.value.data?.relationships ?? []);
+        }
+        if (svcResp.status === 'fulfilled') setServiceNodes(svcResp.value.data ?? []);
       } catch (error) {
         console.error('Failed to load CI', error);
       } finally {
@@ -79,6 +94,33 @@ const CMDBDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* CI Relationship Diagram */}
+      <div className="mt-6">
+        <RelationshipDiagram
+          centerCI={{
+            id: ci.ciId,
+            name: ci.ciName,
+            ciNumber: ci.ciNumber,
+            ciType: 'server',
+            status: 'operational',
+            criticality: 'medium',
+          }}
+          relatedCIs={relatedCIs}
+          relationships={ciRelationships}
+        />
+      </div>
+
+      {/* Service Map */}
+      {serviceNodes.length > 0 && (
+        <div className="mt-6">
+          <ServiceMap
+            services={serviceNodes}
+            selectedServiceId={String(ci.ciId)}
+            showLegend
+          />
+        </div>
+      )}
     </div>
   );
 };

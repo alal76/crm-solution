@@ -145,6 +145,9 @@ public class MergeService : IMergeService
 
             foreach (var member in membersToRestore.ToList())
             {
+                // Ensure member has access to its parent group for master record ID
+                member.MergeGroup = mergeGroup;
+
                 var restored = await RestoreRecordFromSnapshotAsync(
                     member,
                     mergeGroup.EntityType,
@@ -156,6 +159,18 @@ public class MergeService : IMergeService
                     member.Status = MergeGroupMemberStatus.Unmerged;
                     member.UnmergedAt = DateTime.UtcNow;
                     result.RestoredRecordIds.Add(member.RecordId);
+
+                    // Reverse field overrides applied to the master during merge
+                    if (!string.IsNullOrEmpty(member.FieldValuesUsed))
+                    {
+                        await ReverseFieldOverridesOnMasterAsync(
+                            mergeGroup.MasterRecordId,
+                            mergeGroup.EntityType,
+                            member.FieldValuesUsed,
+                            cancellationToken);
+                    }
+
+                    result.RelatedRecordsRestored += await CountRelinkedRecordsAsync(member.RelinkedRecords);
                 }
             }
 
@@ -694,50 +709,495 @@ public class MergeService : IMergeService
             return false;
         }
 
+        try
+        {
+            switch (entityType)
+            {
+                case DuplicateEntityType.Lead:
+                    await RestoreLeadFromSnapshotAsync(member, cancellationToken);
+                    break;
+
+                case DuplicateEntityType.Contact:
+                    await RestoreContactFromSnapshotAsync(member, cancellationToken);
+                    break;
+
+                case DuplicateEntityType.Account:
+                    await RestoreAccountFromSnapshotAsync(member, cancellationToken);
+                    break;
+
+                default:
+                    _logger.LogWarning("Unsupported entity type {EntityType} for unmerge", entityType);
+                    return false;
+            }
+
+            // Reverse related record relinking if requested
+            if (restoreRelatedRecords && !string.IsNullOrEmpty(member.RelinkedRecords))
+            {
+                var masterRecordId = member.MergeGroup?.MasterRecordId ?? 0;
+                if (masterRecordId > 0)
+                {
+                    await ReverseRelinkRelatedRecordsAsync(
+                        member.RecordId,
+                        masterRecordId,
+                        entityType,
+                        member.RelinkedRecords,
+                        cancellationToken);
+                }
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to restore record {RecordId} from snapshot", member.RecordId);
+            return false;
+        }
+    }
+
+    private async Task RestoreLeadFromSnapshotAsync(
+        DuplicateMergeGroupMember member,
+        CancellationToken cancellationToken)
+    {
+        var lead = await _context.Set<Lead>().FindAsync(new object[] { member.RecordId }, cancellationToken);
+        if (lead == null)
+        {
+            _logger.LogWarning("Lead {RecordId} not found for unmerge", member.RecordId);
+            return;
+        }
+
+        // Deserialize snapshot to restore original field values
+        var snapshot = JsonSerializer.Deserialize<JsonElement>(member.RecordSnapshot!);
+        RestoreFieldsFromSnapshot(lead, snapshot, GetMergeableFields(DuplicateEntityType.Lead));
+
+        // Clear merge flags
+        lead.IsDeleted = false;
+        lead.IsMergedDuplicate = false;
+        lead.MergedIntoId = null;
+        lead.MergeGroupId = null;
+        lead.MergedAt = null;
+        lead.UpdatedAt = DateTime.UtcNow;
+    }
+
+    private async Task RestoreContactFromSnapshotAsync(
+        DuplicateMergeGroupMember member,
+        CancellationToken cancellationToken)
+    {
+        var contact = await _context.Set<Contact>().FindAsync(new object[] { member.RecordId }, cancellationToken);
+        if (contact == null)
+        {
+            _logger.LogWarning("Contact {RecordId} not found for unmerge", member.RecordId);
+            return;
+        }
+
+        // Deserialize snapshot to restore original field values
+        var snapshot = JsonSerializer.Deserialize<JsonElement>(member.RecordSnapshot!);
+        RestoreFieldsFromSnapshot(contact, snapshot, GetMergeableFields(DuplicateEntityType.Contact));
+
+        // Restore original status from snapshot if available
+        if (snapshot.TryGetProperty("Status", out var statusProp))
+        {
+            if (Enum.TryParse<ContactStatus>(statusProp.GetRawText().Trim('"'), true, out var originalStatus))
+            {
+                contact.Status = originalStatus;
+            }
+            else if (statusProp.ValueKind == JsonValueKind.Number)
+            {
+                contact.Status = (ContactStatus)statusProp.GetInt32();
+            }
+        }
+        else
+        {
+            contact.Status = ContactStatus.Active;
+        }
+
+        // Clear merge flags
+        contact.IsMergedDuplicate = false;
+        contact.MergedIntoId = null;
+        contact.MergeGroupId = null;
+        contact.MergedAt = null;
+    }
+
+    private async Task RestoreAccountFromSnapshotAsync(
+        DuplicateMergeGroupMember member,
+        CancellationToken cancellationToken)
+    {
+        var account = await _context.Set<Account>().FindAsync(new object[] { member.RecordId }, cancellationToken);
+        if (account == null)
+        {
+            _logger.LogWarning("Account {RecordId} not found for unmerge", member.RecordId);
+            return;
+        }
+
+        // Deserialize snapshot to restore original field values
+        var snapshot = JsonSerializer.Deserialize<JsonElement>(member.RecordSnapshot!);
+        RestoreFieldsFromSnapshot(account, snapshot, GetMergeableFields(DuplicateEntityType.Account));
+
+        // Clear merge flags
+        account.IsDeleted = false;
+        account.IsMergedDuplicate = false;
+        account.MergedIntoId = null;
+        account.MergeGroupId = null;
+        account.MergedAt = null;
+        account.UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Restores specific field values on an entity from a JSON snapshot.
+    /// Only restores the mergeable fields to avoid overwriting system fields.
+    /// </summary>
+    private static void RestoreFieldsFromSnapshot(object entity, JsonElement snapshot, List<string> fieldNames)
+    {
+        var entityType = entity.GetType();
+
+        foreach (var fieldName in fieldNames)
+        {
+            if (!snapshot.TryGetProperty(fieldName, out var jsonValue))
+                continue;
+
+            var property = entityType.GetProperty(fieldName);
+            if (property == null || !property.CanWrite)
+                continue;
+
+            try
+            {
+                if (jsonValue.ValueKind == JsonValueKind.Null)
+                {
+                    // Only set null if property is nullable
+                    if (Nullable.GetUnderlyingType(property.PropertyType) != null || !property.PropertyType.IsValueType)
+                    {
+                        property.SetValue(entity, null);
+                    }
+                }
+                else if (property.PropertyType == typeof(string))
+                {
+                    property.SetValue(entity, jsonValue.GetString());
+                }
+                else if (property.PropertyType == typeof(int) || property.PropertyType == typeof(int?))
+                {
+                    property.SetValue(entity, jsonValue.GetInt32());
+                }
+                else if (property.PropertyType == typeof(decimal) || property.PropertyType == typeof(decimal?))
+                {
+                    property.SetValue(entity, jsonValue.GetDecimal());
+                }
+                else if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(bool?))
+                {
+                    property.SetValue(entity, jsonValue.GetBoolean());
+                }
+                else if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?))
+                {
+                    property.SetValue(entity, jsonValue.GetDateTime());
+                }
+                else
+                {
+                    // Fallback: deserialize the JSON element to the target type
+                    var value = JsonSerializer.Deserialize(jsonValue.GetRawText(), property.PropertyType);
+                    property.SetValue(entity, value);
+                }
+            }
+            catch
+            {
+                // Skip fields that can't be deserialized — better to partially restore than fail entirely
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reverses related record relinking by moving records back from the master to the original source.
+    /// Uses the RelinkedRecords JSON stored during merge to know what was moved.
+    /// </summary>
+    private async Task ReverseRelinkRelatedRecordsAsync(
+        int sourceRecordId,
+        int masterRecordId,
+        DuplicateEntityType entityType,
+        string relinkedRecordsJson,
+        CancellationToken cancellationToken)
+    {
+        Dictionary<string, int>? relinked;
+        try
+        {
+            relinked = JsonSerializer.Deserialize<Dictionary<string, int>>(relinkedRecordsJson);
+        }
+        catch
+        {
+            _logger.LogWarning(
+                "Could not deserialize RelinkedRecords for record {RecordId}", sourceRecordId);
+            return;
+        }
+
+        if (relinked == null || relinked.Count == 0)
+            return;
+
         switch (entityType)
         {
             case DuplicateEntityType.Lead:
-                var lead = await _context.Set<Lead>().FindAsync(new object[] { member.RecordId }, cancellationToken);
-                if (lead != null)
+                if (relinked.ContainsKey("Notes") && relinked["Notes"] > 0)
                 {
-                    lead.IsDeleted = false;
-                    lead.IsMergedDuplicate = false;
-                    lead.MergedIntoId = null;
-                    lead.MergeGroupId = null;
-                    lead.MergedAt = null;
+                    // Notes that were relinked have EntityType=Lead and EntityId=masterRecordId
+                    // We relink the ones that were originally on the source (up to the count stored)
+                    var notes = await _context.Set<Note>()
+                        .Where(n => n.EntityType == "Lead" && n.EntityId == masterRecordId)
+                        .Take(relinked["Notes"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var note in notes)
+                    {
+                        note.EntityId = sourceRecordId;
+                    }
+                }
+
+                if (relinked.ContainsKey("Opportunities") && relinked["Opportunities"] > 0)
+                {
+                    var opportunities = await _context.Set<Opportunity>()
+                        .Where(o => o.LeadId == masterRecordId)
+                        .Take(relinked["Opportunities"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var opp in opportunities)
+                    {
+                        opp.LeadId = sourceRecordId;
+                    }
                 }
                 break;
 
             case DuplicateEntityType.Contact:
-                var contact = await _context.Set<Contact>().FindAsync(new object[] { member.RecordId }, cancellationToken);
-                if (contact != null)
+                if (relinked.ContainsKey("AccountContacts") && relinked["AccountContacts"] > 0)
                 {
-                    contact.Status = ContactStatus.Active;
-                    contact.IsMergedDuplicate = false;
-                    contact.MergedIntoId = null;
-                    contact.MergeGroupId = null;
-                    contact.MergedAt = null;
+                    var accountContacts = await _context.Set<AccountContact>()
+                        .Where(ac => ac.ContactId == masterRecordId)
+                        .Take(relinked["AccountContacts"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var ac in accountContacts)
+                    {
+                        // Only relink if the source doesn't already have this relationship
+                        var exists = await _context.Set<AccountContact>()
+                            .AnyAsync(x => x.ContactId == sourceRecordId && x.AccountId == ac.AccountId, cancellationToken);
+                        if (!exists)
+                        {
+                            ac.ContactId = sourceRecordId;
+                        }
+                    }
+                }
+
+                if (relinked.ContainsKey("Interactions") && relinked["Interactions"] > 0)
+                {
+                    var interactions = await _context.Set<Interaction>()
+                        .Where(i => i.ContactId == masterRecordId)
+                        .Take(relinked["Interactions"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var interaction in interactions)
+                    {
+                        interaction.ContactId = sourceRecordId;
+                    }
+                }
+
+                if (relinked.ContainsKey("Activities") && relinked["Activities"] > 0)
+                {
+                    var activities = await _context.Set<Activity>()
+                        .Where(a => a.ContactId == masterRecordId)
+                        .Take(relinked["Activities"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var activity in activities)
+                    {
+                        activity.ContactId = sourceRecordId;
+                    }
+                }
+
+                if (relinked.ContainsKey("Notes") && relinked["Notes"] > 0)
+                {
+                    var notes = await _context.Set<Note>()
+                        .Where(n => n.EntityType == "Contact" && n.EntityId == masterRecordId)
+                        .Take(relinked["Notes"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var note in notes)
+                    {
+                        note.EntityId = sourceRecordId;
+                    }
                 }
                 break;
 
             case DuplicateEntityType.Account:
-                var account = await _context.Set<Account>().FindAsync(new object[] { member.RecordId }, cancellationToken);
-                if (account != null)
+                if (relinked.ContainsKey("Opportunities") && relinked["Opportunities"] > 0)
                 {
-                    account.IsDeleted = false;
-                    account.IsMergedDuplicate = false;
-                    account.MergedIntoId = null;
-                    account.MergeGroupId = null;
-                    account.MergedAt = null;
+                    var opportunities = await _context.Set<Opportunity>()
+                        .Where(o => o.AccountId == masterRecordId)
+                        .Take(relinked["Opportunities"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var opp in opportunities)
+                    {
+                        opp.AccountId = sourceRecordId;
+                    }
+                }
+
+                if (relinked.ContainsKey("Contacts") && relinked["Contacts"] > 0)
+                {
+                    var contacts = await _context.Set<Contact>()
+                        .Where(c => c.CustomerId == masterRecordId)
+                        .Take(relinked["Contacts"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var contact in contacts)
+                    {
+                        contact.CustomerId = sourceRecordId;
+                    }
+                }
+
+                if (relinked.ContainsKey("Interactions") && relinked["Interactions"] > 0)
+                {
+                    var interactions = await _context.Set<Interaction>()
+                        .Where(i => i.AccountId == masterRecordId)
+                        .Take(relinked["Interactions"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var interaction in interactions)
+                    {
+                        interaction.AccountId = sourceRecordId;
+                    }
+                }
+
+                if (relinked.ContainsKey("Activities") && relinked["Activities"] > 0)
+                {
+                    var activities = await _context.Set<Activity>()
+                        .Where(a => a.AccountId == masterRecordId)
+                        .Take(relinked["Activities"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var activity in activities)
+                    {
+                        activity.AccountId = sourceRecordId;
+                    }
+                }
+
+                if (relinked.ContainsKey("Notes") && relinked["Notes"] > 0)
+                {
+                    var notes = await _context.Set<Note>()
+                        .Where(n => n.EntityType == "Account" && n.EntityId == masterRecordId)
+                        .Take(relinked["Notes"])
+                        .ToListAsync(cancellationToken);
+                    foreach (var note in notes)
+                    {
+                        note.EntityId = sourceRecordId;
+                    }
                 }
                 break;
         }
 
-        // Optionally restore related records (move them back from master)
-        // This is complex and may need business logic decisions
-        // For now, we just restore the record itself
+        await _context.SaveChangesAsync(cancellationToken);
 
-        return true;
+        _logger.LogInformation(
+            "Reversed related record relinking for {EntityType} record {RecordId} (master: {MasterId})",
+            entityType, sourceRecordId, masterRecordId);
+    }
+
+    /// <summary>
+    /// Reverses field overrides that were applied to the master record during merge.
+    /// FieldValuesUsed stores which fields were copied from a source record to the master.
+    /// Since we don't have the master's original pre-merge values, we null out the overridden
+    /// fields on the master — the source record's snapshot already restored those values
+    /// back onto the source entity.
+    /// </summary>
+    private async Task ReverseFieldOverridesOnMasterAsync(
+        int masterRecordId,
+        DuplicateEntityType entityType,
+        string fieldValuesUsedJson,
+        CancellationToken cancellationToken)
+    {
+        Dictionary<string, string>? fieldsUsed;
+        try
+        {
+            fieldsUsed = JsonSerializer.Deserialize<Dictionary<string, string>>(fieldValuesUsedJson);
+        }
+        catch
+        {
+            _logger.LogWarning(
+                "Could not deserialize FieldValuesUsed for master record {MasterId}", masterRecordId);
+            return;
+        }
+
+        if (fieldsUsed == null || fieldsUsed.Count == 0)
+            return;
+
+        object? masterEntity = entityType switch
+        {
+            DuplicateEntityType.Lead => await _context.Set<Lead>()
+                .FindAsync(new object[] { masterRecordId }, cancellationToken),
+            DuplicateEntityType.Contact => await _context.Set<Contact>()
+                .FindAsync(new object[] { masterRecordId }, cancellationToken),
+            DuplicateEntityType.Account => await _context.Set<Account>()
+                .FindAsync(new object[] { masterRecordId }, cancellationToken),
+            _ => null
+        };
+
+        if (masterEntity == null)
+        {
+            _logger.LogWarning("Master record {MasterId} not found for field override reversal", masterRecordId);
+            return;
+        }
+
+        // Check if the master member has a snapshot we can use to restore original values
+        var masterMember = await _context.Set<DuplicateMergeGroupMember>()
+            .FirstOrDefaultAsync(m => m.RecordId == masterRecordId && m.IsMaster && m.RecordSnapshot != null,
+                cancellationToken);
+
+        if (masterMember?.RecordSnapshot != null)
+        {
+            // We have a master snapshot — restore only the overridden fields from it
+            try
+            {
+                var masterSnapshot = JsonSerializer.Deserialize<JsonElement>(masterMember.RecordSnapshot);
+                var overriddenFields = fieldsUsed.Keys.ToList();
+                RestoreFieldsFromSnapshot(masterEntity, masterSnapshot, overriddenFields);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to restore master fields from snapshot, clearing overridden fields instead");
+                ClearOverriddenFields(masterEntity, fieldsUsed.Keys);
+            }
+        }
+        else
+        {
+            // No master snapshot available — clear the overridden fields to null
+            // This is the safe fallback: we can't know the master's original values
+            ClearOverriddenFields(masterEntity, fieldsUsed.Keys);
+        }
+
+        _logger.LogInformation(
+            "Reversed {Count} field override(s) on master record {MasterId}",
+            fieldsUsed.Count, masterRecordId);
+    }
+
+    /// <summary>
+    /// Clears field values on an entity by setting them to null (for nullable/string properties).
+    /// Used as a fallback when the master's original values are not available.
+    /// </summary>
+    private static void ClearOverriddenFields(object entity, IEnumerable<string> fieldNames)
+    {
+        var entityType = entity.GetType();
+        foreach (var fieldName in fieldNames)
+        {
+            var property = entityType.GetProperty(fieldName);
+            if (property == null || !property.CanWrite) continue;
+
+            if (property.PropertyType == typeof(string) ||
+                Nullable.GetUnderlyingType(property.PropertyType) != null)
+            {
+                property.SetValue(entity, null);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Counts total relinked records from the stored JSON.
+    /// </summary>
+    private static Task<int> CountRelinkedRecordsAsync(string? relinkedRecordsJson)
+    {
+        if (string.IsNullOrEmpty(relinkedRecordsJson))
+            return Task.FromResult(0);
+
+        try
+        {
+            var relinked = JsonSerializer.Deserialize<Dictionary<string, int>>(relinkedRecordsJson);
+            return Task.FromResult(relinked?.Values.Sum() ?? 0);
+        }
+        catch
+        {
+            return Task.FromResult(0);
+        }
     }
 
     private async Task<List<RecordForPreview>> LoadRecordsForPreviewAsync(

@@ -191,6 +191,18 @@ public interface ICrmDbContext
     DbSet<WorkflowLog> WorkflowLogs { get; }
     DbSet<WorkflowTrigger> WorkflowTriggers { get; }
 
+    // Sales Performance
+    DbSet<SalesQuota> SalesQuotas { get; }
+    DbSet<SalesForecast> SalesForecasts { get; }
+    DbSet<ForecastLineItem> ForecastLineItems { get; }
+    DbSet<ForecastHistory> ForecastHistories { get; }
+
+    // Communication
+    DbSet<Conversation> Conversations { get; }
+
+    // Event Attendees
+    DbSet<EventAttendee> EventAttendees { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

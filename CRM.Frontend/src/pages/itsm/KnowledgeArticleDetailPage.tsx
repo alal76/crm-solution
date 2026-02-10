@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { ArticleFeedbackWidget } from '../../components/itsm';
 
 interface Article {
   articleId: number;
@@ -83,6 +84,19 @@ export const KnowledgeArticleDetailPage: React.FC = () => {
             </button>
           </div>
           {feedbackGiven && <p className="text-sm text-gray-600 mt-3">Thank you for your feedback!</p>}
+        </div>
+
+        {/* Enhanced Article Feedback Widget */}
+        <div className="mt-6">
+          <ArticleFeedbackWidget
+            articleId={Number(id)}
+            showStats
+            showRating
+            onSubmitFeedback={async (feedback) => {
+              await axios.post(`/api/knowledge/${id}/feedback`, feedback);
+              setFeedbackGiven(true);
+            }}
+          />
         </div>
       </div>
     </div>

@@ -50,7 +50,7 @@ These items were identified during completed phases but deferred for future work
 
 | Item | Description |
 |------|-------------|
-| DuplicateMergeService | Complete merge logic (partial implementation exists) |
+| ~~DuplicateMergeService~~ | ✅ **DONE** — UnmergeRecords fully implemented with RestoreEntityFromSnapshot, ReverseRelatedRecordRelinking, ReverseFieldOverrides |
 | ITSM_ADVANCED Services | 28 services with 460+ build errors — entity model alignment needed. Flag in `Directory.Build.props` (commented out) |
 
 ### From Phase 3: Controllers
@@ -64,7 +64,7 @@ These items were identified during completed phases but deferred for future work
 
 | Item | Description |
 |------|-------------|
-| 8 ITSM Advanced Components | SLACountdownWidget, ImpactUrgencyMatrix, ApprovalWorkflowPanel, RelationshipDiagram, ChangeCalendar, KnowledgeSearchBar, ArticleFeedbackWidget, ServiceCatalogBrowser |
+| ~~8 ITSM Advanced Components~~ | ✅ **DONE** — SLACountdownWidget, ImpactUrgencyMatrix, ApprovalWorkflowPanel, RelationshipDiagram, ChangeCalendar, KnowledgeSearchBar, ArticleFeedbackWidget, ServiceCatalogBrowser — all wired into pages |
 | Frontend Unit Tests (Jest) | Not yet created |
 | E2E Tests (Playwright) | Not yet created |
 
@@ -80,15 +80,16 @@ These items were identified during completed phases but deferred for future work
 
 | Item | Description |
 |------|-------------|
-| 16 orphaned ITSM components | Not wired into pages (see TODO-AUDIT-01) |
+| ~~16 orphaned ITSM components~~ | ✅ **DONE** — Wired into 9 ITSM pages (see TODO-AUDIT-01) |
 | 2 orphaned analytics components | ChatTimelineItem.tsx, AnalyticsEmbed.tsx (see TODO-AUDIT-02) |
-| 3 duplicate ModuleFieldSettings | common/, settings/, ModuleFieldSettings/ (see TODO-AUDIT-03) |
-| 3 orphaned admin pages | DatabaseSettingsPage, DuplicateRulesPage, LeadScoreRulesPage — no routes (see TODO-AUDIT-04) |
-| 3 dead hooks | useConcurrencyControl, useDuplicateDetection, useFormValidation (see TODO-AUDIT-05) |
-| ITSM architecture gap | 31 pages use Tailwind + raw axios; no itsmService.ts (see TODO-AUDIT-06/07) |
-| Legacy ITSM routes | Alias redirects in App.tsx (see TODO-AUDIT-10) |
+| ~~3 duplicate ModuleFieldSettings~~ | ✅ **DONE** — Deleted dead ModuleFieldSettingsTab.tsx (see TODO-AUDIT-03) |
+| ~~3 orphaned admin pages~~ | ✅ **DONE** — Added routes in App.tsx (see TODO-AUDIT-04) |
+| ~~3 dead hooks~~ | ✅ **DONE** — Deleted files + removed barrel export (see TODO-AUDIT-05) |
+| ~~ITSM architecture gap~~ | ✅ **DONE** — Created itsmService.ts with 8 typed services (see TODO-AUDIT-06) |
+| ITSM Tailwind → MUI migration | 31 pages still use Tailwind CSS (see TODO-AUDIT-07) |
+| ~~Legacy ITSM routes~~ | ✅ **DONE** — Removed 7 alias routes from App.tsx (see TODO-AUDIT-10) |
 | ~87 excluded test files | In CRM.Tests.csproj via `<Compile Remove>` (see TODO-AUDIT-08) |
-| 5 entities without services | Department, SalesQuota, SalesForecast, Conversation, EventAttendee (see TODO-AUDIT-09) |
+| ~~5 entities without services~~ | ✅ **DONE** — 5 interfaces + 5 implementations + 6 DbSets + DI (see TODO-AUDIT-09) |
 
 ---
 
@@ -171,11 +172,14 @@ These inline TODO comments remain in source code:
 
 ### Immediate (Next Session)
 
-- [ ] Wire 16 orphaned ITSM components into ITSM pages
-- [ ] Wire 3 orphaned admin pages (DatabaseSettings, DuplicateRules, LeadScoreRules) into routes
-- [ ] Remove 3 dead hooks (useConcurrencyControl, useDuplicateDetection, useFormValidation)
-- [ ] Consolidate ModuleFieldSettings (3 copies → 1)
-- [ ] Create itsmService.ts (centralized ITSM API layer)
+- [x] Wire 16 orphaned ITSM components into ITSM pages
+- [x] Wire 3 orphaned admin pages (DatabaseSettings, DuplicateRules, LeadScoreRules) into routes
+- [x] Remove 3 dead hooks (useConcurrencyControl, useDuplicateDetection, useFormValidation)
+- [x] Consolidate ModuleFieldSettings (3 copies → 1)
+- [x] Create itsmService.ts (centralized ITSM API layer)
+- [x] Create 5 missing entity services (Department, SalesQuota, SalesForecast, Conversation, EventAttendee)
+- [x] Complete MergeService unmerge logic (RestoreEntityFromSnapshot + helpers)
+- [x] Remove 7 legacy ITSM alias routes from App.tsx
 
 ### Medium-term
 
@@ -183,6 +187,7 @@ These inline TODO comments remain in source code:
 - [ ] Phase 7: AI/Analytics enhancements
 - [ ] Phase 8: Documentation
 - [ ] Re-enable excluded test files (~87 files)
+- [ ] Migrate 31 ITSM pages from Tailwind to MUI
 
 ---
 
@@ -199,6 +204,7 @@ These inline TODO comments remain in source code:
 | 2026-02-11 | 7 | **Phase 4 COMPLETE** — Frontend services (4) + pages (3) |
 | 2026-02-13 | 8 | **Phase 9 COMPLETE** — Multi-agent audit, DI fix, frontend cleanup |
 | 2026-02-14 | 9 | Documentation cleanup — archived completed items |
+| 2026-02-15 | 10 | **Audit remediation sprint** — Dead code cleanup (4 files deleted), admin page wiring (3 routes), itsmService.ts created, 16 ITSM components wired into 9 pages, 5 missing entity services (10 new files), MergeService unmerge completed, legacy routes removed |
 
 ---
 
