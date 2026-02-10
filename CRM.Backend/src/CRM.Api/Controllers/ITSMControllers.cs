@@ -144,7 +144,8 @@ public class ProblemsController : ControllerBase
     /// </summary>
     /// <param name="id">The problem ID</param>
     /// <returns>List of related incidents</returns>
-    [HttpGet("{id}/related-incidents")]
+    [HttpGet("{id:int}/related-incidents")]
+    [HttpGet("{id:int}/incidents")]
     [ProducesResponseType(typeof(IEnumerable<IncidentDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<IncidentDto>>> GetRelatedIncidents(int id)
     {
@@ -205,6 +206,7 @@ public class CMDBController : ControllerBase
     /// <param name="dto">Configuration Item details</param>
     /// <returns>The created CI</returns>
     [HttpPost]
+    [HttpPost("cis")]
     [ProducesResponseType(typeof(ConfigurationItemDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ConfigurationItemDto>> CreateCI([FromBody] CreateCIDto dto)
@@ -218,7 +220,8 @@ public class CMDBController : ControllerBase
     /// </summary>
     /// <param name="id">The CI ID</param>
     /// <returns>The CI details</returns>
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
+    [HttpGet("cis/{id:int}")]
     [ProducesResponseType(typeof(ConfigurationItemDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ConfigurationItemDto>> GetCI(int id)
@@ -235,13 +238,14 @@ public class CMDBController : ControllerBase
     /// <param name="pageSize">Page size (default: 20)</param>
     /// <returns>List of matching CIs</returns>
     [HttpGet]
+    [HttpGet("cis")]
     [ProducesResponseType(typeof(IEnumerable<ConfigurationItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ConfigurationItemDto>>> SearchCIs(
-        [FromQuery] string searchTerm,
+        [FromQuery] string? searchTerm,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20)
     {
-        var cis = await _cmdbService.SearchCIsAsync(searchTerm, null, pageNumber, pageSize);
+        var cis = await _cmdbService.SearchCIsAsync(searchTerm ?? string.Empty, null, pageNumber, pageSize);
         return Ok(cis);
     }
 
@@ -251,7 +255,8 @@ public class CMDBController : ControllerBase
     /// <param name="id">The CI ID</param>
     /// <param name="dto">Updated CI data</param>
     /// <returns>The updated CI</returns>
-    [HttpPut("{id}")]
+    [HttpPut("{id:int}")]
+    [HttpPut("cis/{id:int}")]
     [ProducesResponseType(typeof(ConfigurationItemDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ConfigurationItemDto>> UpdateCI(int id, [FromBody] CreateCIDto dto)
@@ -281,7 +286,9 @@ public class CMDBController : ControllerBase
     /// </summary>
     /// <param name="id">The CI ID</param>
     /// <returns>List of related CIs</returns>
-    [HttpGet("{id}/related")]
+    [HttpGet("{id:int}/related")]
+    [HttpGet("cis/{id:int}/relationships")]
+    [HttpGet("cis/{id:int}/related")]
     [ProducesResponseType(typeof(IEnumerable<ConfigurationItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ConfigurationItemDto>>> GetRelatedCIs(int id)
     {
@@ -297,7 +304,9 @@ public class CMDBController : ControllerBase
     /// </remarks>
     /// <param name="id">The CI ID</param>
     /// <returns>List of impact descriptions</returns>
-    [HttpGet("{id}/impact-analysis")]
+    [HttpGet("{id:int}/impact-analysis")]
+    [HttpGet("cis/{id:int}/impact")]
+    [HttpGet("cis/{id:int}/impact-analysis")]
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<string>>> GetImpactAnalysis(int id)
     {
@@ -311,7 +320,8 @@ public class CMDBController : ControllerBase
     /// <param name="id">The CI ID</param>
     /// <param name="depth">Depth of relationships to include (default: 2)</param>
     /// <returns>Service map with root CI and related CIs</returns>
-    [HttpGet("{id}/service-map")]
+    [HttpGet("{id:int}/service-map")]
+    [HttpGet("cis/{id:int}/service-map")]
     [ProducesResponseType(typeof(ServiceMapDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ServiceMapDto>> GetServiceMap(int id, [FromQuery] int depth = 2)
     {

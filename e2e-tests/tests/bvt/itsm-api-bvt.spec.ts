@@ -32,8 +32,8 @@ test.beforeAll(async ({ playwright }) => {
   try {
     const authResponse = await apiContext.post('/api/auth/login', {
       data: {
-        email: 'admin@crm-solution.com',
-        password: 'Admin123!',
+        email: 'admin@crm.local',
+        password: 'Admin@123',
       },
     });
     
