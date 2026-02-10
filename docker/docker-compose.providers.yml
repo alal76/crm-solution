@@ -170,11 +170,6 @@ services:
     networks:
       - crm-network
 
-networks:
-  crm-network:
-    external: true
-
-
   # ═══════════════════════════════════════════════════════════════════════════
   # CHATWOOT - Self-Hosted Live Chat & Customer Engagement
   # https://chatwoot.com - Open-source customer engagement platform
@@ -380,7 +375,7 @@ networks:
       - TALISMAN_ENABLED=false
       - WTF_CSRF_ENABLED=false
       - ENABLE_PROXY_FIX=true
-      - FEATURE_FLAGS={"EMBEDDED_SUPERSET": true, "DASHBOARD_RBAC": true}
+      - 'FEATURE_FLAGS={"EMBEDDED_SUPERSET": true, "DASHBOARD_RBAC": true}'
     volumes:
       - superset-data:/app/superset_home
     ports:
@@ -486,3 +481,7 @@ networks:
       retries: 5
     networks:
       - crm-network
+
+networks:
+  crm-network:
+    external: true
