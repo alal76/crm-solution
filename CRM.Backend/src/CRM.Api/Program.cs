@@ -428,6 +428,7 @@ builder.Services.AddScoped<ICommunicationService, CommunicationService>();
 builder.Services.AddScoped<IImportExportService, ImportExportService>();
 builder.Services.AddScoped<IWebhookService, WebhookService>();
 // Phase 2B services - Lead Management, Form Builder, Territory Management, Approval Workflows
+builder.Services.AddScoped<ILeadService, LeadService>();
 builder.Services.AddScoped<ILeadRoutingService, LeadRoutingService>();
 builder.Services.AddScoped<IFormBuilderService, FormBuilderService>();
 builder.Services.AddScoped<ITerritoryService, TerritoryService>();

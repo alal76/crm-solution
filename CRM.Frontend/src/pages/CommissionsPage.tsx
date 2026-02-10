@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
@@ -163,6 +164,8 @@ interface TierForm {
 // ============================================================================
 
 function CommissionsPage() {
+  const { user } = useAuth();
+
   // Main tabs: 0 = Commissions, 1 = Plans, 2 = Statistics, 3 = Leaderboard
   const [mainTab, setMainTab] = useState(0);
   
@@ -428,7 +431,7 @@ function CommissionsPage() {
 
   const handleApprove = async (commission: Commission) => {
     try {
-      await commissionService.approveCommission(commission.id, 1); // TODO: Get current user ID
+      await commissionService.approveCommission(commission.id, user?.id ?? 0);
       setSuccessMessage('Commission approved');
       fetchCommissions();
       fetchStatistics();

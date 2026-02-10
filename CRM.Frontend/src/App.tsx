@@ -559,6 +559,16 @@ function ThemedApp() {
                 }
               />
               <Route
+                path="/subscriptions"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute>
+                      <SubscriptionsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/teams"
                 element={
                   <ProtectedRoute>

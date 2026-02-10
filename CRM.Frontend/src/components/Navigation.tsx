@@ -240,6 +240,7 @@ function NavigationContent() {
     'invoices': { label: 'Invoices', icon: InvoiceIcon, path: '/invoices', menuName: 'Invoices' },
     'payments': { label: 'Payments', icon: PaymentIcon, path: '/payments', menuName: 'Payments' },
     'orders': { label: 'Orders', icon: OrderIcon, path: '/orders', menuName: 'Orders' },
+    'subscriptions': { label: 'Subscriptions', icon: SubscriptionIcon, path: '/subscriptions', menuName: 'Subscriptions' },
     'teams': { label: 'Teams', icon: GroupsIcon, path: '/teams', menuName: 'Teams' },
     'my-queue': { label: 'My Queue', icon: TaskIcon, path: '/my-queue', menuName: 'MyQueue' },
     'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
@@ -281,7 +282,7 @@ function NavigationContent() {
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'customers', 'customer-overview', 'contacts', 'relationships', 'leads', 'opportunities',
     'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'quotes',
-    'contracts', 'invoices', 'payments', 'orders', 'teams',
+    'contracts', 'invoices', 'payments', 'orders', 'commissions', 'subscriptions', 'teams',
     'territories', 'lead-routing', 'approvals',
     'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics',
     'my-queue', 'activities', 'notes', 'communications', 'interactions'

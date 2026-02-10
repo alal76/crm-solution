@@ -45,7 +45,7 @@ import ActionButton from '../components/common/ActionButton';
 import { DialogHeader } from '../components/common/DialogHeader';
 import TabPanel from '../components/common/TabPanel';
 import { EnhancedEmptyState } from '../components/common/EnhancedEmptyState';
-import { EntitySelect } from '../components/common/EntitySelect';
+import EntitySelect from '../components/EntitySelect';
 import { useApiState } from '../hooks/useApiState';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
