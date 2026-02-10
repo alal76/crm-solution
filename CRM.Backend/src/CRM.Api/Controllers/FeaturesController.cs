@@ -19,6 +19,7 @@ using Microsoft.FeatureManagement;
 using CRM.Core.Entities;
 using CRM.Core.Features;
 using CRM.Api.Authorization;
+using CRM.Infrastructure.Factories;
 
 namespace CRM.Api.Controllers;
 
@@ -34,15 +35,18 @@ public class FeaturesController : ControllerBase
 {
     private readonly IFeatureManager _featureManager;
     private readonly IConfiguration _configuration;
+    private readonly AdapterRegistry _adapterRegistry;
     private readonly ILogger<FeaturesController> _logger;
 
     public FeaturesController(
         IFeatureManager featureManager,
         IConfiguration configuration,
+        AdapterRegistry adapterRegistry,
         ILogger<FeaturesController> logger)
     {
         _featureManager = featureManager;
         _configuration = configuration;
+        _adapterRegistry = adapterRegistry;
         _logger = logger;
     }
 
@@ -161,21 +165,33 @@ public class FeaturesController : ControllerBase
     {
         try
         {
-            // TODO: Implement provider health checks in Phase 1
-            // This will ping each active provider and report health
-            var health = new ProviderHealthResponse
+            var checkedAt = DateTime.UtcNow;
+            var categories = new[] { "Chat", "Search", "Notifications", "Analytics", "Signatures", "Integrations" };
+            var health = new ProviderHealthResponse { CheckedAt = checkedAt };
+
+            foreach (var category in categories)
             {
-                CheckedAt = DateTime.UtcNow,
-                Providers = new Dictionary<string, ProviderHealthStatus>
+                var active = _adapterRegistry.GetActiveAdapter(category);
+                if (active != null)
                 {
-                    { "Chat", new ProviderHealthStatus { Type = GetProviderType("Chat"), Status = "Healthy", LastCheck = DateTime.UtcNow } },
-                    { "Search", new ProviderHealthStatus { Type = GetProviderType("Search"), Status = "Healthy", LastCheck = DateTime.UtcNow } },
-                    { "Notifications", new ProviderHealthStatus { Type = GetProviderType("Notifications"), Status = "Healthy", LastCheck = DateTime.UtcNow } },
-                    { "Analytics", new ProviderHealthStatus { Type = GetProviderType("Analytics"), Status = "Healthy", LastCheck = DateTime.UtcNow } },
-                    { "Signatures", new ProviderHealthStatus { Type = GetProviderType("Signatures"), Status = "Healthy", LastCheck = DateTime.UtcNow } },
-                    { "Integrations", new ProviderHealthStatus { Type = GetProviderType("Integrations"), Status = "Healthy", LastCheck = DateTime.UtcNow } }
+                    health.Providers[category] = new ProviderHealthStatus
+                    {
+                        Type = active.ProviderName,
+                        Status = active.Status.ToString(),
+                        LastCheck = active.LastHealthCheck ?? checkedAt,
+                        ErrorMessage = active.LastFailureMessage
+                    };
                 }
-            };
+                else
+                {
+                    health.Providers[category] = new ProviderHealthStatus
+                    {
+                        Type = GetProviderType(category),
+                        Status = "Unknown",
+                        LastCheck = checkedAt
+                    };
+                }
+            }
 
             return Ok(health);
         }

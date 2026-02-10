@@ -178,19 +178,62 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<IEnumerable<KnowledgeArticleDto>> GetSuggestedArticlesAsync(string incidentDescription)
     {
-        // Simplified: return top 5 most viewed articles matching keywords
-        // TODO: Implement AI-powered semantic search based on incident description
         var context = _dbContextResolver.ResolveContext();
-        
-        var keywords = incidentDescription?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
-        
-        var articles = await context.ITSMKnowledgeArticles
+
+        var stopWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "the", "is", "a", "an", "to", "for", "of", "in", "on", "at",
+            "and", "or", "not", "it", "this", "that", "with", "from", "by",
+            "are", "was", "were", "be", "been", "has", "have", "had", "do",
+            "does", "did", "will", "would", "could", "should", "can", "may",
+            "my", "our", "your", "its", "but", "if", "so", "no", "we", "i"
+        };
+
+        var keywords = (incidentDescription?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
+            .Where(k => k.Length > 2 && !stopWords.Contains(k))
+            .Select(k => k.ToLowerInvariant())
+            .Distinct()
+            .ToArray();
+
+        if (keywords.Length == 0)
+        {
+            // No meaningful keywords — fall back to top 5 most viewed published articles
+            var fallbackArticles = await context.ITSMKnowledgeArticles
+                .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published)
+                .OrderByDescending(a => a.ViewCount)
+                .Take(5)
+                .ToListAsync();
+
+            return fallbackArticles.Select(MapToDto);
+        }
+
+        // Fetch candidate articles matching ANY keyword in Title, ShortDescription, or ArticleBody
+        var candidates = await context.ITSMKnowledgeArticles
             .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published)
+            .Where(a => keywords.Any(kw =>
+                a.Title.ToLower().Contains(kw) ||
+                (a.ShortDescription != null && a.ShortDescription.ToLower().Contains(kw)) ||
+                a.ArticleBody.ToLower().Contains(kw)))
             .OrderByDescending(a => a.ViewCount)
-            .Take(5)
+            .Take(10)
             .ToListAsync();
 
-        return articles.Select(MapToDto);
+        // Score by counting how many distinct keywords match, then take top 5
+        var scored = candidates
+            .Select(a => new
+            {
+                Article = a,
+                Score = keywords.Count(kw =>
+                    a.Title.Contains(kw, StringComparison.OrdinalIgnoreCase) ||
+                    (a.ShortDescription != null && a.ShortDescription.Contains(kw, StringComparison.OrdinalIgnoreCase)) ||
+                    a.ArticleBody.Contains(kw, StringComparison.OrdinalIgnoreCase))
+            })
+            .OrderByDescending(x => x.Score)
+            .ThenByDescending(x => x.Article.ViewCount)
+            .Take(5)
+            .Select(x => x.Article);
+
+        return scored.Select(MapToDto);
     }
 
     public async Task<IEnumerable<KnowledgeArticleDto>> GetPopularArticlesAsync(int count)

@@ -19,17 +19,21 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// Controller for managing users, their profiles, departments, and contact links
+/// Controller for managing users, their profiles, departments, and contact links.
+/// Provides comprehensive user management including CRUD operations, profile assignment,
+/// contact linking, and user preferences management.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class UsersController : ControllerBase
 {
     private readonly IRepository<User> _userRepository;
@@ -59,14 +63,20 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new user
+    /// Create a new user.
     /// </summary>
     /// <remarks>
     /// If password is not provided, the user will be required to set their password on first login.
     /// </remarks>
+    /// <param name="request">The user creation request containing email, name, and optional password</param>
+    /// <returns>The newly created user</returns>
+    /// <response code="201">Returns the newly created user</response>
+    /// <response code="400">If the request data is invalid or email already exists</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserRequest request)
     {
         try
@@ -130,10 +140,14 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Get all users with contact information
+    /// Get all users with contact information.
     /// </summary>
+    /// <returns>A list of all active users</returns>
+    /// <response code="200">Returns the list of users</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
     {
         try
@@ -164,10 +178,15 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Get users by department
+    /// Get users by department.
     /// </summary>
+    /// <param name="departmentId">The department ID to filter by</param>
+    /// <returns>A list of users in the specified department</returns>
+    /// <response code="200">Returns the list of users in the department</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("department/{departmentId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersByDepartment(int departmentId)
     {
         try
@@ -191,11 +210,17 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Get user by ID with contact information
+    /// Get user by ID with contact information.
     /// </summary>
+    /// <param name="id">The user ID</param>
+    /// <returns>The user details including linked contact information</returns>
+    /// <response code="200">Returns the user</response>
+    /// <response code="404">If the user is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> GetUserById(int id)
     {
         try
@@ -220,12 +245,20 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Assign user to department and profile
+    /// Assign user to department and profile.
     /// </summary>
+    /// <param name="id">The user ID</param>
+    /// <param name="assignDto">The profile and department assignment details</param>
+    /// <returns>The updated user</returns>
+    /// <response code="200">Returns the updated user</response>
+    /// <response code="400">If the profile or department is not found</response>
+    /// <response code="404">If the user is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/assign-profile")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> AssignUserProfile(int id, [FromBody] AssignProfileDto assignDto)
     {
         try
@@ -265,12 +298,20 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Update user (edit) including contact link
+    /// Update user (edit) including contact link.
     /// </summary>
+    /// <param name="id">The user ID</param>
+    /// <param name="updateDto">The user update details</param>
+    /// <returns>The updated user</returns>
+    /// <response code="200">Returns the updated user</response>
+    /// <response code="400">If the update data is invalid</response>
+    /// <response code="404">If the user is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> UpdateUser(int id, [FromBody] UpdateUserDto updateDto)
     {
         try
@@ -318,12 +359,20 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Link user to a contact record
+    /// Link user to a contact record.
     /// </summary>
+    /// <param name="id">The user ID</param>
+    /// <param name="linkDto">The contact link details</param>
+    /// <returns>The updated user with linked contact</returns>
+    /// <response code="200">Returns the updated user</response>
+    /// <response code="400">If the contact is not found or already linked</response>
+    /// <response code="404">If the user is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/link-contact")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> LinkUserToContact(int id, [FromBody] LinkUserContactDto linkDto)
     {
         try
@@ -364,11 +413,17 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Unlink user from contact
+    /// Unlink user from contact.
     /// </summary>
+    /// <param name="id">The user ID</param>
+    /// <returns>The updated user without contact link</returns>
+    /// <response code="200">Returns the updated user</response>
+    /// <response code="404">If the user is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/unlink-contact")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> UnlinkUserFromContact(int id)
     {
         try
@@ -395,10 +450,15 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Get users by contact (find user linked to a specific contact)
+    /// Get users by contact (find user linked to a specific contact).
     /// </summary>
+    /// <param name="contactId">The contact ID to search by</param>
+    /// <returns>The user linked to the contact, or null if not found</returns>
+    /// <response code="200">Returns the user or null</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("by-contact/{contactId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto?>> GetUserByContact(int contactId)
     {
         try
@@ -420,11 +480,17 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Delete user
+    /// Delete user (soft delete).
     /// </summary>
+    /// <param name="id">The user ID</param>
+    /// <returns>Success message</returns>
+    /// <response code="200">User was successfully deleted</response>
+    /// <response code="404">If the user is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteUser(int id)
     {
         try
@@ -449,11 +515,17 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Remove user from profile
+    /// Remove user from profile.
     /// </summary>
+    /// <param name="id">The user ID</param>
+    /// <returns>The updated user without profile</returns>
+    /// <response code="200">Returns the updated user</response>
+    /// <response code="404">If the user is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/remove-profile")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> RemoveUserProfile(int id)
     {
         try
@@ -478,11 +550,16 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Get current user's preferences
+    /// Get current user's preferences.
     /// </summary>
+    /// <returns>The user's preference settings</returns>
+    /// <response code="200">Returns the user preferences</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("me/preferences")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserPreferencesDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserPreferencesDto>> GetMyPreferences()
     {
         try
@@ -517,12 +594,19 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Update current user's preferences (theme, header color, etc.)
+    /// Update current user's preferences (theme, header color, etc.).
     /// </summary>
+    /// <param name="dto">The preferences to update</param>
+    /// <returns>The updated user preferences</returns>
+    /// <response code="200">Returns the updated preferences</response>
+    /// <response code="400">If the preference data is invalid</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPut("me/preferences")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(UserPreferencesDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserPreferencesDto>> UpdateMyPreferences([FromBody] UpdatePreferencesDto dto)
     {
         try

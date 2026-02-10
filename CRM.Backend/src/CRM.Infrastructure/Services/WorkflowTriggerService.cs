@@ -275,21 +275,40 @@ public class WorkflowTriggerService : IWorkflowTriggerService
                 .OrderBy(t => t.Priority)
                 .ToListAsync(cancellationToken);
 
-            // Filter by event name if applicable
+            // Filter by event name if applicable (case-insensitive)
             if (request.TriggerType == WorkflowTriggerType.OnEvent && !string.IsNullOrEmpty(request.EventName))
             {
-                triggers = triggers.Where(t => t.EventName == request.EventName).ToList();
+                triggers = triggers.Where(t => !string.IsNullOrEmpty(t.EventName) &&
+                    string.Equals(t.EventName, request.EventName, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
-            // Filter by watched field if applicable
+            // Filter by watched field if applicable (case-insensitive)
             if (request.TriggerType == WorkflowTriggerType.OnFieldChange && !string.IsNullOrEmpty(request.ChangedField))
             {
                 triggers = triggers.Where(t =>
-                    string.IsNullOrEmpty(t.WatchedField) || t.WatchedField == request.ChangedField).ToList();
+                    string.IsNullOrEmpty(t.WatchedField) || string.Equals(t.WatchedField, request.ChangedField, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
             foreach (var trigger in triggers)
             {
+                // Defensive: ensure TriggerType maps to the enum
+                if (!Enum.IsDefined(typeof(WorkflowTriggerType), trigger.TriggerType))
+                {
+                    _logger.LogWarning("Trigger {TriggerId}: TriggerType value '{TriggerType}' is not a valid WorkflowTriggerType - skipping.", trigger.Id, trigger.TriggerType);
+                    var skipped = new TriggerResult
+                    {
+                        TriggerId = trigger.Id,
+                        TriggerName = trigger.Name,
+                        WorkflowDefinitionId = trigger.WorkflowDefinitionId,
+                        WorkflowName = trigger.WorkflowDefinition?.Name ?? "Unknown",
+                        Matched = false,
+                        Executed = false,
+                        SkippedReason = "Invalid TriggerType"
+                    };
+
+                    result.TriggerResults.Add(skipped);
+                    continue;
+                }
                 var triggerResult = new TriggerResult
                 {
                     TriggerId = trigger.Id,
@@ -431,7 +450,7 @@ public class WorkflowTriggerService : IWorkflowTriggerService
                 && t.TriggerType == triggerType);
 
         if (!string.IsNullOrEmpty(eventName))
-            query = query.Where(t => t.EventName == eventName);
+            query = query.Where(t => !string.IsNullOrEmpty(t.EventName) && t.EventName.ToLower() == eventName.ToLower());
 
         var triggers = await query
             .OrderBy(t => t.Priority)
@@ -655,25 +674,64 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("logic", out var logicProp))
                 logicOperator = logicProp.GetString()?.ToLowerInvariant() ?? "and";
 
-            // Parse context data if present
-            Dictionary<string, string>? contextFields = null;
-            if (!string.IsNullOrEmpty(request.ContextData))
+            // Parse context/entity data if present. Combine into a single, case-insensitive dictionary.
+            Dictionary<string, string>? dataFields = null;
+            try
             {
-                try
+                dataFields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+                // If TriggerExecutionRequest carries an EntityData property (some callers), prefer it.
+                var entityDataProp = request.GetType().GetProperty("EntityData");
+                if (entityDataProp != null)
                 {
-                    contextFields = JsonSerializer.Deserialize<Dictionary<string, string>>(request.ContextData);
+                    var val = entityDataProp.GetValue(request) as string;
+                    if (!string.IsNullOrEmpty(val))
+                    {
+                        using var edoc = JsonDocument.Parse(val);
+                        FlattenJson(edoc.RootElement, string.Empty, dataFields);
+                    }
                 }
-                catch
+
+                // ContextData is kept for backward compatibility
+                if (!string.IsNullOrEmpty(request.ContextData))
                 {
-                    // ContextData is not a simple dictionary; ignore
+                    try
+                    {
+                        using var cdoc = JsonDocument.Parse(request.ContextData);
+                        FlattenJson(cdoc.RootElement, string.Empty, dataFields);
+                    }
+                    catch
+                    {
+                        // ContextData might be a simple dictionary string; try deserialize
+                        try
+                        {
+                            var simple = JsonSerializer.Deserialize<Dictionary<string, string>>(request.ContextData);
+                            if (simple != null)
+                            {
+                                foreach (var kv in simple)
+                                    dataFields[kv.Key] = kv.Value;
+                            }
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
                 }
+
+                if (dataFields.Count == 0)
+                    dataFields = null;
+            }
+            catch
+            {
+                dataFields = null;
             }
 
             // Evaluate each condition
             var results = new List<bool>();
             foreach (var condition in conditions.EnumerateArray())
             {
-                var result = EvaluateSingleCondition(condition, request, contextFields);
+                var result = EvaluateSingleCondition(condition, request, dataFields);
                 results.Add(result);
             }
 
@@ -898,6 +956,56 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             return true; // Incomplete between — skip
 
         return CompareNumeric(actual, low) >= 0 && CompareNumeric(actual, high) <= 0;
+    }
+
+    /// <summary>
+    /// Flattens a JsonElement into a dictionary of path->string values.
+    /// Case-insensitive keys should be provided by the caller's dictionary comparer.
+    /// </summary>
+    private static void FlattenJson(JsonElement element, string prefix, Dictionary<string, string> dict)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var prop in element.EnumerateObject())
+                {
+                    var key = string.IsNullOrEmpty(prefix) ? prop.Name : prefix + "." + prop.Name;
+                    FlattenJson(prop.Value, key, dict);
+                }
+                break;
+
+            case JsonValueKind.Array:
+                int i = 0;
+                foreach (var item in element.EnumerateArray())
+                {
+                    var key = string.IsNullOrEmpty(prefix) ? i.ToString() : prefix + "." + i;
+                    FlattenJson(item, key, dict);
+                    i++;
+                }
+                break;
+
+            case JsonValueKind.String:
+                dict[prefix] = element.GetString() ?? string.Empty;
+                break;
+
+            case JsonValueKind.Number:
+                dict[prefix] = element.GetRawText();
+                break;
+
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+                dict[prefix] = element.GetBoolean().ToString();
+                break;
+
+            case JsonValueKind.Null:
+            case JsonValueKind.Undefined:
+                dict[prefix] = string.Empty;
+                break;
+
+            default:
+                dict[prefix] = element.GetRawText();
+                break;
+        }
     }
 
     private async Task<int> StartWorkflowAsync(WorkflowTrigger trigger, int entityId, int? initiatedById, CancellationToken cancellationToken)

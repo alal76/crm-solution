@@ -34,6 +34,13 @@ public interface ICrmDbContext
     DbSet<Opportunity> Opportunities { get; }
     DbSet<OpportunityProduct> OpportunityProducts { get; }
     DbSet<Product> Products { get; }
+    DbSet<ProductBundle> ProductBundles { get; }
+    DbSet<ProductBundleItem> ProductBundleItems { get; }
+    DbSet<ProductBundleRule> ProductBundleRules { get; }
+    DbSet<PriceBook> PriceBooks { get; }
+    DbSet<PriceBookEntry> PriceBookEntries { get; }
+    DbSet<PricingRule> PricingRules { get; }
+    DbSet<PricingRuleUsage> PricingRuleUsages { get; }
     DbSet<Interaction> Interactions { get; }
     DbSet<MarketingCampaign> MarketingCampaigns { get; }
     DbSet<CampaignMetric> CampaignMetrics { get; }

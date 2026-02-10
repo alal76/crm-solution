@@ -5,6 +5,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
@@ -398,8 +399,85 @@ public class ChatwootWebhookController : ControllerBase
             "Chatwoot contact updated: {ContactId}, Email: {Email}",
             webhookEvent.Contact.Id, webhookEvent.Contact.Email);
 
-        // TODO: Implement bidirectional sync if needed
-        // For now, we only sync Chatwoot → CRM for new contacts
+        try
+        {
+            // Look up the CRM contact by email
+            if (string.IsNullOrEmpty(webhookEvent.Contact.Email))
+            {
+                _logger.LogDebug(
+                    "Chatwoot contact {ChatwootContactId} has no email, skipping CRM sync",
+                    webhookEvent.Contact.Id);
+                return;
+            }
+
+            var allContacts = await _contactsService.GetAllAsync();
+            var crmContact = allContacts.FirstOrDefault(c =>
+                c.EmailPrimary?.Equals(webhookEvent.Contact.Email, StringComparison.OrdinalIgnoreCase) == true);
+
+            if (crmContact == null)
+            {
+                _logger.LogDebug(
+                    "No matching CRM contact found for Chatwoot contact {ChatwootContactId} with email {Email}",
+                    webhookEvent.Contact.Id, webhookEvent.Contact.Email);
+                return;
+            }
+
+            // Parse name from Chatwoot into first/last name
+            var fullName = webhookEvent.Contact.Name?.Trim();
+            var nameParts = string.IsNullOrWhiteSpace(fullName)
+                ? Array.Empty<string>()
+                : fullName.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+
+            var firstName = nameParts.Length > 0 ? nameParts[0] : null;
+            var lastName = nameParts.Length > 1 ? nameParts[1] : null;
+
+            // Only update fields that Chatwoot actually provides and that differ
+            var hasChanges = false;
+            var updateRequest = new UpdateContactRequest();
+            var updatedFields = new List<string>();
+
+            if (firstName != null && !firstName.Equals(crmContact.FirstName, StringComparison.Ordinal))
+            {
+                updateRequest.FirstName = firstName;
+                updatedFields.Add($"FirstName: '{crmContact.FirstName}' → '{firstName}'");
+                hasChanges = true;
+            }
+
+            if (lastName != null && !lastName.Equals(crmContact.LastName, StringComparison.Ordinal))
+            {
+                updateRequest.LastName = lastName;
+                updatedFields.Add($"LastName: '{crmContact.LastName}' → '{lastName}'");
+                hasChanges = true;
+            }
+
+            if (!string.IsNullOrEmpty(webhookEvent.Contact.PhoneNumber)
+                && !webhookEvent.Contact.PhoneNumber.Equals(crmContact.PhonePrimary, StringComparison.Ordinal))
+            {
+                updateRequest.PhonePrimary = webhookEvent.Contact.PhoneNumber;
+                updatedFields.Add($"PhonePrimary: '{crmContact.PhonePrimary}' → '{webhookEvent.Contact.PhoneNumber}'");
+                hasChanges = true;
+            }
+
+            if (!hasChanges)
+            {
+                _logger.LogDebug(
+                    "No field changes detected for CRM contact {ContactId} from Chatwoot contact {ChatwootContactId}",
+                    crmContact.Id, webhookEvent.Contact.Id);
+                return;
+            }
+
+            await _contactsService.UpdateAsync(crmContact.Id, updateRequest, "Chatwoot");
+
+            _logger.LogInformation(
+                "Updated CRM contact {ContactId} from Chatwoot contact {ChatwootContactId}. Changes: {Changes}",
+                crmContact.Id, webhookEvent.Contact.Id, string.Join("; ", updatedFields));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to sync Chatwoot contact update for ChatwootContactId={ChatwootContactId}, Email={Email}",
+                webhookEvent.Contact.Id, webhookEvent.Contact.Email);
+        }
     }
 
     /// <summary>
@@ -462,13 +540,31 @@ public class ChatwootWebhookController : ControllerBase
             }
         }
 
-        // TODO: Implement contact creation from Chatwoot data
-        // This requires more careful consideration of data mapping and validation
-        _logger.LogDebug(
-            "No matching CRM contact found for Chatwoot contact: {Id}",
-            chatwootContact.Id);
+        var fullName = chatwootContact.Name?.Trim();
+        var nameParts = string.IsNullOrWhiteSpace(fullName)
+            ? Array.Empty<string>()
+            : fullName.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
 
-        return null;
+        var firstName = nameParts.Length > 0 ? nameParts[0] : "Chatwoot";
+        var lastName = nameParts.Length > 1 ? nameParts[1] : "Contact";
+
+        var request = new CreateContactRequest
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            EmailPrimary = chatwootContact.Email,
+            PhonePrimary = chatwootContact.PhoneNumber,
+            ContactType = "Customer",
+            Notes = "Created from Chatwoot webhook"
+        };
+
+        var created = await _contactsService.CreateAsync(request, "Chatwoot");
+
+        _logger.LogInformation(
+            "Created CRM contact {ContactId} from Chatwoot contact {ChatwootId}",
+            created.Id, chatwootContact.Id);
+
+        return created.Id;
     }
 
     #region Webhook DTOs

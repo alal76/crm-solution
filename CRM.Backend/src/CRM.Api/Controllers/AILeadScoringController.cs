@@ -10,6 +10,7 @@ using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Services.AI;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -17,12 +18,18 @@ using System.Text.Json;
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// AI Lead Scoring and Sales Intelligence Controller
-/// Provides AI-powered lead scoring, opportunity insights, and sales predictions
+/// AI Lead Scoring and Sales Intelligence Controller.
+/// Provides AI-powered lead scoring, opportunity insights, batch scoring,
+/// detailed lead analysis, and scoring configuration management.
 /// </summary>
+/// <remarks>
+/// All endpoints require authentication. Uses configured AI providers for scoring
+/// and analysis operations. Scores are cached and expire after a configured period.
+/// </remarks>
 [ApiController]
 [Route("api/ai/leads")]
 [Authorize]
+[Produces("application/json")]
 public class AILeadScoringController : ControllerBase
 {
     private readonly CrmDbContext _context;
@@ -46,9 +53,20 @@ public class AILeadScoringController : ControllerBase
     }
 
     /// <summary>
-    /// Score a single lead using AI
+    /// Score a single lead using AI.
     /// </summary>
+    /// <param name="leadId">The ID of the lead to score.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>AI-generated lead score with breakdown and insights.</returns>
+    /// <response code="200">Returns the lead score results.</response>
+    /// <response code="404">Lead not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Failed to score lead.</response>
     [HttpPost("{leadId}/score")]
+    [ProducesResponseType(typeof(LeadScoreResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ScoreLead(int leadId, CancellationToken cancellationToken)
     {
         try
@@ -76,9 +94,20 @@ public class AILeadScoringController : ControllerBase
     }
 
     /// <summary>
-    /// Batch score multiple leads
+    /// Batch score multiple leads.
     /// </summary>
+    /// <param name="request">List of lead IDs to score (max 100).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Batch scoring results for all requested leads.</returns>
+    /// <response code="200">Returns batch scoring results.</response>
+    /// <response code="400">Invalid request - LeadIds required or exceeds limit.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Failed to batch score leads.</response>
     [HttpPost("batch-score")]
+    [ProducesResponseType(typeof(BatchScoreResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> BatchScoreLeads([FromBody] BatchScoreRequest request, CancellationToken cancellationToken)
     {
         try
@@ -110,9 +139,18 @@ public class AILeadScoringController : ControllerBase
     }
 
     /// <summary>
-    /// Get top leads by AI score
+    /// Get top leads by AI score.
     /// </summary>
+    /// <param name="count">Number of top leads to return (1-50, default 10).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of highest-scored leads with their details.</returns>
+    /// <response code="200">Returns top scored leads.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Failed to get top leads.</response>
     [HttpGet("top")]
+    [ProducesResponseType(typeof(TopLeadsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTopLeads([FromQuery] int count = 10, CancellationToken cancellationToken = default)
     {
         try
@@ -142,9 +180,19 @@ public class AILeadScoringController : ControllerBase
     }
 
     /// <summary>
-    /// Get lead scoring history
+    /// Get lead scoring history.
     /// </summary>
+    /// <param name="leadId">The ID of the lead.</param>
+    /// <param name="limit">Maximum number of history records (default 10).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Historical scoring data for the lead.</returns>
+    /// <response code="200">Returns lead score history.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Failed to get lead score history.</response>
     [HttpGet("{leadId}/history")]
+    [ProducesResponseType(typeof(LeadScoreHistoryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetLeadScoreHistory(int leadId, [FromQuery] int limit = 10, CancellationToken cancellationToken = default)
     {
         try
@@ -170,9 +218,20 @@ public class AILeadScoringController : ControllerBase
     }
 
     /// <summary>
-    /// Analyze a lead using LLM for detailed insights
+    /// Analyze a lead using LLM for detailed insights.
     /// </summary>
+    /// <param name="leadId">The ID of the lead to analyze.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Detailed AI analysis including conversion probability, strengths, weaknesses, and recommendations.</returns>
+    /// <response code="200">Returns detailed lead analysis.</response>
+    /// <response code="404">Lead not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Failed to analyze lead.</response>
     [HttpPost("{leadId}/analyze")]
+    [ProducesResponseType(typeof(LeadAnalysisResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AnalyzeLead(int leadId, CancellationToken cancellationToken)
     {
         try
@@ -303,9 +362,14 @@ Respond with valid JSON:
     }
 
     /// <summary>
-    /// Get scoring configuration and thresholds
+    /// Get scoring configuration and thresholds.
     /// </summary>
+    /// <returns>Scoring categories, weights, and configuration settings.</returns>
+    /// <response code="200">Returns scoring configuration.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
     [HttpGet("config")]
+    [ProducesResponseType(typeof(ScoringConfigResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public IActionResult GetScoringConfig()
     {
         return Ok(new ScoringConfigResponse

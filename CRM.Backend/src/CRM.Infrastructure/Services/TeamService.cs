@@ -321,30 +321,107 @@ public class TeamService : ITeamService
             throw new InvalidOperationException($"Account {accountId} not found");
         }
 
-        // Store assignment via a relationship field or separate junction table
-        // For now, using a notes field or we could add TeamId to Account entity
-        _logger.LogInformation("Assigned account {AccountId} to team {TeamId}", accountId, teamId);
+        // Assign account to team by setting OwnerId to the team manager or first available member.
+        // Team accounts are accounts owned by team members — the standard CRM pattern.
+        var assigneeId = team.ManagerId;
+
+        if (assigneeId == null || assigneeId == 0)
+        {
+            var firstMember = await _context.TeamMembers
+                .Where(tm => tm.TeamId == teamId && !tm.IsDeleted)
+                .OrderBy(tm => tm.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            assigneeId = firstMember?.UserId;
+        }
+
+        if (assigneeId == null || assigneeId == 0)
+        {
+            throw new InvalidOperationException($"Team {teamId} has no manager or members to assign the account to");
+        }
+
+        account.OwnerId = assigneeId;
+        account.UpdatedAt = DateTime.UtcNow;
+        _context.Customers.Update(account);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Assigned account {AccountId} to team {TeamId} via owner {OwnerId}", accountId, teamId, assigneeId);
         return true;
     }
 
     public async Task<bool> RemoveAccountAsync(int teamId, int accountId, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Removed account {AccountId} from team {TeamId}", accountId, teamId);
+        var team = await GetByIdAsync(teamId, cancellationToken);
+        if (team == null)
+        {
+            throw new InvalidOperationException($"Team {teamId} not found");
+        }
+
+        var account = await _context.Customers.FindAsync(new object[] { accountId }, cancellationToken);
+        if (account == null)
+        {
+            throw new InvalidOperationException($"Account {accountId} not found");
+        }
+
+        // Verify the account is currently owned by a member of this team
+        var teamMemberIds = await _context.TeamMembers
+            .Where(tm => tm.TeamId == teamId && !tm.IsDeleted)
+            .Select(tm => tm.UserId)
+            .ToListAsync(cancellationToken);
+
+        if (account.OwnerId == null || !teamMemberIds.Contains(account.OwnerId.Value))
+        {
+            _logger.LogWarning("Account {AccountId} is not owned by a member of team {TeamId}", accountId, teamId);
+            return false;
+        }
+
+        account.OwnerId = null;
+        account.UpdatedAt = DateTime.UtcNow;
+        _context.Customers.Update(account);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Removed account {AccountId} from team {TeamId} by clearing OwnerId", accountId, teamId);
         return true;
     }
 
     public async Task<IEnumerable<Account>> GetAssignedAccountsAsync(int teamId, CancellationToken cancellationToken = default)
     {
-        // Would need TeamId on Account entity or junction table
-        await Task.CompletedTask;
-        return Enumerable.Empty<Account>();
+        // Team accounts = accounts owned by team members (via OwnerId → TeamMembers.UserId)
+        var teamMemberUserIds = await _context.TeamMembers
+            .Where(tm => tm.TeamId == teamId && !tm.IsDeleted)
+            .Select(tm => tm.UserId)
+            .ToListAsync(cancellationToken);
+
+        if (!teamMemberUserIds.Any())
+        {
+            return Enumerable.Empty<Account>();
+        }
+
+        return await _context.Customers
+            .Where(a => !a.IsDeleted && a.OwnerId != null && teamMemberUserIds.Contains(a.OwnerId.Value))
+            .OrderBy(a => a.Company)
+            .ThenBy(a => a.LastName)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<Team?> GetTeamByAccountAsync(int accountId, CancellationToken cancellationToken = default)
     {
-        // Would need TeamId on Account entity
-        await Task.CompletedTask;
-        return null;
+        var account = await _context.Customers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == accountId && !a.IsDeleted, cancellationToken);
+
+        if (account?.OwnerId == null)
+        {
+            return null;
+        }
+
+        // Find the first team that this account owner belongs to
+        var teamMember = await _context.TeamMembers
+            .Include(tm => tm.Team)
+            .Where(tm => tm.UserId == account.OwnerId.Value && !tm.IsDeleted)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return teamMember?.Team;
     }
 
     public async Task<int> BulkAssignAccountsAsync(int teamId, IEnumerable<int> accountIds, CancellationToken cancellationToken = default)

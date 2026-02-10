@@ -17,6 +17,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class CommissionsController : ControllerBase
 {
     private readonly ICommissionService _commissionService;
@@ -39,6 +40,9 @@ public class CommissionsController : ControllerBase
     /// Get all commissions with optional filtering.
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Commission>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Commission>>> GetAll(
         [FromQuery] int? userId = null,
         [FromQuery] CommissionStatus? status = null,
@@ -52,6 +56,9 @@ public class CommissionsController : ControllerBase
     /// Get a commission by ID.
     /// </summary>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(Commission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<Commission>> GetById(int id, CancellationToken cancellationToken)
     {
         var commission = await _commissionService.GetByIdAsync(id, cancellationToken);
@@ -67,6 +74,10 @@ public class CommissionsController : ControllerBase
     /// Create a commission.
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(typeof(Commission), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Commission>> Create(
         [FromBody] CommissionCreateRequest request,
         CancellationToken cancellationToken)
@@ -111,6 +122,10 @@ public class CommissionsController : ControllerBase
     /// Update a commission.
     /// </summary>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(typeof(Commission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<Commission>> Update(
         int id,
         [FromBody] CommissionUpdateRequest request,
@@ -157,6 +172,10 @@ public class CommissionsController : ControllerBase
     /// Delete a commission (soft delete).
     /// </summary>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
         var existing = await _commissionService.GetByIdAsync(id, cancellationToken);
@@ -182,6 +201,9 @@ public class CommissionsController : ControllerBase
     /// Update commission status.
     /// </summary>
     [HttpPatch("{id:int}/status")]
+    [ProducesResponseType(typeof(Commission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Commission>> UpdateStatus(
         int id,
         [FromBody] CommissionStatusUpdateRequest request,
@@ -207,6 +229,9 @@ public class CommissionsController : ControllerBase
     /// Approve a commission for payout.
     /// </summary>
     [HttpPost("{id:int}/approve")]
+    [ProducesResponseType(typeof(Commission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Commission>> Approve(
         int id,
         [FromBody] CommissionApproveRequest request,
@@ -232,6 +257,9 @@ public class CommissionsController : ControllerBase
     /// Reject a commission.
     /// </summary>
     [HttpPost("{id:int}/reject")]
+    [ProducesResponseType(typeof(Commission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Commission>> Reject(
         int id,
         [FromBody] CommissionRejectRequest request,
@@ -262,6 +290,9 @@ public class CommissionsController : ControllerBase
     /// Mark a commission as paid.
     /// </summary>
     [HttpPost("{id:int}/mark-paid")]
+    [ProducesResponseType(typeof(Commission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Commission>> MarkAsPaid(
         int id,
         [FromBody] CommissionMarkPaidRequest? request = null,
@@ -287,6 +318,9 @@ public class CommissionsController : ControllerBase
     /// Claw back a paid commission.
     /// </summary>
     [HttpPost("{id:int}/clawback")]
+    [ProducesResponseType(typeof(Commission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Commission>> Clawback(
         int id,
         [FromBody] CommissionClawbackRequest request,
@@ -321,6 +355,9 @@ public class CommissionsController : ControllerBase
     /// Calculate commission for a deal/opportunity.
     /// </summary>
     [HttpGet("calculate/deal/{opportunityId:int}")]
+    [ProducesResponseType(typeof(CommissionCalculation), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CommissionCalculation>> CalculateForDeal(
         int opportunityId,
         CancellationToken cancellationToken)
@@ -345,6 +382,9 @@ public class CommissionsController : ControllerBase
     /// Calculate commission for an order.
     /// </summary>
     [HttpGet("calculate/order/{orderId:int}")]
+    [ProducesResponseType(typeof(CommissionCalculation), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CommissionCalculation>> CalculateForOrder(
         int orderId,
         CancellationToken cancellationToken)
@@ -369,6 +409,9 @@ public class CommissionsController : ControllerBase
     /// Recalculate a commission after changes.
     /// </summary>
     [HttpPost("{id:int}/recalculate")]
+    [ProducesResponseType(typeof(Commission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Commission>> Recalculate(
         int id,
         CancellationToken cancellationToken)
@@ -397,6 +440,7 @@ public class CommissionsController : ControllerBase
     /// Get commissions for a specific user.
     /// </summary>
     [HttpGet("user/{userId:int}")]
+    [ProducesResponseType(typeof(IEnumerable<Commission>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<Commission>>> GetByUser(
         int userId,
         [FromQuery] DateTime? fromDate = null,
@@ -411,6 +455,7 @@ public class CommissionsController : ControllerBase
     /// Get pending commissions awaiting approval.
     /// </summary>
     [HttpGet("pending-approvals")]
+    [ProducesResponseType(typeof(IEnumerable<Commission>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<Commission>>> GetPendingApprovals(
         CancellationToken cancellationToken)
     {
@@ -422,6 +467,7 @@ public class CommissionsController : ControllerBase
     /// Get commissions ready for payout.
     /// </summary>
     [HttpGet("ready-for-payout")]
+    [ProducesResponseType(typeof(IEnumerable<Commission>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<Commission>>> GetReadyForPayout(
         CancellationToken cancellationToken)
     {
@@ -433,6 +479,7 @@ public class CommissionsController : ControllerBase
     /// Get commission statistics.
     /// </summary>
     [HttpGet("statistics")]
+    [ProducesResponseType(typeof(CommissionStatistics), StatusCodes.Status200OK)]
     public async Task<ActionResult<CommissionStatistics>> GetStatistics(
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
@@ -446,6 +493,7 @@ public class CommissionsController : ControllerBase
     /// Get commission leaderboard.
     /// </summary>
     [HttpGet("leaderboard")]
+    [ProducesResponseType(typeof(IEnumerable<CommissionLeaderboard>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CommissionLeaderboard>>> GetLeaderboard(
         [FromQuery] int topN = 10,
         [FromQuery] DateTime? fromDate = null,
@@ -460,6 +508,7 @@ public class CommissionsController : ControllerBase
     /// Get commission forecast for a user.
     /// </summary>
     [HttpGet("forecast/{userId:int}")]
+    [ProducesResponseType(typeof(CommissionForecast), StatusCodes.Status200OK)]
     public async Task<ActionResult<CommissionForecast>> GetForecast(
         int userId,
         [FromQuery] DateTime? asOfDate = null,
@@ -473,6 +522,7 @@ public class CommissionsController : ControllerBase
     /// Get commission summary for a period.
     /// </summary>
     [HttpGet("summary/{userId:int}")]
+    [ProducesResponseType(typeof(CommissionSummary), StatusCodes.Status200OK)]
     public async Task<ActionResult<CommissionSummary>> GetPeriodSummary(
         int userId,
         [FromQuery, Required] DateTime fromDate,
@@ -491,6 +541,7 @@ public class CommissionsController : ControllerBase
     /// Get all commission plans.
     /// </summary>
     [HttpGet("plans")]
+    [ProducesResponseType(typeof(IEnumerable<CommissionPlan>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CommissionPlan>>> GetPlans(
         [FromQuery] bool? isActive = null,
         CancellationToken cancellationToken = default)
@@ -503,6 +554,8 @@ public class CommissionsController : ControllerBase
     /// Get a commission plan by ID.
     /// </summary>
     [HttpGet("plans/{planId:int}")]
+    [ProducesResponseType(typeof(CommissionPlan), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CommissionPlan>> GetPlanById(int planId, CancellationToken cancellationToken)
     {
         var plan = await _commissionService.GetPlanByIdAsync(planId, cancellationToken);
@@ -518,6 +571,9 @@ public class CommissionsController : ControllerBase
     /// Create a commission plan.
     /// </summary>
     [HttpPost("plans")]
+    [ProducesResponseType(typeof(CommissionPlan), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CommissionPlan>> CreatePlan(
         [FromBody] CommissionPlanCreateRequest request,
         CancellationToken cancellationToken)
@@ -563,6 +619,10 @@ public class CommissionsController : ControllerBase
     /// Update a commission plan.
     /// </summary>
     [HttpPut("plans/{planId:int}")]
+    [ProducesResponseType(typeof(CommissionPlan), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CommissionPlan>> UpdatePlan(
         int planId,
         [FromBody] CommissionPlanUpdateRequest request,
@@ -611,6 +671,8 @@ public class CommissionsController : ControllerBase
     /// Delete a commission plan (soft delete).
     /// </summary>
     [HttpDelete("plans/{planId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeletePlan(int planId, CancellationToken cancellationToken)
     {
         var result = await _commissionService.DeletePlanAsync(planId, cancellationToken);
@@ -626,6 +688,10 @@ public class CommissionsController : ControllerBase
     /// Assign a plan to a user.
     /// </summary>
     [HttpPost("plans/{planId:int}/assign")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AssignPlanToUser(
         int planId,
         [FromBody] CommissionPlanAssignRequest request,
@@ -656,6 +722,8 @@ public class CommissionsController : ControllerBase
     /// Get the active plan for a user.
     /// </summary>
     [HttpGet("plans/user/{userId:int}")]
+    [ProducesResponseType(typeof(CommissionPlan), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CommissionPlan>> GetUserPlan(
         int userId,
         CancellationToken cancellationToken)
@@ -677,6 +745,7 @@ public class CommissionsController : ControllerBase
     /// Get tiers for a commission plan.
     /// </summary>
     [HttpGet("plans/{planId:int}/tiers")]
+    [ProducesResponseType(typeof(IEnumerable<CommissionTier>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CommissionTier>>> GetTiers(
         int planId,
         CancellationToken cancellationToken)
@@ -689,6 +758,10 @@ public class CommissionsController : ControllerBase
     /// Add a tier to a plan.
     /// </summary>
     [HttpPost("plans/{planId:int}/tiers")]
+    [ProducesResponseType(typeof(CommissionTier), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CommissionTier>> AddTier(
         int planId,
         [FromBody] CommissionTierCreateRequest request,
@@ -732,6 +805,10 @@ public class CommissionsController : ControllerBase
     /// Update a tier.
     /// </summary>
     [HttpPut("tiers/{tierId:int}")]
+    [ProducesResponseType(typeof(CommissionTier), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CommissionTier>> UpdateTier(
         int tierId,
         [FromBody] CommissionTierUpdateRequest request,
@@ -775,6 +852,8 @@ public class CommissionsController : ControllerBase
     /// Remove a tier from a plan.
     /// </summary>
     [HttpDelete("tiers/{tierId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveTier(int tierId, CancellationToken cancellationToken)
     {
         var result = await _commissionService.RemoveTierAsync(tierId, cancellationToken);
@@ -794,6 +873,9 @@ public class CommissionsController : ControllerBase
     /// Generate a commission statement for a user.
     /// </summary>
     [HttpPost("statements/generate")]
+    [ProducesResponseType(typeof(CommissionStatement), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CommissionStatement>> GenerateStatement(
         [FromBody] CommissionStatementGenerateRequest request,
         CancellationToken cancellationToken)
@@ -825,6 +907,7 @@ public class CommissionsController : ControllerBase
     /// Get statements for a user.
     /// </summary>
     [HttpGet("statements/user/{userId:int}")]
+    [ProducesResponseType(typeof(IEnumerable<CommissionStatement>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CommissionStatement>>> GetStatements(
         int userId,
         CancellationToken cancellationToken)
@@ -837,6 +920,8 @@ public class CommissionsController : ControllerBase
     /// Get a statement by ID.
     /// </summary>
     [HttpGet("statements/{statementId:int}")]
+    [ProducesResponseType(typeof(CommissionStatement), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CommissionStatement>> GetStatementById(
         int statementId,
         CancellationToken cancellationToken)
@@ -854,6 +939,9 @@ public class CommissionsController : ControllerBase
     /// Finalize a statement for payout.
     /// </summary>
     [HttpPost("statements/{statementId:int}/finalize")]
+    [ProducesResponseType(typeof(CommissionStatement), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CommissionStatement>> FinalizeStatement(
         int statementId,
         CancellationToken cancellationToken)

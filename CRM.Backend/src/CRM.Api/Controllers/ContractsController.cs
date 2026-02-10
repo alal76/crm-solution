@@ -17,6 +17,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class ContractsController : ControllerBase
 {
     private readonly IContractService _contractService;
@@ -34,6 +35,8 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets all contracts with optional filters.</summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int? customerId = null,
         [FromQuery] ContractStatus? status = null,
@@ -77,6 +80,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets a contract by ID.</summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -96,6 +102,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets a contract by contract number.</summary>
     [HttpGet("by-number/{contractNumber}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByContractNumber(string contractNumber, CancellationToken cancellationToken = default)
     {
         try
@@ -115,6 +124,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Creates a new contract.</summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateContractRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -163,6 +175,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Updates an existing contract.</summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateContractRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -209,6 +224,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Deletes a contract (soft delete).</summary>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -237,6 +255,10 @@ public class ContractsController : ControllerBase
 
     /// <summary>Approves a contract.</summary>
     [HttpPost("{id}/approve")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Approve(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -262,6 +284,10 @@ public class ContractsController : ControllerBase
 
     /// <summary>Rejects a contract.</summary>
     [HttpPost("{id}/reject")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Reject(int id, [FromBody] RejectContractRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -288,6 +314,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Activates a contract.</summary>
     [HttpPost("{id}/activate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Activate(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -310,6 +339,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Suspends a contract.</summary>
     [HttpPost("{id}/suspend")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Suspend(int id, [FromBody] SuspendContractRequest? request = null, CancellationToken cancellationToken = default)
     {
         try
@@ -332,6 +364,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Terminates a contract.</summary>
     [HttpPost("{id}/terminate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Terminate(int id, [FromBody] TerminateContractRequest? request = null, CancellationToken cancellationToken = default)
     {
         try
@@ -354,6 +389,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Expires a contract.</summary>
     [HttpPost("{id}/expire")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Expire(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -380,6 +418,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Initiates contract renewal.</summary>
     [HttpPost("{id}/renew")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Renew(int id, [FromBody] RenewContractRequest? request = null, CancellationToken cancellationToken = default)
     {
         try
@@ -402,6 +443,8 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets contracts due for renewal within specified days.</summary>
     [HttpGet("due-for-renewal")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetDueForRenewal([FromQuery] int withinDays = 30, CancellationToken cancellationToken = default)
     {
         try
@@ -418,6 +461,8 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets renewal history for a contract.</summary>
     [HttpGet("{id}/renewal-history")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetRenewalHistory(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -438,6 +483,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Creates an amendment to a contract.</summary>
     [HttpPost("{id}/amendments")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateAmendment(int id, [FromBody] CreateContractRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -478,6 +526,8 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets amendments for a contract.</summary>
     [HttpGet("{id}/amendments")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAmendments(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -498,6 +548,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Sends a contract for signature.</summary>
     [HttpPost("{id}/send-for-signature")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SendForSignature(int id, [FromBody] SendForSignatureRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -531,6 +584,8 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets signature status for a contract.</summary>
     [HttpGet("{id}/signature-status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetSignatureStatus(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -551,6 +606,8 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets documents for a contract.</summary>
     [HttpGet("{id}/documents")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetDocuments(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -567,6 +624,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Generates a PDF for a contract.</summary>
     [HttpGet("{id}/pdf")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GeneratePdf(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -591,6 +651,8 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets active contracts for a customer.</summary>
     [HttpGet("active/{customerId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetActiveContracts(int customerId, CancellationToken cancellationToken = default)
     {
         try
@@ -607,6 +669,8 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets expiring contracts within a date range.</summary>
     [HttpGet("expiring")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetExpiringContracts(
         [FromQuery] int days = 30,
         CancellationToken cancellationToken = default)
@@ -627,6 +691,8 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets contract statistics.</summary>
     [HttpGet("statistics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetStatistics(
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
@@ -646,6 +712,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Searches contracts.</summary>
     [HttpGet("search")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Search([FromQuery] string q = "", CancellationToken cancellationToken = default)
     {
         try
@@ -665,6 +734,8 @@ public class ContractsController : ControllerBase
 
     /// <summary>Gets total contract value for a customer.</summary>
     [HttpGet("value/{customerId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTotalContractValue(int customerId, CancellationToken cancellationToken = default)
     {
         try
@@ -685,6 +756,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Creates a contract from a quote.</summary>
     [HttpPost("from-quote/{quoteId}")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateFromQuote(int quoteId, CancellationToken cancellationToken = default)
     {
         try
@@ -702,6 +776,9 @@ public class ContractsController : ControllerBase
 
     /// <summary>Creates a contract from an order.</summary>
     [HttpPost("from-order/{orderId}")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateFromOrder(int orderId, CancellationToken cancellationToken = default)
     {
         try

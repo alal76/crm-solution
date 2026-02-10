@@ -22,15 +22,23 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
 
+/// <summary>
+/// API controller for managing products and services.
+/// Provides endpoints for CRUD operations and filtering by category/type.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
     private readonly ILogger<ProductsController> _logger;
     private readonly ICrmNotificationService _notificationService;
 
+    /// <summary>
+    /// Initializes the products controller with required services.
+    /// </summary>
     public ProductsController(
         IProductService productService,
         ILogger<ProductsController> logger,
@@ -41,7 +49,15 @@ public class ProductsController : ControllerBase
         _notificationService = notificationService;
     }
 
+    /// <summary>
+    /// Gets all products in the catalog.
+    /// </summary>
+    /// <returns>List of all products</returns>
+    /// <response code="200">Returns the list of products</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Product>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll()
     {
         try
@@ -56,24 +72,44 @@ public class ProductsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets a product by its unique identifier.
+    /// </summary>
+    /// <param name="id">The product ID</param>
+    /// <returns>The product if found</returns>
+    /// <response code="200">Returns the product</response>
+    /// <response code="404">If the product is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(Product), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id)
     {
         try
         {
             var product = await _productService.GetProductByIdAsync(id);
             if (product == null)
-                return NotFound();
+                return NotFound(new { message = $"Product with ID {id} not found" });
             return Ok(product);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving product {id}");
+            _logger.LogError(ex, "Error retrieving product {ProductId}", id);
             return StatusCode(500, "Internal server error");
         }
     }
 
+    /// <summary>
+    /// Gets products by category.
+    /// </summary>
+    /// <param name="category">The product category to filter by</param>
+    /// <returns>List of products in the category</returns>
+    /// <response code="200">Returns the list of products</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("category/{category}")]
+    [ProducesResponseType(typeof(IEnumerable<Product>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByCategory(string category)
     {
         try
@@ -83,12 +119,21 @@ public class ProductsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving products for category {category}");
+            _logger.LogError(ex, "Error retrieving products for category {Category}", category);
             return StatusCode(500, "Internal server error");
         }
     }
 
+    /// <summary>
+    /// Gets products by type.
+    /// </summary>
+    /// <param name="type">The product type to filter by</param>
+    /// <returns>List of products of the specified type</returns>
+    /// <response code="200">Returns the list of products</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("type/{type}")]
+    [ProducesResponseType(typeof(IEnumerable<Product>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByType(ProductType type)
     {
         try
@@ -98,15 +143,21 @@ public class ProductsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving products for type {type}");
+            _logger.LogError(ex, "Error retrieving products for type {ProductType}", type);
             return StatusCode(500, "Internal server error");
         }
     }
 
     /// <summary>
-    /// Get all service-type products (for the Services page)
+    /// Gets all service-type products (for the Services page).
+    /// Includes: Service, Consulting, ManagedService, ProfessionalServices, Training, SupportContract.
     /// </summary>
+    /// <returns>List of service products</returns>
+    /// <response code="200">Returns the list of service products</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpGet("services")]
+    [ProducesResponseType(typeof(IEnumerable<Product>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetServices()
     {
         try
@@ -130,11 +181,25 @@ public class ProductsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Creates a new product.
+    /// </summary>
+    /// <param name="product">The product to create</param>
+    /// <returns>The created product</returns>
+    /// <response code="201">Returns the newly created product</response>
+    /// <response code="400">If the product data is invalid</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPost]
-    public async Task<IActionResult> Create(Product product)
+    [ProducesResponseType(typeof(Product), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Create([FromBody] Product product)
     {
         try
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var id = await _productService.CreateProductAsync(product);
             product.Id = id;
 
@@ -151,11 +216,28 @@ public class ProductsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Updates an existing product.
+    /// </summary>
+    /// <param name="id">The product ID</param>
+    /// <param name="product">The updated product data</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">If the product was updated successfully</response>
+    /// <response code="400">If the product data is invalid</response>
+    /// <response code="404">If the product is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, Product product)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Update(int id, [FromBody] Product product)
     {
         try
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             product.Id = id;
             await _productService.UpdateProductAsync(product);
 
@@ -167,12 +249,23 @@ public class ProductsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error updating product {id}");
+            _logger.LogError(ex, "Error updating product {ProductId}", id);
             return StatusCode(500, "Internal server error");
         }
     }
 
+    /// <summary>
+    /// Deletes a product (soft delete).
+    /// </summary>
+    /// <param name="id">The product ID</param>
+    /// <returns>No content on success</returns>
+    /// <response code="204">If the product was deleted successfully</response>
+    /// <response code="404">If the product is not found</response>
+    /// <response code="500">If there was an internal server error</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id)
     {
         try
@@ -187,7 +280,7 @@ public class ProductsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error deleting product {id}");
+            _logger.LogError(ex, "Error deleting product {ProductId}", id);
             return StatusCode(500, "Internal server error");
         }
     }

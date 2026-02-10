@@ -593,17 +593,106 @@ public class FormBuilderService : IFormBuilderService
         if (submission?.FormDefinition?.DoubleOptIn != true)
             return false;
 
-        // TODO: Implement actual email sending via notification service
-        _logger.LogInformation("Sending opt-in confirmation for submission {SubmissionId}", submissionId);
+        if (submission.OptInConfirmed)
+        {
+            _logger.LogInformation("Submission {SubmissionId} already confirmed, skipping", submissionId);
+            return true;
+        }
+
+        // Generate a unique confirmation token
+        var confirmationToken = Guid.NewGuid().ToString("N");
+
+        // Store the token in RawData as JSON metadata so ConfirmOptInAsync can look it up
+        var metadata = new Dictionary<string, object>();
+        if (!string.IsNullOrWhiteSpace(submission.RawData))
+        {
+            try
+            {
+                var existing = JsonSerializer.Deserialize<Dictionary<string, object>>(submission.RawData);
+                if (existing != null)
+                    metadata = existing;
+            }
+            catch (JsonException)
+            {
+                // RawData wasn't valid JSON; preserve original under a key
+                metadata["_originalRawData"] = submission.RawData;
+            }
+        }
+
+        metadata["_confirmationToken"] = confirmationToken;
+        metadata["_confirmationTokenCreatedAt"] = DateTime.UtcNow.ToString("O");
+        submission.RawData = JsonSerializer.Serialize(metadata);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Build the confirmation URL that an integration or notification service can use
+        var confirmationUrl = $"/api/forms/confirm-optin?token={confirmationToken}";
+
+        _logger.LogInformation(
+            "Opt-in confirmation token generated for submission {SubmissionId}. " +
+            "Token: {Token}, ConfirmationUrl: {Url}",
+            submissionId, confirmationToken, confirmationUrl);
+
         return true;
     }
 
     public async Task<FormSubmission?> ConfirmOptInAsync(string confirmationToken, CancellationToken cancellationToken = default)
     {
-        // Token would be stored in submission or separate table
-        // For now, this is a placeholder
-        _logger.LogInformation("Confirming opt-in with token {Token}", confirmationToken);
-        return null;
+        if (string.IsNullOrWhiteSpace(confirmationToken))
+        {
+            _logger.LogWarning("ConfirmOptInAsync called with empty token");
+            return null;
+        }
+
+        // Search for the submission whose RawData JSON contains this confirmation token
+        var tokenFragment = $"\"_confirmationToken\":\"{confirmationToken}\"";
+        var submission = await _context.FormSubmissions
+            .Include(s => s.FormDefinition)
+            .FirstOrDefaultAsync(
+                s => !s.IsDeleted
+                     && !s.OptInConfirmed
+                     && s.RawData != null
+                     && s.RawData.Contains(confirmationToken),
+                cancellationToken);
+
+        if (submission == null)
+        {
+            _logger.LogWarning("No pending submission found for confirmation token {Token}", confirmationToken);
+            return null;
+        }
+
+        // Double-check the token matches exactly by deserializing RawData
+        try
+        {
+            var metadata = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(submission.RawData!);
+            if (metadata == null
+                || !metadata.TryGetValue("_confirmationToken", out var storedToken)
+                || storedToken.GetString() != confirmationToken)
+            {
+                _logger.LogWarning(
+                    "Token mismatch during opt-in confirmation for submission {SubmissionId}",
+                    submission.Id);
+                return null;
+            }
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Failed to parse RawData for submission {SubmissionId}", submission.Id);
+            return null;
+        }
+
+        // Mark the submission as confirmed
+        submission.OptInConfirmed = true;
+        submission.OptInConfirmedAt = DateTime.UtcNow;
+        submission.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Opt-in confirmed for submission {SubmissionId} (form {FormId})",
+            submission.Id, submission.FormDefinitionId);
+
+        return submission;
     }
 
     #endregion

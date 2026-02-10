@@ -11,6 +11,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class TeamsController : ControllerBase
 {
     private readonly ITeamService _teamService;
@@ -26,6 +27,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets all teams with optional filtering.</summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll([FromQuery] bool? isActive = null, [FromQuery] int? managerId = null, CancellationToken cancellationToken = default)
     {
         var teams = await _teamService.GetAllAsync(isActive, managerId, cancellationToken);
@@ -34,6 +37,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets a team by ID.</summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
     {
         var team = await _teamService.GetByIdAsync(id, cancellationToken);
@@ -44,6 +50,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets a team by name.</summary>
     [HttpGet("by-name/{name}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByName(string name, CancellationToken cancellationToken = default)
     {
         var team = await _teamService.GetByNameAsync(name, cancellationToken);
@@ -54,6 +63,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Creates a new team.</summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] Team team, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
@@ -73,6 +85,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Updates an existing team.</summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(int id, [FromBody] Team team, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
@@ -93,6 +108,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Deletes a team (soft delete).</summary>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -115,6 +133,10 @@ public class TeamsController : ControllerBase
 
     /// <summary>Adds a member to a team.</summary>
     [HttpPost("{teamId}/members")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddMember(int teamId, [FromBody] AddMemberRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -131,6 +153,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Removes a member from a team.</summary>
     [HttpDelete("{teamId}/members/{userId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveMember(int teamId, int userId, CancellationToken cancellationToken = default)
     {
         try
@@ -149,6 +174,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Updates a member's role in a team.</summary>
     [HttpPut("{teamId}/members/{userId}/role")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateMemberRole(int teamId, int userId, [FromBody] UpdateRoleRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -165,6 +193,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets all members of a team.</summary>
     [HttpGet("{teamId}/members")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetMembers(int teamId, CancellationToken cancellationToken = default)
     {
         var members = await _teamService.GetMembersAsync(teamId, cancellationToken);
@@ -173,6 +203,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets teams for a user.</summary>
     [HttpGet("by-user/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTeamsForUser(int userId, CancellationToken cancellationToken = default)
     {
         var teams = await _teamService.GetTeamsForUserAsync(userId, cancellationToken);
@@ -181,6 +213,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Checks if a user is a member of a team.</summary>
     [HttpGet("{teamId}/members/{userId}/check")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> IsMember(int teamId, int userId, CancellationToken cancellationToken = default)
     {
         var isMember = await _teamService.IsMemberAsync(teamId, userId, cancellationToken);
@@ -193,6 +227,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Sets the team manager.</summary>
     [HttpPut("{teamId}/manager")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SetManager(int teamId, [FromBody] SetManagerRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -209,6 +246,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets teams managed by a user.</summary>
     [HttpGet("managed-by/{managerId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetManagedTeams(int managerId, CancellationToken cancellationToken = default)
     {
         var teams = await _teamService.GetManagedTeamsAsync(managerId, cancellationToken);
@@ -221,6 +260,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Assigns a territory to a team.</summary>
     [HttpPost("{teamId}/territories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AssignTerritory(int teamId, [FromBody] AssignTerritoryRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -239,6 +281,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Removes a territory from a team.</summary>
     [HttpDelete("{teamId}/territories/{territoryId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveTerritory(int teamId, int territoryId, CancellationToken cancellationToken = default)
     {
         try
@@ -257,6 +302,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets territories assigned to a team.</summary>
     [HttpGet("{teamId}/territories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTerritories(int teamId, CancellationToken cancellationToken = default)
     {
         var territories = await _teamService.GetTerritoriesAsync(teamId, cancellationToken);
@@ -265,6 +312,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets team for a territory.</summary>
     [HttpGet("by-territory/{territoryId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTeamByTerritory(int territoryId, CancellationToken cancellationToken = default)
     {
         var team = await _teamService.GetTeamByTerritoryAsync(territoryId, cancellationToken);
@@ -279,6 +329,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Assigns an account to a team.</summary>
     [HttpPost("{teamId}/accounts")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AssignAccount(int teamId, [FromBody] AssignAccountRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -297,6 +350,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Removes an account assignment from a team.</summary>
     [HttpDelete("{teamId}/accounts/{accountId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveAccount(int teamId, int accountId, CancellationToken cancellationToken = default)
     {
         try
@@ -315,6 +371,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets accounts assigned to a team.</summary>
     [HttpGet("{teamId}/accounts")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAssignedAccounts(int teamId, CancellationToken cancellationToken = default)
     {
         var accounts = await _teamService.GetAssignedAccountsAsync(teamId, cancellationToken);
@@ -323,6 +381,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets team for an account.</summary>
     [HttpGet("by-account/{accountId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTeamByAccount(int accountId, CancellationToken cancellationToken = default)
     {
         var team = await _teamService.GetTeamByAccountAsync(accountId, cancellationToken);
@@ -333,6 +394,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Bulk assigns accounts to a team.</summary>
     [HttpPost("{teamId}/accounts/bulk")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> BulkAssignAccounts(int teamId, [FromBody] BulkAssignAccountsRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -353,6 +417,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets team performance metrics.</summary>
     [HttpGet("{teamId}/performance")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPerformance(int teamId, [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null, CancellationToken cancellationToken = default)
     {
         var performance = await _teamService.GetPerformanceAsync(teamId, fromDate, toDate, cancellationToken);
@@ -361,6 +427,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets team statistics.</summary>
     [HttpGet("{teamId}/statistics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetStatistics(int teamId, CancellationToken cancellationToken = default)
     {
         var stats = await _teamService.GetStatisticsAsync(teamId, cancellationToken);
@@ -369,6 +437,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets leaderboard for teams.</summary>
     [HttpGet("leaderboard")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetLeaderboard([FromQuery] int topN = 10, [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null, CancellationToken cancellationToken = default)
     {
         var rankings = await _teamService.GetLeaderboardAsync(topN, fromDate, toDate, cancellationToken);
@@ -377,6 +447,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets member performance within a team.</summary>
     [HttpGet("{teamId}/members/performance")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetMemberPerformance(int teamId, [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null, CancellationToken cancellationToken = default)
     {
         var performance = await _teamService.GetMemberPerformanceAsync(teamId, fromDate, toDate, cancellationToken);
@@ -389,6 +461,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets child teams (sub-teams).</summary>
     [HttpGet("{teamId}/children")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetChildTeams(int teamId, CancellationToken cancellationToken = default)
     {
         var children = await _teamService.GetChildTeamsAsync(teamId, cancellationToken);
@@ -397,6 +471,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets parent team.</summary>
     [HttpGet("{teamId}/parent")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetParentTeam(int teamId, CancellationToken cancellationToken = default)
     {
         var parent = await _teamService.GetParentTeamAsync(teamId, cancellationToken);
@@ -407,6 +484,9 @@ public class TeamsController : ControllerBase
 
     /// <summary>Sets parent team for hierarchy.</summary>
     [HttpPut("{teamId}/parent")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SetParentTeam(int teamId, [FromBody] SetParentTeamRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -423,6 +503,8 @@ public class TeamsController : ControllerBase
 
     /// <summary>Gets full team hierarchy.</summary>
     [HttpGet("hierarchy")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetHierarchy([FromQuery] int? rootTeamId = null, CancellationToken cancellationToken = default)
     {
         var hierarchy = await _teamService.GetHierarchyAsync(rootTeamId, cancellationToken);

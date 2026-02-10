@@ -888,7 +888,7 @@ These DTOs are defined **inside the controller file** and are not in `CRM.Core`.
 | 24 | `GetLogsAsync` |
 | 25 | `GetAuditLogAsync` |
 | 26 | `ExportAuditLogCsvAsync` |
-| 27 | `GetExecutionTimelineDataAsync` |
+| 27 | `GetExecutionTimelineDataAsync` |_frontend
 | 28 | `GetInstanceStatisticsAsync` |
 | 29 | `GetDashboardAsync` |
 | 30 | `AdvanceWorkflowAsync` |

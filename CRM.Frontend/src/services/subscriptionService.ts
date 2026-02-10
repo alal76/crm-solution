@@ -1,3 +1,59 @@
+import api from 'src/services/api';
+
+type Params = Record<string, any>;
+
+export const getSubscriptions = (params?: Params) =>
+  api.get('/api/subscriptions', { params }).then((res) => res.data);
+
+export const getSubscription = (id: number) =>
+  api.get(`/api/subscriptions/${id}`).then((res) => res.data);
+
+export const createSubscription = (payload: any) =>
+  api.post('/api/subscriptions', payload).then((res) => res.data);
+
+export const updateSubscription = (id: number, payload: any) =>
+  api.put(`/api/subscriptions/${id}`, payload).then((res) => res.data);
+
+export const deleteSubscription = (id: number) =>
+  api.delete(`/api/subscriptions/${id}`).then((res) => res.data);
+
+export const activateSubscription = (id: number) =>
+  api.post(`/api/subscriptions/${id}/activate`).then((res) => res.data);
+
+export const pauseSubscription = (id: number, reason?: string) =>
+  api.post(`/api/subscriptions/${id}/pause`, { reason }).then((res) => res.data);
+
+export const resumeSubscription = (id: number) => api.post(`/api/subscriptions/${id}/resume`).then((res) => res.data);
+
+export const cancelSubscription = (id: number, reason?: string, immediate = false) =>
+  api.post(`/api/subscriptions/${id}/cancel`, { reason, immediate }).then((res) => res.data);
+
+export const generateSubscriptionNumber = () => api.get('/api/subscriptions/generate-number').then((res) => res.data);
+
+export const getBillingHistory = (subscriptionId: number) =>
+  api.get(`/api/subscriptions/${subscriptionId}/billing`).then((res) => res.data);
+
+export const recordUsage = (subscriptionId: number, metricName: string, quantity: number) =>
+  api.post(`/api/subscriptions/${subscriptionId}/usage`, { metricName, quantity }).then((res) => res.data);
+
+export const getUsageLimits = (subscriptionId: number) =>
+  api.get(`/api/subscriptions/${subscriptionId}/usage-limits`).then((res) => res.data);
+
+export default {
+  getSubscriptions,
+  getSubscription,
+  createSubscription,
+  updateSubscription,
+  deleteSubscription,
+  activateSubscription,
+  pauseSubscription,
+  resumeSubscription,
+  cancelSubscription,
+  generateSubscriptionNumber,
+  getBillingHistory,
+  recordUsage,
+  getUsageLimits,
+};
 /**
  * Subscription Service - Manages subscription lifecycle, billing, and usage tracking
  * 

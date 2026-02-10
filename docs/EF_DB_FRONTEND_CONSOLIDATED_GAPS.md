@@ -41,6 +41,72 @@
 
 ---
 
+## Overview
+
+This document consolidates the most recent audits and remediation work across the EF model, database schema, and frontend TypeScript types. It is intended to present a high-level summary, a short list of recent audits with timestamps, a prioritized consolidated gaps summary (P0/P1/P2), and a concise actionable TODO list referencing canonical task IDs so teams can pick up work immediately.
+
+Scope: EF DbSet entities, MariaDB schema, Backend controllers, Frontend types/services, and cross-layer alignment for the Quote-to-Cash, Sales Performance, Pricing, Marketing Automation, ITSM, and Workflow subsystems.
+
+## Recent Audits (timestamps)
+
+- `docs/audits/WORKFLOW_BACKEND_AUDIT.md` — Generated: 2026-02-12 (comprehensive workflow entities, DTOs, services, controllers, DbSet and DI registration audit)
+- `docs/SOLUTION_GAPS_REMEDIATION_PLAN.md` — Last Updated: 2026-02-11 (active remediation plan & phase progress)
+- `docs/specifications/INDEX.md` — Last Updated: 2026-02-12 (spec index reflecting completed specs and planned items)
+- `docs/MASTER_TODO_LIST.md` — Last Updated: 2026-02-08 (master list of extracted TODOs and priorities)
+- `docs/architecture/PLUGGABLE_ARCHITECTURE_IMPLEMENTATION_TRACKER.md` — Last Updated: 2026-02-05 (provider implementation tracker)
+- `docs/EF_DB_FRONTEND_REMEDIATION_SUMMARY.md` — (see remediation history commits listed above) — latest updates applied Feb 12, 2026
+
+Notes: Use `WORKFLOW_BACKEND_AUDIT.md` (2026-02-12) as the source of truth for workflow-specific entity/enum/interface alignment. Use the remediation plan (2026-02-11) for phase and priority context when scheduling work.
+
+## Consolidated Gaps Summary (grouped by priority)
+
+P0 — Critical (Data integrity, naming conflicts, duplicates)
+- Current open P0 items: NONE — Primary P0 work (duplicate DbSet, Account/Customer naming, territory rename) completed 2026-02-09 → 2026-02-12 (see Phase 1: Naming & Duplicate Resolution). Continue monitoring for regressions.
+
+P1 — High (Missing core API surface and controller coverage)
+- Controllers that remain to be implemented (high priority for enabling core UI/workflows):
+	- `OrdersController` (3.1)
+	- `InvoicesController` (3.2)
+	- `SubscriptionsController` (3.3) — see TODO-SALES006-001
+	- `ContractsController` (3.4)
+	- `CommissionsController` (3.5) — see TODO-SALES007-001
+	- `SalesQuotasController` (3.6)
+	- `PriceBooksController` (3.7)
+	- `ProductBundlesController` (3.8)
+	- `ESignaturesController` (3.9)
+	- `EmailSequencesController` (3.10)
+	- `ReportsController` (3.11)
+	- `AIModelsController` (3.12)
+	- `WebAnalyticsController` (3.13)
+	- `SLAPoliciesController` (3.14)
+
+P2 — Medium (Frontend types & services, auxiliary API surface)
+- Frontend service/type work required to expose backend capabilities to the UI:
+	- `orderService.ts` (4.1), `subscriptionService.ts` (4.2), `commissionService.ts` (4.3), `pricingService.ts` (4.4)
+	- `eSignatureService.ts` (4.5), `emailSequenceService.ts` (4.6), `reportService.ts` (4.7), `aiAnalyticsService.ts` (4.8)
+	- `knowledgeService.ts` (4.9), `slaService.ts` (4.10), `calendarService.ts` (4.11), `importExportService.ts` (4.12)
+	- These are required to unblock UI/product teams and to make the newly-created or planned controllers consumable.
+
+P3 — Low (Testing, documentation, polishing)
+- Integration tests for new controllers, updated `DATABASE_SCHEMA.md`, updated feature checklists and a generated EF migration to snapshot the current model are in Phase 6 (6.1–6.4). These are scheduled but lower priority than P1/P2.
+
+Summary counts (approx): P0=0 open, P1=~14 controllers, P2=~12 frontend services/types, P3=~4 documentation/test items.
+
+## Short Actionable TODOs (top-priority, task IDs)
+- (P1) Implement core Quote-to-Cash API: `OrdersController` (task 3.1), `InvoicesController` (3.2). Owner: Backend team — deliver skeleton + CRUD + tests.
+- (P1 → P2) Implement subscriptions flow: `SubscriptionsController` (3.3) and frontend `subscriptionService.ts` (4.2). Link to TODO-SALES006-001.
+- (P1) Implement commissions: `CommissionsController` (3.5). Link to TODO-SALES007-001 — include plan assignment and calculation endpoints first.
+- (P2) Create `orderService.ts` (4.1) and `invoice`/`payment` types to unblock billing UI.
+- (P2) Create `eSignatureService.ts` (4.5) to consume E-Signature endpoints once `ESignaturesController` exists.
+- (P1) Create `ReportsController` (3.11) to expose report definitions and scheduling (needed by analytics/front-end embed work).
+- (P2) Create `aiAnalyticsService.ts` (4.8) to consume `AIModelsController` (3.12) for model listing and predictions.
+- (P3) Add integration tests for each newly implemented controller (6.1) and update `DATABASE_SCHEMA.md` (6.2).
+
+Reference TODO IDs from the master todo list: `TODO-SALES006-001` (SubscriptionsController), `TODO-SALES007-001` (CommissionsController), `TODO-CRM001-008` (Territory service full implementation), and `TODO-CRM003-006` (Enforce valid opportunity stage transitions) — include these in sprint planning for Q2.
+
+Next steps: create one PR per high-priority controller (grouped by domain: Orders/Invoices/Payments; Subscriptions/Contracts; Commissions/Quotas). Each PR must include: interface, controller skeleton, DTOs, unit tests, and a minimal frontend service stub.
+
+
 ## 1. Executive Summary
 
 | Layer | Count | Notes |
@@ -333,8 +399,24 @@ The following SQL tables exist in schema files but have no corresponding `DbSet<
 | `DuplicateMergeGroupMembers` | same migration | Has EF entity | `DuplicateMergeGroupMember` exists |
 | `Addresses_New` | `007_consolidated_contact_info.sql` | Artifact | Migration artifact -- now just `Addresses` |
 | `MarketingCampaignProduct` | Auto-created | Auto-junction | EF many-to-many auto-junction table |
-
+ 
 ---
+
+## Status Update — Implemented Fixes & TODO Markers (concise)
+
+**Implemented Fixes (applied Feb 9–12, 2026):**
+- **Entity / DB fixes:** Duplicate DbSet removal, territory renames, and explicit table creations via Migration 019 (see commits referenced in remediation summary).
+- **ITSM & SLA fixes:** Business hours, SLA calculations, ticket numbering and related ITSM entity alignment applied and covered by unit tests in the ITSM test suite.
+- **Provider & Integration work:** Provider factory and provider implementations (Search, Notifications, Chat, Signatures, AI) registered and tested; Novu/Chatwoot integration wiring added.
+- **Frontend alignment:** `Customer → Account` renames applied across frontend types/services; legacy aliases preserved for backward compatibility to avoid breaking existing integrations.
+
+**TODO Status Markers (actionable):**
+- **[TODO/P1]** Implement `OrdersController`, `InvoicesController`, `SubscriptionsController`, `CommissionsController` — include DTOs, skeleton endpoints, and unit tests. (See `TODO-SALES006-001`, `TODO-SALES007-001` in master TODO list.)
+- **[TODO/P2]** Add frontend service stubs for `orderService.ts`, `subscriptionService.ts`, `commissionService.ts`, and `eSignatureService.ts` to consume the new controller surfaces.
+- **[TODO/P3]** Add integration and E2E tests for subscription and quote-to-cash flows, and create controller-level integration tests for all newly added controllers.
+
+Notes: This section is a concise pointer to the remediation logs and the master TODO list. Teams should consult `docs/MASTER_TODO_LIST.md` and the remediation plan for ownership and scheduling.
+
 
 ## 5. Backend Entities Missing Frontend Types
 

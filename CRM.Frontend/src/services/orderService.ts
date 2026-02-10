@@ -1,3 +1,44 @@
+import api from 'src/services/api';
+
+type Params = Record<string, any>;
+
+export const getOrders = (params?: Params) =>
+  api.get('/api/orders', { params }).then((res) => res.data);
+
+export const getOrder = (id: number) => api.get(`/api/orders/${id}`).then((res) => res.data);
+
+export const createOrder = (payload: any) => api.post('/api/orders', payload).then((res) => res.data);
+
+export const updateOrder = (id: number, payload: any) =>
+  api.put(`/api/orders/${id}`, payload).then((res) => res.data);
+
+export const deleteOrder = (id: number) => api.delete(`/api/orders/${id}`).then((res) => res.data);
+
+export const createFromQuote = (quoteId: number) =>
+  api.post(`/api/orders/create-from-quote/${quoteId}`).then((res) => res.data);
+
+export const createFromOpportunity = (opportunityId: number) =>
+  api.post(`/api/orders/create-from-opportunity/${opportunityId}`).then((res) => res.data);
+
+export const generateOrderNumber = () => api.get('/api/orders/generate-number').then((res) => res.data);
+
+export const createInvoice = (orderId: number) => api.post(`/api/orders/${orderId}/invoice`).then((res) => res.data);
+
+export const searchOrders = (query: string, params?: Params) =>
+  api.get('/api/orders/search', { params: { q: query, ...params } }).then((res) => res.data);
+
+export default {
+  getOrders,
+  getOrder,
+  createOrder,
+  updateOrder,
+  deleteOrder,
+  createFromQuote,
+  createFromOpportunity,
+  generateOrderNumber,
+  createInvoice,
+  searchOrders,
+};
 import apiClient from './apiClient';
 
 // ─── Enums ───────────────────────────────────────────────────────────────────

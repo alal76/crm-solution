@@ -18,17 +18,26 @@ using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// API endpoints for managing activities (timeline/activity feed)
+/// API endpoints for managing activities (timeline/activity feed).
 /// </summary>
+/// <remarks>
+/// Provides operations for:
+/// - Activity feed management (create, read, delete)
+/// - Timeline views for customers, opportunities, and entities
+/// - Event attendee management (add, update response, track attendance)
+/// - Activity statistics and recent activity retrieval
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
 public class ActivitiesController : ControllerBase
 {
     private readonly CrmDbContext _context;
@@ -43,9 +52,23 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get all activities with optional filtering
+    /// Get all activities with optional filtering.
     /// </summary>
+    /// <param name="customerId">Filter by customer/account ID.</param>
+    /// <param name="opportunityId">Filter by opportunity ID.</param>
+    /// <param name="userId">Filter by user ID who created the activity.</param>
+    /// <param name="activityType">Filter by activity type.</param>
+    /// <param name="fromDate">Filter activities from this date.</param>
+    /// <param name="toDate">Filter activities until this date.</param>
+    /// <param name="limit">Maximum number of activities to return (default: 50).</param>
+    /// <returns>List of activities matching the filter criteria.</returns>
+    /// <response code="200">Returns the list of activities.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Activity>>> GetActivities(
         [FromQuery] int? customerId = null,
         [FromQuery] int? opportunityId = null,
@@ -96,9 +119,19 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get an activity by ID
+    /// Get a specific activity by ID.
     /// </summary>
+    /// <param name="id">The activity ID.</param>
+    /// <returns>The activity with the specified ID.</returns>
+    /// <response code="200">Returns the activity.</response>
+    /// <response code="404">Activity not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(Activity), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Activity>> GetActivity(int id)
     {
         var activity = await _context.Activities
@@ -119,9 +152,19 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new activity
+    /// Create a new activity.
     /// </summary>
+    /// <param name="activity">The activity data to create.</param>
+    /// <returns>The created activity.</returns>
+    /// <response code="201">Returns the newly created activity.</response>
+    /// <response code="400">Invalid activity data provided.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost]
+    [ProducesResponseType(typeof(Activity), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Activity>> CreateActivity(Activity activity)
     {
         activity.CreatedAt = DateTime.UtcNow;
@@ -137,9 +180,19 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Delete an activity
+    /// Delete an activity.
     /// </summary>
+    /// <param name="id">The activity ID to delete.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">Activity successfully deleted.</response>
+    /// <response code="404">Activity not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteActivity(int id)
     {
         var activity = await _context.Activities.FindAsync(id);
@@ -153,9 +206,19 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get activities for a specific entity
+    /// Get activities for a specific entity.
     /// </summary>
+    /// <param name="entityType">The entity type (e.g., Customer, Contact, Lead).</param>
+    /// <param name="entityId">The entity ID.</param>
+    /// <param name="limit">Maximum number of activities to return (default: 50).</param>
+    /// <returns>List of activities for the specified entity.</returns>
+    /// <response code="200">Returns the list of activities for the entity.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("entity/{entityType}/{entityId}")]
+    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Activity>>> GetActivitiesByEntity(
         string entityType,
         int entityId,
@@ -182,9 +245,18 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get customer timeline (all activities related to a customer)
+    /// Get customer timeline (all activities related to a customer).
     /// </summary>
+    /// <param name="customerId">The customer/account ID.</param>
+    /// <param name="limit">Maximum number of activities to return (default: 100).</param>
+    /// <returns>Timeline of activities for the customer.</returns>
+    /// <response code="200">Returns the customer timeline.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("customer/{customerId}/timeline")]
+    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Activity>>> GetCustomerTimeline(int customerId, [FromQuery] int limit = 100)
     {
         var activities = await _context.Activities
@@ -198,9 +270,18 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get opportunity timeline
+    /// Get opportunity timeline.
     /// </summary>
+    /// <param name="opportunityId">The opportunity ID.</param>
+    /// <param name="limit">Maximum number of activities to return (default: 100).</param>
+    /// <returns>Timeline of activities for the opportunity.</returns>
+    /// <response code="200">Returns the opportunity timeline.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("opportunity/{opportunityId}/timeline")]
+    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Activity>>> GetOpportunityTimeline(int opportunityId, [FromQuery] int limit = 100)
     {
         var activities = await _context.Activities
@@ -222,9 +303,17 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get recent activities for dashboard
+    /// Get recent activities for dashboard.
     /// </summary>
+    /// <param name="limit">Maximum number of activities to return (default: 20).</param>
+    /// <returns>List of recent activities.</returns>
+    /// <response code="200">Returns the list of recent activities.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("recent")]
+    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Activity>>> GetRecentActivities([FromQuery] int limit = 20)
     {
         var activities = await _context.Activities
@@ -246,9 +335,18 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get activity statistics
+    /// Get activity statistics.
     /// </summary>
+    /// <param name="fromDate">Start date for statistics (default: 30 days ago).</param>
+    /// <param name="toDate">End date for statistics (default: today).</param>
+    /// <returns>Activity statistics including counts by type and day.</returns>
+    /// <response code="200">Returns activity statistics.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("stats")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GetActivityStats([FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
     {
         var from = fromDate ?? DateTime.UtcNow.AddDays(-30);
@@ -285,9 +383,19 @@ public class ActivitiesController : ControllerBase
     #region Event Attendees
 
     /// <summary>
-    /// Get attendees for an activity/event
+    /// Get attendees for an activity/event.
     /// </summary>
+    /// <param name="activityId">The activity ID.</param>
+    /// <returns>List of attendees for the activity.</returns>
+    /// <response code="200">Returns the list of attendees.</response>
+    /// <response code="404">Activity not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("{activityId}/attendees")]
+    [ProducesResponseType(typeof(IEnumerable<EventAttendee>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<EventAttendee>>> GetActivityAttendees(int activityId)
     {
         var activity = await _context.Activities.FindAsync(activityId);
@@ -304,9 +412,22 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Add an attendee to an activity/event
+    /// Add an attendee to an activity/event.
     /// </summary>
+    /// <param name="activityId">The activity ID.</param>
+    /// <param name="dto">The attendee data.</param>
+    /// <returns>The created attendee.</returns>
+    /// <response code="201">Returns the newly created attendee.</response>
+    /// <response code="400">Invalid attendee data provided.</response>
+    /// <response code="404">Activity not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost("{activityId}/attendees")]
+    [ProducesResponseType(typeof(EventAttendee), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EventAttendee>> AddAttendee(int activityId, [FromBody] EventAttendeeCreateDto dto)
     {
         var activity = await _context.Activities.FindAsync(activityId);
@@ -332,9 +453,20 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get a specific attendee
+    /// Get a specific attendee.
     /// </summary>
+    /// <param name="activityId">The activity ID.</param>
+    /// <param name="attendeeId">The attendee ID.</param>
+    /// <returns>The attendee details.</returns>
+    /// <response code="200">Returns the attendee.</response>
+    /// <response code="404">Attendee not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("{activityId}/attendees/{attendeeId}")]
+    [ProducesResponseType(typeof(EventAttendee), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EventAttendee>> GetAttendee(int activityId, int attendeeId)
     {
         var attendee = await _context.EventAttendees
@@ -347,9 +479,23 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Update attendee response status
+    /// Update attendee response status.
     /// </summary>
+    /// <param name="activityId">The activity ID.</param>
+    /// <param name="attendeeId">The attendee ID.</param>
+    /// <param name="dto">The response status update.</param>
+    /// <returns>The updated attendee.</returns>
+    /// <response code="200">Returns the updated attendee.</response>
+    /// <response code="400">Invalid response data provided.</response>
+    /// <response code="404">Attendee not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPatch("{activityId}/attendees/{attendeeId}/respond")]
+    [ProducesResponseType(typeof(EventAttendee), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EventAttendee>> UpdateAttendeeResponse(
         int activityId,
         int attendeeId,
@@ -371,9 +517,23 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Mark attendee as attended/not attended (for completed events)
+    /// Mark attendee as attended/not attended (for completed events).
     /// </summary>
+    /// <param name="activityId">The activity ID.</param>
+    /// <param name="attendeeId">The attendee ID.</param>
+    /// <param name="dto">The attendance status update.</param>
+    /// <returns>The updated attendee.</returns>
+    /// <response code="200">Returns the updated attendee.</response>
+    /// <response code="400">Invalid attendance data provided.</response>
+    /// <response code="404">Attendee not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPatch("{activityId}/attendees/{attendeeId}/attendance")]
+    [ProducesResponseType(typeof(EventAttendee), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EventAttendee>> UpdateAttendance(
         int activityId,
         int attendeeId,
@@ -394,9 +554,20 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Remove an attendee from an activity/event
+    /// Remove an attendee from an activity/event.
     /// </summary>
+    /// <param name="activityId">The activity ID.</param>
+    /// <param name="attendeeId">The attendee ID to remove.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">Attendee successfully removed.</response>
+    /// <response code="404">Attendee not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpDelete("{activityId}/attendees/{attendeeId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveAttendee(int activityId, int attendeeId)
     {
         var attendee = await _context.EventAttendees
@@ -412,9 +583,20 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get all events a user/contact/lead is attending
+    /// Get all events a user/contact/lead is attending.
     /// </summary>
+    /// <param name="attendeeType">The type of attendee (User, Contact, Lead).</param>
+    /// <param name="attendeeId">The attendee's entity ID.</param>
+    /// <param name="fromDate">Filter events starting from this date.</param>
+    /// <param name="toDate">Filter events until this date.</param>
+    /// <returns>List of activities/events the attendee is part of.</returns>
+    /// <response code="200">Returns the list of events for the attendee.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("attendee/{attendeeType}/{attendeeId:int}/events")]
+    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Activity>>> GetEventsForAttendee(
         AttendeeType attendeeType,
         int attendeeId,
