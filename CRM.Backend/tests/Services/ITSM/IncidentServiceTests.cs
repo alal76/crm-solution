@@ -1,386 +1,428 @@
-// CRM Solution - Customer Relationship Management System
-// Copyright (C) 2024-2026 CRM Solution Contributors
-// ITSM Incident Service Unit Tests
+// CRM Solution - ITSM Incident Service Unit Tests
+// Tests for IncidentService - ITSM incident management
 
-using Xunit;
-using FluentAssertions;
+using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using CRM.Core.Interfaces;
+using CRM.Core.Interfaces.ITSM;
+using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services.ITSM;
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services.ITSM;
 
-/// <summary>
-/// Comprehensive unit tests for ITSM Incident functionality
-/// </summary>
 public class IncidentServiceTests
 {
-    #region Create Incident Tests
+    private readonly Mock<IDbContextResolver> _mockResolver;
+    private readonly Mock<ICrmDbContext> _mockContext;
+    private readonly Mock<ISLAService> _mockSlaService;
+    private readonly Mock<ILogger<IncidentService>> _mockLogger;
+    private readonly IIncidentService _service;
+
+    public IncidentServiceTests()
+    {
+        _mockResolver = new Mock<IDbContextResolver>();
+        _mockContext = new Mock<ICrmDbContext>();
+        _mockSlaService = new Mock<ISLAService>();
+        _mockLogger = new Mock<ILogger<IncidentService>>();
+
+        _mockResolver.Setup(r => r.ResolveContext()).Returns(_mockContext.Object);
+        _service = new IncidentService(_mockResolver.Object, _mockSlaService.Object, _mockLogger.Object);
+    }
+
+    // ========================================================================
+    // CreateIncidentAsync
+    // ========================================================================
 
     [Fact]
-    public void CreateIncident_ValidData_CreatesCorrectly()
+    public async Task CreateIncidentAsync_ShouldCreateIncident_WhenValidDtoProvided()
     {
-        // Arrange & Act
-        var incident = new Incident
+        // Arrange
+        var incidents = new List<Incident>();
+        var mockSet = MockDbSetFactory.CreateMockDbSet(incidents);
+        mockSet.Setup(m => m.Add(It.IsAny<Incident>())).Callback<Incident>(e => incidents.Add(e));
+        _mockContext.Setup(c => c.Incidents).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var dto = new CreateIncidentDto
         {
-            Number = "INC0000001",
-            ShortDescription = "Email not working",
-            Description = "User cannot send or receive emails",
-            Impact = IncidentImpact.Medium,
-            Urgency = IncidentUrgency.High,
-            State = IncidentState.New,
+            ShortDescription = "Server is down",
+            Description = "Production server is not responding",
             CallerId = 1,
-            OpenedAt = DateTime.UtcNow
+            ContactType = ContactType.Phone,
+            Impact = IncidentImpact.High,
+            Urgency = IncidentUrgency.High
         };
 
+        // Act
+        var result = await _service.CreateIncidentAsync(dto, createdById: 1);
+
         // Assert
-        incident.Should().NotBeNull();
-        incident.ShortDescription.Should().Be("Email not working");
-        incident.State.Should().Be(IncidentState.New);
+        result.Should().NotBeNull();
+        result.ShortDescription.Should().Be("Server is down");
+        mockSet.Verify(m => m.Add(It.IsAny<Incident>()), Times.Once);
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
-    public void CreateIncident_GeneratesIncidentNumber()
+    public async Task CreateIncidentAsync_ShouldStartSLA_WhenIncidentCreated()
+    {
+        // Arrange
+        var incidents = new List<Incident>();
+        var mockSet = MockDbSetFactory.CreateMockDbSet(incidents);
+        mockSet.Setup(m => m.Add(It.IsAny<Incident>())).Callback<Incident>(e =>
+        {
+            e.IncidentId = 1;
+            incidents.Add(e);
+        });
+        _mockContext.Setup(c => c.Incidents).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var dto = new CreateIncidentDto
+        {
+            ShortDescription = "Test incident for SLA",
+            CallerId = 1,
+            Impact = IncidentImpact.Medium,
+            Urgency = IncidentUrgency.Medium
+        };
+
+        // Act
+        await _service.CreateIncidentAsync(dto, createdById: 1);
+
+        // Assert
+        _mockSlaService.Verify(
+            s => s.StartSLAAsync(It.IsAny<int>(), SLATargetType.Incident, It.IsAny<int>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateIncidentAsync_ShouldGenerateNumber_WhenCreated()
+    {
+        // Arrange
+        var incidents = new List<Incident>();
+        var mockSet = MockDbSetFactory.CreateMockDbSet(incidents);
+        mockSet.Setup(m => m.Add(It.IsAny<Incident>())).Callback<Incident>(e => incidents.Add(e));
+        _mockContext.Setup(c => c.Incidents).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var dto = new CreateIncidentDto
+        {
+            ShortDescription = "Number gen test",
+            CallerId = 1,
+            Impact = IncidentImpact.Low,
+            Urgency = IncidentUrgency.Low
+        };
+
+        // Act
+        var result = await _service.CreateIncidentAsync(dto, createdById: 1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Number.Should().NotBeNullOrEmpty();
+    }
+
+    // ========================================================================
+    // GetIncidentByIdAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task GetIncidentByIdAsync_ShouldReturnIncident_WhenExists()
+    {
+        // Arrange
+        var incidents = new List<Incident>
+        {
+            new()
+            {
+                IncidentId = 1,
+                Number = "INC0001",
+                ShortDescription = "Server down",
+                CallerId = 1,
+                Impact = IncidentImpact.High,
+                Urgency = IncidentUrgency.High,
+                State = IncidentState.New,
+                IsDeleted = false,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(incidents).Object);
+
+        // Act
+        var result = await _service.GetIncidentByIdAsync(1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Number.Should().Be("INC0001");
+        result.ShortDescription.Should().Be("Server down");
+    }
+
+    [Fact]
+    public async Task GetIncidentByIdAsync_ShouldReturnNull_WhenNotFound()
+    {
+        // Arrange
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident>()).Object);
+
+        // Act
+        var result = await _service.GetIncidentByIdAsync(999);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    // ========================================================================
+    // GetIncidentsAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task GetIncidentsAsync_ShouldReturnFilteredResults_WhenStateFilterApplied()
+    {
+        // Arrange
+        var incidents = new List<Incident>
+        {
+            new() { IncidentId = 1, Number = "INC0001", ShortDescription = "Open", State = IncidentState.New, CallerId = 1, Impact = IncidentImpact.High, Urgency = IncidentUrgency.High, CreatedAt = DateTime.UtcNow },
+            new() { IncidentId = 2, Number = "INC0002", ShortDescription = "Resolved", State = IncidentState.Resolved, CallerId = 1, Impact = IncidentImpact.Low, Urgency = IncidentUrgency.Low, CreatedAt = DateTime.UtcNow },
+            new() { IncidentId = 3, Number = "INC0003", ShortDescription = "Also open", State = IncidentState.New, CallerId = 2, Impact = IncidentImpact.Medium, Urgency = IncidentUrgency.Medium, CreatedAt = DateTime.UtcNow }
+        };
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(incidents).Object);
+
+        var filter = new IncidentFilterDto { State = IncidentState.New, PageNumber = 1, PageSize = 20 };
+
+        // Act
+        var (items, totalCount) = await _service.GetIncidentsAsync(filter);
+
+        // Assert
+        items.Should().NotBeNull();
+        totalCount.Should().Be(2);
+    }
+
+    // ========================================================================
+    // UpdateIncidentAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task UpdateIncidentAsync_ShouldUpdateFields_WhenIncidentExists()
     {
         // Arrange
         var incident = new Incident
         {
-            Number = "INC0000001",
-            ShortDescription = "Test incident",
-            OpenedAt = DateTime.UtcNow
+            IncidentId = 1, Number = "INC0001", ShortDescription = "Old desc",
+            CallerId = 1, Impact = IncidentImpact.Low, Urgency = IncidentUrgency.Low,
+            State = IncidentState.New, CreatedAt = DateTime.UtcNow
         };
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident> { incident }).Object);
+        _mockContext.Setup(c => c.IncidentHistory).Returns(MockDbSetFactory.CreateMockDbSet(new List<IncidentHistory>()).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var dto = new UpdateIncidentDto { ShortDescription = "Updated desc", Impact = IncidentImpact.High };
+
+        // Act
+        var result = await _service.UpdateIncidentAsync(1, dto, modifiedById: 2);
 
         // Assert
-        incident.Number.Should().StartWith("INC");
-        incident.Number.Should().HaveLength(10);
+        result.Should().NotBeNull();
+        result.ShortDescription.Should().Be("Updated desc");
     }
 
+    // ========================================================================
+    // AssignIncidentAsync
+    // ========================================================================
+
     [Fact]
-    public void CreateIncident_SetsOpenedAtTimestamp()
+    public async Task AssignIncidentAsync_ShouldAssignUser_WhenIncidentExists()
     {
         // Arrange
-        var beforeCreation = DateTime.UtcNow;
-        
-        // Act
         var incident = new Incident
         {
-            ShortDescription = "Test incident",
-            OpenedAt = DateTime.UtcNow
-        };
-
-        // Assert
-        incident.OpenedAt.Should().BeOnOrAfter(beforeCreation);
-        incident.OpenedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-    }
-
-    #endregion
-
-    #region Priority Calculation Tests
-
-    [Theory]
-    [InlineData(IncidentImpact.High, IncidentUrgency.High, 1)]
-    [InlineData(IncidentImpact.High, IncidentUrgency.Medium, 2)]
-    [InlineData(IncidentImpact.High, IncidentUrgency.Low, 3)]
-    [InlineData(IncidentImpact.Medium, IncidentUrgency.High, 2)]
-    [InlineData(IncidentImpact.Medium, IncidentUrgency.Medium, 3)]
-    [InlineData(IncidentImpact.Medium, IncidentUrgency.Low, 4)]
-    [InlineData(IncidentImpact.Low, IncidentUrgency.High, 3)]
-    [InlineData(IncidentImpact.Low, IncidentUrgency.Medium, 4)]
-    [InlineData(IncidentImpact.Low, IncidentUrgency.Low, 5)]
-    public void CalculatePriority_CorrectMatrix(IncidentImpact impact, IncidentUrgency urgency, int expectedPriority)
-    {
-        // Act
-        var calculatedPriority = CalculatePriority(impact, urgency);
-
-        // Assert
-        calculatedPriority.Should().Be(expectedPriority);
-    }
-
-    private static int CalculatePriority(IncidentImpact impact, IncidentUrgency urgency)
-    {
-        // Priority matrix based on ITIL
-        int[,] priorityMatrix = {
-            { 1, 2, 3 }, // High impact
-            { 2, 3, 4 }, // Medium impact
-            { 3, 4, 5 }  // Low impact
-        };
-
-        int impactIndex = (int)impact - 1;
-        int urgencyIndex = (int)urgency - 1;
-
-        return priorityMatrix[impactIndex, urgencyIndex];
-    }
-
-    #endregion
-
-    #region State Transition Tests
-
-    [Fact]
-    public void Incident_NewToAssigned_IsValid()
-    {
-        // Arrange
-        var incident = new Incident { State = IncidentState.New };
-
-        // Act
-        incident.State = IncidentState.Assigned;
-
-        // Assert
-        incident.State.Should().Be(IncidentState.Assigned);
-    }
-
-    [Fact]
-    public void Incident_AssignedToInProgress_IsValid()
-    {
-        // Arrange
-        var incident = new Incident { State = IncidentState.Assigned };
-
-        // Act
-        incident.State = IncidentState.InProgress;
-
-        // Assert
-        incident.State.Should().Be(IncidentState.InProgress);
-    }
-
-    [Fact]
-    public void Incident_InProgressToResolved_IsValid()
-    {
-        // Arrange
-        var incident = new Incident { State = IncidentState.InProgress };
-
-        // Act
-        incident.State = IncidentState.Resolved;
-        incident.ResolvedAt = DateTime.UtcNow;
-
-        // Assert
-        incident.State.Should().Be(IncidentState.Resolved);
-        incident.ResolvedAt.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void Incident_ResolvedToClosed_IsValid()
-    {
-        // Arrange
-        var incident = new Incident 
-        { 
-            State = IncidentState.Resolved,
-            ResolvedAt = DateTime.UtcNow
-        };
-
-        // Act
-        incident.State = IncidentState.Closed;
-        incident.ClosedAt = DateTime.UtcNow;
-
-        // Assert
-        incident.State.Should().Be(IncidentState.Closed);
-        incident.ClosedAt.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void Incident_CanPutOnHold()
-    {
-        // Arrange
-        var incident = new Incident { State = IncidentState.InProgress };
-
-        // Act
-        incident.State = IncidentState.OnHold;
-
-        // Assert
-        incident.State.Should().Be(IncidentState.OnHold);
-    }
-
-    [Fact]
-    public void Incident_CanBeReopened()
-    {
-        // Arrange
-        var incident = new Incident 
-        { 
-            State = IncidentState.Resolved,
-            ResolvedAt = DateTime.UtcNow 
-        };
-
-        // Act - reopening moves back to in progress
-        incident.State = IncidentState.InProgress;
-
-        // Assert
-        incident.State.Should().Be(IncidentState.InProgress);
-    }
-
-    #endregion
-
-    #region SLA Tests
-
-    [Fact]
-    public void Incident_Priority1_HasShortResponseTime()
-    {
-        // Priority 1 should have 15-minute response time
-        var responseMinutes = GetResponseTimeMinutes(1);
-        responseMinutes.Should().BeLessThanOrEqualTo(15);
-    }
-
-    [Fact]
-    public void Incident_Priority5_HasLongerResponseTime()
-    {
-        // Priority 5 can have longer response time
-        var responseMinutes = GetResponseTimeMinutes(5);
-        responseMinutes.Should().BeGreaterThanOrEqualTo(240);
-    }
-
-    private static int GetResponseTimeMinutes(int priority)
-    {
-        return priority switch
-        {
-            1 => 15,
-            2 => 30,
-            3 => 60,
-            4 => 120,
-            5 => 240,
-            _ => 480
-        };
-    }
-
-    #endregion
-
-    #region Comment Tests
-
-    [Fact]
-    public void IncidentComment_CanBeCreated()
-    {
-        // Arrange & Act
-        var comment = new IncidentComment
-        {
-            IncidentId = 1,
-            Comment = "This is a test comment",
-            IsInternal = false,
-            CreatedById = 1,
+            IncidentId = 1, Number = "INC0001", ShortDescription = "Test",
+            CallerId = 1, State = IncidentState.New,
+            Impact = IncidentImpact.Medium, Urgency = IncidentUrgency.Medium,
             CreatedAt = DateTime.UtcNow
         };
-
-        // Assert
-        comment.Comment.Should().Be("This is a test comment");
-        comment.IsInternal.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IncidentComment_InternalFlag_Works()
-    {
-        // Arrange
-        var internalComment = new IncidentComment { IsInternal = true };
-        var publicComment = new IncidentComment { IsInternal = false };
-
-        // Assert
-        internalComment.IsInternal.Should().BeTrue();
-        publicComment.IsInternal.Should().BeFalse();
-    }
-
-    #endregion
-
-    #region History Tests
-
-    [Fact]
-    public void IncidentHistory_RecordsChanges()
-    {
-        // Arrange & Act
-        var history = new IncidentHistory
-        {
-            IncidentId = 1,
-            Field = "State",
-            OldValue = "New",
-            NewValue = "Assigned",
-            ChangedById = 1,
-            ChangedAt = DateTime.UtcNow
-        };
-
-        // Assert
-        history.Field.Should().Be("State");
-        history.OldValue.Should().Be("New");
-        history.NewValue.Should().Be("Assigned");
-    }
-
-    #endregion
-
-    #region Assignment Tests
-
-    [Fact]
-    public void Incident_CanBeAssignedToUser()
-    {
-        // Arrange
-        var incident = new Incident
-        {
-            Number = "INC0000001",
-            ShortDescription = "Test incident"
-        };
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident> { incident }).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
-        incident.AssignedToId = 5;
-        incident.State = IncidentState.Assigned;
+        var result = await _service.AssignIncidentAsync(1, assignedToId: 5, assignmentGroupId: null, modifiedById: 1);
 
         // Assert
+        result.Should().BeTrue();
         incident.AssignedToId.Should().Be(5);
-        incident.State.Should().Be(IncidentState.Assigned);
     }
 
     [Fact]
-    public void Incident_CanBeAssignedToGroup()
+    public async Task AssignIncidentAsync_ShouldReturnFalse_WhenIncidentNotFound()
+    {
+        // Arrange
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident>()).Object);
+
+        // Act
+        var result = await _service.AssignIncidentAsync(999, 5, null, 1);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    // ========================================================================
+    // ResolveIncidentAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task ResolveIncidentAsync_ShouldSetResolvedState_WhenValid()
     {
         // Arrange
         var incident = new Incident
         {
-            Number = "INC0000001",
-            ShortDescription = "Test incident"
+            IncidentId = 1, Number = "INC0001", ShortDescription = "Test",
+            CallerId = 1, State = IncidentState.InProgress,
+            Impact = IncidentImpact.Medium, Urgency = IncidentUrgency.Medium,
+            CreatedAt = DateTime.UtcNow
+        };
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident> { incident }).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var dto = new ResolveIncidentDto
+        {
+            ResolutionCode = ResolutionCode.SolvedPermanently,
+            ResolutionNotes = "Applied patch"
         };
 
         // Act
-        incident.AssignmentGroupId = 3;
+        var result = await _service.ResolveIncidentAsync(1, dto, resolvedById: 3);
 
         // Assert
-        incident.AssignmentGroupId.Should().Be(3);
+        result.Should().NotBeNull();
+        result.State.Should().Be(IncidentState.Resolved);
     }
 
-    #endregion
+    // ========================================================================
+    // CloseIncidentAsync
+    // ========================================================================
 
-    #region Contact Type Tests
-
-    [Theory]
-    [InlineData(ContactType.Phone)]
-    [InlineData(ContactType.Email)]
-    [InlineData(ContactType.Portal)]
-    [InlineData(ContactType.Chat)]
-    [InlineData(ContactType.WalkIn)]
-    [InlineData(ContactType.Monitoring)]
-    public void Incident_ContactType_CanBeSet(ContactType contactType)
+    [Fact]
+    public async Task CloseIncidentAsync_ShouldClose_WhenResolved()
     {
         // Arrange
-        var incident = new Incident();
+        var incident = new Incident
+        {
+            IncidentId = 1, Number = "INC0001", ShortDescription = "Test",
+            CallerId = 1, State = IncidentState.Resolved,
+            Impact = IncidentImpact.Low, Urgency = IncidentUrgency.Low,
+            CreatedAt = DateTime.UtcNow
+        };
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident> { incident }).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
-        incident.ContactType = contactType;
+        var result = await _service.CloseIncidentAsync(1, closedById: 2);
 
         // Assert
-        incident.ContactType.Should().Be(contactType);
+        result.Should().BeTrue();
+        incident.State.Should().Be(IncidentState.Closed);
     }
 
-    #endregion
+    // ========================================================================
+    // EscalateIncidentAsync
+    // ========================================================================
 
-    #region Resolution Code Tests
-
-    [Theory]
-    [InlineData(ResolutionCode.SolvedPermanently)]
-    [InlineData(ResolutionCode.Workaround)]
-    [InlineData(ResolutionCode.SolvedTemporarily)]
-    [InlineData(ResolutionCode.NotSolvable)]
-    [InlineData(ResolutionCode.Duplicate)]
-    public void Incident_ResolutionCode_CanBeSet(ResolutionCode resolutionCode)
+    [Fact]
+    public async Task EscalateIncidentAsync_ShouldIncrementLevel_WhenIncidentExists()
     {
         // Arrange
-        var incident = new Incident { State = IncidentState.Resolved };
+        var incident = new Incident
+        {
+            IncidentId = 1, Number = "INC0001", ShortDescription = "Escalation test",
+            CallerId = 1, State = IncidentState.InProgress, EscalationLevel = 0,
+            Impact = IncidentImpact.High, Urgency = IncidentUrgency.High,
+            CreatedAt = DateTime.UtcNow
+        };
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident> { incident }).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
-        incident.ResolutionCode = resolutionCode;
+        var result = await _service.EscalateIncidentAsync(1, modifiedById: 1);
 
         // Assert
-        incident.ResolutionCode.Should().Be(resolutionCode);
+        result.Should().BeTrue();
+        incident.EscalationLevel.Should().BeGreaterThan(0);
     }
 
-    #endregion
+    // ========================================================================
+    // ReopenIncidentAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task ReopenIncidentAsync_ShouldReopen_WhenResolvedOrClosed()
+    {
+        // Arrange
+        var incident = new Incident
+        {
+            IncidentId = 1, Number = "INC0001", ShortDescription = "Reopen test",
+            CallerId = 1, State = IncidentState.Resolved,
+            Impact = IncidentImpact.Medium, Urgency = IncidentUrgency.Medium,
+            CreatedAt = DateTime.UtcNow
+        };
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident> { incident }).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        // Act
+        var result = await _service.ReopenIncidentAsync(1, modifiedById: 2);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    // ========================================================================
+    // AddCommentAsync / GetCommentsAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task AddCommentAsync_ShouldAddComment_WhenIncidentExists()
+    {
+        // Arrange
+        var incident = new Incident
+        {
+            IncidentId = 1, Number = "INC0001", ShortDescription = "Comment test",
+            CallerId = 1, State = IncidentState.InProgress,
+            Impact = IncidentImpact.Medium, Urgency = IncidentUrgency.Medium,
+            CreatedAt = DateTime.UtcNow
+        };
+        var comments = new List<IncidentComment>();
+        var mockCommentSet = MockDbSetFactory.CreateMockDbSet(comments);
+        mockCommentSet.Setup(m => m.Add(It.IsAny<IncidentComment>())).Callback<IncidentComment>(e => comments.Add(e));
+
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident> { incident }).Object);
+        _mockContext.Setup(c => c.IncidentComments).Returns(mockCommentSet.Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        // Act
+        var result = await _service.AddCommentAsync(1, "This is a test comment", isInternal: false, createdById: 1);
+
+        // Assert
+        result.Should().BeTrue();
+        mockCommentSet.Verify(m => m.Add(It.IsAny<IncidentComment>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetCommentsAsync_ShouldReturnComments_ForIncident()
+    {
+        // Arrange
+        var comments = new List<IncidentComment>
+        {
+            new() { CommentId = 1, IncidentId = 1, Comment = "First comment", CreatedById = 1, IsInternal = false, CreatedAt = DateTime.UtcNow },
+            new() { CommentId = 2, IncidentId = 1, Comment = "Internal note", CreatedById = 2, IsInternal = true, CreatedAt = DateTime.UtcNow },
+            new() { CommentId = 3, IncidentId = 2, Comment = "Other incident", CreatedById = 1, IsInternal = false, CreatedAt = DateTime.UtcNow }
+        };
+        _mockContext.Setup(c => c.IncidentComments).Returns(MockDbSetFactory.CreateMockDbSet(comments).Object);
+
+        // Act
+        var result = await _service.GetCommentsAsync(1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+    }
 }
