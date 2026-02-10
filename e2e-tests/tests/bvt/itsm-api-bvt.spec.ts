@@ -39,7 +39,7 @@ test.beforeAll(async ({ playwright }) => {
     
     if (authResponse.ok()) {
       const authData = await authResponse.json();
-      authToken = authData.token;
+      authToken = authData.accessToken || authData.token;
     }
   } catch (error) {
     console.log('Auth skipped - server may not be running');
