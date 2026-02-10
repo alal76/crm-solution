@@ -35,10 +35,10 @@ public class EmailTemplateSequenceEntityTests
     }
 
     [Fact]
-    public void EmailTemplateCategory_ShouldHave10Values()
+    public void EmailTemplateCategory_ShouldHave13Values()
     {
         var values = Enum.GetValues<EmailTemplateCategory>();
-        values.Should().HaveCount(10);
+        values.Should().HaveCount(13);
     }
 
     [Theory]

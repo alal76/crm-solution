@@ -103,6 +103,17 @@ public interface ICrmDbContext
     DbSet<SubscriptionUsageLimit> SubscriptionUsageLimits { get; }
     DbSet<Contract> Contracts { get; }
 
+    // Credit Memos
+    DbSet<CreditMemo> CreditMemos { get; }
+    DbSet<CreditMemoLineItem> CreditMemoLineItems { get; }
+    DbSet<CreditApplication> CreditApplications { get; }
+
+    // Email Sequences
+    DbSet<EmailSequence> EmailSequences { get; }
+    DbSet<EmailSequenceStep> EmailSequenceSteps { get; }
+    DbSet<EmailSequenceEnrollment> EmailSequenceEnrollments { get; }
+    DbSet<EmailSequenceStepExecution> EmailSequenceStepExecutions { get; }
+
     // Phase 4 - Teams
     DbSet<Team> Teams { get; }
     DbSet<TeamMember> TeamMembers { get; }

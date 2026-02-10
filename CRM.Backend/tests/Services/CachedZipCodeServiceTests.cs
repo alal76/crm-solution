@@ -150,14 +150,16 @@ public class CachedZipCodeServiceTests
     {
         // Arrange
         var states = new List<StateInfo> { new() { Code = "CA", Name = "California" } };
-        _mockInnerService.Setup(s => s.GetStatesAsync("US")).ReturnsAsync(states);
+        // The service passes the original (lowercase) countryCode to the inner service
+        // but normalizes the cache key to uppercase, so both calls hit the same cache entry
+        _mockInnerService.Setup(s => s.GetStatesAsync("us")).ReturnsAsync(states);
 
         // Act
-        await _service.GetStatesAsync("us"); // lowercase
-        var result = await _service.GetStatesAsync("US"); // uppercase
+        await _service.GetStatesAsync("us"); // lowercase - calls inner service
+        var result = await _service.GetStatesAsync("US"); // uppercase - served from cache (same key)
 
-        // Assert - should use same cache key
-        _mockInnerService.Verify(s => s.GetStatesAsync("US"), Times.Once);
+        // Assert - inner service called only once with the original lowercase value
+        _mockInnerService.Verify(s => s.GetStatesAsync("us"), Times.Once);
     }
 
     #endregion

@@ -7,6 +7,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Api.Hubs;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using System.Collections.Generic;

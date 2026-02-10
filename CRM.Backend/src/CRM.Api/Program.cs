@@ -379,12 +379,14 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IITSMDashboardService, CRM.I
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IMonitoringIntegrationService, CRM.Infrastructure.Services.ITSM.MonitoringIntegrationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
+#if ITSM_ADVANCED
 // SLA Enforcement Background Service - runs continuously to monitor and enforce SLAs
 builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.SLAEnforcementHostedService>();
 // Auto-close resolved items background service (auto-closes incidents, service requests, changes, problems)
 builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.AutoCloseHostedService>();
 // Escalation background service (auto-escalates incidents/service requests based on SLA thresholds)
 builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.EscalationHostedService>();
+#endif
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();

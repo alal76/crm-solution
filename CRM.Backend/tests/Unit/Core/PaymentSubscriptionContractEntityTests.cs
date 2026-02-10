@@ -127,14 +127,16 @@ public class PaymentSubscriptionContractEntityTests
     public void SubscriptionStatus_ShouldHaveExpectedValues()
     {
         SubscriptionStatus.Current.Should().Be((SubscriptionStatus)0);
-        SubscriptionStatus.Churned.Should().Be((SubscriptionStatus)1);
+        SubscriptionStatus.Churned.Should().Be((SubscriptionStatus)2);
     }
 
     [Fact]
-    public void SubscriptionStatus_ShouldHave2Values()
+    public void SubscriptionStatus_ShouldHave7DistinctValues()
     {
         var values = Enum.GetValues<SubscriptionStatus>();
-        values.Should().HaveCount(2);
+        // 9 named values including aliases Current (=Active) and Churned (=Cancelled)
+        values.Should().HaveCount(9);
+        values.Distinct().Should().HaveCount(7);
     }
 
     #endregion

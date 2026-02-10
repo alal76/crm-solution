@@ -124,7 +124,7 @@ public class CreditMemoService : ICreditMemoService
                 Description = li.Description,
                 Quantity = li.Quantity,
                 UnitPrice = li.UnitPrice,
-                TotalAmount = li.TotalAmount,
+                Amount = li.TotalAmount,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             });
@@ -158,7 +158,6 @@ public class CreditMemoService : ICreditMemoService
         if (applyAmount <= 0) throw new InvalidOperationException("Nothing to apply");
 
         cm.AmountApplied += applyAmount;
-        cm.BalanceRemaining = cm.Amount - cm.AmountApplied;
         cm.Status = CreditMemoStatus.PartiallyApplied;
         if (Math.Abs(cm.BalanceRemaining) < 0.01m) cm.Status = CreditMemoStatus.Applied;
         cm.AppliedDate = DateTime.UtcNow;
@@ -178,7 +177,6 @@ public class CreditMemoService : ICreditMemoService
         if (cm == null || cm.IsDeleted) throw new InvalidOperationException($"Credit memo {creditMemoId} not found");
 
         cm.AmountApplied = 0m;
-        cm.BalanceRemaining = cm.Amount;
         cm.Status = CreditMemoStatus.Approved;
         cm.UpdatedAt = DateTime.UtcNow;
 

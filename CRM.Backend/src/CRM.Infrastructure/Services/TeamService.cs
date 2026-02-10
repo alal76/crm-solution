@@ -340,12 +340,12 @@ public class TeamService : ITeamService
             throw new InvalidOperationException($"Team {teamId} has no manager or members to assign the account to");
         }
 
-        account.OwnerId = assigneeId;
+        account.AssignedToUserId = assigneeId;
         account.UpdatedAt = DateTime.UtcNow;
         _context.Customers.Update(account);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Assigned account {AccountId} to team {TeamId} via owner {OwnerId}", accountId, teamId, assigneeId);
+        _logger.LogInformation("Assigned account {AccountId} to team {TeamId} via assignee {AssigneeId}", accountId, teamId, assigneeId);
         return true;
     }
 
@@ -369,18 +369,18 @@ public class TeamService : ITeamService
             .Select(tm => tm.UserId)
             .ToListAsync(cancellationToken);
 
-        if (account.OwnerId == null || !teamMemberIds.Contains(account.OwnerId.Value))
+        if (account.AssignedToUserId == null || !teamMemberIds.Contains(account.AssignedToUserId.Value))
         {
-            _logger.LogWarning("Account {AccountId} is not owned by a member of team {TeamId}", accountId, teamId);
+            _logger.LogWarning("Account {AccountId} is not assigned to a member of team {TeamId}", accountId, teamId);
             return false;
         }
 
-        account.OwnerId = null;
+        account.AssignedToUserId = null;
         account.UpdatedAt = DateTime.UtcNow;
         _context.Customers.Update(account);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Removed account {AccountId} from team {TeamId} by clearing OwnerId", accountId, teamId);
+        _logger.LogInformation("Removed account {AccountId} from team {TeamId} by clearing AssignedToUserId", accountId, teamId);
         return true;
     }
 
@@ -398,7 +398,7 @@ public class TeamService : ITeamService
         }
 
         return await _context.Customers
-            .Where(a => !a.IsDeleted && a.OwnerId != null && teamMemberUserIds.Contains(a.OwnerId.Value))
+            .Where(a => !a.IsDeleted && a.AssignedToUserId != null && teamMemberUserIds.Contains(a.AssignedToUserId.Value))
             .OrderBy(a => a.Company)
             .ThenBy(a => a.LastName)
             .ToListAsync(cancellationToken);
@@ -410,15 +410,15 @@ public class TeamService : ITeamService
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == accountId && !a.IsDeleted, cancellationToken);
 
-        if (account?.OwnerId == null)
+        if (account?.AssignedToUserId == null)
         {
             return null;
         }
 
-        // Find the first team that this account owner belongs to
+        // Find the first team that this account assignee belongs to
         var teamMember = await _context.TeamMembers
             .Include(tm => tm.Team)
-            .Where(tm => tm.UserId == account.OwnerId.Value && !tm.IsDeleted)
+            .Where(tm => tm.UserId == account.AssignedToUserId.Value && !tm.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 
         return teamMember?.Team;

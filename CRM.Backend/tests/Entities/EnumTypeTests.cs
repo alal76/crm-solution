@@ -143,16 +143,32 @@ public class EnumTypeTests
     [Fact]
     public void SubscriptionStatus_HasExpectedCount()
     {
-        Enum.GetValues<SubscriptionStatus>().Should().HaveCount(2);
+        // 9 named values: Active, Paused, Cancelled, Suspended, PendingCancellation, Expired, Trial + aliases Current (=Active), Churned (=Cancelled)
+        Enum.GetValues<SubscriptionStatus>().Should().HaveCount(9);
+        Enum.GetValues<SubscriptionStatus>().Distinct().Should().HaveCount(7);
     }
 
     [Theory]
-    [InlineData("Current")]
-    [InlineData("Churned")]
+    [InlineData("Active")]
+    [InlineData("Paused")]
+    [InlineData("Cancelled")]
+    [InlineData("Suspended")]
+    [InlineData("PendingCancellation")]
+    [InlineData("Expired")]
+    [InlineData("Trial")]
     public void SubscriptionStatus_ParseFromString(string value)
     {
         var parsed = Enum.Parse<SubscriptionStatus>(value);
         parsed.ToString().Should().Be(value);
+    }
+
+    [Fact]
+    public void SubscriptionStatus_AliasesShouldParseCorrectly()
+    {
+        // "Current" is an alias for Active (both = 0)
+        Enum.Parse<SubscriptionStatus>("Current").Should().Be(SubscriptionStatus.Active);
+        // "Churned" is an alias for Cancelled (both = 2)
+        Enum.Parse<SubscriptionStatus>("Churned").Should().Be(SubscriptionStatus.Cancelled);
     }
 
     #endregion

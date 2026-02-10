@@ -51,7 +51,7 @@ public class AuthController : ControllerBase
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("register")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
@@ -92,7 +92,7 @@ public class AuthController : ControllerBase
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("login")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -129,7 +129,7 @@ public class AuthController : ControllerBase
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("login/2fa")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -165,7 +165,7 @@ public class AuthController : ControllerBase
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("oauth-login")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> OAuthLogin([FromBody] OAuthLoginRequest request)
@@ -518,7 +518,7 @@ public class AuthController : ControllerBase
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("setup-password")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -557,7 +557,7 @@ public class AuthController : ControllerBase
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("password-requirements")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(PasswordRequirements), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PasswordComplexityRequirements), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPasswordRequirements()
     {
