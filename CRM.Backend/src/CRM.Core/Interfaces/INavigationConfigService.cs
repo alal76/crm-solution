@@ -5,11 +5,12 @@ using System.Threading.Tasks;
 namespace CRM.Core.Interfaces
 {
     /// <summary>
-    /// Service for providing navigation configuration with pluggable architecture awareness.
+    /// Service for providing navigation configuration with pluggable architecture awareness and RBAC support.
     /// This service determines which navigation items should be shown based on:
+    /// - User group permissions (RBAC)
     /// - Feature flags (enabled/disabled features)
     /// - Provider configuration (internal vs external services)
-    /// - Module availability
+    /// - Module visibility configuration
     /// </summary>
     public interface INavigationConfigService
     {
@@ -24,6 +25,37 @@ namespace CRM.Core.Interfaces
         Task<IEnumerable<NavigationItemConfig>> GetAvailableNavItemsAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets navigation configuration filtered by user permissions (RBAC).
+        /// </summary>
+        /// <param name="userId">The user ID to get permissions for.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Navigation config filtered by user's group permissions.</returns>
+        Task<NavigationConfig> GetNavigationConfigForUserAsync(int userId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets navigation items filtered by user's group permissions.
+        /// </summary>
+        /// <param name="userId">The user ID to get permissions for.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Navigation items the user is allowed to access.</returns>
+        Task<IEnumerable<NavigationItemConfig>> GetAvailableNavItemsForUserAsync(int userId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets the user's effective permissions from their group memberships.
+        /// </summary>
+        /// <param name="userId">The user ID to get permissions for.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Aggregated permissions from all groups the user belongs to.</returns>
+        Task<UserNavigationPermissions> GetUserPermissionsAsync(int userId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets module visibility configuration (which modules are enabled/visible).
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Module visibility settings.</returns>
+        Task<Dictionary<string, ModuleConfig>> GetModuleConfigsAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Gets external service URLs for pluggable providers (n8n, Superset, etc.).
         /// </summary>
         Task<Dictionary<string, ExternalServiceConfig>> GetExternalServiceConfigsAsync(CancellationToken cancellationToken = default);
@@ -32,6 +64,141 @@ namespace CRM.Core.Interfaces
         /// Gets the provider status for all pluggable services.
         /// </summary>
         Task<Dictionary<string, ProviderStatus>> GetProviderStatusAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Invalidates the navigation config cache (call after permission changes).
+        /// </summary>
+        void InvalidateCache();
+    }
+
+    /// <summary>
+    /// User's effective navigation permissions from their group memberships.
+    /// </summary>
+    public class UserNavigationPermissions
+    {
+        /// <summary>
+        /// User ID these permissions are for.
+        /// </summary>
+        public int UserId { get; set; }
+
+        /// <summary>
+        /// Whether the user has system admin access (bypasses all checks).
+        /// </summary>
+        public bool IsSystemAdmin { get; set; }
+
+        /// <summary>
+        /// Menu access permissions (aggregated from all groups).
+        /// </summary>
+        public MenuAccessPermissions MenuAccess { get; set; } = new();
+
+        /// <summary>
+        /// CRUD permissions per entity type.
+        /// </summary>
+        public Dictionary<string, EntityCrudPermissions> EntityPermissions { get; set; } = new();
+
+        /// <summary>
+        /// Data access scope (own, team, all).
+        /// </summary>
+        public string DataAccessScope { get; set; } = "own";
+
+        /// <summary>
+        /// Bulk operation permissions.
+        /// </summary>
+        public BulkOperationPermissions BulkOperations { get; set; } = new();
+
+        /// <summary>
+        /// Group IDs the user belongs to.
+        /// </summary>
+        public List<int> GroupIds { get; set; } = new();
+
+        /// <summary>
+        /// Group names the user belongs to.
+        /// </summary>
+        public List<string> GroupNames { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Menu/navigation access permissions.
+    /// </summary>
+    public class MenuAccessPermissions
+    {
+        public bool Dashboard { get; set; }
+        public bool Customers { get; set; }
+        public bool Contacts { get; set; }
+        public bool Leads { get; set; }
+        public bool Opportunities { get; set; }
+        public bool Products { get; set; }
+        public bool Services { get; set; }
+        public bool Campaigns { get; set; }
+        public bool Quotes { get; set; }
+        public bool Tasks { get; set; }
+        public bool Activities { get; set; }
+        public bool Notes { get; set; }
+        public bool Workflows { get; set; }
+        public bool ServiceRequests { get; set; }
+        public bool ITSM { get; set; }
+        public bool Reports { get; set; }
+        public bool Settings { get; set; }
+        public bool UserManagement { get; set; }
+    }
+
+    /// <summary>
+    /// CRUD permissions for an entity type.
+    /// </summary>
+    public class EntityCrudPermissions
+    {
+        public bool CanCreate { get; set; }
+        public bool CanRead { get; set; }
+        public bool CanUpdate { get; set; }
+        public bool CanDelete { get; set; }
+        public bool CanViewAll { get; set; }
+    }
+
+    /// <summary>
+    /// Bulk operation permissions.
+    /// </summary>
+    public class BulkOperationPermissions
+    {
+        public bool CanExport { get; set; }
+        public bool CanImport { get; set; }
+        public bool CanBulkEdit { get; set; }
+        public bool CanBulkDelete { get; set; }
+    }
+
+    /// <summary>
+    /// Module configuration for visibility.
+    /// </summary>
+    public class ModuleConfig
+    {
+        /// <summary>
+        /// Module name (e.g., "CRM", "ITSM", "Marketing").
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Display name for the module.
+        /// </summary>
+        public string DisplayName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Whether this module is enabled.
+        /// </summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>
+        /// Whether this module is visible in navigation.
+        /// </summary>
+        public bool Visible { get; set; } = true;
+
+        /// <summary>
+        /// Feature flag that controls this module.
+        /// </summary>
+        public string? FeatureFlag { get; set; }
+
+        /// <summary>
+        /// Navigation items in this module.
+        /// </summary>
+        public List<string> NavItems { get; set; } = new();
     }
 
     /// <summary>
@@ -154,6 +321,22 @@ namespace CRM.Core.Interfaces
         /// Provider type this item is associated with.
         /// </summary>
         public string? ProviderType { get; set; }
+
+        /// <summary>
+        /// Required permission for this nav item (maps to UserGroup.CanAccess* properties).
+        /// E.g., "Customers", "Leads", "ITSM", "Settings"
+        /// </summary>
+        public string? RequiredPermission { get; set; }
+
+        /// <summary>
+        /// Whether this item requires system admin access.
+        /// </summary>
+        public bool RequiresSystemAdmin { get; set; }
+
+        /// <summary>
+        /// Whether this item is an admin-only item (requires CanAccessSettings or CanAccessUserManagement).
+        /// </summary>
+        public bool IsAdminItem { get; set; }
     }
 
     /// <summary>
