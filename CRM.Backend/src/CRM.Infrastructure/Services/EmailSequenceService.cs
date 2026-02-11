@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,6 +35,66 @@ namespace CRM.Infrastructure.Services
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<IEnumerable<EmailSequence>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.EmailSequences
+                .Include(s => s.Steps)
+                .Where(s => !s.IsDeleted)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<EmailSequence?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return await _context.EmailSequences
+                .Include(s => s.Steps)
+                .Include(s => s.Enrollments)
+                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted, cancellationToken);
+        }
+
+        public async Task<EmailSequence> UpdateAsync(EmailSequence sequence, CancellationToken cancellationToken = default)
+        {
+            if (sequence == null) throw new ArgumentNullException(nameof(sequence));
+            var existing = await _context.EmailSequences
+                .FirstOrDefaultAsync(s => s.Id == sequence.Id && !s.IsDeleted, cancellationToken);
+            if (existing == null) throw new InvalidOperationException($"Sequence {sequence.Id} not found");
+
+            existing.Name = sequence.Name;
+            existing.Description = sequence.Description;
+            existing.FromEmail = sequence.FromEmail;
+            existing.FromName = sequence.FromName;
+            existing.ReplyToEmail = sequence.ReplyToEmail;
+            existing.SendFromOwner = sequence.SendFromOwner;
+            existing.Timezone = sequence.Timezone;
+            existing.SendingDays = sequence.SendingDays;
+            existing.SendingStartHour = sequence.SendingStartHour;
+            existing.SendingEndHour = sequence.SendingEndHour;
+            existing.MaxEmailsPerDay = sequence.MaxEmailsPerDay;
+            existing.ThrottleMinutes = sequence.ThrottleMinutes;
+            existing.ExitOnReply = sequence.ExitOnReply;
+            existing.ExitOnMeetingBooked = sequence.ExitOnMeetingBooked;
+            existing.ExitOnBounce = sequence.ExitOnBounce;
+            existing.ExitOnUnsubscribe = sequence.ExitOnUnsubscribe;
+            existing.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Updated email sequence {SequenceId}", sequence.Id);
+            return existing;
+        }
+
+        public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var sequence = await _context.EmailSequences
+                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted, cancellationToken);
+            if (sequence == null) return false;
+
+            sequence.IsDeleted = true;
+            sequence.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Soft-deleted email sequence {SequenceId}", id);
+            return true;
         }
 
         public async Task<EmailSequence> CreateSequenceAsync(EmailSequence sequence, CancellationToken cancellationToken = default)

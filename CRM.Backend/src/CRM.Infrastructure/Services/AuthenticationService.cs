@@ -47,6 +47,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ITotpService _totpService;
     private readonly IMemoryCache _cache;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
@@ -56,6 +57,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         IJwtTokenService jwtTokenService,
         ITotpService totpService,
         IMemoryCache cache,
+        IHttpClientFactory httpClientFactory,
         ILogger<AuthenticationService> logger)
     {
         _userRepository = userRepository;
@@ -64,6 +66,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         _jwtTokenService = jwtTokenService;
         _totpService = totpService;
         _cache = cache;
+        _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
@@ -661,102 +664,90 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
     private async Task<(string userId, string email, string? firstName, string? lastName)> ValidateProviderTokenAsync(string provider, string token)
     {
-        return await Task.Run(async () =>
+        try
         {
-            try
+            switch (provider.ToLower())
             {
-                switch (provider.ToLower())
-                {
-                    case "google":
-                        return await ValidateGoogleTokenAsync(token);
-                    case "microsoft":
-                        return await ValidateMicrosoftTokenAsync(token);
-                    default:
-                        throw new InvalidOperationException($"Unsupported OAuth provider: {provider}");
-                }
+                case "google":
+                    return await ValidateGoogleTokenAsync(token);
+                case "microsoft":
+                    return await ValidateMicrosoftTokenAsync(token);
+                default:
+                    throw new InvalidOperationException($"Unsupported OAuth provider: {provider}");
             }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Token validation failed for provider '{provider}': {ex.Message}", ex);
-            }
-        });
+        }
+        catch (Exception ex) when (ex is not InvalidOperationException)
+        {
+            throw new InvalidOperationException($"Token validation failed for provider '{provider}': {ex.Message}", ex);
+        }
     }
 
     private async Task<(string userId, string email, string? firstName, string? lastName)> ValidateGoogleTokenAsync(string token)
     {
-        return await Task.Run(() =>
+        var client = _httpClientFactory.CreateClient();
+
+        // Verify the token with Google's tokeninfo endpoint — this validates the JWT signature server-side
+        var response = await client.GetAsync($"https://oauth2.googleapis.com/tokeninfo?id_token={Uri.EscapeDataString(token)}");
+        if (!response.IsSuccessStatusCode)
         {
-            try
-            {
-                // Note: In production, you would verify the JWT signature with Google's public keys
-                // For now, we'll parse the token (JWT format: header.payload.signature)
-                var parts = token.Split('.');
-                if (parts.Length != 3)
-                    throw new InvalidOperationException("Invalid token format");
+            var errorBody = await response.Content.ReadAsStringAsync();
+            _logger.LogWarning("Google token validation failed with status {StatusCode}: {Error}", response.StatusCode, errorBody);
+            throw new InvalidOperationException("Invalid Google token: verification failed");
+        }
 
-                // Decode the payload (second part)
-                var payload = parts[1];
-                // Add padding if needed
-                var padding = 4 - (payload.Length % 4);
-                if (padding != 4)
-                    payload += new string('=', padding);
+        var json = await response.Content.ReadAsStringAsync();
+        using var jsonDoc = JsonDocument.Parse(json);
+        var root = jsonDoc.RootElement;
 
-                var decodedBytes = Convert.FromBase64String(payload);
-                var json = Encoding.UTF8.GetString(decodedBytes);
-                var jsonDoc = JsonDocument.Parse(json);
-                var root = jsonDoc.RootElement;
+        var sub = root.TryGetProperty("sub", out var subProp) ? subProp.GetString() : null;
+        var email = root.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
 
-                var sub = root.GetProperty("sub").GetString() ?? throw new InvalidOperationException("Missing 'sub' claim");
-                var email = root.GetProperty("email").GetString() ?? throw new InvalidOperationException("Missing 'email' claim");
-                var firstName = root.TryGetProperty("given_name", out var gn) ? gn.GetString() : null;
-                var lastName = root.TryGetProperty("family_name", out var fn) ? fn.GetString() : null;
+        if (string.IsNullOrEmpty(sub))
+            throw new InvalidOperationException("Google token missing 'sub' claim");
+        if (string.IsNullOrEmpty(email))
+            throw new InvalidOperationException("Google token missing 'email' claim");
 
-                return (sub, email, firstName, lastName);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Failed to validate Google token", ex);
-            }
-        });
+        var firstName = root.TryGetProperty("given_name", out var gn) ? gn.GetString() : null;
+        var lastName = root.TryGetProperty("family_name", out var fn) ? fn.GetString() : null;
+
+        return (sub, email, firstName, lastName);
     }
 
     private async Task<(string userId, string email, string? firstName, string? lastName)> ValidateMicrosoftTokenAsync(string token)
     {
-        return await Task.Run(() =>
+        var client = _httpClientFactory.CreateClient();
+
+        // Validate the token by calling Microsoft Graph — if the token is invalid, Graph rejects it
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://graph.microsoft.com/v1.0/me");
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
         {
-            try
-            {
-                // Note: In production, you would verify the JWT signature with Microsoft's public keys
-                var parts = token.Split('.');
-                if (parts.Length != 3)
-                    throw new InvalidOperationException("Invalid token format");
+            var errorBody = await response.Content.ReadAsStringAsync();
+            _logger.LogWarning("Microsoft token validation failed with status {StatusCode}: {Error}", response.StatusCode, errorBody);
+            throw new InvalidOperationException("Invalid Microsoft token: verification failed");
+        }
 
-                // Decode the payload (second part)
-                var payload = parts[1];
-                // Add padding if needed
-                var padding = 4 - (payload.Length % 4);
-                if (padding != 4)
-                    payload += new string('=', padding);
+        var json = await response.Content.ReadAsStringAsync();
+        using var jsonDoc = JsonDocument.Parse(json);
+        var root = jsonDoc.RootElement;
 
-                var decodedBytes = Convert.FromBase64String(payload);
-                var json = Encoding.UTF8.GetString(decodedBytes);
-                var jsonDoc = JsonDocument.Parse(json);
-                var root = jsonDoc.RootElement;
+        var id = root.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
+        // Microsoft Graph returns 'mail' for most accounts, fallback to 'userPrincipalName'
+        var email = root.TryGetProperty("mail", out var mailProp) ? mailProp.GetString() : null;
+        if (string.IsNullOrEmpty(email))
+            email = root.TryGetProperty("userPrincipalName", out var upnProp) ? upnProp.GetString() : null;
 
-                var oid = root.GetProperty("oid").GetString() ?? throw new InvalidOperationException("Missing 'oid' claim");
-                var email = root.GetProperty("upn").GetString() ?? throw new InvalidOperationException("Missing 'upn' claim");
-                var name = root.TryGetProperty("name", out var n) ? n.GetString() : null;
+        if (string.IsNullOrEmpty(id))
+            throw new InvalidOperationException("Microsoft token missing 'id' field");
+        if (string.IsNullOrEmpty(email))
+            throw new InvalidOperationException("Microsoft token missing 'mail' or 'userPrincipalName' field");
 
-                var firstName = name?.Split(' ').FirstOrDefault();
-                var lastName = name?.Split(' ').Skip(1).FirstOrDefault();
+        var firstName = root.TryGetProperty("givenName", out var gn) ? gn.GetString() : null;
+        var lastName = root.TryGetProperty("surname", out var sn) ? sn.GetString() : null;
 
-                return (oid, email, firstName, lastName);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Failed to validate Microsoft token", ex);
-            }
-        });
+        return (id, email, firstName, lastName);
     }
 
     // Two-Factor Authentication Methods

@@ -157,6 +157,7 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const TasksPage = lazy(() => import('./pages/TasksPage'));
 const NotesPage = lazy(() => import('./pages/NotesPage'));
 const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'));
+const ReportsPage = lazy(() => import('./pages/ReportsPage'));
 
 // ----------------------------------------------------------------------------
 // Account & Profile Pages - Lazy Loaded
@@ -627,6 +628,16 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Activities">
                       <ActivitiesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Reports">
+                      <ReportsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

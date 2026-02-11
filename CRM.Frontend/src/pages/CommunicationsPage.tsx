@@ -66,8 +66,10 @@ import {
   Forum as ConversationIcon,
   Settings as SettingsIcon,
   TrendingUp as StatsIcon,
+  AutoAwesome as AIIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import EmailAIAssist from '../components/common/EmailAIAssist';
 
 // Types
 interface Message extends BaseEntity {
@@ -167,6 +169,7 @@ function CommunicationsPage() {
     subject: '',
     body: '',
   });
+  const [aiAssistOpen, setAiAssistOpen] = useState(false);
   
   // View message dialog
   const [viewMessageOpen, setViewMessageOpen] = useState(false);
@@ -875,6 +878,16 @@ function CommunicationsPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setComposeOpen(false)}>Cancel</Button>
+          {composeForm.channelType === 'Email' && (
+            <Button
+              startIcon={<AIIcon />}
+              onClick={() => setAiAssistOpen(true)}
+              disabled={!composeForm.body}
+              color="secondary"
+            >
+              AI Assist
+            </Button>
+          )}
           <Button 
             variant="contained" 
             startIcon={<SendIcon />}
@@ -885,6 +898,23 @@ function CommunicationsPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* AI Email Assistant */}
+      <EmailAIAssist
+        open={aiAssistOpen}
+        onClose={() => setAiAssistOpen(false)}
+        emailContent={composeForm.body}
+        emailSubject={composeForm.subject}
+        onApplySuggestion={(suggestion: { subject?: string; body: string }) => {
+          setComposeForm(prev => ({
+            ...prev,
+            body: suggestion.body,
+            ...(suggestion.subject ? { subject: suggestion.subject } : {}),
+          }));
+          setAiAssistOpen(false);
+        }}
+        onApplySubject={(subject: string) => setComposeForm(prev => ({ ...prev, subject }))}
+      />
 
       {/* View Message Dialog */}
       <Dialog open={viewMessageOpen} onClose={() => setViewMessageOpen(false)} maxWidth="md" fullWidth>

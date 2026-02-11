@@ -62,6 +62,8 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta-api.outputs.tags }}
         labels: ${{ steps.meta-api.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     - name: Build and push frontend image
       uses: docker/build-push-action@v6
@@ -71,150 +73,20 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta-frontend.outputs.tags }}
         labels: ${{ steps.meta-frontend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
-  # All 3 test projects are in CRM.sln — Core must pass, others continue-on-error
-  test-backend:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-
-    - name: Restore and build solution
-      run: |
-        dotnet restore CRM.Backend/CRM.sln
-        dotnet build CRM.Backend/CRM.sln -c Release --no-restore
-
-    - name: Run Core unit tests (must pass)
-      run: |
-        dotnet test CRM.Backend/tests/Unit/Core/CRM.Tests.Unit.Core.csproj \
-          -c Release --no-build --verbosity normal
-
-    - name: Run Service tests
-      run: |
-        dotnet test CRM.Backend/tests/CRM.Tests/CRM.Tests.csproj \
-          -c Release --no-build --verbosity normal
-      continue-on-error: true
-
-    - name: Run Main test suite
-      run: |
-        dotnet test CRM.Backend/tests/CRM.Tests.csproj \
-          -c Release --no-build --verbosity normal
-      continue-on-error: true
-
-  # BVT: Playwright API tests against a live API + MariaDB (118 tests, must pass)
-  bvt-tests:
-    runs-on: ubuntu-latest
-    needs: [test-backend]
-
-    services:
-      mariadb:
-        image: mariadb:10.11
-        env:
-          MARIADB_ROOT_PASSWORD: root
-          MARIADB_DATABASE: crm_db
-          MARIADB_USER: crm_user
-          MARIADB_PASSWORD: CrmPass_CI2024
-        options: >-
-          --health-cmd="mariadb-admin ping -h 127.0.0.1 -u root -proot"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-          --health-start-period=30s
-        ports:
-          - 3306:3306
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup .NET 8.0
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-
-    - name: Build API
-      run: |
-        dotnet restore CRM.Backend/CRM.sln
-        dotnet build CRM.Backend/CRM.sln -c Release --no-restore
-
-    - name: Start API server
-      env:
-        ASPNETCORE_ENVIRONMENT: Development
-        ASPNETCORE_URLS: http://+:5000
-        DatabaseProvider: mariadb
-        ConnectionStrings__DefaultConnection: "Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass_CI2024;"
-        Jwt__Secret: "ThisIsAVeryLongSecureJwtSecretKeyForCIPipelineOnly123456789"
-        Jwt__Issuer: CRM.Api
-        Jwt__Audience: CRM.Client
-        ADMIN_USERNAME: admin
-        ADMIN_EMAIL: admin@crm.local
-        ADMIN_PASSWORD: Admin@123
-      run: |
-        dotnet run --project CRM.Backend/src/CRM.Api/CRM.Api.csproj -c Release --no-build &
-        API_PID=$!
-        echo "API_PID=$API_PID" >> $GITHUB_ENV
-        for i in $(seq 1 60); do
-          if curl -sf http://localhost:5000/health > /dev/null 2>&1; then
-            echo "API healthy after ${i}s"
-            break
-          fi
-          [ $i -eq 60 ] && echo "API failed to start" && exit 1
-          sleep 2
-        done
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: 'e2e-tests/package-lock.json'
-
-    - name: Run BVT tests
-      working-directory: e2e-tests
-      env:
-        BASE_URL: http://localhost:5000
-        API_BASE_URL: http://localhost:5000
-      run: |
-        npm ci
-        npx playwright install --with-deps
-        npx playwright test --config=playwright.bvt.config.ts --reporter=list
-
-    - name: Stop API
-      if: always()
-      run: kill $API_PID 2>/dev/null || true
-
-  test-frontend:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: 'CRM.Frontend/package-lock.json'
-
-    - name: Install dependencies
-      run: |
-        cd CRM.Frontend
-        npm ci --legacy-peer-deps
-
-    - name: Run tests
-      run: |
-        cd CRM.Frontend
-        npm test -- --watchAll=false --passWithNoTests
-
-    - name: Build
-      run: |
-        cd CRM.Frontend
-        npm run build
+  # ==========================================================================
+  # TESTING: Handled by ci-cd.yml workflow
+  # ==========================================================================
+  # The ci-cd.yml workflow runs all test suites (Core, Services, Main, BVT,
+  # Frontend) on the same push/PR triggers. Test jobs were removed from this
+  # workflow to eliminate duplicate test runs.
+  # See .github/workflows/README.md for details.
+  # ==========================================================================
 
   deploy:
-    needs: [build, test-backend, test-frontend, bvt-tests]
+    needs: [build]
     runs-on: ubuntu-latest
     # Deploy only on main branch push - will be skipped if secrets not configured
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

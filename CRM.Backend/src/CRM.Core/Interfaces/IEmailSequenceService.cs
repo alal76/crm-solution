@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CRM.Core.Entities;
@@ -22,7 +23,15 @@ namespace CRM.Core.Interfaces
 {
     public interface IEmailSequenceService
     {
+        Task<IEnumerable<EmailSequence>> GetAllAsync(CancellationToken cancellationToken = default);
+
+        Task<EmailSequence?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+
         Task<EmailSequence> CreateSequenceAsync(EmailSequence sequence, CancellationToken cancellationToken = default);
+
+        Task<EmailSequence> UpdateAsync(EmailSequence sequence, CancellationToken cancellationToken = default);
+
+        Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 
         Task<EmailSequenceEnrollment> EnrollContactAsync(int sequenceId, int contactId, int? enrolledById = null, CancellationToken cancellationToken = default);
 

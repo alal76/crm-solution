@@ -18,6 +18,10 @@ spec:
         tier: presentation
         app: crm
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: crm-frontend
         image: crm-frontend:latest

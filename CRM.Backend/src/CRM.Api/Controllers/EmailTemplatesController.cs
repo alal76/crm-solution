@@ -44,6 +44,8 @@ public class EmailTemplatesController : ControllerBase
     /// Get all email templates
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<EmailTemplateListDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll([FromQuery] string? category = null)
     {
         try
@@ -86,6 +88,9 @@ public class EmailTemplatesController : ControllerBase
     /// Get email template by ID
     /// </summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(EmailTemplateDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id)
     {
         try
@@ -136,6 +141,7 @@ public class EmailTemplatesController : ControllerBase
     /// Get template categories
     /// </summary>
     [HttpGet("categories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetCategories()
     {
         var categories = Enum.GetValues<EmailTemplateCategory>()
@@ -149,6 +155,9 @@ public class EmailTemplatesController : ControllerBase
     /// Create a new email template
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] EmailTemplateCreateDto dto)
     {
         try
@@ -197,6 +206,10 @@ public class EmailTemplatesController : ControllerBase
     /// Update an email template
     /// </summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(int id, [FromBody] EmailTemplateCreateDto dto)
     {
         try
@@ -244,6 +257,10 @@ public class EmailTemplatesController : ControllerBase
     /// Delete an email template
     /// </summary>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id)
     {
         try
@@ -280,6 +297,9 @@ public class EmailTemplatesController : ControllerBase
     /// Duplicate an email template
     /// </summary>
     [HttpPost("{id}/duplicate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Duplicate(int id)
     {
         try
@@ -333,6 +353,9 @@ public class EmailTemplatesController : ControllerBase
     /// Preview an email template with sample data
     /// </summary>
     [HttpPost("{id}/preview")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Preview(int id, [FromBody] Dictionary<string, string>? mergeData = null)
     {
         try

@@ -233,8 +233,8 @@ function DeploymentSettingsTab() {
     provider: 'local',
     status: 'healthy',
     services: [
-      { name: 'CRM API', status: 'running', url: 'http://localhost:5000', version: '1.0.0' },
-      { name: 'CRM Frontend', status: 'running', url: 'http://localhost:3000', version: '1.0.0' },
+      { name: 'CRM API', status: 'running', url: process.env.REACT_APP_API_URL || `${window.location.protocol}//${window.location.hostname}:5000`, version: '1.0.0' },
+      { name: 'CRM Frontend', status: 'running', url: window.location.origin, version: '1.0.0' },
       { name: 'Background Services', status: 'running', version: '1.0.0' },
     ],
     database: {

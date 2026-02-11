@@ -35,6 +35,7 @@ public class LookupsController : ControllerBase
     }
 
     [HttpGet("categories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCategories()
     {
         var cats = await _context.LookupCategories.Where(c => c.IsActive).ToListAsync();
@@ -42,6 +43,8 @@ public class LookupsController : ControllerBase
     }
 
     [HttpGet("items/{categoryName}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetItems(string categoryName)
     {
         var cat = await _context.LookupCategories.FirstOrDefaultAsync(c => c.Name.ToLower() == categoryName.ToLower());

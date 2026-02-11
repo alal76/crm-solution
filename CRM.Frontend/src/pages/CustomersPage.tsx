@@ -32,6 +32,12 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
+import DuplicateDetectionDialog from '../components/duplicates/DuplicateDetectionDialog';
+import MergeDialog from '../components/duplicates/MergeDialog';
+import { DuplicateCheckResult, scanForDuplicates, getPendingCandidates } from '../services/duplicateService';
+
+// Inline type matching MergeDialog's RecordData interface
+interface MergeRecordData { id: number; displayName: string; data: Record<string, any>; }
 import FieldRenderer from '../components/FieldRenderer';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
@@ -244,6 +250,12 @@ function CustomersPage() {
     territory: '' as string,
   });
   
+  // Duplicate detection & merge state
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [duplicateCheckResult, setDuplicateCheckResult] = useState<DuplicateCheckResult | null>(null);
+  const [duplicateLoading, setDuplicateLoading] = useState(false);
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
+
   // API state for dialog operations
   const dialogApi = useApiState({ successTimeout: 3000 });
   const bulkApi = useApiState({ successTimeout: 3000 });
@@ -693,6 +705,37 @@ function CustomersPage() {
               onImportComplete={fetchCustomers}
             />
             <Button
+              variant="outlined"
+              size="small"
+              disabled={duplicateLoading}
+              onClick={async () => {
+                setDuplicateLoading(true);
+                try {
+                  await scanForDuplicates('Account');
+                  const candidates = await getPendingCandidates('Account', 1, 50);
+                  const hasDuplicates = candidates.length > 0;
+                  const highestScore = candidates.reduce((max, c) => Math.max(max, c.matchScore), 0);
+                  const checkResult: DuplicateCheckResult = {
+                    hasDuplicates,
+                    highConfidenceMatch: highestScore >= 80,
+                    matches: candidates,
+                    totalMatchCount: candidates.length,
+                    highestMatchScore: highestScore,
+                    recommendation: hasDuplicates ? 'ReviewMatches' : 'CreateNew',
+                  };
+                  setDuplicateCheckResult(checkResult);
+                  setDuplicateDialogOpen(true);
+                } catch (err) {
+                  setError('Failed to scan for duplicates');
+                } finally {
+                  setDuplicateLoading(false);
+                }
+              }}
+              sx={{ borderColor: '#6750A4', color: '#6750A4' }}
+            >
+              {duplicateLoading ? 'Scanning...' : 'Scan Duplicates'}
+            </Button>
+            <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => handleOpenDialog()}
@@ -739,6 +782,16 @@ function CustomersPage() {
                 >
                   Bulk Update
                 </Button>
+                {selectedIds.length >= 2 && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => setMergeDialogOpen(true)}
+                    sx={{ backgroundColor: 'white', color: 'primary.main', '&:hover': { backgroundColor: 'grey.100' } }}
+                  >
+                    Merge Selected
+                  </Button>
+                )}
                 {hasPermission('canDeleteCustomers') && (
                   <Button
                     variant="contained"
@@ -1220,6 +1273,57 @@ function CustomersPage() {
           />
         </DialogActions>
       </Dialog>
+
+      {/* Duplicate Detection Dialog */}
+      <DuplicateDetectionDialog
+        open={duplicateDialogOpen}
+        onClose={() => setDuplicateDialogOpen(false)}
+        checkResult={duplicateCheckResult}
+        isLoading={duplicateLoading}
+        entityType="Account"
+        onCreateNew={() => {
+          setDuplicateDialogOpen(false);
+          handleOpenDialog();
+        }}
+        onUpdateExisting={(recordId) => {
+          setDuplicateDialogOpen(false);
+          const customer = customers.find(c => c.id === recordId);
+          if (customer) handleOpenDialog(customer);
+        }}
+        onViewRecord={(recordId) => {
+          setDuplicateDialogOpen(false);
+          const customer = customers.find(c => c.id === recordId);
+          if (customer) handleOpenDialog(customer);
+        }}
+        onMergeRecords={(masterRecordId, recordsToMerge) => {
+          setDuplicateDialogOpen(false);
+          const allIds = [masterRecordId, ...recordsToMerge];
+          const records: MergeRecordData[] = allIds
+            .map(rid => customers.find(c => c.id === rid))
+            .filter(Boolean)
+            .map(c => ({ id: c!.id, displayName: c!.company || `${c!.firstName} ${c!.lastName}`, data: c as any }));
+          if (records.length >= 2) {
+            setMergeDialogOpen(true);
+          }
+        }}
+      />
+
+      {/* Merge Dialog */}
+      <MergeDialog
+        open={mergeDialogOpen}
+        onClose={() => setMergeDialogOpen(false)}
+        entityType="Account"
+        records={selectedIds
+          .map(sid => customers.find(c => c.id === sid))
+          .filter(Boolean)
+          .map(c => ({ id: c!.id, displayName: c!.company || `${c!.firstName} ${c!.lastName}`, data: c as any }))}
+        onMergeComplete={(result) => {
+          setMergeDialogOpen(false);
+          setSelectedIds([]);
+          setSuccessMessage(`Records merged successfully into master record #${result.masterRecordId}`);
+          fetchCustomers();
+        }}
+      />
     </Box>
   );
 }

@@ -40,6 +40,8 @@ public class StagesController : ControllerBase
     /// Get all available pipeline stages
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetStages()
     {
         try
@@ -73,6 +75,9 @@ public class StagesController : ControllerBase
     /// Get stage by ID
     /// </summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetStage(int id)
     {
         try
@@ -107,6 +112,8 @@ public class StagesController : ControllerBase
     /// Get active (non-closed) stages only
     /// </summary>
     [HttpGet("active")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetActiveStages()
     {
         try

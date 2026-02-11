@@ -30,7 +30,7 @@ spec:
           service:
             name: crm-frontend
             port:
-              number: 3000
+              number: 80
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget

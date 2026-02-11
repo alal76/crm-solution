@@ -43,6 +43,8 @@ public class PipelinesController : ControllerBase
     /// Get all pipeline definitions (stages)
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetPipelines()
     {
         try
@@ -70,6 +72,8 @@ public class PipelinesController : ControllerBase
     /// Get pipeline by ID
     /// </summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetPipeline(Guid id)
     {
         try
@@ -96,6 +100,8 @@ public class PipelinesController : ControllerBase
     /// Get pipeline statistics
     /// </summary>
     [HttpGet("{id}/stats")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPipelineStats(Guid id)
     {
         try

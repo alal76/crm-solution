@@ -76,3 +76,13 @@ coverage/
 config/*.local.env
 config/*.local.json
 *.local.env
+
+# SSL certificates - never commit private keys
+*.pfx
+*.p12
+ssl/
+
+# Docker environment files with secrets
+docker/.env
+docker/.env.*
+!docker/.env.example
