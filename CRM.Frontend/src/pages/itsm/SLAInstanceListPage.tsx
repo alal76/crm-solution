@@ -1,4 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import apiClient from '../../services/apiClient';
 
 interface SLAInstance {
@@ -32,41 +42,35 @@ const SLAInstanceListPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">SLA Instances</h1>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 3 }}>SLA Instances</Typography>
       {loading ? (
-        <div>Loading...</div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Target</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Response Due</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Resolution Due</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">State</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell><strong>Target</strong></TableCell>
+                <TableCell><strong>Response Due</strong></TableCell>
+                <TableCell><strong>Resolution Due</strong></TableCell>
+                <TableCell><strong>State</strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {items.map((sla) => (
-                <tr key={sla.slaInstanceId} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {sla.targetType} / {sla.targetId}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {sla.responseDueAt ? new Date(sla.responseDueAt).toLocaleString() : '—'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {sla.resolutionDueAt ? new Date(sla.resolutionDueAt).toLocaleString() : '—'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">State {sla.state}</td>
-                </tr>
+                <TableRow key={sla.slaInstanceId} hover>
+                  <TableCell>{sla.targetType} / {sla.targetId}</TableCell>
+                  <TableCell>{sla.responseDueAt ? new Date(sla.responseDueAt).toLocaleString() : '—'}</TableCell>
+                  <TableCell>{sla.resolutionDueAt ? new Date(sla.resolutionDueAt).toLocaleString() : '—'}</TableCell>
+                  <TableCell>State {sla.state}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
-    </div>
+    </Box>
   );
 };
 

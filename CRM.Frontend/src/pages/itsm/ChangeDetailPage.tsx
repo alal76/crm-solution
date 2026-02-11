@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
+import CircularProgress from '@mui/material/CircularProgress';
 import apiClient from '../../services/apiClient';
 import {
   ApprovalWorkflowPanel,
@@ -32,7 +38,6 @@ const ChangeDetailPage: React.FC = () => {
       try {
         const response = await apiClient.get(`/changes/${id}`);
         setChange(response.data);
-        // Load approval steps and conflicts (best-effort)
         const [approvalResp, conflictResp] = await Promise.allSettled([
           apiClient.get(`/changes/${id}/approvals`),
           apiClient.get(`/changes/${id}/conflicts`),
@@ -49,76 +54,70 @@ const ChangeDetailPage: React.FC = () => {
     load();
   }, [id]);
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (!change) return <div className="p-6">Change not found</div>;
+  if (loading) return <Box sx={{ p: 3, display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>;
+  if (!change) return <Box sx={{ p: 3 }}><Typography color="text.secondary">Change not found</Typography></Box>;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{change.number}</h1>
-          <p className="text-gray-600">{change.shortDescription}</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate(`/itsm/changes/${change.changeId}/approval`)}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box>
+          <Typography variant="h4" component="h1" fontWeight="bold">{change.number}</Typography>
+          <Typography color="text.secondary">{change.shortDescription}</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="outlined" onClick={() => navigate(`/itsm/changes/${change.changeId}/approval`)}>
             Approvals
-          </button>
-          <button
-            onClick={() => navigate(`/itsm/changes/${change.changeId}/edit`)}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
+          </Button>
+          <Button variant="contained" onClick={() => navigate(`/itsm/changes/${change.changeId}/edit`)}>
             Edit
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700">State</h3>
-            <p className="text-gray-900">State {change.state}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700">Approval</h3>
-            <p className="text-gray-900">Status {change.approvalStatus}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700">Requestor</h3>
-            <p className="text-gray-900">{change.requestorName || '—'}</p>
-          </div>
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700">Planned Window</h3>
-          <p className="text-gray-900">
+      <Paper sx={{ p: 3 }}>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2" color="text.secondary">State</Typography>
+            <Typography>State {change.state}</Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2" color="text.secondary">Approval</Typography>
+            <Typography>Status {change.approvalStatus}</Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2" color="text.secondary">Requestor</Typography>
+            <Typography>{change.requestorName || '—'}</Typography>
+          </Grid>
+        </Grid>
+        <Box>
+          <Typography variant="subtitle2" color="text.secondary">Planned Window</Typography>
+          <Typography>
             {change.plannedStartDate ? new Date(change.plannedStartDate).toLocaleString() : '—'}
             {' '}→{' '}
             {change.plannedEndDate ? new Date(change.plannedEndDate).toLocaleString() : '—'}
-          </p>
-        </div>
-      </div>
+          </Typography>
+        </Box>
+      </Paper>
 
       {/* Approval Workflow */}
-      <div className="mt-6">
+      <Box sx={{ mt: 3 }}>
         <ApprovalWorkflowPanel
           steps={approvalSteps}
           currentUserId={0}
           title={`Approvals for ${change.number}`}
         />
-      </div>
+      </Box>
 
       {/* Risk Assessment */}
-      <div className="mt-6">
+      <Box sx={{ mt: 3 }}>
         <RiskAssessmentForm
           changeRequestId={change.changeId}
         />
-      </div>
+      </Box>
 
       {/* Change Conflict Detection */}
       {conflicts.length > 0 && (
-        <div className="mt-6">
+        <Box sx={{ mt: 3 }}>
           <ChangeConflictDetector
             currentChange={{
               id: change.changeId,
@@ -131,9 +130,9 @@ const ChangeDetailPage: React.FC = () => {
             }}
             conflicts={conflicts}
           />
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

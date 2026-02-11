@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Grid,
+  CircularProgress,
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import apiClient from '../../services/apiClient';
 import { RootCauseAnalysisTemplate, RelatedIncidentsWidget } from '../../components/itsm';
 import type { RelatedIncident } from '../../components/itsm';
@@ -43,69 +52,72 @@ const ProblemDetailPage: React.FC = () => {
     load();
   }, [id]);
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (!problem) return <div className="p-6">Problem not found</div>;
+  if (loading) return <Box sx={{ p: 3 }}><CircularProgress /></Box>;
+  if (!problem) return <Box sx={{ p: 3 }}><Typography>Problem not found</Typography></Box>;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{problem.number}</h1>
-          <p className="text-gray-600">{problem.shortDescription}</p>
-        </div>
-        <button
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box>
+          <Typography variant="h4" component="h1" fontWeight="bold">
+            {problem.number}
+          </Typography>
+          <Typography color="text.secondary">{problem.shortDescription}</Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<EditIcon />}
           onClick={() => navigate(`/itsm/problems/${problem.problemId}/edit`)}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Edit
-        </button>
-      </div>
+        </Button>
+      </Box>
 
-      <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-        <div>
-          <h2 className="text-sm font-semibold text-gray-700">Description</h2>
-          <p className="text-gray-900 whitespace-pre-wrap">{problem.description || '—'}</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700">Priority</h3>
-            <p className="text-gray-900">P{problem.priority}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700">State</h3>
-            <p className="text-gray-900">State {problem.state}</p>
-          </div>
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700">Root Cause</h3>
-          <p className="text-gray-900 whitespace-pre-wrap">{problem.rootCause || '—'}</p>
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700">Workaround</h3>
-          <p className="text-gray-900 whitespace-pre-wrap">{problem.workaround || '—'}</p>
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700">Known Error</h3>
-          <p className="text-gray-900">{problem.knownError ? 'Yes' : 'No'}</p>
-        </div>
-      </div>
+      <Paper sx={{ p: 3 }}>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" color="text.secondary">Description</Typography>
+          <Typography sx={{ whiteSpace: 'pre-wrap' }}>{problem.description || '—'}</Typography>
+        </Box>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} md={6}>
+            <Typography variant="subtitle2" color="text.secondary">Priority</Typography>
+            <Typography>P{problem.priority}</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="subtitle2" color="text.secondary">State</Typography>
+            <Typography>State {problem.state}</Typography>
+          </Grid>
+        </Grid>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" color="text.secondary">Root Cause</Typography>
+          <Typography sx={{ whiteSpace: 'pre-wrap' }}>{problem.rootCause || '—'}</Typography>
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" color="text.secondary">Workaround</Typography>
+          <Typography sx={{ whiteSpace: 'pre-wrap' }}>{problem.workaround || '—'}</Typography>
+        </Box>
+        <Box>
+          <Typography variant="subtitle2" color="text.secondary">Known Error</Typography>
+          <Typography>{problem.knownError ? 'Yes' : 'No'}</Typography>
+        </Box>
+      </Paper>
 
       {/* Root Cause Analysis */}
-      <div className="mt-6">
+      <Box sx={{ mt: 3 }}>
         <RootCauseAnalysisTemplate
           problemDescription={problem.shortDescription}
           readOnly={false}
         />
-      </div>
+      </Box>
 
       {/* Related Incidents */}
-      <div className="mt-6">
+      <Box sx={{ mt: 3 }}>
         <RelatedIncidentsWidget
           problemId={Number(id)}
           incidents={relatedIncidents}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

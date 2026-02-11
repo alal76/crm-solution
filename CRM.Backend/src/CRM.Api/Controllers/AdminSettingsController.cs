@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
@@ -56,6 +57,7 @@ public class AdminSettingsController : ControllerBase
     /// Get all pending user approval requests
     /// </summary>
     [HttpGet("approval-requests")]
+    [ProducesResponseType(typeof(IEnumerable<UserApprovalRequestDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UserApprovalRequestDto>>> GetApprovalRequests([FromQuery] int? status = null)
     {
         try
@@ -74,6 +76,8 @@ public class AdminSettingsController : ControllerBase
     /// Get approval request by ID
     /// </summary>
     [HttpGet("approval-requests/{id}")]
+    [ProducesResponseType(typeof(UserApprovalRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserApprovalRequestDto>> GetApprovalRequest(int id)
     {
         try
@@ -95,6 +99,8 @@ public class AdminSettingsController : ControllerBase
     /// Approve a user registration request
     /// </summary>
     [HttpPost("approval-requests/{id}/approve")]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<UserDto>> ApproveUser(int id, [FromBody] ApproveUserRequest request)
     {
         try
@@ -117,6 +123,8 @@ public class AdminSettingsController : ControllerBase
     /// Reject a user registration request
     /// </summary>
     [HttpPost("approval-requests/{id}/reject")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> RejectUser(int id, [FromBody] RejectUserRequest request)
     {
         try
@@ -143,6 +151,7 @@ public class AdminSettingsController : ControllerBase
     /// Get all user groups
     /// </summary>
     [HttpGet("groups")]
+    [ProducesResponseType(typeof(IEnumerable<UserGroupDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UserGroupDto>>> GetGroups()
     {
         try
@@ -161,6 +170,8 @@ public class AdminSettingsController : ControllerBase
     /// Create a new user group
     /// </summary>
     [HttpPost("groups")]
+    [ProducesResponseType(typeof(UserGroupDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<UserGroupDto>> CreateGroup([FromBody] CreateUserGroupRequest request)
     {
         try
@@ -179,6 +190,8 @@ public class AdminSettingsController : ControllerBase
     /// Get group by ID with members
     /// </summary>
     [HttpGet("groups/{id}")]
+    [ProducesResponseType(typeof(UserGroupDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserGroupDto>> GetGroupById(int id)
     {
         try
@@ -200,6 +213,9 @@ public class AdminSettingsController : ControllerBase
     /// Update a user group
     /// </summary>
     [HttpPut("groups/{id}")]
+    [ProducesResponseType(typeof(UserGroupDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<UserGroupDto>> UpdateGroup(int id, [FromBody] CreateUserGroupRequest request)
     {
         try
@@ -221,6 +237,7 @@ public class AdminSettingsController : ControllerBase
     /// Delete a user group
     /// </summary>
     [HttpDelete("groups/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> DeleteGroup(int id)
     {
         try
@@ -239,6 +256,7 @@ public class AdminSettingsController : ControllerBase
     /// Get group members
     /// </summary>
     [HttpGet("groups/{id}/members")]
+    [ProducesResponseType(typeof(IEnumerable<UserGroupMemberDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UserGroupMemberDto>>> GetGroupMembers(int id)
     {
         try
@@ -257,6 +275,7 @@ public class AdminSettingsController : ControllerBase
     /// Add user to group
     /// </summary>
     [HttpPost("groups/{groupId}/members/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> AddUserToGroup(int groupId, int userId)
     {
         try
@@ -275,6 +294,7 @@ public class AdminSettingsController : ControllerBase
     /// Remove user from group
     /// </summary>
     [HttpDelete("groups/{groupId}/members/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> RemoveUserFromGroup(int groupId, int userId)
     {
         try
@@ -297,6 +317,9 @@ public class AdminSettingsController : ControllerBase
     /// Create a database backup
     /// </summary>
     [HttpPost("database/backup")]
+    [ProducesResponseType(typeof(DatabaseBackupDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<DatabaseBackupDto>> CreateBackup([FromBody] CreateDatabaseBackupRequest request)
     {
         try
@@ -319,6 +342,7 @@ public class AdminSettingsController : ControllerBase
     /// Get all database backups
     /// </summary>
     [HttpGet("database/backups")]
+    [ProducesResponseType(typeof(IEnumerable<DatabaseBackupDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DatabaseBackupDto>>> GetBackups()
     {
         try
@@ -337,6 +361,8 @@ public class AdminSettingsController : ControllerBase
     /// Get backup by ID
     /// </summary>
     [HttpGet("database/backups/{id}")]
+    [ProducesResponseType(typeof(DatabaseBackupDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DatabaseBackupDto>> GetBackup(int id)
     {
         try
@@ -358,6 +384,8 @@ public class AdminSettingsController : ControllerBase
     /// Restore database from backup
     /// </summary>
     [HttpPost("database/restore")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> RestoreBackup([FromBody] RestoreDatabaseBackupRequest request)
     {
         try
@@ -380,6 +408,7 @@ public class AdminSettingsController : ControllerBase
     /// Delete a backup
     /// </summary>
     [HttpDelete("database/backups/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> DeleteBackup(int id)
     {
         try
@@ -398,6 +427,8 @@ public class AdminSettingsController : ControllerBase
     /// Migrate database to different provider
     /// </summary>
     [HttpPost("database/migrate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> MigrateDatabase([FromBody] DatabaseMigrationConfig config)
     {
         try
@@ -420,6 +451,7 @@ public class AdminSettingsController : ControllerBase
     /// Get seed database setup script
     /// </summary>
     [HttpGet("database/seed-script")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetSeedScript([FromQuery] string targetDatabase = "")
     {
         try
@@ -443,6 +475,8 @@ public class AdminSettingsController : ControllerBase
     /// Download a backup file
     /// </summary>
     [HttpGet("database/backups/{id}/download")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DownloadBackup(int id)
     {
         try
@@ -472,6 +506,9 @@ public class AdminSettingsController : ControllerBase
     /// </summary>
     [HttpPost("database/backups/upload")]
     [RequestSizeLimit(500_000_000)] // 500MB limit
+    [ProducesResponseType(typeof(DatabaseBackupDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<DatabaseBackupDto>> UploadBackup([FromForm] IFormFile file, [FromForm] string? description = null, [FromForm] string? sourceDatabase = null)
     {
         try
@@ -506,6 +543,9 @@ public class AdminSettingsController : ControllerBase
     /// </summary>
     [HttpPost("database/restore/upload")]
     [RequestSizeLimit(500_000_000)] // 500MB limit
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> RestoreFromUpload([FromForm] IFormFile file)
     {
         try
@@ -537,6 +577,7 @@ public class AdminSettingsController : ControllerBase
     /// Get all backup schedules
     /// </summary>
     [HttpGet("database/schedules")]
+    [ProducesResponseType(typeof(IEnumerable<BackupScheduleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<BackupScheduleDto>>> GetSchedules()
     {
         try
@@ -555,6 +596,8 @@ public class AdminSettingsController : ControllerBase
     /// Get backup schedule by ID
     /// </summary>
     [HttpGet("database/schedules/{id}")]
+    [ProducesResponseType(typeof(BackupScheduleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BackupScheduleDto>> GetSchedule(int id)
     {
         try
@@ -576,6 +619,8 @@ public class AdminSettingsController : ControllerBase
     /// Create a new backup schedule
     /// </summary>
     [HttpPost("database/schedules")]
+    [ProducesResponseType(typeof(BackupScheduleDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<BackupScheduleDto>> CreateSchedule([FromBody] CreateBackupScheduleRequest request)
     {
         try
@@ -594,6 +639,9 @@ public class AdminSettingsController : ControllerBase
     /// Update a backup schedule
     /// </summary>
     [HttpPut("database/schedules/{id}")]
+    [ProducesResponseType(typeof(BackupScheduleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<BackupScheduleDto>> UpdateSchedule(int id, [FromBody] CreateBackupScheduleRequest request)
     {
         try
@@ -616,6 +664,8 @@ public class AdminSettingsController : ControllerBase
     /// Delete a backup schedule
     /// </summary>
     [HttpDelete("database/schedules/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteSchedule(int id)
     {
         try
@@ -638,6 +688,8 @@ public class AdminSettingsController : ControllerBase
     /// Toggle backup schedule enabled/disabled
     /// </summary>
     [HttpPost("database/schedules/{id}/toggle")]
+    [ProducesResponseType(typeof(BackupScheduleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BackupScheduleDto>> ToggleSchedule(int id, [FromBody] ToggleScheduleRequest request)
     {
         try
@@ -660,6 +712,8 @@ public class AdminSettingsController : ControllerBase
     /// Run a scheduled backup immediately
     /// </summary>
     [HttpPost("database/schedules/{id}/run")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RunScheduleNow(int id)
     {
         try
@@ -682,6 +736,7 @@ public class AdminSettingsController : ControllerBase
     /// Get backup settings
     /// </summary>
     [HttpGet("database/backup-settings")]
+    [ProducesResponseType(typeof(BackupSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<BackupSettingsDto>> GetBackupSettings()
     {
         try
@@ -700,6 +755,8 @@ public class AdminSettingsController : ControllerBase
     /// Update default backup path
     /// </summary>
     [HttpPut("database/backup-path")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> UpdateBackupPath([FromBody] UpdateBackupPathRequest request)
     {
         try

@@ -1,4 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import CircularProgress from '@mui/material/CircularProgress';
 import apiClient from '../../services/apiClient';
 
 interface ChangeCalendarItem {
@@ -31,37 +35,40 @@ const ChangeCalendarPage: React.FC = () => {
 
     load();
   }, []);
+
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Change Calendar</h1>
-      <div className="bg-white rounded-lg shadow-md p-6">
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 3 }}>Change Calendar</Typography>
+      <Paper sx={{ p: 3 }}>
         {loading ? (
-          <div>Loading...</div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
         ) : (
-          <div className="space-y-3">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {items.length === 0 ? (
-              <div className="text-gray-600">No scheduled changes found.</div>
+              <Typography color="text.secondary">No scheduled changes found.</Typography>
             ) : (
               items.map((change) => (
-                <div key={change.changeId} className="border border-gray-100 rounded p-4">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">{change.number}</p>
-                      <p className="text-gray-900 font-medium">{change.shortDescription}</p>
-                    </div>
-                    <div className="text-sm text-gray-600">
+                <Paper key={change.changeId} variant="outlined" sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">{change.number}</Typography>
+                      <Typography fontWeight={500}>{change.shortDescription}</Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
                       {change.plannedStartDate ? new Date(change.plannedStartDate).toLocaleString() : '—'}
                       {' '}→{' '}
                       {change.plannedEndDate ? new Date(change.plannedEndDate).toLocaleString() : '—'}
-                    </div>
-                  </div>
-                </div>
+                    </Typography>
+                  </Box>
+                </Paper>
               ))
             )}
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Paper>
+    </Box>
   );
 };
 

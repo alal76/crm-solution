@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Box, Typography, Paper, Button, Grid, CircularProgress } from '@mui/material';
 import apiClient from '../../services/apiClient';
 import { RelationshipDiagram, ServiceMap } from '../../components/itsm';
 import { CIRelationshipDiagram } from '../../components/itsm/CIRelationshipDiagram';
@@ -50,55 +51,49 @@ const CMDBDetailPage: React.FC = () => {
     load();
   }, [id]);
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (!ci) return <div className="p-6">Configuration item not found</div>;
+  if (loading) return <Box sx={{ p: 3 }}><CircularProgress /></Box>;
+  if (!ci) return <Box sx={{ p: 3 }}><Typography>Configuration item not found</Typography></Box>;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{ci.ciName}</h1>
-          <p className="text-gray-600">{ci.ciNumber}</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate(`/itsm/cmdb/${ci.ciId}/relationships`)}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box>
+          <Typography variant="h4" component="h1" fontWeight="bold">{ci.ciName}</Typography>
+          <Typography color="text.secondary">{ci.ciNumber}</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="outlined" onClick={() => navigate(`/itsm/cmdb/${ci.ciId}/relationships`)}>
             Relationships
-          </button>
-          <button
-            onClick={() => navigate(`/itsm/cmdb/${ci.ciId}/impact`)}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
+          </Button>
+          <Button variant="outlined" onClick={() => navigate(`/itsm/cmdb/${ci.ciId}/impact`)}>
             Impact Analysis
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-        <div>
-          <h2 className="text-sm font-semibold text-gray-700">Description</h2>
-          <p className="text-gray-900 whitespace-pre-wrap">{ci.description || '—'}</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700">Type</h3>
-            <p className="text-gray-900">Type {ci.ciType}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700">Subtype</h3>
-            <p className="text-gray-900">{ci.ciSubtype || '—'}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700">Status</h3>
-            <p className="text-gray-900">Status {ci.operationalStatus}</p>
-          </div>
-        </div>
-      </div>
+      <Paper sx={{ p: 3 }}>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" color="text.secondary">Description</Typography>
+          <Typography sx={{ whiteSpace: 'pre-wrap' }}>{ci.description || '—'}</Typography>
+        </Box>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2" color="text.secondary">Type</Typography>
+            <Typography>Type {ci.ciType}</Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2" color="text.secondary">Subtype</Typography>
+            <Typography>{ci.ciSubtype || '—'}</Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2" color="text.secondary">Status</Typography>
+            <Typography>Status {ci.operationalStatus}</Typography>
+          </Grid>
+        </Grid>
+      </Paper>
 
       {/* CI Relationship Diagram */}
-      <div className="mt-6">
+      <Box sx={{ mt: 3 }}>
         <RelationshipDiagram
           centerCI={{
             id: ci.ciId,
@@ -111,12 +106,12 @@ const CMDBDetailPage: React.FC = () => {
           relatedCIs={relatedCIs}
           relationships={ciRelationships}
         />
-      </div>
+      </Box>
 
       {/* Advanced CI Dependency Graph */}
       {relatedCIs.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Dependency Graph</h2>
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" fontWeight="bold" gutterBottom>Dependency Graph</Typography>
           <CIRelationshipDiagram
             configItems={relatedCIs.map((node: ConfigurationItemNode) => ({
               id: String(node.id),
@@ -141,20 +136,20 @@ const CMDBDetailPage: React.FC = () => {
             onCIDoubleClick={(ciId) => navigate(`/itsm/cmdb/${ciId}`)}
             highlightImpact
           />
-        </div>
+        </Box>
       )}
 
       {/* Service Map */}
       {serviceNodes.length > 0 && (
-        <div className="mt-6">
+        <Box sx={{ mt: 3 }}>
           <ServiceMap
             services={serviceNodes}
             selectedServiceId={String(ci.ciId)}
             showLegend
           />
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

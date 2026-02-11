@@ -16,6 +16,7 @@
 
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -52,6 +53,9 @@ public class CampaignExecutionController : ControllerBase
     /// Start a campaign
     /// </summary>
     [HttpPost("{campaignId}/start")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> StartCampaign(int campaignId)
     {
         try
@@ -78,6 +82,8 @@ public class CampaignExecutionController : ControllerBase
     /// Get campaign analytics
     /// </summary>
     [HttpGet("{campaignId}/analytics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCampaignAnalytics(int campaignId)
     {
         try
@@ -104,6 +110,7 @@ public class CampaignExecutionController : ControllerBase
     /// Get workflows linked to a campaign
     /// </summary>
     [HttpGet("{campaignId}/workflows")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCampaignWorkflows(int campaignId)
     {
         try
@@ -136,6 +143,9 @@ public class CampaignExecutionController : ControllerBase
     /// Link a workflow to a campaign
     /// </summary>
     [HttpPost("{campaignId}/workflows")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> LinkWorkflowToCampaign(
         int campaignId,
         [FromBody] LinkWorkflowRequest request)
@@ -174,6 +184,9 @@ public class CampaignExecutionController : ControllerBase
     /// Update a campaign workflow configuration
     /// </summary>
     [HttpPut("{campaignId}/workflows/{workflowId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateCampaignWorkflow(
         int campaignId,
         int workflowId,
@@ -204,6 +217,8 @@ public class CampaignExecutionController : ControllerBase
     /// Unlink a workflow from a campaign
     /// </summary>
     [HttpDelete("{campaignId}/workflows/{workflowId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UnlinkWorkflow(int campaignId, int workflowId)
     {
         try
@@ -229,6 +244,7 @@ public class CampaignExecutionController : ControllerBase
     /// Get campaign recipients with filtering
     /// </summary>
     [HttpGet("{campaignId}/recipients")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCampaignRecipients(
         int campaignId,
         [FromQuery] string? status = null,
@@ -288,6 +304,7 @@ public class CampaignExecutionController : ControllerBase
     /// </summary>
     [HttpPost("recipients/{recipientId}/open")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> RecordEmailOpen(int recipientId)
     {
         try
@@ -315,6 +332,7 @@ public class CampaignExecutionController : ControllerBase
     /// </summary>
     [HttpGet("recipients/{recipientId}/click")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status302Found)]
     public async Task<IActionResult> RecordLinkClick(
         int recipientId,
         [FromQuery] string url,
@@ -346,6 +364,8 @@ public class CampaignExecutionController : ControllerBase
     /// Record a conversion
     /// </summary>
     [HttpPost("recipients/{recipientId}/conversion")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RecordConversion(
         int recipientId,
         [FromBody] RecordConversionRequest request)
@@ -384,6 +404,7 @@ public class CampaignExecutionController : ControllerBase
     /// Create an A/B test for a campaign
     /// </summary>
     [HttpPost("{campaignId}/abtests")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateABTest(int campaignId, [FromBody] CreateABTestRequest request)
     {
         try
@@ -415,6 +436,8 @@ public class CampaignExecutionController : ControllerBase
     /// Start an A/B test
     /// </summary>
     [HttpPost("{campaignId}/abtests/{testId}/start")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> StartABTest(int campaignId, int testId)
     {
         try

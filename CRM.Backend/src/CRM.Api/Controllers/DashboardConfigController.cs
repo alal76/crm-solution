@@ -17,6 +17,7 @@
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -57,6 +58,7 @@ public class DashboardConfigController : ControllerBase
     /// Get all dashboards accessible to the current user
     /// </summary>
     [HttpGet("dashboards")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDashboards()
     {
         try
@@ -105,6 +107,7 @@ public class DashboardConfigController : ControllerBase
     /// </summary>
     [HttpGet("dashboards/all")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllDashboards()
     {
         try
@@ -149,6 +152,8 @@ public class DashboardConfigController : ControllerBase
     /// Get a dashboard by ID with all widgets
     /// </summary>
     [HttpGet("dashboards/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDashboard(int id)
     {
         try
@@ -228,6 +233,7 @@ public class DashboardConfigController : ControllerBase
     /// Get the default dashboard
     /// </summary>
     [HttpGet("dashboards/default")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDefaultDashboard()
     {
         try
@@ -317,6 +323,8 @@ public class DashboardConfigController : ControllerBase
     /// </summary>
     [HttpPost("dashboards")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateDashboard([FromBody] CreateDashboardDto dto)
     {
         try
@@ -376,6 +384,9 @@ public class DashboardConfigController : ControllerBase
     /// </summary>
     [HttpPut("dashboards/{id}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateDashboard(int id, [FromBody] UpdateDashboardDto dto)
     {
         try
@@ -441,6 +452,8 @@ public class DashboardConfigController : ControllerBase
     /// </summary>
     [HttpDelete("dashboards/{id}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteDashboard(int id)
     {
         try
@@ -475,6 +488,7 @@ public class DashboardConfigController : ControllerBase
     /// Get all widgets for a dashboard
     /// </summary>
     [HttpGet("dashboards/{dashboardId}/widgets")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetWidgets(int dashboardId)
     {
         try
@@ -521,6 +535,9 @@ public class DashboardConfigController : ControllerBase
     /// </summary>
     [HttpPost("widgets")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateWidget([FromBody] CreateWidgetDto dto)
     {
         try
@@ -576,6 +593,9 @@ public class DashboardConfigController : ControllerBase
     /// </summary>
     [HttpPut("widgets/{id}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateWidget(int id, [FromBody] UpdateWidgetDto dto)
     {
         try
@@ -640,6 +660,8 @@ public class DashboardConfigController : ControllerBase
     /// </summary>
     [HttpDelete("widgets/{id}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteWidget(int id)
     {
         try
@@ -668,6 +690,7 @@ public class DashboardConfigController : ControllerBase
     /// </summary>
     [HttpPost("dashboards/{dashboardId}/reorder-widgets")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderWidgets(int dashboardId, [FromBody] List<WidgetOrderDto> orders)
     {
         try
@@ -707,6 +730,7 @@ public class DashboardConfigController : ControllerBase
     /// Get available widget types
     /// </summary>
     [HttpGet("widget-types")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetWidgetTypes()
     {
         var types = Enum.GetValues<WidgetType>()
@@ -719,6 +743,7 @@ public class DashboardConfigController : ControllerBase
     /// Get available data sources for widgets
     /// </summary>
     [HttpGet("data-sources")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetDataSources()
     {
         var dataSources = new[]
@@ -771,6 +796,7 @@ public class DashboardConfigController : ControllerBase
     /// </summary>
     [HttpPost("initialize")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> InitializeDefaultDashboards()
     {
         try

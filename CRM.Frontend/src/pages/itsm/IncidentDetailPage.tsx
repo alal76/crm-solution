@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Grid,
+  CircularProgress,
+  Alert,
+} from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import apiClient from '../../services/apiClient';
 import {
   IncidentTimeline,
@@ -64,106 +74,105 @@ export const IncidentDetailPage: React.FC = () => {
     loadIncident();
   }, [id]);
 
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-600">{error}</div>;
-  if (!incident) return <div className="p-4">Incident not found</div>;
+  if (loading) return <Box sx={{ p: 3 }}><CircularProgress /></Box>;
+  if (error) return <Box sx={{ p: 3 }}><Alert severity="error">{error}</Alert></Box>;
+  if (!incident) return <Box sx={{ p: 3 }}><Typography>Incident not found</Typography></Box>;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{incident.number}</h1>
-            <p className="text-gray-600 mt-2">{incident.shortDescription}</p>
-          </div>
-          <button
+    <Box sx={{ p: 3, maxWidth: 960, mx: 'auto' }}>
+      <Paper sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+          <Box>
+            <Typography variant="h4" component="h1" fontWeight="bold">
+              {incident.number}
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              {incident.shortDescription}
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<ArrowBackIcon />}
             onClick={() => navigate('/incidents')}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Back
-          </button>
-        </div>
+          </Button>
+        </Box>
 
-        <div className="grid grid-cols-2 gap-4 mb-6 border-t pt-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Caller</label>
-            <p className="text-lg text-gray-900">{incident.callerName}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Priority</label>
-            <p className="text-lg text-gray-900">Priority {incident.priority}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">State</label>
-            <p className="text-lg text-gray-900">State {incident.state}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Assigned To</label>
-            <p className="text-lg text-gray-900">{incident.assignedToName || 'Unassigned'}</p>
-          </div>
-        </div>
+        <Grid container spacing={2} sx={{ mb: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Grid item xs={6}>
+            <Typography variant="subtitle2" color="text.secondary">Caller</Typography>
+            <Typography variant="body1">{incident.callerName}</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography variant="subtitle2" color="text.secondary">Priority</Typography>
+            <Typography variant="body1">Priority {incident.priority}</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography variant="subtitle2" color="text.secondary">State</Typography>
+            <Typography variant="body1">State {incident.state}</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography variant="subtitle2" color="text.secondary">Assigned To</Typography>
+            <Typography variant="body1">{incident.assignedToName || 'Unassigned'}</Typography>
+          </Grid>
+        </Grid>
 
-        <div className="border-t pt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-          <p className="text-gray-900 whitespace-pre-wrap">{incident.description}</p>
-        </div>
+        <Box sx={{ pt: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Description</Typography>
+          <Typography sx={{ whiteSpace: 'pre-wrap' }}>{incident.description}</Typography>
+        </Box>
 
-        <div className="mt-6 flex gap-4">
-          <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            Resolve
-          </button>
-          <button className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">
-            Escalate
-          </button>
-          <button className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
-            Close
-          </button>
-        </div>
-      </div>
+        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+          <Button variant="contained" color="success">Resolve</Button>
+          <Button variant="contained" color="warning">Escalate</Button>
+          <Button variant="contained" color="inherit">Close</Button>
+        </Box>
+      </Paper>
 
       {/* SLA Breach Alerts */}
       {slaBreaches.length > 0 && (
-        <div className="mt-6">
+        <Box sx={{ mt: 3 }}>
           {slaBreaches.map((breach) => (
-            <div key={breach.id} className="mb-2">
+            <Box key={breach.id} sx={{ mb: 1 }}>
               <SLABreachAlert breach={breach} variant="inline" />
-            </div>
+            </Box>
           ))}
-        </div>
+        </Box>
       )}
 
       {/* SLA Countdown */}
       {slaInstances.length > 0 && (
-        <div className="mt-6">
+        <Box sx={{ mt: 3 }}>
           <SLACountdownWidget slaInstances={slaInstances} showDetails />
-        </div>
+        </Box>
       )}
 
       {/* Related Incidents */}
-      <div className="mt-6">
+      <Box sx={{ mt: 3 }}>
         <RelatedIncidentsWidget
           problemId={Number(id)}
           incidents={relatedIncidents}
           readOnly
         />
-      </div>
+      </Box>
 
       {/* Knowledge Article Suggestions */}
-      <div className="mt-6">
+      <Box sx={{ mt: 3 }}>
         <ArticleSuggestions
           incidentDescription={incident.shortDescription}
           autoSuggest
         />
-      </div>
+      </Box>
 
       {/* Incident Timeline */}
-      <div className="mt-6">
+      <Box sx={{ mt: 3 }}>
         <IncidentTimeline
           activities={timelineActivities}
           showFilters
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

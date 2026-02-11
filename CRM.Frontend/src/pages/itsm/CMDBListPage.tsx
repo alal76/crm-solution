@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Box, Typography, Button, TextField, CircularProgress,
+  TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Paper
+} from '@mui/material';
 import apiClient from '../../services/apiClient';
 
 interface ConfigurationItem {
@@ -38,60 +42,56 @@ const CMDBListPage: React.FC = () => {
   }, [searchTerm]);
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">CMDB</h1>
-        <button
-          onClick={() => navigate('/itsm/cmdb/create')}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1" fontWeight="bold">CMDB</Typography>
+        <Button variant="contained" onClick={() => navigate('/itsm/cmdb/create')}>
           + New CI
-        </button>
-      </div>
+        </Button>
+      </Box>
 
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Search configuration items..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-        />
-      </div>
+      <TextField
+        fullWidth
+        placeholder="Search configuration items..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        sx={{ mb: 3 }}
+      />
 
       {loading ? (
-        <div>Loading...</div>
+        <CircularProgress />
       ) : items.length === 0 ? (
-        <div className="text-gray-600">No configuration items found.</div>
+        <Typography color="text.secondary">No configuration items found.</Typography>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Name</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Number</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Type</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Number</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {items.map((ci) => (
-                <tr
+                <TableRow
                   key={ci.ciId}
+                  hover
+                  sx={{ cursor: 'pointer' }}
                   onClick={() => navigate(`/itsm/cmdb/${ci.ciId}`)}
-                  className="hover:bg-gray-50 cursor-pointer"
                 >
-                  <td className="px-6 py-4 text-sm font-medium text-blue-600">{ci.ciName}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{ci.ciNumber}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">Type {ci.ciType}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">Status {ci.operationalStatus}</td>
-                </tr>
+                  <TableCell sx={{ color: 'primary.main', fontWeight: 500 }}>{ci.ciName}</TableCell>
+                  <TableCell>{ci.ciNumber}</TableCell>
+                  <TableCell>Type {ci.ciType}</TableCell>
+                  <TableCell>Status {ci.operationalStatus}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
-    </div>
+    </Box>
   );
 };
 

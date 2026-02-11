@@ -17,9 +17,11 @@
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using System.Security.Claims;
 using CRM.Core.Dtos.Reports;
 using CRM.Core.Entities.Reports;
 using CRM.Core.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -40,6 +42,7 @@ public class ReportService : IReportService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<ReportService> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     // In-memory storage for favorites - TODO: Move to database entity or user preferences
     private static readonly ConcurrentDictionary<(int UserId, int ReportId), bool> _userFavorites = new();
@@ -52,10 +55,21 @@ public class ReportService : IReportService
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <param name="logger">The logger instance.</param>
-    public ReportService(ICrmDbContext context, ILogger<ReportService> logger)
+    /// <param name="httpContextAccessor">The HTTP context accessor for current user resolution.</param>
+    public ReportService(ICrmDbContext context, ILogger<ReportService> logger, IHttpContextAccessor httpContextAccessor)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+    }
+
+    /// <summary>
+    /// Gets the current user's ID from the JWT claims, falling back to 1 (admin) if not available.
+    /// </summary>
+    private int GetCurrentUserId()
+    {
+        var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 1;
     }
 
     #region Report CRUD Operations
@@ -165,7 +179,7 @@ public class ReportService : IReportService
             Category = dto.Category,
             FolderId = dto.FolderId,
             CustomQuery = dto.Query,
-            CreatedByUserId = 1, // TODO: Get from current user context
+            CreatedByUserId = GetCurrentUserId(),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             Status = ReportStatus.Active
@@ -273,7 +287,7 @@ public class ReportService : IReportService
             Status = ReportExecutionStatus.Running,
             StartedAt = startTime,
             ParametersJson = parameters != null ? JsonSerializer.Serialize(parameters) : null,
-            TriggeredByUserId = 1, // TODO: Get from current user context
+            TriggeredByUserId = GetCurrentUserId(),
             CreatedAt = DateTime.UtcNow
         };
 
@@ -504,7 +518,7 @@ public class ReportService : IReportService
             Name = dto.Name,
             Description = dto.Description,
             ParentFolderId = dto.ParentId,
-            OwnerUserId = 1, // TODO: Get from current user context
+            OwnerUserId = GetCurrentUserId(),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -697,7 +711,7 @@ public class ReportService : IReportService
             ShowDataLabels = original.ShowDataLabels,
             ShowLegend = original.ShowLegend,
             ShowTotals = original.ShowTotals,
-            CreatedByUserId = 1, // TODO: Get from current user context
+            CreatedByUserId = GetCurrentUserId(),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

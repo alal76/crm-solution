@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
 import apiClient from '../../services/apiClient';
 
 const ChangeFormPage: React.FC = () => {
@@ -31,124 +38,123 @@ const ChangeFormPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Create Change</h1>
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label>
-          <input
-            type="text"
-            value={formData.shortDescription}
-            onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={4}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-            <select
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: Number(e.target.value) })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value={1}>Standard</option>
-              <option value={2}>Normal</option>
-              <option value={3}>Emergency</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Risk</label>
-            <select
-              value={formData.risk}
-              onChange={(e) => setFormData({ ...formData, risk: Number(e.target.value) })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value={1}>High</option>
-              <option value={2}>Medium</option>
-              <option value={3}>Low</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Impact</label>
-            <select
-              value={formData.impact}
-              onChange={(e) => setFormData({ ...formData, impact: Number(e.target.value) })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value={1}>High</option>
-              <option value={2}>Medium</option>
-              <option value={3}>Low</option>
-            </select>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Planned Start</label>
-            <input
-              type="datetime-local"
-              value={formData.plannedStartDate}
-              onChange={(e) => setFormData({ ...formData, plannedStartDate: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+    <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 3 }}>Create Change</Typography>
+      <Paper sx={{ p: 3 }}>
+        <form onSubmit={handleSubmit}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Short Description"
+              value={formData.shortDescription}
+              onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+              required
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Planned End</label>
-            <input
-              type="datetime-local"
-              value={formData.plannedEndDate}
-              onChange={(e) => setFormData({ ...formData, plannedEndDate: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            <TextField
+              fullWidth
+              label="Description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              multiline
+              rows={4}
             />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Implementation Plan</label>
-            <textarea
-              value={formData.implementationPlan}
-              onChange={(e) => setFormData({ ...formData, implementationPlan: e.target.value })}
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Backout Plan</label>
-            <textarea
-              value={formData.backoutPlan}
-              onChange={(e) => setFormData({ ...formData, backoutPlan: e.target.value })}
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            />
-          </div>
-        </div>
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/itsm/changes')}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {submitting ? 'Saving...' : 'Create'}
-          </button>
-        </div>
-      </form>
-    </div>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Type"
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: Number(e.target.value) })}
+                >
+                  <MenuItem value={1}>Standard</MenuItem>
+                  <MenuItem value={2}>Normal</MenuItem>
+                  <MenuItem value={3}>Emergency</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Risk"
+                  value={formData.risk}
+                  onChange={(e) => setFormData({ ...formData, risk: Number(e.target.value) })}
+                >
+                  <MenuItem value={1}>High</MenuItem>
+                  <MenuItem value={2}>Medium</MenuItem>
+                  <MenuItem value={3}>Low</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Impact"
+                  value={formData.impact}
+                  onChange={(e) => setFormData({ ...formData, impact: Number(e.target.value) })}
+                >
+                  <MenuItem value={1}>High</MenuItem>
+                  <MenuItem value={2}>Medium</MenuItem>
+                  <MenuItem value={3}>Low</MenuItem>
+                </TextField>
+              </Grid>
+            </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Planned Start"
+                  type="datetime-local"
+                  value={formData.plannedStartDate}
+                  onChange={(e) => setFormData({ ...formData, plannedStartDate: e.target.value })}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Planned End"
+                  type="datetime-local"
+                  value={formData.plannedEndDate}
+                  onChange={(e) => setFormData({ ...formData, plannedEndDate: e.target.value })}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Implementation Plan"
+                  value={formData.implementationPlan}
+                  onChange={(e) => setFormData({ ...formData, implementationPlan: e.target.value })}
+                  multiline
+                  rows={3}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Backout Plan"
+                  value={formData.backoutPlan}
+                  onChange={(e) => setFormData({ ...formData, backoutPlan: e.target.value })}
+                  multiline
+                  rows={3}
+                />
+              </Grid>
+            </Grid>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+              <Button variant="outlined" onClick={() => navigate('/itsm/changes')}>
+                Cancel
+              </Button>
+              <Button variant="contained" type="submit" disabled={submitting}>
+                {submitting ? 'Saving...' : 'Create'}
+              </Button>
+            </Box>
+          </Box>
+        </form>
+      </Paper>
+    </Box>
   );
 };
 

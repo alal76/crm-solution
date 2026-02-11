@@ -17,6 +17,7 @@
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,6 +44,7 @@ public class LeadScoreRulesController : ControllerBase
     /// Get all lead scoring rules
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<LeadScoreRule>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LeadScoreRule>>> GetRules(
         [FromQuery] LeadScoreRuleType? ruleType = null,
         [FromQuery] bool? isActive = null,
@@ -71,6 +73,8 @@ public class LeadScoreRulesController : ControllerBase
     /// Get a specific lead scoring rule by ID
     /// </summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(LeadScoreRule), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<LeadScoreRule>> GetRule(int id)
     {
         var rule = await _context.LeadScoreRules.FindAsync(id);
@@ -85,6 +89,8 @@ public class LeadScoreRulesController : ControllerBase
     /// Create a new lead scoring rule
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(typeof(LeadScoreRule), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<LeadScoreRule>> CreateRule([FromBody] LeadScoreRuleDto dto)
     {
         var rule = new LeadScoreRule
@@ -121,6 +127,9 @@ public class LeadScoreRulesController : ControllerBase
     /// Update an existing lead scoring rule
     /// </summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(LeadScoreRule), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<LeadScoreRule>> UpdateRule(int id, [FromBody] LeadScoreRuleDto dto)
     {
         var rule = await _context.LeadScoreRules.FindAsync(id);
@@ -158,6 +167,8 @@ public class LeadScoreRulesController : ControllerBase
     /// Toggle active status of a rule
     /// </summary>
     [HttpPatch("{id}/toggle")]
+    [ProducesResponseType(typeof(LeadScoreRule), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<LeadScoreRule>> ToggleRule(int id)
     {
         var rule = await _context.LeadScoreRules.FindAsync(id);
@@ -180,6 +191,8 @@ public class LeadScoreRulesController : ControllerBase
     /// Delete a lead scoring rule
     /// </summary>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteRule(int id)
     {
         var rule = await _context.LeadScoreRules.FindAsync(id);
@@ -199,6 +212,7 @@ public class LeadScoreRulesController : ControllerBase
     /// Reorder rules by updating their priorities
     /// </summary>
     [HttpPost("reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderRules([FromBody] List<RulePriorityDto> priorities)
     {
         foreach (var item in priorities)
@@ -222,6 +236,7 @@ public class LeadScoreRulesController : ControllerBase
     /// Get available field names for attribute-based rules
     /// </summary>
     [HttpGet("fields")]
+    [ProducesResponseType(typeof(IEnumerable<FieldDefinition>), StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<FieldDefinition>> GetAvailableFields()
     {
         var fields = new List<FieldDefinition>
@@ -253,6 +268,7 @@ public class LeadScoreRulesController : ControllerBase
     /// Get rule type definitions with descriptions
     /// </summary>
     [HttpGet("types")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<object>> GetRuleTypes()
     {
         var types = new[]
@@ -271,6 +287,7 @@ public class LeadScoreRulesController : ControllerBase
     /// Get operator definitions
     /// </summary>
     [HttpGet("operators")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<object>> GetOperators()
     {
         var operators = new[]
@@ -296,6 +313,7 @@ public class LeadScoreRulesController : ControllerBase
     /// Get summary statistics for lead scoring rules
     /// </summary>
     [HttpGet("stats")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetStats()
     {
         var stats = new

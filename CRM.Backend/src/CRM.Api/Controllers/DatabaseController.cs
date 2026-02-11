@@ -18,6 +18,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
@@ -51,6 +52,7 @@ public class DatabaseController : ControllerBase
     /// Get database status and statistics
     /// </summary>
     [HttpGet("status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<DatabaseStatusDto>> GetDatabaseStatus()
     {
         try
@@ -95,6 +97,7 @@ public class DatabaseController : ControllerBase
     /// Get foreign key relationships from the database schema
     /// </summary>
     [HttpGet("foreign-keys")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ForeignKeyDto>>> GetForeignKeys([FromQuery] string? tableName = null)
     {
         try
@@ -113,6 +116,7 @@ public class DatabaseController : ControllerBase
     /// Get schema information for linked entities (foreign keys grouped by source table)
     /// </summary>
     [HttpGet("linked-entities-schema")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<Dictionary<string, List<LinkedEntitySchemaDto>>>> GetLinkedEntitiesSchema()
     {
         try
@@ -145,6 +149,7 @@ public class DatabaseController : ControllerBase
     /// Test connection to a new database
     /// </summary>
     [HttpPost("test-connection")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ConnectionTestResult>> TestConnection([FromBody] DatabaseConnectionRequest request)
     {
         try
@@ -178,6 +183,8 @@ public class DatabaseController : ControllerBase
     /// Start database migration wizard
     /// </summary>
     [HttpPost("migrate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<MigrationResult>> MigrateDatabase([FromBody] DatabaseMigrationRequest request)
     {
         try
@@ -595,6 +602,7 @@ Then restart the API container:
     /// Get list of backups
     /// </summary>
     [HttpGet("backups")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<List<BackupDto>>> GetBackups()
     {
         try
@@ -629,6 +637,8 @@ Then restart the API container:
     /// Create a database backup
     /// </summary>
     [HttpPost("backup")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<BackupDto>> CreateBackup([FromBody] CreateBackupRequest request)
     {
         try
@@ -783,6 +793,8 @@ Then restart the API container:
     /// Restore from a backup
     /// </summary>
     [HttpPost("restore/{backupId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RestoreBackup(int backupId)
     {
         try
@@ -807,6 +819,7 @@ Then restart the API container:
     /// Optimize database (vacuum, analyze)
     /// </summary>
     [HttpPost("optimize")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<OptimizeResultDto>> OptimizeDatabase()
     {
         try
@@ -930,6 +943,7 @@ Then restart the API container:
     /// Refresh table statistics (ANALYZE) for the current database
     /// </summary>
     [HttpPost("refresh-statistics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<StatisticsRefreshResultDto>> RefreshTableStatistics()
     {
         try
@@ -1043,6 +1057,7 @@ Then restart the API container:
     /// Get statistics refresh schedule configuration
     /// </summary>
     [HttpGet("statistics-schedule")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<StatisticsScheduleDto>> GetStatisticsSchedule()
     {
         try
@@ -1076,6 +1091,9 @@ Then restart the API container:
     /// Update statistics refresh schedule configuration
     /// </summary>
     [HttpPut("statistics-schedule")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<StatisticsScheduleDto>> UpdateStatisticsSchedule([FromBody] StatisticsScheduleUpdateDto request)
     {
         try
@@ -1107,6 +1125,7 @@ Then restart the API container:
     /// Rebuild indexes
     /// </summary>
     [HttpPost("rebuild-indexes")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<OptimizeResultDto>> RebuildIndexes()
     {
         try
@@ -1223,6 +1242,7 @@ Then restart the API container:
     /// Generate seed script from current data
     /// </summary>
     [HttpGet("generate-seed-script")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<SeedScriptDto>> GenerateSeedScript()
     {
         try
@@ -1263,6 +1283,7 @@ Then restart the API container:
     /// Generate migration script for target database
     /// </summary>
     [HttpPost("generate-migration-script")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public Task<ActionResult<MigrationScriptDto>> GenerateMigrationScript([FromBody] MigrationRequest request)
     {
         try
@@ -1328,6 +1349,8 @@ Then restart the API container:
     /// Clear all data (dangerous - requires confirmation)
     /// </summary>
     [HttpPost("clear-data")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> ClearAllData([FromBody] ClearDataRequest request)
     {
         try
@@ -1464,6 +1487,7 @@ Then restart the API container:
     /// Reseed the database with initial data
     /// </summary>
     [HttpPost("reseed")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> ReseedDatabase()
     {
         try
@@ -1495,6 +1519,7 @@ Then restart the API container:
     /// Get supported database providers
     /// </summary>
     [HttpGet("providers")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<List<DatabaseProviderDto>> GetSupportedProviders()
     {
         var currentProvider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";

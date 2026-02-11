@@ -1,4 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 import apiClient from '../../services/apiClient';
 
 interface PagedResult<T> {
@@ -91,55 +100,63 @@ const ITSMMetricsPage: React.FC = () => {
   }, [knowledge]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">ITSM Metrics</h1>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>ITSM Metrics</Typography>
       {loading ? (
-        <div>Loading...</div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Incident Trends</h2>
-          <p className="text-sm text-gray-600 mb-4">Total incidents: {incidents?.totalCount ?? 0}</p>
-          <ul className="space-y-2">
-            {(incidents?.items ?? []).map((item) => (
-              <li key={item.incidentId} className="text-sm text-gray-700">
-                {item.number} • {item.shortDescription}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">SLA Compliance</h2>
-          <p className="text-sm text-gray-600 mb-2">Breached SLAs: {breachedSlas.length}</p>
-          <p className="text-sm text-gray-600">Active incidents: {incidents?.totalCount ?? 0}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Change Success Rate</h2>
-          <p className="text-sm text-gray-600 mb-4">Total changes: {changes?.totalCount ?? 0}</p>
-          <ul className="space-y-2">
-            {(changes?.items ?? []).map((item) => (
-              <li key={item.changeId} className="text-sm text-gray-700">
-                {item.number} • {item.shortDescription}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Knowledge Engagement</h2>
-          <p className="text-sm text-gray-600 mb-2">Total views: {knowledgeSummary.totalViews}</p>
-          <p className="text-sm text-gray-600 mb-4">Helpful votes: {knowledgeSummary.helpful}</p>
-          <ul className="space-y-2">
-            {knowledgeSummary.top.map((item) => (
-              <li key={item.articleId} className="text-sm text-gray-700">
-                {item.title} • {item.viewCount} views
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      <Grid container spacing={3}>
+        <Grid item xs={12} lg={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>Incident Trends</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Total incidents: {incidents?.totalCount ?? 0}</Typography>
+            <List dense>
+              {(incidents?.items ?? []).map((item) => (
+                <ListItem key={item.incidentId} disablePadding>
+                  <ListItemText primary={`${item.number} • ${item.shortDescription}`} primaryTypographyProps={{ variant: 'body2' }} />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} lg={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>SLA Compliance</Typography>
+            <Typography variant="body2" color="text.secondary">Breached SLAs: {breachedSlas.length}</Typography>
+            <Typography variant="body2" color="text.secondary">Active incidents: {incidents?.totalCount ?? 0}</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} lg={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>Change Success Rate</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Total changes: {changes?.totalCount ?? 0}</Typography>
+            <List dense>
+              {(changes?.items ?? []).map((item) => (
+                <ListItem key={item.changeId} disablePadding>
+                  <ListItemText primary={`${item.number} • ${item.shortDescription}`} primaryTypographyProps={{ variant: 'body2' }} />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} lg={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>Knowledge Engagement</Typography>
+            <Typography variant="body2" color="text.secondary">Total views: {knowledgeSummary.totalViews}</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Helpful votes: {knowledgeSummary.helpful}</Typography>
+            <List dense>
+              {knowledgeSummary.top.map((item) => (
+                <ListItem key={item.articleId} disablePadding>
+                  <ListItemText primary={`${item.title} • ${item.viewCount} views`} primaryTypographyProps={{ variant: 'body2' }} />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
+        </Grid>
+      </Grid>
       )}
-      {error && <div className="text-sm text-red-600 mt-4">{error}</div>}
-    </div>
+      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+    </Box>
   );
 };
 

@@ -89,6 +89,9 @@ builder.Host.UseSerilog();
 // Add caching services
 builder.Services.AddMemoryCache();
 
+// Add HttpContextAccessor for services that need current user context
+builder.Services.AddHttpContextAccessor();
+
 // Add Feature Management
 // Enables deployment-time provider selection via FeatureManagement configuration
 // See: docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md Section 17

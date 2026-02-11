@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Paper, TextField, MenuItem, Button } from '@mui/material';
 import apiClient from '../../services/apiClient';
 
 const CMDBFormPage: React.FC = () => {
@@ -26,68 +27,56 @@ const CMDBFormPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Create Configuration Item</h1>
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-          <input
-            type="text"
+    <Box sx={{ p: 3, maxWidth: 720, mx: 'auto' }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
+        Create Configuration Item
+      </Typography>
+      <Paper sx={{ p: 3 }}>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Name"
             value={formData.ciName}
             onChange={(e) => setFormData({ ...formData, ciName: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             required
+            fullWidth
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-          <select
+          <TextField
+            label="Type"
+            select
             value={formData.ciType}
             onChange={(e) => setFormData({ ...formData, ciType: Number(e.target.value) })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            fullWidth
           >
-            <option value={1}>Hardware</option>
-            <option value={2}>Software</option>
-            <option value={3}>Service</option>
-            <option value={4}>Network</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Subtype</label>
-          <input
-            type="text"
+            <MenuItem value={1}>Hardware</MenuItem>
+            <MenuItem value={2}>Software</MenuItem>
+            <MenuItem value={3}>Service</MenuItem>
+            <MenuItem value={4}>Network</MenuItem>
+          </TextField>
+          <TextField
+            label="Subtype"
             value={formData.ciSubtype}
             onChange={(e) => setFormData({ ...formData, ciSubtype: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            fullWidth
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea
+          <TextField
+            label="Description"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            multiline
             rows={4}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            fullWidth
           />
-        </div>
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/itsm/cmdb')}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {submitting ? 'Saving...' : 'Create'}
-          </button>
-        </div>
-      </form>
-    </div>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+            <Button variant="outlined" onClick={() => navigate('/itsm/cmdb')}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="contained" disabled={submitting}>
+              {submitting ? 'Saving...' : 'Create'}
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

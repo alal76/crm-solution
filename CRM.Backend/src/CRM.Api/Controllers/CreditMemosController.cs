@@ -17,6 +17,7 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
@@ -36,6 +37,7 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<CreditMemo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CreditMemo>>> GetAll([FromQuery] int? accountId = null, [FromQuery] CreditMemoStatus? status = null, CancellationToken ct = default)
     {
         try
@@ -50,6 +52,8 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(CreditMemo), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CreditMemo>> GetById(int id, CancellationToken ct = default)
     {
         try
@@ -65,6 +69,8 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpGet("by-number/{number}")]
+    [ProducesResponseType(typeof(CreditMemo), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CreditMemo>> GetByNumber(string number, CancellationToken ct = default)
     {
         try
@@ -80,6 +86,8 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(CreditMemo), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CreditMemo>> Create([FromBody] CreditMemo model, CancellationToken ct = default)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -95,6 +103,9 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [ProducesResponseType(typeof(CreditMemo), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CreditMemo>> Update(int id, [FromBody] CreditMemo model, CancellationToken ct = default)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -111,6 +122,8 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id, CancellationToken ct = default)
     {
         try
@@ -126,6 +139,8 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpPost("{id:int}/apply")]
+    [ProducesResponseType(typeof(CreditMemo), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CreditMemo>> Apply(int id, [FromBody] ApplyCreditMemoRequest req, CancellationToken ct = default)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -141,6 +156,7 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpPost("{id:int}/unapply")]
+    [ProducesResponseType(typeof(CreditMemo), StatusCodes.Status200OK)]
     public async Task<ActionResult<CreditMemo>> Unapply(int id, CancellationToken ct = default)
     {
         try
@@ -155,6 +171,7 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpPost("{id:int}/refund")]
+    [ProducesResponseType(typeof(CreditMemo), StatusCodes.Status200OK)]
     public async Task<ActionResult<CreditMemo>> Refund(int id, CancellationToken ct = default)
     {
         try
@@ -169,6 +186,7 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpGet("{id:int}/line-items")]
+    [ProducesResponseType(typeof(IEnumerable<CreditMemoLineItem>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CreditMemoLineItem>>> GetLineItems(int id, CancellationToken ct = default)
     {
         try
@@ -183,6 +201,8 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpPost("{id:int}/line-items")]
+    [ProducesResponseType(typeof(CreditMemoLineItem), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CreditMemoLineItem>> AddLineItem(int id, [FromBody] CreditMemoLineItem model, CancellationToken ct = default)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -198,6 +218,9 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpPut("line-items/{lineItemId:int}")]
+    [ProducesResponseType(typeof(CreditMemoLineItem), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CreditMemoLineItem>> UpdateLineItem(int lineItemId, [FromBody] CreditMemoLineItem model, CancellationToken ct = default)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -214,6 +237,8 @@ public class CreditMemosController : ControllerBase
     }
 
     [HttpDelete("line-items/{lineItemId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteLineItem(int lineItemId, CancellationToken ct = default)
     {
         try

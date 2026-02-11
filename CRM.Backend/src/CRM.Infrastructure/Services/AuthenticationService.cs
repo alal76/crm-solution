@@ -395,14 +395,13 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         if (string.IsNullOrWhiteSpace(refreshToken))
             throw new ArgumentException("Refresh token is required");
 
-        // Find user with matching refresh token
-        // Note: In production, store refresh tokens in a separate table with expiry
-        var users = await _userRepository.GetAllAsync();
-        var user = users.FirstOrDefault(u =>
-            !u.IsDeleted &&
-            u.IsActive &&
-            u.RefreshToken == refreshToken &&
-            u.RefreshTokenExpiry > DateTime.UtcNow);
+        // Find user with matching refresh token using indexed database query
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u =>
+                !u.IsDeleted &&
+                u.IsActive &&
+                u.RefreshToken == refreshToken &&
+                u.RefreshTokenExpiry > DateTime.UtcNow);
 
         if (user == null)
             throw new UnauthorizedAccessException("Invalid or expired refresh token");

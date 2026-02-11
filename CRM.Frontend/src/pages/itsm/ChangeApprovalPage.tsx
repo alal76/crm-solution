@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import apiClient from '../../services/apiClient';
 
 interface ChangeApprovalDetail {
@@ -72,69 +80,69 @@ const ChangeApprovalPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Change Approvals</h1>
-      <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 3 }}>Change Approvals</Typography>
+      <Paper sx={{ p: 3 }}>
         {loading ? (
-          <div>Loading...</div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
         ) : !change ? (
-          <div className="text-gray-600">Change not found.</div>
+          <Typography color="text.secondary">Change not found.</Typography>
         ) : (
-          <>
-            <div>
-              <p className="text-sm text-gray-600">{change.number}</p>
-              <p className="text-lg font-semibold text-gray-900">{change.shortDescription}</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700">State</h3>
-                <p className="text-gray-900">State {change.state}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700">Approval</h3>
-                <p className="text-gray-900">Status {change.approvalStatus}</p>
-              </div>
-            </div>
-            <div className="border border-gray-200 rounded p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="approval-comments">
-                  Approval comments
-                </label>
-                <textarea
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box>
+              <Typography variant="body2" color="text.secondary">{change.number}</Typography>
+              <Typography variant="h6" fontWeight="bold">{change.shortDescription}</Typography>
+            </Box>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="text.secondary">State</Typography>
+                <Typography>State {change.state}</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="text.secondary">Approval</Typography>
+                <Typography>Status {change.approvalStatus}</Typography>
+              </Grid>
+            </Grid>
+            <Paper variant="outlined" sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Approval comments"
                   id="approval-comments"
                   value={comments}
                   onChange={(event) => setComments(event.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  multiline
                   rows={4}
                   placeholder="Add comments for the change owner"
                   disabled={submitted || submitting}
                 />
-              </div>
-              {submitError && <div className="text-sm text-red-600">{submitError}</div>}
-              {submitted && <div className="text-sm text-green-600">Approval submitted.</div>}
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={handleReject}
-                  disabled={rejecting || submitted || submitting}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-                >
-                  {rejecting ? 'Rejecting...' : 'Reject Change'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleApprove}
-                  disabled={submitting || submitted || rejecting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {submitting ? 'Submitting...' : 'Approve Change'}
-                </button>
-              </div>
-            </div>
-          </>
+                {submitError && <Alert severity="error">{submitError}</Alert>}
+                {submitted && <Alert severity="success">Approval submitted.</Alert>}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={handleReject}
+                    disabled={rejecting || submitted || submitting}
+                  >
+                    {rejecting ? 'Rejecting...' : 'Reject Change'}
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={handleApprove}
+                    disabled={submitting || submitted || rejecting}
+                  >
+                    {submitting ? 'Submitting...' : 'Approve Change'}
+                  </Button>
+                </Box>
+              </Box>
+            </Paper>
+          </Box>
         )}
-      </div>
-    </div>
+      </Paper>
+    </Box>
   );
 };
 
