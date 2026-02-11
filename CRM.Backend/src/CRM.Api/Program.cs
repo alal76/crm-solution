@@ -562,6 +562,9 @@ builder.Services.AddScoped<IAllenAIService, AllenAIService>();
 builder.Services.Configure<NewsSocialOptions>(builder.Configuration.GetSection("NewsSocial"));
 builder.Services.AddHttpClient<INewsSocialService, NewsSocialService>();
 
+// Navigation Configuration Service - dynamic navigation aware of pluggable architecture
+builder.Services.AddScoped<INavigationConfigService, NavigationConfigService>();
+
 // Workflow background worker
 var workflowWorkerOptions = new WorkflowWorkerOptions
 {

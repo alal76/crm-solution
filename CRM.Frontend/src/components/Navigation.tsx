@@ -52,6 +52,7 @@ import {
   Receipt as InvoiceIcon,
   Payment as PaymentIcon,
   ShoppingCart as OrderIcon,
+  MergeType as MergeIcon,
   // Reports & Analytics icons
   Assessment as ReportsIcon,
   Analytics as AnalyticsIcon,
@@ -95,6 +96,7 @@ import { getApiEndpoint } from '../config/ports';
 import UserSettingsDialog from './UserSettingsDialog';
 import logo from '../assets/logo.png';
 import logger from '../services/logger';
+import navigationConfigService, { NavigationItemConfig } from '../services/navigationConfigService';
 import './Navigation.css';
 
 function NavigationContent() {
@@ -139,6 +141,44 @@ function NavigationContent() {
     'admin-workflows': false,
     'admin-channels': false,
   });
+
+  // Dynamic navigation configuration from backend (provider-aware)
+  const [dynamicNavConfig, setDynamicNavConfig] = useState<NavigationItemConfig[]>([]);
+  const [providerStatus, setProviderStatus] = useState<Record<string, boolean>>({});
+  const [configLoaded, setConfigLoaded] = useState(false);
+
+  // Load dynamic navigation config from backend (provider-aware)
+  useEffect(() => {
+    const loadDynamicConfig = async () => {
+      try {
+        // Fetch navigation items and provider status from backend
+        const [items, statusList] = await Promise.all([
+          navigationConfigService.getNavigationItems(),
+          navigationConfigService.getProviderStatus()
+        ]);
+        
+        // Convert provider status array to record
+        const statusRecord: Record<string, boolean> = {};
+        statusList.forEach(s => {
+          statusRecord[s.providerType] = s.isAvailable;
+        });
+        
+        setDynamicNavConfig(items);
+        setProviderStatus(statusRecord);
+        setConfigLoaded(true);
+        
+        logger.info('Dynamic navigation config loaded', { itemCount: items.length, providers: Object.keys(statusRecord) });
+      } catch (error) {
+        // If backend config fails, fall back to static config
+        logger.warn('Failed to load dynamic navigation config, using static config', { error });
+        setConfigLoaded(true);
+      }
+    };
+
+    if (isAuthenticated) {
+      loadDynamicConfig();
+    }
+  }, [isAuthenticated]);
 
   // Toggle admin subcategory expansion
   const toggleAdminSection = (sectionId: string) => {
@@ -236,6 +276,8 @@ function NavigationContent() {
     'email-templates': { label: 'Email Templates', icon: EmailIcon, path: '/email-templates', menuName: 'EmailTemplates' },
     'campaign-execution': { label: 'Campaign Execution', icon: CampaignExecutionIcon, path: '/campaign-execution', menuName: 'CampaignExecution' },
     'landing-pages': { label: 'Landing Pages', icon: ViewQuiltIcon, path: '/landing-pages', menuName: 'LandingPages' },
+    'forms': { label: 'Forms', icon: QuoteIcon, path: '/forms', menuName: 'Forms' },
+    'knowledge-base': { label: 'Knowledge Base', icon: QuoteIcon, path: '/knowledge-base', menuName: 'KnowledgeBase' },
     'relationships': { label: 'Relationships', icon: RelationshipsIcon, path: '/relationships', menuName: 'Relationships' },
     'territories': { label: 'Territories', icon: BusinessIcon, path: '/territories', menuName: 'Territories' },
     'lead-routing': { label: 'Lead Routing', icon: AutomationIcon, path: '/lead-routing', menuName: 'LeadRouting' },
@@ -248,6 +290,7 @@ function NavigationContent() {
     'orders': { label: 'Orders', icon: OrderIcon, path: '/orders', menuName: 'Orders' },
     'subscriptions': { label: 'Subscriptions', icon: SubscriptionIcon, path: '/subscriptions', menuName: 'Subscriptions' },
     'teams': { label: 'Teams', icon: GroupsIcon, path: '/teams', menuName: 'Teams' },
+    'departments': { label: 'Departments', icon: BusinessIcon, path: '/departments', menuName: 'Departments' },
     'my-queue': { label: 'My Queue', icon: TaskIcon, path: '/my-queue', menuName: 'MyQueue' },
     'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
     'notes': { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
@@ -259,6 +302,7 @@ function NavigationContent() {
     // Help & Info items
     'about': { label: 'About', icon: InfoIcon, path: '/about', menuName: 'About' },
     'help': { label: 'Help', icon: HelpIcon, path: '/help', menuName: 'Help' },
+    'api-documentation': { label: 'API Documentation', icon: QuoteIcon, path: '/help/api', menuName: 'ApiDocumentation' },
     'licenses': { label: 'Licenses', icon: LicenseIcon, path: '/licenses', menuName: 'Licenses' },
   }), []);
 
@@ -268,6 +312,7 @@ function NavigationContent() {
     'deployment-settings': { label: 'Deployment', icon: CloudIcon, path: '/admin/deployment', menuName: 'DeploymentSettings' },
     'security-settings': { label: 'Security', icon: SecurityIcon, path: '/admin/security', menuName: 'SecuritySettings' },
     'feature-management': { label: 'Features', icon: FeatureToggleIcon, path: '/admin/features', menuName: 'FeatureManagement' },
+    'database-settings': { label: 'Database', icon: StorageIcon, path: '/admin/database-settings', menuName: 'DatabaseSettings' },
     // User Administration
     'user-management': { label: 'Users', icon: PeopleIcon, path: '/admin/users', menuName: 'UserManagement' },
     'user-approvals': { label: 'Approvals', icon: PersonAddIcon, path: '/admin/approvals', menuName: 'UserApprovals' },
@@ -277,6 +322,8 @@ function NavigationContent() {
     'branding-settings': { label: 'Branding', icon: PaletteIcon, path: '/admin/branding', menuName: 'BrandingSettings' },
     'navigation-settings': { label: 'Navigation', icon: MenuIcon, path: '/admin/navigation', menuName: 'NavigationSettings' },
     'module-fields': { label: 'Modules & Fields', icon: ModuleIcon, path: '/admin/modules', menuName: 'ModuleFields' },
+    'duplicate-rules': { label: 'Duplicate Rules', icon: MergeIcon, path: '/admin/duplicate-rules', menuName: 'DuplicateRules' },
+    'lead-score-rules': { label: 'Lead Score Rules', icon: TrendingUpIcon, path: '/admin/lead-score-rules', menuName: 'LeadScoreRules' },
     'sr-definitions': { label: 'Service Requests', icon: SupportAgentIcon, path: '/admin/service-requests', menuName: 'ServiceRequestDefinitions' },
     'master-data': { label: 'Master Data', icon: StorageIcon, path: '/admin/master-data', menuName: 'MasterData' },
     'dashboard-settings': { label: 'Dashboards', icon: DashboardIcon, path: '/admin/dashboards', menuName: 'DashboardSettings' },
@@ -348,9 +395,10 @@ function NavigationContent() {
   // Default nav items with their proper categories (matching NavigationSettingsTab)
   const defaultNavItemsWithCategory = useMemo(() => [
     { id: 'dashboard', order: 0, visible: true, category: 'main' },
-    { id: 'customers', order: 1, visible: true, category: 'main' },
+    { id: 'accounts', order: 1, visible: true, category: 'main' },
     { id: 'customer-overview', order: 2, visible: true, category: 'main' },
     { id: 'contacts', order: 3, visible: true, category: 'main' },
+    { id: 'relationships', order: 3.5, visible: true, category: 'main' },
     { id: 'leads', order: 4, visible: true, category: 'sales' },
     { id: 'opportunities', order: 5, visible: true, category: 'sales' },
     { id: 'products', order: 6, visible: true, category: 'sales' },
@@ -366,7 +414,10 @@ function NavigationContent() {
     { id: 'itsm-sla', order: 37, visible: true, category: 'itsm' },
     { id: 'itsm-metrics', order: 38, visible: true, category: 'itsm' },
     { id: 'campaigns', order: 9, visible: true, category: 'sales' },
+    { id: 'email-templates', order: 9.1, visible: true, category: 'sales' },
+    { id: 'campaign-execution', order: 9.2, visible: true, category: 'sales' },
     { id: 'landing-pages', order: 9.5, visible: true, category: 'sales' },
+    { id: 'forms', order: 9.6, visible: true, category: 'sales' },
     { id: 'quotes', order: 10, visible: true, category: 'sales' },
     { id: 'territories', order: 10.1, visible: true, category: 'sales' },
     { id: 'lead-routing', order: 10.2, visible: true, category: 'sales' },
@@ -376,23 +427,28 @@ function NavigationContent() {
     { id: 'invoices', order: 10.6, visible: true, category: 'sales' },
     { id: 'payments', order: 10.7, visible: true, category: 'sales' },
     { id: 'orders', order: 10.8, visible: true, category: 'sales' },
+    { id: 'subscriptions', order: 10.85, visible: true, category: 'sales' },
     { id: 'teams', order: 10.9, visible: true, category: 'sales' },
+    { id: 'departments', order: 10.95, visible: true, category: 'main' },
     { id: 'my-queue', order: 11, visible: true, category: 'productivity' },
     { id: 'activities', order: 12, visible: true, category: 'productivity' },
     { id: 'notes', order: 13, visible: true, category: 'productivity' },
     { id: 'communications', order: 14, visible: true, category: 'productivity' },
     { id: 'interactions', order: 15, visible: true, category: 'productivity' },
+    { id: 'knowledge-base', order: 15.5, visible: true, category: 'support' },
     { id: 'reports', order: 16, visible: true, category: 'productivity' },
     { id: 'analytics', order: 17, visible: true, category: 'productivity' },
     // Help & Info
     { id: 'about', order: 50, visible: true, category: 'info' },
     { id: 'help', order: 51, visible: true, category: 'info' },
+    { id: 'api-documentation', order: 51.5, visible: true, category: 'info' },
     { id: 'licenses', order: 52, visible: true, category: 'info' },
     // System Administration
     { id: 'monitoring-settings', order: 60, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     { id: 'deployment-settings', order: 61, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     { id: 'security-settings', order: 63, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     { id: 'feature-management', order: 64, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
+    { id: 'database-settings', order: 64.5, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     // User Administration
     { id: 'user-management', order: 65, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
     { id: 'user-approvals', order: 66, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
@@ -402,6 +458,8 @@ function NavigationContent() {
     { id: 'branding-settings', order: 69, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
     { id: 'navigation-settings', order: 70, visible: true, category: 'admin', adminSubcategory: 'admin-navigation' },
     { id: 'module-fields', order: 71, visible: true, category: 'admin', adminSubcategory: 'admin-modules' },
+    { id: 'duplicate-rules', order: 71.5, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
+    { id: 'lead-score-rules', order: 71.6, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
     { id: 'sr-definitions', order: 72, visible: true, category: 'admin', adminSubcategory: 'admin-service' },
     { id: 'master-data', order: 73, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
     { id: 'dashboard-settings', order: 74, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
