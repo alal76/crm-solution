@@ -127,5 +127,5 @@ export type {
 // API Services
 // ============================================================================
 
-export { workflowService, nodeTypeInfo, statusColors, default as default } from './workflowDefinitionApi';
+export { workflowService, nodeTypeInfo, statusColors, default } from './workflowDefinitionApi';
 export { workflowInstanceService } from './workflowInstanceApi';
