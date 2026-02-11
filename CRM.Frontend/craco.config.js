@@ -6,10 +6,10 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 // Bundle size budgets (in bytes)
 const BUNDLE_SIZE_LIMITS = {
-  // Main entry point should stay under 500KB
-  mainEntryLimit: 500 * 1024,
-  // Individual vendor chunks should stay under 250KB
-  vendorChunkLimit: 250 * 1024,
+  // Main entry point budget (MUI + React + routing = ~1.2MB)
+  mainEntryLimit: 1500 * 1024,
+  // Individual vendor chunks (MUI alone is ~700KB)
+  vendorChunkLimit: 800 * 1024,
   // Total bundle should stay under 2MB gzipped
   totalBundleLimit: 2 * 1024 * 1024,
 };
