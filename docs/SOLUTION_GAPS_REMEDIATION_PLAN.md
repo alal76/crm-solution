@@ -44,11 +44,7 @@ The following items remain from the remediation effort:
 
 | File | Description |
 |------|-------------|
-| BusinessHoursCalculator.cs:303 | Load custom schedule from database |
-| EscalationHostedService.cs:232 | Send notification to escalation contacts |
-| KnowledgeManagementService.cs:182 | AI-powered semantic search |
-| SLAService.cs:329 | Business hours calculation |
-| ServiceCatalog.cs:122, 266 | Workflow engine implementation |
+| ServiceCatalog.cs:120, 263 | Workflow engine implementation |
 
 ---
 
