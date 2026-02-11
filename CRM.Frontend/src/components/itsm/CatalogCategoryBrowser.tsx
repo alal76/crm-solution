@@ -111,7 +111,8 @@ const getCategoryPath = (categoryId: number, categories: CatalogCategory[]): Cat
 
   while (current) {
     path.unshift(current);
-    current = current.parentId ? categories.find((c) => c.id === current!.parentId) : undefined;
+    const parentId = current.parentId;
+    current = parentId ? categories.find((c) => c.id === parentId) : undefined;
   }
 
   return path;
