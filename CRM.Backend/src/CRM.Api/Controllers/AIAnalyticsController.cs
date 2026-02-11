@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Services.AI;
@@ -66,6 +67,8 @@ public class AIAnalyticsController : ControllerBase
     /// Falls back to keyword search when AI provider is unavailable.
     /// </summary>
     [HttpPost("kb-search")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SemanticSearch([FromBody] KbSearchRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request?.Query))
@@ -79,6 +82,7 @@ public class AIAnalyticsController : ControllerBase
     /// Reindex all published knowledge base articles for semantic search.
     /// </summary>
     [HttpPost("kb-reindex")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReindexKnowledgeBase(CancellationToken ct)
     {
         await _kbSearch.ReindexAllAsync(ct);
@@ -94,6 +98,8 @@ public class AIAnalyticsController : ControllerBase
     /// Optionally enriched with AI sentiment analysis.
     /// </summary>
     [HttpPost("leads/{id:int}/score")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ScoreLead(int id, CancellationToken ct)
     {
         var result = await _leadScoring.ScoreLeadAsync(id, ct);
@@ -106,6 +112,7 @@ public class AIAnalyticsController : ControllerBase
     /// Score all active leads in bulk. Updates lead records with new scores.
     /// </summary>
     [HttpPost("leads/score-all")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ScoreAllLeads(CancellationToken ct)
     {
         var result = await _leadScoring.ScoreAllLeadsAsync(ct);
@@ -116,6 +123,7 @@ public class AIAnalyticsController : ControllerBase
     /// Get the current lead scoring weight configuration.
     /// </summary>
     [HttpGet("leads/scoring-weights")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetScoringWeights()
     {
         var weights = _leadScoring.GetScoringWeights();
@@ -130,6 +138,8 @@ public class AIAnalyticsController : ControllerBase
     /// Score a single opportunity for win probability prediction.
     /// </summary>
     [HttpPost("opportunities/{id:int}/score")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ScoreOpportunity(int id, CancellationToken ct)
     {
         var result = await _opportunityScoring.ScoreOpportunityAsync(id, ct);
@@ -142,6 +152,7 @@ public class AIAnalyticsController : ControllerBase
     /// Score all open opportunities in bulk.
     /// </summary>
     [HttpPost("opportunities/score-all")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ScoreAllOpportunities(CancellationToken ct)
     {
         var results = await _opportunityScoring.ScoreAllOpenAsync(ct);
@@ -152,6 +163,7 @@ public class AIAnalyticsController : ControllerBase
     /// Get historical win rates by stage for calibration.
     /// </summary>
     [HttpGet("opportunities/win-rates")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetHistoricalWinRates(CancellationToken ct)
     {
         var rates = await _opportunityScoring.GetHistoricalWinRatesAsync(ct);
@@ -166,6 +178,7 @@ public class AIAnalyticsController : ControllerBase
     /// Get all dashboards for the current user.
     /// </summary>
     [HttpGet("dashboards")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDashboards([FromQuery] int userId = 0, CancellationToken ct = default)
     {
         var dashboards = await _dashboardBuilder.GetDashboardsAsync(userId, ct);
@@ -176,6 +189,8 @@ public class AIAnalyticsController : ControllerBase
     /// Get a specific dashboard by ID.
     /// </summary>
     [HttpGet("dashboards/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDashboard(string id, CancellationToken ct)
     {
         var dashboard = await _dashboardBuilder.GetDashboardAsync(id, ct);
@@ -188,6 +203,8 @@ public class AIAnalyticsController : ControllerBase
     /// Create a new custom dashboard.
     /// </summary>
     [HttpPost("dashboards")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateDashboard([FromBody] CustomDashboard dashboard, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(dashboard?.Name))
@@ -201,6 +218,8 @@ public class AIAnalyticsController : ControllerBase
     /// Update an existing dashboard.
     /// </summary>
     [HttpPut("dashboards/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateDashboard(string id, [FromBody] CustomDashboard dashboard, CancellationToken ct)
     {
         dashboard.Id = id;
@@ -214,6 +233,8 @@ public class AIAnalyticsController : ControllerBase
     /// Delete a dashboard.
     /// </summary>
     [HttpDelete("dashboards/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteDashboard(string id, CancellationToken ct)
     {
         var deleted = await _dashboardBuilder.DeleteDashboardAsync(id, ct);
@@ -226,6 +247,7 @@ public class AIAnalyticsController : ControllerBase
     /// Get the catalog of available widget types.
     /// </summary>
     [HttpGet("dashboards/widgets/catalog")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetWidgetCatalog()
     {
         var catalog = _dashboardBuilder.GetAvailableWidgets();
@@ -236,6 +258,8 @@ public class AIAnalyticsController : ControllerBase
     /// Get live data for a specific widget.
     /// </summary>
     [HttpGet("dashboards/widgets/{widgetId}/data")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetWidgetData(string widgetId, CancellationToken ct)
     {
         var data = await _dashboardBuilder.GetWidgetDataAsync(widgetId, ct);
@@ -252,6 +276,7 @@ public class AIAnalyticsController : ControllerBase
     /// Get all report definitions for a user.
     /// </summary>
     [HttpGet("reports")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetReports([FromQuery] int userId = 0, CancellationToken ct = default)
     {
         var reports = await _reportBuilder.GetReportsAsync(userId, ct);
@@ -262,6 +287,8 @@ public class AIAnalyticsController : ControllerBase
     /// Get a specific report definition by ID.
     /// </summary>
     [HttpGet("reports/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetReport(string id, CancellationToken ct)
     {
         var report = await _reportBuilder.GetReportAsync(id, ct);
@@ -274,6 +301,8 @@ public class AIAnalyticsController : ControllerBase
     /// Create a new report definition.
     /// </summary>
     [HttpPost("reports")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateReport([FromBody] ReportDefinition report, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(report?.Name))
@@ -287,6 +316,8 @@ public class AIAnalyticsController : ControllerBase
     /// Execute a report and return the result rows.
     /// </summary>
     [HttpPost("reports/{id}/generate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GenerateReport(string id, CancellationToken ct)
     {
         var result = await _reportBuilder.ExecuteReportAsync(id, ct);
@@ -299,6 +330,8 @@ public class AIAnalyticsController : ControllerBase
     /// Export a report as CSV file.
     /// </summary>
     [HttpGet("reports/{id}/csv")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ExportReportCsv(string id, CancellationToken ct)
     {
         var csv = await _reportBuilder.ExportToCsvAsync(id, ct);
@@ -311,6 +344,7 @@ public class AIAnalyticsController : ControllerBase
     /// Get available entity sources for report building.
     /// </summary>
     [HttpGet("reports/sources")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetReportSources()
     {
         var sources = _reportBuilder.GetAvailableSources();

@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import CircularProgress from '@mui/material/CircularProgress';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import apiClient from '../../services/apiClient';
 
 interface CatalogRequestItem {
@@ -40,39 +50,40 @@ const ServiceCatalogRequestListPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Catalog Requests</h1>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 3 }}>Catalog Requests</Typography>
       {loading ? (
-        <div>Loading...</div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Request</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Catalog Item</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">State</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Request</TableCell>
+                <TableCell>Catalog Item</TableCell>
+                <TableCell>State</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {items.map((request) => (
-                <tr
+                <TableRow
                   key={request.requestId}
+                  hover
+                  sx={{ cursor: 'pointer' }}
                   onClick={() => navigate(`/itsm/catalog/requests/${request.requestId}`)}
-                  className="hover:bg-gray-50 cursor-pointer"
                 >
-                  <td className="px-6 py-4 text-sm font-medium text-blue-600">REQ-{request.requestId}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <TableCell sx={{ color: 'primary.main', fontWeight: 'medium' }}>REQ-{request.requestId}</TableCell>
+                  <TableCell>
                     {catalogItems.find((item) => item.catalogItemId === request.catalogItemId)?.name ?? `Item ${request.catalogItemId}`}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">State {request.state}</td>
-                </tr>
+                  </TableCell>
+                  <TableCell>State {request.state}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
-    </div>
+    </Box>
   );
 };
 

@@ -18,6 +18,7 @@ using System.Security.Claims;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
@@ -44,6 +45,7 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<LandingPageListDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LandingPageListDto>>> GetAll(
         [FromQuery] int? campaignId = null,
         [FromQuery] LandingPageStatus? status = null)
@@ -78,6 +80,8 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpGet("{id}")]
     [Authorize]
+    [ProducesResponseType(typeof(LandingPageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<LandingPageDto>> GetById(int id)
     {
         var page = await _landingPageService.GetByIdAsync(id);
@@ -94,6 +98,8 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpPost]
     [Authorize]
+    [ProducesResponseType(typeof(LandingPageDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<LandingPageDto>> Create([FromBody] CreateLandingPageDto dto)
     {
         var userId = GetCurrentUserId();
@@ -133,6 +139,8 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpPut("{id}")]
     [Authorize]
+    [ProducesResponseType(typeof(LandingPageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<LandingPageDto>> Update(int id, [FromBody] UpdateLandingPageDto dto)
     {
         var existing = await _landingPageService.GetByIdAsync(id);
@@ -170,6 +178,8 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpDelete("{id}")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
         var result = await _landingPageService.DeleteAsync(id);
@@ -186,6 +196,8 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpPost("{id}/publish")]
     [Authorize]
+    [ProducesResponseType(typeof(LandingPageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<LandingPageDto>> Publish(int id)
     {
         try
@@ -204,6 +216,8 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpPost("{id}/unpublish")]
     [Authorize]
+    [ProducesResponseType(typeof(LandingPageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<LandingPageDto>> Unpublish(int id)
     {
         try
@@ -222,6 +236,8 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpPost("{id}/duplicate")]
     [Authorize]
+    [ProducesResponseType(typeof(LandingPageDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<LandingPageDto>> Duplicate(int id, [FromBody] DuplicateLandingPageDto dto)
     {
         var userId = GetCurrentUserId();
@@ -246,6 +262,7 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpGet("{id}/blocks")]
     [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<LandingPageBlockDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LandingPageBlockDto>>> GetBlocks(int id)
     {
         var blocks = await _landingPageService.GetBlocksAsync(id);
@@ -268,6 +285,7 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpPut("{id}/blocks")]
     [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<LandingPageBlockDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LandingPageBlockDto>>> UpdateBlocks(int id, [FromBody] List<UpdateLandingPageBlockDto> dtos)
     {
         var blocks = dtos.Select(dto => new LandingPageBlock
@@ -300,6 +318,7 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpGet("{id}/analytics")]
     [Authorize]
+    [ProducesResponseType(typeof(LandingPageAnalytics), StatusCodes.Status200OK)]
     public async Task<ActionResult<LandingPageAnalytics>> GetAnalytics(
         int id,
         [FromQuery] DateTime? startDate = null,
@@ -314,6 +333,8 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpGet("{id}/preview")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Preview(int id)
     {
         try
@@ -332,6 +353,7 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpGet("check-slug")]
     [Authorize]
+    [ProducesResponseType(typeof(SlugAvailabilityDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SlugAvailabilityDto>> CheckSlug([FromQuery] string slug, [FromQuery] int? excludeId = null)
     {
         var isAvailable = await _landingPageService.IsSlugAvailableAsync(slug, excludeId);
@@ -350,6 +372,8 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpPost("{id}/variant")]
     [Authorize]
+    [ProducesResponseType(typeof(LandingPageDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<LandingPageDto>> CreateVariant(int id, [FromBody] CreateVariantDto dto)
     {
         var userId = GetCurrentUserId();
@@ -378,6 +402,8 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpGet("p/{slug}")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> ServePage(string slug)
     {
         var page = await _landingPageService.GetBySlugAsync(slug);
@@ -427,6 +453,7 @@ public class LandingPageController : ControllerBase
     /// </summary>
     [HttpPost("{id}/time")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult RecordTimeOnPage(int id, [FromQuery] int seconds)
     {
         // This would update the visit record with time on page

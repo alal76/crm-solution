@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 import apiClient from '../../services/apiClient';
 
 const SLAPolicyFormPage: React.FC = () => {
@@ -28,87 +37,65 @@ const SLAPolicyFormPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Create SLA Policy</h1>
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Target Type</label>
-          <select
-            value={formData.targetType}
-            onChange={(e) => setFormData({ ...formData, targetType: Number(e.target.value) })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-          >
-            <option value={1}>Incident</option>
-            <option value={2}>Service Request</option>
-            <option value={3}>Change</option>
-          </select>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">P1 Response (minutes)</label>
-            <input
+    <Box sx={{ p: 3, maxWidth: 700, mx: 'auto' }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 3 }}>Create SLA Policy</Typography>
+      <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <TextField
+          label="Name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          fullWidth
+          required
+        />
+        <TextField
+          label="Target Type"
+          select
+          value={formData.targetType}
+          onChange={(e) => setFormData({ ...formData, targetType: Number(e.target.value) })}
+          fullWidth
+        >
+          <MenuItem value={1}>Incident</MenuItem>
+          <MenuItem value={2}>Service Request</MenuItem>
+          <MenuItem value={3}>Change</MenuItem>
+        </TextField>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <TextField
+              label="P1 Response (minutes)"
               type="number"
               value={formData.p1ResponseMinutes}
               onChange={(e) => setFormData({ ...formData, p1ResponseMinutes: Number(e.target.value) })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              min={1}
+              fullWidth
+              inputProps={{ min: 1 }}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">P1 Resolution (minutes)</label>
-            <input
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField
+              label="P1 Resolution (minutes)"
               type="number"
               value={formData.p1ResolutionMinutes}
               onChange={(e) => setFormData({ ...formData, p1ResolutionMinutes: Number(e.target.value) })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              min={1}
+              fullWidth
+              inputProps={{ min: 1 }}
             />
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={formData.useBusinessHours}
-            onChange={(e) => setFormData({ ...formData, useBusinessHours: e.target.checked })}
-          />
-          <label className="text-sm text-gray-700">Use business hours</label>
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={formData.isActive}
-            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-          />
-          <label className="text-sm text-gray-700">Active</label>
-        </div>
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/itsm/sla/policies')}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          >
+          </Grid>
+        </Grid>
+        <FormControlLabel
+          control={<Checkbox checked={formData.useBusinessHours} onChange={(e) => setFormData({ ...formData, useBusinessHours: e.target.checked })} />}
+          label="Use business hours"
+        />
+        <FormControlLabel
+          control={<Checkbox checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} />}
+          label="Active"
+        />
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+          <Button variant="outlined" onClick={() => navigate('/itsm/sla/policies')}>Cancel</Button>
+          <Button type="submit" variant="contained" disabled={submitting}>
             {submitting ? 'Saving...' : 'Create'}
-          </button>
-        </div>
-      </form>
-    </div>
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

@@ -21,6 +21,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -62,6 +63,7 @@ public class MasterDataController : ControllerBase
     /// Get master data seeding status (ZipCodes, ColorPalettes)
     /// </summary>
     [HttpGet("seed-status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSeedStatus()
     {
         try
@@ -97,6 +99,7 @@ public class MasterDataController : ControllerBase
     /// </summary>
     [HttpPost("seed")]
     [Authorize(Roles = "Admin,SysAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedMasterData()
     {
         try
@@ -126,6 +129,7 @@ public class MasterDataController : ControllerBase
     /// </summary>
     [HttpPost("reseed")]
     [Authorize(Roles = "Admin,SysAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReseedMasterData()
     {
         try
@@ -153,6 +157,7 @@ public class MasterDataController : ControllerBase
     /// Get overview of all master data
     /// </summary>
     [HttpGet("overview")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetOverview()
     {
         try
@@ -221,6 +226,7 @@ public class MasterDataController : ControllerBase
     /// Get all lookup categories with their items
     /// </summary>
     [HttpGet("lookup-categories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLookupCategories()
     {
         try
@@ -243,6 +249,7 @@ public class MasterDataController : ControllerBase
     /// Create a new lookup category
     /// </summary>
     [HttpPost("lookup-categories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateLookupCategory([FromBody] CreateLookupCategoryRequest request)
     {
         try
@@ -270,6 +277,8 @@ public class MasterDataController : ControllerBase
     /// Update a lookup category
     /// </summary>
     [HttpPut("lookup-categories/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateLookupCategory(int id, [FromBody] CreateLookupCategoryRequest request)
     {
         try
@@ -299,6 +308,8 @@ public class MasterDataController : ControllerBase
     /// Delete a lookup category
     /// </summary>
     [HttpDelete("lookup-categories/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteLookupCategory(int id)
     {
         try
@@ -329,6 +340,7 @@ public class MasterDataController : ControllerBase
     /// Create a new lookup item
     /// </summary>
     [HttpPost("lookup-items")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateLookupItem([FromBody] CreateLookupItemRequest request)
     {
         try
@@ -359,6 +371,8 @@ public class MasterDataController : ControllerBase
     /// Update a lookup item
     /// </summary>
     [HttpPut("lookup-items/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateLookupItem(int id, [FromBody] CreateLookupItemRequest request)
     {
         try
@@ -390,6 +404,8 @@ public class MasterDataController : ControllerBase
     /// Delete a lookup item
     /// </summary>
     [HttpDelete("lookup-items/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteLookupItem(int id)
     {
         try
@@ -420,6 +436,7 @@ public class MasterDataController : ControllerBase
     /// Get all color palettes
     /// </summary>
     [HttpGet("color-palettes")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetColorPalettes()
     {
         try
@@ -442,6 +459,7 @@ public class MasterDataController : ControllerBase
     /// Create a new color palette
     /// </summary>
     [HttpPost("color-palettes")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateColorPalette([FromBody] CreateColorPaletteRequest request)
     {
         try
@@ -474,6 +492,8 @@ public class MasterDataController : ControllerBase
     /// Delete a color palette
     /// </summary>
     [HttpDelete("color-palettes/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteColorPalette(int id)
     {
         try
@@ -505,6 +525,7 @@ public class MasterDataController : ControllerBase
     /// Optimized for large datasets with proper indexing hints
     /// </summary>
     [HttpGet("zipcodes")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetZipCodes(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
@@ -601,6 +622,7 @@ public class MasterDataController : ControllerBase
     /// Fast global ZIP code search - returns top matches quickly
     /// </summary>
     [HttpGet("zipcodes/search")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SearchZipCodes(
         [FromQuery] string q,
         [FromQuery] int limit = 20)
@@ -650,6 +672,7 @@ public class MasterDataController : ControllerBase
     /// Get list of distinct country codes that have ZIP codes
     /// </summary>
     [HttpGet("zipcodes/countries")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetZipCodeCountries()
     {
         try
@@ -677,6 +700,8 @@ public class MasterDataController : ControllerBase
     /// Export master data
     /// </summary>
     [HttpGet("export/{dataType}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ExportData(string dataType)
     {
         try

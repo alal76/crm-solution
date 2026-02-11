@@ -18,6 +18,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -48,6 +49,7 @@ public class CommunicationsController : ControllerBase
     /// Get all configured communication channels
     /// </summary>
     [HttpGet("channels")]
+    [ProducesResponseType(typeof(List<CommunicationChannelListDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<CommunicationChannelListDto>>> GetChannels()
     {
         try
@@ -84,6 +86,8 @@ public class CommunicationsController : ControllerBase
     /// Get a specific channel by ID
     /// </summary>
     [HttpGet("channels/{id}")]
+    [ProducesResponseType(typeof(CommunicationChannelDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CommunicationChannelDto>> GetChannel(int id)
     {
         try
@@ -135,6 +139,8 @@ public class CommunicationsController : ControllerBase
     /// Create a new communication channel
     /// </summary>
     [HttpPost("channels")]
+    [ProducesResponseType(typeof(CommunicationChannelDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CommunicationChannelDto>> CreateChannel([FromBody] CommunicationChannelCreateDto dto)
     {
         try
@@ -211,6 +217,9 @@ public class CommunicationsController : ControllerBase
     /// Update a communication channel
     /// </summary>
     [HttpPut("channels/{id}")]
+    [ProducesResponseType(typeof(CommunicationChannelDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CommunicationChannelDto>> UpdateChannel(int id, [FromBody] CommunicationChannelCreateDto dto)
     {
         try
@@ -278,6 +287,8 @@ public class CommunicationsController : ControllerBase
     /// Delete a communication channel
     /// </summary>
     [HttpDelete("channels/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteChannel(int id)
     {
         try
@@ -305,6 +316,8 @@ public class CommunicationsController : ControllerBase
     /// Test channel connection
     /// </summary>
     [HttpPost("channels/{id}/test")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> TestChannel(int id)
     {
         try
@@ -765,6 +778,7 @@ public class CommunicationsController : ControllerBase
     /// Get messages with optional filtering
     /// </summary>
     [HttpGet("messages")]
+    [ProducesResponseType(typeof(List<CommunicationMessageListDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<CommunicationMessageListDto>>> GetMessages(
         [FromQuery] string? channelType = null,
         [FromQuery] string? direction = null,
@@ -838,6 +852,8 @@ public class CommunicationsController : ControllerBase
     /// Get a specific message by ID
     /// </summary>
     [HttpGet("messages/{id}")]
+    [ProducesResponseType(typeof(CommunicationMessageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CommunicationMessageDto>> GetMessage(int id)
     {
         try
@@ -918,6 +934,8 @@ public class CommunicationsController : ControllerBase
     /// Send a new message
     /// </summary>
     [HttpPost("messages/send")]
+    [ProducesResponseType(typeof(CommunicationMessageDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CommunicationMessageDto>> SendMessage([FromBody] SendMessageDto dto)
     {
         try
@@ -1004,6 +1022,8 @@ public class CommunicationsController : ControllerBase
     /// Mark message as read/unread
     /// </summary>
     [HttpPatch("messages/{id}/read")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> MarkMessageRead(int id, [FromQuery] bool isRead = true)
     {
         try
@@ -1029,6 +1049,8 @@ public class CommunicationsController : ControllerBase
     /// Star/unstar a message
     /// </summary>
     [HttpPatch("messages/{id}/star")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> StarMessage(int id, [FromQuery] bool isStarred = true)
     {
         try
@@ -1054,6 +1076,8 @@ public class CommunicationsController : ControllerBase
     /// Archive a message
     /// </summary>
     [HttpPatch("messages/{id}/archive")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> ArchiveMessage(int id)
     {
         try
@@ -1079,6 +1103,8 @@ public class CommunicationsController : ControllerBase
     /// Delete a message
     /// </summary>
     [HttpDelete("messages/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteMessage(int id)
     {
         try
@@ -1108,6 +1134,7 @@ public class CommunicationsController : ControllerBase
     /// Get conversations with optional filtering
     /// </summary>
     [HttpGet("conversations")]
+    [ProducesResponseType(typeof(List<ConversationListDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ConversationListDto>>> GetConversations(
         [FromQuery] string? channelType = null,
         [FromQuery] string? status = null,
@@ -1167,6 +1194,8 @@ public class CommunicationsController : ControllerBase
     /// Get a conversation with its messages
     /// </summary>
     [HttpGet("conversations/{id}")]
+    [ProducesResponseType(typeof(ConversationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ConversationDto>> GetConversation(int id)
     {
         try
@@ -1253,6 +1282,7 @@ public class CommunicationsController : ControllerBase
     /// Get all email templates
     /// </summary>
     [HttpGet("templates")]
+    [ProducesResponseType(typeof(List<EmailTemplateListDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<EmailTemplateListDto>>> GetEmailTemplates([FromQuery] string? category = null)
     {
         try
@@ -1293,6 +1323,8 @@ public class CommunicationsController : ControllerBase
     /// Get a specific email template
     /// </summary>
     [HttpGet("templates/{id}")]
+    [ProducesResponseType(typeof(EmailTemplateDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<EmailTemplateDto>> GetEmailTemplate(int id)
     {
         try
@@ -1340,6 +1372,8 @@ public class CommunicationsController : ControllerBase
     /// Create a new email template
     /// </summary>
     [HttpPost("templates")]
+    [ProducesResponseType(typeof(EmailTemplateDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<EmailTemplateDto>> CreateEmailTemplate([FromBody] EmailTemplateCreateDto dto)
     {
         try
@@ -1378,6 +1412,9 @@ public class CommunicationsController : ControllerBase
     /// Update an email template
     /// </summary>
     [HttpPut("templates/{id}")]
+    [ProducesResponseType(typeof(EmailTemplateDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<EmailTemplateDto>> UpdateEmailTemplate(int id, [FromBody] EmailTemplateCreateDto dto)
     {
         try
@@ -1419,6 +1456,9 @@ public class CommunicationsController : ControllerBase
     /// Delete an email template
     /// </summary>
     [HttpDelete("templates/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> DeleteEmailTemplate(int id)
     {
         try
@@ -1451,6 +1491,7 @@ public class CommunicationsController : ControllerBase
     /// Get communication statistics
     /// </summary>
     [HttpGet("stats")]
+    [ProducesResponseType(typeof(CommunicationStatsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<CommunicationStatsDto>> GetStats()
     {
         try

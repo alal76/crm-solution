@@ -16,6 +16,7 @@
 
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -70,6 +71,9 @@ public class DocuSealWebhookController : ControllerBase
     /// The webhook signature is in the X-DocuSeal-Signature header.
     /// </remarks>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> HandleWebhook(CancellationToken cancellationToken)
     {
         try
@@ -160,6 +164,7 @@ public class DocuSealWebhookController : ControllerBase
     /// Health check endpoint for webhook configuration testing.
     /// </summary>
     [HttpGet("health")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult HealthCheck()
     {
         return Ok(new

@@ -1,4 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import apiClient from '../../services/apiClient';
 
 interface KnowledgeApprovalItem {
@@ -65,52 +71,51 @@ const KnowledgeArticleApprovalPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Knowledge Article Approvals</h1>
-      <div className="bg-white rounded-lg shadow-md p-6">
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>Knowledge Article Approvals</Typography>
+      <Paper sx={{ p: 3 }}>
         {loading ? (
-          <div>Loading...</div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
         ) : items.length === 0 ? (
-          <div className="text-gray-600">No articles awaiting approval.</div>
+          <Typography color="text.secondary">No articles awaiting approval.</Typography>
         ) : (
-          <div className="space-y-4">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {items.map((item) => (
-              <div key={item.articleId} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">{item.number}</p>
-                    <p className="text-lg font-semibold text-gray-900">{item.title}</p>
+              <Paper key={item.articleId} variant="outlined" sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">{item.number}</Typography>
+                    <Typography variant="h6" fontWeight="bold">{item.title}</Typography>
                     {item.shortDescription && (
-                      <p className="text-sm text-gray-600 mt-1">{item.shortDescription}</p>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{item.shortDescription}</Typography>
                     )}
-                    <p className="text-xs text-gray-500 mt-2">Draft state {item.publishingState}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>Draft state {item.publishingState}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="contained"
+                      color="error"
                       onClick={() => handleReject(item.articleId)}
                       disabled={rejectingId === item.articleId || publishingId === item.articleId}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
                     >
                       {rejectingId === item.articleId ? 'Rejecting...' : 'Reject'}
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="contained"
                       onClick={() => handlePublish(item.articleId)}
                       disabled={publishingId === item.articleId || rejectingId === item.articleId}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                     >
                       {publishingId === item.articleId ? 'Publishing...' : 'Publish'}
-                    </button>
-                  </div>
-                </div>
-              </div>
+                    </Button>
+                  </Box>
+                </Box>
+              </Paper>
             ))}
-          </div>
+          </Box>
         )}
-        {error && <div className="text-sm text-red-600 mt-4">{error}</div>}
-      </div>
-    </div>
+        {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+      </Paper>
+    </Box>
   );
 };
 

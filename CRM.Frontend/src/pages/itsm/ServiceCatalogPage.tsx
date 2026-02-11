@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
+import Chip from '@mui/material/Chip';
 import apiClient from '../../services/apiClient';
 import { CatalogCategoryBrowser } from '../../components/itsm';
 import type { CatalogCategory } from '../../components/itsm';
@@ -51,12 +59,12 @@ export const ServiceCatalogPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Service Catalog</h1>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 3 }}>Service Catalog</Typography>
 
       {/* Category Browser */}
       {categories.length > 0 && (
-        <div className="mb-6">
+        <Box sx={{ mb: 3 }}>
           <CatalogCategoryBrowser
             categories={categories}
             selectedCategoryId={selectedCategoryId ?? undefined}
@@ -65,52 +73,55 @@ export const ServiceCatalogPage: React.FC = () => {
             variant="grid"
             showSearch
           />
-        </div>
+        </Box>
       )}
 
-      <div className="mb-8">
-        <input
-          type="text"
+      <Box sx={{ mb: 4 }}>
+        <TextField
           placeholder="Search services..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          size="small"
+          sx={{ maxWidth: 400, width: '100%' }}
         />
-      </div>
+      </Box>
 
       {loading ? (
-        <div>Loading...</div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : items.length === 0 ? (
-        <div className="text-gray-600">No catalog items found.</div>
+        <Typography color="text.secondary">No catalog items found.</Typography>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Grid container spacing={3}>
           {items.map((item) => (
-            <div
-              key={item.catalogItemId}
-              onClick={() => navigate(`/catalog/${item.catalogItemId}`)}
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg cursor-pointer transition-shadow"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <h3 className="text-lg font-bold text-gray-900">{item.name}</h3>
-                {item.isFeatured && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Featured</span>}
-              </div>
-              <p className="text-sm text-gray-600 mb-3">{item.shortDescription}</p>
-              <p className="text-xs text-gray-500 mb-4">{item.categoryName}</p>
-              {item.price && <p className="text-lg font-bold text-green-600">${item.price}</p>}
-              <button
-                className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/catalog/${item.catalogItemId}/request`);
-                }}
+            <Grid item xs={12} md={6} lg={4} key={item.catalogItemId}>
+              <Paper
+                sx={{ p: 3, cursor: 'pointer', '&:hover': { boxShadow: 4 }, transition: 'box-shadow 0.2s' }}
+                onClick={() => navigate(`/catalog/${item.catalogItemId}`)}
               >
-                Request Service
-              </button>
-            </div>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                  <Typography variant="subtitle1" fontWeight="bold">{item.name}</Typography>
+                  {item.isFeatured && <Chip label="Featured" color="warning" size="small" />}
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>{item.shortDescription}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>{item.categoryName}</Typography>
+                {item.price && <Typography variant="h6" fontWeight="bold" color="success.main">${item.price}</Typography>}
+                <Button
+                  variant="contained"
+                  fullWidth
+                  sx={{ mt: 2 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/catalog/${item.catalogItemId}/request`);
+                  }}
+                >
+                  Request Service
+                </Button>
+              </Paper>
+            </Grid>
           ))}
-        </div>
+        </Grid>
       )}
-    </div>
+    </Box>
   );
 };
 

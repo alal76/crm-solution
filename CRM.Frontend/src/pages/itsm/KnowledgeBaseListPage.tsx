@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
 import apiClient from '../../services/apiClient';
 
 interface Article {
@@ -40,48 +45,48 @@ export const KnowledgeBaseListPage: React.FC = () => {
   }, [searchTerm]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Knowledge Base</h1>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>Knowledge Base</Typography>
 
-      <div className="mb-8">
-        <input
-          type="text"
+      <Box sx={{ mb: 4 }}>
+        <TextField
           placeholder="Search knowledge articles..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full max-w-2xl px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          fullWidth
+          sx={{ maxWidth: 600 }}
         />
-      </div>
+      </Box>
 
       {loading ? (
-        <div>Loading...</div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : articles.length === 0 ? (
-        <div className="text-gray-600">No articles found.</div>
+        <Typography color="text.secondary">No articles found.</Typography>
       ) : (
-        <div className="space-y-4">
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {articles.map((article) => (
-            <div
+            <Paper
               key={article.articleId}
               onClick={() => navigate(`/knowledge/${article.articleId}`)}
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg cursor-pointer transition-shadow border-l-4 border-blue-500"
+              sx={{ p: 3, cursor: 'pointer', '&:hover': { boxShadow: 3 }, transition: 'box-shadow 0.2s', borderLeft: 4, borderColor: 'primary.main' }}
             >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{article.title}</h3>
-                  <p className="text-gray-600 mb-3">{article.shortDescription}</p>
-                  <p className="text-sm text-gray-500">{article.number}</p>
-                </div>
-                <div className="ml-4 text-right">
-                  <p className="text-2xl font-bold text-green-600">{article.helpfulCount}</p>
-                  <p className="text-xs text-gray-500">helpful</p>
-                  <p className="text-sm text-gray-500 mt-2">{article.viewCount} views</p>
-                </div>
-              </div>
-            </div>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>{article.title}</Typography>
+                  <Typography color="text.secondary" sx={{ mb: 1.5 }}>{article.shortDescription}</Typography>
+                  <Typography variant="body2" color="text.secondary">{article.number}</Typography>
+                </Box>
+                <Box sx={{ ml: 2, textAlign: 'right' }}>
+                  <Typography variant="h5" fontWeight="bold" color="success.main">{article.helpfulCount}</Typography>
+                  <Typography variant="caption" color="text.secondary">helpful</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{article.viewCount} views</Typography>
+                </Box>
+              </Box>
+            </Paper>
           ))}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

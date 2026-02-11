@@ -16,6 +16,7 @@
 
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
@@ -44,6 +45,7 @@ public class ColorPalettesController : ControllerBase
     /// </summary>
     [HttpGet]
     [HttpGet("all")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
         try
@@ -62,6 +64,7 @@ public class ColorPalettesController : ControllerBase
     /// Get palettes by category
     /// </summary>
     [HttpGet("category/{category}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByCategory(string category)
     {
         try
@@ -80,6 +83,7 @@ public class ColorPalettesController : ControllerBase
     /// Get all unique categories
     /// </summary>
     [HttpGet("categories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCategories()
     {
         try
@@ -98,6 +102,8 @@ public class ColorPalettesController : ControllerBase
     /// Search palettes by name or category
     /// </summary>
     [HttpGet("search")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Search([FromQuery] string q, [FromQuery] int limit = 50)
     {
         try
@@ -121,6 +127,7 @@ public class ColorPalettesController : ControllerBase
     /// Get palette count
     /// </summary>
     [HttpGet("count")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCount()
     {
         try
@@ -139,6 +146,7 @@ public class ColorPalettesController : ControllerBase
     /// Refresh palettes from GitHub repository
     /// </summary>
     [HttpPost("refresh")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Refresh()
     {
         try
@@ -163,6 +171,7 @@ public class ColorPalettesController : ControllerBase
     /// Get user-defined custom palettes
     /// </summary>
     [HttpGet("user-defined")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserDefined()
     {
         try
@@ -181,6 +190,8 @@ public class ColorPalettesController : ControllerBase
     /// Create a custom user-defined palette
     /// </summary>
     [HttpPost("custom")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> CreateCustomPalette([FromBody] CreateCustomPaletteRequest request)
     {
         try
@@ -205,6 +216,9 @@ public class ColorPalettesController : ControllerBase
     /// Delete a custom user-defined palette
     /// </summary>
     [HttpDelete("custom/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> DeleteCustomPalette(int id)
     {
         try

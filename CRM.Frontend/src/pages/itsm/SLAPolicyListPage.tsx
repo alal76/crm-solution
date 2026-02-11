@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import apiClient from '../../services/apiClient';
 
 interface SLAPolicy {
@@ -32,49 +43,41 @@ const SLAPolicyListPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">SLA Policies</h1>
-        <button
-          onClick={() => navigate('/itsm/sla/policies/create')}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          + New Policy
-        </button>
-      </div>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1" fontWeight="bold">SLA Policies</Typography>
+        <Button variant="contained" onClick={() => navigate('/itsm/sla/policies/create')}>+ New Policy</Button>
+      </Box>
 
       {loading ? (
-        <div>Loading...</div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Name</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Target</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Response (P1)</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Resolution (P1)</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Active</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell><strong>Name</strong></TableCell>
+                <TableCell><strong>Target</strong></TableCell>
+                <TableCell><strong>Response (P1)</strong></TableCell>
+                <TableCell><strong>Resolution (P1)</strong></TableCell>
+                <TableCell><strong>Active</strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {items.map((policy) => (
-                <tr
-                  key={policy.slaPolicyId}
-                  className="hover:bg-gray-50"
-                >
-                  <td className="px-6 py-4 text-sm font-medium text-blue-600">{policy.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">Type {policy.targetType}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{policy.p1ResponseMinutes ?? '—'} min</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{policy.p1ResolutionMinutes ?? '—'} min</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{policy.isActive ? 'Yes' : 'No'}</td>
-                </tr>
+                <TableRow key={policy.slaPolicyId} hover>
+                  <TableCell sx={{ color: 'primary.main', fontWeight: 500 }}>{policy.name}</TableCell>
+                  <TableCell>Type {policy.targetType}</TableCell>
+                  <TableCell>{policy.p1ResponseMinutes ?? '—'} min</TableCell>
+                  <TableCell>{policy.p1ResolutionMinutes ?? '—'} min</TableCell>
+                  <TableCell>{policy.isActive ? 'Yes' : 'No'}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
-    </div>
+    </Box>
   );
 };
 

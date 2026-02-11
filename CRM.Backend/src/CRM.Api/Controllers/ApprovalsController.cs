@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -44,6 +45,7 @@ public class ApprovalsController : ControllerBase
     /// Get all approval matrices with optional filtering.
     /// </summary>
     [HttpGet("matrices")]
+    [ProducesResponseType(typeof(IEnumerable<DiscountApprovalMatrix>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DiscountApprovalMatrix>>> GetAllMatrices(
         [FromQuery] bool? isActive = null,
         CancellationToken cancellationToken = default)
@@ -56,6 +58,8 @@ public class ApprovalsController : ControllerBase
     /// Get an approval matrix by ID.
     /// </summary>
     [HttpGet("matrices/{matrixId:int}")]
+    [ProducesResponseType(typeof(DiscountApprovalMatrix), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DiscountApprovalMatrix>> GetMatrixById(int matrixId, CancellationToken cancellationToken)
     {
         var matrix = await _approvalService.GetMatrixByIdAsync(matrixId, cancellationToken);
@@ -70,6 +74,8 @@ public class ApprovalsController : ControllerBase
     /// Create a new approval matrix.
     /// </summary>
     [HttpPost("matrices")]
+    [ProducesResponseType(typeof(DiscountApprovalMatrix), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DiscountApprovalMatrix>> CreateMatrix(
         [FromBody] DiscountApprovalMatrix matrix,
         CancellationToken cancellationToken)
@@ -82,6 +88,9 @@ public class ApprovalsController : ControllerBase
     /// Update an existing approval matrix.
     /// </summary>
     [HttpPut("matrices/{matrixId:int}")]
+    [ProducesResponseType(typeof(DiscountApprovalMatrix), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DiscountApprovalMatrix>> UpdateMatrix(
         int matrixId,
         [FromBody] DiscountApprovalMatrix matrix,
@@ -100,6 +109,8 @@ public class ApprovalsController : ControllerBase
     /// Delete an approval matrix (soft delete).
     /// </summary>
     [HttpDelete("matrices/{matrixId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteMatrix(int matrixId, CancellationToken cancellationToken)
     {
         var result = await _approvalService.DeleteMatrixAsync(matrixId, cancellationToken);
@@ -114,6 +125,7 @@ public class ApprovalsController : ControllerBase
     /// Activate an approval matrix.
     /// </summary>
     [HttpPost("matrices/{matrixId:int}/activate")]
+    [ProducesResponseType(typeof(DiscountApprovalMatrix), StatusCodes.Status200OK)]
     public async Task<ActionResult<DiscountApprovalMatrix>> ActivateMatrix(int matrixId, CancellationToken cancellationToken)
     {
         var matrix = await _approvalService.ActivateMatrixAsync(matrixId, cancellationToken);
@@ -124,6 +136,7 @@ public class ApprovalsController : ControllerBase
     /// Deactivate an approval matrix.
     /// </summary>
     [HttpPost("matrices/{matrixId:int}/deactivate")]
+    [ProducesResponseType(typeof(DiscountApprovalMatrix), StatusCodes.Status200OK)]
     public async Task<ActionResult<DiscountApprovalMatrix>> DeactivateMatrix(int matrixId, CancellationToken cancellationToken)
     {
         var matrix = await _approvalService.DeactivateMatrixAsync(matrixId, cancellationToken);
@@ -138,6 +151,7 @@ public class ApprovalsController : ControllerBase
     /// Get all approval levels for a matrix.
     /// </summary>
     [HttpGet("matrices/{matrixId:int}/levels")]
+    [ProducesResponseType(typeof(IEnumerable<ApprovalLevel>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ApprovalLevel>>> GetMatrixLevels(int matrixId, CancellationToken cancellationToken)
     {
         var levels = await _approvalService.GetMatrixLevelsAsync(matrixId, cancellationToken);
@@ -148,6 +162,8 @@ public class ApprovalsController : ControllerBase
     /// Get an approval level by ID.
     /// </summary>
     [HttpGet("levels/{levelId:int}")]
+    [ProducesResponseType(typeof(ApprovalLevel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApprovalLevel>> GetLevelById(int levelId, CancellationToken cancellationToken)
     {
         var level = await _approvalService.GetLevelByIdAsync(levelId, cancellationToken);
@@ -162,6 +178,8 @@ public class ApprovalsController : ControllerBase
     /// Add an approval level to a matrix.
     /// </summary>
     [HttpPost("matrices/{matrixId:int}/levels")]
+    [ProducesResponseType(typeof(ApprovalLevel), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApprovalLevel>> AddLevel(
         int matrixId,
         [FromBody] ApprovalLevel level,
@@ -175,6 +193,9 @@ public class ApprovalsController : ControllerBase
     /// Update an approval level.
     /// </summary>
     [HttpPut("levels/{levelId:int}")]
+    [ProducesResponseType(typeof(ApprovalLevel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApprovalLevel>> UpdateLevel(
         int levelId,
         [FromBody] ApprovalLevel level,
@@ -193,6 +214,8 @@ public class ApprovalsController : ControllerBase
     /// Remove an approval level.
     /// </summary>
     [HttpDelete("levels/{levelId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RemoveLevel(int levelId, CancellationToken cancellationToken)
     {
         var result = await _approvalService.RemoveLevelAsync(levelId, cancellationToken);
@@ -207,6 +230,9 @@ public class ApprovalsController : ControllerBase
     /// Reorder approval levels within a matrix.
     /// </summary>
     [HttpPut("matrices/{matrixId:int}/levels/reorder")]
+    [ProducesResponseType(typeof(IEnumerable<ApprovalLevel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<ApprovalLevel>>> ReorderLevels(
         int matrixId,
         [FromBody] List<int> levelIdsInOrder,
@@ -224,6 +250,7 @@ public class ApprovalsController : ControllerBase
     /// Get all approval groups.
     /// </summary>
     [HttpGet("groups")]
+    [ProducesResponseType(typeof(IEnumerable<ApprovalGroup>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ApprovalGroup>>> GetAllGroups(
         [FromQuery] bool? isActive = null,
         CancellationToken cancellationToken = default)
@@ -236,6 +263,8 @@ public class ApprovalsController : ControllerBase
     /// Get an approval group by ID.
     /// </summary>
     [HttpGet("groups/{groupId:int}")]
+    [ProducesResponseType(typeof(ApprovalGroup), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApprovalGroup>> GetGroupById(int groupId, CancellationToken cancellationToken)
     {
         var group = await _approvalService.GetGroupByIdAsync(groupId, cancellationToken);
@@ -250,6 +279,8 @@ public class ApprovalsController : ControllerBase
     /// Create an approval group.
     /// </summary>
     [HttpPost("groups")]
+    [ProducesResponseType(typeof(ApprovalGroup), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApprovalGroup>> CreateGroup(
         [FromBody] ApprovalGroup group,
         CancellationToken cancellationToken)
@@ -262,6 +293,9 @@ public class ApprovalsController : ControllerBase
     /// Update an approval group.
     /// </summary>
     [HttpPut("groups/{groupId:int}")]
+    [ProducesResponseType(typeof(ApprovalGroup), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApprovalGroup>> UpdateGroup(
         int groupId,
         [FromBody] ApprovalGroup group,
@@ -280,6 +314,8 @@ public class ApprovalsController : ControllerBase
     /// Delete an approval group (soft delete).
     /// </summary>
     [HttpDelete("groups/{groupId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteGroup(int groupId, CancellationToken cancellationToken)
     {
         var result = await _approvalService.DeleteGroupAsync(groupId, cancellationToken);
@@ -294,6 +330,7 @@ public class ApprovalsController : ControllerBase
     /// Get members of an approval group.
     /// </summary>
     [HttpGet("groups/{groupId:int}/members")]
+    [ProducesResponseType(typeof(IEnumerable<ApprovalGroupMember>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ApprovalGroupMember>>> GetGroupMembers(int groupId, CancellationToken cancellationToken)
     {
         var members = await _approvalService.GetGroupMembersAsync(groupId, cancellationToken);
@@ -304,6 +341,7 @@ public class ApprovalsController : ControllerBase
     /// Add a member to an approval group.
     /// </summary>
     [HttpPost("groups/{groupId:int}/members/{userId:int}")]
+    [ProducesResponseType(typeof(ApprovalGroupMember), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApprovalGroupMember>> AddGroupMember(int groupId, int userId, CancellationToken cancellationToken)
     {
         var member = await _approvalService.AddGroupMemberAsync(groupId, userId, cancellationToken);
@@ -314,6 +352,8 @@ public class ApprovalsController : ControllerBase
     /// Remove a member from an approval group.
     /// </summary>
     [HttpDelete("groups/{groupId:int}/members/{userId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RemoveGroupMember(int groupId, int userId, CancellationToken cancellationToken)
     {
         var result = await _approvalService.RemoveGroupMemberAsync(groupId, userId, cancellationToken);
@@ -332,6 +372,7 @@ public class ApprovalsController : ControllerBase
     /// Get all approval requests with filtering.
     /// </summary>
     [HttpGet("requests")]
+    [ProducesResponseType(typeof(IEnumerable<ApprovalRequest>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ApprovalRequest>>> GetAllRequests(
         [FromQuery] DiscountApprovalStatus? status = null,
         [FromQuery] int? submitterId = null,
@@ -346,6 +387,8 @@ public class ApprovalsController : ControllerBase
     /// Get an approval request by ID.
     /// </summary>
     [HttpGet("requests/{requestId:int}")]
+    [ProducesResponseType(typeof(ApprovalRequest), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApprovalRequest>> GetRequestById(int requestId, CancellationToken cancellationToken)
     {
         var request = await _approvalService.GetRequestByIdAsync(requestId, cancellationToken);
@@ -360,6 +403,8 @@ public class ApprovalsController : ControllerBase
     /// Get an approval request by request number.
     /// </summary>
     [HttpGet("requests/by-number/{requestNumber}")]
+    [ProducesResponseType(typeof(ApprovalRequest), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApprovalRequest>> GetRequestByNumber(string requestNumber, CancellationToken cancellationToken)
     {
         var request = await _approvalService.GetRequestByNumberAsync(requestNumber, cancellationToken);
@@ -374,6 +419,8 @@ public class ApprovalsController : ControllerBase
     /// Get pending approvals for the current user.
     /// </summary>
     [HttpGet("requests/pending")]
+    [ProducesResponseType(typeof(IEnumerable<ApprovalRequest>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IEnumerable<ApprovalRequest>>> GetPendingApprovalsForCurrentUser(CancellationToken cancellationToken)
     {
         var userId = GetCurrentUserId();
@@ -390,6 +437,7 @@ public class ApprovalsController : ControllerBase
     /// Get pending approvals for a specific user.
     /// </summary>
     [HttpGet("requests/pending/{userId:int}")]
+    [ProducesResponseType(typeof(IEnumerable<ApprovalRequest>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ApprovalRequest>>> GetPendingApprovalsForUser(int userId, CancellationToken cancellationToken)
     {
         var requests = await _approvalService.GetPendingApprovalsForUserAsync(userId, cancellationToken);
@@ -400,6 +448,7 @@ public class ApprovalsController : ControllerBase
     /// Get approval requests submitted by a user.
     /// </summary>
     [HttpGet("requests/submitted/{submitterId:int}")]
+    [ProducesResponseType(typeof(IEnumerable<ApprovalRequest>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ApprovalRequest>>> GetRequestsBySubmitter(int submitterId, CancellationToken cancellationToken)
     {
         var requests = await _approvalService.GetRequestsBySubmitterAsync(submitterId, cancellationToken);
@@ -414,6 +463,9 @@ public class ApprovalsController : ControllerBase
     /// Submit a quote for approval.
     /// </summary>
     [HttpPost("submit/{quoteId:int}")]
+    [ProducesResponseType(typeof(ApprovalSubmissionResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApprovalSubmissionResult>> SubmitForApproval(
         int quoteId,
         [FromBody] SubmitForApprovalRequest request,
@@ -437,6 +489,7 @@ public class ApprovalsController : ControllerBase
     /// Determine approval requirements for a quote (preview without submitting).
     /// </summary>
     [HttpGet("requirements/{quoteId:int}")]
+    [ProducesResponseType(typeof(ApprovalRequirementResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApprovalRequirementResult>> DetermineApprovalRequirements(int quoteId, CancellationToken cancellationToken)
     {
         var result = await _approvalService.DetermineApprovalRequirementsAsync(quoteId, cancellationToken);
@@ -447,6 +500,9 @@ public class ApprovalsController : ControllerBase
     /// Approve a pending approval step.
     /// </summary>
     [HttpPost("requests/{requestId:int}/approve")]
+    [ProducesResponseType(typeof(ApprovalActionResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApprovalActionResult>> ApproveStep(
         int requestId,
         [FromBody] ApprovalActionRequest request,
@@ -470,6 +526,9 @@ public class ApprovalsController : ControllerBase
     /// Reject a pending approval step.
     /// </summary>
     [HttpPost("requests/{requestId:int}/reject")]
+    [ProducesResponseType(typeof(ApprovalActionResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApprovalActionResult>> RejectStep(
         int requestId,
         [FromBody] RejectApprovalRequest request,
@@ -498,6 +557,8 @@ public class ApprovalsController : ControllerBase
     /// Recall (cancel) a submitted approval request.
     /// </summary>
     [HttpPost("requests/{requestId:int}/recall")]
+    [ProducesResponseType(typeof(ApprovalRequest), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApprovalRequest>> RecallRequest(
         int requestId,
         [FromBody] RecallApprovalRequest request,
@@ -517,6 +578,8 @@ public class ApprovalsController : ControllerBase
     /// Reassign a pending approval step to a different user.
     /// </summary>
     [HttpPost("steps/{stepId:int}/reassign")]
+    [ProducesResponseType(typeof(ApprovalStep), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApprovalStep>> ReassignStep(
         int stepId,
         [FromBody] ReassignStepRequest request,
@@ -536,6 +599,8 @@ public class ApprovalsController : ControllerBase
     /// Escalate a pending approval step.
     /// </summary>
     [HttpPost("steps/{stepId:int}/escalate")]
+    [ProducesResponseType(typeof(ApprovalStep), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApprovalStep>> EscalateStep(
         int stepId,
         [FromBody] EscalateStepRequest request,
@@ -559,6 +624,8 @@ public class ApprovalsController : ControllerBase
     /// Find the applicable approval matrix for a quote.
     /// </summary>
     [HttpGet("matrices/applicable/{quoteId:int}")]
+    [ProducesResponseType(typeof(DiscountApprovalMatrix), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DiscountApprovalMatrix>> FindApplicableMatrix(int quoteId, CancellationToken cancellationToken)
     {
         var matrix = await _approvalService.FindApplicableMatrixAsync(quoteId, cancellationToken);
@@ -573,6 +640,7 @@ public class ApprovalsController : ControllerBase
     /// Check if a discount requires approval.
     /// </summary>
     [HttpGet("requires-approval")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<bool>> RequiresApproval(
         [FromQuery] decimal discountPercent,
         [FromQuery] decimal? dealAmount = null,
@@ -587,6 +655,8 @@ public class ApprovalsController : ControllerBase
     /// Get the maximum discount the current user can approve without escalation.
     /// </summary>
     [HttpGet("approval-limit")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<decimal>> GetCurrentUserApprovalLimit(CancellationToken cancellationToken)
     {
         var userId = GetCurrentUserId();
@@ -603,6 +673,7 @@ public class ApprovalsController : ControllerBase
     /// Get the maximum discount a specific user can approve without escalation.
     /// </summary>
     [HttpGet("approval-limit/{userId:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<decimal>> GetUserApprovalLimit(int userId, CancellationToken cancellationToken)
     {
         var limit = await _approvalService.GetUserApprovalLimitAsync(userId, cancellationToken);
@@ -617,6 +688,7 @@ public class ApprovalsController : ControllerBase
     /// Send reminder notifications for overdue approvals (admin operation).
     /// </summary>
     [HttpPost("reminders/send-overdue")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<int>> SendOverdueReminders(CancellationToken cancellationToken)
     {
         var count = await _approvalService.SendOverdueRemindersAsync(cancellationToken);
@@ -627,6 +699,7 @@ public class ApprovalsController : ControllerBase
     /// Process auto-escalations for timed-out steps (admin operation).
     /// </summary>
     [HttpPost("escalations/process-auto")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<int>> ProcessAutoEscalations(CancellationToken cancellationToken)
     {
         var count = await _approvalService.ProcessAutoEscalationsAsync(cancellationToken);
@@ -641,6 +714,7 @@ public class ApprovalsController : ControllerBase
     /// Get approval workflow statistics.
     /// </summary>
     [HttpGet("statistics")]
+    [ProducesResponseType(typeof(ApprovalStatistics), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApprovalStatistics>> GetStatistics(
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
@@ -654,6 +728,7 @@ public class ApprovalsController : ControllerBase
     /// Get approver performance statistics.
     /// </summary>
     [HttpGet("statistics/approvers")]
+    [ProducesResponseType(typeof(IEnumerable<ApproverPerformance>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ApproverPerformance>>> GetApproverPerformance(
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
@@ -667,6 +742,7 @@ public class ApprovalsController : ControllerBase
     /// Get approval history for a quote.
     /// </summary>
     [HttpGet("quotes/{quoteId:int}/history")]
+    [ProducesResponseType(typeof(IEnumerable<ApprovalRequest>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ApprovalRequest>>> GetQuoteApprovalHistory(int quoteId, CancellationToken cancellationToken)
     {
         var history = await _approvalService.GetQuoteApprovalHistoryAsync(quoteId, cancellationToken);

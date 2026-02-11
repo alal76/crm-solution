@@ -17,6 +17,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -47,6 +48,7 @@ public class CloudDeploymentController : ControllerBase
     /// Get all cloud providers
     /// </summary>
     [HttpGet("providers")]
+    [ProducesResponseType(typeof(IEnumerable<CloudProviderDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CloudProviderDto>>> GetProviders()
     {
         try
@@ -65,6 +67,8 @@ public class CloudDeploymentController : ControllerBase
     /// Get a specific cloud provider
     /// </summary>
     [HttpGet("providers/{id}")]
+    [ProducesResponseType(typeof(CloudProviderDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CloudProviderDto>> GetProvider(int id)
     {
         try
@@ -87,6 +91,8 @@ public class CloudDeploymentController : ControllerBase
     /// Create a new cloud provider
     /// </summary>
     [HttpPost("providers")]
+    [ProducesResponseType(typeof(CloudProviderDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CloudProviderDto>> CreateProvider([FromBody] CreateCloudProviderRequest request)
     {
         try
@@ -105,6 +111,9 @@ public class CloudDeploymentController : ControllerBase
     /// Update a cloud provider
     /// </summary>
     [HttpPut("providers/{id}")]
+    [ProducesResponseType(typeof(CloudProviderDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CloudProviderDto>> UpdateProvider(int id, [FromBody] UpdateCloudProviderRequest request)
     {
         try
@@ -127,6 +136,8 @@ public class CloudDeploymentController : ControllerBase
     /// Delete a cloud provider
     /// </summary>
     [HttpDelete("providers/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteProvider(int id)
     {
         try
@@ -149,6 +160,7 @@ public class CloudDeploymentController : ControllerBase
     /// Test connection to a cloud provider
     /// </summary>
     [HttpPost("providers/test")]
+    [ProducesResponseType(typeof(ProviderConnectionResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<ProviderConnectionResult>> TestProviderConnection([FromBody] TestProviderConnectionRequest request)
     {
         try
@@ -167,6 +179,7 @@ public class CloudDeploymentController : ControllerBase
     /// Get available resources for a provider
     /// </summary>
     [HttpGet("providers/{id}/resources/{resourceType}")]
+    [ProducesResponseType(typeof(IEnumerable<ResourceOption>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ResourceOption>>> GetProviderResources(int id, string resourceType)
     {
         try
@@ -189,6 +202,7 @@ public class CloudDeploymentController : ControllerBase
     /// Get all deployments
     /// </summary>
     [HttpGet("deployments")]
+    [ProducesResponseType(typeof(IEnumerable<CloudDeploymentDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CloudDeploymentDto>>> GetDeployments(
         [FromQuery] int? providerId = null,
         [FromQuery] string? status = null)
@@ -209,6 +223,8 @@ public class CloudDeploymentController : ControllerBase
     /// Get a specific deployment
     /// </summary>
     [HttpGet("deployments/{id}")]
+    [ProducesResponseType(typeof(CloudDeploymentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CloudDeploymentDto>> GetDeployment(int id)
     {
         try
@@ -231,6 +247,8 @@ public class CloudDeploymentController : ControllerBase
     /// Create a new deployment
     /// </summary>
     [HttpPost("deployments")]
+    [ProducesResponseType(typeof(CloudDeploymentDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CloudDeploymentDto>> CreateDeployment([FromBody] CreateDeploymentRequest request)
     {
         try
@@ -253,6 +271,9 @@ public class CloudDeploymentController : ControllerBase
     /// Update a deployment
     /// </summary>
     [HttpPut("deployments/{id}")]
+    [ProducesResponseType(typeof(CloudDeploymentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CloudDeploymentDto>> UpdateDeployment(int id, [FromBody] UpdateDeploymentRequest request)
     {
         try
@@ -275,6 +296,8 @@ public class CloudDeploymentController : ControllerBase
     /// Delete a deployment
     /// </summary>
     [HttpDelete("deployments/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteDeployment(int id)
     {
         try
@@ -297,6 +320,7 @@ public class CloudDeploymentController : ControllerBase
     /// Trigger a deployment
     /// </summary>
     [HttpPost("deployments/{id}/deploy")]
+    [ProducesResponseType(typeof(DeploymentResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentResult>> TriggerDeployment(int id, [FromBody] TriggerDeploymentRequest request)
     {
         try
@@ -322,6 +346,7 @@ public class CloudDeploymentController : ControllerBase
     /// Stop a deployment
     /// </summary>
     [HttpPost("deployments/{id}/stop")]
+    [ProducesResponseType(typeof(DeploymentResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentResult>> StopDeployment(int id)
     {
         try
@@ -340,6 +365,7 @@ public class CloudDeploymentController : ControllerBase
     /// Restart a deployment
     /// </summary>
     [HttpPost("deployments/{id}/restart")]
+    [ProducesResponseType(typeof(DeploymentResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentResult>> RestartDeployment(int id)
     {
         try
@@ -358,6 +384,7 @@ public class CloudDeploymentController : ControllerBase
     /// Scale a deployment
     /// </summary>
     [HttpPost("deployments/{id}/scale")]
+    [ProducesResponseType(typeof(DeploymentResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentResult>> ScaleDeployment(int id, [FromQuery] int replicas)
     {
         try
@@ -380,6 +407,7 @@ public class CloudDeploymentController : ControllerBase
     /// Get deployment attempts for a deployment
     /// </summary>
     [HttpGet("deployments/{deploymentId}/attempts")]
+    [ProducesResponseType(typeof(IEnumerable<DeploymentAttemptDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DeploymentAttemptDto>>> GetDeploymentAttempts(int deploymentId)
     {
         try
@@ -398,6 +426,8 @@ public class CloudDeploymentController : ControllerBase
     /// Get a specific deployment attempt
     /// </summary>
     [HttpGet("attempts/{attemptId}")]
+    [ProducesResponseType(typeof(DeploymentAttemptDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DeploymentAttemptDto>> GetDeploymentAttempt(int attemptId)
     {
         try
@@ -420,6 +450,7 @@ public class CloudDeploymentController : ControllerBase
     /// Get logs for a deployment attempt
     /// </summary>
     [HttpGet("attempts/{attemptId}/logs")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<string>> GetDeploymentAttemptLogs(int attemptId)
     {
         try
@@ -442,6 +473,7 @@ public class CloudDeploymentController : ControllerBase
     /// Run health check on a deployment
     /// </summary>
     [HttpPost("deployments/{deploymentId}/health-check")]
+    [ProducesResponseType(typeof(HealthCheckResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<HealthCheckResult>> RunHealthCheck(int deploymentId)
     {
         try
@@ -460,6 +492,7 @@ public class CloudDeploymentController : ControllerBase
     /// Get health check history for a deployment
     /// </summary>
     [HttpGet("deployments/{deploymentId}/health-history")]
+    [ProducesResponseType(typeof(IEnumerable<HealthCheckDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<HealthCheckDto>>> GetHealthCheckHistory(
         int deploymentId,
         [FromQuery] int? limit = 20)
@@ -480,6 +513,7 @@ public class CloudDeploymentController : ControllerBase
     /// Get health status for all deployments
     /// </summary>
     [HttpGet("health")]
+    [ProducesResponseType(typeof(IEnumerable<HealthCheckDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<HealthCheckDto>>> GetAllDeploymentHealth()
     {
         try
@@ -502,6 +536,7 @@ public class CloudDeploymentController : ControllerBase
     /// Get deployment dashboard summary
     /// </summary>
     [HttpGet("dashboard")]
+    [ProducesResponseType(typeof(DeploymentDashboardDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentDashboardDto>> GetDashboard()
     {
         try

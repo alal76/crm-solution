@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 import apiClient from '../../services/apiClient';
 import { CatalogRequestForm } from '../../components/itsm';
 import type { CatalogItemDetails } from '../../components/itsm';
@@ -40,49 +45,34 @@ const ServiceCatalogRequestCreatePage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Request Service</h1>
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Catalog Item ID</label>
-          <input
-            type="text"
-            value={id}
-            readOnly
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Requested For (User ID)</label>
-          <input
-            type="number"
-            value={requestedForId}
-            onChange={(e) => setRequestedForId(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            required
-          />
-        </div>
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/itsm/catalog')}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          >
+    <Box sx={{ p: 3, maxWidth: 700, mx: 'auto' }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 3 }}>Request Service</Typography>
+      <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <TextField
+          label="Catalog Item ID"
+          value={id}
+          InputProps={{ readOnly: true }}
+          fullWidth
+        />
+        <TextField
+          label="Requested For (User ID)"
+          type="number"
+          value={requestedForId}
+          onChange={(e) => setRequestedForId(e.target.value)}
+          required
+          fullWidth
+        />
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+          <Button variant="outlined" onClick={() => navigate('/itsm/catalog')}>Cancel</Button>
+          <Button variant="contained" type="submit" disabled={submitting}>
             {submitting ? 'Submitting...' : 'Submit Request'}
-          </button>
-        </div>
-      </form>
+          </Button>
+        </Box>
+      </Paper>
 
       {/* Enhanced Catalog Request Form */}
       {catalogItem && (
-        <div className="mt-6">
+        <Box sx={{ mt: 3 }}>
           <CatalogRequestForm
             catalogItem={catalogItem}
             onSubmit={async (data) => {
@@ -101,9 +91,9 @@ const ServiceCatalogRequestCreatePage: React.FC = () => {
             }}
             onCancel={() => navigate('/itsm/catalog')}
           />
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

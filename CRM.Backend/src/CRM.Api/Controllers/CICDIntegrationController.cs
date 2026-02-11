@@ -16,6 +16,7 @@
 
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
@@ -44,6 +45,7 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("deployments")]
     [AllowAnonymous] // Uses API key authentication
+    [ProducesResponseType(typeof(DeploymentChangeResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentChangeResult>> CreateDeploymentChange(
         [FromBody] DeploymentChangeRequestDto request,
         [FromHeader(Name = "X-API-Key")] string? apiKey)
@@ -58,6 +60,8 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpPut("deployments/{changeId}/status")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(DeploymentChangeResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DeploymentChangeResult>> UpdateDeploymentStatus(
         int changeId,
         [FromBody] DeploymentStatusUpdateDto update,
@@ -75,6 +79,7 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpGet("deployments")]
     [Authorize]
+    [ProducesResponseType(typeof(List<DeploymentHistoryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<DeploymentHistoryDto>>> GetDeploymentHistory(
         [FromQuery] string? environment,
         [FromQuery] DateTime? startDate,
@@ -89,6 +94,7 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("validate")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(DeploymentValidationResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentValidationResult>> ValidateDeployment(
         [FromBody] DeploymentValidationRequestDto request,
         [FromHeader(Name = "X-API-Key")] string? apiKey)
@@ -102,6 +108,8 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("pipelines")]
     [Authorize]
+    [ProducesResponseType(typeof(PipelineRegistrationDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PipelineRegistrationDto>> RegisterPipeline(
         [FromBody] RegisterPipelineDto request)
     {
@@ -114,6 +122,7 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpGet("pipelines")]
     [Authorize]
+    [ProducesResponseType(typeof(List<PipelineRegistrationDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<PipelineRegistrationDto>>> GetPipelines()
     {
         var pipelines = await _cicdService.GetPipelinesAsync();
@@ -125,6 +134,8 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpGet("pipelines/{id}")]
     [Authorize]
+    [ProducesResponseType(typeof(PipelineRegistrationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PipelineRegistrationDto>> GetPipeline(int id)
     {
         var pipeline = await _cicdService.GetPipelineAsync(id);
@@ -139,6 +150,8 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpDelete("pipelines/{id}")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeletePipeline(int id)
     {
         var deleted = await _cicdService.DeletePipelineAsync(id);
@@ -153,6 +166,7 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("webhooks/azure-devops")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> AzureDevOpsWebhook(
         [FromBody] AzureDevOpsWebhookPayload payload,
         [FromHeader(Name = "X-API-Key")] string? apiKey)
@@ -181,6 +195,7 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("webhooks/github")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GitHubWebhook(
         [FromBody] GitHubWebhookPayload payload,
         [FromHeader(Name = "X-Hub-Signature-256")] string? signature)
@@ -213,18 +228,11 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("deployment")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(DeploymentChangeResult), StatusCodes.Status200OK)]
     public async Task<ActionResult> CreateDeploymentSingular([FromBody] DeploymentChangeRequestDto request)
     {
-        try
-        {
-            var result = await _cicdService.CreateDeploymentChangeAsync(request);
-            return Ok(new { changeRequestId = result.ChangeId, message = result.Message, status = result.Status });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to create deployment change request via service");
-            return Ok(new { changeRequestId = 0, message = "Deployment change request creation failed", status = "Error" });
-        }
+        var result = await _cicdService.CreateDeploymentChangeAsync(request);
+        return Ok(new { changeRequestId = result.ChangeId, message = result.Message, status = result.Status });
     }
 
     /// <summary>
@@ -232,24 +240,26 @@ public class CICDIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("deployment-complete")]
     [AllowAnonymous]
-    public ActionResult MarkDeploymentComplete([FromBody] DeploymentStatusUpdateDto request)
+    [ProducesResponseType(typeof(DeploymentChangeResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> MarkDeploymentComplete(
+        [FromBody] DeploymentStatusUpdateDto request,
+        [FromQuery] int? changeId = null)
     {
-        try
+        if (changeId == null || changeId <= 0)
         {
-            // Use changeId from request body or default; mark as completed
-            var update = new DeploymentStatusUpdateDto
-            {
-                Status = "Completed",
-                CompletedAt = DateTime.UtcNow
-            };
-            // TODO: Extract changeId from request context for proper UpdateDeploymentStatusAsync call
-            return Ok(new { message = "Deployment marked as complete", completedAt = DateTime.UtcNow });
+            _logger.LogWarning("deployment-complete called without a valid changeId query parameter");
+            return BadRequest(new { message = "Query parameter 'changeId' is required" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to mark deployment as complete");
-            return Ok(new { message = "Failed to mark deployment as complete", completedAt = DateTime.UtcNow });
-        }
+
+        request.Status = string.IsNullOrEmpty(request.Status) ? "Completed" : request.Status;
+        request.CompletedAt ??= DateTime.UtcNow;
+
+        var result = await _cicdService.UpdateDeploymentStatusAsync(changeId.Value, request);
+        if (!result.Success)
+            return NotFound(result);
+
+        return Ok(result);
     }
 }
 

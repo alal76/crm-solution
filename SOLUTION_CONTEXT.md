@@ -584,80 +584,1099 @@ docker restart crm-api
 
 ## 10. API Endpoints Reference
 
-### Authentication
+> **Total: 95 controllers, 1,377 endpoints**
+>
+> Auto-generated from controller source code. All endpoints require JWT authentication unless marked otherwise.
+> Health endpoints (`/healths/*`) are unauthenticated.
+
+### 10.1 Summary by Domain
+
+| Domain | Controllers | Endpoints | Description |
+|--------|-------------|-----------|-------------|
+| Authentication & Users | 5 | 48 | Auth, users, groups, profiles, departments |
+| CRM Core | 16 | 242 | Accounts, contacts, leads, opportunities, activities, territories |
+| Sales & CPQ | 14 | 281 | Orders, invoices, payments, quotes, contracts, subscriptions, commissions |
+| Marketing | 6 | 91 | Campaigns, email sequences, forms, landing pages, event attendees |
+| Service Desk | 2 | 55 | Service requests, categories, custom fields |
+| ITSM | 13 | 154 | Incidents, problems, changes, CMDB, knowledge base, SLA, service catalog |
+| AI & Analytics | 5 | 68 | AI chatbot, email AI, dashboards, reports |
+| Workflows & Automation | 5 | 85 | Workflow engine, triggers, instances, webhooks |
+| Communications | 4 | 46 | Multi-channel messaging, conversations, calendar, news/social |
+| Administration | 20 | 241 | Settings, templates, master data, teams, tasks, import/export |
+| Infrastructure | 5 | 66 | Cloud deployments, database management, monitoring, health checks |
+
+### 10.2 Authentication & Users (48 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/auths` | AuthController | 15 | GET:2, POST:13 |
+| `/api/departments` | DepartmentsController | 5 | DELETE:1, GET:2, POST:1, PUT:1 |
+| `/api/usergroups` | UserGroupsController | 8 | DELETE:2, GET:3, POST:2, PUT:1 |
+| `/api/userprofiles` | UserProfilesController | 7 | DELETE:1, GET:4, POST:1, PUT:1 |
+| `/api/users` | UsersController | 13 | DELETE:1, GET:5, POST:5, PUT:2 |
+
+<details>
+<summary>All Authentication & Users endpoints</summary>
+
 ```
-POST /api/auth/login          # Login with email/password
-POST /api/auth/register       # Register new user
-POST /api/auth/refresh        # Refresh JWT token
-GET  /api/auth/me             # Get current user
-POST /api/auth/logout         # Logout
+POST    /api/auths/2fa/disable
+POST    /api/auths/2fa/enable
+POST    /api/auths/2fa/setup
+POST    /api/auths/2fa/verify
+POST    /api/auths/login
+POST    /api/auths/login/2fa
+GET     /api/auths/me
+POST    /api/auths/oauth-login
+GET     /api/auths/password-requirements
+POST    /api/auths/password-reset/confirm
+POST    /api/auths/password-reset/request
+POST    /api/auths/register
+POST    /api/auths/reset-password/{userId}
+POST    /api/auths/setup-password
+POST    /api/auths/verify
+GET     /api/departments
+POST    /api/departments
+DELETE  /api/departments/{id}
+GET     /api/departments/{id}
+PUT     /api/departments/{id}
+GET     /api/usergroups
+POST    /api/usergroups
+DELETE  /api/usergroups/{id}
+GET     /api/usergroups/{id}
+PUT     /api/usergroups/{id}
+GET     /api/usergroups/{id}/members
+DELETE  /api/usergroups/{id}/members/{userId}
+POST    /api/usergroups/{id}/members/{userId}
+GET     /api/userprofiles
+POST    /api/userprofiles
+GET     /api/userprofiles/department/{departmentId}
+GET     /api/userprofiles/me
+DELETE  /api/userprofiles/{id}
+GET     /api/userprofiles/{id}
+PUT     /api/userprofiles/{id}
+GET     /api/users
+POST    /api/users
+GET     /api/users/by-contact/{contactId}
+GET     /api/users/department/{departmentId}
+GET     /api/users/me/preferences
+PUT     /api/users/me/preferences
+DELETE  /api/users/{id}
+GET     /api/users/{id}
+PUT     /api/users/{id}
+POST    /api/users/{id}/assign-profile
+POST    /api/users/{id}/link-contact
+POST    /api/users/{id}/remove-profile
+POST    /api/users/{id}/unlink-contact
 ```
 
-### Accounts (formerly Customers)
+</details>
+
+### 10.3 CRM Core (242 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/accounts` | AccountsController | 19 | DELETE:3, GET:10, POST:4, PUT:2 |
+| `/api/activities` | ActivitiesController | 16 | DELETE:2, GET:10, PATCH:2, POST:2 |
+| `/api/admin/leadscorerules` | LeadScoreRulesController | 11 | DELETE:1, GET:6, PATCH:1, POST:2, PUT:1 |
+| `/api/ai/leads` | AILeadScoringController | 6 | GET:3, POST:3 |
+| `/api/contactinfos` | ContactInfoController | 47 | DELETE:9, GET:15, POST:17, PUT:6 |
+| `/api/contacts` | ContactsController | 8 | DELETE:2, GET:3, POST:2, PUT:1 |
+| `/api/duplicates` | DuplicatesController | 10 | GET:5, POST:5 |
+| `/api/interactions` | InteractionsController | 16 | DELETE:1, GET:6, POST:8, PUT:1 |
+| `/api/leadroutings` | LeadRoutingController | 29 | DELETE:3, GET:11, POST:12, PUT:3 |
+| `/api/leads` | LeadsController | 8 | DELETE:1, GET:4, POST:2, PUT:1 |
+| `/api/notes` | NotesController | 10 | DELETE:1, GET:4, POST:4, PUT:1 |
+| `/api/opportunities` | OpportunitiesController | 7 | DELETE:1, GET:4, POST:1, PUT:1 |
+| `/api/pipelines` | PipelinesController | 3 | GET:3 |
+| `/api/relationships` | RelationshipsController | 16 | DELETE:2, GET:8, POST:4, PUT:2 |
+| `/api/stages` | StagesController | 3 | GET:3 |
+| `/api/territories` | TerritoriesController | 33 | DELETE:3, GET:16, POST:9, PUT:5 |
+
+<details>
+<summary>All CRM Core endpoints</summary>
+
 ```
-GET    /api/accounts          # List all accounts
-GET    /api/accounts/{id}     # Get account by ID
-POST   /api/accounts          # Create account
-PUT    /api/accounts/{id}     # Update account
-DELETE /api/accounts/{id}     # Delete account
+GET     /api/accounts
+POST    /api/accounts
+DELETE  /api/accounts/batch
+POST    /api/accounts/batch
+GET     /api/accounts/filters
+GET     /api/accounts/search
+DELETE  /api/accounts/{id}
+GET     /api/accounts/{id}
+PUT     /api/accounts/{id}
+GET     /api/accounts/{id}/contacts
+POST    /api/accounts/{id}/contacts
+DELETE  /api/accounts/{id}/contacts/{contactId}
+GET     /api/accounts/{id}/details
+GET     /api/accounts/{id}/interactions
+GET     /api/accounts/{id}/linked-contacts
+GET     /api/accounts/{id}/opportunities
+GET     /api/accounts/{id}/related
+POST    /api/accounts/{id}/tags
+GET     /api/activities
+POST    /api/activities
+GET     /api/activities/by-entity/{entityType}/{entityId}
+GET     /api/activities/by-type/{type}
+GET     /api/activities/recent
+GET     /api/activities/stats
+GET     /api/activities/timeline/{entityType}/{entityId}
+GET     /api/activities/upcoming
+DELETE  /api/activities/{id}
+GET     /api/activities/{id}
+PATCH   /api/activities/{id}/cancel
+PATCH   /api/activities/{id}/complete
+GET     /api/activities/{id}/notes
+DELETE  /api/activities/{noteId}/notes
+GET     /api/admin/leadscorerules
+POST    /api/admin/leadscorerules
+GET     /api/admin/leadscorerules/evaluate/{leadId}
+GET     /api/admin/leadscorerules/preview
+GET     /api/admin/leadscorerules/scoring-stats
+GET     /api/admin/leadscorerules/summary
+DELETE  /api/admin/leadscorerules/{id}
+GET     /api/admin/leadscorerules/{id}
+PUT     /api/admin/leadscorerules/{id}
+PATCH   /api/admin/leadscorerules/{id}/toggle
+POST    /api/admin/leadscorerules/{id}/validate
+GET     /api/ai/leads/scoring-weights
+POST    /api/ai/leads/score-all
+POST    /api/ai/leads/{id}/score
+GET     /api/ai/opportunities/win-rates
+POST    /api/ai/opportunities/score-all
+POST    /api/ai/opportunities/{id}/score
+GET     /api/contactinfos/addresses
+POST    /api/contactinfos/addresses
+GET     /api/contactinfos/addresses/{id}
+PUT     /api/contactinfos/addresses/{id}
+DELETE  /api/contactinfos/addresses/{id}
+POST    /api/contactinfos/addresses/{id}/primary
+GET     /api/contactinfos/emails
+POST    /api/contactinfos/emails
+GET     /api/contactinfos/emails/{id}
+PUT     /api/contactinfos/emails/{id}
+DELETE  /api/contactinfos/emails/{id}
+POST    /api/contactinfos/emails/{id}/primary
+GET     /api/contactinfos/entity/{entityType}/{entityId}
+GET     /api/contactinfos/entity/{entityType}/{entityId}/addresses
+GET     /api/contactinfos/entity/{entityType}/{entityId}/emails
+GET     /api/contactinfos/entity/{entityType}/{entityId}/phones
+GET     /api/contactinfos/entity/{entityType}/{entityId}/socials
+POST    /api/contactinfos/link
+DELETE  /api/contactinfos/link
+POST    /api/contactinfos/link/batch
+GET     /api/contactinfos/phones
+POST    /api/contactinfos/phones
+GET     /api/contactinfos/phones/{id}
+PUT     /api/contactinfos/phones/{id}
+DELETE  /api/contactinfos/phones/{id}
+POST    /api/contactinfos/phones/{id}/primary
+GET     /api/contactinfos/socials
+POST    /api/contactinfos/socials
+GET     /api/contactinfos/socials/{id}
+PUT     /api/contactinfos/socials/{id}
+DELETE  /api/contactinfos/socials/{id}
+POST    /api/contactinfos/socials/{id}/primary
+GET     /api/contacts
+POST    /api/contacts
+POST    /api/contacts/batch
+DELETE  /api/contacts/{id}
+GET     /api/contacts/{id}
+PUT     /api/contacts/{id}
+GET     /api/contacts/{id}/accounts
+DELETE  /api/contacts/{id}/accounts/{accountId}
+GET     /api/duplicates/candidates/{ruleId}
+GET     /api/duplicates/check
+GET     /api/duplicates/merge-history
+POST    /api/duplicates/merge/{survivorId}/{mergeId}
+GET     /api/duplicates/rules
+POST    /api/duplicates/rules
+POST    /api/duplicates/scan
+POST    /api/duplicates/scan/{ruleId}
+POST    /api/duplicates/unmerge/{mergeId}
+DELETE  /api/duplicates/{id}
+GET     /api/interactions
+POST    /api/interactions
+GET     /api/interactions/by-entity/{entityType}/{entityId}
+GET     /api/interactions/recent
+GET     /api/interactions/statistics
+GET     /api/interactions/timeline/{entityType}/{entityId}
+POST    /api/interactions/batch
+POST    /api/interactions/email
+POST    /api/interactions/log-call
+POST    /api/interactions/log-email
+POST    /api/interactions/log-meeting
+POST    /api/interactions/log-note
+DELETE  /api/interactions/{id}
+GET     /api/interactions/{id}
+PUT     /api/interactions/{id}
+GET     /api/leadroutings
+POST    /api/leadroutings
+GET     /api/leadroutings/active
+POST    /api/leadroutings/auto-assign/{leadId}
+DELETE  /api/leadroutings/criteria/{criteriaId}
+PUT     /api/leadroutings/criteria/{criteriaId}
+GET     /api/leadroutings/logs
+GET     /api/leadroutings/performance
+POST    /api/leadroutings/preview
+POST    /api/leadroutings/reorder
+POST    /api/leadroutings/simulate
+GET     /api/leadroutings/statistics
+DELETE  /api/leadroutings/targets/{targetId}
+PUT     /api/leadroutings/targets/{targetId}
+DELETE  /api/leadroutings/{id}
+GET     /api/leadroutings/{id}
+PUT     /api/leadroutings/{id}
+GET     /api/leadroutings/{id}/criteria
+POST    /api/leadroutings/{id}/criteria
+GET     /api/leadroutings/{id}/logs
+GET     /api/leadroutings/{id}/targets
+POST    /api/leadroutings/{id}/targets
+POST    /api/leadroutings/{id}/test
+POST    /api/leadroutings/{id}/toggle
+GET     /api/leads
+POST    /api/leads
+POST    /api/leads/batch
+GET     /api/leads/search
+DELETE  /api/leads/{id}
+GET     /api/leads/{id}
+PUT     /api/leads/{id}
+POST    /api/leads/{id}/convert
+GET     /api/notes
+POST    /api/notes
+GET     /api/notes/entity/{entityType}/{entityId}
+GET     /api/notes/pinned/{entityType}/{entityId}
+GET     /api/notes/recent
+DELETE  /api/notes/{id}
+GET     /api/notes/{id}
+PUT     /api/notes/{id}
+POST    /api/notes/{id}/pin
+POST    /api/notes/{id}/unpin
+GET     /api/opportunities
+POST    /api/opportunities
+GET     /api/opportunities/pipeline
+GET     /api/opportunities/search
+DELETE  /api/opportunities/{id}
+GET     /api/opportunities/{id}
+PUT     /api/opportunities/{id}
+GET     /api/pipelines
+GET     /api/pipelines/{id}
+GET     /api/pipelines/{id}/stages
+GET     /api/relationships ...
+GET     /api/stages ...
+GET     /api/territories ...
 ```
 
-### Other Core Endpoints
+</details>
+
+### 10.4 Sales & CPQ (281 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/approvals` | ApprovalsController | 43 | DELETE:4, GET:21, POST:14, PUT:4 |
+| `/api/commissions` | CommissionsController | 35 | DELETE:3, GET:17, PATCH:1, POST:11, PUT:3 |
+| `/api/contracts` | ContractsController | 28 | DELETE:1, GET:14, POST:12, PUT:1 |
+| `/api/creditmemos` | CreditMemosController | 13 | DELETE:2, GET:4, POST:5, PUT:2 |
+| `/api/invoices` | InvoicesController | 27 | DELETE:2, GET:10, PATCH:1, POST:12, PUT:2 |
+| `/api/orders` | OrdersController | 35 | DELETE:2, GET:11, PATCH:1, POST:19, PUT:2 |
+| `/api/payments` | PaymentsController | 23 | DELETE:1, GET:9, PATCH:1, POST:11, PUT:1 |
+| `/api/pricebooks` | PriceBooksController | 5 | DELETE:1, GET:2, POST:1, PUT:1 |
+| `/api/productbundles` | ProductBundlesController | 6 | DELETE:1, GET:3, POST:1, PUT:1 |
+| `/api/products` | ProductsController | 8 | DELETE:1, GET:5, POST:1, PUT:1 |
+| `/api/quotes` | QuotesController | 17 | DELETE:2, GET:5, POST:8, PUT:2 |
+| `/api/sales-forecasts` | SalesForecastsController | 9 | DELETE:1, GET:4, POST:3, PUT:1 |
+| `/api/sales-quotas` | SalesQuotasController | 8 | DELETE:1, GET:4, PATCH:1, POST:1, PUT:1 |
+| `/api/subscriptions` | SubscriptionsController | 24 | DELETE:2, GET:8, POST:13, PUT:1 |
+
+<details>
+<summary>All Sales & CPQ endpoints</summary>
+
 ```
-/api/contacts                 # Contact CRUD
-/api/leads                    # Lead CRUD
-/api/opportunities            # Opportunity CRUD
-/api/products                 # Product CRUD
-/api/quotes                   # Quote CRUD
-/api/campaigns                # Campaign CRUD
-/api/service-requests         # Service request CRUD
-/api/users                    # User management
-/api/user-groups              # User group management
-/api/dashboard                # Dashboard data
-/api/notes                    # Notes CRUD
-/api/settings                 # System settings
-/api/lookups                  # Lookup data (industries, etc.)
+GET     /api/approvals
+POST    /api/approvals
+GET     /api/approvals/groups
+POST    /api/approvals/groups
+GET     /api/approvals/groups/{groupId}/members
+POST    /api/approvals/groups/{groupId}/members/{userId}
+DELETE  /api/approvals/groups/{groupId}/members/{userId}
+DELETE  /api/approvals/groups/{id}
+GET     /api/approvals/groups/{id}
+PUT     /api/approvals/groups/{id}
+GET     /api/approvals/levels
+POST    /api/approvals/levels
+DELETE  /api/approvals/levels/{id}
+GET     /api/approvals/levels/{id}
+PUT     /api/approvals/levels/{id}
+GET     /api/approvals/matrices
+POST    /api/approvals/matrices
+DELETE  /api/approvals/matrices/{id}
+GET     /api/approvals/matrices/{id}
+PUT     /api/approvals/matrices/{id}
+GET     /api/approvals/my-approvals
+GET     /api/approvals/my-requests
+GET     /api/approvals/pending
+GET     /api/approvals/statistics
+DELETE  /api/approvals/{id}
+GET     /api/approvals/{id}
+POST    /api/approvals/{id}/approve
+GET     /api/approvals/{id}/history
+POST    /api/approvals/{id}/reassign
+POST    /api/approvals/{id}/reject
+POST    /api/approvals/{id}/request
+POST    /api/approvals/{id}/return
+POST    /api/approvals/{id}/submit
+GET     /api/approvals/{requestId}/steps
+GET     /api/commissions ...
+GET     /api/contracts ...
+GET     /api/creditmemos ...
+GET     /api/invoices ...
+GET     /api/orders ...
+GET     /api/payments ...
+GET     /api/pricebooks ...
+GET     /api/productbundles ...
+GET     /api/products ...
+GET     /api/quotes ...
+GET     /api/sales-forecasts ...
+GET     /api/sales-quotas ...
+GET     /api/subscriptions ...
 ```
 
-### ITSM Module Endpoints
+</details>
+
+### 10.5 Marketing (91 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/campaigns` | CampaignsController + CampaignExecutionController | 19 | DELETE:2, GET:7, POST:8, PUT:2 |
+| `/api/email-sequences` | EmailSequencesController | 9 | DELETE:1, GET:3, POST:4, PUT:1 |
+| `/api/event-attendees` | EventAttendeesController | 8 | DELETE:1, GET:3, PATCH:1, POST:2, PUT:1 |
+| `/api/forms` | FormsController | 39 | DELETE:3, GET:15, POST:16, PUT:5 |
+| `/api/landing-pages` | LandingPageController | 16 | DELETE:1, GET:7, POST:6, PUT:2 |
+
+<details>
+<summary>All Marketing endpoints</summary>
+
 ```
-/api/itsm/incidents           # Incident CRUD
-/api/itsm/problems            # Problem CRUD
-/api/itsm/changes             # Change management CRUD
-/api/itsm/cmdb/cis            # CMDB Configuration Items CRUD
-/api/itsm/knowledge/articles  # Knowledge base articles
-/api/itsm/catalog             # Service catalog
-/api/itsm/sla                 # SLA management
-/api/itsm/dashboard           # ITSM dashboard metrics
+GET     /api/campaigns
+POST    /api/campaigns
+GET     /api/campaigns/active
+GET     /api/campaigns/recipients/{recipientId}/click
+POST    /api/campaigns/recipients/{recipientId}/conversion
+POST    /api/campaigns/recipients/{recipientId}/open
+POST    /api/campaigns/{campaignId}/abtests
+POST    /api/campaigns/{campaignId}/abtests/{testId}/start
+GET     /api/campaigns/{campaignId}/analytics
+GET     /api/campaigns/{campaignId}/recipients
+POST    /api/campaigns/{campaignId}/start
+GET     /api/campaigns/{campaignId}/workflows
+POST    /api/campaigns/{campaignId}/workflows
+DELETE  /api/campaigns/{campaignId}/workflows/{workflowId}
+PUT     /api/campaigns/{campaignId}/workflows/{workflowId}
+DELETE  /api/campaigns/{id}
+GET     /api/campaigns/{id}
+PUT     /api/campaigns/{id}
+POST    /api/campaigns/{id}/metrics
+GET     /api/email-sequences
+POST    /api/email-sequences
+DELETE  /api/email-sequences/{id}
+GET     /api/email-sequences/{id}
+PUT     /api/email-sequences/{id}
+POST    /api/email-sequences/{id}/enroll
+POST    /api/email-sequences/{id}/start
+GET     /api/email-sequences/{id}/status
+POST    /api/email-sequences/{id}/stop
+GET     /api/event-attendees
+POST    /api/event-attendees
+GET     /api/event-attendees/by-activity/{activityId}
+DELETE  /api/event-attendees/{id}
+GET     /api/event-attendees/{id}
+PUT     /api/event-attendees/{id}
+POST    /api/event-attendees/{id}/record-attendance
+PATCH   /api/event-attendees/{id}/response
+GET     /api/forms
+POST    /api/forms
+GET     /api/forms/by-key/{formKey}
+GET     /api/forms/confirm-optin/{token}
+GET     /api/forms/statistics/submissions
+GET     /api/forms/submissions/by-number/{submissionNumber}
+GET     /api/forms/templates
+POST    /api/forms/from-template
+DELETE  /api/forms/fields/{fieldId}
+GET     /api/forms/fields/{fieldId}
+PUT     /api/forms/fields/{fieldId}
+POST    /api/forms/fields/{fieldId}/validate
+DELETE  /api/forms/submissions/{submissionId}
+GET     /api/forms/submissions/{submissionId}
+POST    /api/forms/submissions/{submissionId}/mark-not-spam
+POST    /api/forms/submissions/{submissionId}/mark-spam
+POST    /api/forms/submissions/{submissionId}/reprocess
+POST    /api/forms/submissions/{submissionId}/send-optin
+DELETE  /api/forms/{id}
+GET     /api/forms/{id}
+PUT     /api/forms/{id}
+POST    /api/forms/{id}/archive
+POST    /api/forms/{id}/clone
+POST    /api/forms/{id}/publish
+PUT     /api/forms/{id}/status
+POST    /api/forms/{id}/unpublish
+GET     /api/forms/{formId}/direct-url
+GET     /api/forms/{formId}/embed-code
+GET     /api/forms/{formId}/field-statistics
+GET     /api/forms/{formId}/fields
+POST    /api/forms/{formId}/fields
+PUT     /api/forms/{formId}/fields/bulk
+PUT     /api/forms/{formId}/fields/reorder
+POST    /api/forms/{formId}/spam-score
+GET     /api/forms/{formId}/statistics
+GET     /api/forms/{formId}/submissions
+POST    /api/forms/{formId}/submit
+POST    /api/forms/{formId}/validate
+POST    /api/forms/{formId}/view
+GET     /api/landing-pages
+POST    /api/landing-pages
+GET     /api/landing-pages/check-slug
+GET     /api/landing-pages/p/{slug}
+DELETE  /api/landing-pages/{id}
+GET     /api/landing-pages/{id}
+PUT     /api/landing-pages/{id}
+GET     /api/landing-pages/{id}/analytics
+GET     /api/landing-pages/{id}/blocks
+PUT     /api/landing-pages/{id}/blocks
+POST    /api/landing-pages/{id}/duplicate
+GET     /api/landing-pages/{id}/preview
+POST    /api/landing-pages/{id}/publish
+POST    /api/landing-pages/{id}/time
+POST    /api/landing-pages/{id}/unpublish
+POST    /api/landing-pages/{id}/variant
 ```
 
-### Sales & Forecasting Endpoints
+</details>
+
+### 10.6 Service Desk (55 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/service-request-settings` | ServiceRequestSettingsController | 30 | DELETE:4, GET:14, POST:8, PUT:4 |
+| `/api/servicerequests` | ServiceRequestsController | 25 | DELETE:1, GET:11, PATCH:1, POST:10, PUT:2 |
+
+<details>
+<summary>All Service Desk endpoints</summary>
+
 ```
-/api/sales-forecasts          # Sales forecast CRUD
-/api/sales-quotas             # Sales quota management
-/api/orders                   # Order CRUD
-/api/invoices                 # Invoice CRUD
-/api/payments                 # Payment CRUD
-/api/contracts                # Contract CRUD
-/api/subscriptions            # Subscription management
+GET     /api/service-request-settings/categories
+POST    /api/service-request-settings/categories
+POST    /api/service-request-settings/categories/reorder
+DELETE  /api/service-request-settings/categories/{id}
+GET     /api/service-request-settings/categories/{id}
+PUT     /api/service-request-settings/categories/{id}
+GET     /api/service-request-settings/categories/{categoryId}/subcategories
+POST    /api/service-request-settings/categories/{categoryId}/subcategories/reorder
+GET     /api/service-request-settings/custom-fields
+POST    /api/service-request-settings/custom-fields
+GET     /api/service-request-settings/custom-fields/applicable
+GET     /api/service-request-settings/custom-fields/count
+POST    /api/service-request-settings/custom-fields/reorder
+DELETE  /api/service-request-settings/custom-fields/{id}
+GET     /api/service-request-settings/custom-fields/{id}
+PUT     /api/service-request-settings/custom-fields/{id}
+GET     /api/service-request-settings/subcategories
+POST    /api/service-request-settings/subcategories
+DELETE  /api/service-request-settings/subcategories/{id}
+GET     /api/service-request-settings/subcategories/{id}
+PUT     /api/service-request-settings/subcategories/{id}
+GET     /api/service-request-settings/types
+POST    /api/service-request-settings/types
+GET     /api/service-request-settings/types/by-category/{categoryId}
+GET     /api/service-request-settings/types/by-subcategory/{subcategoryId}
+GET     /api/service-request-settings/types/grouped
+POST    /api/service-request-settings/types/reorder/{subcategoryId}
+DELETE  /api/service-request-settings/types/{id}
+GET     /api/service-request-settings/types/{id}
+PUT     /api/service-request-settings/types/{id}
+GET     /api/servicerequests
+POST    /api/servicerequests
+GET     /api/servicerequests/assignee/{userId}
+GET     /api/servicerequests/contact/{contactId}
+GET     /api/servicerequests/count/open
+GET     /api/servicerequests/count/sla-breached
+GET     /api/servicerequests/customer/{customerId}
+GET     /api/servicerequests/group/{groupId}
+GET     /api/servicerequests/my-requests
+GET     /api/servicerequests/statistics
+GET     /api/servicerequests/ticket/{ticketNumber}
+DELETE  /api/servicerequests/{id}
+GET     /api/servicerequests/{id}
+PUT     /api/servicerequests/{id}
+POST    /api/servicerequests/{id}/assign/group/{groupId}
+POST    /api/servicerequests/{id}/assign/user/{userId}
+POST    /api/servicerequests/{id}/close
+PUT     /api/servicerequests/{id}/custom-fields
+POST    /api/servicerequests/{id}/escalate
+POST    /api/servicerequests/{id}/feedback
+POST    /api/servicerequests/{id}/first-response
+POST    /api/servicerequests/{id}/reopen
+POST    /api/servicerequests/{id}/resolve
+PATCH   /api/servicerequests/{id}/status
+POST    /api/servicerequests/{id}/unassign
 ```
 
-### Additional Endpoints (Added in Sessions 3-16)
+</details>
+
+### 10.7 ITSM (154 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/itsm/catalog` | CatalogController | 10 | GET:7, PATCH:1, POST:2 |
+| `/api/itsm/changes` | ChangesController | 13 | GET:5, PATCH:2, POST:6 |
+| `/api/itsm/chatbot` | SelfServiceChatbotController | 13 | GET:5, POST:8 |
+| `/api/itsm/cicd` | CICDIntegrationController | 12 | DELETE:1, GET:3, POST:7, PUT:1 |
+| `/api/itsm/cmdb` | CMDBController | 18 | GET:13, POST:3, PUT:2 |
+| `/api/itsm/dashboard` | ITSMDashboardController | 14 | GET:14 |
+| `/api/itsm/email` | EmailToTicketController | 5 | GET:2, POST:2, PUT:1 |
+| `/api/itsm/incidents` | IncidentsController | 11 | GET:3, PATCH:5, POST:2, PUT:1 |
+| `/api/itsm/knowledge` | KnowledgeController | 16 | GET:11, PATCH:2, POST:2, PUT:1 |
+| `/api/itsm/monitoring` | MonitoringIntegrationController | 11 | DELETE:1, GET:5, POST:4, PUT:1 |
+| `/api/itsm/problems` | ProblemsController | 9 | GET:4, PATCH:2, POST:2, PUT:1 |
+| `/api/itsm/sla` | SLAController | 11 | GET:7, POST:4 |
+| `/api/itsm/webhooks` | ITSMWebhooksController | 11 | DELETE:1, GET:5, POST:4, PUT:1 |
+
+<details>
+<summary>All ITSM endpoints</summary>
+
 ```
-/api/event-attendees          # Event attendee management
-/api/normalization            # Data normalization
-/api/conversations            # Conversation threads
-/api/ai-analytics             # AI analytics (lead scoring, KB search, opportunity insights)
-/api/territories              # Territory management
-/api/lead-routing             # Lead routing rules
-/api/approvals                # Approval workflows
-/api/forms                    # Form builder
-/api/teams                    # Team management
-/api/commissions              # Commission tracking
-/api/import-export            # Data import/export
-/api/communications           # Multi-channel communications
-/api/admin/features           # Feature flag management
-/api/health/providers         # Provider health status
+GET     /api/itsm/catalog/categories
+GET     /api/itsm/catalog/featured
+GET     /api/itsm/catalog/items
+GET     /api/itsm/catalog/items/{id}
+GET     /api/itsm/catalog/my-requests
+POST    /api/itsm/catalog/requests
+POST    /api/itsm/catalog/requests/for-others
+GET     /api/itsm/catalog/requests/{requestId}
+PATCH   /api/itsm/catalog/requests/{requestId}/cancel
+GET     /api/itsm/catalog/search
+GET     /api/itsm/changes
+POST    /api/itsm/changes
+GET     /api/itsm/changes/blackouts
+POST    /api/itsm/changes/blackouts
+GET     /api/itsm/changes/calendar
+GET     /api/itsm/changes/{id}
+POST    /api/itsm/changes/{id}/approvals
+POST    /api/itsm/changes/{id}/check-conflicts
+GET     /api/itsm/changes/{id}/impacted-cis
+POST    /api/itsm/changes/{changeId}/impacted-cis/{ciId}
+POST    /api/itsm/changes/{id}/rejections
+PATCH   /api/itsm/changes/{id}/schedule
+PATCH   /api/itsm/changes/{id}/submit-approval
+GET     /api/itsm/chatbot/incidents/{incidentNumber}/status
+POST    /api/itsm/chatbot/message
+GET     /api/itsm/chatbot/quick-actions
+POST    /api/itsm/chatbot/quick-actions/{actionId}
+GET     /api/itsm/chatbot/search
+POST    /api/itsm/chatbot/search
+POST    /api/itsm/chatbot/session
+POST    /api/itsm/chatbot/session/{sessionId}/create-incident
+POST    /api/itsm/chatbot/session/{sessionId}/end
+GET     /api/itsm/chatbot/session/{sessionId}/history
+POST    /api/itsm/chatbot/sessions
+GET     /api/itsm/chatbot/sessions/{sessionId}
+POST    /api/itsm/chatbot/sessions/{sessionId}/messages
+POST    /api/itsm/cicd/deployment
+POST    /api/itsm/cicd/deployment-complete
+GET     /api/itsm/cicd/deployments
+POST    /api/itsm/cicd/deployments
+PUT     /api/itsm/cicd/deployments/{changeId}/status
+GET     /api/itsm/cicd/pipelines
+POST    /api/itsm/cicd/pipelines
+DELETE  /api/itsm/cicd/pipelines/{id}
+GET     /api/itsm/cicd/pipelines/{id}
+POST    /api/itsm/cicd/validate
+POST    /api/itsm/cicd/webhooks/azure-devops
+POST    /api/itsm/cicd/webhooks/github
+GET     /api/itsm/cmdb
+POST    /api/itsm/cmdb
+GET     /api/itsm/cmdb/cis
+POST    /api/itsm/cmdb/cis
+GET     /api/itsm/cmdb/cis/{id}
+PUT     /api/itsm/cmdb/cis/{id}
+GET     /api/itsm/cmdb/cis/{id}/impact
+GET     /api/itsm/cmdb/cis/{id}/impact-analysis
+GET     /api/itsm/cmdb/cis/{id}/related
+GET     /api/itsm/cmdb/cis/{id}/relationships
+GET     /api/itsm/cmdb/cis/{id}/service-map
+GET     /api/itsm/cmdb/types
+GET     /api/itsm/cmdb/{id}
+PUT     /api/itsm/cmdb/{id}
+GET     /api/itsm/cmdb/{id}/impact-analysis
+GET     /api/itsm/cmdb/{id}/related
+GET     /api/itsm/cmdb/{id}/service-map
+POST    /api/itsm/cmdb/{parentId}/relationships/{childId}
+GET     /api/itsm/dashboard/agent-performance
+GET     /api/itsm/dashboard/agents
+GET     /api/itsm/dashboard/category-breakdown
+GET     /api/itsm/dashboard/changes
+GET     /api/itsm/dashboard/cmdb
+GET     /api/itsm/dashboard/executive
+GET     /api/itsm/dashboard/executive-summary
+GET     /api/itsm/dashboard/incident-trends
+GET     /api/itsm/dashboard/incidents
+GET     /api/itsm/dashboard/knowledge
+GET     /api/itsm/dashboard/metrics
+GET     /api/itsm/dashboard/problems
+GET     /api/itsm/dashboard/sla
+GET     /api/itsm/dashboard/sla-compliance
+GET     /api/itsm/email/config
+PUT     /api/itsm/email/config
+GET     /api/itsm/email/history
+POST    /api/itsm/email/inbound
+POST    /api/itsm/email/test
+GET     /api/itsm/incidents
+POST    /api/itsm/incidents
+GET     /api/itsm/incidents/{id}
+PUT     /api/itsm/incidents/{id}
+PATCH   /api/itsm/incidents/{id}/assign
+PATCH   /api/itsm/incidents/{id}/close
+GET     /api/itsm/incidents/{id}/comments
+POST    /api/itsm/incidents/{id}/comments
+PATCH   /api/itsm/incidents/{id}/escalate
+PATCH   /api/itsm/incidents/{id}/reopen
+PATCH   /api/itsm/incidents/{id}/resolve
+POST    /api/itsm/knowledge
+GET     /api/itsm/knowledge/articles
+GET     /api/itsm/knowledge/articles/popular
+GET     /api/itsm/knowledge/articles/recent
+GET     /api/itsm/knowledge/articles/{id}
+GET     /api/itsm/knowledge/categories
+GET     /api/itsm/knowledge/pending
+GET     /api/itsm/knowledge/popular
+GET     /api/itsm/knowledge/recent
+GET     /api/itsm/knowledge/search
+GET     /api/itsm/knowledge/suggestions
+GET     /api/itsm/knowledge/{id}
+PUT     /api/itsm/knowledge/{id}
+POST    /api/itsm/knowledge/{id}/feedback
+PATCH   /api/itsm/knowledge/{id}/publish
+PATCH   /api/itsm/knowledge/{id}/retire
+GET     /api/itsm/monitoring/alert-mappings
+POST    /api/itsm/monitoring/alerts
+GET     /api/itsm/monitoring/history
+GET     /api/itsm/monitoring/integrations
+POST    /api/itsm/monitoring/integrations
+DELETE  /api/itsm/monitoring/integrations/{id}
+GET     /api/itsm/monitoring/integrations/{id}
+PUT     /api/itsm/monitoring/integrations/{id}
+POST    /api/itsm/monitoring/integrations/{id}/test
+POST    /api/itsm/monitoring/prometheus
+GET     /api/itsm/monitoring/sources
+GET     /api/itsm/problems
+POST    /api/itsm/problems
+GET     /api/itsm/problems/{id}
+PUT     /api/itsm/problems/{id}
+GET     /api/itsm/problems/{id}/incidents
+GET     /api/itsm/problems/{id}/related-incidents
+PATCH   /api/itsm/problems/{id}/mark-known-error
+PATCH   /api/itsm/problems/{id}/rca
+POST    /api/itsm/problems/{problemId}/link-incident/{incidentId}
+GET     /api/itsm/sla/at-risk
+GET     /api/itsm/sla/breached
+POST    /api/itsm/sla/check-breaches
+GET     /api/itsm/sla/dashboard
+GET     /api/itsm/sla/instances/{targetId}/{targetType}
+POST    /api/itsm/sla/instances/{targetId}/{targetType}/pause
+POST    /api/itsm/sla/instances/{targetId}/{targetType}/resume
+GET     /api/itsm/sla/metrics
+GET     /api/itsm/sla/policies
+POST    /api/itsm/sla/policies
+GET     /api/itsm/sla/policies/{id}
+GET     /api/itsm/webhooks
+POST    /api/itsm/webhooks
+GET     /api/itsm/webhooks/deliveries
+POST    /api/itsm/webhooks/deliveries/{deliveryId}/retry
+GET     /api/itsm/webhooks/event-types
+GET     /api/itsm/webhooks/subscriptions
+POST    /api/itsm/webhooks/subscriptions
+DELETE  /api/itsm/webhooks/subscriptions/{id}
+GET     /api/itsm/webhooks/subscriptions/{id}
+PUT     /api/itsm/webhooks/subscriptions/{id}
+POST    /api/itsm/webhooks/subscriptions/{id}/test
+```
+
+</details>
+
+### 10.8 AI & Analytics (68 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/ai/chatbot` | AIChatbotController | 4 | GET:2, POST:2 |
+| `/api/ai/email` | AIEmailController | 4 | POST:4 |
+| `/api/dashboard-config` | DashboardConfigController | 15 | DELETE:2, GET:7, POST:4, PUT:2 |
+| `/api/dashboards` | DashboardController | 15 | GET:15 |
+| `/api/reports` | ReportsController | 30 | DELETE:4, GET:14, POST:9, PUT:3 |
+
+<details>
+<summary>All AI & Analytics endpoints</summary>
+
+```
+GET     /api/ai/chatbot/health
+POST    /api/ai/chatbot/initialize
+POST    /api/ai/chatbot/message
+GET     /api/ai/chatbot/suggestions
+POST    /api/ai/email/analyze
+POST    /api/ai/email/improve
+POST    /api/ai/email/optimize-subject
+POST    /api/ai/email/suggest-response
+GET     /api/dashboard-config/dashboards
+POST    /api/dashboard-config/dashboards
+GET     /api/dashboard-config/dashboards/all
+GET     /api/dashboard-config/dashboards/default
+GET     /api/dashboard-config/dashboards/{dashboardId}/widgets
+POST    /api/dashboard-config/dashboards/{dashboardId}/reorder-widgets
+DELETE  /api/dashboard-config/dashboards/{id}
+GET     /api/dashboard-config/dashboards/{id}
+PUT     /api/dashboard-config/dashboards/{id}
+GET     /api/dashboard-config/data-sources
+POST    /api/dashboard-config/initialize
+GET     /api/dashboard-config/widget-types
+POST    /api/dashboard-config/widgets
+DELETE  /api/dashboard-config/widgets/{id}
+PUT     /api/dashboard-config/widgets/{id}
+GET     /api/dashboards/activities
+GET     /api/dashboards/analysis/win-loss
+GET     /api/dashboards/customers/acquisition
+GET     /api/dashboards/customers/top
+GET     /api/dashboards/deals-closing-soon
+GET     /api/dashboards/forecast
+GET     /api/dashboards/funnel/leads
+GET     /api/dashboards/leaderboard/activities
+GET     /api/dashboards/leaderboard/sales
+GET     /api/dashboards/pipeline
+GET     /api/dashboards/stats
+GET     /api/dashboards/summary
+GET     /api/dashboards/tasks
+GET     /api/dashboards/trends/revenue
+GET     /api/dashboards/widgets
+GET     /api/reports
+POST    /api/reports
+GET     /api/reports/category/{category}
+GET     /api/reports/favorites
+GET     /api/reports/folder/{folderId}
+GET     /api/reports/folders
+POST    /api/reports/folders
+GET     /api/reports/my
+GET     /api/reports/standard
+DELETE  /api/reports/folders/{id}
+PUT     /api/reports/folders/{id}
+DELETE  /api/reports/{id}
+GET     /api/reports/{id}
+PUT     /api/reports/{id}
+POST    /api/reports/{id}/clone
+POST    /api/reports/{id}/execute
+GET     /api/reports/{id}/export/{format}
+DELETE  /api/reports/{id}/favorite
+POST    /api/reports/{id}/favorite
+GET     /api/reports/{id}/history
+POST    /api/reports/{id}/move/{folderId}
+GET     /api/reports/{id}/preview
+POST    /api/reports/{id}/share
+GET     /api/reports/{id}/sharing
+GET     /api/reports/{reportId}/history/{executionId}
+GET     /api/reports/{reportId}/schedules
+POST    /api/reports/{reportId}/schedules
+DELETE  /api/reports/{reportId}/schedules/{scheduleId}
+PUT     /api/reports/{reportId}/schedules/{scheduleId}
+POST    /api/reports/{reportId}/schedules/{scheduleId}/toggle
+```
+
+</details>
+
+### 10.9 Workflows & Automation (85 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/webhooks` | WebhooksController | 8 | GET:1, POST:7 |
+| `/api/webhooks/docuseal` | DocuSealWebhookController | 2 | GET:1, POST:1 |
+| `/api/workflow-instances` | WorkflowInstanceController | 27 | GET:13, POST:14 |
+| `/api/workflow-triggers` | WorkflowTriggersController | 16 | DELETE:1, GET:5, POST:9, PUT:1 |
+| `/api/workflows` | WorkflowController | 32 | DELETE:4, GET:11, POST:10, PUT:7 |
+
+<details>
+<summary>All Workflows & Automation endpoints</summary>
+
+```
+POST    /api/webhooks/email/inbound
+POST    /api/webhooks/facebook
+POST    /api/webhooks/instagram
+POST    /api/webhooks/linkedin
+POST    /api/webhooks/twitter
+GET     /api/webhooks/verify
+POST    /api/webhooks/web-form
+POST    /api/webhooks/whatsapp
+POST    /api/webhooks/docuseal
+GET     /api/webhooks/docuseal/health
+GET     /api/workflow-instances
+POST    /api/workflow-instances
+POST    /api/workflow-instances/bulk-start
+POST    /api/workflow-instances/callout/test
+POST    /api/workflow-instances/callout/validate
+GET     /api/workflow-instances/dashboard
+GET     /api/workflow-instances/definitions/{definitionId}/audit-log
+GET     /api/workflow-instances/definitions/{definitionId}/audit-log/export
+GET     /api/workflow-instances/entity/{entityType}/{entityId}
+GET     /api/workflow-instances/my-tasks
+GET     /api/workflow-instances/statistics
+GET     /api/workflow-instances/waiting-nodes
+POST    /api/workflow-instances/waiting-nodes/{nodeInstanceId}/resume
+POST    /api/workflow-instances/tasks/{taskId}/claim
+POST    /api/workflow-instances/tasks/{taskId}/complete
+POST    /api/workflow-instances/tasks/{taskId}/reassign
+GET     /api/workflow-instances/{id}
+POST    /api/workflow-instances/{id}/advance/{nodeInstanceId}
+POST    /api/workflow-instances/{id}/cancel
+GET     /api/workflow-instances/{id}/child-instances
+GET     /api/workflow-instances/{id}/logs
+GET     /api/workflow-instances/{id}/parallel-branches
+POST    /api/workflow-instances/{id}/pause
+POST    /api/workflow-instances/{id}/resume
+POST    /api/workflow-instances/{id}/retry
+POST    /api/workflow-instances/{id}/skip-node/{nodeId}
+GET     /api/workflow-instances/{id}/timeline
+GET     /api/workflow-triggers
+POST    /api/workflow-triggers
+POST    /api/workflow-triggers/evaluate
+GET     /api/workflow-triggers/scheduled/due
+GET     /api/workflow-triggers/statistics
+POST    /api/workflow-triggers/validate/cron
+POST    /api/workflow-triggers/validate/filter
+GET     /api/workflow-triggers/workflow/{workflowDefinitionId}
+DELETE  /api/workflow-triggers/{id}
+GET     /api/workflow-triggers/{id}
+PUT     /api/workflow-triggers/{id}
+POST    /api/workflow-triggers/{id}/activate
+POST    /api/workflow-triggers/{id}/deactivate
+POST    /api/workflow-triggers/{id}/fire
+POST    /api/workflow-triggers/{id}/record-execution
+POST    /api/workflow-triggers/{id}/update-schedule
+GET     /api/workflows
+POST    /api/workflows
+GET     /api/workflows/categories
+GET     /api/workflows/config
+GET     /api/workflows/entity-types
+GET     /api/workflows/llm-settings
+PUT     /api/workflows/llm-settings
+POST    /api/workflows/llm-settings/initialize
+POST    /api/workflows/llm-settings/reset
+GET     /api/workflows/node-types
+GET     /api/workflows/statistics
+DELETE  /api/workflows/nodes/{nodeId}
+PUT     /api/workflows/nodes/{nodeId}
+DELETE  /api/workflows/transitions/{transitionId}
+PUT     /api/workflows/transitions/{transitionId}
+GET     /api/workflows/versions/compare
+DELETE  /api/workflows/versions/{versionId}
+GET     /api/workflows/versions/{versionId}
+PUT     /api/workflows/versions/{versionId}
+PUT     /api/workflows/versions/{versionId}/layout
+POST    /api/workflows/versions/{versionId}/nodes
+PUT     /api/workflows/versions/{versionId}/nodes/positions
+POST    /api/workflows/versions/{versionId}/publish
+POST    /api/workflows/versions/{versionId}/transitions
+DELETE  /api/workflows/{id}
+GET     /api/workflows/{id}
+PUT     /api/workflows/{id}
+POST    /api/workflows/{id}/activate/{versionId}
+POST    /api/workflows/{id}/pause
+POST    /api/workflows/{workflowId}/rollback/{versionId}
+GET     /api/workflows/{workflowId}/versions
+POST    /api/workflows/{workflowId}/versions
+```
+
+</details>
+
+### 10.10 Communications (46 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/calendar` | CalendarIntegrationController | 10 | DELETE:1, GET:7, POST:1, PUT:1 |
+| `/api/communications` | CommunicationsController | 21 | DELETE:3, GET:9, PATCH:3, POST:4, PUT:2 |
+| `/api/conversations` | ConversationsController | 9 | DELETE:1, GET:4, PATCH:1, POST:2, PUT:1 |
+| `/api/news-social` | NewsSocialController | 6 | GET:4, POST:2 |
+
+<details>
+<summary>All Communications endpoints</summary>
+
+```
+GET     /api/calendar/callback/google
+GET     /api/calendar/callback/outlook
+GET     /api/calendar/connect/google
+GET     /api/calendar/connect/outlook
+GET     /api/calendar/integrations
+PUT     /api/calendar/integrations/{id}
+DELETE  /api/calendar/integrations/{provider}
+GET     /api/calendar/integrations/{provider}
+POST    /api/calendar/sync/{provider}
+GET     /api/calendar/sync/{provider}/history
+GET     /api/communications/channels
+POST    /api/communications/channels
+DELETE  /api/communications/channels/{id}
+GET     /api/communications/channels/{id}
+PUT     /api/communications/channels/{id}
+POST    /api/communications/channels/{id}/test
+GET     /api/communications/conversations
+GET     /api/communications/conversations/{id}
+GET     /api/communications/messages
+POST    /api/communications/messages/send
+DELETE  /api/communications/messages/{id}
+GET     /api/communications/messages/{id}
+PATCH   /api/communications/messages/{id}/archive
+PATCH   /api/communications/messages/{id}/read
+PATCH   /api/communications/messages/{id}/star
+GET     /api/communications/stats
+GET     /api/communications/templates
+POST    /api/communications/templates
+DELETE  /api/communications/templates/{id}
+GET     /api/communications/templates/{id}
+PUT     /api/communications/templates/{id}
+GET     /api/conversations
+POST    /api/conversations
+GET     /api/conversations/by-conversation-id/{conversationId}
+GET     /api/conversations/by-entity/{entityType}/{entityId}
+GET     /api/conversations/{id}
+DELETE  /api/conversations/{id}
+PUT     /api/conversations/{id}
+POST    /api/conversations/{id}/assign
+PATCH   /api/conversations/{id}/status
+GET     /api/news-social/news
+GET     /api/news-social/social
+GET     /api/news-social/status
+GET     /api/news-social/{customerId}
+POST    /api/news-social/refresh/{customerId}
+POST    /api/news-social/sentiment
+```
+
+</details>
+
+### 10.11 Administration (241 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/admin/features` | FeaturesController | 4 | GET:4 |
+| `/api/adminsettings` | AdminSettingsController | 31 | DELETE:4, GET:12, POST:12, PUT:3 |
+| `/api/ai` | AIAnalyticsController | 21 | DELETE:1, GET:10, POST:9, PUT:1 |
+| `/api/colorpalettes` | ColorPalettesController | 10 | DELETE:1, GET:7, POST:2 |
+| `/api/email` | EmailIntegrationController | 5 | DELETE:1, GET:1, POST:2, PUT:1 |
+| `/api/emailtemplates` | EmailTemplatesController | 8 | DELETE:1, GET:3, POST:3, PUT:1 |
+| `/api/fieldmasterdatas` | FieldMasterDataController | 9 | DELETE:1, GET:5, POST:2, PUT:1 |
+| `/api/fileuploads` | FileUploadController | 6 | DELETE:1, POST:5 |
+| `/api/importexports` | ImportExportController | 4 | GET:3, POST:1 |
+| `/api/lookups` | LookupsController | 2 | GET:2 |
+| `/api/masterdatas` | MasterDataController | 18 | DELETE:3, GET:8, POST:5, PUT:2 |
+| `/api/modulefieldconfigurations` | ModuleFieldConfigurationsController | 8 | DELETE:1, GET:2, POST:4, PUT:1 |
+| `/api/moduleuiconfigs` | ModuleUIConfigController | 12 | GET:3, POST:4, PUT:5 |
+| `/api/navigations` | NavigationController | 10 | GET:9, POST:1 |
+| `/api/normalizations` | NormalizationController | 8 | GET:8 |
+| `/api/postalcodes` | ZipCodesController | 16 | GET:12, POST:4 |
+| `/api/sampledatas` | SampleDataController | 10 | DELETE:1, GET:1, POST:8 |
+| `/api/systemsettings` | SystemSettingsController | 19 | DELETE:3, GET:7, POST:6, PUT:3 |
+| `/api/tasks` | TasksController | 9 | DELETE:1, GET:5, POST:2, PUT:1 |
+| `/api/teams` | TeamsController | 31 | DELETE:4, GET:18, POST:5, PUT:4 |
+
+### 10.12 Infrastructure (66 endpoints)
+
+| Base Route | Controller | Endpoints | Methods |
+|------------|-----------|-----------|---------|
+| `/api/clouddeployments` | CloudDeploymentController | 23 | DELETE:2, GET:11, POST:8, PUT:2 |
+| `/api/databases` | DatabaseController | 18 | GET:7, POST:10, PUT:1 |
+| `/api/health` | ProviderHealthController | 3 | GET:3 |
+| `/api/monitorings` | MonitoringController | 19 | GET:19 |
+| `/healths` | HealthController | 3 | GET:3 |
+
+<details>
+<summary>All Infrastructure endpoints</summary>
+
+```
+GET     /api/clouddeployments/attempts/{attemptId}
+GET     /api/clouddeployments/attempts/{attemptId}/logs
+GET     /api/clouddeployments/dashboard
+GET     /api/clouddeployments/deployments
+POST    /api/clouddeployments/deployments
+DELETE  /api/clouddeployments/deployments/{id}
+GET     /api/clouddeployments/deployments/{id}
+PUT     /api/clouddeployments/deployments/{id}
+GET     /api/clouddeployments/deployments/{deploymentId}/attempts
+POST    /api/clouddeployments/deployments/{deploymentId}/health-check
+GET     /api/clouddeployments/deployments/{deploymentId}/health-history
+POST    /api/clouddeployments/deployments/{id}/deploy
+POST    /api/clouddeployments/deployments/{id}/restart
+POST    /api/clouddeployments/deployments/{id}/scale
+POST    /api/clouddeployments/deployments/{id}/stop
+GET     /api/clouddeployments/health
+GET     /api/clouddeployments/providers
+POST    /api/clouddeployments/providers
+POST    /api/clouddeployments/providers/test
+DELETE  /api/clouddeployments/providers/{id}
+GET     /api/clouddeployments/providers/{id}
+PUT     /api/clouddeployments/providers/{id}
+GET     /api/clouddeployments/providers/{id}/resources/{resourceType}
+POST    /api/databases/backup
+GET     /api/databases/backups
+POST    /api/databases/clear-data
+GET     /api/databases/foreign-keys
+POST    /api/databases/generate-migration-script
+GET     /api/databases/generate-seed-script
+GET     /api/databases/linked-entities-schema
+POST    /api/databases/migrate
+POST    /api/databases/optimize
+GET     /api/databases/providers
+POST    /api/databases/rebuild-indexes
+POST    /api/databases/refresh-statistics
+POST    /api/databases/reseed
+POST    /api/databases/restore/{backupId}
+GET     /api/databases/statistics-schedule
+PUT     /api/databases/statistics-schedule
+GET     /api/databases/status
+POST    /api/databases/test-connection
+GET     /api/health/providers
+GET     /api/health/providers/registry
+GET     /api/health/providers/{category}
+GET     /api/monitorings/all
+GET     /api/monitorings/config
+GET     /api/monitorings/containers
+GET     /api/monitorings/database
+GET     /api/monitorings/environment
+GET     /api/monitorings/health
+GET     /api/monitorings/health/detailed
+GET     /api/monitorings/health/live
+GET     /api/monitorings/health/ready
+GET     /api/monitorings/infrastructure
+GET     /api/monitorings/pods
+GET     /api/monitorings/portainer/containers
+GET     /api/monitorings/portainer/status
+GET     /api/monitorings/services
+GET     /api/monitorings/sessions
+GET     /api/monitorings/system
+GET     /api/monitorings/tools/status
+GET     /api/monitorings/uptime-kuma/monitors
+GET     /api/monitorings/uptime-kuma/status
+GET     /healths
+GET     /healths/live
+GET     /healths/ready
+```
+
+</details>
+
+### 10.13 Pagination
+
+```json
+// Request
+GET /api/accounts?page=1&pageSize=20&sortBy=name&sortOrder=asc
+
+// Response
+{
+  "items": [...],
+  "totalCount": 150,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 8
+}
 ```
 
 ---

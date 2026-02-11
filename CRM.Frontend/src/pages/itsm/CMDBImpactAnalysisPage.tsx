@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Box, Typography, Paper, CircularProgress, List, ListItem, ListItemText } from '@mui/material';
 import apiClient from '../../services/apiClient';
 
 const CMDBImpactAnalysisPage: React.FC = () => {
@@ -23,22 +24,26 @@ const CMDBImpactAnalysisPage: React.FC = () => {
   }, [id]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Impact Analysis</h1>
-      <div className="bg-white rounded-lg shadow-md p-6">
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
+        Impact Analysis
+      </Typography>
+      <Paper sx={{ p: 3 }}>
         {loading ? (
-          <div>Loading...</div>
+          <CircularProgress />
         ) : impacts.length === 0 ? (
-          <div className="text-gray-600">No impacts found.</div>
+          <Typography color="text.secondary">No impacts found.</Typography>
         ) : (
-          <ul className="list-disc pl-6 space-y-2">
+          <List>
             {impacts.map((impact, index) => (
-              <li key={index} className="text-gray-700">{impact}</li>
+              <ListItem key={index}>
+                <ListItemText primary={impact} />
+              </ListItem>
             ))}
-          </ul>
+          </List>
         )}
-      </div>
-    </div>
+      </Paper>
+    </Box>
   );
 };
 

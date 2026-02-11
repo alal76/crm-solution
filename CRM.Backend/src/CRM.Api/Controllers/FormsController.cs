@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -44,6 +45,7 @@ public class FormsController : ControllerBase
     /// Get all form definitions with optional filtering.
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<FormDefinition>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<FormDefinition>>> GetAllForms(
         [FromQuery] FormStatus? status = null,
         [FromQuery] int? ownerId = null,
@@ -58,6 +60,8 @@ public class FormsController : ControllerBase
     /// Get a form definition by ID.
     /// </summary>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(FormDefinition), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FormDefinition>> GetFormById(int id, CancellationToken cancellationToken)
     {
         var form = await _formService.GetFormByIdAsync(id, cancellationToken);
@@ -73,6 +77,8 @@ public class FormsController : ControllerBase
     /// </summary>
     [HttpGet("by-key/{formKey}")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(FormDefinition), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FormDefinition>> GetFormByKey(string formKey, CancellationToken cancellationToken)
     {
         var form = await _formService.GetFormByKeyAsync(formKey, cancellationToken);
@@ -87,6 +93,8 @@ public class FormsController : ControllerBase
     /// Create a new form definition.
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(typeof(FormDefinition), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FormDefinition>> CreateForm(
         [FromBody] FormDefinition form,
         CancellationToken cancellationToken)
@@ -99,6 +107,8 @@ public class FormsController : ControllerBase
     /// Update an existing form definition.
     /// </summary>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(typeof(FormDefinition), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FormDefinition>> UpdateForm(
         int id,
         [FromBody] FormDefinition form,
@@ -117,6 +127,8 @@ public class FormsController : ControllerBase
     /// Delete a form definition (soft delete).
     /// </summary>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteForm(int id, CancellationToken cancellationToken)
     {
         var result = await _formService.DeleteFormAsync(id, cancellationToken);
@@ -131,6 +143,8 @@ public class FormsController : ControllerBase
     /// Clone an existing form.
     /// </summary>
     [HttpPost("{id:int}/clone")]
+    [ProducesResponseType(typeof(FormDefinition), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FormDefinition>> CloneForm(
         int id,
         [FromQuery] string newName,
@@ -148,6 +162,7 @@ public class FormsController : ControllerBase
     /// Publish a form (make it active for submissions).
     /// </summary>
     [HttpPost("{id:int}/publish")]
+    [ProducesResponseType(typeof(FormDefinition), StatusCodes.Status200OK)]
     public async Task<ActionResult<FormDefinition>> PublishForm(int id, CancellationToken cancellationToken)
     {
         var form = await _formService.PublishFormAsync(id, cancellationToken);
@@ -158,6 +173,7 @@ public class FormsController : ControllerBase
     /// Unpublish a form.
     /// </summary>
     [HttpPost("{id:int}/unpublish")]
+    [ProducesResponseType(typeof(FormDefinition), StatusCodes.Status200OK)]
     public async Task<ActionResult<FormDefinition>> UnpublishForm(int id, CancellationToken cancellationToken)
     {
         var form = await _formService.UnpublishFormAsync(id, cancellationToken);
@@ -168,6 +184,7 @@ public class FormsController : ControllerBase
     /// Archive a form.
     /// </summary>
     [HttpPost("{id:int}/archive")]
+    [ProducesResponseType(typeof(FormDefinition), StatusCodes.Status200OK)]
     public async Task<ActionResult<FormDefinition>> ArchiveForm(int id, CancellationToken cancellationToken)
     {
         var form = await _formService.ArchiveFormAsync(id, cancellationToken);
@@ -178,6 +195,7 @@ public class FormsController : ControllerBase
     /// Update form status.
     /// </summary>
     [HttpPut("{id:int}/status")]
+    [ProducesResponseType(typeof(FormDefinition), StatusCodes.Status200OK)]
     public async Task<ActionResult<FormDefinition>> UpdateFormStatus(
         int id,
         [FromBody] FormStatusRequest request,
@@ -195,6 +213,7 @@ public class FormsController : ControllerBase
     /// Get all fields for a form.
     /// </summary>
     [HttpGet("{formId:int}/fields")]
+    [ProducesResponseType(typeof(IEnumerable<FormField>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<FormField>>> GetFormFields(int formId, CancellationToken cancellationToken)
     {
         var fields = await _formService.GetFormFieldsAsync(formId, cancellationToken);
@@ -205,6 +224,8 @@ public class FormsController : ControllerBase
     /// Get a specific field by ID.
     /// </summary>
     [HttpGet("fields/{fieldId:int}")]
+    [ProducesResponseType(typeof(FormField), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FormField>> GetFieldById(int fieldId, CancellationToken cancellationToken)
     {
         var field = await _formService.GetFieldByIdAsync(fieldId, cancellationToken);
@@ -219,6 +240,8 @@ public class FormsController : ControllerBase
     /// Add a new field to a form.
     /// </summary>
     [HttpPost("{formId:int}/fields")]
+    [ProducesResponseType(typeof(FormField), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FormField>> AddField(
         int formId,
         [FromBody] FormField field,
@@ -232,6 +255,8 @@ public class FormsController : ControllerBase
     /// Update an existing field.
     /// </summary>
     [HttpPut("fields/{fieldId:int}")]
+    [ProducesResponseType(typeof(FormField), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FormField>> UpdateField(
         int fieldId,
         [FromBody] FormField field,
@@ -250,6 +275,8 @@ public class FormsController : ControllerBase
     /// Remove a field from a form.
     /// </summary>
     [HttpDelete("fields/{fieldId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RemoveField(int fieldId, CancellationToken cancellationToken)
     {
         var result = await _formService.RemoveFieldAsync(fieldId, cancellationToken);
@@ -264,6 +291,7 @@ public class FormsController : ControllerBase
     /// Reorder fields within a form.
     /// </summary>
     [HttpPut("{formId:int}/fields/reorder")]
+    [ProducesResponseType(typeof(IEnumerable<FormField>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<FormField>>> ReorderFields(
         int formId,
         [FromBody] List<int> fieldIdsInOrder,
@@ -277,6 +305,7 @@ public class FormsController : ControllerBase
     /// Bulk update fields.
     /// </summary>
     [HttpPut("{formId:int}/fields/bulk")]
+    [ProducesResponseType(typeof(IEnumerable<FormField>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<FormField>>> BulkUpdateFields(
         int formId,
         [FromBody] List<FormField> fields,
@@ -294,6 +323,7 @@ public class FormsController : ControllerBase
     /// Get all submissions for a form.
     /// </summary>
     [HttpGet("{formId:int}/submissions")]
+    [ProducesResponseType(typeof(IEnumerable<FormSubmission>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<FormSubmission>>> GetSubmissions(
         int formId,
         [FromQuery] SubmissionStatus? status = null,
@@ -309,6 +339,8 @@ public class FormsController : ControllerBase
     /// Get a specific submission by ID.
     /// </summary>
     [HttpGet("submissions/{submissionId:int}")]
+    [ProducesResponseType(typeof(FormSubmission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FormSubmission>> GetSubmissionById(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await _formService.GetSubmissionByIdAsync(submissionId, cancellationToken);
@@ -323,6 +355,8 @@ public class FormsController : ControllerBase
     /// Get a submission by reference number.
     /// </summary>
     [HttpGet("submissions/by-number/{submissionNumber}")]
+    [ProducesResponseType(typeof(FormSubmission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FormSubmission>> GetSubmissionByNumber(string submissionNumber, CancellationToken cancellationToken)
     {
         var submission = await _formService.GetSubmissionByNumberAsync(submissionNumber, cancellationToken);
@@ -338,6 +372,8 @@ public class FormsController : ControllerBase
     /// </summary>
     [HttpPost("{formId:int}/submit")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(FormSubmissionResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FormSubmissionResult>> ProcessSubmission(
         int formId,
         [FromBody] FormSubmissionRequest request,
@@ -370,6 +406,7 @@ public class FormsController : ControllerBase
     /// Reprocess a failed submission.
     /// </summary>
     [HttpPost("submissions/{submissionId:int}/reprocess")]
+    [ProducesResponseType(typeof(FormSubmissionResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<FormSubmissionResult>> ReprocessSubmission(int submissionId, CancellationToken cancellationToken)
     {
         var result = await _formService.ReprocessSubmissionAsync(submissionId, cancellationToken);
@@ -380,6 +417,7 @@ public class FormsController : ControllerBase
     /// Mark a submission as spam.
     /// </summary>
     [HttpPost("submissions/{submissionId:int}/mark-spam")]
+    [ProducesResponseType(typeof(FormSubmission), StatusCodes.Status200OK)]
     public async Task<ActionResult<FormSubmission>> MarkAsSpam(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await _formService.MarkAsSpamAsync(submissionId, cancellationToken);
@@ -390,6 +428,7 @@ public class FormsController : ControllerBase
     /// Mark a submission as not spam.
     /// </summary>
     [HttpPost("submissions/{submissionId:int}/mark-not-spam")]
+    [ProducesResponseType(typeof(FormSubmission), StatusCodes.Status200OK)]
     public async Task<ActionResult<FormSubmission>> MarkAsNotSpam(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await _formService.MarkAsNotSpamAsync(submissionId, cancellationToken);
@@ -400,6 +439,8 @@ public class FormsController : ControllerBase
     /// Delete a submission.
     /// </summary>
     [HttpDelete("submissions/{submissionId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteSubmission(int submissionId, CancellationToken cancellationToken)
     {
         var result = await _formService.DeleteSubmissionAsync(submissionId, cancellationToken);
@@ -418,6 +459,8 @@ public class FormsController : ControllerBase
     /// Send opt-in confirmation email.
     /// </summary>
     [HttpPost("submissions/{submissionId:int}/send-optin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> SendOptInConfirmation(int submissionId, CancellationToken cancellationToken)
     {
         var result = await _formService.SendOptInConfirmationAsync(submissionId, cancellationToken);
@@ -433,6 +476,8 @@ public class FormsController : ControllerBase
     /// </summary>
     [HttpGet("confirm-optin/{token}")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(FormSubmission), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FormSubmission>> ConfirmOptIn(string token, CancellationToken cancellationToken)
     {
         var submission = await _formService.ConfirmOptInAsync(token, cancellationToken);
@@ -452,6 +497,7 @@ public class FormsController : ControllerBase
     /// </summary>
     [HttpPost("{formId:int}/validate")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(FormValidationResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<FormValidationResult>> ValidateFormData(
         int formId,
         [FromBody] Dictionary<string, object> formData,
@@ -466,6 +512,7 @@ public class FormsController : ControllerBase
     /// </summary>
     [HttpPost("fields/{fieldId:int}/validate")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(FieldValidationResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<FieldValidationResult>> ValidateField(
         int fieldId,
         [FromBody] object? value,
@@ -483,6 +530,7 @@ public class FormsController : ControllerBase
     /// Calculate spam score for submission data.
     /// </summary>
     [HttpPost("{formId:int}/spam-score")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
     public async Task<ActionResult<int>> CalculateSpamScore(
         int formId,
         [FromBody] FormSubmissionRequest request,
@@ -508,6 +556,7 @@ public class FormsController : ControllerBase
     /// Generate embed code for a form.
     /// </summary>
     [HttpGet("{formId:int}/embed-code")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<ActionResult<string>> GenerateEmbedCode(
         int formId,
         [FromQuery] string? baseUrl = null,
@@ -521,6 +570,7 @@ public class FormsController : ControllerBase
     /// Generate direct URL for standalone form page.
     /// </summary>
     [HttpGet("{formId:int}/direct-url")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<ActionResult<string>> GenerateDirectUrl(
         int formId,
         [FromQuery] string? baseUrl = null,
@@ -538,6 +588,7 @@ public class FormsController : ControllerBase
     /// Get form statistics.
     /// </summary>
     [HttpGet("{formId:int}/statistics")]
+    [ProducesResponseType(typeof(FormStatistics), StatusCodes.Status200OK)]
     public async Task<ActionResult<FormStatistics>> GetFormStatistics(
         int formId,
         [FromQuery] DateTime? fromDate = null,
@@ -552,6 +603,7 @@ public class FormsController : ControllerBase
     /// Get submission statistics across all forms.
     /// </summary>
     [HttpGet("statistics/submissions")]
+    [ProducesResponseType(typeof(FormSubmissionStatistics), StatusCodes.Status200OK)]
     public async Task<ActionResult<FormSubmissionStatistics>> GetSubmissionStatistics(
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
@@ -565,6 +617,7 @@ public class FormsController : ControllerBase
     /// Get field-level statistics.
     /// </summary>
     [HttpGet("{formId:int}/field-statistics")]
+    [ProducesResponseType(typeof(IEnumerable<FormFieldStatistics>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<FormFieldStatistics>>> GetFieldStatistics(
         int formId,
         CancellationToken cancellationToken)
@@ -578,6 +631,7 @@ public class FormsController : ControllerBase
     /// </summary>
     [HttpPost("{formId:int}/view")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> IncrementViewCount(int formId, CancellationToken cancellationToken)
     {
         await _formService.IncrementViewCountAsync(formId, cancellationToken);
@@ -592,6 +646,7 @@ public class FormsController : ControllerBase
     /// Get available form templates.
     /// </summary>
     [HttpGet("templates")]
+    [ProducesResponseType(typeof(IEnumerable<FormTemplate>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<FormTemplate>>> GetFormTemplates(CancellationToken cancellationToken)
     {
         var templates = await _formService.GetFormTemplatesAsync(cancellationToken);
@@ -602,6 +657,8 @@ public class FormsController : ControllerBase
     /// Create a form from a template.
     /// </summary>
     [HttpPost("from-template")]
+    [ProducesResponseType(typeof(FormDefinition), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FormDefinition>> CreateFromTemplate(
         [FromBody] CreateFromTemplateRequest request,
         CancellationToken cancellationToken)

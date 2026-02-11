@@ -18,6 +18,7 @@ using System.Security.Claims;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
@@ -55,6 +56,8 @@ public class EmailIntegrationController : ControllerBase
     /// Get all email integrations for the current user.
     /// </summary>
     [HttpGet("integrations")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetIntegrations()
     {
         var userId = GetCurrentUserId();
@@ -88,6 +91,9 @@ public class EmailIntegrationController : ControllerBase
     /// Create or update an email integration.
     /// </summary>
     [HttpPost("integrations")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> CreateOrUpdateIntegration([FromBody] EmailIntegrationCreateDto dto)
     {
         var userId = GetCurrentUserId();
@@ -142,6 +148,8 @@ public class EmailIntegrationController : ControllerBase
     /// Update integration settings.
     /// </summary>
     [HttpPut("integrations/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UpdateIntegration(int id, [FromBody] EmailIntegrationUpdateDto dto)
     {
         var userId = GetCurrentUserId();
@@ -184,6 +192,9 @@ public class EmailIntegrationController : ControllerBase
     /// Trigger sync for a specific integration.
     /// </summary>
     [HttpPost("integrations/{id}/sync")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SyncNow(int id)
     {
         var userId = GetCurrentUserId();
@@ -216,6 +227,9 @@ public class EmailIntegrationController : ControllerBase
     /// Disconnect an email integration.
     /// </summary>
     [HttpDelete("integrations/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Disconnect(int id)
     {
         var userId = GetCurrentUserId();

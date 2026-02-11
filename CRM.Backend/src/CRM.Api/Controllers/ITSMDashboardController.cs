@@ -16,6 +16,7 @@
 
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
@@ -46,6 +47,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get overall ITSM metrics — aggregated from incident, problem, change, and SLA services.
     /// </summary>
     [HttpGet("metrics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetMetrics(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -95,6 +97,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get incident trends and creation/resolution counts.
     /// </summary>
     [HttpGet("incident-trends")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetIncidentTrendsBvt(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -131,6 +134,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get SLA compliance data.
     /// </summary>
     [HttpGet("sla-compliance")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetSlaComplianceBvt(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -171,6 +175,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get agent performance metrics.
     /// </summary>
     [HttpGet("agent-performance")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetAgentPerformanceBvt(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -198,6 +203,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get executive summary — composite view from all ITSM domains.
     /// </summary>
     [HttpGet("executive-summary")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetExecutiveSummaryBvt(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -261,6 +267,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get incident category breakdown.
     /// </summary>
     [HttpGet("category-breakdown")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetCategoryBreakdown(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -298,6 +305,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get incident trends and statistics.
     /// </summary>
     [HttpGet("incidents")]
+    [ProducesResponseType(typeof(IncidentTrendsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<IncidentTrendsDto>> GetIncidentTrends(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -313,6 +321,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get problem analytics.
     /// </summary>
     [HttpGet("problems")]
+    [ProducesResponseType(typeof(ProblemAnalyticsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ProblemAnalyticsDto>> GetProblemAnalytics(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -328,6 +337,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get change management statistics.
     /// </summary>
     [HttpGet("changes")]
+    [ProducesResponseType(typeof(ChangeStatisticsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ChangeStatisticsDto>> GetChangeStatistics(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -343,6 +353,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get SLA compliance metrics.
     /// </summary>
     [HttpGet("sla")]
+    [ProducesResponseType(typeof(SLAComplianceDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SLAComplianceDto>> GetSLACompliance(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -358,6 +369,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get agent performance metrics.
     /// </summary>
     [HttpGet("agents")]
+    [ProducesResponseType(typeof(List<AgentPerformanceDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<AgentPerformanceDto>>> GetAgentPerformance(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -373,6 +385,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get CMDB health overview.
     /// </summary>
     [HttpGet("cmdb")]
+    [ProducesResponseType(typeof(CMDBHealthDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<CMDBHealthDto>> GetCMDBHealth()
     {
         var result = await _dashboardService.GetCMDBHealthAsync();
@@ -383,6 +396,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get knowledge base analytics.
     /// </summary>
     [HttpGet("knowledge")]
+    [ProducesResponseType(typeof(KnowledgeAnalyticsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<KnowledgeAnalyticsDto>> GetKnowledgeAnalytics(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)
@@ -398,6 +412,7 @@ public class ITSMDashboardController : ControllerBase
     /// Get executive summary dashboard.
     /// </summary>
     [HttpGet("executive")]
+    [ProducesResponseType(typeof(ExecutiveSummaryDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ExecutiveSummaryDto>> GetExecutiveSummary(
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate)

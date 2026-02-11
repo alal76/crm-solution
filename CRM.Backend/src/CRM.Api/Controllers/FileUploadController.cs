@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
@@ -54,6 +55,8 @@ public class FileUploadController : ControllerBase
     /// </summary>
     [HttpPost("logo")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FileUploadResponse>> UploadLogo(IFormFile file)
     {
         // For nav logos, resize to 150x150 and return base64 data URL
@@ -66,6 +69,8 @@ public class FileUploadController : ControllerBase
     /// </summary>
     [HttpPost("login-logo")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FileUploadResponse>> UploadLoginLogo(IFormFile file)
     {
         // For login logos, resize to 400px width maintaining aspect ratio
@@ -76,6 +81,8 @@ public class FileUploadController : ControllerBase
     /// Upload a user photo
     /// </summary>
     [HttpPost("user-photo")]
+    [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FileUploadResponse>> UploadUserPhoto(IFormFile file)
     {
         return await UploadFileAsBase64(file);
@@ -85,6 +92,8 @@ public class FileUploadController : ControllerBase
     /// Upload a customer logo
     /// </summary>
     [HttpPost("customer-logo")]
+    [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FileUploadResponse>> UploadCustomerLogo(IFormFile file)
     {
         return await UploadFileAsBase64(file);
@@ -94,6 +103,8 @@ public class FileUploadController : ControllerBase
     /// Upload a contact photo
     /// </summary>
     [HttpPost("contact-photo")]
+    [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FileUploadResponse>> UploadContactPhoto(IFormFile file)
     {
         return await UploadFileAsBase64(file);
@@ -244,6 +255,9 @@ public class FileUploadController : ControllerBase
     /// Delete an uploaded file
     /// </summary>
     [HttpDelete]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult DeleteFile([FromQuery] string path)
     {
         try

@@ -17,6 +17,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.API.Controllers;
@@ -42,6 +43,7 @@ public class FieldMasterDataController : ControllerBase
     /// Get all master data links for a specific field
     /// </summary>
     [HttpGet("field/{fieldConfigurationId}")]
+    [ProducesResponseType(typeof(List<FieldMasterDataLinkDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<FieldMasterDataLinkDto>>> GetLinksForField(int fieldConfigurationId)
     {
         var links = await _service.GetLinksForFieldAsync(fieldConfigurationId);
@@ -52,6 +54,7 @@ public class FieldMasterDataController : ControllerBase
     /// Get all master data links for a module
     /// </summary>
     [HttpGet("module/{moduleName}")]
+    [ProducesResponseType(typeof(Dictionary<int, List<FieldMasterDataLinkDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<Dictionary<int, List<FieldMasterDataLinkDto>>>> GetLinksForModule(string moduleName)
     {
         var links = await _service.GetLinksForModuleAsync(moduleName);
@@ -62,6 +65,8 @@ public class FieldMasterDataController : ControllerBase
     /// Get a specific master data link by ID
     /// </summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(FieldMasterDataLinkDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FieldMasterDataLinkDto>> GetLinkById(int id)
     {
         var link = await _service.GetLinkByIdAsync(id);
@@ -74,6 +79,8 @@ public class FieldMasterDataController : ControllerBase
     /// Create a new master data link
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(typeof(FieldMasterDataLinkDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<FieldMasterDataLinkDto>> CreateLink([FromBody] CreateFieldMasterDataLinkDto dto)
     {
         try
@@ -92,6 +99,9 @@ public class FieldMasterDataController : ControllerBase
     /// Update an existing master data link
     /// </summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(FieldMasterDataLinkDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FieldMasterDataLinkDto>> UpdateLink(int id, [FromBody] CreateFieldMasterDataLinkDto dto)
     {
         try
@@ -114,6 +124,8 @@ public class FieldMasterDataController : ControllerBase
     /// Delete a master data link
     /// </summary>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteLink(int id)
     {
         var result = await _service.DeleteLinkAsync(id);
@@ -126,6 +138,7 @@ public class FieldMasterDataController : ControllerBase
     /// Get all available master data sources
     /// </summary>
     [HttpGet("sources")]
+    [ProducesResponseType(typeof(List<MasterDataSourceDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<MasterDataSourceDto>>> GetAvailableSources()
     {
         var sources = await _service.GetAvailableSourcesAsync();
@@ -136,6 +149,7 @@ public class FieldMasterDataController : ControllerBase
     /// Get master data lookup values for a field
     /// </summary>
     [HttpGet("lookup/{fieldConfigurationId}")]
+    [ProducesResponseType(typeof(List<MasterDataLookupResultDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<MasterDataLookupResultDto>>> GetLookupData(
         int fieldConfigurationId,
         [FromQuery] string? search = null,
@@ -165,6 +179,7 @@ public class FieldMasterDataController : ControllerBase
     /// Validate a value against field's master data constraints
     /// </summary>
     [HttpPost("validate/{fieldConfigurationId}")]
+    [ProducesResponseType(typeof(ValidationResultDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ValidationResultDto>> ValidateValue(
         int fieldConfigurationId,
         [FromBody] ValidateValueRequestDto request)

@@ -283,6 +283,8 @@ public class CommunicationService : ICommunicationService
                     ChannelType.WhatsApp => await TestWhatsAppChannelAsync(channel),
                     ChannelType.Facebook => await TestFacebookChannelAsync(channel),
                     ChannelType.Twitter => await TestTwitterChannelAsync(channel),
+                    ChannelType.SMS => await TestSmsChannelAsync(channel),
+                    ChannelType.LinkedIn => await TestLinkedInChannelAsync(channel),
                     _ => false
                 };
             }
@@ -407,6 +409,10 @@ public class CommunicationService : ICommunicationService
                 {
                     ChannelType.Email => await SendEmailAsync(channel, message, request),
                     ChannelType.WhatsApp => await SendWhatsAppAsync(channel, message, request),
+                    ChannelType.Twitter => await SendTwitterAsync(channel, message, request),
+                    ChannelType.Facebook => await SendFacebookAsync(channel, message, request),
+                    ChannelType.SMS => await SendSmsAsync(channel, message, request),
+                    ChannelType.LinkedIn => await SendLinkedInAsync(channel, message, request),
                     _ => false
                 };
 
@@ -637,6 +643,126 @@ public class CommunicationService : ICommunicationService
         // TODO: Integrate with IChatPort or WhatsApp Cloud API provider for real message delivery.
         // INotificationPort does not cover WhatsApp — a dedicated social/chat provider is needed.
         _logger.LogInformation("[LOG-ONLY] Would send WhatsApp message to {To} (delivery not yet integrated)", request.ToPhone);
+        return Task.FromResult(true);
+    }
+
+    private Task<bool> TestSmsChannelAsync(CommunicationChannel channel)
+    {
+        // Validate SMS configuration (uses generic ApiKey/ApiSecret fields for Twilio/provider credentials)
+        if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.ApiSecret))
+        {
+            throw new InvalidOperationException("SMS API Key (Account SID) and API Secret (Auth Token) are required");
+        }
+
+        // TODO: Integrate with INotificationPort.SendSmsAsync for real connectivity test (Twilio, etc.).
+        _logger.LogInformation("SMS channel {ChannelId} configuration validated (live API test not yet integrated)", channel.Id);
+        return Task.FromResult(true);
+    }
+
+    private Task<bool> TestLinkedInChannelAsync(CommunicationChannel channel)
+    {
+        // Validate LinkedIn configuration
+        if (string.IsNullOrEmpty(channel.AccessToken))
+        {
+            throw new InvalidOperationException("LinkedIn Access Token is required");
+        }
+
+        // TODO: Integrate with LinkedIn Marketing API for real connectivity test.
+        // INotificationPort does not cover LinkedIn — a dedicated social media provider is needed.
+        _logger.LogInformation("LinkedIn channel {ChannelId} configuration validated (live API test not yet integrated)", channel.Id);
+        return Task.FromResult(true);
+    }
+
+    private async Task<bool> SendSmsAsync(CommunicationChannel channel, CommunicationMessage message, SendMessageRequest request)
+    {
+        if (string.IsNullOrEmpty(request.ToPhone))
+        {
+            throw new InvalidOperationException("ToPhone is required for SMS messages");
+        }
+
+        // If INotificationPort is available, send the SMS through the pluggable provider
+        if (_notificationPort != null)
+        {
+            try
+            {
+                var smsRequest = new SmsNotificationRequest
+                {
+                    To = request.ToPhone,
+                    Message = message.Body ?? string.Empty,
+                    From = channel.FromEmail // Reuse FromEmail field for sender ID / phone number
+                };
+
+                var result = await _notificationPort.SendSmsAsync(smsRequest);
+
+                if (result.Success)
+                {
+                    _logger.LogInformation(
+                        "SMS sent via {Provider} to {To} (MessageId: {MessageId})",
+                        _notificationPort.ProviderName, request.ToPhone, result.MessageId);
+                    return true;
+                }
+
+                _logger.LogWarning(
+                    "SMS send failed via {Provider} to {To}: {Error}",
+                    _notificationPort.ProviderName, request.ToPhone, result.Error);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Exception sending SMS via {Provider} to {To}, falling back to log-only",
+                    _notificationPort.ProviderName, request.ToPhone);
+            }
+        }
+
+        // Fallback: log-only (no notification provider configured)
+        _logger.LogInformation("[LOG-ONLY] Would send SMS to {To}: {Body} (no notification provider configured)",
+            request.ToPhone, message.Body?.Substring(0, Math.Min(message.Body?.Length ?? 0, 50)));
+        return true;
+    }
+
+    private Task<bool> SendTwitterAsync(CommunicationChannel channel, CommunicationMessage message, SendMessageRequest request)
+    {
+        var recipient = request.ToEmail ?? request.ToPhone;
+        if (string.IsNullOrEmpty(recipient))
+        {
+            throw new InvalidOperationException("Recipient (ToEmail or ToPhone as handle) is required for Twitter messages");
+        }
+
+        // TODO: Integrate with Twitter/X API v2 Direct Messages endpoint for real message delivery.
+        // INotificationPort does not cover Twitter — a dedicated social media provider is needed.
+        _logger.LogInformation("[LOG-ONLY] Would send Twitter DM to {To}: {Body} (delivery not yet integrated)",
+            recipient, message.Body?.Substring(0, Math.Min(message.Body?.Length ?? 0, 50)));
+        return Task.FromResult(true);
+    }
+
+    private Task<bool> SendFacebookAsync(CommunicationChannel channel, CommunicationMessage message, SendMessageRequest request)
+    {
+        var recipient = request.ToEmail ?? request.ToPhone;
+        if (string.IsNullOrEmpty(recipient))
+        {
+            throw new InvalidOperationException("Recipient (PSID or identifier) is required for Facebook messages");
+        }
+
+        // TODO: Integrate with Facebook Messenger Platform Send API for real message delivery.
+        // INotificationPort does not cover Facebook — a dedicated social/chat provider is needed.
+        _logger.LogInformation("[LOG-ONLY] Would send Facebook message to {To}: {Body} (delivery not yet integrated)",
+            recipient, message.Body?.Substring(0, Math.Min(message.Body?.Length ?? 0, 50)));
+        return Task.FromResult(true);
+    }
+
+    private Task<bool> SendLinkedInAsync(CommunicationChannel channel, CommunicationMessage message, SendMessageRequest request)
+    {
+        var recipient = request.ToEmail ?? request.ToPhone;
+        if (string.IsNullOrEmpty(recipient))
+        {
+            throw new InvalidOperationException("Recipient (LinkedIn member URN) is required for LinkedIn messages");
+        }
+
+        // TODO: Integrate with LinkedIn Messaging API for real message delivery.
+        // INotificationPort does not cover LinkedIn — a dedicated social media provider is needed.
+        _logger.LogInformation("[LOG-ONLY] Would send LinkedIn message to {To}: {Body} (delivery not yet integrated)",
+            recipient, message.Body?.Substring(0, Math.Min(message.Body?.Length ?? 0, 50)));
         return Task.FromResult(true);
     }
 

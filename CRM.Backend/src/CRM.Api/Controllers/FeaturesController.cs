@@ -18,6 +18,7 @@ using CRM.Api.Authorization;
 using CRM.Core.Entities;
 using CRM.Core.Features;
 using CRM.Infrastructure.Factories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement;
 
@@ -62,6 +63,7 @@ public class FeaturesController : ControllerBase
     /// </summary>
     /// <returns>Dictionary of feature flags and their enabled status</returns>
     [HttpGet]
+    [ProducesResponseType(typeof(FeatureFlagsResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<FeatureFlagsResponse>> GetFeatureFlags()
     {
         try
@@ -112,6 +114,7 @@ public class FeaturesController : ControllerBase
     /// <param name="featureName">The feature flag name</param>
     /// <returns>Feature flag status</returns>
     [HttpGet("{featureName}")]
+    [ProducesResponseType(typeof(FeatureFlagStatus), StatusCodes.Status200OK)]
     public async Task<ActionResult<FeatureFlagStatus>> GetFeatureFlag(string featureName)
     {
         try
@@ -137,6 +140,7 @@ public class FeaturesController : ControllerBase
     /// </summary>
     /// <returns>Dictionary of provider categories and their available types</returns>
     [HttpGet("providers/available")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<Dictionary<string, IEnumerable<string>>> GetAvailableProviders()
     {
         try
@@ -168,6 +172,7 @@ public class FeaturesController : ControllerBase
     /// </summary>
     /// <returns>Health status for all configured providers</returns>
     [HttpGet("providers/health")]
+    [ProducesResponseType(typeof(ProviderHealthResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<ProviderHealthResponse>> GetProviderHealth()
     {
         await Task.CompletedTask; // Stub for future async implementation

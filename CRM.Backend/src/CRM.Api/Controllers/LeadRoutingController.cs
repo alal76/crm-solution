@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -44,6 +45,7 @@ public class LeadRoutingController : ControllerBase
     /// Get all lead routing rules with optional filtering.
     /// </summary>
     [HttpGet("rules")]
+    [ProducesResponseType(typeof(IEnumerable<LeadRoutingRule>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LeadRoutingRule>>> GetAllRules(
         [FromQuery] RoutingRuleStatus? status = null,
         [FromQuery] int? teamId = null,
@@ -57,6 +59,8 @@ public class LeadRoutingController : ControllerBase
     /// Get a routing rule by ID.
     /// </summary>
     [HttpGet("rules/{id:int}")]
+    [ProducesResponseType(typeof(LeadRoutingRule), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<LeadRoutingRule>> GetRuleById(int id, CancellationToken cancellationToken)
     {
         var rule = await _leadRoutingService.GetRuleByIdAsync(id, cancellationToken);
@@ -71,6 +75,8 @@ public class LeadRoutingController : ControllerBase
     /// Create a new routing rule.
     /// </summary>
     [HttpPost("rules")]
+    [ProducesResponseType(typeof(LeadRoutingRule), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<LeadRoutingRule>> CreateRule(
         [FromBody] LeadRoutingRule rule,
         CancellationToken cancellationToken)
@@ -83,6 +89,8 @@ public class LeadRoutingController : ControllerBase
     /// Update an existing routing rule.
     /// </summary>
     [HttpPut("rules/{id:int}")]
+    [ProducesResponseType(typeof(LeadRoutingRule), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<LeadRoutingRule>> UpdateRule(
         int id,
         [FromBody] LeadRoutingRule rule,
@@ -101,6 +109,8 @@ public class LeadRoutingController : ControllerBase
     /// Delete a routing rule (soft delete).
     /// </summary>
     [HttpDelete("rules/{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteRule(int id, CancellationToken cancellationToken)
     {
         var result = await _leadRoutingService.DeleteRuleAsync(id, cancellationToken);
@@ -115,6 +125,7 @@ public class LeadRoutingController : ControllerBase
     /// Activate a routing rule.
     /// </summary>
     [HttpPost("rules/{id:int}/activate")]
+    [ProducesResponseType(typeof(LeadRoutingRule), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeadRoutingRule>> ActivateRule(int id, CancellationToken cancellationToken)
     {
         var rule = await _leadRoutingService.ActivateRuleAsync(id, cancellationToken);
@@ -125,6 +136,7 @@ public class LeadRoutingController : ControllerBase
     /// Deactivate a routing rule.
     /// </summary>
     [HttpPost("rules/{id:int}/deactivate")]
+    [ProducesResponseType(typeof(LeadRoutingRule), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeadRoutingRule>> DeactivateRule(int id, CancellationToken cancellationToken)
     {
         var rule = await _leadRoutingService.DeactivateRuleAsync(id, cancellationToken);
@@ -139,6 +151,7 @@ public class LeadRoutingController : ControllerBase
     /// Get all criteria for a routing rule.
     /// </summary>
     [HttpGet("rules/{ruleId:int}/criteria")]
+    [ProducesResponseType(typeof(IEnumerable<LeadRoutingCriteria>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LeadRoutingCriteria>>> GetCriteria(
         int ruleId,
         CancellationToken cancellationToken)
@@ -151,6 +164,7 @@ public class LeadRoutingController : ControllerBase
     /// Add criteria to a routing rule.
     /// </summary>
     [HttpPost("rules/{ruleId:int}/criteria")]
+    [ProducesResponseType(typeof(LeadRoutingCriteria), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeadRoutingCriteria>> AddCriteria(
         int ruleId,
         [FromBody] LeadRoutingCriteria criteria,
@@ -164,6 +178,8 @@ public class LeadRoutingController : ControllerBase
     /// Update a routing criteria.
     /// </summary>
     [HttpPut("criteria/{criteriaId:int}")]
+    [ProducesResponseType(typeof(LeadRoutingCriteria), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<LeadRoutingCriteria>> UpdateCriteria(
         int criteriaId,
         [FromBody] LeadRoutingCriteria criteria,
@@ -182,6 +198,8 @@ public class LeadRoutingController : ControllerBase
     /// Remove criteria from a routing rule.
     /// </summary>
     [HttpDelete("criteria/{criteriaId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RemoveCriteria(int criteriaId, CancellationToken cancellationToken)
     {
         var result = await _leadRoutingService.RemoveCriteriaAsync(criteriaId, cancellationToken);
@@ -200,6 +218,7 @@ public class LeadRoutingController : ControllerBase
     /// Get all targets for a routing rule.
     /// </summary>
     [HttpGet("rules/{ruleId:int}/targets")]
+    [ProducesResponseType(typeof(IEnumerable<LeadRoutingTarget>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LeadRoutingTarget>>> GetTargets(
         int ruleId,
         CancellationToken cancellationToken)
@@ -212,6 +231,7 @@ public class LeadRoutingController : ControllerBase
     /// Add a routing target to a rule.
     /// </summary>
     [HttpPost("rules/{ruleId:int}/targets")]
+    [ProducesResponseType(typeof(LeadRoutingTarget), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeadRoutingTarget>> AddTarget(
         int ruleId,
         [FromBody] LeadRoutingTarget target,
@@ -225,6 +245,8 @@ public class LeadRoutingController : ControllerBase
     /// Update a routing target.
     /// </summary>
     [HttpPut("targets/{targetId:int}")]
+    [ProducesResponseType(typeof(LeadRoutingTarget), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<LeadRoutingTarget>> UpdateTarget(
         int targetId,
         [FromBody] LeadRoutingTarget target,
@@ -243,6 +265,8 @@ public class LeadRoutingController : ControllerBase
     /// Remove a routing target.
     /// </summary>
     [HttpDelete("targets/{targetId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RemoveTarget(int targetId, CancellationToken cancellationToken)
     {
         var result = await _leadRoutingService.RemoveTargetAsync(targetId, cancellationToken);
@@ -257,6 +281,7 @@ public class LeadRoutingController : ControllerBase
     /// Get capacity information for a routing target.
     /// </summary>
     [HttpGet("targets/{targetId:int}/capacity")]
+    [ProducesResponseType(typeof(TargetCapacity), StatusCodes.Status200OK)]
     public async Task<ActionResult<TargetCapacity>> GetTargetCapacity(int targetId, CancellationToken cancellationToken)
     {
         var capacity = await _leadRoutingService.GetTargetCapacityAsync(targetId, cancellationToken);
@@ -271,6 +296,7 @@ public class LeadRoutingController : ControllerBase
     /// Route a lead using all active rules.
     /// </summary>
     [HttpPost("leads/{leadId:int}/route")]
+    [ProducesResponseType(typeof(LeadRoutingResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeadRoutingResult>> RouteLead(int leadId, CancellationToken cancellationToken)
     {
         var result = await _leadRoutingService.RouteLeadAsync(leadId, cancellationToken);
@@ -281,6 +307,7 @@ public class LeadRoutingController : ControllerBase
     /// Route a lead using a specific rule.
     /// </summary>
     [HttpPost("leads/{leadId:int}/route/{ruleId:int}")]
+    [ProducesResponseType(typeof(LeadRoutingResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeadRoutingResult>> RouteLeadWithRule(
         int leadId,
         int ruleId,
@@ -294,6 +321,7 @@ public class LeadRoutingController : ControllerBase
     /// Evaluate which rules match a lead without assigning.
     /// </summary>
     [HttpPost("leads/{leadId:int}/evaluate")]
+    [ProducesResponseType(typeof(IEnumerable<LeadRoutingRule>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LeadRoutingRule>>> EvaluateMatchingRules(
         int leadId,
         CancellationToken cancellationToken)
@@ -306,6 +334,7 @@ public class LeadRoutingController : ControllerBase
     /// Route multiple leads in batch.
     /// </summary>
     [HttpPost("leads/batch-route")]
+    [ProducesResponseType(typeof(IEnumerable<LeadRoutingResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LeadRoutingResult>>> RouteLeadsBatch(
         [FromBody] IEnumerable<int> leadIds,
         CancellationToken cancellationToken)
@@ -318,6 +347,7 @@ public class LeadRoutingController : ControllerBase
     /// Re-route a lead (clear current assignment and route again).
     /// </summary>
     [HttpPost("leads/{leadId:int}/reroute")]
+    [ProducesResponseType(typeof(LeadRoutingResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeadRoutingResult>> RerouteLead(
         int leadId,
         [FromBody] RerouteLeadRequest? request = null,
@@ -335,6 +365,7 @@ public class LeadRoutingController : ControllerBase
     /// Get routing history for a lead.
     /// </summary>
     [HttpGet("leads/{leadId:int}/history")]
+    [ProducesResponseType(typeof(IEnumerable<LeadRoutingLog>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LeadRoutingLog>>> GetLeadRoutingHistory(
         int leadId,
         CancellationToken cancellationToken)
@@ -347,6 +378,7 @@ public class LeadRoutingController : ControllerBase
     /// Get routing logs for a specific rule.
     /// </summary>
     [HttpGet("rules/{ruleId:int}/logs")]
+    [ProducesResponseType(typeof(IEnumerable<LeadRoutingLog>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LeadRoutingLog>>> GetRuleRoutingLogs(
         int ruleId,
         [FromQuery] DateTime? fromDate = null,
@@ -361,6 +393,7 @@ public class LeadRoutingController : ControllerBase
     /// Get routing logs for a specific user (assignee).
     /// </summary>
     [HttpGet("users/{userId:int}/logs")]
+    [ProducesResponseType(typeof(IEnumerable<LeadRoutingLog>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LeadRoutingLog>>> GetUserRoutingLogs(
         int userId,
         [FromQuery] DateTime? fromDate = null,
@@ -379,6 +412,7 @@ public class LeadRoutingController : ControllerBase
     /// Get statistics for a specific rule.
     /// </summary>
     [HttpGet("rules/{ruleId:int}/statistics")]
+    [ProducesResponseType(typeof(LeadRoutingStatistics), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeadRoutingStatistics>> GetRuleStatistics(
         int ruleId,
         [FromQuery] DateTime? fromDate = null,
@@ -393,6 +427,7 @@ public class LeadRoutingController : ControllerBase
     /// Get overall routing statistics.
     /// </summary>
     [HttpGet("statistics")]
+    [ProducesResponseType(typeof(LeadRoutingStatistics), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeadRoutingStatistics>> GetOverallStatistics(
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
@@ -406,6 +441,7 @@ public class LeadRoutingController : ControllerBase
     /// Get response time statistics.
     /// </summary>
     [HttpGet("statistics/response-time")]
+    [ProducesResponseType(typeof(ResponseTimeStatistics), StatusCodes.Status200OK)]
     public async Task<ActionResult<ResponseTimeStatistics>> GetResponseTimeStatistics(
         [FromQuery] int? ruleId = null,
         [FromQuery] int? userId = null,
@@ -425,6 +461,7 @@ public class LeadRoutingController : ControllerBase
     /// Reset daily lead counts for all targets.
     /// </summary>
     [HttpPost("targets/reset-daily")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> ResetDailyCounts(CancellationToken cancellationToken)
     {
         await _leadRoutingService.ResetDailyCountsAsync(cancellationToken);
@@ -435,6 +472,7 @@ public class LeadRoutingController : ControllerBase
     /// Reset weekly lead counts for all targets.
     /// </summary>
     [HttpPost("targets/reset-weekly")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> ResetWeeklyCounts(CancellationToken cancellationToken)
     {
         await _leadRoutingService.ResetWeeklyCountsAsync(cancellationToken);

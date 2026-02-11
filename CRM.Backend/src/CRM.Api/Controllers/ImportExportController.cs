@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CRM.Infrastructure.Data;
@@ -43,6 +44,7 @@ public class ImportExportController : ControllerBase
     /// Get available entity types for import/export
     /// </summary>
     [HttpGet("entity-types")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<List<object>> GetEntityTypes()
     {
         var entityTypes = new List<object>
@@ -66,6 +68,8 @@ public class ImportExportController : ControllerBase
     /// Export entity data as JSON or CSV
     /// </summary>
     [HttpGet("export/{entityType}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ExportData(string entityType, [FromQuery] string format = "json")
     {
         try
@@ -120,6 +124,8 @@ public class ImportExportController : ControllerBase
     /// Get import template for an entity type
     /// </summary>
     [HttpGet("template/{entityType}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public IActionResult GetImportTemplate(string entityType, [FromQuery] string format = "json")
     {
         try
@@ -159,6 +165,8 @@ public class ImportExportController : ControllerBase
     /// Import entity data from a JSON file.
     /// </summary>
     [HttpPost("import/{entityType}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ImportData(string entityType, IFormFile file)
     {
         if (file == null || file.Length == 0)

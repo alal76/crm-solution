@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import apiClient from '../../services/apiClient';
 import { ArticleFeedbackWidget } from '../../components/itsm';
 
@@ -44,50 +49,36 @@ export const KnowledgeArticleDetailPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (!article) return <div className="p-4">Article not found</div>;
+  if (loading) return <Box sx={{ p: 3, display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>;
+  if (!article) return <Box sx={{ p: 3 }}><Typography color="text.secondary">Article not found</Typography></Box>;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">{article.title}</h1>
-        <div className="flex justify-between items-center mb-6 pb-6 border-b">
-          <div>
-            <p className="text-sm text-gray-600">By {article.authorName}</p>
-            <p className="text-sm text-gray-600">{article.number} • Published {new Date(article.publishedDate).toLocaleDateString()}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-600">{article.viewCount} views</p>
-          </div>
-        </div>
+    <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
+      <Paper sx={{ p: 4 }}>
+        <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>{article.title}</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, pb: 3, borderBottom: 1, borderColor: 'divider' }}>
+          <Box>
+            <Typography variant="body2" color="text.secondary">By {article.authorName}</Typography>
+            <Typography variant="body2" color="text.secondary">{article.number} • Published {new Date(article.publishedDate).toLocaleDateString()}</Typography>
+          </Box>
+          <Typography variant="body2" color="text.secondary">{article.viewCount} views</Typography>
+        </Box>
 
-        <div className="prose max-w-none mb-8">
-          <div className="text-gray-900 whitespace-pre-wrap">{article.articleBody}</div>
-        </div>
+        <Box sx={{ mb: 4 }}>
+          <Typography sx={{ whiteSpace: 'pre-wrap' }}>{article.articleBody}</Typography>
+        </Box>
 
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <p className="text-sm font-medium text-gray-700 mb-3">Was this article helpful?</p>
-          <div className="flex gap-3">
-            <button
-              disabled={feedbackGiven}
-              onClick={() => handleFeedback(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-            >
-              👍 Yes
-            </button>
-            <button
-              disabled={feedbackGiven}
-              onClick={() => handleFeedback(false)}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-            >
-              👎 No
-            </button>
-          </div>
-          {feedbackGiven && <p className="text-sm text-gray-600 mt-3">Thank you for your feedback!</p>}
-        </div>
+        <Paper variant="outlined" sx={{ p: 3, bgcolor: 'grey.50' }}>
+          <Typography variant="subtitle2" gutterBottom>Was this article helpful?</Typography>
+          <Box sx={{ display: 'flex', gap: 1.5 }}>
+            <Button variant="contained" color="success" disabled={feedbackGiven} onClick={() => handleFeedback(true)}>👍 Yes</Button>
+            <Button variant="contained" color="error" disabled={feedbackGiven} onClick={() => handleFeedback(false)}>👎 No</Button>
+          </Box>
+          {feedbackGiven && <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>Thank you for your feedback!</Typography>}
+        </Paper>
 
         {/* Enhanced Article Feedback Widget */}
-        <div className="mt-6">
+        <Box sx={{ mt: 3 }}>
           <ArticleFeedbackWidget
             articleId={Number(id)}
             showStats
@@ -97,9 +88,9 @@ export const KnowledgeArticleDetailPage: React.FC = () => {
               setFeedbackGiven(true);
             }}
           />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 
