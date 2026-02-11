@@ -13,6 +13,7 @@ export { default as fieldMasterDataService } from './fieldMasterDataService';
 export { default as invoiceService } from './invoiceService';
 export { default as leadRoutingService } from './leadRoutingService';
 export { default as lookupService } from './lookupService';
+export { default as navigationConfigService } from './navigationConfigService';
 export { default as newsSocialService } from './newsSocialService';
 export { default as orderService } from './orderService';
 export { default as paymentService } from './paymentService';
