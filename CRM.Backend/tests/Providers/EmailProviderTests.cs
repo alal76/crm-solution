@@ -21,7 +21,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
-using CRM.Infrastructure.Configuration;
 using CRM.Core.DTOs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -447,7 +446,7 @@ public class EmailProviderTests
     public void Constructor_NullSettings_ThrowsException()
     {
         // Act & Assert
-        var action = () => new EmailService(null!, _mockLogger.Object);
+        var action = () => new MockEmailService(null!, _mockLogger.Object);
         action.Should().Throw<ArgumentNullException>();
     }
 

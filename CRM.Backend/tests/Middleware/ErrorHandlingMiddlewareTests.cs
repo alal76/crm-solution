@@ -20,8 +20,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
-using CRM.Infrastructure.Middleware;
-using CRM.Core.Exceptions;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
@@ -500,151 +498,145 @@ public class ErrorHandlingMiddlewareTests
 }
 
 // Supporting exception classes
-namespace CRM.Core.Exceptions
+public class ValidationException : Exception
 {
-    public class ValidationException : Exception
+    public Dictionary<string, string[]>? Errors { get; }
+
+    public ValidationException(string message) : base(message) { }
+    public ValidationException(string message, Dictionary<string, string[]> errors) : base(message)
     {
-        public Dictionary<string, string[]>? Errors { get; }
-
-        public ValidationException(string message) : base(message) { }
-        public ValidationException(string message, Dictionary<string, string[]> errors) : base(message)
-        {
-            Errors = errors;
-        }
-    }
-
-    public class NotFoundException : Exception
-    {
-        public string ResourceType { get; }
-        public object ResourceId { get; }
-
-        public NotFoundException(string resourceType, object resourceId)
-            : base($"{resourceType} with ID {resourceId} not found")
-        {
-            ResourceType = resourceType;
-            ResourceId = resourceId;
-        }
-    }
-
-    public class UnauthorizedException : Exception
-    {
-        public UnauthorizedException(string message) : base(message) { }
-    }
-
-    public class ForbiddenException : Exception
-    {
-        public ForbiddenException(string message) : base(message) { }
-    }
-
-    public class ConflictException : Exception
-    {
-        public ConflictException(string message) : base(message) { }
-    }
-
-    public class BusinessRuleException : Exception
-    {
-        public BusinessRuleException(string message) : base(message) { }
+        Errors = errors;
     }
 }
 
-// Middleware implementation
-namespace CRM.Infrastructure.Middleware
+public class NotFoundException : Exception
 {
-    public class ErrorHandlingMiddleware
+    public string ResourceType { get; }
+    public object ResourceId { get; }
+
+    public NotFoundException(string resourceType, object resourceId)
+        : base($"{resourceType} with ID {resourceId} not found")
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ErrorHandlingMiddleware> _logger;
-        private readonly IHostEnvironment _environment;
+        ResourceType = resourceType;
+        ResourceId = resourceId;
+    }
+}
 
-        public ErrorHandlingMiddleware(
-            RequestDelegate next,
-            ILogger<ErrorHandlingMiddleware> logger,
-            IHostEnvironment environment)
+public class UnauthorizedException : Exception
+{
+    public UnauthorizedException(string message) : base(message) { }
+}
+
+public class ForbiddenException : Exception
+{
+    public ForbiddenException(string message) : base(message) { }
+}
+
+public class ConflictException : Exception
+{
+    public ConflictException(string message) : base(message) { }
+}
+
+public class BusinessRuleException : Exception
+{
+    public BusinessRuleException(string message) : base(message) { }
+}
+
+// Middleware implementation
+public class ErrorHandlingMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly ILogger<ErrorHandlingMiddleware> _logger;
+    private readonly IHostEnvironment _environment;
+
+    public ErrorHandlingMiddleware(
+        RequestDelegate next,
+        ILogger<ErrorHandlingMiddleware> logger,
+        IHostEnvironment environment)
+    {
+        _next = next;
+        _logger = logger;
+        _environment = environment;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
         {
-            _next = next;
-            _logger = logger;
-            _environment = environment;
+            await _next(context);
+        }
+        catch (TaskCanceledException)
+        {
+            // Request cancelled - ignore
+        }
+        catch (OperationCanceledException)
+        {
+            // Operation cancelled - ignore
+        }
+        catch (AggregateException ae) when (ae.InnerException != null)
+        {
+            await HandleException(context, ae.InnerException);
+        }
+        catch (Exception ex)
+        {
+            await HandleException(context, ex);
+        }
+    }
+
+    private async Task HandleException(HttpContext context, Exception exception)
+    {
+        var (statusCode, logLevel) = exception switch
+        {
+            ValidationException => (400, LogLevel.Warning),
+            NotFoundException => (404, LogLevel.Warning),
+            UnauthorizedException => (401, LogLevel.Warning),
+            ForbiddenException => (403, LogLevel.Warning),
+            ConflictException => (409, LogLevel.Warning),
+            BusinessRuleException => (422, LogLevel.Warning),
+            _ => (500, LogLevel.Error)
+        };
+
+        _logger.Log(logLevel, exception, "Request error: {Message}", exception.Message);
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/json";
+
+        if (statusCode == 401)
+        {
+            context.Response.Headers["WWW-Authenticate"] = "Bearer";
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        var response = CreateErrorResponse(context, exception, statusCode);
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+    }
+
+    private object CreateErrorResponse(HttpContext context, Exception exception, int statusCode)
+    {
+        var response = new Dictionary<string, object>
         {
-            try
-            {
-                await _next(context);
-            }
-            catch (TaskCanceledException)
-            {
-                // Request cancelled - ignore
-            }
-            catch (OperationCanceledException)
-            {
-                // Operation cancelled - ignore
-            }
-            catch (AggregateException ae) when (ae.InnerException != null)
-            {
-                await HandleException(context, ae.InnerException);
-            }
-            catch (Exception ex)
-            {
-                await HandleException(context, ex);
-            }
+            ["error"] = statusCode == 500 && _environment.IsProduction()
+                ? "An error occurred processing your request"
+                : exception.Message,
+            ["statusCode"] = statusCode,
+            ["traceId"] = context.TraceIdentifier
+        };
+
+        if (exception is ValidationException ve && ve.Errors != null)
+        {
+            response["errors"] = ve.Errors;
         }
 
-        private async Task HandleException(HttpContext context, Exception exception)
+        if (exception is NotFoundException nfe)
         {
-            var (statusCode, logLevel) = exception switch
-            {
-                ValidationException => (400, LogLevel.Warning),
-                NotFoundException => (404, LogLevel.Warning),
-                UnauthorizedException => (401, LogLevel.Warning),
-                ForbiddenException => (403, LogLevel.Warning),
-                ConflictException => (409, LogLevel.Warning),
-                BusinessRuleException => (422, LogLevel.Warning),
-                _ => (500, LogLevel.Error)
-            };
-
-            _logger.Log(logLevel, exception, "Request error: {Message}", exception.Message);
-
-            context.Response.StatusCode = statusCode;
-            context.Response.ContentType = "application/json";
-
-            if (statusCode == 401)
-            {
-                context.Response.Headers["WWW-Authenticate"] = "Bearer";
-            }
-
-            var response = CreateErrorResponse(context, exception, statusCode);
-            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            response["resourceType"] = nfe.ResourceType;
+            response["resourceId"] = nfe.ResourceId;
         }
 
-        private object CreateErrorResponse(HttpContext context, Exception exception, int statusCode)
+        if (!_environment.IsProduction())
         {
-            var response = new Dictionary<string, object>
-            {
-                ["error"] = statusCode == 500 && _environment.IsProduction()
-                    ? "An error occurred processing your request"
-                    : exception.Message,
-                ["statusCode"] = statusCode,
-                ["traceId"] = context.TraceIdentifier
-            };
-
-            if (exception is ValidationException ve && ve.Errors != null)
-            {
-                response["errors"] = ve.Errors;
-            }
-
-            if (exception is NotFoundException nfe)
-            {
-                response["resourceType"] = nfe.ResourceType;
-                response["resourceId"] = nfe.ResourceId;
-            }
-
-            if (!_environment.IsProduction())
-            {
-                response["stackTrace"] = exception.StackTrace;
-            }
-
-            return response;
+            response["stackTrace"] = exception.StackTrace;
         }
+
+        return response;
     }
 }

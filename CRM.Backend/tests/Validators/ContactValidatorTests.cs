@@ -17,7 +17,6 @@
 using Xunit;
 using Moq;
 using FluentAssertions;
-using CRM.Core.Validation;
 using CRM.Core.DTOs;
 using CRM.Core.Interfaces;
 using CRM.Core.Entities;
@@ -25,7 +24,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 
-namespace CRM.Tests.Validators;
+namespace CRM.Tests.Validators.ContactValidation;
 
 /// <summary>
 /// Unit tests for Contact Validator
@@ -731,4 +730,9 @@ public class ContactDto
 public class AccountDto
 {
     public int Id { get; set; }
+}
+
+public interface IAccountService
+{
+    Task<AccountDto?> GetByIdAsync(int id);
 }

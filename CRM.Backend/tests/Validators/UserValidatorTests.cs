@@ -17,16 +17,14 @@
 using Xunit;
 using Moq;
 using FluentAssertions;
-using CRM.Core.Validation;
 using CRM.Core.DTOs;
 using CRM.Core.Interfaces;
 using CRM.Core.Entities;
-using CRM.Core.Enums;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 
-namespace CRM.Tests.Validators;
+namespace CRM.Tests.Validators.UserValidation;
 
 /// <summary>
 /// Unit tests for User Validator
@@ -807,4 +805,10 @@ public class CreateUserDto
 public interface IUserGroupService
 {
     Task<bool> GroupExistsAsync(int groupId);
+}
+
+public interface IUserService
+{
+    Task<bool> UsernameExistsAsync(string username, int? excludeId);
+    Task<bool> EmailExistsAsync(string email, int? excludeId);
 }

@@ -17,7 +17,6 @@
 using Xunit;
 using Moq;
 using FluentAssertions;
-using CRM.Core.Validation;
 using CRM.Core.DTOs;
 using CRM.Core.Interfaces;
 using CRM.Core.Entities;

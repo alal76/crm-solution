@@ -17,16 +17,14 @@
 using Xunit;
 using Moq;
 using FluentAssertions;
-using CRM.Core.Validation;
 using CRM.Core.DTOs;
 using CRM.Core.Interfaces;
 using CRM.Core.Entities;
-using CRM.Core.Enums;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 
-namespace CRM.Tests.Validators;
+namespace CRM.Tests.Validators.OpportunityValidation;
 
 /// <summary>
 /// Unit tests for Opportunity Validator
@@ -804,4 +802,9 @@ public interface IOpportunityService
 public interface IUserService
 {
     Task<UserDto?> GetByIdAsync(int id);
+}
+
+public interface IAccountService
+{
+    Task<AccountResultDto?> GetByIdAsync(int id);
 }

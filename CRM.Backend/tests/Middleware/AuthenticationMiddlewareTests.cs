@@ -21,8 +21,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using CRM.Core.Interfaces;
-using CRM.Infrastructure.Middleware;
-using CRM.Infrastructure.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
