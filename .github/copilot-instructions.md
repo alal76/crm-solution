@@ -623,15 +623,15 @@ GET /api/accounts?page=1&pageSize=20&sortBy=name&sortOrder=asc
 src/
 ├── components/
 │   ├── common/           # Shared components (DataGrid, Form, etc.)
-│   ├── accounts/         # Account components
-│   ├── contacts/         # Contact components
+│   ├── sales/            # Sales components (Quotes, Orders, etc.)
+│   ├── itsm/             # ITSM module components
 │   └── ...
 ├── pages/
-│   ├── AccountsPage.tsx  # Route-level components
+│   ├── CustomersPage.tsx # Route-level components (Accounts list)
 │   ├── DashboardPage.tsx
 │   └── ...
 ├── services/
-│   ├── api.ts            # Axios instance
+│   ├── apiClient.ts      # Axios instance
 │   ├── accountService.ts # API calls
 │   └── ...
 ├── contexts/
@@ -640,7 +640,7 @@ src/
 │   ├── SignalRContext.tsx  # Real-time
 │   └── ...
 └── hooks/
-    ├── useAuth.ts
+    ├── useSignalR.ts
     ├── usePagination.ts
     └── ...
 ```
@@ -728,22 +728,30 @@ cd CRM.Infrastructure/deployment-tool && ./start-gui.sh
 ### 10.1 Test Organization
 
 ```
-tests/
-├── CRM.Tests/
-│   ├── Unit/
-│   │   ├── Services/
-│   │   │   ├── AccountServiceTests.cs
-│   │   │   └── ...
-│   │   └── Providers/
-│   │       ├── BuiltInSearchProviderTests.cs
-│   │       └── ...
-│   └── Integration/
-│       ├── AccountsControllerTests.cs
-│       └── ...
-└── e2e-tests/
-    └── tests/
-        ├── auth.spec.ts
-        └── accounts.spec.ts
+CRM.Backend/tests/
+├── Services/                     # Service unit tests
+│   ├── AccountServiceTests.cs
+│   └── ...
+├── Controllers/                  # Controller tests
+│   ├── AccountsControllerTests.cs
+│   └── ...
+├── Providers/                    # Provider unit tests
+├── Integration/                  # Integration tests
+│   ├── BuiltInSearchProviderIntegrationTests.cs
+│   └── ...
+├── CRM.Tests/                    # Additional test structure
+│   ├── Services/
+│   ├── Integration/
+│   └── Helpers/
+└── ...
+e2e-tests/
+└── tests/
+    ├── bvt/
+    │   └── api-bvt.spec.ts
+    ├── auth/
+    │   └── authentication.spec.ts
+    └── customers/
+        └── customers.spec.ts
 ```
 
 ### 10.2 Test Naming Convention
@@ -817,7 +825,7 @@ cd e2e-tests && npx playwright test
 The solution underwent a major refactoring where `Customer` was renamed to `Account`:
 - **Entity**: `Account.cs` (but database table still named `Customers`)
 - **API**: `/api/accounts` (not `/api/customers`)
-- **Frontend**: `AccountsPage.tsx`
+- **Frontend**: `CustomersPage.tsx` (route: `/accounts`)
 
 ### 12.2 Code Preservation Rule
 
