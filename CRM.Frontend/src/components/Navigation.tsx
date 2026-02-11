@@ -52,6 +52,12 @@ import {
   Receipt as InvoiceIcon,
   Payment as PaymentIcon,
   ShoppingCart as OrderIcon,
+  // Reports & Analytics icons
+  Assessment as ReportsIcon,
+  Analytics as AnalyticsIcon,
+  DesignServices as WorkflowBuilderIcon,
+  PlayCircle as WorkflowMonitorIcon,
+  Hub as IntegrationsIcon,
   // Admin section icons
   Storage as StorageIcon,
   Cloud as CloudIcon,
@@ -247,6 +253,9 @@ function NavigationContent() {
     'notes': { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
     'communications': { label: 'Communications', icon: CommunicationsIcon, path: '/communications', menuName: 'Communications' },
     'interactions': { label: 'Interactions', icon: InteractionsIcon, path: '/interactions', menuName: 'Interactions' },
+    // Reports & Analytics
+    'reports': { label: 'Reports', icon: ReportsIcon as typeof DashboardIcon, path: '/reports', menuName: 'Reports' },
+    'analytics': { label: 'Analytics', icon: AnalyticsIcon as typeof DashboardIcon, path: '/analytics', menuName: 'Analytics' },
     // Help & Info items
     'about': { label: 'About', icon: InfoIcon, path: '/about', menuName: 'About' },
     'help': { label: 'Help', icon: HelpIcon, path: '/help', menuName: 'Help' },
@@ -272,6 +281,9 @@ function NavigationContent() {
     'master-data': { label: 'Master Data', icon: StorageIcon, path: '/admin/master-data', menuName: 'MasterData' },
     'dashboard-settings': { label: 'Dashboards', icon: DashboardIcon, path: '/admin/dashboards', menuName: 'DashboardSettings' },
     'workflow-settings': { label: 'Workflows', icon: WorkflowIcon, path: '/admin/workflows', menuName: 'WorkflowSettings' },
+    'workflow-monitor': { label: 'Workflow Monitor', icon: WorkflowMonitorIcon, path: '/admin/workflows/monitor', menuName: 'WorkflowMonitor' },
+    'integrations': { label: 'Integrations (n8n)', icon: IntegrationsIcon, path: '/admin/integrations', menuName: 'Integrations' },
+    'analytics-settings': { label: 'Analytics (Superset)', icon: AnalyticsIcon, path: '/admin/analytics', menuName: 'AnalyticsSettings' },
     'test-results': { label: 'Test Results', icon: TestResultsIcon, path: '/admin/test-results', menuName: 'TestResults' },
     'llm-settings': { label: 'AI / LLM Settings', icon: LLMIcon, path: '/admin/llm', menuName: 'LLMSettings' },
     // Legacy items
@@ -370,6 +382,8 @@ function NavigationContent() {
     { id: 'notes', order: 13, visible: true, category: 'productivity' },
     { id: 'communications', order: 14, visible: true, category: 'productivity' },
     { id: 'interactions', order: 15, visible: true, category: 'productivity' },
+    { id: 'reports', order: 16, visible: true, category: 'productivity' },
+    { id: 'analytics', order: 17, visible: true, category: 'productivity' },
     // Help & Info
     { id: 'about', order: 50, visible: true, category: 'info' },
     { id: 'help', order: 51, visible: true, category: 'info' },
@@ -392,6 +406,9 @@ function NavigationContent() {
     { id: 'master-data', order: 73, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
     { id: 'dashboard-settings', order: 74, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
     { id: 'workflow-settings', order: 75, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
+    { id: 'workflow-monitor', order: 75.1, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
+    { id: 'integrations', order: 75.2, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
+    { id: 'analytics-settings', order: 75.3, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
     // Channels
     { id: 'channel-settings', order: 76, visible: true, category: 'admin', adminSubcategory: 'admin-channels' },
     // Test Results

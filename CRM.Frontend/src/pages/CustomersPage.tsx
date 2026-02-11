@@ -35,9 +35,6 @@ import { getApiErrorMessage } from '../utils/errorHandler';
 import DuplicateDetectionDialog from '../components/duplicates/DuplicateDetectionDialog';
 import MergeDialog from '../components/duplicates/MergeDialog';
 import { DuplicateCheckResult, scanForDuplicates, getPendingCandidates } from '../services/duplicateService';
-
-// Inline type matching MergeDialog's RecordData interface
-interface MergeRecordData { id: number; displayName: string; data: Record<string, any>; }
 import FieldRenderer from '../components/FieldRenderer';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
@@ -52,6 +49,9 @@ import { useEntityTypeSubscription } from '../hooks/useSignalR';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
 import logger from '../services/logger';
+
+// Inline type matching MergeDialog's RecordData interface
+interface MergeRecordData { id: number; displayName: string; data: Record<string, any>; }
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [

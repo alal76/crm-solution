@@ -203,6 +203,11 @@ const ApiDocumentationPage = lazy(() => import('./pages/admin/ApiDocumentationPa
 const DatabaseSettingsPage = lazy(() => import('./pages/admin/DatabaseSettingsPage'));
 const DuplicateRulesPage = lazy(() => import('./pages/admin/DuplicateRulesPage'));
 const LeadScoreRulesPage = lazy(() => import('./pages/admin/LeadScoreRulesPage'));
+const IntegrationsSettingsPage = lazy(() => import('./pages/admin/IntegrationsSettingsPage'));
+const AnalyticsSettingsPage = lazy(() => import('./pages/admin/AnalyticsSettingsPage'));
+
+// Analytics & Reports Pages (main navigation)
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
 
 // Inner component that can access the theme context
 function ThemedApp() {
@@ -1243,6 +1248,36 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Settings">
                       <LeadScoreRulesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/integrations"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <IntegrationsSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/analytics"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <AnalyticsSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Reports">
+                      <AnalyticsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
