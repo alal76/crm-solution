@@ -60,8 +60,8 @@ These items were identified during completed phases but deferred for future work
 
 | Item | Description |
 |------|-------------|
-| ReportsController | Enhance with custom report endpoints |
-| AnalyticsController | Enhance with dashboard endpoints |
+| ~~ReportsController~~ | ✅ **DONE** — Created ReportsController with 28 custom report endpoints (CRUD, folders, schedules, executions, sharing, export) |
+| ~~AnalyticsController~~ | ✅ **DONE** — AIAnalyticsController already has 7 dashboard endpoints + 6 report endpoints (Phase 7 deliverable) |
 
 ### From Phase 4: Frontend
 
