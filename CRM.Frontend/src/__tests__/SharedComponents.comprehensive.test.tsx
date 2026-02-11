@@ -744,7 +744,7 @@ describe('Component - Breadcrumbs', () => {
     it('should generate from path', () => {
       const path = '/accounts/1/edit';
       const parts = path.split('/').filter(Boolean);
-      expect(parts).toEqual(['customers', '1', 'edit']);
+      expect(parts).toEqual(['accounts', '1', 'edit']);
     });
 
     it('should make items clickable except last', () => {
