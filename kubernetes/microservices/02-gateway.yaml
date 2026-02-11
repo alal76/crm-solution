@@ -18,6 +18,10 @@ spec:
         app: crm-gateway
         tier: gateway
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: gateway
         image: crm-gateway:v1

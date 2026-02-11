@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { TabPanel } from '../components/common';
+import MergeHistoryPanel from '../components/duplicates/MergeHistoryPanel';
+import ConcurrencyConflictDialog from '../components/common/ConcurrencyConflictDialog';
+import type { ConflictData } from '../components/common/ConcurrencyConflictDialog';
+import { UserEditingIndicator } from '../components/common/UserEditingIndicator';
 import {
   Box, Container, Typography, Card, CardContent, TextField, Button, Grid,
   CircularProgress, Alert, Tabs, Tab, Chip, Avatar, Divider, IconButton,
@@ -91,6 +95,10 @@ function CustomerOverviewPage() {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
+
+  // Concurrency conflict state
+  const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
+  const [conflictData, setConflictData] = useState<ConflictData | undefined>(undefined);
   const [loadingNews, setLoadingNews] = useState(false);
   const [apiStatus, setApiStatus] = useState<NewsSocialStatus | null>(null);
 
@@ -463,6 +471,7 @@ function CustomerOverviewPage() {
                     <Tab label="Overview" />
                     <Tab label="Contacts" />
                     <Tab label="News & Social" />
+                    <Tab label="Merge History" />
                   </Tabs>
 
                   {loadingDetails ? (
@@ -764,8 +773,46 @@ function CustomerOverviewPage() {
                           </Grid>
                         </Grid>
                       </TabPanel>
+
+                      {/* Merge History Tab */}
+                      <TabPanel value={tabValue} index={3}>
+                        {selectedCustomer && (
+                          <MergeHistoryPanel
+                            entityType="Account"
+                            recordId={selectedCustomer.id}
+                          />
+                        )}
+                      </TabPanel>
                     </>
                   )}
+
+                  {/* User Editing Indicator */}
+                  {selectedCustomer && (
+                    <UserEditingIndicator
+                      entityType="Account"
+                      entityId={selectedCustomer.id}
+                    />
+                  )}
+
+                  {/* Concurrency Conflict Dialog */}
+                  <ConcurrencyConflictDialog
+                    open={conflictDialogOpen}
+                    onClose={() => setConflictDialogOpen(false)}
+                    onReload={() => {
+                      setConflictDialogOpen(false);
+                      if (selectedCustomer) {
+                        // Re-fetch the customer details
+                        apiClient.get(`/api/accounts/${selectedCustomer.id}`).then(resp => {
+                          setSelectedCustomer(resp.data);
+                        });
+                      }
+                    }}
+                    onOverwrite={() => {
+                      setConflictDialogOpen(false);
+                    }}
+                    conflictData={conflictData}
+                    entityName={selectedCustomer?.company || 'Account'}
+                  />
                 </CardContent>
               </Card>
             ) : (

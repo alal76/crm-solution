@@ -20,6 +20,10 @@ spec:
         tier: service
         domain: marketing
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: marketing
         image: crm-marketing:v1

@@ -20,6 +20,10 @@ spec:
         tier: service
         domain: identity
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: identity
         image: crm-identity:v1

@@ -10,7 +10,6 @@ export { default as duplicateService } from './duplicateService';
 export { default as eSignatureService } from './eSignatureService';
 export { default as emailSequenceService } from './emailSequenceService';
 export { default as fieldMasterDataService } from './fieldMasterDataService';
-export { default as formBuilderService } from './formBuilderService';
 export { default as invoiceService } from './invoiceService';
 export { default as leadRoutingService } from './leadRoutingService';
 export { default as lookupService } from './lookupService';

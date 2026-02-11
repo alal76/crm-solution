@@ -44,17 +44,29 @@ spec:
         app: crm
     spec:
       containers:
-      - name: sqlite
-        image: sqlite:latest
+      - name: mariadb
+        image: mariadb:11.2
         ports:
         - containerPort: 3306
           name: db
         volumeMounts:
         - name: db-storage
-          mountPath: /data
+          mountPath: /var/lib/mysql
         env:
-        - name: SQLITE_DATA_PATH
-          value: /data/crm.db
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_ROOT_PASSWORD
+        - name: MARIADB_DATABASE
+          value: "crm_db"
+        - name: MARIADB_USER
+          value: "crm_user"
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: crm-secrets
+              key: DB_PASSWORD
         resources:
           requests:
             memory: "256Mi"
@@ -65,11 +77,20 @@ spec:
         livenessProbe:
           exec:
             command:
-            - /bin/sh
+            - /bin/bash
             - -c
-            - test -f /data/crm.db
-          initialDelaySeconds: 10
+            - "mariadb-admin ping -h localhost -u root -p$MARIADB_ROOT_PASSWORD"
+          initialDelaySeconds: 30
           periodSeconds: 30
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - "mariadb -u root -p$MARIADB_ROOT_PASSWORD -e 'SELECT 1'"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
       volumes:
       - name: db-storage
         persistentVolumeClaim:

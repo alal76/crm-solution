@@ -51,6 +51,9 @@ public class ContactInfoController : ControllerBase
     /// Get all contact information for an entity
     /// </summary>
     [HttpGet("{entityType}/{entityId}")]
+    [ProducesResponseType(typeof(EntityContactInfoDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EntityContactInfoDto>> GetEntityContactInfo(string entityType, int entityId)
     {
         try
@@ -74,6 +77,9 @@ public class ContactInfoController : ControllerBase
     /// Share contact information with another entity
     /// </summary>
     [HttpPost("share")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> ShareContactInfo([FromBody] ShareContactInfoDto dto)
     {
         try
@@ -100,6 +106,9 @@ public class ContactInfoController : ControllerBase
     /// Get all addresses for an entity
     /// </summary>
     [HttpGet("{entityType}/{entityId}/addresses")]
+    [ProducesResponseType(typeof(List<LinkedAddressDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedAddressDto>>> GetAddresses(string entityType, int entityId)
     {
         try
@@ -123,6 +132,9 @@ public class ContactInfoController : ControllerBase
     /// Get a specific address by ID
     /// </summary>
     [HttpGet("addresses/{addressId}")]
+    [ProducesResponseType(typeof(AddressDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AddressDto>> GetAddress(int addressId)
     {
         try
@@ -145,6 +157,8 @@ public class ContactInfoController : ControllerBase
     /// Get all entities sharing an address
     /// </summary>
     [HttpGet("addresses/{addressId}/shared-by")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<object>>> GetEntitiesSharingAddress(int addressId)
     {
         try
@@ -163,6 +177,8 @@ public class ContactInfoController : ControllerBase
     /// Create a new standalone address
     /// </summary>
     [HttpPost("addresses")]
+    [ProducesResponseType(typeof(AddressDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AddressDto>> CreateAddress([FromBody] CreateAddressDto dto)
     {
         try
@@ -181,6 +197,9 @@ public class ContactInfoController : ControllerBase
     /// Link an address to an entity (creates new address if NewAddress provided)
     /// </summary>
     [HttpPost("addresses/link")]
+    [ProducesResponseType(typeof(LinkedAddressDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LinkedAddressDto>> LinkAddress([FromBody] LinkAddressDto dto)
     {
         try
@@ -203,6 +222,9 @@ public class ContactInfoController : ControllerBase
     /// Update an address
     /// </summary>
     [HttpPut("addresses/{addressId}")]
+    [ProducesResponseType(typeof(AddressDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AddressDto>> UpdateAddress(int addressId, [FromBody] CreateAddressDto dto)
     {
         try
@@ -225,6 +247,8 @@ public class ContactInfoController : ControllerBase
     /// Unlink an address from an entity
     /// </summary>
     [HttpDelete("addresses/link/{linkId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UnlinkAddress(int linkId)
     {
         try
@@ -243,6 +267,8 @@ public class ContactInfoController : ControllerBase
     /// Delete an address permanently
     /// </summary>
     [HttpDelete("addresses/{addressId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteAddress(int addressId)
     {
         try
@@ -261,6 +287,9 @@ public class ContactInfoController : ControllerBase
     /// Set an address as primary for an entity
     /// </summary>
     [HttpPost("{entityType}/{entityId}/addresses/{addressId}/set-primary")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimaryAddress(string entityType, int entityId, int addressId, [FromQuery] string addressTypeStr = "Primary")
     {
         try
@@ -292,6 +321,9 @@ public class ContactInfoController : ControllerBase
     /// Get all phone numbers for an entity
     /// </summary>
     [HttpGet("{entityType}/{entityId}/phones")]
+    [ProducesResponseType(typeof(List<LinkedPhoneDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedPhoneDto>>> GetPhoneNumbers(string entityType, int entityId)
     {
         try
@@ -315,6 +347,9 @@ public class ContactInfoController : ControllerBase
     /// Get a specific phone number by ID
     /// </summary>
     [HttpGet("phones/{phoneId}")]
+    [ProducesResponseType(typeof(PhoneNumberDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PhoneNumberDto>> GetPhoneNumber(int phoneId)
     {
         try
@@ -337,6 +372,8 @@ public class ContactInfoController : ControllerBase
     /// Get all entities sharing a phone number
     /// </summary>
     [HttpGet("phones/{phoneId}/shared-by")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<object>>> GetEntitiesSharingPhone(int phoneId)
     {
         try
@@ -355,6 +392,8 @@ public class ContactInfoController : ControllerBase
     /// Create a new standalone phone number
     /// </summary>
     [HttpPost("phones")]
+    [ProducesResponseType(typeof(PhoneNumberDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PhoneNumberDto>> CreatePhoneNumber([FromBody] CreatePhoneNumberDto dto)
     {
         try
@@ -373,6 +412,9 @@ public class ContactInfoController : ControllerBase
     /// Link a phone number to an entity
     /// </summary>
     [HttpPost("phones/link")]
+    [ProducesResponseType(typeof(LinkedPhoneDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LinkedPhoneDto>> LinkPhoneNumber([FromBody] LinkPhoneDto dto)
     {
         try
@@ -395,6 +437,9 @@ public class ContactInfoController : ControllerBase
     /// Update a phone number
     /// </summary>
     [HttpPut("phones/{phoneId}")]
+    [ProducesResponseType(typeof(PhoneNumberDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PhoneNumberDto>> UpdatePhoneNumber(int phoneId, [FromBody] CreatePhoneNumberDto dto)
     {
         try
@@ -417,6 +462,8 @@ public class ContactInfoController : ControllerBase
     /// Unlink a phone number from an entity
     /// </summary>
     [HttpDelete("phones/link/{linkId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UnlinkPhoneNumber(int linkId)
     {
         try
@@ -435,6 +482,8 @@ public class ContactInfoController : ControllerBase
     /// Delete a phone number
     /// </summary>
     [HttpDelete("phones/{phoneId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeletePhoneNumber(int phoneId)
     {
         try
@@ -453,6 +502,9 @@ public class ContactInfoController : ControllerBase
     /// Set a phone number as primary
     /// </summary>
     [HttpPost("{entityType}/{entityId}/phones/{phoneId}/set-primary")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimaryPhone(string entityType, int entityId, int phoneId, [FromQuery] string phoneTypeStr = "Office")
     {
         try
@@ -484,6 +536,9 @@ public class ContactInfoController : ControllerBase
     /// Get all email addresses for an entity
     /// </summary>
     [HttpGet("{entityType}/{entityId}/emails")]
+    [ProducesResponseType(typeof(List<LinkedEmailDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedEmailDto>>> GetEmailAddresses(string entityType, int entityId)
     {
         try
@@ -507,6 +562,9 @@ public class ContactInfoController : ControllerBase
     /// Get a specific email address by ID
     /// </summary>
     [HttpGet("emails/{emailId}")]
+    [ProducesResponseType(typeof(EmailAddressDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EmailAddressDto>> GetEmailAddress(int emailId)
     {
         try
@@ -529,6 +587,9 @@ public class ContactInfoController : ControllerBase
     /// Find an email address by address string
     /// </summary>
     [HttpGet("emails/find")]
+    [ProducesResponseType(typeof(EmailAddressDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EmailAddressDto>> FindEmailByAddress([FromQuery] string email)
     {
         try
@@ -551,6 +612,8 @@ public class ContactInfoController : ControllerBase
     /// Get all entities sharing an email
     /// </summary>
     [HttpGet("emails/{emailId}/shared-by")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<object>>> GetEntitiesSharingEmail(int emailId)
     {
         try
@@ -569,6 +632,8 @@ public class ContactInfoController : ControllerBase
     /// Create a new standalone email address
     /// </summary>
     [HttpPost("emails")]
+    [ProducesResponseType(typeof(EmailAddressDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EmailAddressDto>> CreateEmailAddress([FromBody] CreateEmailAddressDto dto)
     {
         try
@@ -587,6 +652,9 @@ public class ContactInfoController : ControllerBase
     /// Link an email address to an entity
     /// </summary>
     [HttpPost("emails/link")]
+    [ProducesResponseType(typeof(LinkedEmailDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LinkedEmailDto>> LinkEmailAddress([FromBody] LinkEmailDto dto)
     {
         try
@@ -609,6 +677,9 @@ public class ContactInfoController : ControllerBase
     /// Update an email address
     /// </summary>
     [HttpPut("emails/{emailId}")]
+    [ProducesResponseType(typeof(EmailAddressDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EmailAddressDto>> UpdateEmailAddress(int emailId, [FromBody] CreateEmailAddressDto dto)
     {
         try
@@ -631,6 +702,8 @@ public class ContactInfoController : ControllerBase
     /// Update email preferences for a link
     /// </summary>
     [HttpPut("emails/link/{linkId}/preferences")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UpdateEmailPreferences(int linkId, [FromBody] EmailPreferencesDto dto)
     {
         try
@@ -649,6 +722,8 @@ public class ContactInfoController : ControllerBase
     /// Unlink an email address from an entity
     /// </summary>
     [HttpDelete("emails/link/{linkId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UnlinkEmailAddress(int linkId)
     {
         try
@@ -667,6 +742,8 @@ public class ContactInfoController : ControllerBase
     /// Delete an email address
     /// </summary>
     [HttpDelete("emails/{emailId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteEmailAddress(int emailId)
     {
         try
@@ -685,6 +762,9 @@ public class ContactInfoController : ControllerBase
     /// Set an email address as primary
     /// </summary>
     [HttpPost("{entityType}/{entityId}/emails/{emailId}/set-primary")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimaryEmail(string entityType, int entityId, int emailId, [FromQuery] string emailTypeStr = "General")
     {
         try
@@ -716,6 +796,9 @@ public class ContactInfoController : ControllerBase
     /// Get all social media accounts for an entity
     /// </summary>
     [HttpGet("{entityType}/{entityId}/social-media")]
+    [ProducesResponseType(typeof(List<LinkedSocialMediaDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedSocialMediaDto>>> GetSocialMediaAccounts(string entityType, int entityId)
     {
         try
@@ -739,6 +822,9 @@ public class ContactInfoController : ControllerBase
     /// Get a specific social media account by ID
     /// </summary>
     [HttpGet("social-media/{socialMediaId}")]
+    [ProducesResponseType(typeof(SocialMediaAccountDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<SocialMediaAccountDto>> GetSocialMediaAccount(int socialMediaId)
     {
         try
@@ -761,6 +847,8 @@ public class ContactInfoController : ControllerBase
     /// Create a new standalone social media account
     /// </summary>
     [HttpPost("social-media")]
+    [ProducesResponseType(typeof(SocialMediaAccountDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<SocialMediaAccountDto>> CreateSocialMediaAccount([FromBody] CreateSocialMediaAccountDto dto)
     {
         try
@@ -779,6 +867,9 @@ public class ContactInfoController : ControllerBase
     /// Link a social media account to an entity
     /// </summary>
     [HttpPost("social-media/link")]
+    [ProducesResponseType(typeof(LinkedSocialMediaDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LinkedSocialMediaDto>> LinkSocialMediaAccount([FromBody] LinkSocialMediaDto dto)
     {
         try
@@ -801,6 +892,9 @@ public class ContactInfoController : ControllerBase
     /// Update a social media account
     /// </summary>
     [HttpPut("social-media/{socialMediaId}")]
+    [ProducesResponseType(typeof(SocialMediaAccountDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<SocialMediaAccountDto>> UpdateSocialMediaAccount(int socialMediaId, [FromBody] CreateSocialMediaAccountDto dto)
     {
         try
@@ -823,6 +917,8 @@ public class ContactInfoController : ControllerBase
     /// Unlink a social media account from an entity
     /// </summary>
     [HttpDelete("social-media/link/{linkId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UnlinkSocialMediaAccount(int linkId)
     {
         try
@@ -841,6 +937,8 @@ public class ContactInfoController : ControllerBase
     /// Delete a social media account
     /// </summary>
     [HttpDelete("social-media/{socialMediaId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteSocialMediaAccount(int socialMediaId)
     {
         try
@@ -859,6 +957,9 @@ public class ContactInfoController : ControllerBase
     /// Set a social media account as primary
     /// </summary>
     [HttpPost("{entityType}/{entityId}/social-media/{socialMediaId}/set-primary")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimarySocialMedia(string entityType, int entityId, int socialMediaId)
     {
         try
@@ -888,6 +989,9 @@ public class ContactInfoController : ControllerBase
     /// <param name="request">Email validation request</param>
     /// <returns>Validation result with suggestions if needed</returns>
     [HttpPost("validate/email")]
+    [ProducesResponseType(typeof(ValidateContactInfoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ValidateContactInfoResponse>> ValidateEmail([FromBody] ValidateEmailRequest request)
     {
         try
@@ -925,6 +1029,9 @@ public class ContactInfoController : ControllerBase
     /// <param name="request">Phone validation request</param>
     /// <returns>Validation result with formatted phone number</returns>
     [HttpPost("validate/phone")]
+    [ProducesResponseType(typeof(ValidateContactInfoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ValidateContactInfoResponse>> ValidatePhone([FromBody] ValidatePhoneRequest request)
     {
         try
@@ -963,6 +1070,9 @@ public class ContactInfoController : ControllerBase
     /// <param name="request">Social media validation request</param>
     /// <returns>Validation result with extracted handle and profile URL</returns>
     [HttpPost("validate/social-media")]
+    [ProducesResponseType(typeof(ValidateSocialMediaResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ValidateSocialMediaResponse>> ValidateSocialMedia([FromBody] ValidateSocialMediaRequest request)
     {
         try
@@ -1017,6 +1127,10 @@ public class ContactInfoController : ControllerBase
     /// <param name="request">Follow request with account ID and notification preferences</param>
     /// <returns>The created follow record</returns>
     [HttpPost("social-media/follow")]
+    [ProducesResponseType(typeof(SocialMediaFollowDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<SocialMediaFollowDto>> FollowSocialMedia([FromBody] FollowSocialMediaDto request)
     {
         try
@@ -1052,6 +1166,10 @@ public class ContactInfoController : ControllerBase
     /// </summary>
     /// <param name="followId">ID of the follow record</param>
     [HttpDelete("social-media/follow/{followId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UnfollowSocialMedia(int followId)
     {
         try
@@ -1080,6 +1198,9 @@ public class ContactInfoController : ControllerBase
     /// Get all social media accounts the current user is following
     /// </summary>
     [HttpGet("social-media/following")]
+    [ProducesResponseType(typeof(List<SocialMediaFollowDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<SocialMediaFollowDto>>> GetFollowedAccounts()
     {
         try
@@ -1106,6 +1227,10 @@ public class ContactInfoController : ControllerBase
     /// <param name="followId">ID of the follow record</param>
     /// <param name="request">Updated settings</param>
     [HttpPut("social-media/follow/{followId}")]
+    [ProducesResponseType(typeof(SocialMediaFollowDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<SocialMediaFollowDto>> UpdateFollowSettings(int followId, [FromBody] UpdateFollowSettingsDto request)
     {
         try
@@ -1141,6 +1266,8 @@ public class ContactInfoController : ControllerBase
     /// </summary>
     /// <param name="socialMediaId">ID of the social media account</param>
     [HttpGet("social-media/{socialMediaId}/followers")]
+    [ProducesResponseType(typeof(List<SocialMediaFollowDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<SocialMediaFollowDto>>> GetAccountFollowers(int socialMediaId)
     {
         try

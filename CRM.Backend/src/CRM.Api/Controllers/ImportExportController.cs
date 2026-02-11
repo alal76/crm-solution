@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CRM.Infrastructure.Data;
+using CRM.Core.Entities;
+using CRM.Core.Models;
 using System.Text;
 using System.Text.Json;
 
@@ -45,16 +47,16 @@ public class ImportExportController : ControllerBase
     {
         var entityTypes = new List<object>
         {
-            new { name = "contacts", label = "Contacts", canImport = false, canExport = true },
-            new { name = "customers", label = "Customers", canImport = false, canExport = true },
-            new { name = "opportunities", label = "Opportunities", canImport = false, canExport = true },
-            new { name = "products", label = "Products", canImport = false, canExport = true },
+            new { name = "contacts", label = "Contacts", canImport = true, canExport = true },
+            new { name = "customers", label = "Customers", canImport = true, canExport = true },
+            new { name = "opportunities", label = "Opportunities", canImport = true, canExport = true },
+            new { name = "products", label = "Products", canImport = true, canExport = true },
             new { name = "quotes", label = "Quotes", canImport = false, canExport = true },
-            new { name = "tasks", label = "Tasks", canImport = false, canExport = true },
+            new { name = "tasks", label = "Tasks", canImport = true, canExport = true },
             new { name = "notes", label = "Notes", canImport = false, canExport = true },
             new { name = "activities", label = "Activities", canImport = false, canExport = true },
             new { name = "service-requests", label = "Service Requests", canImport = false, canExport = true },
-            new { name = "leads", label = "Leads", canImport = false, canExport = true }
+            new { name = "leads", label = "Leads", canImport = true, canExport = true }
         };
 
         return Ok(entityTypes);
@@ -150,6 +152,202 @@ public class ImportExportController : ControllerBase
         {
             _logger.LogError(ex, "Error generating template for {EntityType}", entityType);
             return StatusCode(500, new { message = $"Error generating template: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Import entity data from a JSON file.
+    /// </summary>
+    [HttpPost("import/{entityType}")]
+    public async Task<IActionResult> ImportData(string entityType, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest(new { message = "No file uploaded or file is empty." });
+        }
+
+        var supportedTypes = new HashSet<string> { "contacts", "customers", "opportunities", "products", "tasks", "leads" };
+        var normalizedType = entityType.ToLowerInvariant();
+
+        if (!supportedTypes.Contains(normalizedType))
+        {
+            return BadRequest(new { message = $"Import is not supported for entity type: {entityType}" });
+        }
+
+        try
+        {
+            using var reader = new StreamReader(file.OpenReadStream());
+            var content = await reader.ReadToEndAsync();
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            int importedCount = 0;
+            var errors = new List<object>();
+
+            switch (normalizedType)
+            {
+                case "contacts":
+                {
+                    var items = JsonSerializer.Deserialize<List<Contact>>(content, jsonOptions);
+                    if (items == null || items.Count == 0)
+                        return BadRequest(new { message = "File contains no valid records." });
+
+                    foreach (var item in items)
+                    {
+                        try
+                        {
+                            item.Id = 0;
+                            _context.Contacts.Add(item);
+                            importedCount++;
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                        }
+                    }
+                    break;
+                }
+                case "customers":
+                {
+                    var items = JsonSerializer.Deserialize<List<Account>>(content, jsonOptions);
+                    if (items == null || items.Count == 0)
+                        return BadRequest(new { message = "File contains no valid records." });
+
+                    foreach (var item in items)
+                    {
+                        try
+                        {
+                            item.Id = 0;
+                            item.CreatedAt = DateTime.UtcNow;
+                            item.UpdatedAt = DateTime.UtcNow;
+                            _context.Customers.Add(item);
+                            importedCount++;
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                        }
+                    }
+                    break;
+                }
+                case "opportunities":
+                {
+                    var items = JsonSerializer.Deserialize<List<Opportunity>>(content, jsonOptions);
+                    if (items == null || items.Count == 0)
+                        return BadRequest(new { message = "File contains no valid records." });
+
+                    foreach (var item in items)
+                    {
+                        try
+                        {
+                            item.Id = 0;
+                            item.CreatedAt = DateTime.UtcNow;
+                            item.UpdatedAt = DateTime.UtcNow;
+                            _context.Opportunities.Add(item);
+                            importedCount++;
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                        }
+                    }
+                    break;
+                }
+                case "products":
+                {
+                    var items = JsonSerializer.Deserialize<List<Product>>(content, jsonOptions);
+                    if (items == null || items.Count == 0)
+                        return BadRequest(new { message = "File contains no valid records." });
+
+                    foreach (var item in items)
+                    {
+                        try
+                        {
+                            item.Id = 0;
+                            item.CreatedAt = DateTime.UtcNow;
+                            item.UpdatedAt = DateTime.UtcNow;
+                            _context.Products.Add(item);
+                            importedCount++;
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                        }
+                    }
+                    break;
+                }
+                case "tasks":
+                {
+                    var items = JsonSerializer.Deserialize<List<CrmTask>>(content, jsonOptions);
+                    if (items == null || items.Count == 0)
+                        return BadRequest(new { message = "File contains no valid records." });
+
+                    foreach (var item in items)
+                    {
+                        try
+                        {
+                            item.Id = 0;
+                            item.CreatedAt = DateTime.UtcNow;
+                            item.UpdatedAt = DateTime.UtcNow;
+                            _context.CrmTasks.Add(item);
+                            importedCount++;
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                        }
+                    }
+                    break;
+                }
+                case "leads":
+                {
+                    var items = JsonSerializer.Deserialize<List<Lead>>(content, jsonOptions);
+                    if (items == null || items.Count == 0)
+                        return BadRequest(new { message = "File contains no valid records." });
+
+                    foreach (var item in items)
+                    {
+                        try
+                        {
+                            item.Id = 0;
+                            item.CreatedAt = DateTime.UtcNow;
+                            item.UpdatedAt = DateTime.UtcNow;
+                            _context.Leads.Add(item);
+                            importedCount++;
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                        }
+                    }
+                    break;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Imported {Count} {EntityType} records ({ErrorCount} errors)", importedCount, entityType, errors.Count);
+
+            return Ok(new
+            {
+                message = $"Successfully imported {importedCount} {entityType} record(s).",
+                importedCount,
+                errorCount = errors.Count,
+                errors = errors.Count > 0 ? errors : null
+            });
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Invalid JSON format in import file for {EntityType}", entityType);
+            return BadRequest(new { message = "Invalid JSON format. Please ensure the file contains a valid JSON array.", error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error importing {EntityType}", entityType);
+            return StatusCode(500, new { message = $"Error importing data: {ex.Message}" });
         }
     }
 

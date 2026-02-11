@@ -33,6 +33,8 @@ import {
   Tab,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogContent,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -53,6 +55,7 @@ import {
   BugReport as IncidentIcon,
   Warning as SLAWarningIcon,
   SwapHoriz as ChangeIcon,
+  DashboardCustomize as CustomizeIcon,
 } from '@mui/icons-material';
 import {
   LineChart,
@@ -83,6 +86,7 @@ import {
 } from '../services/dashboardService';
 import { opportunityService, campaignService, accountService, Opportunity, Account, Customer } from '../services/apiService';
 import { useProfile } from '../contexts/ProfileContext';
+import { DashboardBuilder } from '../components/analytics';
 
 // Icon mapping for dynamic icons
 const iconMap: Record<string, React.ElementType> = {
@@ -221,6 +225,7 @@ function DashboardPage() {
   const [activeDashboardIndex, setActiveDashboardIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [builderOpen, setBuilderOpen] = useState(false);
   
   // Data state
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -821,6 +826,11 @@ function DashboardPage() {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title="Customize Dashboard">
+            <IconButton onClick={() => setBuilderOpen(true)}>
+              <CustomizeIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Refresh">
             <IconButton onClick={loadData} disabled={loading}>
               <RefreshIcon />
@@ -883,6 +893,25 @@ function DashboardPage() {
       ) : (
         renderFallbackDashboard()
       )}
+
+      {/* Dashboard Builder Dialog */}
+      <Dialog
+        open={builderOpen}
+        onClose={() => setBuilderOpen(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{ sx: { minHeight: '80vh' } }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <DashboardBuilder
+            onSave={async () => {
+              setBuilderOpen(false);
+              await loadDashboards();
+            }}
+            onCancel={() => setBuilderOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

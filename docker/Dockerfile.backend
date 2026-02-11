@@ -44,7 +44,7 @@ RUN apk add --no-cache curl mariadb-client icu-libs icu-data-full
 
 # Create directories with proper permissions
 RUN mkdir -p /app/data /app/ssl /app/wwwroot/uploads/logos /app/wwwroot/uploads/users /app/wwwroot/uploads/customers /app/wwwroot/uploads/contacts && \
-    chmod 777 /app/data && \
+    chmod 755 /app/data && \
     chmod -R 755 /app/wwwroot && \
     chmod 755 /app/ssl
 

@@ -79,13 +79,14 @@ public class ITSMDashboardController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to fetch ITSM dashboard metrics from services");
+            _logger.LogError(ex, "Failed to fetch ITSM dashboard metrics from services");
             return Ok(new
             {
                 totalIncidents = 0, openIncidents = 0, resolvedIncidents = 0, closedIncidents = 0,
                 totalProblems = 0, openProblems = 0, totalChanges = 0, pendingChanges = 0,
                 averageResolutionTimeHours = 0.0, slaCompliancePercent = 0.0, mttr = 0.0,
-                customerSatisfaction = 0.0, timestamp = DateTime.UtcNow
+                customerSatisfaction = 0.0, timestamp = DateTime.UtcNow,
+                errors = new[] { new { endpoint = "metrics", message = ex.Message } }
             });
         }
     }
@@ -114,8 +115,15 @@ public class ITSMDashboardController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to fetch incident trends");
-            return Ok(new { period = "last30days", trends = new List<object>(), totalCreated = 0, totalResolved = 0 });
+            _logger.LogError(ex, "Failed to fetch incident trends");
+            return Ok(new
+            {
+                period = "last30days",
+                trends = new List<object>(),
+                totalCreated = 0,
+                totalResolved = 0,
+                errors = new[] { new { endpoint = "incident-trends", message = ex.Message } }
+            });
         }
     }
 
@@ -145,9 +153,17 @@ public class ITSMDashboardController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to fetch SLA compliance data");
-            return Ok(new { overallCompliance = 0.0, responseTimeCompliance = 0.0, resolutionTimeCompliance = 0.0,
-                byPriority = new List<object>(), byCategory = new List<object>(), period = "last30days" });
+            _logger.LogError(ex, "Failed to fetch SLA compliance data");
+            return Ok(new
+            {
+                overallCompliance = 0.0,
+                responseTimeCompliance = 0.0,
+                resolutionTimeCompliance = 0.0,
+                byPriority = new List<object>(),
+                byCategory = new List<object>(),
+                period = "last30days",
+                errors = new[] { new { endpoint = "sla-compliance", message = ex.Message } }
+            });
         }
     }
 
@@ -169,8 +185,12 @@ public class ITSMDashboardController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to fetch agent performance data");
-            return Ok(new List<object>());
+            _logger.LogError(ex, "Failed to fetch agent performance data");
+            return Ok(new
+            {
+                data = new List<object>(),
+                errors = new[] { new { endpoint = "agent-performance", message = ex.Message } }
+            });
         }
     }
 
@@ -223,7 +243,7 @@ public class ITSMDashboardController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to fetch executive summary");
+            _logger.LogError(ex, "Failed to fetch executive summary");
             return Ok(new
             {
                 period = "last30days",
@@ -231,7 +251,8 @@ public class ITSMDashboardController : ControllerBase
                 problemSummary = new { total = 0, open = 0, resolved = 0 },
                 changeSummary = new { total = 0, pending = 0, approved = 0, implemented = 0 },
                 slaCompliance = 0.0, customerSatisfaction = 0.0,
-                topCategories = new List<object>(), highlights = new List<string>()
+                topCategories = new List<object>(), highlights = new List<string>(),
+                errors = new[] { new { endpoint = "executive-summary", message = ex.Message } }
             });
         }
     }
@@ -260,8 +281,14 @@ public class ITSMDashboardController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to fetch category breakdown");
-            return Ok(new { categories = new List<object>(), totalIncidents = 0, period = "last30days" });
+            _logger.LogError(ex, "Failed to fetch category breakdown");
+            return Ok(new
+            {
+                categories = new List<object>(),
+                totalIncidents = 0,
+                period = "last30days",
+                errors = new[] { new { endpoint = "category-breakdown", message = ex.Message } }
+            });
         }
     }
 

@@ -84,8 +84,8 @@ jobs:
   #
   # All 3 test projects are in CRM.sln:
   #   - CRM.Tests.Unit.Core  (2,854 tests — entity/DTO, MUST all pass)
-  #   - CRM.Tests.Services   (483 tests — service/integration, 23 pre-existing failures)
-  #   - CRM.Tests            (1,766 tests — functional/provider, 68 pre-existing failures)
+  #   - CRM.Tests.Services   (483 tests — service/integration, must pass)
+  #   - CRM.Tests            (1,766 tests — functional/provider, must pass)
   # ==========================================================================
   backend-tests:
     name: Backend Tests & Build
@@ -114,7 +114,7 @@ jobs:
           --logger "trx;LogFileName=core-tests.trx" \
           --results-directory tests/TestResults/
 
-    # Service tests — continue on error (23 pre-existing failures)
+    # Service tests — must pass
     - name: Run Service tests
       working-directory: CRM.Backend
       run: |
@@ -123,9 +123,8 @@ jobs:
           --logger "trx;LogFileName=service-tests.trx" \
           --results-directory tests/TestResults/ \
           --collect:"XPlat Code Coverage"
-      continue-on-error: true
 
-    # Main test suite — continue on error (68 pre-existing failures)
+    # Main test suite — must pass
     - name: Run Main test suite
       working-directory: CRM.Backend
       run: |
@@ -133,7 +132,6 @@ jobs:
           -c Release --no-build \
           --logger "trx;LogFileName=main-tests.trx" \
           --results-directory tests/TestResults/
-      continue-on-error: true
 
     - name: Upload test results
       uses: actions/upload-artifact@v4

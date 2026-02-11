@@ -24,6 +24,10 @@ spec:
         app: crm
     spec:
       serviceAccountName: crm-frontend
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: crm-frontend
         image: ${REGISTRY_HOST:-registry.local}:5000/crm-frontend:latest  # Replace REGISTRY_HOST

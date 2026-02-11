@@ -9,7 +9,7 @@ This directory contains the active CI/CD workflows for the CRM Solution project.
 - **Purpose**: Complete CI/CD pipeline with comprehensive testing and Docker builds
 - **Jobs**:
   - **Frontend Tests & Build** — Node 18.x + 20.x matrix, TypeScript check, unit tests, bundle build
-  - **Backend Tests & Build** — .NET 8.0, all 3 test projects (Core must pass, others continue-on-error)
+  - **Backend Tests & Build** — .NET 8.0, all 3 test projects (all must pass)
   - **BVT (Build Verification Tests)** — Playwright API tests against live API + MariaDB (118 tests, must pass)
   - **Docker Build & Push** — API and Frontend images to GHCR (only after all tests pass)
   - **Code Quality** — ESLint, StyleCop analysis with threshold
@@ -18,12 +18,9 @@ This directory contains the active CI/CD workflows for the CRM Solution project.
 
 ### 2. **docker-build-deploy.yml** — Build and Deploy
 - **Triggers**: Push and PR to `main` and `develop` branches
-- **Purpose**: Docker build + Kubernetes deployment with full test gates
+- **Purpose**: Docker build + Kubernetes deployment (testing handled by ci-cd.yml)
 - **Jobs**:
-  - **Build** — Docker images (API + Frontend) to GHCR
-  - **Backend Tests** — All 3 test projects (Core must pass)
-  - **BVT Tests** — Playwright API tests against live API + MariaDB
-  - **Frontend Tests** — Unit tests + production build
+  - **Build** — Docker images (API + Frontend) to GHCR with GHA build cache
   - **Deploy** — Kubernetes (main branch only, requires `KUBE_CONFIG` secret)
 
 ### 3. **copilot-swe-agent/copilot** — GitHub Copilot Agent
@@ -48,31 +45,31 @@ All 3 backend test projects are included in `CRM.sln` and run on every build:
 
 | Feature | ci-cd.yml | docker-build-deploy.yml |
 |---------|-----------|------------------------|
-| Frontend Tests | ✅ Matrix (18.x, 20.x) | ✅ Node 20.x |
-| Backend Tests | ✅ All 3 test projects | ✅ All 3 test projects |
-| BVT Tests | ✅ Playwright + MariaDB | ✅ Playwright + MariaDB |
-| Docker Build | ✅ After all tests pass | ✅ Parallel with tests |
+| Frontend Tests | ✅ Matrix (18.x, 20.x) | ❌ (handled by ci-cd.yml) |
+| Backend Tests | ✅ All 3 test projects | ❌ (handled by ci-cd.yml) |
+| BVT Tests | ✅ Playwright + MariaDB | ❌ (handled by ci-cd.yml) |
+| Docker Build | ✅ After all tests pass | ✅ Parallel (GHA cache) |
 | Code Quality | ✅ ESLint, StyleCop | ❌ |
 | Security Scan | ✅ npm audit, .NET vuln | ❌ |
 | Kubernetes Deploy | ❌ | ✅ If secrets configured |
 | Test Reports | ✅ TRX + BVT artifacts | ❌ |
-| Build Caching | ✅ GHA cache | ❌ |
+| Build Caching | ✅ GHA cache | ✅ GHA cache |
 
 ## Recommended Usage
 
-- **For Pull Requests**: Both workflows run automatically to validate changes
+- **For Pull Requests**: `ci-cd.yml` runs all tests, quality checks, and Docker builds. `docker-build-deploy.yml` builds Docker images only.
 - **For Main Branch**: 
   - `ci-cd.yml` provides comprehensive testing, quality gates, and Docker image publishing
-  - `docker-build-deploy.yml` handles Kubernetes deployment if `KUBE_CONFIG` secret is configured
+  - `docker-build-deploy.yml` builds Docker images and handles Kubernetes deployment if `KUBE_CONFIG` secret is configured
 
 ## Legacy CI/CD Files
 
-The following Azure DevOps pipeline files are preserved for reference but are **NOT actively used**:
+The following Azure DevOps pipeline files have been renamed to `.disabled` and are **NOT actively used**:
 
-- `azure-pipelines.yml` - Legacy Azure DevOps CI/CD Pipeline
-- `azure-pipelines-aks.yml` - Legacy Azure Kubernetes Service deployment pipeline
+- `azure-pipelines.yml.disabled` - Legacy Azure DevOps CI/CD Pipeline
+- `azure-pipelines-aks.yml.disabled` - Legacy Azure Kubernetes Service deployment pipeline
 
-These files are maintained for historical reference and can be reactivated if Azure DevOps integration is needed in the future.
+These files are maintained for historical reference and can be reactivated by removing the `.disabled` suffix if Azure DevOps integration is needed.
 
 ## Secrets Required
 
@@ -94,7 +91,7 @@ These files are maintained for historical reference and can be reactivated if Az
 - Frontend uses `npm ci --legacy-peer-deps` for reproducible installs
 - StyleCop analysis runs in **Debug** mode (Release suppresses StyleCop analyzers)
 - BVT tests start a live API + MariaDB service container and run 118 Playwright API tests
-- Pre-existing test failures in Services/Main use `continue-on-error`; Core and BVT must pass
+- All 3 backend test projects must pass; Core and BVT are critical gates
 
 ---
 

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import apiClient from '../../services/api';
 import { RelationshipDiagram, ServiceMap } from '../../components/itsm';
+import { CIRelationshipDiagram } from '../../components/itsm/CIRelationshipDiagram';
+import type { ConfigurationItem, CIRelationship } from '../../components/itsm/CIRelationshipDiagram';
 import type { ConfigurationItemNode, ServiceNode } from '../../components/itsm';
 
 interface ConfigurationItemDetail {
@@ -110,6 +112,37 @@ const CMDBDetailPage: React.FC = () => {
           relationships={ciRelationships}
         />
       </div>
+
+      {/* Advanced CI Dependency Graph */}
+      {relatedCIs.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Dependency Graph</h2>
+          <CIRelationshipDiagram
+            configItems={relatedCIs.map((node: ConfigurationItemNode) => ({
+              id: String(node.id),
+              name: node.name,
+              type: (node.ciType as any) || 'server',
+              status: (node.status as any) || 'active',
+              environment: undefined,
+            } as ConfigurationItem))}
+            relationships={ciRelationships.map((rel: any, idx: number) => ({
+              id: String(rel.id ?? idx),
+              sourceId: String(rel.sourceId ?? rel.fromCIId),
+              targetId: String(rel.targetId ?? rel.toCIId),
+              type: (rel.type as any) || 'depends_on',
+              label: rel.label ?? rel.relationshipType ?? '',
+            } as CIRelationship))}
+            selectedCIId={String(ci.ciId)}
+            onCISelect={(ciId) => {
+              if (ciId && ciId !== String(ci.ciId)) {
+                navigate(`/itsm/cmdb/${ciId}`);
+              }
+            }}
+            onCIDoubleClick={(ciId) => navigate(`/itsm/cmdb/${ciId}`)}
+            highlightImpact
+          />
+        </div>
+      )}
 
       {/* Service Map */}
       {serviceNodes.length > 0 && (

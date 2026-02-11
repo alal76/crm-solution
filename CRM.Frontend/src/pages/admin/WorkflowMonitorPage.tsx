@@ -69,6 +69,7 @@ import {
   Download as DownloadIcon,
   Timeline as TimelineIcon,
   Assessment as AssessmentIcon,
+  Psychology as AIInsightsIcon,
 } from '@mui/icons-material';
 import {
   workflowInstanceService,
@@ -77,6 +78,7 @@ import {
   HumanTask,
   statusColors,
 } from '../../services/workflowService';
+import { AIAnalyticsDashboard } from '../../components/workflow';
 
 // Helper function for date formatting
 const formatDate = (date: string | undefined, pattern: string = 'MMM dd, HH:mm') => {
@@ -421,6 +423,7 @@ function WorkflowMonitorPage() {
           <Tab icon={<TimelineIcon />} label="Instances" />
           <Tab icon={<TaskIcon />} label="My Tasks" />
           <Tab icon={<AssessmentIcon />} label="Statistics" />
+          <Tab icon={<AIInsightsIcon />} label="AI Analytics" />
         </Tabs>
       </Paper>
 
@@ -748,6 +751,13 @@ function WorkflowMonitorPage() {
             </Grid>
           </Grid>
         )}
+      </TabPanel>
+
+      {/* AI Analytics Tab */}
+      <TabPanel value={tabValue} index={3}>
+        <AIAnalyticsDashboard
+          workflowId={workflowId ? parseInt(workflowId) : undefined}
+        />
       </TabPanel>
 
       {/* Instance Detail Dialog */}
