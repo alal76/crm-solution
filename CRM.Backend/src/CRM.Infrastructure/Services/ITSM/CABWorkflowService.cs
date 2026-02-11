@@ -25,6 +25,9 @@ using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+// Disambiguate from CRM.Core.Entities.ApprovalStatus
+using ApprovalStatus = CRM.Core.Entities.ITSM.ApprovalStatus;
+
 namespace CRM.Infrastructure.Services.ITSM;
 
 /// <summary>
@@ -167,7 +170,7 @@ public class CABWorkflowService : ICABWorkflowService
         var context = _dbContextResolver.ResolveContext();
 
         var change = await context.Changes
-            .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
+            .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null)
         {
@@ -175,7 +178,7 @@ public class CABWorkflowService : ICABWorkflowService
         }
 
         // Get approval chain based on change type and risk
-        var approvalChain = await GetApprovalChainAsync(change.ChangeType, change.RiskLevel ?? "Medium");
+        var approvalChain = await GetApprovalChainAsync(change.Type, change.Risk.ToString());
 
         var workflow = new CABWorkflow
         {
@@ -195,8 +198,8 @@ public class CABWorkflowService : ICABWorkflowService
         };
 
         // Update change status
-        change.Status = ChangeState.AwaitingApproval;
-        change.UpdatedAt = DateTime.UtcNow;
+        change.State = ChangeState.AwaitingApproval;
+        change.ModifiedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
 
@@ -205,11 +208,10 @@ public class CABWorkflowService : ICABWorkflowService
         {
             var approval = new ChangeApproval
             {
-                ChangeRequestId = changeRequestId,
-                ApproverLevel = stage.StageNumber,
-                ApproverName = stage.StageName,
-                ApproverId = stage.ApproverId,
-                Status = "Pending",
+                ChangeId = changeRequestId,
+                ApprovalRole = (ApprovalRole)stage.StageNumber,
+                ApproverId = stage.ApproverId ?? 0,
+                ApprovalStatus = ApprovalStatus.Requested,
                 CreatedAt = DateTime.UtcNow
             };
             context.ChangeApprovals.Add(approval);
@@ -230,9 +232,9 @@ public class CABWorkflowService : ICABWorkflowService
 
         // Get current pending approval for this approver
         var approval = await context.ChangeApprovals
-            .Where(a => a.ChangeRequestId == changeRequestId &&
+            .Where(a => a.ChangeId == changeRequestId &&
                        a.ApproverId == approverId &&
-                       a.Status == "Pending")
+                       a.ApprovalStatus == ApprovalStatus.Requested)
             .FirstOrDefaultAsync();
 
         if (approval == null)
@@ -242,12 +244,12 @@ public class CABWorkflowService : ICABWorkflowService
             return false;
         }
 
-        approval.Status = isApproved ? "Approved" : "Rejected";
-        approval.DecisionDate = DateTime.UtcNow;
+        approval.ApprovalStatus = isApproved ? ApprovalStatus.Approved : ApprovalStatus.Rejected;
+        approval.ApprovalDate = DateTime.UtcNow;
         approval.Comments = comments;
 
         var change = await context.Changes
-            .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
+            .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null)
         {
@@ -257,47 +259,46 @@ public class CABWorkflowService : ICABWorkflowService
         if (!isApproved)
         {
             // Rejection - fail the entire workflow
-            change.Status = ChangeState.Rejected;
-            change.UpdatedAt = DateTime.UtcNow;
+            change.State = ChangeState.Rejected;
+            change.ModifiedAt = DateTime.UtcNow;
 
-            // Add note
-            var note = new ChangeNote
+            // Add comment
+            var comment = new ChangeComment
             {
-                ChangeRequestId = changeRequestId,
-                NoteText = $"Change rejected at approval stage {approval.ApproverLevel} ({approval.ApproverName}). Reason: {comments ?? "No reason provided"}",
+                ChangeId = changeRequestId,
+                Comment = $"Change rejected at approval stage {approval.ApprovalRole}. Reason: {comments ?? "No reason provided"}",
                 IsInternal = false,
                 CreatedAt = DateTime.UtcNow,
                 CreatedById = approverId
             };
-            context.ITSMChangeNotes.Add(note);
+            context.ChangeComments.Add(comment);
         }
         else
         {
             // Check if there are more approvals needed
             var allApprovals = await context.ChangeApprovals
-                .Where(a => a.ChangeRequestId == changeRequestId)
-                .OrderBy(a => a.ApproverLevel)
+                .Where(a => a.ChangeId == changeRequestId)
+                .OrderBy(a => a.ApprovalRole)
                 .ToListAsync();
 
-            var pendingApprovals = allApprovals.Where(a => a.Status == "Pending").ToList();
+            var pendingApprovals = allApprovals.Where(a => a.ApprovalStatus == ApprovalStatus.Requested).ToList();
 
             if (pendingApprovals.Count == 0)
             {
                 // All approvals complete - change is approved
-                change.Status = ChangeState.Approved;
-                change.ApprovedAt = DateTime.UtcNow;
-                change.ApprovedById = approverId;
-                change.UpdatedAt = DateTime.UtcNow;
+                change.State = ChangeState.Approved;
+                change.ApprovalStatus = ApprovalStatus.Approved;
+                change.ModifiedAt = DateTime.UtcNow;
 
-                var note = new ChangeNote
+                var comment = new ChangeComment
                 {
-                    ChangeRequestId = changeRequestId,
-                    NoteText = "All CAB approvals received. Change is approved and ready for scheduling.",
+                    ChangeId = changeRequestId,
+                    Comment = "All CAB approvals received. Change is approved and ready for scheduling.",
                     IsInternal = false,
                     CreatedAt = DateTime.UtcNow,
                     CreatedById = approverId
                 };
-                context.ITSMChangeNotes.Add(note);
+                context.ChangeComments.Add(comment);
             }
             else
             {
@@ -321,13 +322,13 @@ public class CABWorkflowService : ICABWorkflowService
         var context = _dbContextResolver.ResolveContext();
 
         var change = await context.Changes
-            .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
+            .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null) return null;
 
         var approvals = await context.ChangeApprovals
-            .Where(a => a.ChangeRequestId == changeRequestId)
-            .OrderBy(a => a.ApproverLevel)
+            .Where(a => a.ChangeId == changeRequestId)
+            .OrderBy(a => a.ApprovalRole)
             .ToListAsync();
 
         if (approvals.Count == 0) return null;
@@ -339,11 +340,11 @@ public class CABWorkflowService : ICABWorkflowService
             TotalStages = approvals.Count,
             Stages = approvals.Select(a => new CABApprovalStage
             {
-                StageNumber = a.ApproverLevel,
-                StageName = a.ApproverName ?? $"Level {a.ApproverLevel}",
+                StageNumber = (int)a.ApprovalRole,
+                StageName = a.ApprovalRole.ToString(),
                 ApproverId = a.ApproverId,
-                Status = a.Status ?? "Pending",
-                DecisionAt = a.DecisionDate,
+                Status = a.ApprovalStatus.ToString(),
+                DecisionAt = a.ApprovalDate,
                 Comments = a.Comments
             }).ToList()
         };
@@ -376,23 +377,23 @@ public class CABWorkflowService : ICABWorkflowService
         var context = _dbContextResolver.ResolveContext();
 
         var pendingApprovals = await context.ChangeApprovals
-            .Where(a => a.ApproverId == approverId && a.Status == "Pending")
+            .Where(a => a.ApproverId == approverId && a.ApprovalStatus == ApprovalStatus.Requested)
             .Join(context.Changes,
-                a => a.ChangeRequestId,
-                c => c.ChangeRequestId,
+                a => a.ChangeId,
+                c => c.ChangeId,
                 (a, c) => new { Approval = a, Change = c })
             .ToListAsync();
 
-        return pendingApprovals.Select(x => new PendingApproval
+        return pendingApprovals.Select(x => new PendingChangeApproval
         {
-            ChangeRequestId = x.Change.ChangeRequestId,
+            ChangeRequestId = x.Change.ChangeId,
             ChangeNumber = x.Change.Number,
-            ChangeTitle = x.Change.Title,
-            ChangeType = x.Change.ChangeType,
-            RiskLevel = x.Change.RiskLevel ?? "Medium",
+            ChangeTitle = x.Change.ShortDescription,
+            ChangeType = x.Change.Type,
+            RiskLevel = x.Change.Risk.ToString(),
             RequestedAt = x.Approval.CreatedAt,
-            CurrentStage = x.Approval.ApproverLevel,
-            StageName = x.Approval.ApproverName ?? $"Level {x.Approval.ApproverLevel}"
+            CurrentStage = (int)x.Approval.ApprovalRole,
+            StageName = x.Approval.ApprovalRole.ToString()
         }).ToList();
     }
 
@@ -401,16 +402,15 @@ public class CABWorkflowService : ICABWorkflowService
         var context = _dbContextResolver.ResolveContext();
 
         var change = await context.Changes
-            .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
+            .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null) return false;
 
         // Standard and Emergency changes require CAB review
         // Normal changes with high risk also require CAB
-        return change.ChangeType == ChangeType.Standard ||
-               change.ChangeType == ChangeType.Emergency ||
-               change.RiskLevel?.ToLower() == "high" ||
-               change.RiskLevel?.ToLower() == "critical";
+        return change.Type == ChangeType.Standard ||
+               change.Type == ChangeType.Emergency ||
+               change.Risk == ChangeRisk.High;
     }
 
     public async Task<int> ScheduleCABMeetingAsync(DateTime meetingDate, List<int> changeRequestIds, int scheduledById)
@@ -421,15 +421,15 @@ public class CABWorkflowService : ICABWorkflowService
         // For now, just add notes to each change
         foreach (var changeId in changeRequestIds)
         {
-            var note = new ChangeNote
+            var comment = new ChangeComment
             {
-                ChangeRequestId = changeId,
-                NoteText = $"Scheduled for CAB review on {meetingDate:g}",
+                ChangeId = changeId,
+                Comment = $"Scheduled for CAB review on {meetingDate:g}",
                 IsInternal = false,
                 CreatedAt = DateTime.UtcNow,
                 CreatedById = scheduledById
             };
-            context.ITSMChangeNotes.Add(note);
+            context.ChangeComments.Add(comment);
         }
 
         await context.SaveChangesAsync();

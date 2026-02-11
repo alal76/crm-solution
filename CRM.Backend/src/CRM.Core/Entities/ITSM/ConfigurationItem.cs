@@ -150,6 +150,10 @@ public class ConfigurationItem
 
     public DateTime? LeaseExpiration { get; set; }
 
+    public DateTime? EndOfLifeDate { get; set; }
+
+    public DateTime? EndOfSupportDate { get; set; }
+
     // Technical Details
     [StringLength(50)]
     public string? IPAddress { get; set; }

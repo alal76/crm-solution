@@ -18,12 +18,13 @@
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
 // Licensed under the AGPL-3.0 license.
-
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CIRelationType = CRM.Core.Entities.ITSM.RelationshipType;
+using EntityCriticality = CRM.Core.Entities.ITSM.CICriticality;
 
 namespace CRM.Infrastructure.Services.ITSM;
 
@@ -102,7 +103,7 @@ public enum ImpactClassification
     Low = 1,      // Single user affected
     Medium = 2,   // Department affected
     High = 3,     // Multiple departments affected
-    Critical = 4  // Entire organization affected
+    Critical = 4 // Entire organization affected
 }
 
 public enum UrgencyClassification
@@ -110,7 +111,7 @@ public enum UrgencyClassification
     Low = 1,      // Can wait, workaround exists
     Medium = 2,   // Normal priority, needs attention
     High = 3,     // Urgent, no workaround
-    Critical = 4  // VIP or time-sensitive
+    Critical = 4 // VIP or time-sensitive
 }
 
 public enum PriorityClassification
@@ -268,10 +269,10 @@ public class ImpactAnalysisService : IImpactAnalysisService
     private readonly IDbContextResolver _dbContextResolver;
     private readonly ILogger<ImpactAnalysisService> _logger;
 
-    // Priority matrix (Impact x Urgency)
+    // Priority matrix: rows = Impact (Low..Critical), columns = Urgency (Low..Critical)
     private static readonly PriorityClassification[,] PriorityMatrix =
     {
-        //                 Low Urg    Med Urg    High Urg   Crit Urg
+        // Low Urg, Med Urg, High Urg, Crit Urg
         /* Low Impact   */ { PriorityClassification.P4_Low, PriorityClassification.P4_Low, PriorityClassification.P3_Medium, PriorityClassification.P3_Medium },
         /* Med Impact   */ { PriorityClassification.P4_Low, PriorityClassification.P3_Medium, PriorityClassification.P2_High, PriorityClassification.P2_High },
         /* High Impact  */ { PriorityClassification.P3_Medium, PriorityClassification.P2_High, PriorityClassification.P1_Critical, PriorityClassification.P1_Critical },
@@ -291,13 +292,19 @@ public class ImpactAnalysisService : IImpactAnalysisService
         var context = _dbContextResolver.ResolveContext();
 
         var incident = await context.Incidents
-            .Include(i => i.AffectedCI)
-            .Include(i => i.AffectedUser)
             .FirstOrDefaultAsync(i => i.IncidentId == incidentId);
 
         if (incident == null)
         {
             throw new ArgumentException($"Incident {incidentId} not found");
+        }
+
+        // Load the affected CI separately (Incident has no AffectedCI nav prop)
+        ConfigurationItem? affectedCI = null;
+        if (incident.ConfigurationItemId.HasValue)
+        {
+            affectedCI = await context.ConfigurationItems
+                .FirstOrDefaultAsync(c => c.CIId == incident.ConfigurationItemId.Value);
         }
 
         var analysis = new IncidentImpactAnalysis
@@ -308,20 +315,20 @@ public class ImpactAnalysisService : IImpactAnalysisService
         };
 
         // Get affected CIs (direct and through dependencies)
-        if (incident.AffectedCIId.HasValue)
+        if (incident.ConfigurationItemId.HasValue)
         {
-            var dependencyChain = await GetDependencyChainAsync(incident.AffectedCIId.Value);
+            var dependencyChain = await GetDependencyChainAsync(incident.ConfigurationItemId.Value);
 
             // Add primary CI
-            if (incident.AffectedCI != null)
+            if (affectedCI != null)
             {
                 analysis.AffectedCIs.Add(new AffectedCI
                 {
-                    ConfigurationItemId = incident.AffectedCI.ConfigurationItemId,
-                    Name = incident.AffectedCI.Name,
-                    CIType = incident.AffectedCI.CIType,
-                    Status = incident.AffectedCI.Status,
-                    Criticality = incident.AffectedCI.Criticality ?? "Medium",
+                    ConfigurationItemId = affectedCI.CIId,
+                    Name = affectedCI.CIName,
+                    CIType = affectedCI.CIType.ToString(),
+                    Status = affectedCI.OperationalStatus.ToString(),
+                    Criticality = affectedCI.Criticality?.ToString() ?? "Medium",
                     IsPrimaryCI = true,
                     DependencyLevel = 0
                 });
@@ -341,10 +348,10 @@ public class ImpactAnalysisService : IImpactAnalysisService
             }
 
             // Get affected services
-            analysis.AffectedServices = await GetAffectedServicesAsync(incident.AffectedCIId.Value);
+            analysis.AffectedServices = await GetAffectedServicesAsync(incident.ConfigurationItemId.Value);
 
             // Get affected users
-            analysis.UserImpact = await GetAffectedUsersAsync(incident.AffectedCIId.Value);
+            analysis.UserImpact = await GetAffectedUsersAsync(incident.ConfigurationItemId.Value);
         }
 
         // Classify impact based on affected users and services
@@ -356,9 +363,9 @@ public class ImpactAnalysisService : IImpactAnalysisService
         analysis.BusinessImpact = await CalculateBusinessImpactAsync(incidentId);
 
         // Look for potential root causes
-        if (incident.AffectedCIId.HasValue)
+        if (incident.ConfigurationItemId.HasValue)
         {
-            analysis.PotentialRootCauses = await FindPotentialRootCausesAsync(incident.AffectedCIId.Value, context);
+            analysis.PotentialRootCauses = await FindPotentialRootCausesAsync(incident.ConfigurationItemId.Value, context);
         }
 
         // Generate impact statement
@@ -381,35 +388,27 @@ public class ImpactAnalysisService : IImpactAnalysisService
         var services = new List<AffectedService>();
 
         // Get the CI and its relationships
-        var ci = await context.ITSMConfigurationItems
-            .Include(c => c.SourceRelationships)
-                .ThenInclude(r => r.TargetCI)
-            .Include(c => c.TargetRelationships)
-                .ThenInclude(r => r.SourceCI)
-            .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
+        var ci = await context.ConfigurationItems
+            .Include(c => c.ParentRelationships!)
+                .ThenInclude(r => r.ChildCI)
+            .Include(c => c.ChildRelationships!)
+                .ThenInclude(r => r.ParentCI)
+            .FirstOrDefaultAsync(c => c.CIId == configurationItemId);
 
         if (ci == null) return services;
 
-        // Find services in the catalog that this CI might support
-        var catalogItems = await context.ITSMServiceCatalogItems
-            .Where(s => s.IsActive)
-            .ToListAsync();
-
-        // For demo purposes, map services based on CI type
-        foreach (var service in catalogItems.Take(3))
+        // Generate a service entry based on the CI itself
+        services.Add(new AffectedService
         {
-            services.Add(new AffectedService
-            {
-                ServiceId = service.ServiceCatalogItemId,
-                ServiceName = service.Name,
-                ServiceCategory = service.Category ?? "General",
-                CurrentStatus = ServiceStatus.Degraded,
-                Criticality = "Medium",
-                EstimatedUserCount = 25,
-                HasSLA = true,
-                BusinessProcesses = new List<string> { "Business Operations" }
-            });
-        }
+            ServiceId = ci.CIId,
+            ServiceName = ci.CIName,
+            ServiceCategory = ci.CIType.ToString(),
+            CurrentStatus = ServiceStatus.Degraded,
+            Criticality = ci.Criticality?.ToString() ?? "Medium",
+            EstimatedUserCount = 25,
+            HasSLA = true,
+            BusinessProcesses = new List<string> { "Business Operations" }
+        });
 
         return services;
     }
@@ -420,26 +419,26 @@ public class ImpactAnalysisService : IImpactAnalysisService
         // For now, return estimated values based on CI type
         var context = _dbContextResolver.ResolveContext();
 
-        var ci = await context.ITSMConfigurationItems
-            .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
+        var ci = await context.ConfigurationItems
+            .FirstOrDefaultAsync(c => c.CIId == configurationItemId);
 
         var userGroup = new AffectedUserGroup();
 
         if (ci == null) return userGroup;
 
-        // Estimate based on CI type
-        switch (ci.CIType?.ToLower())
+        // Estimate based on CI type (CIType is an enum)
+        switch (ci.CIType)
         {
-            case "server":
-            case "database":
+            case CIType.Server:
+            case CIType.Database:
                 userGroup.TotalUsersAffected = 100;
                 userGroup.AffectedDepartments = new List<string> { "IT", "Operations", "Finance" };
                 break;
-            case "network":
+            case CIType.NetworkDevice:
                 userGroup.TotalUsersAffected = 500;
                 userGroup.AffectedDepartments = new List<string> { "All Departments" };
                 break;
-            case "application":
+            case CIType.Application:
                 userGroup.TotalUsersAffected = 50;
                 userGroup.AffectedDepartments = new List<string> { "Sales", "Customer Service" };
                 break;
@@ -449,8 +448,8 @@ public class ImpactAnalysisService : IImpactAnalysisService
                 break;
         }
 
-        // Check for VIP users
-        if (ci.Criticality == "Critical")
+        // Check for VIP users (Criticality is CICriticality? enum)
+        if (ci.Criticality == EntityCriticality.BusinessCritical)
         {
             userGroup.VIPUsersAffected = 5;
             userGroup.KeyStakeholders.Add(new AffectedUser
@@ -469,7 +468,6 @@ public class ImpactAnalysisService : IImpactAnalysisService
         var context = _dbContextResolver.ResolveContext();
 
         var incident = await context.Incidents
-            .Include(i => i.AffectedCI)
             .FirstOrDefaultAsync(i => i.IncidentId == incidentId);
 
         var score = new BusinessImpactScore
@@ -479,15 +477,23 @@ public class ImpactAnalysisService : IImpactAnalysisService
 
         if (incident == null) return score;
 
+        // Load the affected CI separately
+        ConfigurationItem? affectedCI = null;
+        if (incident.ConfigurationItemId.HasValue)
+        {
+            affectedCI = await context.ConfigurationItems
+                .FirstOrDefaultAsync(c => c.CIId == incident.ConfigurationItemId.Value);
+        }
+
         int totalScore = 0;
 
-        // Factor 1: CI Criticality (0-30 points)
-        var criticalityScore = incident.AffectedCI?.Criticality?.ToLower() switch
+        // Factor 1: CI Criticality (0-30 points) — CICriticality enum
+        var criticalityScore = affectedCI?.Criticality switch
         {
-            "critical" => 30,
-            "high" => 20,
-            "medium" => 10,
-            "low" => 5,
+            EntityCriticality.BusinessCritical => 30,
+            EntityCriticality.High => 20,
+            EntityCriticality.Medium => 10,
+            EntityCriticality.Low => 5,
             _ => 10
         };
         score.ScoreBreakdown["CI Criticality"] = criticalityScore;
@@ -505,25 +511,23 @@ public class ImpactAnalysisService : IImpactAnalysisService
         score.ScoreBreakdown["Incident Priority"] = priorityScore;
         totalScore += priorityScore;
 
-        // Factor 3: User Impact (0-20 points)
-        var userImpact = incident.Impact?.ToLower() switch
+        // Factor 3: User Impact (0-20 points) — IncidentImpact enum
+        var userImpact = incident.Impact switch
         {
-            "critical" => 20,
-            "high" => 15,
-            "medium" => 10,
-            "low" => 5,
+            IncidentImpact.High => 15,
+            IncidentImpact.Medium => 10,
+            IncidentImpact.Low => 5,
             _ => 10
         };
         score.ScoreBreakdown["User Impact"] = userImpact;
         totalScore += userImpact;
 
-        // Factor 4: Time sensitivity (0-20 points)
-        var urgencyScore = incident.Urgency?.ToLower() switch
+        // Factor 4: Time sensitivity (0-20 points) — IncidentUrgency enum
+        var urgencyScore = incident.Urgency switch
         {
-            "critical" => 20,
-            "high" => 15,
-            "medium" => 10,
-            "low" => 5,
+            IncidentUrgency.High => 15,
+            IncidentUrgency.Medium => 10,
+            IncidentUrgency.Low => 5,
             _ => 10
         };
         score.ScoreBreakdown["Time Sensitivity"] = urgencyScore;
@@ -552,7 +556,7 @@ public class ImpactAnalysisService : IImpactAnalysisService
         {
             score.BusinessJustification.Add("High business impact requires expedited resolution");
         }
-        if (incident.AffectedCI?.Criticality == "Critical")
+        if (affectedCI?.Criticality == EntityCriticality.BusinessCritical)
         {
             score.BusinessJustification.Add("Critical infrastructure component affected");
         }
@@ -564,13 +568,13 @@ public class ImpactAnalysisService : IImpactAnalysisService
     {
         var context = _dbContextResolver.ResolveContext();
 
-        var ci = await context.ITSMConfigurationItems
-            .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
+        var ci = await context.ConfigurationItems
+            .FirstOrDefaultAsync(c => c.CIId == configurationItemId);
 
         var chain = new DependencyChain
         {
             ConfigurationItemId = configurationItemId,
-            CIName = ci?.Name ?? "Unknown"
+            CIName = ci?.CIName ?? "Unknown"
         };
 
         // Get upstream dependencies (what this CI depends on)
@@ -591,8 +595,8 @@ public class ImpactAnalysisService : IImpactAnalysisService
         var impacts = new List<PredictedImpact>();
         var context = _dbContextResolver.ResolveContext();
 
-        var ci = await context.ITSMConfigurationItems
-            .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
+        var ci = await context.ConfigurationItems
+            .FirstOrDefaultAsync(c => c.CIId == configurationItemId);
 
         if (ci == null) return impacts;
 
@@ -648,25 +652,25 @@ public class ImpactAnalysisService : IImpactAnalysisService
         var nodes = new List<DependencyNode>();
         if (currentLevel > maxLevel) return nodes;
 
-        var relationships = await context.ITSMCIRelationships
-            .Include(r => r.SourceCI)
-            .Where(r => r.TargetCIId == ciId && r.RelationshipType == "DependsOn")
+        var relationships = await context.CIRelationships
+            .Include(r => r.ParentCI)
+            .Where(r => r.ChildCIId == ciId && r.RelationshipType == CIRelationType.DependsOn)
             .ToListAsync();
 
         foreach (var rel in relationships)
         {
             var node = new DependencyNode
             {
-                ConfigurationItemId = rel.SourceCIId,
-                Name = rel.SourceCI?.Name ?? "Unknown",
-                CIType = rel.SourceCI?.CIType ?? "Unknown",
-                RelationshipType = rel.RelationshipType,
+                ConfigurationItemId = rel.ParentCIId,
+                Name = rel.ParentCI?.CIName ?? "Unknown",
+                CIType = rel.ParentCI?.CIType.ToString() ?? "Unknown",
+                RelationshipType = rel.RelationshipType.ToString(),
                 Level = currentLevel,
-                IsCritical = rel.SourceCI?.Criticality == "Critical"
+                IsCritical = rel.ParentCI?.Criticality == EntityCriticality.BusinessCritical
             };
 
             node.Children = await GetUpstreamDependenciesAsync(
-                rel.SourceCIId, context, currentLevel + 1, maxLevel);
+                rel.ParentCIId, context, currentLevel + 1, maxLevel);
 
             nodes.Add(node);
         }
@@ -680,25 +684,25 @@ public class ImpactAnalysisService : IImpactAnalysisService
         var nodes = new List<DependencyNode>();
         if (currentLevel > maxLevel) return nodes;
 
-        var relationships = await context.ITSMCIRelationships
-            .Include(r => r.TargetCI)
-            .Where(r => r.SourceCIId == ciId)
+        var relationships = await context.CIRelationships
+            .Include(r => r.ChildCI)
+            .Where(r => r.ParentCIId == ciId)
             .ToListAsync();
 
         foreach (var rel in relationships)
         {
             var node = new DependencyNode
             {
-                ConfigurationItemId = rel.TargetCIId,
-                Name = rel.TargetCI?.Name ?? "Unknown",
-                CIType = rel.TargetCI?.CIType ?? "Unknown",
-                RelationshipType = rel.RelationshipType,
+                ConfigurationItemId = rel.ChildCIId,
+                Name = rel.ChildCI?.CIName ?? "Unknown",
+                CIType = rel.ChildCI?.CIType.ToString() ?? "Unknown",
+                RelationshipType = rel.RelationshipType.ToString(),
                 Level = currentLevel,
-                IsCritical = rel.TargetCI?.Criticality == "Critical"
+                IsCritical = rel.ChildCI?.Criticality == EntityCriticality.BusinessCritical
             };
 
             node.Children = await GetDownstreamDependenciesAsync(
-                rel.TargetCIId, context, currentLevel + 1, maxLevel);
+                rel.ChildCIId, context, currentLevel + 1, maxLevel);
 
             nodes.Add(node);
         }
@@ -721,10 +725,10 @@ public class ImpactAnalysisService : IImpactAnalysisService
         var causes = new List<PotentialRootCause>();
 
         // Get upstream dependencies as potential root causes
-        var upstreamCIs = await context.ITSMCIRelationships
-            .Include(r => r.SourceCI)
-            .Where(r => r.TargetCIId == ciId && r.RelationshipType == "DependsOn")
-            .Select(r => r.SourceCI)
+        var upstreamCIs = await context.CIRelationships
+            .Include(r => r.ParentCI)
+            .Where(r => r.ChildCIId == ciId && r.RelationshipType == CIRelationType.DependsOn)
+            .Select(r => r.ParentCI)
             .ToListAsync();
 
         foreach (var upstreamCI in upstreamCIs.Where(ci => ci != null))
@@ -732,25 +736,25 @@ public class ImpactAnalysisService : IImpactAnalysisService
             // Check for recent changes on this CI
             var recentChanges = await context.Changes
                 .Include(c => c.ImpactedCIs)
-                .Where(c => c.ImpactedCIs!.Any(ic => ic.ConfigurationItemId == upstreamCI!.ConfigurationItemId))
-                .Where(c => c.ImplementedAt > DateTime.UtcNow.AddDays(-7))
+                .Where(c => c.ImpactedCIs!.Any(ic => ic.CIId == upstreamCI!.CIId))
+                .Where(c => c.ActualEndDate > DateTime.UtcNow.AddDays(-7))
                 .Select(c => c.Number)
                 .ToListAsync();
 
             // Check for recent incidents on this CI
             var recentIncidents = await context.Incidents
-                .Where(i => i.AffectedCIId == upstreamCI!.ConfigurationItemId)
+                .Where(i => i.ConfigurationItemId == upstreamCI!.CIId)
                 .Where(i => i.CreatedAt > DateTime.UtcNow.AddDays(-7))
-                .Select(i => i.IncidentNumber)
+                .Select(i => i.Number)
                 .ToListAsync();
 
             if (recentChanges.Any() || recentIncidents.Any())
             {
                 causes.Add(new PotentialRootCause
                 {
-                    ConfigurationItemId = upstreamCI!.ConfigurationItemId,
-                    CIName = upstreamCI.Name,
-                    CIType = upstreamCI.CIType,
+                    ConfigurationItemId = upstreamCI!.CIId,
+                    CIName = upstreamCI.CIName,
+                    CIType = upstreamCI.CIType.ToString(),
                     Probability = recentChanges.Any() ? 0.7 : 0.4,
                     Reasoning = recentChanges.Any()
                         ? "Recent change implemented on this dependent CI"
@@ -784,12 +788,11 @@ public class ImpactAnalysisService : IImpactAnalysisService
     {
         var hasVIP = analysis.UserImpact.VIPUsersAffected > 0;
 
-        if (hasVIP || incident.Urgency?.ToLower() == "critical")
+        // IncidentUrgency enum: High=1, Medium=2, Low=3
+        if (hasVIP || incident.Urgency == IncidentUrgency.High)
             return UrgencyClassification.Critical;
-        if (incident.Urgency?.ToLower() == "high")
+        if (incident.Urgency == IncidentUrgency.Medium)
             return UrgencyClassification.High;
-        if (incident.Urgency?.ToLower() == "medium")
-            return UrgencyClassification.Medium;
 
         return UrgencyClassification.Low;
     }

@@ -432,8 +432,8 @@ public class KCSWorkflowService : IKCSWorkflowService
         var context = _dbContextResolver.ResolveContext();
 
         var incident = await context.Incidents
-            .Include(i => i.AffectedCI)
-            .Include(i => i.AffectedUser)
+            .Include(i => i.Category)
+            .Include(i => i.Subcategory)
             .FirstOrDefaultAsync(i => i.IncidentId == incidentId);
 
         if (incident == null)
@@ -453,11 +453,11 @@ public class KCSWorkflowService : IKCSWorkflowService
             Symptom = incident.Description ?? "User reports issue",
             Environment = GenerateEnvironmentSection(incident),
             Resolution = incident.ResolutionNotes ?? "Resolution steps to be documented",
-            Cause = incident.RootCause,
+            Cause = null,
             Keywords = ExtractKeywords(incident),
-            Category = incident.Category,
+            Category = incident.Category?.Name,
             AuthorId = authorId,
-            AuthorName = author?.FirstName + " " + LastName ?? Username,
+            AuthorName = author != null ? $"{author.FirstName} {author.LastName}".Trim() : "Unknown",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -506,9 +506,9 @@ public class KCSWorkflowService : IKCSWorkflowService
             ArticleNumber = article.Number,
             ArticleTitle = article.Title,
             SubmittedById = submittedById,
-            SubmittedByName = submitter?.FirstName + " " + LastName ?? Username,
+            SubmittedByName = submitter != null ? $"{submitter.FirstName} {submitter.LastName}".Trim() : "Unknown",
             SubmittedAt = DateTime.UtcNow,
-            Type = article.Status == "Draft" ? ReviewType.NewArticle : ReviewType.UpdatedArticle,
+            Type = article.PublishingState == PublishingState.Draft ? ReviewType.NewArticle : ReviewType.UpdatedArticle,
             State = KCSReviewState.Pending,
             DueAt = DateTime.UtcNow.AddDays(3)
         };
@@ -516,13 +516,13 @@ public class KCSWorkflowService : IKCSWorkflowService
         _reviewRequests.Add(reviewRequest);
 
         // Update article status
-        article.Status = "In Review";
+        article.PublishingState = PublishingState.Review;
         article.ModifiedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 
         _logger.LogInformation(
             "Article {ArticleNumber} submitted for review by {Submitter}",
-            article.Number, submitter?.FirstName + " " + LastName ?? Username);
+            article.Number, submitter != null ? $"{submitter.FirstName} {submitter.LastName}".Trim() : "Unknown");
 
         return reviewRequest;
     }
@@ -549,7 +549,7 @@ public class KCSWorkflowService : IKCSWorkflowService
             ArticleId = request.ArticleId,
             Decision = decision,
             ReviewerId = reviewerId,
-            ReviewerName = reviewer?.FirstName + " " + LastName ?? Username,
+            ReviewerName = reviewer != null ? $"{reviewer.FirstName} {reviewer.LastName}".Trim() : "Unknown",
             ReviewedAt = DateTime.UtcNow,
             Feedback = feedback
         };
@@ -565,17 +565,17 @@ public class KCSWorkflowService : IKCSWorkflowService
             _ => KCSReviewState.Pending
         };
         request.AssignedReviewerId = reviewerId;
-        request.AssignedReviewerName = reviewer?.FirstName + " " + LastName ?? Username;
+        request.AssignedReviewerName = reviewer != null ? $"{reviewer.FirstName} {reviewer.LastName}".Trim() : "Unknown";
 
         // Update article status
         if (article != null)
         {
-            article.Status = decision switch
+            article.PublishingState = decision switch
             {
-                KCSReviewDecision.Approve or KCSReviewDecision.ApproveWithChanges => "Approved",
-                KCSReviewDecision.Reject => "Rejected",
-                KCSReviewDecision.NeedsWork => "Draft",
-                _ => article.Status
+                KCSReviewDecision.Approve or KCSReviewDecision.ApproveWithChanges => PublishingState.Approved,
+                KCSReviewDecision.Reject => PublishingState.Draft,
+                KCSReviewDecision.NeedsWork => PublishingState.Draft,
+                _ => article.PublishingState
             };
             article.ModifiedAt = DateTime.UtcNow;
             await context.SaveChangesAsync();
@@ -583,7 +583,7 @@ public class KCSWorkflowService : IKCSWorkflowService
 
         _logger.LogInformation(
             "Article {ArticleId} reviewed: {Decision} by {Reviewer}",
-            request.ArticleId, decision, reviewer?.FirstName + " " + LastName ?? Username);
+            request.ArticleId, decision, reviewer != null ? $"{reviewer.FirstName} {reviewer.LastName}".Trim() : "Unknown");
 
         return result;
     }
@@ -608,7 +608,7 @@ public class KCSWorkflowService : IKCSWorkflowService
             };
         }
 
-        if (article.Status != "Approved")
+        if (article.PublishingState != PublishingState.Approved)
         {
             return new KCSPublishResult
             {
@@ -619,8 +619,8 @@ public class KCSWorkflowService : IKCSWorkflowService
             };
         }
 
-        article.Status = "Published";
-        article.PublishedAt = DateTime.UtcNow;
+        article.PublishingState = PublishingState.Published;
+        article.PublishedDate = DateTime.UtcNow;
         article.PublishedById = publishedById;
         article.ModifiedAt = DateTime.UtcNow;
 
@@ -673,7 +673,7 @@ public class KCSWorkflowService : IKCSWorkflowService
             FromDate = fromDate,
             ToDate = toDate,
             ArticlesCreated = articles.Count,
-            ArticlesPublished = articles.Count(a => a.Status == "Published"),
+            ArticlesPublished = articles.Count(a => a.PublishingState == PublishingState.Published),
             ArticlesRejected = reviews.Count(r => r.State == KCSReviewState.Rejected),
             ArticleApprovalRate = reviews.Count > 0
                 ? (double)reviews.Count(r => r.State == KCSReviewState.Approved) / reviews.Count * 100
@@ -737,11 +737,11 @@ public class KCSWorkflowService : IKCSWorkflowService
         {
             ArticleId = articleId,
             ArticleNumber = article.Number,
-            CurrentStage = MapStatusToLifecycleStage(article.Status),
+            CurrentStage = MapStatusToLifecycleStage(article.PublishingState),
             CreatedAt = article.CreatedAt,
-            FirstPublishedAt = article.PublishedAt,
+            FirstPublishedAt = article.PublishedDate,
             LastReviewedAt = reviews.FirstOrDefault()?.SubmittedAt,
-            NextReviewDue = article.PublishedAt?.AddMonths(6),
+            NextReviewDue = article.PublishedDate?.AddMonths(6),
             TotalViews = article.ViewCount,
             TotalReuses = reuses.Count,
             RevisionCount = article.Version,
@@ -766,12 +766,12 @@ public class KCSWorkflowService : IKCSWorkflowService
             });
         }
 
-        if (article.PublishedAt.HasValue)
+        if (article.PublishedDate.HasValue)
         {
             lifecycle.Events.Add(new LifecycleEvent
             {
                 Event = "Published",
-                OccurredAt = article.PublishedAt.Value
+                OccurredAt = article.PublishedDate.Value
             });
         }
 
@@ -831,7 +831,7 @@ public class KCSWorkflowService : IKCSWorkflowService
         // Find articles from new authors
         var newAuthorArticles = await context.ITSMKnowledgeArticles
             .Include(a => a.Author)
-            .Where(a => a.Status == "Draft" || a.Status == "In Review")
+            .Where(a => a.PublishingState == PublishingState.Draft || a.PublishingState == PublishingState.Review)
             .GroupBy(a => a.AuthorId)
             .Where(g => g.Count() <= 3) // New authors with 3 or fewer articles
             .SelectMany(g => g)
@@ -845,7 +845,7 @@ public class KCSWorkflowService : IKCSWorkflowService
                 ItemId = article.ArticleId,
                 ArticleId = article.ArticleId,
                 ArticleTitle = article.Title,
-                AuthorId = article.AuthorId ?? 0,
+                AuthorId = article.AuthorId,
                 AuthorName = article.Author != null ? $"{article.Author.FirstName} {article.Author.LastName}".Trim() : "Unknown",
                 Reason = CoachingReason.NewAuthor,
                 IdentifiedAt = DateTime.UtcNow,
@@ -868,7 +868,7 @@ public class KCSWorkflowService : IKCSWorkflowService
                     ItemId = flag.ArticleId * 100,
                     ArticleId = flag.ArticleId,
                     ArticleTitle = article.Title,
-                    AuthorId = article.AuthorId ?? 0,
+                    AuthorId = article.AuthorId,
                     AuthorName = article.Author != null ? $"{article.Author.FirstName} {article.Author.LastName}".Trim() : "Unknown",
                     Reason = CoachingReason.FlaggedByUsers,
                     IdentifiedAt = flag.FlaggedAt,
@@ -937,10 +937,8 @@ public class KCSWorkflowService : IKCSWorkflowService
     private static string GenerateArticleTitle(Incident incident)
     {
         // Generate a searchable title from incident
-        var category = incident.Category ?? "General";
-        var keyword = !string.IsNullOrEmpty(incident.SubCategory)
-            ? incident.SubCategory
-            : "Issue";
+        var category = incident.Category?.Name ?? "General";
+        var keyword = incident.Subcategory?.Name ?? "Issue";
 
         return $"{category} - {keyword}: How to Resolve";
     }
@@ -949,15 +947,13 @@ public class KCSWorkflowService : IKCSWorkflowService
     {
         var parts = new List<string>();
 
-        if (incident.AffectedCI != null)
+        if (incident.ConfigurationItemId.HasValue)
         {
-            parts.Add($"CI Type: {incident.AffectedCI.CIType}");
-            if (!string.IsNullOrEmpty(incident.AffectedCI.Model))
-                parts.Add($"Model: {incident.AffectedCI.Model}");
+            parts.Add($"CI ID: {incident.ConfigurationItemId.Value}");
         }
 
-        if (!string.IsNullOrEmpty(incident.Category))
-            parts.Add($"Category: {incident.Category}");
+        if (incident.Category != null)
+            parts.Add($"Category: {incident.Category.Name}");
 
         return parts.Any() ? string.Join("\n", parts) : "Environment details to be documented";
     }
@@ -966,16 +962,11 @@ public class KCSWorkflowService : IKCSWorkflowService
     {
         var keywords = new List<string>();
 
-        if (!string.IsNullOrEmpty(incident.Category))
-            keywords.Add(incident.Category);
+        if (incident.Category != null && !string.IsNullOrEmpty(incident.Category.Name))
+            keywords.Add(incident.Category.Name);
 
-        if (!string.IsNullOrEmpty(incident.SubCategory))
-            keywords.Add(incident.SubCategory);
-
-        if (incident.AffectedCI != null)
-        {
-            keywords.Add(incident.AffectedCI.CIType);
-        }
+        if (incident.Subcategory != null && !string.IsNullOrEmpty(incident.Subcategory.Name))
+            keywords.Add(incident.Subcategory.Name);
 
         // Extract from title
         var titleWords = (incident.ShortDescription ?? "")
@@ -1021,16 +1012,15 @@ public class KCSWorkflowService : IKCSWorkflowService
         return quality;
     }
 
-    private static KCSLifecycleStage MapStatusToLifecycleStage(string? status)
+    private static KCSLifecycleStage MapStatusToLifecycleStage(PublishingState status)
     {
-        return status?.ToLower() switch
+        return status switch
         {
-            "draft" => KCSLifecycleStage.Draft,
-            "in review" => KCSLifecycleStage.InReview,
-            "published" => KCSLifecycleStage.Published,
-            "needs update" => KCSLifecycleStage.NeedsUpdate,
-            "deprecated" => KCSLifecycleStage.Deprecated,
-            "archived" => KCSLifecycleStage.Archived,
+            PublishingState.Draft => KCSLifecycleStage.Draft,
+            PublishingState.Review => KCSLifecycleStage.InReview,
+            PublishingState.Approved => KCSLifecycleStage.InReview,
+            PublishingState.Published => KCSLifecycleStage.Published,
+            PublishingState.Retired => KCSLifecycleStage.Archived,
             _ => KCSLifecycleStage.Draft
         };
     }
