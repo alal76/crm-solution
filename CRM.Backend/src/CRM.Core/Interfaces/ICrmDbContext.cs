@@ -222,6 +222,10 @@ public interface ICrmDbContext
 
     // Reports
     DbSet<CRM.Core.Entities.Reports.ReportDefinition> ReportDefinitions { get; }
+    DbSet<CRM.Core.Entities.Reports.ReportFolder> ReportFolders { get; }
+    DbSet<CRM.Core.Entities.Reports.ReportSchedule> ReportSchedules { get; }
+    DbSet<CRM.Core.Entities.Reports.ReportExecution> ReportExecutions { get; }
+    DbSet<CRM.Core.Entities.Reports.ReportWidgetConfig> ReportWidgetConfigs { get; }
 
     DatabaseFacade Database { get; }
 
