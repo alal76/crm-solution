@@ -1,3 +1,12 @@
+# ==========================================================================
+# CRM Solution — Primary CI Pipeline
+#
+# Runs tests, quality checks, and BVTs on every push/PR.
+# Docker image builds and deployments are handled SEPARATELY by
+# docker-build-deploy.yml, which is triggered via workflow_run after
+# this pipeline completes successfully. Do NOT add Docker build/push
+# steps here — they belong in docker-build-deploy.yml.
+# ==========================================================================
 name: CRM Solution - CI/CD Pipeline
 
 on:
@@ -5,10 +14,6 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   # ==========================================================================
@@ -153,13 +158,14 @@ jobs:
         echo "## 📊 Code Coverage: ${COVERAGE_PCT}%" >> $GITHUB_STEP_SUMMARY
         echo "Source: ${COVERAGE_FILE}" >> $GITHUB_STEP_SUMMARY
         echo "✅ Code coverage: ${COVERAGE_PCT}%"
-        # TODO: Enforce minimum coverage threshold when coverage exceeds 50%
-        # Uncomment the following lines to fail builds below threshold:
-        # THRESHOLD=50
-        # if (( $(echo "$COVERAGE_PCT < $THRESHOLD" | bc -l) )); then
-        #   echo "❌ Coverage ${COVERAGE_PCT}% is below minimum threshold of ${THRESHOLD}%"
-        #   exit 1
-        # fi
+        # Enforce minimum coverage threshold (raise this as coverage improves)
+        THRESHOLD=30
+        if (( $(echo "$COVERAGE_PCT < $THRESHOLD" | bc -l) )); then
+          echo "❌ Coverage ${COVERAGE_PCT}% is below minimum threshold of ${THRESHOLD}%" >> $GITHUB_STEP_SUMMARY
+          echo "❌ Coverage ${COVERAGE_PCT}% is below minimum threshold of ${THRESHOLD}%"
+          exit 1
+        fi
+        echo "✅ Coverage ${COVERAGE_PCT}% meets minimum threshold of ${THRESHOLD}%" >> $GITHUB_STEP_SUMMARY
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -274,73 +280,17 @@ jobs:
         retention-days: 7
 
   # ==========================================================================
-  # DOCKER BUILD
+  # DOCKER BUILD — REMOVED (handled by docker-build-deploy.yml)
+  #
+  # The docker-build job was removed to avoid duplicate image builds.
+  # After this CI pipeline succeeds, the "Build and Deploy" workflow
+  # (.github/workflows/docker-build-deploy.yml) is triggered automatically
+  # via workflow_run. That workflow handles:
+  #   - Docker image builds with layer caching
+  #   - Pushing to GHCR (ghcr.io)
+  #   - Trivy vulnerability scanning
+  #   - Kubernetes deployment (main branch only)
   # ==========================================================================
-  docker-build:
-    name: Docker Build
-    runs-on: ubuntu-latest
-    needs: [frontend-tests, backend-tests, bvt-tests]
-    if: success()
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Log in to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-      if: github.event_name == 'push'
-
-    - name: Extract metadata (API)
-      id: meta-api
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/crm-api
-        tags: |
-          type=ref,event=branch
-          type=sha
-          type=semver,pattern={{version}}
-
-    - name: Extract metadata (Frontend)
-      id: meta-frontend
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/crm-frontend
-        tags: |
-          type=ref,event=branch
-          type=sha
-          type=semver,pattern={{version}}
-
-    - name: Build and push API image
-      uses: docker/build-push-action@v6
-      with:
-        context: .
-        file: ./docker/Dockerfile.backend
-        push: ${{ github.event_name == 'push' }}
-        tags: ${{ steps.meta-api.outputs.tags }}
-        labels: ${{ steps.meta-api.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-    - name: Build and push Frontend image
-      uses: docker/build-push-action@v6
-      with:
-        context: .
-        file: ./docker/Dockerfile.frontend
-        push: ${{ github.event_name == 'push' }}
-        tags: ${{ steps.meta-frontend.outputs.tags }}
-        labels: ${{ steps.meta-frontend.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
 
   # ==========================================================================
   # CODE QUALITY

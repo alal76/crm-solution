@@ -34,7 +34,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: crm-api
-        image: ${REGISTRY_HOST:-registry.local}:5000/crm-backend:latest  # Replace REGISTRY_HOST with your registry
+        image: ${REGISTRY_HOST:-registry.local}:5000/crm-backend:v1  # Replace REGISTRY_HOST with your registry
         imagePullPolicy: Always
         ports:
         - containerPort: 5000

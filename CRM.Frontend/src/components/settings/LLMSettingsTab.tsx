@@ -769,7 +769,7 @@ export const LLMSettingsTab: React.FC = () => {
                                 fullWidth
                                 size="small"
                                 label="Base URL"
-                                value={(settings as any)?.local?.baseUrl || 'http://localhost:11434'}
+                                value={(settings as any)?.local?.baseUrl || process.env.REACT_APP_OLLAMA_URL || 'http://localhost:11434'}
                                 onChange={(e) => handleProviderSettingsChange('local', 'baseUrl', e.target.value)}
                               />
                             </Grid>

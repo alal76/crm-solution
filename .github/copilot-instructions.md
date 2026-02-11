@@ -99,7 +99,7 @@ crm-solution/
 │       ├── components/             # Reusable UI components
 │       ├── pages/                  # Route-level components
 │       ├── services/               # API service layer (Axios)
-│       └── store/                  # Redux state management
+│       └── contexts/               # React Context state management
 ├── CRM.Infrastructure/             # Deployment Tools
 │   └── deployment-tool/            # Configuration wizard
 ├── database/                       # SQL Schema & Seeds
@@ -612,7 +612,7 @@ GET /api/accounts?page=1&pageSize=20&sortBy=name&sortOrder=asc
 | TypeScript | 5.x | Type safety |
 | Material-UI | 5.x | Component library |
 | React Router | 6.x | Client routing |
-| Redux Toolkit | 2.x | State management |
+| React Context | 18.x | State management |
 | Axios | 1.x | HTTP client |
 | Formik + Yup | - | Form handling |
 | SignalR | - | Real-time updates |
@@ -634,13 +634,10 @@ src/
 │   ├── api.ts            # Axios instance
 │   ├── accountService.ts # API calls
 │   └── ...
-├── store/
-│   ├── index.ts          # Redux store
-│   ├── authSlice.ts      # Auth state
-│   └── ...
 ├── contexts/
-│   ├── AuthContext.tsx   # Auth provider
-│   ├── SignalRContext.tsx # Real-time
+│   ├── AuthContext.tsx    # Auth provider
+│   ├── ThemeContext.tsx   # Theme provider
+│   ├── SignalRContext.tsx  # Real-time
 │   └── ...
 └── hooks/
     ├── useAuth.ts
