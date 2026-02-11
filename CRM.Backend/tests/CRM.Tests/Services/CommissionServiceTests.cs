@@ -101,7 +101,6 @@ public class CommissionServiceTests
     // ========================================================================
     // GetAllAsync
     // ========================================================================
-
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllNonDeletedCommissions()
     {
@@ -160,7 +159,6 @@ public class CommissionServiceTests
     // ========================================================================
     // GetByIdAsync
     // ========================================================================
-
     [Fact]
     public async Task GetByIdAsync_ShouldReturnCommission_WhenExists()
     {
@@ -188,7 +186,6 @@ public class CommissionServiceTests
     // ========================================================================
     // CreateAsync / DeleteAsync
     // ========================================================================
-
     [Fact]
     public async Task CreateAsync_ShouldAddCommissionAndSetTimestamps()
     {
@@ -221,7 +218,6 @@ public class CommissionServiceTests
     // ========================================================================
     // Status Management: Approve / Reject / MarkAsPaid / Clawback
     // ========================================================================
-
     [Fact]
     public async Task ApproveAsync_ShouldSetApprovedStatus()
     {
@@ -286,7 +282,6 @@ public class CommissionServiceTests
     // ========================================================================
     // GetPendingApprovalsAsync / GetReadyForPayoutAsync
     // ========================================================================
-
     [Fact]
     public async Task GetPendingApprovalsAsync_ShouldReturnOnlyPending()
     {
@@ -328,7 +323,6 @@ public class CommissionServiceTests
     // ========================================================================
     // Commission Plans
     // ========================================================================
-
     [Fact]
     public async Task CreatePlanAsync_ShouldAddPlan()
     {
@@ -361,7 +355,6 @@ public class CommissionServiceTests
     // ========================================================================
     // Tiers
     // ========================================================================
-
     [Fact]
     public async Task AddTierAsync_ShouldAddTierToPlan()
     {
@@ -395,7 +388,6 @@ public class CommissionServiceTests
     // ========================================================================
     // Statements
     // ========================================================================
-
     [Fact]
     public async Task FinalizeStatementAsync_ShouldSetFinalizedStatus()
     {

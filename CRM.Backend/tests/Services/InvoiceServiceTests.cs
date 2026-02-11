@@ -5,6 +5,14 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -89,7 +97,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // GetAllAsync
     // ========================================================================
-
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllInvoices_WhenNoFilterProvided()
     {
@@ -169,7 +176,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // GetByIdAsync
     // ========================================================================
-
     [Fact]
     public async Task GetByIdAsync_ShouldReturnInvoice_WhenExists()
     {
@@ -201,7 +207,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // CreateAsync
     // ========================================================================
-
     [Fact]
     public async Task CreateAsync_ShouldSetCreatedAtAndGenerateNumber()
     {
@@ -229,7 +234,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // DeleteAsync (Soft Delete)
     // ========================================================================
-
     [Fact]
     public async Task DeleteAsync_ShouldSoftDelete_WhenInvoiceExists()
     {
@@ -262,7 +266,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // UpdateStatusAsync
     // ========================================================================
-
     [Fact]
     public async Task ApproveAsync_ShouldSetApproved_WhenInDraftStatus()
     {
@@ -342,7 +345,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // RecordPaymentAsync
     // ========================================================================
-
     [Fact]
     public async Task RecordPaymentAsync_ShouldCreatePaymentAndUpdateInvoice()
     {
@@ -382,7 +384,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // GetOverdueInvoicesAsync
     // ========================================================================
-
     [Fact]
     public async Task GetOverdueInvoicesAsync_ShouldReturnOverdueInvoices()
     {
@@ -405,7 +406,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // Line Item Operations
     // ========================================================================
-
     [Fact]
     public async Task AddLineItemAsync_ShouldAddLineItemToInvoice()
     {
@@ -463,7 +463,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // GenerateInvoiceNumberAsync
     // ========================================================================
-
     [Fact]
     public async Task GenerateInvoiceNumberAsync_ShouldReturnFormattedNumber()
     {
@@ -481,7 +480,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // RecalculateTotalsAsync
     // ========================================================================
-
     [Fact]
     public async Task RecalculateTotalsAsync_ShouldUpdateTotalsFromLineItems()
     {
@@ -509,7 +507,6 @@ public class InvoiceServiceTests
     // ========================================================================
     // CreateFromOrderAsync
     // ========================================================================
-
     [Fact]
     public async Task CreateFromOrderAsync_ShouldCreateInvoiceFromOrder()
     {

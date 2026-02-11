@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import apiClient from '../../services/api';
+import apiClient from '../../services/apiClient';
 import { RelationshipDiagram, ServiceMap } from '../../components/itsm';
 import { CIRelationshipDiagram } from '../../components/itsm/CIRelationshipDiagram';
 import type { ConfigurationItem, CIRelationship } from '../../components/itsm/CIRelationshipDiagram';

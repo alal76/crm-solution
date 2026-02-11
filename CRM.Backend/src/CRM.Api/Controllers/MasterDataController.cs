@@ -158,13 +158,34 @@ public class MasterDataController : ControllerBase
         try
         {
             var zipCodesCount = 0;
-            try { zipCodesCount = await _dbContext.ZipCodes.CountAsync(); } catch (Exception ex) { _logger.LogDebug(ex, "Failed to count ZipCodes - table may not exist yet"); }
+            try
+            {
+                zipCodesCount = await _dbContext.ZipCodes.CountAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to count ZipCodes - table may not exist yet");
+            }
 
             var serviceRequestCategoriesCount = 0;
-            try { serviceRequestCategoriesCount = await _context.ServiceRequestCategories.CountAsync(); } catch (Exception ex) { _logger.LogDebug(ex, "Failed to count ServiceRequestCategories - table may not exist yet"); }
+            try
+            {
+                serviceRequestCategoriesCount = await _context.ServiceRequestCategories.CountAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to count ServiceRequestCategories - table may not exist yet");
+            }
 
             var serviceRequestTypesCount = 0;
-            try { serviceRequestTypesCount = await _context.ServiceRequestTypes.CountAsync(); } catch (Exception ex) { _logger.LogDebug(ex, "Failed to count ServiceRequestTypes - table may not exist yet"); }
+            try
+            {
+                serviceRequestTypesCount = await _context.ServiceRequestTypes.CountAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to count ServiceRequestTypes - table may not exist yet");
+            }
 
             var overview = new
             {

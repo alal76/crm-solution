@@ -221,7 +221,7 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
         {
             Name = "NpsScore",
             Description = "Net Promoter Score",
-            Impact = -(npsRisk),
+            Impact = -npsRisk,
             Value = $"{nps}"
         });
         if (nps < 0)
@@ -385,7 +385,7 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
         var existingProb = opportunity.Probability;
         if (existingProb > 0)
         {
-            probability = (probability + existingProb / 100.0) / 2.0;
+            probability = (probability + (existingProb / 100.0)) / 2.0;
             positiveFactors.Add(new PredictionFactor
             {
                 Name = "AssignedProbability",

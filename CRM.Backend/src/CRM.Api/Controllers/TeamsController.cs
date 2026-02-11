@@ -540,6 +540,18 @@ public class TeamsController : ControllerBase
 
     #endregion
 
+    #region Private Helpers
+
+    private IActionResult HandleServiceException(Exception ex)
+    {
+        if (ex is InvalidOperationException && ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            return NotFound(ex.Message);
+
+        return BadRequest(ex.Message);
+    }
+
+    #endregion
+
     #region Request DTOs
 
     /// <summary>Request to add a member to a team.</summary>
@@ -583,18 +595,6 @@ public class TeamsController : ControllerBase
     public class SetParentTeamRequest
     {
         public int? ParentTeamId { get; set; }
-    }
-
-    #endregion
-
-    #region Private Helpers
-
-    private IActionResult HandleServiceException(Exception ex)
-    {
-        if (ex is InvalidOperationException && ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
-            return NotFound(ex.Message);
-
-        return BadRequest(ex.Message);
     }
 
     #endregion

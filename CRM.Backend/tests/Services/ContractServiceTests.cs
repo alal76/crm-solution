@@ -5,6 +5,14 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -84,7 +92,6 @@ public class ContractServiceTests
     // ========================================================================
     // GetAllAsync
     // ========================================================================
-
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllContracts_WhenNoFilter()
     {
@@ -163,7 +170,6 @@ public class ContractServiceTests
     // ========================================================================
     // GetByIdAsync
     // ========================================================================
-
     [Fact]
     public async Task GetByIdAsync_ShouldReturnContract_WhenExists()
     {
@@ -194,7 +200,6 @@ public class ContractServiceTests
     // ========================================================================
     // CreateAsync
     // ========================================================================
-
     [Fact]
     public async Task CreateAsync_ShouldAlwaysGenerateContractNumber()
     {
@@ -224,7 +229,6 @@ public class ContractServiceTests
     // ========================================================================
     // DeleteAsync (Soft Delete)
     // ========================================================================
-
     [Fact]
     public async Task DeleteAsync_ShouldSoftDelete_WhenExists()
     {
@@ -243,7 +247,6 @@ public class ContractServiceTests
     // ========================================================================
     // Status Transitions
     // ========================================================================
-
     [Fact]
     public async Task ActivateAsync_ShouldSetActiveAndActivatedDate()
     {
@@ -311,7 +314,6 @@ public class ContractServiceTests
     // ========================================================================
     // Renewal
     // ========================================================================
-
     [Fact]
     public async Task CloneForRenewalAsync_ShouldCreateNewContractWithExtendedDates()
     {
@@ -374,7 +376,6 @@ public class ContractServiceTests
     // ========================================================================
     // Amendment
     // ========================================================================
-
     [Fact]
     public async Task CreateAmendmentAsync_ShouldCreateWithAmendmentNumber()
     {
@@ -403,7 +404,6 @@ public class ContractServiceTests
     // ========================================================================
     // CreateFromOrderAsync
     // ========================================================================
-
     [Fact]
     public async Task CreateFromOrderAsync_ShouldCreateContractFromOrder()
     {
@@ -433,7 +433,6 @@ public class ContractServiceTests
     // ========================================================================
     // GenerateContractNumberAsync
     // ========================================================================
-
     [Fact]
     public async Task GenerateContractNumberAsync_ShouldReturnFormattedNumber()
     {
@@ -451,7 +450,6 @@ public class ContractServiceTests
     // ========================================================================
     // GetStatisticsAsync
     // ========================================================================
-
     [Fact]
     public async Task GetStatisticsAsync_ShouldReturnCorrectCounts()
     {
@@ -477,7 +475,6 @@ public class ContractServiceTests
     // ========================================================================
     // SearchAsync
     // ========================================================================
-
     [Fact]
     public async Task SearchAsync_ShouldMatchByNameOrNumber()
     {

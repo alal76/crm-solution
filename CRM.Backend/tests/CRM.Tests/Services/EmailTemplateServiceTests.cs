@@ -80,7 +80,6 @@ public class EmailTemplateServiceTests
     // ========================================================================
     // GetAllAsync
     // ========================================================================
-
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllNonDeletedTemplates()
     {
@@ -140,7 +139,6 @@ public class EmailTemplateServiceTests
     // ========================================================================
     // GetByIdAsync / GetByNameAsync / GetBySlugAsync
     // ========================================================================
-
     [Fact]
     public async Task GetByIdAsync_ShouldReturnTemplate_WhenExists()
     {
@@ -196,7 +194,6 @@ public class EmailTemplateServiceTests
     // ========================================================================
     // CreateAsync
     // ========================================================================
-
     [Fact]
     public async Task CreateAsync_ShouldGenerateSlugFromName()
     {
@@ -240,7 +237,6 @@ public class EmailTemplateServiceTests
     // ========================================================================
     // UpdateAsync / DeleteAsync
     // ========================================================================
-
     [Fact]
     public async Task UpdateAsync_ShouldSetUpdatedAt()
     {
@@ -299,7 +295,6 @@ public class EmailTemplateServiceTests
     // ========================================================================
     // ValidateAsync / ExtractVariablesAsync
     // ========================================================================
-
     [Fact]
     public async Task ValidateAsync_ShouldExtractVariables()
     {
@@ -335,7 +330,6 @@ public class EmailTemplateServiceTests
     // ========================================================================
     // CloneAsync
     // ========================================================================
-
     [Fact]
     public async Task CloneAsync_ShouldCreateCopyWithNewName()
     {
@@ -368,7 +362,6 @@ public class EmailTemplateServiceTests
     // ========================================================================
     // RecordUsageAsync / SetAsDefaultAsync
     // ========================================================================
-
     [Fact]
     public async Task RecordUsageAsync_ShouldIncrementUsageCount()
     {

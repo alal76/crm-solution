@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import apiClient from '../../services/api';
+import apiClient from '../../services/apiClient';
 
 interface ConfigurationItem {
   ciId: number;

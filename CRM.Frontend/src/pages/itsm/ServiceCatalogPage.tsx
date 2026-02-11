@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../../services/api';
+import apiClient from '../../services/apiClient';
 import { CatalogCategoryBrowser } from '../../components/itsm';
 import type { CatalogCategory } from '../../components/itsm';
 

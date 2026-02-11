@@ -5,6 +5,14 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -98,7 +106,6 @@ public class PaymentServiceTests
     // ========================================================================
     // GetAllAsync
     // ========================================================================
-
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllPayments_WhenNoFilter()
     {
@@ -158,7 +165,6 @@ public class PaymentServiceTests
     // ========================================================================
     // GetByIdAsync / GetByTransactionIdAsync
     // ========================================================================
-
     [Fact]
     public async Task GetByIdAsync_ShouldReturnPayment_WhenExists()
     {
@@ -193,7 +199,6 @@ public class PaymentServiceTests
     // ========================================================================
     // DeleteAsync (Soft Delete)
     // ========================================================================
-
     [Fact]
     public async Task DeleteAsync_ShouldSoftDelete_WhenExists()
     {
@@ -225,7 +230,6 @@ public class PaymentServiceTests
     // ========================================================================
     // ProcessPaymentAsync
     // ========================================================================
-
     [Fact]
     public async Task ProcessPaymentAsync_ShouldCreatePaymentAndUpdateInvoice()
     {
@@ -278,7 +282,6 @@ public class PaymentServiceTests
     // ========================================================================
     // ProcessRefundAsync
     // ========================================================================
-
     [Fact]
     public async Task ProcessRefundAsync_ShouldCreateRefund_WhenPaymentCompleted()
     {
@@ -329,7 +332,6 @@ public class PaymentServiceTests
     // ========================================================================
     // VoidPaymentAsync
     // ========================================================================
-
     [Fact]
     public async Task VoidPaymentAsync_ShouldVoid_WhenPending()
     {
@@ -364,7 +366,6 @@ public class PaymentServiceTests
     // ========================================================================
     // CapturePaymentAsync
     // ========================================================================
-
     [Fact]
     public async Task CapturePaymentAsync_ShouldCapture_WhenAuthorizationType()
     {
@@ -384,7 +385,6 @@ public class PaymentServiceTests
     // ========================================================================
     // RetryPaymentAsync
     // ========================================================================
-
     [Fact]
     public async Task RetryPaymentAsync_ShouldRetry_WhenFailed()
     {
@@ -405,7 +405,6 @@ public class PaymentServiceTests
     // ========================================================================
     // GetStatisticsAsync
     // ========================================================================
-
     [Fact]
     public async Task GetStatisticsAsync_ShouldReturnCorrectCounts()
     {
@@ -431,7 +430,6 @@ public class PaymentServiceTests
     // ========================================================================
     // MarkAsFailedAsync
     // ========================================================================
-
     [Fact]
     public async Task MarkAsFailedAsync_ShouldIncrementRetryCount()
     {
@@ -453,7 +451,6 @@ public class PaymentServiceTests
     // ========================================================================
     // GetPendingPaymentsAsync
     // ========================================================================
-
     [Fact]
     public async Task GetPendingPaymentsAsync_ShouldReturnOnlyPending()
     {

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import apiClient from '../../services/api';
+import apiClient from '../../services/apiClient';
 
 interface PagedResult<T> {
   items: T[];
