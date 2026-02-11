@@ -1,10 +1,14 @@
 name: Build and Deploy
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  # Triggered after CI pipeline passes — avoids duplicate test runs
+  # See .github/workflows/ci-cd.yml for the primary test workflow
+  workflow_run:
+    workflows: ["CRM Solution - CI/CD Pipeline"]
+    types: [completed]
+    branches: [main, develop]
+  # Allow manual trigger for emergency deployments
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -14,6 +18,10 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Only proceed if the CI pipeline succeeded (or manual trigger)
+    if: >-
+      github.event.workflow_run.conclusion == 'success' ||
+      github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       packages: write
@@ -21,6 +29,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -59,7 +69,7 @@ jobs:
       with:
         context: .
         file: ./docker/Dockerfile.backend
-        push: ${{ github.event_name != 'pull_request' }}
+        push: true
         tags: ${{ steps.meta-api.outputs.tags }}
         labels: ${{ steps.meta-api.outputs.labels }}
         cache-from: type=gha
@@ -70,11 +80,34 @@ jobs:
       with:
         context: .
         file: ./docker/Dockerfile.frontend
-        push: ${{ github.event_name != 'pull_request' }}
+        push: true
         tags: ${{ steps.meta-frontend.outputs.tags }}
         labels: ${{ steps.meta-frontend.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    # ================================================================
+    # CONTAINER VULNERABILITY SCANNING
+    # ================================================================
+    - name: Run Trivy vulnerability scanner (API)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}:${{ github.event.workflow_run.head_branch || github.ref_name }}'
+        format: 'table'
+        exit-code: '0'  # Don't fail build yet, just report
+        severity: 'CRITICAL,HIGH'
+      continue-on-error: true
+      # Set exit-code to '1' to fail builds on CRITICAL vulnerabilities
+
+    - name: Run Trivy vulnerability scanner (Frontend)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.event.workflow_run.head_branch || github.ref_name }}'
+        format: 'table'
+        exit-code: '0'  # Don't fail build yet, just report
+        severity: 'CRITICAL,HIGH'
+      continue-on-error: true
+      # Set exit-code to '1' to fail builds on CRITICAL vulnerabilities
 
   # ==========================================================================
   # TESTING: Handled by ci-cd.yml workflow
@@ -88,12 +121,16 @@ jobs:
   deploy:
     needs: [build]
     runs-on: ubuntu-latest
-    # Deploy only on main branch push - will be skipped if secrets not configured
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Deploy only when main branch CI passes — skipped if KUBE_CONFIG secret not configured
+    if: >-
+      (github.event.workflow_run.head_branch == 'main') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     continue-on-error: true
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.workflow_run.head_sha || github.sha }}
     
     - name: Set up kubectl
       uses: azure/setup-kubectl@v4

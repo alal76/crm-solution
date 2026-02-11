@@ -26,9 +26,10 @@ metadata:
   namespace: crm-app
 type: Opaque
 stringData:
-  JWT_SECRET: "CRM_Super_Secret_Key_For_JWT_Token_Generation_2024_Secure_Random_String_256_Bits"
+  # IMPORTANT: Replace these placeholder values before deploying
+  JWT_SECRET: "CHANGE_ME_GENERATE_SECURE_SECRET_AT_LEAST_32_CHARACTERS"
   JWT_ISSUER: "CRM.Api"
   JWT_AUDIENCE: "CRM.Frontend"
-  DB_CONNECTION_STRING: "Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;SslMode=none;"
-  MARIADB_ROOT_PASSWORD: "RootPass@Dev2024"
-  MARIADB_PASSWORD: "CrmPass@Dev2024"
+  DB_CONNECTION_STRING: "Server=crm-db;Port=3306;Database=crm_db;User=crm_user;Password=CHANGE_ME_DB_PASSWORD;SslMode=none;"
+  MARIADB_ROOT_PASSWORD: "CHANGE_ME_ROOT_PASSWORD"
+  MARIADB_PASSWORD: "CHANGE_ME_DB_PASSWORD"

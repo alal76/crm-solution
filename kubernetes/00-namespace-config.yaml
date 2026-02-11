@@ -76,10 +76,11 @@ metadata:
   namespace: crm-app
 type: Opaque
 stringData:
-  JWT_SECRET: "your-super-secret-key-that-is-at-least-32-characters-long!!!"
+  # IMPORTANT: Replace these placeholder values before deploying to production
+  JWT_SECRET: "CHANGE_ME_GENERATE_SECURE_SECRET_AT_LEAST_32_CHARACTERS"
   JWT_ISSUER: "CRMApp"
   JWT_AUDIENCE: "CRMUsers"
-  DB_CONNECTION_STRING: "Server=mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Prod2024;"
+  DB_CONNECTION_STRING: "Server=mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CHANGE_ME_DB_PASSWORD;"
 ---
 apiVersion: v1
 kind: Secret

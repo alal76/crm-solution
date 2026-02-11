@@ -86,10 +86,12 @@ spec:
         matchLabels:
           name: crm-app
   egress:
+  # Allow intra-namespace traffic (database, cache, etc.)
   - to:
     - namespaceSelector:
         matchLabels:
           name: crm-app
+  # Allow DNS resolution
   - to:
     - namespaceSelector: {}
     ports:
@@ -97,3 +99,14 @@ spec:
       port: 53
     - protocol: UDP
       port: 53
+  # Allow HTTPS egress to external services (APIs, OAuth providers, container registries)
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    ports:
+    - protocol: TCP
+      port: 443

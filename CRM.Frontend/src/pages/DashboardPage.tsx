@@ -87,6 +87,7 @@ import {
 import { opportunityService, campaignService, accountService, Opportunity, Account, Customer } from '../services/apiService';
 import { useProfile } from '../contexts/ProfileContext';
 import { DashboardBuilder } from '../components/analytics';
+import { AnalyticsEmbed } from '../components/common';
 
 // Icon mapping for dynamic icons
 const iconMap: Record<string, React.ElementType> = {
@@ -226,6 +227,7 @@ function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [builderOpen, setBuilderOpen] = useState(false);
+  const [analyticsEmbedOpen, setAnalyticsEmbedOpen] = useState(false);
   
   // Data state
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -826,6 +828,14 @@ function DashboardPage() {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title="Embedded Analytics">
+            <IconButton
+              onClick={() => setAnalyticsEmbedOpen((prev) => !prev)}
+              color={analyticsEmbedOpen ? 'primary' : 'default'}
+            >
+              <AssessmentIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Customize Dashboard">
             <IconButton onClick={() => setBuilderOpen(true)}>
               <CustomizeIcon />
@@ -892,6 +902,19 @@ function DashboardPage() {
         </Grid>
       ) : (
         renderFallbackDashboard()
+      )}
+
+      {/* Embedded Analytics Panel */}
+      {analyticsEmbedOpen && (
+        <Box sx={{ mt: 3 }}>
+          <AnalyticsEmbed
+            dashboardId={activeDashboard?.id?.toString()}
+            height={520}
+            showCard
+            title="Embedded Analytics"
+            onError={(err) => console.error('Analytics embed error:', err)}
+          />
+        </Box>
       )}
 
       {/* Dashboard Builder Dialog */}

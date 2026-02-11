@@ -532,7 +532,11 @@ public class ServiceRequestCustomFieldService : IServiceRequestCustomFieldServic
             {
                 dropdownOptions = JsonSerializer.Deserialize<List<string>>(f.DropdownOptions);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // Static method - no ILogger; invalid JSON in DropdownOptions is non-fatal
+                System.Diagnostics.Debug.WriteLine($"Failed to deserialize DropdownOptions for field {f.FieldKey}: {ex.Message}");
+            }
         }
 
         return new ServiceRequestCustomFieldDefinitionDto

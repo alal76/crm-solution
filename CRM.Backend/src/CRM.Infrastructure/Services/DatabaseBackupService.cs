@@ -178,19 +178,72 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
             if (!File.Exists(backup.FilePath))
                 throw new FileNotFoundException($"Backup file not found at {backup.FilePath}");
 
-            // In production, implement actual database restoration logic here
-            _logger.LogInformation($"Restoring backup {backupId} to {targetDatabase} by user {performedByUserId}");
-
-            // Verify checksum
+            // Verify backup integrity via checksum before restoring
             var currentChecksum = CalculateChecksum(backup.FilePath);
             if (!string.Equals(currentChecksum, backup.ChecksumHash, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Backup integrity check failed - checksums don't match");
 
-            _logger.LogInformation($"Backup {backupId} restored successfully to {targetDatabase}");
+            _logger.LogInformation("Restoring backup {BackupId} to {TargetDatabase} by user {UserId}", backupId, targetDatabase, performedByUserId);
+
+            // Read the SQL backup file and execute statements
+            var sql = await File.ReadAllTextAsync(backup.FilePath);
+
+            // Split into individual SQL statements (semicolon followed by newline)
+            var rawStatements = Regex.Split(sql, @";\s*\r?\n");
+            var statements = rawStatements
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
+
+            _logger.LogInformation("Executing {StatementCount} SQL statements from backup {BackupId}", statements.Count, backupId);
+
+            var executedCount = 0;
+            var errorCount = 0;
+
+            await _context.Database.OpenConnectionAsync();
+            try
+            {
+                var connection = _context.Database.GetDbConnection();
+                foreach (var statement in statements)
+                {
+                    // Skip pure single-line comments
+                    var trimmed = statement.TrimStart();
+                    if (trimmed.StartsWith("--") && !trimmed.Contains('\n'))
+                        continue;
+
+                    try
+                    {
+                        using var cmd = connection.CreateCommand();
+                        cmd.CommandText = statement;
+                        cmd.CommandTimeout = 120;
+                        await cmd.ExecuteNonQueryAsync();
+                        executedCount++;
+                    }
+                    catch (Exception stmtEx)
+                    {
+                        errorCount++;
+                        _logger.LogWarning(stmtEx, "Error executing statement {Index}/{Total} during restore of backup {BackupId}",
+                            executedCount + errorCount, statements.Count, backupId);
+                    }
+                }
+            }
+            finally
+            {
+                await _context.Database.CloseConnectionAsync();
+            }
+
+            _logger.LogInformation("Backup {BackupId} restored to {TargetDatabase}: {Executed} statements executed, {Errors} errors",
+                backupId, targetDatabase, executedCount, errorCount);
+
+            if (errorCount > 0)
+            {
+                _logger.LogWarning("Restore of backup {BackupId} completed with {ErrorCount} errors out of {Total} statements",
+                    backupId, errorCount, executedCount + errorCount);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error restoring backup {backupId}");
+            _logger.LogError(ex, "Error restoring backup {BackupId}", backupId);
             throw;
         }
     }
@@ -317,19 +370,116 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
     {
         try
         {
-            // Get all data from the database and write to SQL file
-            var connectionString = _configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
-
-            using (var file = new StreamWriter(backupPath, false, Encoding.UTF8))
+            await _context.Database.OpenConnectionAsync();
+            try
             {
+                var connection = _context.Database.GetDbConnection();
+
+                using var file = new StreamWriter(backupPath, false, Encoding.UTF8);
                 await file.WriteLineAsync($"-- Database Backup for {databaseProvider}");
-                await file.WriteLineAsync($"-- Created: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}");
+                await file.WriteLineAsync($"-- Created: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+                await file.WriteLineAsync($"-- Source: {connection.Database}");
+                await file.WriteLineAsync();
+                await file.WriteLineAsync("SET FOREIGN_KEY_CHECKS=0;");
                 await file.WriteLineAsync();
 
-                // Dump schema and data (simplified)
-                await file.WriteLineAsync("-- Schema and data backup");
-                await file.WriteLineAsync("-- Note: Full backup functionality requires database-specific tools");
-                await file.WriteLineAsync("-- Use database native backup utilities for production backups");
+                // Query all user tables from the database schema
+                var tables = new List<string>();
+                using (var listCmd = connection.CreateCommand())
+                {
+                    listCmd.CommandText = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
+                    using var listReader = await listCmd.ExecuteReaderAsync();
+                    while (await listReader.ReadAsync())
+                    {
+                        tables.Add(listReader.GetString(0));
+                    }
+                }
+
+                _logger.LogInformation("Backing up {TableCount} tables from {Database}", tables.Count, connection.Database);
+
+                foreach (var table in tables)
+                {
+                    await file.WriteLineAsync($"-- ----------------------------");
+                    await file.WriteLineAsync($"-- Table: {table}");
+                    await file.WriteLineAsync($"-- ----------------------------");
+
+                    // Export CREATE TABLE DDL
+                    try
+                    {
+                        using var ddlCmd = connection.CreateCommand();
+                        ddlCmd.CommandText = $"SHOW CREATE TABLE `{table}`";
+                        using var ddlReader = await ddlCmd.ExecuteReaderAsync();
+                        if (await ddlReader.ReadAsync())
+                        {
+                            var createSql = ddlReader.GetString(1);
+                            await file.WriteLineAsync($"DROP TABLE IF EXISTS `{table}`;");
+                            await file.WriteLineAsync($"{createSql};");
+                            await file.WriteLineAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await file.WriteLineAsync($"-- Could not export DDL for {table}: {ex.Message}");
+                        _logger.LogWarning(ex, "Could not export DDL for table {Table}", table);
+                    }
+
+                    // Export table data as INSERT statements
+                    try
+                    {
+                        using var dataCmd = connection.CreateCommand();
+                        dataCmd.CommandText = $"SELECT * FROM `{table}`";
+                        using var dataReader = await dataCmd.ExecuteReaderAsync();
+
+                        var columnCount = dataReader.FieldCount;
+                        var columnNames = string.Join(", ", Enumerable.Range(0, columnCount).Select(i => $"`{dataReader.GetName(i)}`"));
+                        var rowCount = 0;
+
+                        while (await dataReader.ReadAsync())
+                        {
+                            var values = new List<string>();
+                            for (int i = 0; i < columnCount; i++)
+                            {
+                                if (dataReader.IsDBNull(i))
+                                {
+                                    values.Add("NULL");
+                                }
+                                else
+                                {
+                                    var val = dataReader.GetValue(i);
+                                    values.Add(val switch
+                                    {
+                                        string s => $"'{s.Replace("\\", "\\\\").Replace("'", "\\'")}'",
+                                        DateTime dt => $"'{dt:yyyy-MM-dd HH:mm:ss}'",
+                                        bool b => b ? "1" : "0",
+                                        byte[] bytes => $"X'{Convert.ToHexString(bytes)}'",
+                                        _ => val.ToString() ?? "NULL"
+                                    });
+                                }
+                            }
+
+                            await file.WriteLineAsync($"INSERT INTO `{table}` ({columnNames}) VALUES ({string.Join(", ", values)});");
+                            rowCount++;
+                        }
+
+                        if (rowCount > 0)
+                        {
+                            _logger.LogDebug("Exported {RowCount} rows from {Table}", rowCount, table);
+                            await file.WriteLineAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await file.WriteLineAsync($"-- Could not export data for {table}: {ex.Message}");
+                        _logger.LogWarning(ex, "Could not export data for table {Table}", table);
+                    }
+                }
+
+                await file.WriteLineAsync("SET FOREIGN_KEY_CHECKS=1;");
+                await file.WriteLineAsync($"-- Backup completed: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+            }
+            finally
+            {
+                await _context.Database.CloseConnectionAsync();
             }
         }
         catch (Exception ex)

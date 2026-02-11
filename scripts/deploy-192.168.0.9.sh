@@ -3,12 +3,16 @@
 # CRM Solution Deployment Script for 192.168.0.9
 # Deploys: Frontend + API on Kubernetes, Databases on Docker
 # =============================================================================
+# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
+# script). This script is maintained for 192.168.0.9-specific workflows.
+# =============================================================================
 
 set -e
 
 # Configuration
 REMOTE_HOST="192.168.0.9"
-REMOTE_USER="${REMOTE_USER:-root}"
+# Default to 'deploy' user — avoid running as root in production
+REMOTE_USER="${REMOTE_USER:-deploy}"
 REMOTE_APP_DIR="/opt/crm"
 KUBE_NAMESPACE="crm-app"
 IMAGE_REGISTRY="${IMAGE_REGISTRY:-192.168.0.9:5000}"

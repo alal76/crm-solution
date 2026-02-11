@@ -3,6 +3,9 @@
 # CRM Solution - Build & Deploy Script v2.0
 # Target: 192.168.0.9 (Docker Compose deployment)
 # Updated: January 2025
+#
+# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
+# script). This script is maintained for Docker Compose-specific workflows.
 # =============================================================================
 
 set -e

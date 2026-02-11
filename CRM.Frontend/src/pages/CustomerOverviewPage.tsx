@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { TabPanel } from '../components/common';
+import { TabPanel, ChatTimelineItem } from '../components/common';
+import type { ChatMessageActivity } from '../components/common/ChatTimelineItem';
 import MergeHistoryPanel from '../components/duplicates/MergeHistoryPanel';
 import ConcurrencyConflictDialog from '../components/common/ConcurrencyConflictDialog';
 import type { ConflictData } from '../components/common/ConcurrencyConflictDialog';
@@ -101,6 +102,8 @@ function CustomerOverviewPage() {
   const [conflictData, setConflictData] = useState<ConflictData | undefined>(undefined);
   const [loadingNews, setLoadingNews] = useState(false);
   const [apiStatus, setApiStatus] = useState<NewsSocialStatus | null>(null);
+  const [activities, setActivities] = useState<ChatMessageActivity[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(false);
 
   useEffect(() => {
     fetchCustomers();
@@ -204,6 +207,21 @@ function CustomerOverviewPage() {
         // Set empty arrays if API fails - no fallback to mock data
         setNewsItems([]);
         setSocialFeeds([]);
+      }
+
+      // Fetch activity timeline
+      try {
+        setLoadingActivities(true);
+        const activitiesResponse = await apiClient.get(`/activities`, {
+          params: { entityType: 'Account', entityId: accountId, pageSize: 50 }
+        });
+        const items = activitiesResponse.data?.items ?? activitiesResponse.data ?? [];
+        setActivities(Array.isArray(items) ? items : []);
+      } catch (actErr) {
+        console.error('Error fetching activities:', actErr);
+        setActivities([]);
+      } finally {
+        setLoadingActivities(false);
       }
 
     } catch (err: any) {
@@ -472,6 +490,7 @@ function CustomerOverviewPage() {
                     <Tab label="Contacts" />
                     <Tab label="News & Social" />
                     <Tab label="Merge History" />
+                    <Tab label="Activity" />
                   </Tabs>
 
                   {loadingDetails ? (
@@ -781,6 +800,33 @@ function CustomerOverviewPage() {
                             entityType="Account"
                             recordId={selectedCustomer.id}
                           />
+                        )}
+                      </TabPanel>
+
+                      {/* Activity Timeline Tab */}
+                      <TabPanel value={tabValue} index={4}>
+                        {loadingActivities ? (
+                          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                            <CircularProgress size={28} />
+                          </Box>
+                        ) : activities.length === 0 ? (
+                          <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
+                            <Typography color="textSecondary">
+                              No activity recorded for this account yet.
+                            </Typography>
+                          </Paper>
+                        ) : (
+                          <List disablePadding>
+                            {activities.map((activity) => (
+                              <ChatTimelineItem
+                                key={activity.id}
+                                activity={activity}
+                                onViewConversation={(convId) =>
+                                  window.open(`/conversations/${convId}`, '_blank')
+                                }
+                              />
+                            ))}
+                          </List>
                         )}
                       </TabPanel>
                     </>

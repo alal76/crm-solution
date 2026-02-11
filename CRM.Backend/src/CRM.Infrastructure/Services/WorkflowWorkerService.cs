@@ -22,8 +22,10 @@
  * Implements competing consumers pattern with exponential backoff retry
  */
 
+using System.Reflection;
 using System.Text.Json;
 using CRM.Core.Entities.Workflow;
+using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,6 +56,7 @@ public class WorkflowWorkerService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<WorkflowWorkerService> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly WorkflowWorkerOptions _options;
     private readonly SemaphoreSlim _semaphore;
     private int _activeTaskCount = 0;
@@ -62,10 +65,12 @@ public class WorkflowWorkerService : BackgroundService
     public WorkflowWorkerService(
         IServiceProvider serviceProvider,
         ILogger<WorkflowWorkerService> logger,
+        IHttpClientFactory httpClientFactory,
         WorkflowWorkerOptions? options = null)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _httpClientFactory = httpClientFactory;
         _options = options ?? new WorkflowWorkerOptions();
         _semaphore = new SemaphoreSlim(_options.MaxConcurrentTasks, _options.MaxConcurrentTasks);
         _actionHandlers = InitializeActionHandlers();
@@ -431,7 +436,10 @@ public class WorkflowWorkerService : BackgroundService
             {
                 stateData = JsonSerializer.Deserialize<Dictionary<string, object>>(instance.StateData) ?? new Dictionary<string, object>();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to deserialize workflow instance state data for instance {InstanceId}", instance.Id);
+            }
         }
 
         // Merge result data into state
@@ -448,7 +456,10 @@ public class WorkflowWorkerService : BackgroundService
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to deserialize task result data for workflow instance {InstanceId}", instance.Id);
+            }
         }
 
         instance.StateData = JsonSerializer.Serialize(stateData);
@@ -532,8 +543,9 @@ public class WorkflowWorkerService : BackgroundService
             }
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Error evaluating field match expression: {Expression}", expression);
             return false;
         }
     }
@@ -550,7 +562,10 @@ public class WorkflowWorkerService : BackgroundService
                 return choice?.ToString()?.Equals(expression, StringComparison.OrdinalIgnoreCase) == true;
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error evaluating user choice expression: {Expression}", expression);
+        }
 
         return false;
     }
@@ -622,7 +637,10 @@ public class WorkflowWorkerService : BackgroundService
                         waitMinutes = wm;
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to parse wait configuration for node {NodeName}", node.Name);
+                }
             }
 
             nodeInstance.Status = WorkflowNodeInstanceStatus.Waiting;
@@ -720,7 +738,10 @@ public class WorkflowWorkerService : BackgroundService
             {
                 config = JsonSerializer.Deserialize<Dictionary<string, object>>(task.InputData) ?? new Dictionary<string, object>();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse automated action config for task {TaskId}", task.Id);
+            }
         }
 
         // Get action type from config
@@ -749,27 +770,175 @@ public class WorkflowWorkerService : BackgroundService
 
     private async Task<TaskResult> ExecuteUpdateEntityAction(Dictionary<string, object> config, CrmDbContext dbContext, CancellationToken ct)
     {
-        // This would update an entity based on config
-        // Implementation depends on entity type and fields
-        await Task.Delay(100, ct); // Simulated operation
-        return new TaskResult
+        var entityType = config.GetValueOrDefault("entityType")?.ToString();
+        var entityIdStr = config.GetValueOrDefault("entityId")?.ToString();
+        var fieldName = config.GetValueOrDefault("fieldName")?.ToString();
+        var fieldValue = config.GetValueOrDefault("fieldValue")?.ToString();
+
+        if (string.IsNullOrEmpty(entityType) || string.IsNullOrEmpty(entityIdStr) || string.IsNullOrEmpty(fieldName))
         {
-            Success = true,
-            ResultData = JsonSerializer.Serialize(new { updated = true })
-        };
+            return new TaskResult
+            {
+                Success = false,
+                ErrorMessage = "entityType, entityId, and fieldName are required for field update"
+            };
+        }
+
+        if (!int.TryParse(entityIdStr, out var entityId))
+        {
+            return new TaskResult { Success = false, ErrorMessage = $"Invalid entityId: {entityIdStr}" };
+        }
+
+        try
+        {
+            object? entity = entityType.ToLowerInvariant() switch
+            {
+                "account" or "customer" => await dbContext.Customers.FindAsync(new object[] { entityId }, ct),
+                "contact" => await dbContext.Contacts.FindAsync(new object[] { entityId }, ct),
+                "lead" => await dbContext.Leads.FindAsync(new object[] { entityId }, ct),
+                "opportunity" => await dbContext.Opportunities.FindAsync(new object[] { entityId }, ct),
+                "product" => await dbContext.Products.FindAsync(new object[] { entityId }, ct),
+                "servicerequest" => await dbContext.ServiceRequests.FindAsync(new object[] { entityId }, ct),
+                "order" => await dbContext.Orders.FindAsync(new object[] { entityId }, ct),
+                "invoice" => await dbContext.Invoices.FindAsync(new object[] { entityId }, ct),
+                "quote" => await dbContext.Quotes.FindAsync(new object[] { entityId }, ct),
+                "contract" => await dbContext.Contracts.FindAsync(new object[] { entityId }, ct),
+                "task" => await dbContext.CrmTasks.FindAsync(new object[] { entityId }, ct),
+                _ => null
+            };
+
+            if (entity == null)
+            {
+                return new TaskResult
+                {
+                    Success = false,
+                    ErrorMessage = $"{entityType} with ID {entityId} not found"
+                };
+            }
+
+            var property = entity.GetType().GetProperty(fieldName,
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+            if (property == null || !property.CanWrite)
+            {
+                return new TaskResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Property '{fieldName}' not found or not writable on {entityType}"
+                };
+            }
+
+            // Convert value to the target property type
+            object? typedValue = null;
+            if (fieldValue != null)
+            {
+                var targetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+                if (targetType == typeof(string))
+                    typedValue = fieldValue;
+                else if (targetType == typeof(int) && int.TryParse(fieldValue, out var intVal))
+                    typedValue = intVal;
+                else if (targetType == typeof(decimal) && decimal.TryParse(fieldValue, out var decVal))
+                    typedValue = decVal;
+                else if (targetType == typeof(double) && double.TryParse(fieldValue, out var dblVal))
+                    typedValue = dblVal;
+                else if (targetType == typeof(bool) && bool.TryParse(fieldValue, out var boolVal))
+                    typedValue = boolVal;
+                else if (targetType == typeof(DateTime) && DateTime.TryParse(fieldValue, out var dateVal))
+                    typedValue = dateVal;
+                else if (targetType.IsEnum)
+                    typedValue = Enum.Parse(targetType, fieldValue, ignoreCase: true);
+                else
+                    typedValue = Convert.ChangeType(fieldValue, targetType);
+            }
+
+            property.SetValue(entity, typedValue);
+
+            // Also set UpdatedAt timestamp if the entity has one
+            var updatedAtProp = entity.GetType().GetProperty("UpdatedAt", BindingFlags.Public | BindingFlags.Instance);
+            updatedAtProp?.SetValue(entity, (DateTime?)DateTime.UtcNow);
+
+            await dbContext.SaveChangesAsync(ct);
+
+            _logger.LogInformation("Updated {EntityType} {EntityId}: {FieldName} = {FieldValue}",
+                entityType, entityId, fieldName, fieldValue);
+
+            return new TaskResult
+            {
+                Success = true,
+                ResultData = JsonSerializer.Serialize(new { updated = true, entityType, entityId, fieldName, fieldValue })
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update {EntityType} {EntityId} field {FieldName}",
+                entityType, entityId, fieldName);
+            return new TaskResult
+            {
+                Success = false,
+                ErrorMessage = $"Field update failed: {ex.Message}"
+            };
+        }
     }
 
-    private Task<TaskResult> ExecuteSendEmailAction(Dictionary<string, object> config)
+    private async Task<TaskResult> ExecuteSendEmailAction(Dictionary<string, object> config)
     {
-        // Would integrate with email service
         var to = config.GetValueOrDefault("to")?.ToString();
         var subject = config.GetValueOrDefault("subject")?.ToString();
-        _logger.LogInformation("Would send email to {To} with subject {Subject}", to, subject);
-        return Task.FromResult(new TaskResult
+        var body = config.GetValueOrDefault("body")?.ToString() ?? "";
+        var isHtml = config.GetValueOrDefault("isHtml")?.ToString()?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? true;
+
+        if (string.IsNullOrEmpty(to))
         {
-            Success = true,
-            ResultData = JsonSerializer.Serialize(new { emailSent = true, to, subject })
-        });
+            return new TaskResult { Success = false, ErrorMessage = "Email recipient ('to') is required" };
+        }
+
+        if (string.IsNullOrEmpty(subject))
+        {
+            return new TaskResult { Success = false, ErrorMessage = "Email subject is required" };
+        }
+
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var notificationPort = scope.ServiceProvider.GetService<INotificationPort>();
+
+            if (notificationPort == null)
+            {
+                _logger.LogWarning("INotificationPort not registered; email to {To} with subject {Subject} logged but not sent", to, subject);
+                return new TaskResult
+                {
+                    Success = true,
+                    ResultData = JsonSerializer.Serialize(new { emailSent = false, logged = true, to, subject, reason = "notification_service_unavailable" })
+                };
+            }
+
+            var request = new EmailNotificationRequest
+            {
+                To = to,
+                Subject = subject,
+                Body = body,
+                IsHtml = isHtml,
+                From = config.GetValueOrDefault("from")?.ToString(),
+                ToName = config.GetValueOrDefault("toName")?.ToString()
+            };
+
+            var result = await notificationPort.SendEmailAsync(request);
+
+            _logger.LogInformation("Email sent to {To} with subject {Subject}, messageId={MessageId}",
+                to, subject, result.MessageId);
+
+            return new TaskResult
+            {
+                Success = result.Success,
+                ResultData = JsonSerializer.Serialize(new { emailSent = result.Success, to, subject, messageId = result.MessageId }),
+                ErrorMessage = result.Success ? null : result.Error
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send workflow email to {To}", to);
+            return new TaskResult { Success = false, ErrorMessage = $"Email send failed: {ex.Message}" };
+        }
     }
 
     private async Task<TaskResult> ExecuteWebhookAction(Dictionary<string, object> config, CancellationToken ct)
@@ -786,34 +955,48 @@ public class WorkflowWorkerService : BackgroundService
             using var scope = _serviceProvider.CreateScope();
             var resilienceService = scope.ServiceProvider.GetService<IResilienceService>();
 
-            using var client = new HttpClient();
+            using var client = _httpClientFactory.CreateClient("WorkflowWebhook");
             client.Timeout = TimeSpan.FromSeconds(30);
+
+            var payload = JsonSerializer.Serialize(config);
+            var content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
 
             HttpResponseMessage response;
             if (resilienceService != null)
             {
                 response = await resilienceService.ExecuteAsync(
                     "Webhook-Outbound",
-                    async innerCt => await client.PostAsync(url,
-                        new StringContent(JsonSerializer.Serialize(config), System.Text.Encoding.UTF8, "application/json"), innerCt),
+                    async innerCt => await client.PostAsync(url, content, innerCt),
                     ct);
             }
             else
             {
-                response = await client.PostAsync(url,
-                    new StringContent(JsonSerializer.Serialize(config), System.Text.Encoding.UTF8, "application/json"), ct);
+                response = await client.PostAsync(url, content, ct);
+            }
+
+            var responseBody = await response.Content.ReadAsStringAsync(ct);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Webhook POST to {Url} succeeded with status {StatusCode}", url, (int)response.StatusCode);
+            }
+            else
+            {
+                _logger.LogWarning("Webhook POST to {Url} failed with status {StatusCode}: {ResponseBody}",
+                    url, (int)response.StatusCode, responseBody);
             }
 
             return new TaskResult
             {
                 Success = response.IsSuccessStatusCode,
-                ResultData = JsonSerializer.Serialize(new { statusCode = (int)response.StatusCode }),
-                ErrorMessage = response.IsSuccessStatusCode ? null : $"HTTP {response.StatusCode}"
+                ResultData = JsonSerializer.Serialize(new { statusCode = (int)response.StatusCode, url, responseBody }),
+                ErrorMessage = response.IsSuccessStatusCode ? null : $"HTTP {response.StatusCode}: {responseBody}"
             };
         }
         catch (Exception ex)
         {
-            return new TaskResult { Success = false, ErrorMessage = ex.Message };
+            _logger.LogError(ex, "Webhook POST to {Url} threw an exception", url);
+            return new TaskResult { Success = false, ErrorMessage = $"Webhook call failed: {ex.Message}" };
         }
     }
 

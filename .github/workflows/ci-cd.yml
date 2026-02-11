@@ -112,7 +112,8 @@ jobs:
         dotnet test tests/Unit/Core/CRM.Tests.Unit.Core.csproj \
           -c Release --no-build \
           --logger "trx;LogFileName=core-tests.trx" \
-          --results-directory tests/TestResults/
+          --results-directory tests/TestResults/ \
+          --collect:"XPlat Code Coverage"
 
     # Service tests — must pass
     - name: Run Service tests
@@ -131,7 +132,34 @@ jobs:
         dotnet test tests/CRM.Tests.csproj \
           -c Release --no-build \
           --logger "trx;LogFileName=main-tests.trx" \
-          --results-directory tests/TestResults/
+          --results-directory tests/TestResults/ \
+          --collect:"XPlat Code Coverage"
+
+    - name: Generate coverage summary
+      if: always()
+      working-directory: CRM.Backend
+      run: |
+        COVERAGE_FILE=$(find tests/TestResults -name "coverage.cobertura.xml" -type f 2>/dev/null | head -1)
+        if [ -z "$COVERAGE_FILE" ]; then
+          echo "⚠️ No coverage file found — skipping coverage summary"
+          exit 0
+        fi
+        LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$COVERAGE_FILE" | head -1 | sed 's/line-rate="//;s/"//')
+        if [ -z "$LINE_RATE" ]; then
+          echo "⚠️ Could not parse coverage rate"
+          exit 0
+        fi
+        COVERAGE_PCT=$(echo "$LINE_RATE * 100" | bc -l | xargs printf "%.1f")
+        echo "## 📊 Code Coverage: ${COVERAGE_PCT}%" >> $GITHUB_STEP_SUMMARY
+        echo "Source: ${COVERAGE_FILE}" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Code coverage: ${COVERAGE_PCT}%"
+        # TODO: Enforce minimum coverage threshold when coverage exceeds 50%
+        # Uncomment the following lines to fail builds below threshold:
+        # THRESHOLD=50
+        # if (( $(echo "$COVERAGE_PCT < $THRESHOLD" | bc -l) )); then
+        #   echo "❌ Coverage ${COVERAGE_PCT}% is below minimum threshold of ${THRESHOLD}%"
+        #   exit 1
+        # fi
 
     - name: Upload test results
       uses: actions/upload-artifact@v4

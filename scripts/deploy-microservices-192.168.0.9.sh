@@ -4,6 +4,9 @@
 # =============================================================================
 # This script deploys the CRM solution as microservices to 192.168.0.9
 # Uses Docker Compose for containerized deployment
+#
+# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
+# script). This script is maintained for microservices-specific workflows.
 # =============================================================================
 
 set -e

@@ -671,28 +671,137 @@ public class ContractService : IContractService
             throw new InvalidOperationException($"Contract {contractId} not found");
         }
 
-        // Placeholder PDF generation - would use a library like iTextSharp or similar
-        var content = $@"CONTRACT DOCUMENT
+        // Build text content lines for the PDF page
+        var textLines = new List<string>
+        {
+            "CONTRACT DOCUMENT",
+            "",
+            $"Contract Number: {contract.ContractNumber}",
+            $"Contract Name: {contract.Name}",
+            $"Status: {contract.Status}",
+            "",
+            $"Account: {contract.Account?.Company ?? "N/A"}",
+            $"Start Date: {contract.StartDate:yyyy-MM-dd}",
+            $"End Date: {contract.EndDate:yyyy-MM-dd}",
+            $"Total Value: {contract.TotalValue:F2}",
+            ""
+        };
 
-Contract Number: {contract.ContractNumber}
-Contract Name: {contract.Name}
-Status: {contract.Status}
+        textLines.Add("Description:");
+        var desc = contract.Description ?? "N/A";
+        foreach (var descLine in desc.Split('\n'))
+            textLines.Add(descLine.TrimEnd('\r'));
 
-Account: {contract.Account?.Company ?? "N/A"}
-Start Date: {contract.StartDate.ToShortDateString()}
-End Date: {contract.EndDate.ToShortDateString()}
-Total Value: {contract.TotalValue:C}
+        textLines.Add("");
+        textLines.Add("Terms and Conditions:");
+        var terms = contract.TermsAndConditions ?? "Standard terms apply.";
+        foreach (var termLine in terms.Split('\n'))
+            textLines.Add(termLine.TrimEnd('\r'));
 
-Description:
-{contract.Description ?? "N/A"}
+        textLines.Add("");
+        textLines.Add($"Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
 
-Terms and Conditions:
-{contract.TermsAndConditions ?? "Standard terms apply."}
+        // Build PDF content stream (text drawing operators)
+        var contentSb = new System.Text.StringBuilder();
+        contentSb.Append("BT\n");
+        contentSb.Append("/F1 18 Tf\n");
+        contentSb.Append("72 720 Td\n");
 
-Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC
-";
+        var isFirstLine = true;
+        foreach (var line in textLines)
+        {
+            if (isFirstLine)
+            {
+                contentSb.Append($"({EscapePdfString(line)}) Tj\n");
+                contentSb.Append("/F1 11 Tf\n");
+                contentSb.Append("0 -24 Td\n");
+                isFirstLine = false;
+            }
+            else
+            {
+                contentSb.Append("0 -16 Td\n");
+                contentSb.Append($"({EscapePdfString(line)}) Tj\n");
+            }
+        }
 
-        return System.Text.Encoding.UTF8.GetBytes(content);
+        contentSb.Append("ET\n");
+        var contentBytes = System.Text.Encoding.ASCII.GetBytes(contentSb.ToString());
+
+        // Build a valid PDF 1.4 document with proper cross-reference table
+        using var ms = new MemoryStream();
+
+        void Write(string s)
+        {
+            var bytes = System.Text.Encoding.ASCII.GetBytes(s);
+            ms.Write(bytes, 0, bytes.Length);
+        }
+
+        var offsets = new List<long>();
+
+        Write("%PDF-1.4\n");
+
+        // Object 1: Catalog
+        offsets.Add(ms.Position);
+        Write("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+
+        // Object 2: Pages
+        offsets.Add(ms.Position);
+        Write("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+
+        // Object 3: Page
+        offsets.Add(ms.Position);
+        Write("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n");
+
+        // Object 4: Content stream
+        offsets.Add(ms.Position);
+        Write($"4 0 obj\n<< /Length {contentBytes.Length} >>\nstream\n");
+        ms.Write(contentBytes, 0, contentBytes.Length);
+        Write("\nendstream\nendobj\n");
+
+        // Object 5: Font (Helvetica - built-in PDF Type1 font)
+        offsets.Add(ms.Position);
+        Write("5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n");
+
+        // Cross-reference table
+        var xrefOffset = ms.Position;
+        Write("xref\n");
+        Write($"0 {offsets.Count + 1}\n");
+        Write("0000000000 65535 f \n");
+        foreach (var offset in offsets)
+        {
+            Write($"{offset:D10} 00000 n \n");
+        }
+
+        // Trailer
+        Write($"trailer\n<< /Size {offsets.Count + 1} /Root 1 0 R >>\nstartxref\n{xrefOffset}\n%%EOF\n");
+
+        _logger.LogInformation("Generated PDF for contract {ContractId} ({Bytes} bytes)", contractId, ms.Length);
+        return ms.ToArray();
+    }
+
+    /// <summary>
+    /// Escapes a string for safe inclusion in a PDF text string (parentheses delimited).
+    /// </summary>
+    private static string EscapePdfString(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        var sb = new System.Text.StringBuilder(text.Length);
+        foreach (var c in text)
+        {
+            switch (c)
+            {
+                case '\\': sb.Append("\\\\"); break;
+                case '(': sb.Append("\\("); break;
+                case ')': sb.Append("\\)"); break;
+                case '\r': break;
+                case '\n': sb.Append(' '); break;
+                default:
+                    // Only include printable ASCII; replace others with '?'
+                    sb.Append(c >= 32 && c <= 126 ? c : '?');
+                    break;
+            }
+        }
+        return sb.ToString();
     }
 
     #endregion

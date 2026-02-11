@@ -59,8 +59,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:5001
-      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
-      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+      ConnectionStrings__DefaultConnection: "Server=${DB_HOST:-192.168.0.9},${DB_PORT:-1433};Database=${DB_NAME:-crm_db};User Id=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}"
       JwtSettings__Issuer: "CRM-API"
       JwtSettings__Audience: "CRM-Client"
     healthcheck:
@@ -82,8 +82,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:5002
-      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
-      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+      ConnectionStrings__DefaultConnection: "Server=${DB_HOST:-192.168.0.9},${DB_PORT:-1433};Database=${DB_NAME:-crm_db};User Id=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}"
     depends_on:
       crm-identity:
         condition: service_healthy
@@ -106,8 +106,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:5003
-      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
-      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+      ConnectionStrings__DefaultConnection: "Server=${DB_HOST:-192.168.0.9},${DB_PORT:-1433};Database=${DB_NAME:-crm_db};User Id=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}"
     depends_on:
       crm-identity:
         condition: service_healthy
@@ -130,8 +130,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:5004
-      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
-      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+      ConnectionStrings__DefaultConnection: "Server=${DB_HOST:-192.168.0.9},${DB_PORT:-1433};Database=${DB_NAME:-crm_db};User Id=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}"
     depends_on:
       crm-identity:
         condition: service_healthy
@@ -154,8 +154,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:5005
-      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
-      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+      ConnectionStrings__DefaultConnection: "Server=${DB_HOST:-192.168.0.9},${DB_PORT:-1433};Database=${DB_NAME:-crm_db};User Id=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}"
     depends_on:
       crm-identity:
         condition: service_healthy
@@ -178,8 +178,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:5006
-      ConnectionStrings__DefaultConnection: "Server=192.168.0.9,1433;Database=crm_db;User Id=crm_user;Password=CrmPass@Dev2024;TrustServerCertificate=True;MultipleActiveResultSets=True"
-      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+      ConnectionStrings__DefaultConnection: "Server=${DB_HOST:-192.168.0.9},${DB_PORT:-1433};Database=${DB_NAME:-crm_db};User Id=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};TrustServerCertificate=True;MultipleActiveResultSets=True"
+      JwtSettings__Key: "${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}"
     depends_on:
       crm-identity:
         condition: service_healthy
@@ -203,7 +203,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:5000
       AllowedHosts: "*"
-      JwtSettings__Key: "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+      JwtSettings__Key: "${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLong!}"
       Services__Identity: http://crm-identity:5001
       Services__Customer: http://crm-customer:5002
       Services__Sales: http://crm-sales:5003

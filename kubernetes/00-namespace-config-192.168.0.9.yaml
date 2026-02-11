@@ -85,20 +85,21 @@ metadata:
   namespace: crm-app
 type: Opaque
 stringData:
+  # IMPORTANT: Replace these placeholder values before deploying
   # JWT Configuration
-  JWT_SECRET: "CrmJwtSecretKey2024!@#$%^&*()ForSecureAuthentication"
+  JWT_SECRET: "CHANGE_ME_GENERATE_SECURE_SECRET_AT_LEAST_32_CHARACTERS"
   JWT_ISSUER: "CRMApp"
   JWT_AUDIENCE: "CRMUsers"
   JWT_EXPIRATION_MINUTES: "15"
   
   # SQL Server Connection (Docker container on same host - PRIMARY)
   DB_USER: "sa"
-  DB_PASSWORD: "CrmPass@Dev2024!"
-  DB_CONNECTION_STRING: "Server=192.168.0.9,1433;Database=crm_db;User Id=sa;Password=CrmPass@Dev2024!;TrustServerCertificate=True"
+  DB_PASSWORD: "CHANGE_ME_DB_PASSWORD"
+  DB_CONNECTION_STRING: "Server=192.168.0.9,1433;Database=crm_db;User Id=sa;Password=CHANGE_ME_DB_PASSWORD;TrustServerCertificate=True"
   
   # Alternative Database Connections (for reference)
-  MARIADB_CONNECTION_STRING: "Server=192.168.0.9;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024!;"
-  POSTGRES_CONNECTION_STRING: "Host=192.168.0.9;Port=5432;Database=crm_db;Username=crm_user;Password=CrmPass@Dev2024!"
+  MARIADB_CONNECTION_STRING: "Server=192.168.0.9;Port=3306;Database=crm_db;User=crm_user;Password=CHANGE_ME_DB_PASSWORD;"
+  POSTGRES_CONNECTION_STRING: "Host=192.168.0.9;Port=5432;Database=crm_db;Username=crm_user;Password=CHANGE_ME_DB_PASSWORD"
 
 ---
 apiVersion: v1

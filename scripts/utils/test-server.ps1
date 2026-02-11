@@ -12,6 +12,7 @@ if (Test-Connection -ComputerName 192.168.0.9 -Count 1 -Quiet -TimeoutSeconds 5)
     Write-Host ""
     Write-Host "Testing SSH connection..." -ForegroundColor Cyan
     $sshKey = "$env:USERPROFILE\.ssh\crm-deploy-key"
+    # WARNING: Disables SSH host key verification. Use known_hosts in production.
     $result = ssh -i "$sshKey" -p 22 -o ConnectTimeout=5 -o StrictHostKeyChecking=no root@192.168.0.9 "docker ps --format 'table {{.Names}}\t{{.Status}}'" 2>&1
     
     if ($LASTEXITCODE -eq 0) {
