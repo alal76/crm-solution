@@ -67,7 +67,6 @@ public class Problem
     public int? ConfigurationItemId { get; set; }
 
     // ConfigurationItem FK will be added in Phase 2
-
     [Required]
     public ProblemPriority Priority { get; set; }
 

@@ -167,10 +167,10 @@ public enum RiskLevel
 
 public enum ChangeApprovalLevel
 {
-    Standard,        // Manager approval
-    Enhanced,        // CAB review
-    Emergency,       // Emergency CAB
-    Executive        // Executive sign-off required
+    Standard, // Manager approval
+    Enhanced, // CAB review
+    Emergency, // Emergency CAB
+    Executive // Executive sign-off required
 }
 
 /// <summary>

@@ -56,7 +56,7 @@ public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
 
     public override DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.NoAction;
 
-    public override int RecommendedBatchSize => _deploymentMode switch
+    public override int RecommendedBatchSize => DeploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => 100,
         DatabaseDeploymentMode.Clustered => 500,  // Always On can handle more
@@ -90,7 +90,7 @@ public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
     {
         // SQL Server supports filtered indexes and included columns
         // These are typically configured per-entity, but we can set defaults here
-        if (_deploymentMode == DatabaseDeploymentMode.Hyperscale)
+        if (DeploymentMode == DatabaseDeploymentMode.Hyperscale)
         {
             // Hyperscale benefits from columnstore indexes for analytics
             // Note: Actual columnstore would require explicit configuration per table
@@ -99,7 +99,7 @@ public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
 
     public override string OptimizeConnectionString(string baseConnectionString)
     {
-        var optimizations = _deploymentMode switch
+        var optimizations = DeploymentMode switch
         {
             DatabaseDeploymentMode.Standalone =>
                 ";MultipleActiveResultSets=True;TrustServerCertificate=True",

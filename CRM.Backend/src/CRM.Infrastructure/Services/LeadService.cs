@@ -225,7 +225,7 @@ public class LeadService : ILeadService
                 l.FirstName.Contains(q) ||
                 l.LastName.Contains(q) ||
                 l.Email.Contains(q) ||
-                l.CompanyName.Contains(q)
+                (l.CompanyName ?? "").Contains(q)
             ))
             .Select(l => new { l.Id, l.FirstName, l.LastName, l.Email, l.CompanyName })
             .ToListAsync();

@@ -467,8 +467,7 @@ public class BuiltInNotificationProvider : INotificationPort
     {
         var fromAddress = new MailAddress(
             request.From ?? _smtpSettings.FromEmail ?? "noreply@crm.local",
-            request.FromName ?? _smtpSettings.FromName ?? "CRM System"
-        );
+            request.FromName ?? _smtpSettings.FromName ?? "CRM System");
 
         var toAddress = new MailAddress(request.To, request.ToName);
 
@@ -557,8 +556,7 @@ public class BuiltInNotificationProvider : INotificationPort
         {
             client.Credentials = new NetworkCredential(
                 _smtpSettings.Username,
-                _smtpSettings.Password
-            );
+                _smtpSettings.Password);
         }
 
         return client;

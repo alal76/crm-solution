@@ -43,7 +43,10 @@ public class CreditMemosController : ControllerBase
             var items = await _service.GetAllAsync(accountId, status, ct);
             return Ok(items);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpGet("{id:int}")]
@@ -55,7 +58,10 @@ public class CreditMemosController : ControllerBase
             if (item == null) return NotFound();
             return Ok(item);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpGet("by-number/{number}")]
@@ -67,7 +73,10 @@ public class CreditMemosController : ControllerBase
             if (item == null) return NotFound();
             return Ok(item);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpPost]
@@ -79,7 +88,10 @@ public class CreditMemosController : ControllerBase
             var created = await _service.CreateAsync(model, ct);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpPut("{id:int}")]
@@ -92,7 +104,10 @@ public class CreditMemosController : ControllerBase
             var updated = await _service.UpdateAsync(model, ct);
             return Ok(updated);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpDelete("{id:int}")]
@@ -104,7 +119,10 @@ public class CreditMemosController : ControllerBase
             if (!deleted) return NotFound();
             return NoContent();
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpPost("{id:int}/apply")]
@@ -116,7 +134,10 @@ public class CreditMemosController : ControllerBase
             var cm = await _service.ApplyAsync(id, req.InvoiceId, ct);
             return Ok(cm);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpPost("{id:int}/unapply")]
@@ -127,7 +148,10 @@ public class CreditMemosController : ControllerBase
             var cm = await _service.UnapplyAsync(id, ct);
             return Ok(cm);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpPost("{id:int}/refund")]
@@ -138,7 +162,10 @@ public class CreditMemosController : ControllerBase
             var cm = await _service.RefundAsync(id, ct);
             return Ok(cm);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpGet("{id:int}/line-items")]
@@ -149,7 +176,10 @@ public class CreditMemosController : ControllerBase
             var items = await _service.GetLineItemsAsync(id, ct);
             return Ok(items);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpPost("{id:int}/line-items")]
@@ -161,7 +191,10 @@ public class CreditMemosController : ControllerBase
             var li = await _service.AddLineItemAsync(id, model, ct);
             return CreatedAtAction(nameof(GetLineItems), new { id }, li);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpPut("line-items/{lineItemId:int}")]
@@ -174,7 +207,10 @@ public class CreditMemosController : ControllerBase
             var updated = await _service.UpdateLineItemAsync(model, ct);
             return Ok(updated);
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     [HttpDelete("line-items/{lineItemId:int}")]
@@ -186,7 +222,10 @@ public class CreditMemosController : ControllerBase
             if (!deleted) return NotFound();
             return NoContent();
         }
-        catch (Exception ex) { return HandleServiceException(ex); }
+        catch (Exception ex)
+        {
+            return HandleServiceException(ex);
+        }
     }
 
     private ActionResult HandleServiceException(Exception ex)

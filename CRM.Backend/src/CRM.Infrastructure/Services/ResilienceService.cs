@@ -145,8 +145,8 @@ public class ResilienceService : IResilienceService
 
     private class PolicyHolder
     {
-        public required AsyncCircuitBreakerPolicy CircuitBreaker { get; init; }
-        public required AsyncPolicyWrap CombinedPolicy { get; init; }
+        required public AsyncCircuitBreakerPolicy CircuitBreaker { get; init; }
+        required public AsyncPolicyWrap CombinedPolicy { get; init; }
     }
 
     /// <summary>

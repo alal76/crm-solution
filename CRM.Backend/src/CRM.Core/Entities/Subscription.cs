@@ -31,8 +31,8 @@ public enum SubscriptionStatus
     PendingCancellation = 4,
     Expired = 5,
     Trial = 6,
-    Current = 0,  // Alias for Active (backward compatibility)
-    Churned = 2   // Alias for Cancelled (backward compatibility)
+    Current = 0, // Alias for Active (backward compatibility)
+    Churned = 2 // Alias for Cancelled (backward compatibility)
 }
 
 /// <summary>

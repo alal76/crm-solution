@@ -105,7 +105,7 @@ public class WebhookService : IWebhookService
                 InteractionType = InteractionType.WebForm,
                 Direction = InteractionDirection.Inbound,
                 Subject = dto.Subject ?? "Web Form Submission",
-                Description = dto.Message,
+                Description = dto.Message ?? string.Empty,
                 InteractionDate = DateTime.UtcNow,
                 Outcome = InteractionOutcome.None,
                 IsCompleted = false,
@@ -211,7 +211,7 @@ public class WebhookService : IWebhookService
                     InteractionType = InteractionType.Email,
                     Direction = InteractionDirection.Inbound,
                     Subject = dto.Subject ?? "Inbound Email",
-                    Description = dto.TextBody ?? dto.HtmlBody,
+                    Description = dto.TextBody ?? dto.HtmlBody ?? string.Empty,
                     InteractionDate = DateTime.UtcNow,
                     Outcome = InteractionOutcome.None,
                     IsCompleted = false,
@@ -365,7 +365,6 @@ public class WebhookService : IWebhookService
                         var text = message.TryGetProperty("text", out var textProp) ? textProp.GetString() : "";
 
                         // Find customer by Facebook ID (stored in SocialAccountId)
-                        int? customerId = null;
                         if (!string.IsNullOrEmpty(senderId))
                         {
                             // Would need to query social links - simplified for now
@@ -395,7 +394,7 @@ public class WebhookService : IWebhookService
     }
 
     /// <inheritdoc />
-    public async Task<WebhookIngestResult> ProcessTwitterWebhookAsync(string payload)
+    public Task<WebhookIngestResult> ProcessTwitterWebhookAsync(string payload)
     {
         _logger.LogDebug("Processing Twitter webhook");
 
@@ -434,20 +433,20 @@ public class WebhookService : IWebhookService
                 }
             }
 
-            return new WebhookIngestResult
+            return Task.FromResult(new WebhookIngestResult
             {
                 Success = true,
                 Message = "Twitter webhook processed"
-            };
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing Twitter webhook");
-            return new WebhookIngestResult
+            return Task.FromResult(new WebhookIngestResult
             {
                 Success = false,
                 Message = ex.Message
-            };
+            });
         }
     }
 

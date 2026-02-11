@@ -109,7 +109,7 @@ public class DashboardController : ControllerBase
         {
             var now = DateTime.UtcNow;
             var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-            var startOfQuarter = new DateTime(now.Year, ((now.Month - 1) / 3) * 3 + 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var startOfQuarter = new DateTime(now.Year, (((now.Month - 1) / 3) * 3) + 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             // MTD Revenue (ClosedWon this month)
             var mtdRevenue = await _context.Opportunities
@@ -737,7 +737,7 @@ public class DashboardController : ControllerBase
                     && o.Stage == OpportunityStage.ClosedWon
                     && o.ExpectedCloseDate >= from
                     && o.ExpectedCloseDate <= to
-                    && o.AccountId != null)
+                    && o.AccountId > 0)
                 .GroupBy(o => o.AccountId)
                 .Select(g => new
                 {
@@ -877,10 +877,25 @@ public class DashboardController : ControllerBase
         public DateTime Timestamp { get; set; }
     }
 
-    public class CountStat { public int Total { get; set; } }
-    public class OpportunityStat { public int Total { get; set; } public decimal OpenValue { get; set; } public decimal WonValue { get; set; } }
-    public class TaskStat { public int Total { get; set; } public int Pending { get; set; } }
-    public class UserStat { public int Active { get; set; } }
+    public class CountStat
+    {
+        public int Total { get; set; }
+    }
+    public class OpportunityStat
+    {
+        public int Total { get; set; }
+        public decimal OpenValue { get; set; }
+        public decimal WonValue { get; set; }
+    }
+    public class TaskStat
+    {
+        public int Total { get; set; }
+        public int Pending { get; set; }
+    }
+    public class UserStat
+    {
+        public int Active { get; set; }
+    }
 
     public class DashboardSummaryResponse
     {

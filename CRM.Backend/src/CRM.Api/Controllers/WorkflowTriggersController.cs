@@ -352,7 +352,6 @@ public class WorkflowTriggersController : ControllerBase
         }
     }
 
-
     /// <summary>
     /// Record a trigger execution
     /// </summary>
@@ -487,6 +486,7 @@ public class WorkflowTriggersController : ControllerBase
 }
 
 #region Request/Response DTOs
+
 /// <summary>
 /// Request for updating trigger schedule
 /// </summary>
@@ -494,7 +494,6 @@ public class UpdateScheduleRequest
 {
     public DateTime NextScheduledTime { get; set; }
 }
-
 
 /// <summary>
 /// Request for cron expression validation

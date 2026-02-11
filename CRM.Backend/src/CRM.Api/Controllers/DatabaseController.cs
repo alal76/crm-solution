@@ -131,8 +131,7 @@ public class DatabaseController : ControllerBase
                         ConstraintName = fk.ConstraintName,
                         OnDelete = fk.OnDelete,
                         OnUpdate = fk.OnUpdate
-                    }).ToList()
-                );
+                    }).ToList());
             return Ok(grouped);
         }
         catch (Exception ex)
@@ -564,7 +563,6 @@ public class DatabaseController : ControllerBase
         // 1. Read all data from current database
         // 2. Transform data as needed
         // 3. Insert into target database
-
         _logger.LogInformation("Data migration initiated to {Provider}", request.TargetProvider);
 
         // Return count of records that would be migrated
@@ -1365,7 +1363,14 @@ Then restart the API container:
                     {
                         using var delCmd = connection.CreateCommand();
                         delCmd.CommandText = $"TRUNCATE TABLE `{table}`";
-                        try { await delCmd.ExecuteNonQueryAsync(); } catch { /* Table may not exist */ }
+                        try
+                        {
+                            await delCmd.ExecuteNonQueryAsync();
+                        }
+                        catch
+                        {
+                            // Table may not exist
+                        }
                     }
 
                     using (var cmd = connection.CreateCommand())
@@ -1381,7 +1386,14 @@ Then restart the API container:
                     {
                         using var delCmd = connection.CreateCommand();
                         delCmd.CommandText = $"TRUNCATE TABLE \"{table}\" CASCADE";
-                        try { await delCmd.ExecuteNonQueryAsync(); } catch { /* Table may not exist */ }
+                        try
+                        {
+                            await delCmd.ExecuteNonQueryAsync();
+                        }
+                        catch
+                        {
+                            // Table may not exist
+                        }
                     }
                     break;
 
@@ -1391,7 +1403,14 @@ Then restart the API container:
                     {
                         using var delCmd = connection.CreateCommand();
                         delCmd.CommandText = $"DELETE FROM [{table}]";
-                        try { await delCmd.ExecuteNonQueryAsync(); } catch { /* Table may not exist */ }
+                        try
+                        {
+                            await delCmd.ExecuteNonQueryAsync();
+                        }
+                        catch
+                        {
+                            // Table may not exist
+                        }
                     }
                     break;
 
@@ -1401,7 +1420,14 @@ Then restart the API container:
                     {
                         using var delCmd = connection.CreateCommand();
                         delCmd.CommandText = $"DELETE FROM \"{table}\"";
-                        try { await delCmd.ExecuteNonQueryAsync(); } catch { /* Table may not exist */ }
+                        try
+                        {
+                            await delCmd.ExecuteNonQueryAsync();
+                        }
+                        catch
+                        {
+                            // Table may not exist
+                        }
                     }
                     break;
 
@@ -1411,7 +1437,14 @@ Then restart the API container:
                         // Table names are hardcoded above, not user input - safe from SQL injection
                         using var delCmd = connection.CreateCommand();
                         delCmd.CommandText = $"DELETE FROM \"{table}\"";
-                        try { await delCmd.ExecuteNonQueryAsync(); } catch { /* Table may not exist */ }
+                        try
+                        {
+                            await delCmd.ExecuteNonQueryAsync();
+                        }
+                        catch
+                        {
+                            // Table may not exist
+                        }
                     }
                     break;
             }
@@ -1481,7 +1514,6 @@ Then restart the API container:
     }
 
     // Helper methods
-
     private async Task<List<ForeignKeyDto>> GetForeignKeyRelationshipsAsync(string? tableName)
     {
         var foreignKeys = new List<ForeignKeyDto>();

@@ -369,6 +369,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<ChannelTestResult> TestEmailChannelAsync(CommunicationChannel channel)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         if (string.IsNullOrEmpty(channel.SmtpServer))
             return new ChannelTestResult { Success = false, Message = "SMTP server not configured", ErrorMessage = "Missing SMTP server configuration" };
 
@@ -384,7 +386,6 @@ public class CommunicationsController : ControllerBase
             // if (!string.IsNullOrEmpty(channel.SmtpUsername))
             //     client.Credentials = new NetworkCredential(channel.SmtpUsername, channel.SmtpPassword);
             // await client.ConnectAsync();
-
             _logger.LogInformation("Email channel {ChannelId} connection test: SMTP server {Server}:{Port}",
                 channel.Id, channel.SmtpServer, channel.SmtpPort);
 
@@ -407,6 +408,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<ChannelTestResult> TestWhatsAppChannelAsync(CommunicationChannel channel)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         if (string.IsNullOrEmpty(channel.AccessToken) || string.IsNullOrEmpty(channel.WhatsAppPhoneNumberId))
             return new ChannelTestResult { Success = false, Message = "WhatsApp credentials not configured", ErrorMessage = "Missing access token or phone number ID" };
 
@@ -414,7 +417,6 @@ public class CommunicationsController : ControllerBase
         {
             // In production, would call WhatsApp Business API to verify credentials:
             // var response = await _httpClient.GetAsync($"https://graph.facebook.com/v18.0/{channel.WhatsAppPhoneNumberId}?access_token={channel.AccessToken}");
-
             _logger.LogInformation("WhatsApp channel {ChannelId} connection test: Phone ID {PhoneId}",
                 channel.Id, channel.WhatsAppPhoneNumberId);
 
@@ -437,6 +439,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<ChannelTestResult> TestTwitterChannelAsync(CommunicationChannel channel)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.ApiSecret))
             return new ChannelTestResult { Success = false, Message = "Twitter API credentials not configured", ErrorMessage = "Missing API key or secret" };
 
@@ -444,7 +448,6 @@ public class CommunicationsController : ControllerBase
         {
             // In production, would verify OAuth credentials with Twitter API:
             // var response = await _httpClient.GetAsync("https://api.twitter.com/2/users/me", authHeaders);
-
             _logger.LogInformation("Twitter channel {ChannelId} connection test validated", channel.Id);
 
             return new ChannelTestResult
@@ -466,6 +469,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<ChannelTestResult> TestFacebookChannelAsync(CommunicationChannel channel)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         if (string.IsNullOrEmpty(channel.PageAccessToken ?? channel.AccessToken) || string.IsNullOrEmpty(channel.SocialAccountId))
             return new ChannelTestResult { Success = false, Message = "Facebook page credentials not configured", ErrorMessage = "Missing access token or page ID" };
 
@@ -473,7 +478,6 @@ public class CommunicationsController : ControllerBase
         {
             // In production, would verify page access token:
             // var response = await _httpClient.GetAsync($"https://graph.facebook.com/v18.0/{channel.SocialAccountId}?access_token={channel.PageAccessToken}");
-
             _logger.LogInformation("Facebook channel {ChannelId} connection test: Page ID {PageId}",
                 channel.Id, channel.SocialAccountId);
 
@@ -496,6 +500,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<ChannelTestResult> TestSmsChannelAsync(CommunicationChannel channel)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.ApiSecret))
             return new ChannelTestResult { Success = false, Message = "SMS credentials not configured", ErrorMessage = "Missing API key or auth token" };
 
@@ -504,7 +510,6 @@ public class CommunicationsController : ControllerBase
             // In production, would verify Twilio/SMS provider credentials:
             // var client = new TwilioClient(channel.ApiKey, channel.ApiSecret);
             // await client.ValidateAsync();
-
             _logger.LogInformation("SMS channel {ChannelId} connection test validated", channel.Id);
 
             return new ChannelTestResult
@@ -526,6 +531,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<ChannelTestResult> TestLinkedInChannelAsync(CommunicationChannel channel)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         if (string.IsNullOrEmpty(channel.AccessToken))
             return new ChannelTestResult { Success = false, Message = "LinkedIn credentials not configured", ErrorMessage = "Missing access token" };
 
@@ -533,7 +540,6 @@ public class CommunicationsController : ControllerBase
         {
             // In production, would verify LinkedIn OAuth token:
             // var response = await _httpClient.GetAsync("https://api.linkedin.com/v2/me", authHeaders);
-
             _logger.LogInformation("LinkedIn channel {ChannelId} connection test validated", channel.Id);
 
             return new ChannelTestResult
@@ -548,27 +554,6 @@ public class CommunicationsController : ControllerBase
             _logger.LogWarning(ex, "LinkedIn channel test failed for {ChannelId}", channel.Id);
             return new ChannelTestResult { Success = false, Message = "Failed to validate LinkedIn credentials", ErrorMessage = ex.Message };
         }
-    }
-
-    /// <summary>
-    /// Result of a channel connection test
-    /// </summary>
-    private class ChannelTestResult
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; } = string.Empty;
-        public string? ErrorMessage { get; set; }
-        public object? Details { get; set; }
-    }
-
-    /// <summary>
-    /// Result of sending a message via external service
-    /// </summary>
-    private class MessageSendResult
-    {
-        public bool Success { get; set; }
-        public string? ExternalMessageId { get; set; }
-        public string? ErrorMessage { get; set; }
     }
 
     /// <summary>
@@ -593,6 +578,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<MessageSendResult> SendEmailAsync(CommunicationChannel channel, CommunicationMessage message)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         try
         {
             if (string.IsNullOrEmpty(channel.SmtpServer) || !channel.SmtpPort.HasValue)
@@ -605,7 +592,6 @@ public class CommunicationsController : ControllerBase
             // var mailMessage = new MailMessage(channel.FromEmail, message.ToAddress, message.Subject, message.Body);
             // if (!string.IsNullOrEmpty(message.HtmlBody)) mailMessage.IsBodyHtml = true;
             // await client.SendMailAsync(mailMessage);
-
             _logger.LogInformation("Email sent to {ToAddress} via {Server}", message.ToAddress, channel.SmtpServer);
 
             return new MessageSendResult
@@ -626,6 +612,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<MessageSendResult> SendWhatsAppAsync(CommunicationChannel channel, CommunicationMessage message)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         try
         {
             if (string.IsNullOrEmpty(channel.AccessToken) || string.IsNullOrEmpty(channel.WhatsAppPhoneNumberId))
@@ -634,7 +622,6 @@ public class CommunicationsController : ControllerBase
             // In production, would send via Graph API:
             // var payload = new { messaging_product = "whatsapp", to = message.ToAddress, type = "text", text = new { body = message.Body } };
             // var response = await _httpClient.PostAsync($"https://graph.facebook.com/v18.0/{channel.WhatsAppPhoneNumberId}/messages", JsonContent.Create(payload));
-
             _logger.LogInformation("WhatsApp message sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -655,6 +642,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<MessageSendResult> SendTwitterAsync(CommunicationChannel channel, CommunicationMessage message)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         try
         {
             if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.AccessToken))
@@ -663,7 +652,6 @@ public class CommunicationsController : ControllerBase
             // In production, would send via Twitter API v2:
             // var payload = new { event = new { type = "message_create", message_create = new { target = new { recipient_id = message.ToAddress }, message_data = new { text = message.Body } } } };
             // var response = await _httpClient.PostAsync("https://api.twitter.com/2/dm_conversations/with/:participant_id/messages", ...);
-
             _logger.LogInformation("Twitter DM sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -684,6 +672,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<MessageSendResult> SendFacebookAsync(CommunicationChannel channel, CommunicationMessage message)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         try
         {
             if (string.IsNullOrEmpty(channel.PageAccessToken ?? channel.AccessToken))
@@ -692,7 +682,6 @@ public class CommunicationsController : ControllerBase
             // In production, would send via Messenger Platform:
             // var payload = new { recipient = new { id = message.ToAddress }, message = new { text = message.Body } };
             // var response = await _httpClient.PostAsync($"https://graph.facebook.com/v18.0/me/messages?access_token={channel.PageAccessToken}", JsonContent.Create(payload));
-
             _logger.LogInformation("Facebook message sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -713,6 +702,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<MessageSendResult> SendSmsAsync(CommunicationChannel channel, CommunicationMessage message)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         try
         {
             if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.ApiSecret))
@@ -721,7 +712,6 @@ public class CommunicationsController : ControllerBase
             // In production, would send via Twilio:
             // TwilioClient.Init(channel.ApiKey, channel.ApiSecret);
             // var smsMessage = await MessageResource.CreateAsync(to: new PhoneNumber(message.ToAddress), from: new PhoneNumber(channel.FromAddress), body: message.Body);
-
             _logger.LogInformation("SMS sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -742,6 +732,8 @@ public class CommunicationsController : ControllerBase
     /// </summary>
     private async Task<MessageSendResult> SendLinkedInAsync(CommunicationChannel channel, CommunicationMessage message)
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         try
         {
             if (string.IsNullOrEmpty(channel.AccessToken))
@@ -750,7 +742,6 @@ public class CommunicationsController : ControllerBase
             // In production, would send via LinkedIn API:
             // var payload = new { recipients = new[] { $"urn:li:person:{message.ToAddress}" }, subject = message.Subject, body = message.Body };
             // var response = await _httpClient.PostAsync("https://api.linkedin.com/v2/messages", ...);
-
             _logger.LogInformation("LinkedIn message sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -1507,6 +1498,31 @@ public class CommunicationsController : ControllerBase
             Pending = await messages.CountAsync(m => m.Status == MessageStatus.Queued),
             Failed = await messages.CountAsync(m => m.Status == MessageStatus.Failed)
         };
+    }
+
+    #endregion
+
+    #region Private Classes
+
+    /// <summary>
+    /// Result of a channel connection test.
+    /// </summary>
+    private class ChannelTestResult
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string? ErrorMessage { get; set; }
+        public object? Details { get; set; }
+    }
+
+    /// <summary>
+    /// Result of sending a message via external service.
+    /// </summary>
+    private class MessageSendResult
+    {
+        public bool Success { get; set; }
+        public string? ExternalMessageId { get; set; }
+        public string? ErrorMessage { get; set; }
     }
 
     #endregion

@@ -97,8 +97,7 @@ public static class InstrumentationService
         {
             return _metrics.ToDictionary(
                 kvp => kvp.Key,
-                kvp => kvp.Value.GetSummary()
-            );
+                kvp => kvp.Value.GetSummary());
         }
     }
 

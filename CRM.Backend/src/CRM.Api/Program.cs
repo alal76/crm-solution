@@ -868,5 +868,9 @@ if (Directory.Exists(frontendBuildPath))
 
 app.Run();
 
-public partial class Program { }
-
+/// <summary>
+/// Partial class declaration for integration test factory configuration.
+/// </summary>
+public partial class Program
+{
+}

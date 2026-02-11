@@ -27,7 +27,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("[controller]")]
 [EnableCors("AllowAll")]
-[AllowAnonymous]  // Allow Kubernetes health probes without authentication
+[AllowAnonymous] // Allow Kubernetes health probes without authentication
 public class HealthController : ControllerBase
 {
     private readonly ILogger<HealthController> _logger;

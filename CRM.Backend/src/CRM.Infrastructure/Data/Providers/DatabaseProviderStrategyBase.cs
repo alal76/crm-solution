@@ -25,7 +25,7 @@ namespace CRM.Infrastructure.Data.Providers;
 /// </summary>
 public abstract class DatabaseProviderStrategyBase : IDatabaseProviderStrategy
 {
-    protected readonly DatabaseDeploymentMode _deploymentMode;
+    private readonly DatabaseDeploymentMode _deploymentMode;
 
     protected DatabaseProviderStrategyBase(DatabaseDeploymentMode deploymentMode = DatabaseDeploymentMode.Standalone)
     {

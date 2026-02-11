@@ -786,7 +786,7 @@ public class CommissionsController : ControllerBase
 
         var tier = new CommissionTier
         {
-            Name = request.Name,
+            Name = request.Name ?? string.Empty,
             TierOrder = request.TierOrder ?? 1,
             MinValue = request.MinValue ?? 0,
 

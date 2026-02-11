@@ -169,7 +169,7 @@ public class ChatwootWebhookController : ControllerBase
 
         return signature == expectedSignature ||
                signature == signatureHex ||
-               signature.StartsWith("sha256=") && signature[7..] == signatureHex;
+               (signature.StartsWith("sha256=") && signature[7..] == signatureHex);
     }
 
     /// <summary>
@@ -517,7 +517,6 @@ public class ChatwootWebhookController : ControllerBase
 
         // Phone number lookup would require additional implementation
         // Skipped for now as we don't have a direct phone search method
-
         return null;
     }
 

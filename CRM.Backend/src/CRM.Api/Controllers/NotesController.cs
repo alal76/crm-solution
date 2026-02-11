@@ -259,8 +259,7 @@ public class NotesController : ControllerBase
                 (entityType.ToLower() == "campaign" && n.CampaignId == entityId) ||
                 (entityType.ToLower() == "quote" && n.QuoteId == entityId) ||
                 (entityType.ToLower() == "servicerequest" && n.ServiceRequestId == entityId) ||
-                (entityType.ToLower() == "product" && n.ProductId == entityId)
-            );
+                (entityType.ToLower() == "product" && n.ProductId == entityId));
         }
         else
         {

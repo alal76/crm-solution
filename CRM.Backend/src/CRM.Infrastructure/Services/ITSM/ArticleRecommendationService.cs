@@ -572,4 +572,3 @@ public class ArticleRecommendationService : IArticleRecommendationService
         "than", "too", "very", "just", "also", "now", "then", "here", "there", "any"
     };
 }
-

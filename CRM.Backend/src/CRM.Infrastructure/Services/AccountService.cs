@@ -149,8 +149,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
                 c.LastName.Contains(searchTerm) ||
                 c.Email.Contains(searchTerm) ||
                 c.Company.Contains(searchTerm)
-            )
-        );
+            ));
 
         var dtos = new List<AccountDto>();
         foreach (var account in accounts)
@@ -1091,4 +1090,3 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         };
     }
 }
-

@@ -63,7 +63,6 @@ public interface ICICDIntegrationService
 }
 
 // ====== DTOs ======
-
 public class DeploymentChangeRequestDto
 {
     public string PipelineId { get; set; } = string.Empty;

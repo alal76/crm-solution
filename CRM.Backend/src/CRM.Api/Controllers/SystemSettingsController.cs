@@ -453,7 +453,8 @@ public class SystemSettingsController : ControllerBase
 
             _logger.LogInformation("SSL certificate uploaded by user {UserId}", userId);
 
-            return Ok(new {
+            return Ok(new
+            {
                 message = "SSL certificate uploaded successfully. Restart the server to apply.",
                 expiry = expiry,
                 subject = subject,

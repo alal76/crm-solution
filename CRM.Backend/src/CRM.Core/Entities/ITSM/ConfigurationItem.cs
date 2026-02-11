@@ -145,7 +145,6 @@ public class ConfigurationItem
     public int? VendorId { get; set; }
 
     // Vendor FK can be added if needed
-
     public DateTime? WarrantyExpiration { get; set; }
 
     public DateTime? LeaseExpiration { get; set; }

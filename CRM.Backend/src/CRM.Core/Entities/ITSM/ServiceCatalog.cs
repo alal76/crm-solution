@@ -120,7 +120,6 @@ public class CatalogItem
     // TODO: Implement workflow engine - WorkflowDefinition entity
     // [ForeignKey(nameof(WorkflowDefinitionId))]
     // public WorkflowDefinition? WorkflowDefinition { get; set; }
-
     public int? ApprovalWorkflowId { get; set; }
 
     public int? FulfillmentTaskTemplateId { get; set; }

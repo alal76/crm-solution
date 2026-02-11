@@ -31,16 +31,16 @@ namespace CRM.API.Controllers;
 [Authorize]
 public class FileUploadController : ControllerBase
 {
+    // Size constants
+    private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
+    private const int NavLogoSize = 150;
+    private const int LoginLogoWidth = 400;
+
     private readonly ILogger<FileUploadController> _logger;
     private readonly IWebHostEnvironment _environment;
 
     // Allowed image extensions
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-    private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
-
-    // Logo size constants
-    private const int NavLogoSize = 150;
-    private const int LoginLogoWidth = 400;
 
     public FileUploadController(ILogger<FileUploadController> logger, IWebHostEnvironment environment)
     {

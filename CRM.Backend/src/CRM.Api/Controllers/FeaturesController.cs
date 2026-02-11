@@ -170,6 +170,8 @@ public class FeaturesController : ControllerBase
     [HttpGet("providers/health")]
     public async Task<ActionResult<ProviderHealthResponse>> GetProviderHealth()
     {
+        await Task.CompletedTask; // Stub for future async implementation
+
         try
         {
             var checkedAt = DateTime.UtcNow;

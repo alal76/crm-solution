@@ -70,7 +70,10 @@ public class SendGridWebhookController : ControllerBase
                 };
                 await _activityService.CreateAsync(activity);
             }
-            catch (Exception ex) { _logger.LogWarning(ex, "Failed to create Activity"); }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to create Activity");
+            }
 
             return Ok();
         }

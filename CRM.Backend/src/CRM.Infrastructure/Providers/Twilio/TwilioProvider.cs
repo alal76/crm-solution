@@ -17,10 +17,10 @@
 using CRM.Core.Ports.Output.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using TwilioClient = Twilio.TwilioClient;
-using Twilio.Rest.Api.V2010.Account;
-using TwilioPhoneNumber = Twilio.Types.PhoneNumber;
 using Twilio.Exceptions;
+using Twilio.Rest.Api.V2010.Account;
+using TwilioClient = Twilio.TwilioClient;
+using TwilioPhoneNumber = Twilio.Types.PhoneNumber;
 
 namespace CRM.Infrastructure.Providers.Twilio;
 
