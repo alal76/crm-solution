@@ -23,16 +23,23 @@ using System.Text.Json;
 
 namespace CRM.Infrastructure.Services;
 
+/// <summary>
+/// Service for managing module UI configurations.
+/// </summary>
 public class ModuleUIConfigService
 {
-    private readonly ICrmDbContext _context;
-    private readonly ILogger<ModuleUIConfigService> _logger;
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
     };
 
+    private readonly ICrmDbContext _context;
+    private readonly ILogger<ModuleUIConfigService> _logger;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ModuleUIConfigService"/> class.
+    /// </summary>
     public ModuleUIConfigService(ICrmDbContext context, ILogger<ModuleUIConfigService> logger)
     {
         _context = context;
@@ -113,7 +120,10 @@ public class ModuleUIConfigService
             {
                 result.Tabs = JsonSerializer.Deserialize<List<TabConfigItem>>(moduleConfig.TabsConfig, _jsonOptions) ?? new();
             }
-            catch { result.Tabs = new(); }
+            catch
+            {
+                result.Tabs = new();
+            }
         }
 
         // Parse linked entities config
@@ -123,7 +133,10 @@ public class ModuleUIConfigService
             {
                 result.LinkedEntities = JsonSerializer.Deserialize<List<LinkedEntityConfigItem>>(moduleConfig.LinkedEntitiesConfig, _jsonOptions) ?? new();
             }
-            catch { result.LinkedEntities = new(); }
+            catch
+            {
+                result.LinkedEntities = new();
+            }
         }
 
         return result;

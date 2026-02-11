@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Text;
+using System.Text.Json;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -21,8 +23,6 @@ using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
-using System.Text.Json;
 
 namespace CRM.Api.Controllers;
 
@@ -39,6 +39,13 @@ public class MasterDataController : ControllerBase
     private readonly ILogger<MasterDataController> _logger;
     private readonly IMasterDataSeederService _masterDataSeeder;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MasterDataController"/> class.
+    /// </summary>
+    /// <param name="context">The CRM database context interface.</param>
+    /// <param name="dbContext">The CRM database context.</param>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="masterDataSeeder">The master data seeder service.</param>
     public MasterDataController(
         ICrmDbContext context,
         CrmDbContext dbContext,

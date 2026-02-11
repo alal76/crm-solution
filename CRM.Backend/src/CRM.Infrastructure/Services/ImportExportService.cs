@@ -227,12 +227,12 @@ public class ImportExportService : IImportExportService
         var accounts = await _dbContext.Accounts.Where(a => !a.IsDeleted).ToListAsync();
         var sb = new StringBuilder();
         sb.AppendLine("Id,FirstName,LastName,Email,Phone,Company,Industry,LifecycleStage,CreatedAt");
-        
+
         foreach (var account in accounts)
         {
             sb.AppendLine($"{account.Id},{EscapeCsv(account.FirstName)},{EscapeCsv(account.LastName)},{EscapeCsv(account.Email)},{EscapeCsv(account.Phone)},{EscapeCsv(account.Company)},{EscapeCsv(account.Industry)},{account.LifecycleStage},{account.CreatedAt:yyyy-MM-dd}");
         }
-        
+
         return sb.ToString();
     }
 
@@ -241,12 +241,12 @@ public class ImportExportService : IImportExportService
         var contacts = await _dbContext.Contacts.Where(c => c.Status == CRM.Core.Models.ContactStatus.Active).ToListAsync();
         var sb = new StringBuilder();
         sb.AppendLine("Id,FirstName,LastName,Email,Phone,JobTitle,DateAdded");
-        
+
         foreach (var contact in contacts)
         {
             sb.AppendLine($"{contact.Id},{EscapeCsv(contact.FirstName)},{EscapeCsv(contact.LastName)},{EscapeCsv(contact.EmailPrimary)},{EscapeCsv(contact.PhonePrimary)},{EscapeCsv(contact.JobTitle)},{contact.DateAdded:yyyy-MM-dd}");
         }
-        
+
         return sb.ToString();
     }
 
@@ -255,12 +255,12 @@ public class ImportExportService : IImportExportService
         var leads = await _dbContext.Leads.Where(l => !l.IsDeleted).ToListAsync();
         var sb = new StringBuilder();
         sb.AppendLine("Id,FirstName,LastName,Email,Phone,CompanyName,Status,Source,CreatedAt");
-        
+
         foreach (var lead in leads)
         {
             sb.AppendLine($"{lead.Id},{EscapeCsv(lead.FirstName)},{EscapeCsv(lead.LastName)},{EscapeCsv(lead.Email)},{EscapeCsv(lead.Phone)},{EscapeCsv(lead.CompanyName)},{lead.Status},{lead.Source},{lead.CreatedAt:yyyy-MM-dd}");
         }
-        
+
         return sb.ToString();
     }
 
@@ -269,12 +269,12 @@ public class ImportExportService : IImportExportService
         var opportunities = await _dbContext.Opportunities.Where(o => !o.IsDeleted).ToListAsync();
         var sb = new StringBuilder();
         sb.AppendLine("Id,Name,AccountId,Stage,Amount,Probability,ExpectedCloseDate,CreatedAt");
-        
+
         foreach (var opp in opportunities)
         {
             sb.AppendLine($"{opp.Id},{EscapeCsv(opp.Name)},{opp.AccountId},{opp.Stage},{opp.Amount},{opp.Probability},{opp.ExpectedCloseDate?.ToString("yyyy-MM-dd")},{opp.CreatedAt:yyyy-MM-dd}");
         }
-        
+
         return sb.ToString();
     }
 
@@ -283,12 +283,12 @@ public class ImportExportService : IImportExportService
         var products = await _dbContext.Products.Where(p => !p.IsDeleted).ToListAsync();
         var sb = new StringBuilder();
         sb.AppendLine("Id,Name,SKU,Price,IsActive,CreatedAt");
-        
+
         foreach (var product in products)
         {
             sb.AppendLine($"{product.Id},{EscapeCsv(product.Name)},{EscapeCsv(product.SKU)},{product.Price},{product.IsActive},{product.CreatedAt:yyyy-MM-dd}");
         }
-        
+
         return sb.ToString();
     }
 
@@ -297,12 +297,12 @@ public class ImportExportService : IImportExportService
         var interactions = await _dbContext.Interactions.Where(i => !i.IsDeleted).ToListAsync();
         var sb = new StringBuilder();
         sb.AppendLine("Id,AccountId,InteractionType,Direction,Subject,InteractionDate,Outcome,CreatedAt");
-        
+
         foreach (var interaction in interactions)
         {
             sb.AppendLine($"{interaction.Id},{interaction.AccountId},{interaction.InteractionType},{interaction.Direction},{EscapeCsv(interaction.Subject)},{interaction.InteractionDate:yyyy-MM-dd},{interaction.Outcome},{interaction.CreatedAt:yyyy-MM-dd}");
         }
-        
+
         return sb.ToString();
     }
 
@@ -311,12 +311,12 @@ public class ImportExportService : IImportExportService
         var tasks = await _dbContext.CrmTasks.Where(t => !t.IsDeleted).ToListAsync();
         var sb = new StringBuilder();
         sb.AppendLine("Id,Subject,Description,Status,Priority,DueDate,CreatedAt");
-        
+
         foreach (var task in tasks)
         {
             sb.AppendLine($"{task.Id},{EscapeCsv(task.Subject)},{EscapeCsv(task.Description)},{task.Status},{task.Priority},{task.DueDate?.ToString("yyyy-MM-dd")},{task.CreatedAt:yyyy-MM-dd}");
         }
-        
+
         return sb.ToString();
     }
 
@@ -553,7 +553,7 @@ public class ImportExportService : IImportExportService
                 {
                     FirstName = record.FirstName,
                     LastName = record.LastName,
-                    Email = record.Email,
+                    Email = record.Email ?? string.Empty,
                     Phone = record.Phone,
                     CompanyName = record.Company,
                     Source = ParseLeadSource(record.Source),
@@ -739,15 +739,15 @@ public class ImportExportService : IImportExportService
         if (string.IsNullOrWhiteSpace(source))
             return LeadSource.Manual;
 
-        return Enum.TryParse<LeadSource>(source, true, out var result) 
-            ? result 
+        return Enum.TryParse<LeadSource>(source, true, out var result)
+            ? result
             : LeadSource.Manual;
     }
 
     private static string EscapeCsv(string? value)
     {
         if (string.IsNullOrEmpty(value)) return string.Empty;
-        
+
         if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
         {
             return $"\"{value.Replace("\"", "\"\"")}\"";

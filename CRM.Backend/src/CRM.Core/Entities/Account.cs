@@ -37,16 +37,22 @@ public enum AccountLifecycleStage
 {
     /// <summary>Initial default value for new accounts</summary>
     Other = 0,
+
     /// <summary>A potential account showing interest</summary>
     Lead = 1,
+
     /// <summary>A qualified lead with an active sales opportunity</summary>
     Opportunity = 2,
+
     /// <summary>An active paying account (formerly Customer)</summary>
     Active = 3,
+
     /// <summary>An account at risk of churning</summary>
     AtRisk = 4,
+
     /// <summary>A former account who has stopped doing business</summary>
     Churned = 5,
+
     /// <summary>A churned account being re-engaged (transitions back to Lead)</summary>
     WinBack = 6
 }
@@ -588,7 +594,9 @@ public class Account : BaseEntity
 /// Backward compatibility alias for Customer - use Account instead
 /// </summary>
 [Obsolete("Use Account instead. Customer is deprecated.")]
-public class Customer : Account { }
+public class Customer : Account
+{
+}
 
 /// <summary>Backward compatibility alias</summary>
 [Obsolete("Use AccountCategory instead")]

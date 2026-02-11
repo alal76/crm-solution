@@ -1,10 +1,18 @@
-// CRM Solution - Logging Extensions Tests
-// Tests for LoggingExtensions.cs in CRM.Core.Instrumentation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// These tests validate:
-// 1. Extension methods correctly format log messages
-// 2. Log levels are appropriate for each method
-// 3. Parameters are properly passed to logger
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Instrumentation;
 using FluentAssertions;
@@ -89,8 +97,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(controller) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(controller) &&
                     v.ToString()!.Contains(action) &&
                     v.ToString()!.Contains("200")),
                 null,
@@ -114,8 +122,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(controller) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(controller) &&
                     v.ToString()!.Contains(action)),
                 exception,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -141,8 +149,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Debug,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(service) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(service) &&
                     v.ToString()!.Contains(operation)),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -165,8 +173,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Debug,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(service) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(service) &&
                     v.ToString()!.Contains("completed")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -189,8 +197,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(service) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(service) &&
                     v.ToString()!.Contains("failed")),
                 exception,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -213,8 +221,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(service) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(service) &&
                     v.ToString()!.Contains(warning)),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -240,8 +248,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Debug,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(table) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(table) &&
                     v.ToString()!.Contains(operation)),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -265,8 +273,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Debug,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains("42") && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains("42") &&
                     v.ToString()!.Contains("25")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -289,8 +297,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(table) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(table) &&
                     v.ToString()!.Contains("failed")),
                 exception,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -313,8 +321,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains("SLOW") && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains("SLOW") &&
                     v.ToString()!.Contains("5000")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -340,8 +348,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(username) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(username) &&
                     v.ToString()!.Contains(method)),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -363,8 +371,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(username) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(username) &&
                     v.ToString()!.Contains("42") &&
                     v.ToString()!.Contains("successful")),
                 null,
@@ -387,8 +395,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(username) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(username) &&
                     v.ToString()!.Contains(reason)),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -410,8 +418,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(username) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(username) &&
                     v.ToString()!.Contains("Logout")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -438,8 +446,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Debug,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(metric) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(metric) &&
                     v.ToString()!.Contains("125.5")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -462,8 +470,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(operation) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(operation) &&
                     v.ToString()!.Contains("exceeded")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -490,8 +498,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(eventType) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(eventType) &&
                     v.ToString()!.Contains(entity) &&
                     v.ToString()!.Contains("42")),
                 null,
@@ -514,8 +522,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(eventType) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(eventType) &&
                     v.ToString()!.Contains("N/A")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -538,8 +546,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(workflowName) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(workflowName) &&
                     v.ToString()!.Contains(status)),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -563,8 +571,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(channelType) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(channelType) &&
                     v.ToString()!.Contains(recipient) &&
                     v.ToString()!.Contains(status)),
                 null,
@@ -592,8 +600,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Debug,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(service) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(service) &&
                     v.ToString()!.Contains(method)),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -616,8 +624,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Debug,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(service) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(service) &&
                     v.ToString()!.Contains("200")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -644,8 +652,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(component) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(component) &&
                     v.ToString()!.Contains(version) &&
                     v.ToString()!.Contains(environment)),
                 null,
@@ -667,8 +675,8 @@ public class LoggingExtensionsTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(component) && 
+                It.Is<It.IsAnyType>((v, t) =>
+                    v.ToString()!.Contains(component) &&
                     v.ToString()!.Contains("shutting down")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -692,7 +700,7 @@ public class LoggingExtensionsTests
             x => x.Log(
                 expectedLevel,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => 
+                It.Is<It.IsAnyType>((v, t) =>
                     v.ToString()!.Contains(component)),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),

@@ -55,7 +55,7 @@ public class DashboardService : IDashboardService
                 .ToListAsync();
 
             var wonOpportunities = opportunities.Where(o => o.Stage == OpportunityStage.ClosedWon);
-            var openOpportunities = opportunities.Where(o => 
+            var openOpportunities = opportunities.Where(o =>
                 o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost);
 
             // Get product count

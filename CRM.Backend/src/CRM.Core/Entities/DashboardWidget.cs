@@ -1,6 +1,18 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-// Licensed under the GNU Affero General Public License v3.0
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 namespace CRM.Core.Entities;
 
@@ -117,34 +129,49 @@ public enum WidgetType
 {
     /// <summary>Simple stat card with value and icon</summary>
     StatCard = 0,
+
     /// <summary>Line chart for trends</summary>
     LineChart = 1,
+
     /// <summary>Bar chart for comparisons</summary>
     BarChart = 2,
+
     /// <summary>Pie or donut chart for distributions</summary>
     PieChart = 3,
+
     /// <summary>Data table with rows</summary>
     DataTable = 4,
+
     /// <summary>List of recent activities</summary>
     ActivityList = 5,
+
     /// <summary>List of tasks</summary>
     TaskList = 6,
+
     /// <summary>Pipeline funnel visualization</summary>
     PipelineFunnel = 7,
+
     /// <summary>Progress indicator/gauge</summary>
     ProgressGauge = 8,
+
     /// <summary>Map visualization</summary>
     MapWidget = 9,
+
     /// <summary>Calendar view</summary>
     CalendarWidget = 10,
+
     /// <summary>Custom HTML/Markdown content</summary>
     CustomContent = 11,
+
     /// <summary>Leaderboard ranking</summary>
     Leaderboard = 12,
+
     /// <summary>KPI with target comparison</summary>
     KPICard = 13,
+
     /// <summary>Area chart</summary>
     AreaChart = 14,
+
     /// <summary>Stacked bar chart</summary>
     StackedBarChart = 15
 }

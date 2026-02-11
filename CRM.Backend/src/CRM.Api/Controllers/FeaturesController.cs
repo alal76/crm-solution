@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.FeatureManagement;
+using CRM.Api.Authorization;
 using CRM.Core.Entities;
 using CRM.Core.Features;
-using CRM.Api.Authorization;
 using CRM.Infrastructure.Factories;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.FeatureManagement;
 
 namespace CRM.Api.Controllers;
 
@@ -38,6 +38,13 @@ public class FeaturesController : ControllerBase
     private readonly AdapterRegistry _adapterRegistry;
     private readonly ILogger<FeaturesController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FeaturesController"/> class.
+    /// </summary>
+    /// <param name="featureManager">The feature manager.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <param name="adapterRegistry">The adapter registry.</param>
+    /// <param name="logger">The logger instance.</param>
     public FeaturesController(
         IFeatureManager featureManager,
         IConfiguration configuration,
@@ -110,7 +117,7 @@ public class FeaturesController : ControllerBase
         try
         {
             var isEnabled = await _featureManager.IsEnabledAsync(featureName);
-            
+
             return Ok(new FeatureFlagStatus
             {
                 Name = featureName,
@@ -205,7 +212,7 @@ public class FeaturesController : ControllerBase
     private ProviderConfiguration GetProviderConfiguration()
     {
         var providersSection = _configuration.GetSection("Providers");
-        
+
         return new ProviderConfiguration
         {
             Chat = GetProviderType("Chat"),

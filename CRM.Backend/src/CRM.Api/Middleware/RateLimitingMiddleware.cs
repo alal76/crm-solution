@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * CRM Solution - Customer Relationship Management System
- * Copyright (C) 2024-2026 Abhishek Lal
- *
- * Rate Limiting Middleware
- * Protects API from abuse by limiting request rates per client
- */
-
 using System.Collections.Concurrent;
 
 namespace CRM.Api.Middleware;
@@ -37,6 +29,12 @@ public class RateLimitingMiddleware
     private readonly RateLimitOptions _options;
     private readonly ConcurrentDictionary<string, ClientRateInfo> _clients = new();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RateLimitingMiddleware"/> class.
+    /// </summary>
+    /// <param name="next">The next middleware delegate.</param>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="options">Optional rate limit configuration options.</param>
     public RateLimitingMiddleware(
         RequestDelegate next,
         ILogger<RateLimitingMiddleware> logger,

@@ -1,6 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Twilio Provider Implementation
-// Week 10: SMS/Voice notification provider using Twilio API
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Ports.Output.Providers;
 using Microsoft.Extensions.Logging;
@@ -23,8 +35,10 @@ public class TwilioProvider : INotificationPort
     private bool _isInitialized;
 
     /// <summary>
-    /// Initializes a new instance of TwilioProvider.
+    /// Initializes a new instance of the <see cref="TwilioProvider"/> class.
     /// </summary>
+    /// <param name="options">The Twilio configuration options.</param>
+    /// <param name="logger">The logger instance.</param>
     public TwilioProvider(
         IOptions<TwilioConfiguration> options,
         ILogger<TwilioProvider> logger)
@@ -71,7 +85,7 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public async Task<NotificationResult> SendSmsAsync(
-        SmsNotificationRequest request, 
+        SmsNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
         if (!_isInitialized)
@@ -88,7 +102,7 @@ public class TwilioProvider : INotificationPort
         {
             if (_config.TestMode)
             {
-                _logger.LogInformation("TEST MODE: Would send SMS to {To}: {Message}", 
+                _logger.LogInformation("TEST MODE: Would send SMS to {To}: {Message}",
                     request.To, TruncateForLog(request.Message));
                 return new NotificationResult
                 {
@@ -122,7 +136,7 @@ public class TwilioProvider : INotificationPort
 
             var message = await MessageResource.CreateAsync(messageOptions);
 
-            _logger.LogInformation("SMS sent successfully. SID: {Sid}, Status: {Status}", 
+            _logger.LogInformation("SMS sent successfully. SID: {Sid}, Status: {Status}",
                 message.Sid, message.Status);
 
             return new NotificationResult
@@ -135,7 +149,7 @@ public class TwilioProvider : INotificationPort
         }
         catch (ApiException ex)
         {
-            _logger.LogError(ex, "Twilio API error sending SMS to {To}. Code: {Code}", 
+            _logger.LogError(ex, "Twilio API error sending SMS to {To}. Code: {Code}",
                 request.To, ex.Code);
             return new NotificationResult
             {
@@ -160,7 +174,7 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public async Task<BulkNotificationResult> SendBulkSmsAsync(
-        IEnumerable<SmsNotificationRequest> requests, 
+        IEnumerable<SmsNotificationRequest> requests,
         CancellationToken cancellationToken = default)
     {
         var requestList = requests.ToList();
@@ -209,7 +223,7 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<NotificationResult> SendEmailAsync(
-        EmailNotificationRequest request, 
+        EmailNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
         // Twilio doesn't support email directly - use SendGrid for email
@@ -225,9 +239,9 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<NotificationResult> SendTemplateEmailAsync(
-        string templateId, 
-        string recipientEmail, 
-        object data, 
+        string templateId,
+        string recipientEmail,
+        object data,
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult(new NotificationResult
@@ -240,7 +254,7 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<BulkNotificationResult> SendBulkEmailAsync(
-        IEnumerable<EmailNotificationRequest> requests, 
+        IEnumerable<EmailNotificationRequest> requests,
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult(new BulkNotificationResult
@@ -263,7 +277,7 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<NotificationResult> SendPushAsync(
-        PushNotificationRequest request, 
+        PushNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
         _logger.LogWarning("Push notifications not supported by Twilio provider.");
@@ -282,7 +296,7 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<NotificationResult> SendInAppAsync(
-        InAppNotificationRequest request, 
+        InAppNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
         _logger.LogWarning("In-app notifications not supported by Twilio provider.");
@@ -301,7 +315,7 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public async Task<MultiChannelNotificationResult> SendNotificationAsync(
-        MultiChannelNotificationRequest request, 
+        MultiChannelNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
         var channelResults = new Dictionary<string, NotificationResult>();
@@ -332,8 +346,8 @@ public class TwilioProvider : INotificationPort
                 case "whatsapp":
                     if (!string.IsNullOrEmpty(phone) && !string.IsNullOrEmpty(_config.WhatsAppFromNumber))
                     {
-                        result = await SendWhatsAppAsync(phone, 
-                            message ?? string.Empty, 
+                        result = await SendWhatsAppAsync(phone,
+                            message ?? string.Empty,
                             cancellationToken);
                     }
                     break;
@@ -370,8 +384,8 @@ public class TwilioProvider : INotificationPort
     /// Sends a WhatsApp message.
     /// </summary>
     private async Task<NotificationResult> SendWhatsAppAsync(
-        string to, 
-        string message, 
+        string to,
+        string message,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(_config.WhatsAppFromNumber))
@@ -420,9 +434,9 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<NotificationResult> TriggerWorkflowAsync(
-        string workflowId, 
-        string subscriberId, 
-        object payload, 
+        string workflowId,
+        string subscriberId,
+        object payload,
         CancellationToken cancellationToken = default)
     {
         // Twilio doesn't have workflow concept like Novu
@@ -441,7 +455,7 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<string> UpsertSubscriberAsync(
-        SubscriberRequest request, 
+        SubscriberRequest request,
         CancellationToken cancellationToken = default)
     {
         // Twilio doesn't have subscriber management - return the phone as ID
@@ -460,7 +474,7 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<SubscriberPreferences?> GetSubscriberPreferencesAsync(
-        string subscriberId, 
+        string subscriberId,
         CancellationToken cancellationToken = default)
     {
         // Twilio doesn't manage preferences
@@ -469,8 +483,8 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public Task UpdateSubscriberPreferencesAsync(
-        string subscriberId, 
-        SubscriberPreferences preferences, 
+        string subscriberId,
+        SubscriberPreferences preferences,
         CancellationToken cancellationToken = default)
     {
         // No-op for Twilio
@@ -483,7 +497,7 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public async Task<DeliveryStatus?> GetDeliveryStatusAsync(
-        string notificationId, 
+        string notificationId,
         CancellationToken cancellationToken = default)
     {
         if (!_isInitialized)
@@ -512,8 +526,8 @@ public class TwilioProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<DeliveryEvent> ProcessDeliveryWebhookAsync(
-        string eventType, 
-        string payload, 
+        string eventType,
+        string payload,
         CancellationToken cancellationToken = default)
     {
         try
@@ -649,10 +663,10 @@ public class TwilioProvider : INotificationPort
         {
             // Verify credentials by fetching account info
             var account = await global::Twilio.Rest.Api.V2010.AccountResource.FetchAsync(_config.AccountSid);
-            
+
             result.IsHealthy = account.Status == global::Twilio.Rest.Api.V2010.AccountResource.StatusEnum.Active;
-            result.Message = result.IsHealthy 
-                ? $"Twilio account active: {account.FriendlyName}" 
+            result.Message = result.IsHealthy
+                ? $"Twilio account active: {account.FriendlyName}"
                 : $"Twilio account status: {account.Status}";
             result.ResponseTimeMs = 0; // Not measured in this simple check
             result.Details = new Dictionary<string, object>

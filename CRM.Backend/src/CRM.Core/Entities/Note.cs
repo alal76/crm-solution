@@ -63,6 +63,7 @@ public class Note : BaseEntity
     public bool IsImportant { get; set; } = false;
 
     // Polymorphic entity attachment (primary method for associating notes)
+
     /// <summary>
     /// Entity type this note is attached to: Customer, Contact, Lead, Opportunity, Campaign, Quote, ServiceRequest, Product, Task, Interaction
     /// </summary>

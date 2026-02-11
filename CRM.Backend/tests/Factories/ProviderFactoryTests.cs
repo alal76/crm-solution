@@ -1,6 +1,18 @@
-// Part of the Pluggable Architecture implementation
-// Phase 0 Week 3: Provider Factory Tests
-// Tests focus on factory behavior and AdapterRegistry without full provider mocking
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -394,7 +406,7 @@ public class ProviderFactoryTests
         // Arrange
         var loggerMock = new Mock<ILogger<AdapterRegistry>>();
         var registry = new AdapterRegistry(loggerMock.Object);
-        
+
         registry.Register("Search", "BuiltIn", isActive: false);
         registry.Register("Search", "Meilisearch", isActive: true);
         registry.Register("Chat", "Chatwoot", isActive: true);
@@ -416,7 +428,7 @@ public class ProviderFactoryTests
         // Arrange
         var loggerMock = new Mock<ILogger<AdapterRegistry>>();
         var registry = new AdapterRegistry(loggerMock.Object);
-        
+
         registry.Register("Search", "BuiltIn", isActive: false);
         registry.Register("Search", "Meilisearch", isActive: false);
 
@@ -433,7 +445,7 @@ public class ProviderFactoryTests
         // Arrange
         var loggerMock = new Mock<ILogger<AdapterRegistry>>();
         var registry = new AdapterRegistry(loggerMock.Object);
-        
+
         registry.Register("Search", "BuiltIn", isActive: false);
         registry.Register("Search", "Meilisearch", isActive: true);
 
@@ -452,7 +464,7 @@ public class ProviderFactoryTests
         // Arrange
         var loggerMock = new Mock<ILogger<AdapterRegistry>>();
         var registry = new AdapterRegistry(loggerMock.Object);
-        
+
         registry.Register("Search", "BuiltIn", isActive: true);
         registry.Register("Search", "Meilisearch", isActive: false);
         registry.Register("Search", "Algolia", isActive: false);
@@ -473,7 +485,7 @@ public class ProviderFactoryTests
         // Arrange
         var loggerMock = new Mock<ILogger<AdapterRegistry>>();
         var registry = new AdapterRegistry(loggerMock.Object);
-        
+
         registry.Register("Search", "BuiltIn", isActive: false);
         registry.Register("Search", "Meilisearch", isActive: true);
         registry.Register("Chat", "Chatwoot", isActive: true);
@@ -494,7 +506,7 @@ public class ProviderFactoryTests
         // Arrange
         var loggerMock = new Mock<ILogger<AdapterRegistry>>();
         var registry = new AdapterRegistry(loggerMock.Object);
-        
+
         registry.Register("Search", "Meilisearch", isActive: true);
 
         // Act
@@ -514,7 +526,7 @@ public class ProviderFactoryTests
         // Arrange
         var loggerMock = new Mock<ILogger<AdapterRegistry>>();
         var registry = new AdapterRegistry(loggerMock.Object);
-        
+
         registry.Register("Search", "Meilisearch", isActive: true);
 
         // Act
@@ -534,7 +546,7 @@ public class ProviderFactoryTests
         // Arrange
         var loggerMock = new Mock<ILogger<AdapterRegistry>>();
         var registry = new AdapterRegistry(loggerMock.Object);
-        
+
         registry.Register("Search", "Meilisearch", isActive: true);
 
         // Act
@@ -555,7 +567,7 @@ public class ProviderFactoryTests
         // Arrange
         var loggerMock = new Mock<ILogger<AdapterRegistry>>();
         var registry = new AdapterRegistry(loggerMock.Object);
-        
+
         registry.Register("Search", "Meilisearch", isActive: true);
 
         // Act

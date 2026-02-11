@@ -1,10 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// BuiltIn Search Provider Implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// HEXAGONAL ARCHITECTURE NOTE:
-// This is the default (BuiltIn) implementation of ISearchPort.
-// It uses Entity Framework Core with SQL-based Contains() queries.
-// This preserves existing CRM search behavior while enabling pluggable architecture.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Diagnostics;
 using CRM.Core.Entities;
@@ -252,10 +260,10 @@ public class BuiltInSearchProvider : ISearchPort
         try
         {
             var context = _dbContextResolver.ResolveContext();
-            
+
             // Simple connectivity check
             var canConnect = await context.Database.CanConnectAsync(cancellationToken);
-            
+
             stopwatch.Stop();
 
             if (canConnect)
@@ -301,7 +309,7 @@ public class BuiltInSearchProvider : ISearchPort
     private static IEnumerable<string> GetSearchableEntityTypes(string? requestedType)
     {
         var allTypes = new[] { "Account", "Contact", "Opportunity", "Product", "KnowledgeArticle" };
-        
+
         if (string.IsNullOrEmpty(requestedType))
         {
             return allTypes;
@@ -461,7 +469,7 @@ public class BuiltInSearchProvider : ISearchPort
         CancellationToken cancellationToken)
     {
         var articles = await context.ITSMKnowledgeArticles
-            .Where(a => !a.IsDeleted && 
+            .Where(a => !a.IsDeleted &&
                 a.PublishingState == PublishingState.Published && (
                 a.Title.ToLower().Contains(query) ||
                 (a.ShortDescription != null && a.ShortDescription.ToLower().Contains(query)) ||
@@ -558,7 +566,7 @@ public class BuiltInSearchProvider : ISearchPort
         CancellationToken cancellationToken)
     {
         return await context.ITSMKnowledgeArticles
-            .Where(a => !a.IsDeleted && 
+            .Where(a => !a.IsDeleted &&
                 a.PublishingState == PublishingState.Published && (
                 a.Title.ToLower().Contains(query) ||
                 (a.ShortDescription != null && a.ShortDescription.ToLower().Contains(query)) ||

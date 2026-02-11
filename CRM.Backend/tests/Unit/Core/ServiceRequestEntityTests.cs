@@ -1,7 +1,18 @@
-// ============================================================================
-// CRM Solution - Service Request Entity Tests
-// Tests for ServiceRequest entity and related ITSM classes
-// ============================================================================
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
 using System.Collections.Generic;
@@ -61,7 +72,7 @@ public class ServiceRequestEntityTests
     {
         // Verify all digital communication channels are covered
         var channels = Enum.GetNames<ServiceRequestChannel>();
-        
+
         channels.Should().Contain("WhatsApp");
         channels.Should().Contain("Email");
         channels.Should().Contain("LiveChat");
@@ -74,7 +85,7 @@ public class ServiceRequestEntityTests
     {
         // Verify traditional support channels
         var channels = Enum.GetNames<ServiceRequestChannel>();
-        
+
         channels.Should().Contain("Phone");
         channels.Should().Contain("InPerson");
         channels.Should().Contain("SelfServicePortal");
@@ -124,7 +135,7 @@ public class ServiceRequestEntityTests
     {
         // Verify active/working statuses exist
         var statuses = Enum.GetNames<ServiceRequestStatus>();
-        
+
         statuses.Should().Contain("New");
         statuses.Should().Contain("Open");
         statuses.Should().Contain("InProgress");
@@ -135,7 +146,7 @@ public class ServiceRequestEntityTests
     {
         // Verify waiting/pending statuses exist
         var statuses = Enum.GetNames<ServiceRequestStatus>();
-        
+
         statuses.Should().Contain("PendingCustomer");
         statuses.Should().Contain("PendingInternal");
         statuses.Should().Contain("OnHold");
@@ -146,7 +157,7 @@ public class ServiceRequestEntityTests
     {
         // Verify terminal statuses exist
         var statuses = Enum.GetNames<ServiceRequestStatus>();
-        
+
         statuses.Should().Contain("Resolved");
         statuses.Should().Contain("Closed");
         statuses.Should().Contain("Cancelled");
@@ -157,7 +168,7 @@ public class ServiceRequestEntityTests
     {
         // Verify escalation and reopen statuses
         var statuses = Enum.GetNames<ServiceRequestStatus>();
-        
+
         statuses.Should().Contain("Escalated");
         statuses.Should().Contain("Reopened");
     }
@@ -265,7 +276,7 @@ public class ServiceRequestEntityTests
     {
         // Verify text-based field types
         var types = Enum.GetNames<CustomFieldType>();
-        
+
         types.Should().Contain("Text");
         types.Should().Contain("TextArea");
     }
@@ -275,7 +286,7 @@ public class ServiceRequestEntityTests
     {
         // Verify numeric field types
         var types = Enum.GetNames<CustomFieldType>();
-        
+
         types.Should().Contain("Number");
         types.Should().Contain("Decimal");
     }
@@ -285,7 +296,7 @@ public class ServiceRequestEntityTests
     {
         // Verify date/time field types
         var types = Enum.GetNames<CustomFieldType>();
-        
+
         types.Should().Contain("Date");
         types.Should().Contain("DateTime");
     }
@@ -295,7 +306,7 @@ public class ServiceRequestEntityTests
     {
         // Verify selection field types
         var types = Enum.GetNames<CustomFieldType>();
-        
+
         types.Should().Contain("Boolean");
         types.Should().Contain("Dropdown");
         types.Should().Contain("MultiSelect");
@@ -306,7 +317,7 @@ public class ServiceRequestEntityTests
     {
         // Verify formatted input field types
         var types = Enum.GetNames<CustomFieldType>();
-        
+
         types.Should().Contain("Email");
         types.Should().Contain("Phone");
         types.Should().Contain("Url");
@@ -854,7 +865,7 @@ public class ServiceRequestEntityTests
     {
         // Arrange
         var expectedDate = new DateTime(2024, 6, 15);
-        
+
         // Act
         var value = new ServiceRequestCustomFieldValue
         {
@@ -1140,7 +1151,7 @@ public class ServiceRequestEntityTests
     {
         // Arrange
         var now = DateTime.UtcNow;
-        
+
         // Act
         var request = new ServiceRequest
         {
@@ -1348,7 +1359,7 @@ public class ServiceRequestEntityTests
         // Arrange
         var request = new ServiceRequest();
         // BaseEntity sets CreatedAt in constructor
-        
+
         // Act
         var age = request.AgeInHours;
 
@@ -1375,7 +1386,7 @@ public class ServiceRequestEntityTests
         // Arrange
         var createdAt = DateTime.UtcNow.AddHours(-5);
         var respondedAt = DateTime.UtcNow.AddHours(-3);
-        
+
         var request = new ServiceRequest
         {
             FirstResponseDate = respondedAt
@@ -1410,7 +1421,7 @@ public class ServiceRequestEntityTests
         // Arrange
         var createdAt = DateTime.UtcNow.AddHours(-10);
         var resolvedAt = DateTime.UtcNow.AddHours(-2);
-        
+
         var request = new ServiceRequest
         {
             ResolvedDate = resolvedAt
@@ -2066,14 +2077,14 @@ public class ServiceRequestEntityTests
         // Act - First resolution and reopen
         request.Status = ServiceRequestStatus.Resolved;
         request.ResolvedDate = DateTime.UtcNow;
-        
+
         // Reopen 1
         request.Status = ServiceRequestStatus.Reopened;
         request.ReopenCount++;
-        
+
         // Resolve again
         request.Status = ServiceRequestStatus.Resolved;
-        
+
         // Reopen 2
         request.Status = ServiceRequestStatus.Reopened;
         request.ReopenCount++;

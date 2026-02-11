@@ -1,5 +1,18 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Security.Cryptography;
 using System.Text;
@@ -16,13 +29,16 @@ namespace CRM.Infrastructure.Services;
 /// </summary>
 public class TokenRevocationService : ITokenRevocationService
 {
+    private const string TOKENPREFIX = "revoked_token:";
+    private const string USERREVOCATIONPREFIX = "user_revoked_at:";
+
     private readonly IDistributedCache _cache;
     private readonly ILogger<TokenRevocationService> _logger;
     private readonly int _defaultExpirationMinutes;
 
-    private const string TOKENPREFIX = "revoked_token:";
-    private const string USERREVOCATIONPREFIX = "user_revoked_at:";
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TokenRevocationService"/> class.
+    /// </summary>
     public TokenRevocationService(
         IDistributedCache cache,
         IConfiguration configuration,

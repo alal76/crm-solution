@@ -1,5 +1,18 @@
-// CRM Solution - NewsSocialService Tests
-// Tests for News & Social Media Feed Service
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
@@ -244,16 +257,16 @@ public class NewsSocialServiceTests
     {
         // Arrange
         _mockAccountService.Setup(x => x.GetAccountByIdAsync(123))
-            .ReturnsAsync(new AccountDto 
-            { 
-                Id = 123, 
+            .ReturnsAsync(new AccountDto
+            {
+                Id = 123,
                 Company = "Acme Corp",
                 TwitterHandle = "@acme",
                 LinkedInUrl = "https://linkedin.com/company/acme"
             });
 
         SetupNewsApiResponse(new { articles = new List<object>() });
-        
+
         var service = CreateService();
 
         // Act
@@ -518,12 +531,12 @@ public class NewsSocialServiceTests
         SetupTwitterUserResponse("12345", "Acme", "acme");
         SetupTwitterTweetsResponse(new[]
         {
-            new 
-            { 
-                id = "t1", 
-                text = "Test tweet", 
+            new
+            {
+                id = "t1",
+                text = "Test tweet",
                 created_at = DateTime.UtcNow,
-                public_metrics = new { like_count = 100, retweet_count = 50, reply_count = 25 } 
+                public_metrics = new { like_count = 100, retweet_count = 50, reply_count = 25 }
             }
         });
 

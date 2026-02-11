@@ -14,24 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * CRM Solution - Customer Relationship Management System
- * Copyright (C) 2024-2026 Abhishek Lal
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
 using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
@@ -52,12 +34,12 @@ namespace CRM.Infrastructure.Services;
 /// </summary>
 public class ServiceRequestService : IServiceRequestService, IServiceRequestInputPort
 {
+    private static readonly SemaphoreSlim _ticketSemaphore = new(1, 1);
     private readonly ICrmDbContext _context;
     private readonly ILogger<ServiceRequestService> _logger;
+    private readonly NormalizationService _normalizationService;
     private static int _ticketCounter = 0;
     private static bool _counterInitialized = false;
-    private static readonly SemaphoreSlim _ticketSemaphore = new(1, 1);
-    private readonly NormalizationService _normalizationService;
 
     public ServiceRequestService(ICrmDbContext context, ILogger<ServiceRequestService> logger, NormalizationService normalizationService)
     {
@@ -341,13 +323,17 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         if (filter.IsOpen.HasValue)
         {
             if (filter.IsOpen.Value)
+            {
                 query = query.Where(sr => sr.Status != ServiceRequestStatus.Closed &&
                                           sr.Status != ServiceRequestStatus.Cancelled &&
                                           sr.Status != ServiceRequestStatus.Resolved);
+            }
             else
+            {
                 query = query.Where(sr => sr.Status == ServiceRequestStatus.Closed ||
                                           sr.Status == ServiceRequestStatus.Cancelled ||
                                           sr.Status == ServiceRequestStatus.Resolved);
+            }
         }
 
         if (filter.IsVipCustomer.HasValue)

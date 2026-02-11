@@ -14,16 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * CRM Solution - Customer Relationship Management System
- * Copyright (C) 2024-2026 Abhishek Lal
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- */
-
 using System.IO.Compression;
 using System.Text.Json;
 using CRM.Core.Entities;
@@ -38,6 +28,11 @@ namespace CRM.Infrastructure.Services;
 /// </summary>
 public interface IZipCodeImportService
 {
+    /// <summary>
+    /// Check if an import is currently running
+    /// </summary>
+    bool IsImportRunning { get; }
+
     /// <summary>
     /// Import ZIP codes from GeoNames all countries file
     /// </summary>
@@ -57,11 +52,6 @@ public interface IZipCodeImportService
     /// Get import status and statistics
     /// </summary>
     Task<ZipCodeImportStatus> GetImportStatusAsync();
-
-    /// <summary>
-    /// Check if an import is currently running
-    /// </summary>
-    bool IsImportRunning { get; }
 }
 
 public class ZipCodeImportResult
@@ -91,17 +81,17 @@ public class ZipCodeImportStatus
 
 public class ZipCodeImportService : IZipCodeImportService
 {
-    private readonly CrmDbContext _context;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger<ZipCodeImportService> _logger;
-    private readonly IResilienceService? _resilienceService;
-
     // GeoNames URLs
     private const string GEONAMES_ALL_COUNTRIES_URL = "https://download.geonames.org/export/zip/allCountries.zip";
     private const string GEONAMES_COUNTRY_URL_TEMPLATE = "https://download.geonames.org/export/zip/{0}.zip";
 
     // Default GitHub URL for CRM ZIP code data
     private const string DEFAULT_GITHUB_URL = "https://raw.githubusercontent.com/abhilal/crm-zipcode-data/main/data/zipcodes.json";
+
+    private readonly CrmDbContext _context;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<ZipCodeImportService> _logger;
+    private readonly IResilienceService? _resilienceService;
 
     // Import state
     private bool _isRunning = false;

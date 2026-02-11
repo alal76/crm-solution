@@ -1,6 +1,18 @@
-// Part of the Pluggable Architecture implementation
-// Phase 1 Week 5: Integration tests for BuiltInSearchProvider
-// Task 5.8: Integration test existing search still works
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
 using System.Collections.Generic;
@@ -45,11 +57,11 @@ public class BuiltInSearchProviderIntegrationTests : IDisposable
             .Options;
 
         _dbContext = new CrmDbContext(options, null);
-        
+
         // Setup the resolver to return our test context
         _resolverMock = new Mock<IDbContextResolver>();
         _resolverMock.Setup(r => r.ResolveContext()).Returns(_dbContext);
-        
+
         var logger = new Mock<ILogger<BuiltInSearchProvider>>();
         _provider = new BuiltInSearchProvider(_resolverMock.Object, logger.Object);
     }
@@ -268,7 +280,7 @@ public class BuiltInSearchProviderIntegrationTests : IDisposable
             CreatedAt = DateTime.UtcNow
         };
         _dbContext.Accounts.Add(account);
-        
+
         var opportunity = new Opportunity
         {
             Id = 1,
@@ -312,7 +324,7 @@ public class BuiltInSearchProviderIntegrationTests : IDisposable
             CreatedAt = DateTime.UtcNow
         };
         _dbContext.Accounts.Add(account);
-        
+
         var activeOpp = new Opportunity
         {
             Id = 1,
@@ -466,7 +478,7 @@ public class BuiltInSearchProviderIntegrationTests : IDisposable
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         _dbContext.Accounts.Add(account);
         _dbContext.Contacts.Add(contact);
         _dbContext.Opportunities.Add(opportunity);
@@ -547,7 +559,7 @@ public class BuiltInSearchProviderIntegrationTests : IDisposable
             Status = ContactStatus.Active,
             DateAdded = DateTime.UtcNow
         };
-        
+
         _dbContext.Accounts.Add(account);
         _dbContext.Contacts.Add(contact);
         await _dbContext.SaveChangesAsync();

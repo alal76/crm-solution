@@ -11,12 +11,18 @@
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
 
-  <!-- Exclude the nested CRM.Tests folder which has its own project -->
+  <!-- Exclude sub-projects that have their own .csproj files -->
   <ItemGroup>
+    <!-- Exclude nested CRM.Tests/ project (CRM.Tests.Services) -->
     <Compile Remove="CRM.Tests\**\*.cs" />
     <Compile Remove="CRM.Tests\**" />
     <None Remove="CRM.Tests\**\*" />
     <None Remove="CRM.Tests\**" />
+    <!-- Exclude Unit/ project (CRM.Tests.Unit.Core) -->
+    <Compile Remove="Unit\**\*.cs" />
+    <Compile Remove="Unit\**" />
+    <None Remove="Unit\**\*" />
+    <None Remove="Unit\**" />
   </ItemGroup>
 
   <!-- Exclude test files that reference types/services not yet implemented -->

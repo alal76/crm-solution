@@ -1,6 +1,18 @@
-// CRM Solution - Adapter Registry
-// Phase 0 Week 3 Task 3.8: Health monitoring registry for all providers
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
@@ -46,7 +58,7 @@ public class AdapterRegistry
             return existing;
         });
 
-        _logger.LogInformation("Registered adapter {Category}:{ProviderName}, Active: {IsActive}", 
+        _logger.LogInformation("Registered adapter {Category}:{ProviderName}, Active: {IsActive}",
             category, providerName, isActive);
     }
 
@@ -95,7 +107,7 @@ public class AdapterRegistry
                 info.LastFailureTime = DateTime.UtcNow;
             }
 
-            _logger.LogDebug("Updated health for {Category}:{ProviderName}: {Status}", 
+            _logger.LogDebug("Updated health for {Category}:{ProviderName}: {Status}",
                 category, providerName, info.Status);
         }
     }
@@ -149,7 +161,7 @@ public class AdapterRegistry
     /// </summary>
     public AdapterInfo? GetActiveAdapter(string category)
     {
-        return _adapters.Values.FirstOrDefault(a => 
+        return _adapters.Values.FirstOrDefault(a =>
             a.Category.Equals(category, StringComparison.OrdinalIgnoreCase) && a.IsActive);
     }
 
@@ -237,15 +249,15 @@ public class AdapterInfo
     /// <summary>
     /// Gets the average operation time in milliseconds.
     /// </summary>
-    public double AverageOperationTimeMs => 
+    public double AverageOperationTimeMs =>
         SuccessCount > 0 ? TotalOperationTime.TotalMilliseconds / SuccessCount : 0;
 
     /// <summary>
     /// Gets the success rate as a percentage.
     /// </summary>
-    public double SuccessRate => 
-        (SuccessCount + FailureCount) > 0 
-            ? (double)SuccessCount / (SuccessCount + FailureCount) * 100 
+    public double SuccessRate =>
+        (SuccessCount + FailureCount) > 0
+            ? (double)SuccessCount / (SuccessCount + FailureCount) * 100
             : 0;
 }
 

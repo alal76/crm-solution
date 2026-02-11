@@ -1,11 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Meilisearch Search Provider Implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// HEXAGONAL ARCHITECTURE NOTE:
-// This is the Meilisearch implementation of ISearchPort.
-// It provides fast, typo-tolerant full-text search using Meilisearch.
-// Supports both self-hosted and Meilisearch Cloud deployments.
-// Compatible with Meilisearch SDK v0.15.0
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Diagnostics;
 using System.Text.Json;
@@ -69,7 +76,7 @@ public class MeilisearchProvider : ISearchPort
 
     /// <inheritdoc />
     public async Task<CRM.Core.Ports.Output.Providers.SearchResult> SearchAsync(
-        CRM.Core.Ports.Output.Providers.SearchRequest request, 
+        CRM.Core.Ports.Output.Providers.SearchRequest request,
         CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -99,7 +106,7 @@ public class MeilisearchProvider : ISearchPort
                 try
                 {
                     var index = _client.Index(GetFullIndexName(indexName));
-                    
+
                     var searchParams = new SearchQuery
                     {
                         Limit = request.Take,
@@ -154,7 +161,7 @@ public class MeilisearchProvider : ISearchPort
         {
             _logger.LogError(ex, "Meilisearch query failed for: {Query}", query);
             stopwatch.Stop();
-            
+
             return new CRM.Core.Ports.Output.Providers.SearchResult
             {
                 Query = request.Query ?? string.Empty,
@@ -167,8 +174,8 @@ public class MeilisearchProvider : ISearchPort
 
     /// <inheritdoc />
     public async Task<CRM.Core.Ports.Output.Providers.SearchResult<T>> SearchAsync<T>(
-        string query, 
-        CRM.Core.Ports.Output.Providers.SearchOptions? options = null, 
+        string query,
+        CRM.Core.Ports.Output.Providers.SearchOptions? options = null,
         CancellationToken cancellationToken = default) where T : class
     {
         var stopwatch = Stopwatch.StartNew();
@@ -232,7 +239,7 @@ public class MeilisearchProvider : ISearchPort
         {
             _logger.LogError(ex, "Meilisearch typed search failed for type {Type}, query: {Query}", typeof(T).Name, query);
             stopwatch.Stop();
-            
+
             return new CRM.Core.Ports.Output.Providers.SearchResult<T>
             {
                 Items = new List<T>(),
@@ -252,7 +259,7 @@ public class MeilisearchProvider : ISearchPort
 
             // Ensure the document has an id field
             var docWithId = AddIdToDocument(document, id);
-            
+
             var task = await index.AddDocumentsAsync(new[] { docWithId }, "id", cancellationToken);
             _logger.LogDebug("Indexed document {Id} in {Index}, task: {TaskUid}", id, indexName, task.TaskUid);
         }
@@ -280,9 +287,9 @@ public class MeilisearchProvider : ISearchPort
             {
                 var docsWithIds = batch.Select(doc => AddIdToDocument(doc, idSelector(doc))).ToList();
                 var task = await index.AddDocumentsAsync(docsWithIds, "id", cancellationToken);
-                
+
                 processedCount += batch.Length;
-                _logger.LogDebug("Indexed batch {Processed}/{Total} in {Index}, task: {TaskUid}", 
+                _logger.LogDebug("Indexed batch {Processed}/{Total} in {Index}, task: {TaskUid}",
                     processedCount, totalDocuments, indexName, task.TaskUid);
             }
         }
@@ -313,9 +320,9 @@ public class MeilisearchProvider : ISearchPort
 
     /// <inheritdoc />
     public async Task<IEnumerable<SearchSuggestion>> SuggestAsync(
-        string prefix, 
-        string? indexName = null, 
-        int maxResults = 10, 
+        string prefix,
+        string? indexName = null,
+        int maxResults = 10,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prefix) || prefix.Length < 2)
@@ -340,9 +347,9 @@ public class MeilisearchProvider : ISearchPort
             {
                 var title = hit.TryGetValue("name", out var name) ? name?.ToString() :
                            hit.TryGetValue("title", out var t) ? t?.ToString() :
-                           hit.TryGetValue("firstName", out var fn) && hit.TryGetValue("lastName", out var ln) 
+                           hit.TryGetValue("firstName", out var fn) && hit.TryGetValue("lastName", out var ln)
                                ? $"{fn} {ln}" : "Unknown";
-                
+
                 var id = hit.TryGetValue("id", out var idValue) ? idValue?.ToString() ?? "" : "";
 
                 return new SearchSuggestion
@@ -385,7 +392,7 @@ public class MeilisearchProvider : ISearchPort
         try
         {
             var indexName = GetIndexNameForType<T>();
-            
+
             _logger.LogInformation("Starting index rebuild for {Index}", indexName);
 
             // Clear existing documents
@@ -410,7 +417,7 @@ public class MeilisearchProvider : ISearchPort
     public async Task<ProviderHealthResult> HealthCheckAsync(CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
-        
+
         try
         {
             var health = await _client.HealthAsync(cancellationToken);
@@ -437,7 +444,7 @@ public class MeilisearchProvider : ISearchPort
         catch (Exception ex)
         {
             stopwatch.Stop();
-            
+
             return new ProviderHealthResult
             {
                 IsHealthy = false,
@@ -524,7 +531,7 @@ public class MeilisearchProvider : ISearchPort
         try
         {
             var fullIndexName = GetFullIndexName(indexName);
-            
+
             // Create index if it doesn't exist
             var task = await _client.CreateIndexAsync(fullIndexName, config.PrimaryKey);
             _logger.LogDebug("Created/verified index {Index}, task: {TaskUid}", fullIndexName, task.TaskUid);
@@ -616,18 +623,18 @@ public class MeilisearchProvider : ISearchPort
         try
         {
             var id = hit.TryGetValue("id", out var idValue) ? idValue?.ToString() ?? "" : "";
-            
+
             // Extract title based on entity type
             var title = entityType switch
             {
-                "Account" => hit.TryGetValue("name", out var name) ? name?.ToString() : 
+                "Account" => hit.TryGetValue("name", out var name) ? name?.ToString() :
                             hit.TryGetValue("company", out var company) ? company?.ToString() : "Unknown",
-                "Contact" => hit.TryGetValue("firstName", out var fn) && hit.TryGetValue("lastName", out var ln) 
+                "Contact" => hit.TryGetValue("firstName", out var fn) && hit.TryGetValue("lastName", out var ln)
                             ? $"{fn} {ln}" : "Unknown",
                 "Opportunity" => hit.TryGetValue("name", out var oppName) ? oppName?.ToString() : "Unknown",
                 "Product" => hit.TryGetValue("name", out var prodName) ? prodName?.ToString() : "Unknown",
                 "KnowledgeArticle" => hit.TryGetValue("title", out var artTitle) ? artTitle?.ToString() : "Unknown",
-                _ => hit.TryGetValue("name", out var n) ? n?.ToString() : 
+                _ => hit.TryGetValue("name", out var n) ? n?.ToString() :
                     hit.TryGetValue("title", out var t) ? t?.ToString() : "Unknown"
             };
 

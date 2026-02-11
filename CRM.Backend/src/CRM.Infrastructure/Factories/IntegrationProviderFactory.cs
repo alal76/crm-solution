@@ -1,6 +1,18 @@
-// CRM Solution - Integration Provider Factory
-// Phase 0 Week 3: Factory for resolving Integration Platform providers
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,7 +52,7 @@ public class IntegrationProviderFactory : IProviderFactory<IIntegrationPort>
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalIntegrations)
             .GetAwaiter().GetResult();
-        
+
         if (!useExternal)
         {
             _logger.LogDebug("Feature flag disabled. Using BuiltIn integration provider");
@@ -49,7 +61,7 @@ public class IntegrationProviderFactory : IProviderFactory<IIntegrationPort>
 
         var providerType = _configuration["Providers:Integrations:Type"] ?? ProviderTypes.Integrations.BuiltIn;
         _logger.LogDebug("Resolving integration provider: {ProviderType}", providerType);
-        
+
         try
         {
             return GetProvider(providerType);
@@ -70,7 +82,7 @@ public class IntegrationProviderFactory : IProviderFactory<IIntegrationPort>
         }
 
         _logger.LogDebug("Resolving integration provider by name: {ProviderName}", providerName);
-        
+
         return providerName.ToLowerInvariant() switch
         {
             "builtin" => GetBuiltInProvider(),
@@ -102,12 +114,12 @@ public class IntegrationProviderFactory : IProviderFactory<IIntegrationPort>
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalIntegrations)
             .GetAwaiter().GetResult();
-        
+
         if (!useExternal)
         {
             return ProviderTypes.Integrations.BuiltIn;
         }
-        
+
         return _configuration["Providers:Integrations:Type"] ?? ProviderTypes.Integrations.BuiltIn;
     }
 
@@ -134,7 +146,7 @@ public class IntegrationProviderFactory : IProviderFactory<IIntegrationPort>
     private TPort GetProviderOrFallback<TPort>(string providerTypeName) where TPort : class
     {
         var providers = _serviceProvider.GetServices<TPort>();
-        
+
         foreach (var provider in providers)
         {
             if (provider.GetType().Name.Equals(providerTypeName, StringComparison.OrdinalIgnoreCase))

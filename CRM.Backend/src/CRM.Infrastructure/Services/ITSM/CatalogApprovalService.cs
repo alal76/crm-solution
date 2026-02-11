@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -21,37 +36,37 @@ public interface ICatalogApprovalService
     /// Submit a service request for approval.
     /// </summary>
     Task<ApprovalWorkflow> SubmitForApprovalAsync(int serviceRequestId, int submittedById);
-    
+
     /// <summary>
     /// Process an approval action (approve/reject).
     /// </summary>
     Task<ApprovalAction> ProcessApprovalAsync(int workflowId, int approverId, ApprovalDecision decision, string? comments = null);
-    
+
     /// <summary>
     /// Get the current approval status for a service request.
     /// </summary>
     Task<ApprovalWorkflow?> GetApprovalStatusAsync(int serviceRequestId);
-    
+
     /// <summary>
     /// Get pending approvals for a specific approver.
     /// </summary>
     Task<List<PendingServiceRequestApproval>> GetPendingApprovalsAsync(int approverId);
-    
+
     /// <summary>
     /// Escalate an overdue approval.
     /// </summary>
     Task<bool> EscalateApprovalAsync(int workflowId, string reason);
-    
+
     /// <summary>
     /// Withdraw a pending approval request.
     /// </summary>
     Task<bool> WithdrawApprovalAsync(int serviceRequestId, int requestedById, string reason);
-    
+
     /// <summary>
     /// Get approval history for a service request.
     /// </summary>
     Task<List<ApprovalAction>> GetApprovalHistoryAsync(int serviceRequestId);
-    
+
     /// <summary>
     /// Get approval rules for a catalog item.
     /// </summary>
@@ -288,7 +303,7 @@ public class CatalogApprovalService : ICatalogApprovalService
     public async Task<ApprovalWorkflow> SubmitForApprovalAsync(int serviceRequestId, int submittedById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var serviceRequest = await context.ITSMServiceRequests
             .Include(sr => sr.CatalogItem)
             .Include(sr => sr.RequestedBy)
@@ -317,7 +332,7 @@ public class CatalogApprovalService : ICatalogApprovalService
         }
 
         // Check auto-approve threshold
-        if (rule.AutoApproveIfUnderCost && 
+        if (rule.AutoApproveIfUnderCost &&
             rule.AutoApproveCostThreshold.HasValue &&
             serviceRequest.CatalogItem?.EstimatedCost < rule.AutoApproveCostThreshold)
         {
@@ -401,9 +416,9 @@ public class CatalogApprovalService : ICatalogApprovalService
     }
 
     public async Task<ApprovalAction> ProcessApprovalAsync(
-        int workflowId, 
-        int approverId, 
-        ApprovalDecision decision, 
+        int workflowId,
+        int approverId,
+        ApprovalDecision decision,
         string? comments = null)
     {
         var workflow = _workflows.FirstOrDefault(w => w.WorkflowId == workflowId);
@@ -500,8 +515,8 @@ public class CatalogApprovalService : ICatalogApprovalService
 
             // Check if this approver should handle this stage
             bool shouldHandle = false;
-            
-            if (activeStage.ApproverType == ApproverType.SpecificUser && 
+
+            if (activeStage.ApproverType == ApproverType.SpecificUser &&
                 activeStage.ApproverId == approverId)
             {
                 shouldHandle = true;
@@ -574,8 +589,8 @@ public class CatalogApprovalService : ICatalogApprovalService
 
     public async Task<bool> WithdrawApprovalAsync(int serviceRequestId, int requestedById, string reason)
     {
-        var workflow = _workflows.FirstOrDefault(w => 
-            w.ServiceRequestId == serviceRequestId && 
+        var workflow = _workflows.FirstOrDefault(w =>
+            w.ServiceRequestId == serviceRequestId &&
             w.SubmittedById == requestedById);
 
         if (workflow == null) return false;
@@ -675,17 +690,17 @@ public class CatalogApprovalService : ICatalogApprovalService
             workflow.State = WorkflowState.Approved;
             workflow.FinalOutcome = ApprovalOutcome.Approved;
             workflow.CompletedAt = DateTime.UtcNow;
-            
+
             await UpdateServiceRequestStatusAsync(
-                workflow.ServiceRequestId, 
-                ServiceRequestStatus.InProgress, 
+                workflow.ServiceRequestId,
+                ServiceRequestStatus.InProgress,
                 context);
         }
     }
 
     private async Task UpdateServiceRequestStatusAsync(
-        int serviceRequestId, 
-        ServiceRequestStatus status, 
+        int serviceRequestId,
+        ServiceRequestStatus status,
         ICrmDbContext context)
     {
         var sr = await context.ITSMServiceRequests.FindAsync(serviceRequestId);

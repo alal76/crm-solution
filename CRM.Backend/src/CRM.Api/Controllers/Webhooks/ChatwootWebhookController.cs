@@ -1,6 +1,18 @@
-// CRM Solution - Chatwoot Webhook Controller
-// Phase 3 Week 13: Handles webhook callbacks from Chatwoot
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -495,7 +507,7 @@ public class ChatwootWebhookController : ControllerBase
             // Get all contacts and filter by email
             // NOTE: In production, this should use a search index or database query
             var allContacts = await _contactsService.GetAllAsync();
-            var contact = allContacts.FirstOrDefault(c => 
+            var contact = allContacts.FirstOrDefault(c =>
                 c.EmailPrimary?.Equals(email, StringComparison.OrdinalIgnoreCase) == true);
             if (contact != null)
             {
@@ -532,7 +544,7 @@ public class ChatwootWebhookController : ControllerBase
         if (!string.IsNullOrEmpty(chatwootContact.Email))
         {
             var allContacts = await _contactsService.GetAllAsync();
-            var existing = allContacts.FirstOrDefault(c => 
+            var existing = allContacts.FirstOrDefault(c =>
                 c.EmailPrimary?.Equals(chatwootContact.Email, StringComparison.OrdinalIgnoreCase) == true);
             if (existing != null)
             {

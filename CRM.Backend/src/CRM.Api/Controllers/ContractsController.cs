@@ -1,6 +1,18 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-// Licensed under AGPL-3.0. See LICENSE for details.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -23,6 +35,9 @@ public class ContractsController : ControllerBase
     private readonly IContractService _contractService;
     private readonly ILogger<ContractsController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ContractsController"/> class.
+    /// </summary>
     public ContractsController(IContractService contractService, ILogger<ContractsController> logger)
     {
         _contractService = contractService ?? throw new ArgumentNullException(nameof(contractService));
@@ -797,7 +812,6 @@ public class ContractsController : ControllerBase
     // ========================================================================
     // Helper Methods
     // ========================================================================
-
     private static object MapToDto(Contract c)
     {
         return new

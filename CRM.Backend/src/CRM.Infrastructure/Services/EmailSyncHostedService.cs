@@ -22,7 +22,7 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Background service to periodically sync email integrations.
-/// Part of Marketing & Sales gap analysis implementation (G5).
+/// Part of Marketing &amp; Sales gap analysis implementation (G5).
 /// </summary>
 public class EmailSyncHostedService : BackgroundService
 {

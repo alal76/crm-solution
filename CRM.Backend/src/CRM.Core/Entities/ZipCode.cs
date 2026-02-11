@@ -99,4 +99,3 @@ public class ZipCode
     public ICollection<Locality>? Localities { get; set; }
     public ICollection<Address>? Addresses { get; set; }
 }
-

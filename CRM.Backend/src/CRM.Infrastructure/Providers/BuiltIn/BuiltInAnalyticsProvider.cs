@@ -1,11 +1,18 @@
-// CRM Solution - BuiltIn Analytics Provider
-// Phase 5 Week 19: Analytics Provider Implementation
-// Part of the Pluggable Architecture - Preserves existing dashboard/reporting logic
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// HEXAGONAL ARCHITECTURE NOTE:
-// This is the BuiltIn adapter for IAnalyticsPort. It provides basic dashboard
-// and reporting functionality using direct database queries via EF Core.
-// For advanced analytics, operators can switch to Superset, Metabase, or PowerBI.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -182,8 +189,8 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
 
     /// <inheritdoc />
     public Task<IEnumerable<DashboardInfo>> GetDashboardsForUserAsync(
-        int userId, 
-        IEnumerable<string>? roles = null, 
+        int userId,
+        IEnumerable<string>? roles = null,
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting dashboards for user {UserId} with roles {Roles}", userId, roles);
@@ -199,7 +206,7 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
     public Task<EmbedResult> GetEmbedAsync(EmbedRequest request, CancellationToken cancellationToken = default)
     {
         _logger.LogWarning("BuiltIn analytics provider does not support embedding. Use Superset or PowerBI for embedded dashboards.");
-        
+
         return Task.FromResult(new EmbedResult
         {
             EmbedType = "unsupported",
@@ -213,8 +220,8 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
 
     /// <inheritdoc />
     public Task<string> GetGuestTokenAsync(
-        string dashboardId, 
-        Dictionary<string, string>? filters = null, 
+        string dashboardId,
+        Dictionary<string, string>? filters = null,
         CancellationToken cancellationToken = default)
     {
         _logger.LogWarning("BuiltIn analytics provider does not support guest tokens");
@@ -229,7 +236,7 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
     public Task<IEnumerable<ChartInfo>> GetChartsAsync(string? dashboardId = null, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting charts for dashboard: {DashboardId}", dashboardId ?? "all");
-        
+
         var charts = new List<ChartInfo>
         {
             new() { Id = "account-count", Name = "Total Accounts", ChartType = "metric", DashboardId = "overview", CanEmbed = false },
@@ -251,12 +258,12 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
 
     /// <inheritdoc />
     public Task<EmbedResult> GetChartEmbedAsync(
-        string chartId, 
-        Dictionary<string, string>? filters = null, 
+        string chartId,
+        Dictionary<string, string>? filters = null,
         CancellationToken cancellationToken = default)
     {
         _logger.LogWarning("BuiltIn analytics provider does not support chart embedding");
-        
+
         return Task.FromResult(new EmbedResult
         {
             EmbedType = "unsupported",
@@ -274,14 +281,14 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
 
     /// <inheritdoc />
     public async Task<ReportResult> ExecuteReportAsync(
-        string reportId, 
-        Dictionary<string, object>? parameters = null, 
+        string reportId,
+        Dictionary<string, object>? parameters = null,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Executing report: {ReportId} with parameters: {Parameters}", reportId, parameters);
-        
+
         var startTime = DateTime.UtcNow;
-        
+
         try
         {
             return reportId.ToLowerInvariant() switch
@@ -320,7 +327,7 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
     public Task<IEnumerable<ReportInfo>> GetReportsAsync(string? category = null, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Getting reports for category: {Category}", category ?? "all");
-        
+
         var reports = _predefinedReports.Values.Select(r => new ReportInfo
         {
             Id = r.Id,
@@ -366,7 +373,7 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
     public Task<RefreshJobStatus> RefreshDataSourceAsync(string dataSourceId, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Refresh requested for data source: {DataSourceId}", dataSourceId);
-        
+
         // BuiltIn provider uses live database queries - no refresh needed
         return Task.FromResult(new RefreshJobStatus
         {
@@ -399,11 +406,11 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
     #region Private Report Implementations
 
     private async Task<ReportResult> ExecuteSalesPipelineReportAsync(
-        Dictionary<string, object>? parameters, 
+        Dictionary<string, object>? parameters,
         CancellationToken cancellationToken)
     {
         var startTime = DateTime.UtcNow;
-        
+
         var query = _context.Opportunities.AsQueryable();
 
         // Apply date filters if provided
@@ -450,11 +457,11 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
     }
 
     private async Task<ReportResult> ExecuteAccountSummaryReportAsync(
-        Dictionary<string, object>? parameters, 
+        Dictionary<string, object>? parameters,
         CancellationToken cancellationToken)
     {
         var startTime = DateTime.UtcNow;
-        
+
         var query = _context.Accounts.AsQueryable();
 
         // Apply category filter if provided
@@ -470,8 +477,8 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
             .Select(a => new
             {
                 a.Id,
-                Name = a.Category == AccountCategory.Individual 
-                    ? (a.FirstName + " " + a.LastName) 
+                Name = a.Category == AccountCategory.Individual
+                    ? (a.FirstName + " " + a.LastName)
                     : a.Company,
                 Category = a.Category.ToString(),
                 a.Industry,
@@ -509,11 +516,11 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
     }
 
     private async Task<ReportResult> ExecuteActivityReportAsync(
-        Dictionary<string, object>? parameters, 
+        Dictionary<string, object>? parameters,
         CancellationToken cancellationToken)
     {
         var startTime = DateTime.UtcNow;
-        
+
         // Default to last 30 days
         var startDate = DateTime.UtcNow.AddDays(-30);
         var endDate = DateTime.UtcNow;
@@ -579,11 +586,11 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
     }
 
     private async Task<ReportResult> ExecuteLeadConversionReportAsync(
-        Dictionary<string, object>? parameters, 
+        Dictionary<string, object>? parameters,
         CancellationToken cancellationToken)
     {
         var startTime = DateTime.UtcNow;
-        
+
         // Get lead statistics grouped by status
         var leadStats = await _context.Leads
             .GroupBy(l => l.Status)
@@ -628,11 +635,11 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
     }
 
     private async Task<ReportResult> ExecuteProductRevenueReportAsync(
-        Dictionary<string, object>? parameters, 
+        Dictionary<string, object>? parameters,
         CancellationToken cancellationToken)
     {
         var startTime = DateTime.UtcNow;
-        
+
         // Get product revenue from won opportunities
         var products = await _context.Products
             .Select(p => new
@@ -672,11 +679,11 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
     }
 
     private async Task<ReportResult> ExecuteUserActivityReportAsync(
-        Dictionary<string, object>? parameters, 
+        Dictionary<string, object>? parameters,
         CancellationToken cancellationToken)
     {
         var startTime = DateTime.UtcNow;
-        
+
         var days = 30;
         if (parameters?.TryGetValue("days", out var daysObj) == true)
         {

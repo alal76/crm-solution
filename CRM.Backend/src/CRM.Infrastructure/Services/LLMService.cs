@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * CRM Solution - Customer Relationship Management System
- * Copyright (C) 2024-2026 Abhishek Lal
- *
- * LLM Integration Service - Multi-provider AI service with fallback support
- */
-
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -554,8 +547,7 @@ public class LLMService : ILLMService
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
                 Encoding.UTF8,
-                "application/json"
-            )
+                "application/json")
         };
 
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.OpenAI.ApiKey);
@@ -612,8 +604,7 @@ public class LLMService : ILLMService
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
                 Encoding.UTF8,
-                "application/json"
-            )
+                "application/json")
         };
 
         httpRequest.Headers.Add("api-key", _options.AzureOpenAI.ApiKey);
@@ -674,8 +665,7 @@ public class LLMService : ILLMService
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
                 Encoding.UTF8,
-                "application/json"
-            )
+                "application/json")
         };
 
         httpRequest.Headers.Add("x-api-key", _options.Anthropic.ApiKey);
@@ -757,8 +747,7 @@ public class LLMService : ILLMService
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
                 Encoding.UTF8,
-                "application/json"
-            )
+                "application/json")
         };
 
         var httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -825,8 +814,7 @@ public class LLMService : ILLMService
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody),
                 Encoding.UTF8,
-                "application/json"
-            )
+                "application/json")
         };
 
         // Note: In production, use Google.Cloud.AIPlatform.V1 SDK with proper auth
@@ -926,8 +914,7 @@ public class LLMService : ILLMService
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
                 Encoding.UTF8,
-                "application/json"
-            )
+                "application/json")
         };
 
         // AWS Signature V4 signing would be needed here
@@ -1210,8 +1197,7 @@ public class LLMService : ILLMService
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody),
                 Encoding.UTF8,
-                "application/json"
-            )
+                "application/json")
         };
 
         foreach (var header in _options.LocalLLM.Headers)
@@ -1274,8 +1260,7 @@ public class LLMService : ILLMService
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody),
                 Encoding.UTF8,
-                "application/json"
-            )
+                "application/json")
         };
 
         if (!string.IsNullOrEmpty(_options.LocalLLM.ApiKey))
@@ -1342,8 +1327,7 @@ public class LLMService : ILLMService
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody),
                 Encoding.UTF8,
-                "application/json"
-            )
+                "application/json")
         };
 
         if (!string.IsNullOrEmpty(_options.CustomEndpoint.ApiKey))

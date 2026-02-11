@@ -67,7 +67,7 @@ public enum RuleOperator
 /// <summary>
 /// FUNCTIONAL: Configurable rule for scoring leads based on various criteria
 /// TECHNICAL: Stores rule definition, conditions, and score impact
-/// 
+///
 /// Key Features:
 /// - Attribute-based scoring (job title, company size, industry)
 /// - Behavioral scoring (email opens, page views, form submissions)

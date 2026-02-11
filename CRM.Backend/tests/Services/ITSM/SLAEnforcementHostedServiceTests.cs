@@ -1,5 +1,18 @@
-// This file is part of the CRM Solution.
-// Tests for SLAEnforcementHostedService - Background SLA monitoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
 using System.Threading;
@@ -83,7 +96,7 @@ public class SLAEnforcementHostedServiceTests
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
-        
+
         // Setup to cancel after first check
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(Task.CompletedTask)
@@ -91,7 +104,7 @@ public class SLAEnforcementHostedServiceTests
 
         // Act
         await service.StartAsync(cts.Token);
-        
+
         // Wait a bit for the task to start
         await Task.Delay(100);
 
@@ -105,7 +118,7 @@ public class SLAEnforcementHostedServiceTests
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(Task.CompletedTask)
             .Callback(() => cts.Cancel());
@@ -124,7 +137,7 @@ public class SLAEnforcementHostedServiceTests
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(Task.CompletedTask)
             .Callback(() => cts.Cancel());
@@ -150,9 +163,9 @@ public class SLAEnforcementHostedServiceTests
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
-            .Returns(async () => 
+            .Returns(async () =>
             {
                 cts.Cancel();
                 await Task.Delay(10);
@@ -180,7 +193,7 @@ public class SLAEnforcementHostedServiceTests
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
         var callCount = 0;
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(() =>
             {
@@ -215,7 +228,7 @@ public class SLAEnforcementHostedServiceTests
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
         var callCount = 0;
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(() =>
             {
@@ -249,14 +262,14 @@ public class SLAEnforcementHostedServiceTests
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(Task.CompletedTask);
 
         // Act
         await service.StartAsync(cts.Token);
         cts.Cancel();
-        
+
         // Wait for the service to process the cancellation
         await Task.Delay(200);
 
@@ -277,7 +290,7 @@ public class SLAEnforcementHostedServiceTests
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var startCts = new CancellationTokenSource();
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(async () => await Task.Delay(50));
 
@@ -299,7 +312,7 @@ public class SLAEnforcementHostedServiceTests
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(Task.CompletedTask)
             .Callback(() => cts.Cancel());
@@ -323,7 +336,7 @@ public class SLAEnforcementHostedServiceTests
 
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(Task.CompletedTask)
             .Callback(() => cts.Cancel());
@@ -346,7 +359,7 @@ public class SLAEnforcementHostedServiceTests
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(Task.CompletedTask)
             .Callback(() => cts.Cancel());
@@ -375,7 +388,7 @@ public class SLAEnforcementHostedServiceTests
     {
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(Task.CompletedTask);
 
@@ -394,7 +407,7 @@ public class SLAEnforcementHostedServiceTests
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
         var checkCount = 0;
-        
+
         _mockSlaService.Setup(x => x.CheckSLABreachesAsync())
             .Returns(() =>
             {

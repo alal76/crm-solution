@@ -1,5 +1,18 @@
-// CRM Solution - Comprehensive Test Suite
-// FieldMasterDataServiceTests - Unit tests for field-to-master-data linking service
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
@@ -21,7 +34,7 @@ public class FieldMasterDataServiceTests
     private readonly Mock<ICrmDbContext> _mockContext;
     private readonly Mock<ILogger<FieldMasterDataService>> _mockLogger;
     private readonly FieldMasterDataService _service;
-    
+
     // Mock DbSets
     private readonly List<FieldMasterDataLink> _links;
     private readonly List<ModuleFieldConfiguration> _fieldConfigs;
@@ -35,7 +48,7 @@ public class FieldMasterDataServiceTests
     {
         _mockContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<FieldMasterDataService>>();
-        
+
         // Initialize test data
         _links = new List<FieldMasterDataLink>();
         _fieldConfigs = new List<ModuleFieldConfiguration>();
@@ -44,9 +57,9 @@ public class FieldMasterDataServiceTests
         _zipCodes = new List<ZipCode>();
         _products = new List<Product>();
         _accounts = new List<Account>();
-        
+
         SetupMockDbSets();
-        
+
         _service = new FieldMasterDataService(_mockContext.Object, _mockLogger.Object);
     }
 
@@ -121,7 +134,7 @@ public class FieldMasterDataServiceTests
         mockAccountsSet.As<IQueryable<Account>>().Setup(m => m.GetEnumerator()).Returns(() => accountsQueryable.GetEnumerator());
         mockAccountsSet.As<IAsyncEnumerable<Account>>().Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>())).Returns(new TestAsyncEnumerator<Account>(accountsQueryable.GetEnumerator()));
         _mockContext.Setup(c => c.Accounts).Returns(mockAccountsSet.Object);
-        
+
         _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
@@ -217,7 +230,7 @@ public class FieldMasterDataServiceTests
         // Arrange
         _fieldConfigs.Add(new ModuleFieldConfiguration { Id = 1, ModuleName = "Customers", IsDeleted = false });
         _fieldConfigs.Add(new ModuleFieldConfiguration { Id = 2, ModuleName = "Customers", IsDeleted = false });
-        
+
         _links.Add(new FieldMasterDataLink { Id = 10, FieldConfigurationId = 1, IsActive = true, IsDeleted = false });
         _links.Add(new FieldMasterDataLink { Id = 11, FieldConfigurationId = 1, IsActive = true, IsDeleted = false });
         _links.Add(new FieldMasterDataLink { Id = 12, FieldConfigurationId = 2, IsActive = true, IsDeleted = false });

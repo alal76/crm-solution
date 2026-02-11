@@ -16,7 +16,6 @@
 
 using CRM.Core.Entities;
 using CRM.Core.Entities.AI;
-using ITSM = CRM.Core.Entities.ITSM; // Alias for ITSM entities to avoid conflicts
 using CRM.Core.Entities.KnowledgeBase;
 using CRM.Core.Entities.Reports;
 using CRM.Core.Entities.Workflow;
@@ -25,6 +24,7 @@ using CRM.Core.Models;
 using CRM.Infrastructure.Data.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using ITSM = CRM.Core.Entities.ITSM; // Alias for ITSM entities to avoid conflicts
 
 namespace CRM.Infrastructure.Data;
 
@@ -131,6 +131,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // Module field configurations
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
         public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
+
         /// <summary>Alias for Customers DbSet. Both map to the Account entity on the "Customers" table.</summary>
         public DbSet<Account> Accounts => Customers;
         public DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; set; }
@@ -180,6 +181,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<RelationshipMap> RelationshipMaps { get; set; }
     public DbSet<AccountTerritory> AccountTerritories { get; set; }
     public DbSet<AccountTerritoryAssignment> AccountTerritoryAssignments { get; set; }
+
     /// <summary>Alias for AccountTerritoryAssignments (legacy naming).</summary>
     public DbSet<AccountTerritoryAssignment> CustomerTerritoryAssignments => AccountTerritoryAssignments;
 
@@ -318,31 +320,31 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // =============================================================================
     // ITSM Module Entities (Incident, Problem, Change, CMDB, Knowledge, Catalog)
     // =============================================================================
-    
+
     // Incident Management
     public DbSet<ITSM.Incident> Incidents { get; set; }
     public DbSet<ITSM.IncidentComment> IncidentComments { get; set; }
     public DbSet<ITSM.IncidentAttachment> IncidentAttachments { get; set; }
     public DbSet<ITSM.IncidentHistory> IncidentHistory { get; set; }
-    
+
     // Problem Management
     public DbSet<ITSM.Problem> Problems { get; set; }
     public DbSet<ITSM.ProblemIncident> ProblemIncidents { get; set; }
     public DbSet<ITSM.ProblemTask> ProblemTasks { get; set; }
     public DbSet<ITSM.ProblemComment> ProblemComments { get; set; }
     public DbSet<ITSM.ProblemAttachment> ProblemAttachments { get; set; }
-    
+
     // SLA Management (Enhanced)
     public DbSet<ITSM.SLAPolicy> ITSMSLAPolicies { get; set; }
     public DbSet<ITSM.SLAInstance> ITSMSLAInstances { get; set; }
     public DbSet<ITSM.BusinessHoursSchedule> BusinessHoursSchedules { get; set; }
-    
+
     // CMDB
     public DbSet<ITSM.ConfigurationItem> ConfigurationItems { get; set; }
     public DbSet<ITSM.CIRelationship> CIRelationships { get; set; }
     public DbSet<ITSM.Service> Services { get; set; }
     public DbSet<ITSM.ServiceCI> ServiceCIs { get; set; }
-    
+
     // Change Management
     public DbSet<ITSM.Change> Changes { get; set; }
     public DbSet<ITSM.ChangeApproval> ChangeApprovals { get; set; }
@@ -351,14 +353,14 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ITSM.ChangeTask> ChangeTasks { get; set; }
     public DbSet<ITSM.ChangeComment> ChangeComments { get; set; }
     public DbSet<ITSM.ChangeAttachment> ChangeAttachments { get; set; }
-    
+
     // Knowledge Management (Enhanced)
     public DbSet<ITSM.KnowledgeArticle> ITSMKnowledgeArticles { get; set; }
     public DbSet<ITSM.ArticleRelationship> ArticleRelationships { get; set; }
     public DbSet<ITSM.ArticleIncident> ArticleIncidents { get; set; }
     public DbSet<ITSM.ArticleFeedback> ITSMArticleFeedback { get; set; }
     public DbSet<ITSM.ArticleAttachment> ArticleAttachments { get; set; }
-    
+
     // Service Catalog
     public DbSet<ITSM.CatalogCategory> CatalogCategories { get; set; }
     public DbSet<ITSM.CatalogItem> CatalogItems { get; set; }
@@ -456,7 +458,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
             // Map renamed properties to original database columns for backward compatibility
             entity.Property(e => e.AccountHealthScore).HasColumnName("CustomerHealthScore");
             // AccountType, ReferredByAccountId, ParentAccountId columns exist in database with these names
-
             entity.HasIndex(e => e.Email);
             entity.HasIndex(e => e.Category);
             entity.HasIndex(e => e.Company);
@@ -1487,7 +1488,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
             // Ignore navigation to Conversation by string ID - handled via ConversationId string field
             // This prevents EF from creating shadow FK ConversationId1
-
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Direction);
             entity.HasIndex(e => e.SentAt);
@@ -2978,7 +2978,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.SLATargetId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-
 
         // =======================================================================
         // ALIAS PROPERTY IGNORES

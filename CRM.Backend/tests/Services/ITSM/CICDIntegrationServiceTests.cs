@@ -1,5 +1,18 @@
-// This file is part of the CRM Solution.
-// Tests for CICDIntegrationService - CI/CD pipeline and deployment management
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
 using System.Collections.Generic;
@@ -33,9 +46,9 @@ public class CICDIntegrationServiceTests
         _mockChangeService = new Mock<IChangeManagementService>();
         _mockLogger = new Mock<ILogger<CICDIntegrationService>>();
         _mockContext = new Mock<ICrmDbContext>();
-        
+
         _mockContextResolver.Setup(x => x.ResolveContext()).Returns(_mockContext.Object);
-        
+
         _service = new CICDIntegrationService(
             _mockContextResolver.Object,
             _mockChangeService.Object,
@@ -168,8 +181,8 @@ public class CICDIntegrationServiceTests
     public async Task GetPipelineAsync_ReturnsCorrectPipeline()
     {
         // Arrange
-        var registered = await _service.RegisterPipelineAsync(new RegisterPipelineDto 
-        { 
+        var registered = await _service.RegisterPipelineAsync(new RegisterPipelineDto
+        {
             Name = "Target Pipeline",
             Repository = "https://github.com/test/repo"
         });
@@ -619,12 +632,12 @@ public class CICDIntegrationServiceTests
         // Arrange
         var changes = new List<ITSMChange>
         {
-            new ITSMChange 
-            { 
-                ChangeId = 1, 
-                Status = "Pending Approval", 
-                ImplementationWindow = new ImplementationWindow 
-                { 
+            new ITSMChange
+            {
+                ChangeId = 1,
+                Status = "Pending Approval",
+                ImplementationWindow = new ImplementationWindow
+                {
                     PlannedStartDate = DateTime.UtcNow.AddHours(-1),
                     PlannedEndDate = DateTime.UtcNow.AddHours(1)
                 }
@@ -718,23 +731,23 @@ public class CICDIntegrationServiceTests
     {
         var queryable = data.AsQueryable();
         var mockSet = new Mock<DbSet<T>>();
-        
+
         mockSet.As<IAsyncEnumerable<T>>()
             .Setup(m => m.GetAsyncEnumerator(default))
             .Returns(new TestAsyncEnumerator<T>(queryable.GetEnumerator()));
-        
+
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.Provider)
             .Returns(new TestAsyncQueryProvider<T>(queryable.Provider));
-        
+
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.Expression)
             .Returns(queryable.Expression);
-        
+
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.ElementType)
             .Returns(queryable.ElementType);
-        
+
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.GetEnumerator())
             .Returns(queryable.GetEnumerator());

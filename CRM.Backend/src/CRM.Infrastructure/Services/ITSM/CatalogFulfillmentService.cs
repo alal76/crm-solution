@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -21,37 +36,37 @@ public interface ICatalogFulfillmentService
     /// Start fulfillment of an approved service request.
     /// </summary>
     Task<FulfillmentWorkflow> StartFulfillmentAsync(int serviceRequestId);
-    
+
     /// <summary>
     /// Get the current fulfillment status.
     /// </summary>
     Task<FulfillmentWorkflow?> GetFulfillmentStatusAsync(int serviceRequestId);
-    
+
     /// <summary>
     /// Complete a fulfillment task.
     /// </summary>
     Task<FulfillmentTask> CompleteTaskAsync(int taskId, int completedById, string? notes = null);
-    
+
     /// <summary>
     /// Execute an automated fulfillment action.
     /// </summary>
     Task<AutomationResult> ExecuteAutomationAsync(int taskId);
-    
+
     /// <summary>
     /// Get fulfillment templates for a catalog item.
     /// </summary>
     Task<FulfillmentTemplate> GetFulfillmentTemplateAsync(int catalogItemId);
-    
+
     /// <summary>
     /// Create or update a fulfillment template.
     /// </summary>
     Task<FulfillmentTemplate> SaveFulfillmentTemplateAsync(FulfillmentTemplate template);
-    
+
     /// <summary>
     /// Get fulfillment metrics for reporting.
     /// </summary>
     Task<FulfillmentMetrics> GetMetricsAsync(DateTime fromDate, DateTime toDate);
-    
+
     /// <summary>
     /// Cancel fulfillment of a service request.
     /// </summary>
@@ -455,7 +470,7 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
     public async Task<FulfillmentWorkflow> StartFulfillmentAsync(int serviceRequestId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var serviceRequest = await context.ITSMServiceRequests
             .Include(sr => sr.CatalogItem)
             .FirstOrDefaultAsync(sr => sr.ServiceRequestId == serviceRequestId);
@@ -559,7 +574,7 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         }
 
         var task = workflow.Tasks.First(t => t.TaskId == taskId);
-        
+
         if (task.State != TaskState.InProgress)
         {
             throw new InvalidOperationException($"Task {taskId} is not in progress");
@@ -601,7 +616,7 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         }
 
         var task = workflow.Tasks.First(t => t.TaskId == taskId);
-        
+
         if (task.Automation == null)
         {
             throw new InvalidOperationException($"Task {taskId} has no automation configuration");
@@ -874,7 +889,7 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
     private void StartDependentTasks(FulfillmentWorkflow workflow, string completedTaskName)
     {
         var dependentTasks = workflow.Tasks
-            .Where(t => t.State == TaskState.Pending && 
+            .Where(t => t.State == TaskState.Pending &&
                        t.DependsOnTaskNames.Contains(completedTaskName))
             .ToList();
 
@@ -909,9 +924,9 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         workflow.CurrentTaskName = currentTask?.Name;
 
         // Estimate remaining time
-        var remainingTasks = workflow.Tasks.Where(t => 
+        var remainingTasks = workflow.Tasks.Where(t =>
             t.State != TaskState.Completed && t.State != TaskState.Skipped).ToList();
-        
+
         if (remainingTasks.Any() && remainingTasks.First().DueAt.HasValue)
         {
             workflow.EstimatedTimeRemaining = remainingTasks.First().DueAt - DateTime.UtcNow;

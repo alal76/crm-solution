@@ -1,6 +1,18 @@
-// CRM Solution - Search Provider Factory
-// Phase 0 Week 3 Task 3.2: Factory for resolving search providers
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,7 +52,7 @@ public class SearchProviderFactory : IProviderFactory<ISearchPort>
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSearch)
             .GetAwaiter().GetResult();
-        
+
         if (!useExternal)
         {
             _logger.LogDebug("Feature flag disabled. Using BuiltIn search provider");
@@ -49,7 +61,7 @@ public class SearchProviderFactory : IProviderFactory<ISearchPort>
 
         var providerType = _configuration["Providers:Search:Type"] ?? ProviderTypes.Search.BuiltIn;
         _logger.LogDebug("Resolving search provider: {ProviderType}", providerType);
-        
+
         try
         {
             return GetProvider(providerType);
@@ -70,7 +82,7 @@ public class SearchProviderFactory : IProviderFactory<ISearchPort>
         }
 
         _logger.LogDebug("Resolving search provider by name: {ProviderName}", providerName);
-        
+
         return providerName.ToLowerInvariant() switch
         {
             "builtin" => GetBuiltInProvider(),
@@ -102,12 +114,12 @@ public class SearchProviderFactory : IProviderFactory<ISearchPort>
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSearch)
             .GetAwaiter().GetResult();
-        
+
         if (!useExternal)
         {
             return ProviderTypes.Search.BuiltIn;
         }
-        
+
         return _configuration["Providers:Search:Type"] ?? ProviderTypes.Search.BuiltIn;
     }
 
@@ -134,7 +146,7 @@ public class SearchProviderFactory : IProviderFactory<ISearchPort>
     private TPort GetProviderOrFallback<TPort>(string providerTypeName) where TPort : class
     {
         var providers = _serviceProvider.GetServices<TPort>();
-        
+
         foreach (var provider in providers)
         {
             if (provider.GetType().Name.Equals(providerTypeName, StringComparison.OrdinalIgnoreCase))

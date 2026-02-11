@@ -1,12 +1,18 @@
-// CRM Solution - DocuSeal Provider
-// Phase 4 Week 17: DocuSeal e-signature integration
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// DocuSeal API Reference: https://www.docuseal.co/docs/api
-// Key concepts:
-// - Templates: Reusable documents with field placements
-// - Submissions: Individual signing requests created from templates
-// - Submitters: Signers within a submission
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -27,14 +33,14 @@ namespace CRM.Infrastructure.Providers.DocuSeal;
 /// <summary>
 /// DocuSeal provider for electronic signature operations.
 /// Integrates with DocuSeal's REST API for template-based document signing.
-/// 
+///
 /// Features:
 /// - Template management (list, get, create from documents)
 /// - Submission creation (signature requests)
 /// - Embedded and email-based signing
 /// - Webhook processing for real-time status updates
 /// - Signed document retrieval
-/// 
+///
 /// DocuSeal is an open-source alternative to DocuSign, self-hostable.
 /// </summary>
 public class DocuSealProvider : ISignaturePort
@@ -101,7 +107,7 @@ public class DocuSealProvider : ISignaturePort
             response.EnsureSuccessStatusCode();
 
             var docuSealTemplates = await response.Content.ReadFromJsonAsync<List<DocuSealTemplate>>(_jsonOptions, cancellationToken);
-            
+
             return docuSealTemplates?.Select(MapToSignatureTemplate) ?? Enumerable.Empty<SignatureTemplate>();
         }
         catch (Exception ex)
@@ -119,7 +125,7 @@ public class DocuSealProvider : ISignaturePort
         try
         {
             var response = await _httpClient.GetAsync($"{_config.GetApiBaseUrl()}/templates/{templateId}", cancellationToken);
-            
+
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 return null;
@@ -166,7 +172,7 @@ public class DocuSealProvider : ISignaturePort
             response.EnsureSuccessStatusCode();
 
             var docuSealTemplate = await response.Content.ReadFromJsonAsync<DocuSealTemplate>(_jsonOptions, cancellationToken);
-            
+
             if (docuSealTemplate == null)
             {
                 throw new InvalidOperationException("DocuSeal returned null template");
@@ -242,21 +248,21 @@ public class DocuSealProvider : ISignaturePort
             }
 
             var response = await _httpClient.PostAsJsonAsync(
-                $"{_config.GetApiBaseUrl()}/submissions", 
-                docuSealRequest, 
-                _jsonOptions, 
+                $"{_config.GetApiBaseUrl()}/submissions",
+                docuSealRequest,
+                _jsonOptions,
                 cancellationToken);
 
             response.EnsureSuccessStatusCode();
 
             var docuSealSubmission = await response.Content.ReadFromJsonAsync<DocuSealSubmission>(_jsonOptions, cancellationToken);
-            
+
             if (docuSealSubmission == null)
             {
                 throw new InvalidOperationException("DocuSeal returned null submission");
             }
 
-            _logger.LogInformation("Created DocuSeal submission: {SubmissionId} for template {TemplateId}", 
+            _logger.LogInformation("Created DocuSeal submission: {SubmissionId} for template {TemplateId}",
                 docuSealSubmission.Id, request.TemplateId);
 
             return MapToSignatureRequest(docuSealSubmission, request);
@@ -276,7 +282,7 @@ public class DocuSealProvider : ISignaturePort
         try
         {
             var response = await _httpClient.GetAsync($"{_config.GetApiBaseUrl()}/submissions/{requestId}", cancellationToken);
-            
+
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 return null;
@@ -314,7 +320,7 @@ public class DocuSealProvider : ISignaturePort
             response.EnsureSuccessStatusCode();
 
             var submissions = await response.Content.ReadFromJsonAsync<DocuSealSubmissionList>(_jsonOptions, cancellationToken);
-            
+
             if (submissions?.Data == null)
             {
                 return Enumerable.Empty<SignatureRequest>();
@@ -345,7 +351,7 @@ public class DocuSealProvider : ISignaturePort
             var response = await _httpClient.DeleteAsync($"{_config.GetApiBaseUrl()}/submissions/{requestId}", cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            _logger.LogInformation("Cancelled/archived DocuSeal submission: {SubmissionId}. Reason: {Reason}", 
+            _logger.LogInformation("Cancelled/archived DocuSeal submission: {SubmissionId}. Reason: {Reason}",
                 requestId, reason ?? "No reason provided");
         }
         catch (Exception ex)
@@ -379,7 +385,7 @@ public class DocuSealProvider : ISignaturePort
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Failed to send reminder to {Email} for submission {SubmissionId}", 
+                    _logger.LogWarning("Failed to send reminder to {Email} for submission {SubmissionId}",
                         signer.Email, requestId);
                 }
             }
@@ -410,8 +416,8 @@ public class DocuSealProvider : ISignaturePort
             response.EnsureSuccessStatusCode();
 
             var submission = await response.Content.ReadFromJsonAsync<DocuSealSubmission>(_jsonOptions, cancellationToken);
-            
-            var submitter = submission?.Submitters?.FirstOrDefault(s => 
+
+            var submitter = submission?.Submitters?.FirstOrDefault(s =>
                 s.Email?.Equals(signerEmail, StringComparison.OrdinalIgnoreCase) == true);
 
             if (submitter == null)
@@ -430,7 +436,7 @@ public class DocuSealProvider : ISignaturePort
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get signing link for {Email} in submission {SubmissionId}", 
+            _logger.LogError(ex, "Failed to get signing link for {Email} in submission {SubmissionId}",
                 signerEmail, requestId);
             throw;
         }
@@ -444,7 +450,7 @@ public class DocuSealProvider : ISignaturePort
 
         // Get the basic signing link
         var signingLink = await GetSigningLinkAsync(requestId, signerEmail, cancellationToken);
-        
+
         // DocuSeal supports embedded signing via the embed parameter
         signingLink.Url = $"{signingLink.Url}?embed=true&return_url={Uri.EscapeDataString(returnUrl)}";
         signingLink.IsEmbedded = true;
@@ -468,7 +474,7 @@ public class DocuSealProvider : ISignaturePort
             submissionResponse.EnsureSuccessStatusCode();
 
             var submission = await submissionResponse.Content.ReadFromJsonAsync<DocuSealSubmission>(_jsonOptions, cancellationToken);
-            
+
             if (submission?.Status != "completed")
             {
                 throw new InvalidOperationException($"Submission {requestId} is not completed. Status: {submission?.Status}");
@@ -612,7 +618,7 @@ public class DocuSealProvider : ISignaturePort
             // Create activity mapping for CRM timeline
             result.ActivityMapping = CreateActivityMapping(eventType, webhookData);
 
-            _logger.LogInformation("Processed DocuSeal webhook: {EventType} for submission {SubmissionId}", 
+            _logger.LogInformation("Processed DocuSeal webhook: {EventType} for submission {SubmissionId}",
                 eventType, result.RequestId);
 
             return Task.FromResult(result);
@@ -643,15 +649,15 @@ public class DocuSealProvider : ISignaturePort
         try
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            
+
             var response = await _httpClient.GetAsync($"{_config.GetApiBaseUrl()}/templates?limit=1", cancellationToken);
-            
+
             stopwatch.Stop();
-            
+
             result.IsHealthy = response.IsSuccessStatusCode;
             result.ResponseTimeMs = stopwatch.ElapsedMilliseconds;
-            result.Message = result.IsHealthy 
-                ? "DocuSeal is available" 
+            result.Message = result.IsHealthy
+                ? "DocuSeal is available"
                 : $"DocuSeal returned status {response.StatusCode}";
 
             result.Details["url"] = _config.Url;
@@ -794,7 +800,7 @@ public class DocuSealProvider : ISignaturePort
         sb.AppendLine();
         sb.AppendLine($"Status: {submission.Status}");
         sb.AppendLine($"Created: {submission.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC");
-        
+
         if (submission.CompletedAt.HasValue)
         {
             sb.AppendLine($"Completed: {submission.CompletedAt:yyyy-MM-dd HH:mm:ss} UTC");
@@ -811,7 +817,7 @@ public class DocuSealProvider : ISignaturePort
                 sb.AppendLine($"  Name: {submitter.Name}");
                 sb.AppendLine($"  Email: {submitter.Email}");
                 sb.AppendLine($"  Status: {submitter.Status}");
-                
+
                 if (submitter.SentAt.HasValue)
                     sb.AppendLine($"  Sent: {submitter.SentAt:yyyy-MM-dd HH:mm:ss} UTC");
                 if (submitter.OpenedAt.HasValue)
@@ -822,7 +828,7 @@ public class DocuSealProvider : ISignaturePort
                     sb.AppendLine($"  IP Address: {submitter.Ip}");
                 if (!string.IsNullOrEmpty(submitter.UserAgent))
                     sb.AppendLine($"  User Agent: {submitter.UserAgent}");
-                
+
                 sb.AppendLine();
             }
         }

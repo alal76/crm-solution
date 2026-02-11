@@ -1,5 +1,18 @@
-// CRM Solution - DocuSign Webhook Controller
-// Phase 4 Week 18: DocuSign Connect webhook handler
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Security.Cryptography;
 using System.Text;
@@ -75,7 +88,7 @@ public class DocuSignWebhookController : ControllerBase
 
             // Parse the payload (detect JSON vs XML)
             DocuSignWebhookEvent? webhookEvent;
-            
+
             if (body.TrimStart().StartsWith("{"))
             {
                 webhookEvent = ParseJsonPayload(body);
@@ -141,8 +154,8 @@ public class DocuSignWebhookController : ControllerBase
             var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
 
-            var envelope = root.TryGetProperty("envelopeSummary", out var envSummary) 
-                ? envSummary 
+            var envelope = root.TryGetProperty("envelopeSummary", out var envSummary)
+                ? envSummary
                 : root;
 
             return new DocuSignWebhookEvent
@@ -292,7 +305,7 @@ public class DocuSignWebhookController : ControllerBase
 
         // Get signature request details to find linked entity
         var sigRequest = await _signatureProvider.GetSignatureRequestAsync(
-            webhookEvent.EnvelopeId ?? string.Empty, 
+            webhookEvent.EnvelopeId ?? string.Empty,
             cancellationToken);
 
         // Create activity for timeline
@@ -323,7 +336,7 @@ public class DocuSignWebhookController : ControllerBase
                 break;
 
             case "declined":
-                var decliner = webhookEvent.Recipients?.FirstOrDefault(r => 
+                var decliner = webhookEvent.Recipients?.FirstOrDefault(r =>
                     r.Status?.Equals("declined", StringComparison.OrdinalIgnoreCase) == true);
                 _logger.LogInformation(
                     "DocuSign envelope {EnvelopeId} declined by {Email}",
@@ -339,7 +352,7 @@ public class DocuSignWebhookController : ControllerBase
         }
 
         // Log activity if we have entity context
-        if (sigRequest != null && !string.IsNullOrWhiteSpace(sigRequest.EntityType) && 
+        if (sigRequest != null && !string.IsNullOrWhiteSpace(sigRequest.EntityType) &&
             sigRequest.EntityId.HasValue)
         {
             _logger.LogDebug(

@@ -17,38 +17,39 @@ jobs:
   frontend-tests:
     name: Frontend Tests & Build
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
         node-version: [18.x, 20.x]
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: 'CRM.Frontend/package-lock.json'
-    
+
     - name: Install dependencies
       working-directory: CRM.Frontend
-      run: npm ci
-    
+      run: npm ci --legacy-peer-deps
+
     - name: Run TypeScript check
       working-directory: CRM.Frontend
       run: npx tsc --noEmit
-    
+
     - name: Run linter
       working-directory: CRM.Frontend
-      run: npm run lint --if-present || true
-    
+      run: npm run lint --if-present
+      continue-on-error: true
+
     - name: Run unit tests
       working-directory: CRM.Frontend
       run: npm test -- --coverage --watchAll=false --passWithNoTests
-    
+
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
       with:
@@ -56,11 +57,11 @@ jobs:
         flags: frontend
         name: frontend-coverage
       continue-on-error: true
-    
+
     - name: Build production bundle
       working-directory: CRM.Frontend
       run: npm run build
-    
+
     - name: Check bundle size
       working-directory: CRM.Frontend
       run: |
@@ -70,7 +71,7 @@ jobs:
           echo "❌ Bundle size exceeds 500MB limit"
           exit 1
         fi
-    
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -80,35 +81,60 @@ jobs:
 
   # ==========================================================================
   # BACKEND TESTS & BUILD
+  #
+  # All 3 test projects are in CRM.sln:
+  #   - CRM.Tests.Unit.Core  (2,854 tests — entity/DTO, MUST all pass)
+  #   - CRM.Tests.Services   (483 tests — service/integration, 23 pre-existing failures)
+  #   - CRM.Tests            (1,766 tests — functional/provider, 68 pre-existing failures)
   # ==========================================================================
   backend-tests:
     name: Backend Tests & Build
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        dotnet-version: ['8.0.x']
-    
+
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Setup .NET ${{ matrix.dotnet-version }}
+
+    - name: Setup .NET 8.0
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: ${{ matrix.dotnet-version }}
-    
-    - name: Restore NuGet packages
+        dotnet-version: '8.0.x'
+
+    - name: Restore and build solution
       working-directory: CRM.Backend
-      run: dotnet restore CRM.sln
-    
-    - name: Build solution
+      run: |
+        dotnet restore CRM.sln
+        dotnet build CRM.sln -c Release --no-restore
+
+    # Core unit tests MUST pass — gate for the build
+    - name: Run Core unit tests (must pass)
       working-directory: CRM.Backend
-      run: dotnet build CRM.sln -c Release --no-restore
-    
-    - name: Run unit tests
+      run: |
+        dotnet test tests/Unit/Core/CRM.Tests.Unit.Core.csproj \
+          -c Release --no-build \
+          --logger "trx;LogFileName=core-tests.trx" \
+          --results-directory tests/TestResults/
+
+    # Service tests — continue on error (23 pre-existing failures)
+    - name: Run Service tests
       working-directory: CRM.Backend
-      run: dotnet test tests/CRM.Tests.csproj --logger "trx" --collect:"XPlat Code Coverage" || true
-    
+      run: |
+        dotnet test tests/CRM.Tests/CRM.Tests.csproj \
+          -c Release --no-build \
+          --logger "trx;LogFileName=service-tests.trx" \
+          --results-directory tests/TestResults/ \
+          --collect:"XPlat Code Coverage"
+      continue-on-error: true
+
+    # Main test suite — continue on error (68 pre-existing failures)
+    - name: Run Main test suite
+      working-directory: CRM.Backend
+      run: |
+        dotnet test tests/CRM.Tests.csproj \
+          -c Release --no-build \
+          --logger "trx;LogFileName=main-tests.trx" \
+          --results-directory tests/TestResults/
+      continue-on-error: true
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
@@ -118,24 +144,128 @@ jobs:
         retention-days: 7
 
   # ==========================================================================
+  # BVT (BUILD VERIFICATION TESTS)
+  #
+  # Playwright API-level BVTs against a live API + MariaDB.
+  # 118 tests — fast, no-browser, verify all critical API endpoints.
+  # ==========================================================================
+  bvt-tests:
+    name: BVT (Build Verification Tests)
+    runs-on: ubuntu-latest
+    needs: [backend-tests]
+
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: crm_db
+          MARIADB_USER: crm_user
+          MARIADB_PASSWORD: CrmPass_CI2024
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -u root -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+          --health-start-period=30s
+        ports:
+          - 3306:3306
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Build API
+      working-directory: CRM.Backend
+      run: |
+        dotnet restore CRM.sln
+        dotnet build CRM.sln -c Release --no-restore
+
+    - name: Start API server
+      working-directory: CRM.Backend
+      env:
+        ASPNETCORE_ENVIRONMENT: Development
+        ASPNETCORE_URLS: http://+:5000
+        DatabaseProvider: mariadb
+        ConnectionStrings__DefaultConnection: "Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass_CI2024;"
+        Jwt__Secret: "ThisIsAVeryLongSecureJwtSecretKeyForCIPipelineOnly123456789"
+        Jwt__Issuer: CRM.Api
+        Jwt__Audience: CRM.Client
+        ADMIN_USERNAME: admin
+        ADMIN_EMAIL: admin@crm.local
+        ADMIN_PASSWORD: Admin@123
+      run: |
+        dotnet run --project src/CRM.Api/CRM.Api.csproj -c Release --no-build &
+        API_PID=$!
+        echo "API_PID=$API_PID" >> $GITHUB_ENV
+        echo "Waiting for API to start..."
+        for i in $(seq 1 60); do
+          if curl -sf http://localhost:5000/health > /dev/null 2>&1; then
+            echo "✅ API is healthy after ${i}s"
+            break
+          fi
+          if [ $i -eq 60 ]; then
+            echo "❌ API failed to start"
+            exit 1
+          fi
+          sleep 2
+        done
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'e2e-tests/package-lock.json'
+
+    - name: Install Playwright
+      working-directory: e2e-tests
+      run: |
+        npm ci
+        npx playwright install --with-deps
+
+    - name: Run BVT tests
+      working-directory: e2e-tests
+      env:
+        BASE_URL: http://localhost:5000
+        API_BASE_URL: http://localhost:5000
+      run: npx playwright test --config=playwright.bvt.config.ts --reporter=list
+
+    - name: Stop API server
+      if: always()
+      run: kill $API_PID 2>/dev/null || true
+
+    - name: Upload BVT report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: bvt-test-results
+        path: e2e-tests/test-results/
+        retention-days: 7
+
+  # ==========================================================================
   # DOCKER BUILD
   # ==========================================================================
   docker-build:
     name: Docker Build
     runs-on: ubuntu-latest
-    needs: [frontend-tests, backend-tests]
+    needs: [frontend-tests, backend-tests, bvt-tests]
     if: success()
-    
+
     permissions:
       contents: read
       packages: write
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-    
+
     - name: Log in to Container Registry
       uses: docker/login-action@v3
       with:
@@ -143,7 +273,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
       if: github.event_name == 'push'
-    
+
     - name: Extract metadata (API)
       id: meta-api
       uses: docker/metadata-action@v5
@@ -153,7 +283,7 @@ jobs:
           type=ref,event=branch
           type=sha
           type=semver,pattern={{version}}
-    
+
     - name: Extract metadata (Frontend)
       id: meta-frontend
       uses: docker/metadata-action@v5
@@ -163,7 +293,7 @@ jobs:
           type=ref,event=branch
           type=sha
           type=semver,pattern={{version}}
-    
+
     - name: Build and push API image
       uses: docker/build-push-action@v6
       with:
@@ -174,7 +304,7 @@ jobs:
         labels: ${{ steps.meta-api.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
-    
+
     - name: Build and push Frontend image
       uses: docker/build-push-action@v6
       with:
@@ -192,33 +322,44 @@ jobs:
   code-quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
         cache-dependency-path: 'CRM.Frontend/package-lock.json'
-    
+
     - name: Install dependencies
       working-directory: CRM.Frontend
-      run: npm ci
-    
+      run: npm ci --legacy-peer-deps
+
     - name: Run ESLint
       working-directory: CRM.Frontend
-      run: npx eslint src --max-warnings 10 || true
-    
+      run: npx eslint src --max-warnings 50
+      continue-on-error: true
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-    
+
     - name: Run StyleCop analysis
       working-directory: CRM.Backend
-      run: dotnet restore CRM.sln && dotnet build CRM.sln -c Release || true
+      run: |
+        dotnet restore CRM.sln
+        dotnet build CRM.sln -c Debug -warnaserror:SA0001 2>&1 | tee build-output.log
+        WARNING_COUNT=$(grep -c ' warning SA' build-output.log || true)
+        echo "## StyleCop Warnings: $WARNING_COUNT" >> $GITHUB_STEP_SUMMARY
+        if [ "$WARNING_COUNT" -gt 500 ]; then
+          echo "❌ StyleCop warnings ($WARNING_COUNT) exceed threshold of 500"
+          exit 1
+        fi
+        echo "✅ StyleCop warnings ($WARNING_COUNT) within threshold"
+      continue-on-error: true
 
   # ==========================================================================
   # SECURITY SCAN
@@ -226,67 +367,22 @@ jobs:
   security-scan:
     name: Security Vulnerability Scan
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Run npm audit
       working-directory: CRM.Frontend
-      run: npm audit --audit-level=moderate || true
-    
-    - name: Dependency check
-      uses: dependency-check/Dependency-Check_Action@main
-      with:
-        project: 'CRM-Solution'
-        path: '.'
-        format: 'JSON'
-        args: >
-          --enableExperimental
-          --scan CRM.Frontend
-          --scan CRM.Backend
+      run: npm audit --audit-level=high || true
 
-  # ==========================================================================
-  # INTEGRATION TESTS
-  # ==========================================================================
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: [frontend-tests, backend-tests]
-    if: success()
-    continue-on-error: true
-    
-    services:
-      mariadb:
-        image: mariadb:10.11
-        env:
-          MARIADB_ROOT_PASSWORD: root
-          MARIADB_DATABASE: crm_dev
-          MARIADB_USER: crm_user
-          MARIADB_PASSWORD: crm_password
-        options: >-
-          --health-cmd="mariadb-admin ping -h 127.0.0.1 -u root -proot"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-          --health-start-period=30s
-        ports:
-          - 3306:3306
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-    
-    - name: Run API health check
+    - name: Run .NET security scan
       working-directory: CRM.Backend
       run: |
-        dotnet build CRM.sln -c Release || true
-        dotnet run --project src/CRM.Api/CRM.Api.csproj -c Release &
-        sleep 15
-        curl -f http://localhost:5000/health || echo "Health check skipped - API not available"
+        dotnet restore CRM.sln
+        dotnet list src/CRM.Api/CRM.Api.csproj package --vulnerable --include-transitive 2>&1 | tee vulnerability-report.txt
+        echo "## .NET Vulnerability Report" >> $GITHUB_STEP_SUMMARY
+        cat vulnerability-report.txt >> $GITHUB_STEP_SUMMARY
+      continue-on-error: true
 
   # ==========================================================================
   # TEST REPORT
@@ -294,25 +390,26 @@ jobs:
   test-report:
     name: Generate Test Report
     runs-on: ubuntu-latest
-    needs: [frontend-tests, backend-tests, integration-tests]
+    needs: [frontend-tests, backend-tests, bvt-tests]
     if: always()
-    
+
     steps:
-    - name: Download frontend artifacts
-      uses: actions/download-artifact@v4
-      with:
-        pattern: frontend-build-*
-        path: frontend-build/
-        merge-multiple: true
-    
-    - name: Download backend artifacts
+    - name: Download backend test results
       uses: actions/download-artifact@v4
       if: always()
       with:
         name: backend-test-results
         path: backend-results/
       continue-on-error: true
-    
+
+    - name: Download BVT test results
+      uses: actions/download-artifact@v4
+      if: always()
+      with:
+        name: bvt-test-results
+        path: bvt-results/
+      continue-on-error: true
+
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()

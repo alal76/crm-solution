@@ -1,6 +1,18 @@
-// CRM Solution - Signature Provider Factory
-// Phase 0 Week 3 Task 3.6: Factory for resolving e-signature providers
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,7 +52,7 @@ public class SignatureProviderFactory : IProviderFactory<ISignaturePort>
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSignatures)
             .GetAwaiter().GetResult();
-        
+
         if (!useExternal)
         {
             _logger.LogDebug("Feature flag disabled. Using BuiltIn signature provider");
@@ -49,7 +61,7 @@ public class SignatureProviderFactory : IProviderFactory<ISignaturePort>
 
         var providerType = _configuration["Providers:Signatures:Type"] ?? ProviderTypes.Signatures.BuiltIn;
         _logger.LogDebug("Resolving signature provider: {ProviderType}", providerType);
-        
+
         try
         {
             return GetProvider(providerType);
@@ -70,7 +82,7 @@ public class SignatureProviderFactory : IProviderFactory<ISignaturePort>
         }
 
         _logger.LogDebug("Resolving signature provider by name: {ProviderName}", providerName);
-        
+
         return providerName.ToLowerInvariant() switch
         {
             "builtin" => GetBuiltInProvider(),
@@ -102,12 +114,12 @@ public class SignatureProviderFactory : IProviderFactory<ISignaturePort>
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSignatures)
             .GetAwaiter().GetResult();
-        
+
         if (!useExternal)
         {
             return ProviderTypes.Signatures.BuiltIn;
         }
-        
+
         return _configuration["Providers:Signatures:Type"] ?? ProviderTypes.Signatures.BuiltIn;
     }
 
@@ -134,7 +146,7 @@ public class SignatureProviderFactory : IProviderFactory<ISignaturePort>
     private TPort GetProviderOrFallback<TPort>(string providerTypeName) where TPort : class
     {
         var providers = _serviceProvider.GetServices<TPort>();
-        
+
         foreach (var provider in providers)
         {
             if (provider.GetType().Name.Equals(providerTypeName, StringComparison.OrdinalIgnoreCase))

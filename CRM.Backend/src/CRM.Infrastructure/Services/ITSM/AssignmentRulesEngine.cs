@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -21,37 +36,37 @@ public interface IAssignmentRulesEngine
     /// Evaluate all assignment rules and return the best assignment for an incident.
     /// </summary>
     Task<AssignmentResult> EvaluateAsync(int incidentId);
-    
+
     /// <summary>
     /// Apply assignment rules and assign the incident automatically.
     /// </summary>
     Task<AssignmentResult> AutoAssignAsync(int incidentId);
-    
+
     /// <summary>
     /// Get all configured assignment rules.
     /// </summary>
     Task<List<AssignmentRule>> GetRulesAsync();
-    
+
     /// <summary>
     /// Create or update an assignment rule.
     /// </summary>
     Task<AssignmentRule> SaveRuleAsync(AssignmentRule rule);
-    
+
     /// <summary>
     /// Delete an assignment rule.
     /// </summary>
     Task<bool> DeleteRuleAsync(int ruleId);
-    
+
     /// <summary>
     /// Test a rule against an incident without applying.
     /// </summary>
     Task<RuleTestResult> TestRuleAsync(int ruleId, int incidentId);
-    
+
     /// <summary>
     /// Get workload distribution for assignment groups.
     /// </summary>
     Task<List<GroupWorkload>> GetGroupWorkloadsAsync();
-    
+
     /// <summary>
     /// Get available agents in a group for assignment.
     /// </summary>
@@ -351,7 +366,7 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
     public async Task<AssignmentResult> EvaluateAsync(int incidentId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var incident = await context.Incidents
             .Include(i => i.AffectedCI)
             .Include(i => i.AffectedUser)
@@ -389,8 +404,8 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
                 result.AssignmentReason = $"Matched rule: {rule.Name}";
 
                 // Determine specific user if needed
-                if (rule.Action.Type == AssignmentType.AssignToGroupMember || 
-                    rule.Action.UseRoundRobin || 
+                if (rule.Action.Type == AssignmentType.AssignToGroupMember ||
+                    rule.Action.UseRoundRobin ||
                     rule.Action.UseWorkloadBalance)
                 {
                     var agent = await SelectAgentAsync(rule);
@@ -412,7 +427,7 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
 
         _logger.LogInformation(
             "Assignment evaluation for incident {IncidentNumber}: {Result}",
-            incident.Number, 
+            incident.Number,
             result.WasAssigned ? $"Assigned to {result.AssignedGroupName}" : "No match");
 
         return result;
@@ -426,13 +441,13 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
         {
             var context = _dbContextResolver.ResolveContext();
             var incident = await context.Incidents.FindAsync(incidentId);
-            
+
             if (incident != null)
             {
                 incident.AssignedToId = result.AssignedUserId;
                 incident.AssignmentGroup = result.AssignedGroupName;
                 incident.ModifiedAt = DateTime.UtcNow;
-                
+
                 await context.SaveChangesAsync();
 
                 _logger.LogInformation(
@@ -455,13 +470,13 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
         {
             rule.RuleId = _nextRuleId++;
             rule.CreatedAt = DateTime.UtcNow;
-            
+
             foreach (var condition in rule.Conditions)
             {
                 if (condition.ConditionId == 0)
                     condition.ConditionId = _nextConditionId++;
             }
-            
+
             _rules.Add(rule);
         }
         else
@@ -471,7 +486,7 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
             {
                 _rules.Remove(existing);
             }
-            
+
             rule.ModifiedAt = DateTime.UtcNow;
             _rules.Add(rule);
         }
@@ -538,7 +553,7 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
         }
 
         result.WouldMatch = allMatched || rule.Conditions.Count == 0;
-        
+
         if (result.WouldMatch)
         {
             result.TargetAssignment = rule.Action.Type switch
@@ -600,14 +615,14 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
     public async Task<List<AvailableAgent>> GetAvailableAgentsAsync(int groupId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         // Get users (in production, would filter by group membership)
         var users = await context.Users
             .Take(10)
             .ToListAsync();
 
         var agents = new List<AvailableAgent>();
-        
+
         foreach (var user in users)
         {
             // Get current incident count
@@ -699,31 +714,31 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
     {
         return condition.Operator switch
         {
-            ConditionOperator.Equals => 
+            ConditionOperator.Equals =>
                 string.Equals(actualValue, condition.Value, StringComparison.OrdinalIgnoreCase),
-            ConditionOperator.NotEquals => 
+            ConditionOperator.NotEquals =>
                 !string.Equals(actualValue, condition.Value, StringComparison.OrdinalIgnoreCase),
-            ConditionOperator.Contains => 
+            ConditionOperator.Contains =>
                 actualValue?.Contains(condition.Value, StringComparison.OrdinalIgnoreCase) ?? false,
-            ConditionOperator.StartsWith => 
+            ConditionOperator.StartsWith =>
                 actualValue?.StartsWith(condition.Value, StringComparison.OrdinalIgnoreCase) ?? false,
-            ConditionOperator.EndsWith => 
+            ConditionOperator.EndsWith =>
                 actualValue?.EndsWith(condition.Value, StringComparison.OrdinalIgnoreCase) ?? false,
-            ConditionOperator.In => 
-                condition.Value.Split(',').Any(v => 
+            ConditionOperator.In =>
+                condition.Value.Split(',').Any(v =>
                     string.Equals(actualValue, v.Trim(), StringComparison.OrdinalIgnoreCase)),
-            ConditionOperator.NotIn => 
-                !condition.Value.Split(',').Any(v => 
+            ConditionOperator.NotIn =>
+                !condition.Value.Split(',').Any(v =>
                     string.Equals(actualValue, v.Trim(), StringComparison.OrdinalIgnoreCase)),
-            ConditionOperator.IsNull => 
+            ConditionOperator.IsNull =>
                 string.IsNullOrEmpty(actualValue),
-            ConditionOperator.IsNotNull => 
+            ConditionOperator.IsNotNull =>
                 !string.IsNullOrEmpty(actualValue),
-            ConditionOperator.GreaterThan => 
-                int.TryParse(actualValue, out var av) && 
+            ConditionOperator.GreaterThan =>
+                int.TryParse(actualValue, out var av) &&
                 int.TryParse(condition.Value, out var cv) && av > cv,
-            ConditionOperator.LessThan => 
-                int.TryParse(actualValue, out var av2) && 
+            ConditionOperator.LessThan =>
+                int.TryParse(actualValue, out var av2) &&
                 int.TryParse(condition.Value, out var cv2) && av2 < cv2,
             _ => false
         };

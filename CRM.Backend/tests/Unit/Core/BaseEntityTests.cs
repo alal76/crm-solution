@@ -1,10 +1,18 @@
-// CRM Solution - Base Entity Tests
-// Tests for BaseEntity.cs in CRM.Core.Entities
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// These tests validate:
-// 1. Default property values
-// 2. Property behavior
-// 3. Inheritance patterns
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using FluentAssertions;
@@ -20,7 +28,7 @@ namespace CRM.Tests.Unit.Core;
 public class BaseEntityTests
 {
     #region Test Entity Implementation
-    
+
     /// <summary>
     /// Concrete implementation of BaseEntity for testing
     /// </summary>
@@ -28,7 +36,7 @@ public class BaseEntityTests
     {
         public string? Name { get; set; }
     }
-    
+
     #endregion
 
     #region Constructor and Default Values Tests
@@ -54,7 +62,7 @@ public class BaseEntityTests
     {
         // Arrange
         var beforeCreation = DateTime.UtcNow.AddSeconds(-1);
-        
+
         // Act
         var entity = new TestEntity();
         var afterCreation = DateTime.UtcNow.AddSeconds(1);
@@ -274,7 +282,7 @@ public class BaseEntityTests
         // Arrange
         var entity1 = new TestEntity { Id = 1 };
         var entity2 = new TestEntity { Id = 1 };
-        
+
         var version1 = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
         var version2 = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 };
 

@@ -1,11 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Intercom Webhook Controller
-// Week 15: Intercom Provider - Webhook Integration
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// Handles incoming webhooks from Intercom for:
-// - Conversation events (created, replied, closed)
-// - Contact events (created, updated)
-// - Message events
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Security.Cryptography;
 using System.Text;
@@ -73,8 +80,8 @@ public class IntercomWebhookController : ControllerBase
         {
             // Parse the event to determine type
             var jsonDoc = JsonDocument.Parse(body);
-            var topic = jsonDoc.RootElement.TryGetProperty("topic", out var topicProp) 
-                ? topicProp.GetString() 
+            var topic = jsonDoc.RootElement.TryGetProperty("topic", out var topicProp)
+                ? topicProp.GetString()
                 : null;
 
             if (string.IsNullOrEmpty(topic))
@@ -130,7 +137,7 @@ public class IntercomWebhookController : ControllerBase
         {
             return Ok(hub_challenge);
         }
-        
+
         return Ok(new { status = "ready", provider = "intercom" });
     }
 
@@ -172,9 +179,9 @@ public class IntercomWebhookController : ControllerBase
                 if (!contactId.HasValue && !string.IsNullOrEmpty(contact.Email))
                 {
                     var crmContacts = await _contactsService.GetAllAsync();
-                    var matchedContact = crmContacts.FirstOrDefault(c => 
+                    var matchedContact = crmContacts.FirstOrDefault(c =>
                         c.EmailPrimary?.Equals(contact.Email, StringComparison.OrdinalIgnoreCase) == true);
-                    
+
                     if (matchedContact != null)
                     {
                         contactId = matchedContact.Id;
@@ -221,7 +228,7 @@ public class IntercomWebhookController : ControllerBase
         try
         {
             var intercomContact = await _chatProvider.GetContactAsync(externalId, cancellationToken);
-            
+
             if (intercomContact == null || string.IsNullOrEmpty(intercomContact.Email))
             {
                 return;
@@ -229,7 +236,7 @@ public class IntercomWebhookController : ControllerBase
 
             // Find existing CRM contact
             var crmContacts = await _contactsService.GetAllAsync();
-            var existingContact = crmContacts.FirstOrDefault(c => 
+            var existingContact = crmContacts.FirstOrDefault(c =>
                 c.EmailPrimary?.Equals(intercomContact.Email, StringComparison.OrdinalIgnoreCase) == true);
 
             if (existingContact != null)

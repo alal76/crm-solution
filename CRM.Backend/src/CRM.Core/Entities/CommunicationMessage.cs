@@ -22,8 +22,8 @@ namespace CRM.Core.Entities;
 /// </summary>
 public enum MessageDirection
 {
-    Outbound = 0,   // Sent by CRM user
-    Inbound = 1     // Received from customer/prospect
+    Outbound = 0, // Sent by CRM user
+    Inbound = 1 // Received from customer/prospect
 }
 
 /// <summary>

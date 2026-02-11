@@ -159,7 +159,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         if (user.PasswordNeverSet)
         {
             _logger.LogInformation("User {Email} requires password setup - redirecting to password setup", normalizedEmail);
-            
+
             if (!user.IsActive)
                 throw new UnauthorizedAccessException("User account is inactive");
 

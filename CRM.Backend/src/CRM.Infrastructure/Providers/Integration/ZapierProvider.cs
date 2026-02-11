@@ -1,6 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Zapier Integration Provider
-// Phase 6 Week 28: Zapier Integration
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net.Http.Json;
 using System.Text;
@@ -42,7 +54,7 @@ public class ZapierProvider : IIntegrationPort
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
         // Zapier is a SaaS platform - check if we have valid configuration
-        var hasConfig = !string.IsNullOrEmpty(_config.WebhookBaseUrl) || 
+        var hasConfig = !string.IsNullOrEmpty(_config.WebhookBaseUrl) ||
                        _config.EventWebhooks?.Any() == true;
         return Task.FromResult(hasConfig);
     }
@@ -111,7 +123,7 @@ public class ZapierProvider : IIntegrationPort
                 result.Error = $"Zapier returned {response.StatusCode}";
             }
 
-            _logger.LogInformation("Published event {EventType} to Zapier: {Success}", 
+            _logger.LogInformation("Published event {EventType} to Zapier: {Success}",
                 crmEvent.EventType, result.Success);
         }
         catch (Exception ex)
@@ -414,9 +426,9 @@ public class ZapierProvider : IIntegrationPort
             return "update";
         if (eventType.Contains("delete", StringComparison.OrdinalIgnoreCase))
             return "delete";
-        
-        return data?.ContainsKey("action") == true 
-            ? data["action"]?.ToString() ?? "unknown" 
+
+        return data?.ContainsKey("action") == true
+            ? data["action"]?.ToString() ?? "unknown"
             : "action";
     }
 
@@ -431,7 +443,7 @@ public class ZapierProvider : IIntegrationPort
         {
             IsHealthy = isConfigured,
             ProviderName = ProviderName,
-            Message = isConfigured 
+            Message = isConfigured
                 ? $"Zapier integration is configured with {webhookCount} webhook mappings."
                 : "Zapier integration is not configured. Add webhook URLs to configuration.",
             Details = new Dictionary<string, object>

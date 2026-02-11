@@ -1,6 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Superset Analytics Provider Configuration
-// Apache Superset is an open-source BI tool for data exploration and visualization
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 namespace CRM.Infrastructure.Providers.Superset;
 
@@ -141,7 +153,7 @@ public class SupersetConfigurationValidator : IValidateOptions<SupersetConfigura
     public ValidateOptionsResult Validate(string? name, SupersetConfiguration options)
     {
         var (isValid, error) = options.Validate();
-        
+
         if (!isValid)
         {
             return ValidateOptionsResult.Fail(error!);

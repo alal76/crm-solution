@@ -1,6 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// SendGrid Provider Implementation
-// Week 10: Email notification provider using SendGrid API
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Text.Json;
 using CRM.Core.Ports.Output.Providers;
@@ -66,7 +78,7 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public async Task<NotificationResult> SendEmailAsync(
-        EmailNotificationRequest request, 
+        EmailNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
         if (!_config.IsValid())
@@ -84,7 +96,7 @@ public class SendGridProvider : INotificationPort
         {
             if (_config.TestMode)
             {
-                _logger.LogInformation("TEST MODE: Would send email to {To}: {Subject}", 
+                _logger.LogInformation("TEST MODE: Would send email to {To}: {Subject}",
                     request.To, request.Subject);
                 return new NotificationResult
                 {
@@ -111,11 +123,11 @@ public class SendGridProvider : INotificationPort
             if (response.IsSuccessStatusCode)
             {
                 // Get message ID from headers
-                var messageId = response.Headers.TryGetValues("X-Message-Id", out var values) 
-                    ? values.FirstOrDefault() 
+                var messageId = response.Headers.TryGetValues("X-Message-Id", out var values)
+                    ? values.FirstOrDefault()
                     : Guid.NewGuid().ToString();
 
-                _logger.LogInformation("Email sent successfully to {To}. MessageId: {MessageId}", 
+                _logger.LogInformation("Email sent successfully to {To}. MessageId: {MessageId}",
                     request.To, messageId);
 
                 return new NotificationResult
@@ -129,7 +141,7 @@ public class SendGridProvider : INotificationPort
             else
             {
                 var errorBody = await response.Body.ReadAsStringAsync(cancellationToken);
-                _logger.LogError("SendGrid API error: {StatusCode} - {Body}", 
+                _logger.LogError("SendGrid API error: {StatusCode} - {Body}",
                     response.StatusCode, errorBody);
 
                 return new NotificationResult
@@ -156,9 +168,9 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public async Task<NotificationResult> SendTemplateEmailAsync(
-        string templateId, 
-        string recipientEmail, 
-        object data, 
+        string templateId,
+        string recipientEmail,
+        object data,
         CancellationToken cancellationToken = default)
     {
         if (!_config.IsValid())
@@ -203,8 +215,8 @@ public class SendGridProvider : INotificationPort
 
             if (response.IsSuccessStatusCode)
             {
-                var messageId = response.Headers.TryGetValues("X-Message-Id", out var values) 
-                    ? values.FirstOrDefault() 
+                var messageId = response.Headers.TryGetValues("X-Message-Id", out var values)
+                    ? values.FirstOrDefault()
                     : Guid.NewGuid().ToString();
 
                 return new NotificationResult
@@ -240,7 +252,7 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public async Task<BulkNotificationResult> SendBulkEmailAsync(
-        IEnumerable<EmailNotificationRequest> requests, 
+        IEnumerable<EmailNotificationRequest> requests,
         CancellationToken cancellationToken = default)
     {
         var requestList = requests.ToList();
@@ -266,7 +278,7 @@ public class SendGridProvider : INotificationPort
             });
 
             var batchResults = await Task.WhenAll(tasks);
-            
+
             foreach (var result in batchResults)
             {
                 results.Add(result);
@@ -390,14 +402,14 @@ public class SendGridProvider : INotificationPort
     {
         msg.TrackingSettings = new TrackingSettings
         {
-            ClickTracking = new ClickTracking 
-            { 
+            ClickTracking = new ClickTracking
+            {
                 Enable = _config.EnableClickTracking,
                 EnableText = _config.EnableClickTracking
             },
-            OpenTracking = new OpenTracking 
-            { 
-                Enable = _config.EnableOpenTracking 
+            OpenTracking = new OpenTracking
+            {
+                Enable = _config.EnableOpenTracking
             }
         };
 
@@ -416,7 +428,7 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<NotificationResult> SendSmsAsync(
-        SmsNotificationRequest request, 
+        SmsNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
         _logger.LogWarning("SMS not supported by SendGrid provider. Use Twilio for SMS.");
@@ -431,7 +443,7 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<BulkNotificationResult> SendBulkSmsAsync(
-        IEnumerable<SmsNotificationRequest> requests, 
+        IEnumerable<SmsNotificationRequest> requests,
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult(new BulkNotificationResult
@@ -454,7 +466,7 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<NotificationResult> SendPushAsync(
-        PushNotificationRequest request, 
+        PushNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult(new NotificationResult
@@ -468,7 +480,7 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<NotificationResult> SendInAppAsync(
-        InAppNotificationRequest request, 
+        InAppNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult(new NotificationResult
@@ -486,7 +498,7 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public async Task<MultiChannelNotificationResult> SendNotificationAsync(
-        MultiChannelNotificationRequest request, 
+        MultiChannelNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
         var channelResults = new Dictionary<string, NotificationResult>();
@@ -534,9 +546,9 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<NotificationResult> TriggerWorkflowAsync(
-        string workflowId, 
-        string subscriberId, 
-        object payload, 
+        string workflowId,
+        string subscriberId,
+        object payload,
         CancellationToken cancellationToken = default)
     {
         // Use template ID as workflow ID
@@ -549,7 +561,7 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<string> UpsertSubscriberAsync(
-        SubscriberRequest request, 
+        SubscriberRequest request,
         CancellationToken cancellationToken = default)
     {
         // SendGrid doesn't have subscriber management in the same way as Novu
@@ -567,7 +579,7 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<SubscriberPreferences?> GetSubscriberPreferencesAsync(
-        string subscriberId, 
+        string subscriberId,
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult<SubscriberPreferences?>(null);
@@ -575,8 +587,8 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public Task UpdateSubscriberPreferencesAsync(
-        string subscriberId, 
-        SubscriberPreferences preferences, 
+        string subscriberId,
+        SubscriberPreferences preferences,
         CancellationToken cancellationToken = default)
     {
         return Task.CompletedTask;
@@ -588,7 +600,7 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<DeliveryStatus?> GetDeliveryStatusAsync(
-        string notificationId, 
+        string notificationId,
         CancellationToken cancellationToken = default)
     {
         // SendGrid doesn't provide a direct API to fetch message status
@@ -599,8 +611,8 @@ public class SendGridProvider : INotificationPort
 
     /// <inheritdoc />
     public Task<DeliveryEvent> ProcessDeliveryWebhookAsync(
-        string eventType, 
-        string payload, 
+        string eventType,
+        string payload,
         CancellationToken cancellationToken = default)
     {
         try
@@ -703,8 +715,8 @@ public class SendGridProvider : INotificationPort
                 cancellationToken: cancellationToken);
 
             result.IsHealthy = response.IsSuccessStatusCode;
-            result.Message = result.IsHealthy 
-                ? "SendGrid API is accessible" 
+            result.Message = result.IsHealthy
+                ? "SendGrid API is accessible"
                 : $"SendGrid API error: {response.StatusCode}";
         }
         catch (Exception ex)

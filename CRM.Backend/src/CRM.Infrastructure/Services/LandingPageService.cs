@@ -34,6 +34,11 @@ public class LandingPageService : ILandingPageService
     private readonly CrmDbContext _context;
     private readonly ILogger<LandingPageService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LandingPageService"/> class.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="logger">The logger instance.</param>
     public LandingPageService(CrmDbContext context, ILogger<LandingPageService> logger)
     {
         _context = context;

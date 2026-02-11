@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * CRM Solution - Customer Relationship Management System
- * Copyright (C) 2024-2026 Abhishek Lal
- *
- * Resilience Service - Circuit breaker, retry, and fallback patterns
- * Implements resilience patterns for external service calls (webhooks, LLM, integrations)
- */
-
 using System.Collections.Concurrent;
 using System.Net;
 using Microsoft.Extensions.Logging;
@@ -85,6 +77,9 @@ public class ResilienceOptions
     public Dictionary<string, ServiceResilienceConfig> Services { get; set; } = new();
 }
 
+/// <summary>
+/// Configuration for individual service resilience settings.
+/// </summary>
 public class ServiceResilienceConfig
 {
     public int TimeoutSeconds { get; set; } = 30;
@@ -154,6 +149,11 @@ public class ResilienceService : IResilienceService
         public required AsyncPolicyWrap CombinedPolicy { get; init; }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ResilienceService"/> class.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="options">The resilience options.</param>
     public ResilienceService(
         ILogger<ResilienceService> logger,
         IOptions<ResilienceOptions> options)
@@ -387,6 +387,22 @@ public class ResilienceService : IResilienceService
 /// </summary>
 public class ServiceUnavailableException : Exception
 {
-    public ServiceUnavailableException(string message) : base(message) { }
-    public ServiceUnavailableException(string message, Exception innerException) : base(message, innerException) { }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ServiceUnavailableException"/> class.
+    /// </summary>
+    /// <param name="message">The exception message.</param>
+    public ServiceUnavailableException(string message)
+        : base(message)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ServiceUnavailableException"/> class.
+    /// </summary>
+    /// <param name="message">The exception message.</param>
+    /// <param name="innerException">The inner exception.</param>
+    public ServiceUnavailableException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
 }

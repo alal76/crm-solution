@@ -1,6 +1,18 @@
-// This file is part of the CRM Solution.
-// Copyright (c) 2025 CRM Solution Contributors
-// Licensed under the AGPL-3.0 license.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
@@ -26,7 +38,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
     public async Task<KnowledgeArticleDto> CreateArticleAsync(CreateKnowledgeArticleDto dto, int createdById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var article = new KnowledgeArticle
         {
             Number = await GenerateArticleNumberAsync(context),
@@ -94,7 +106,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
     {
         var context = _dbContextResolver.ResolveContext();
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
-        
+
         if (article == null || article.IsDeleted)
             throw new KeyNotFoundException($"Article {articleId} not found");
 
@@ -116,7 +128,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
     {
         var context = _dbContextResolver.ResolveContext();
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
-        
+
         if (article == null || article.IsDeleted)
             return false;
 
@@ -135,7 +147,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
     {
         var context = _dbContextResolver.ResolveContext();
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
-        
+
         if (article == null || article.IsDeleted)
             return false;
 
@@ -151,7 +163,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
     public async Task<bool> SubmitFeedbackAsync(int articleId, int? userId, bool isHelpful, string? comment)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var feedback = new ArticleFeedback
         {
             ArticleId = articleId,
@@ -160,7 +172,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
             Comment = comment,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         context.ITSMArticleFeedback.Add(feedback);
 
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
@@ -239,7 +251,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
     public async Task<IEnumerable<KnowledgeArticleDto>> GetPopularArticlesAsync(int count)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var articles = await context.ITSMKnowledgeArticles
             .Include(a => a.Author)
             .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published)
@@ -254,7 +266,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
     public async Task<IEnumerable<KnowledgeArticleDto>> GetRecentArticlesAsync(int count)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var articles = await context.ITSMKnowledgeArticles
             .Include(a => a.Author)
             .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published)
@@ -268,7 +280,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
     public async Task<IEnumerable<string>> GetCategoriesAsync()
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var categories = await context.ITSMKnowledgeArticles
             .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published)
             .Select(a => a.CategoryId.ToString())

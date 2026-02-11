@@ -1,6 +1,18 @@
-// CRM Solution - BuiltIn Signature Provider
-// Phase 4 Week 16: Manual signature workflow without external providers
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
@@ -18,7 +30,7 @@ namespace CRM.Infrastructure.Providers.BuiltIn;
 /// - POC/development environments
 /// - Manual signature collection (physical signatures scanned)
 /// - Basic approval workflows without legal e-signatures
-/// 
+///
 /// For production e-signatures, use DocuSeal, DocuSign, or other providers.
 /// </summary>
 public class BuiltInSignatureProvider : ISignaturePort
@@ -37,6 +49,10 @@ public class BuiltInSignatureProvider : ISignaturePort
     /// <inheritdoc />
     public string ProviderName => "BuiltIn";
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BuiltInSignatureProvider"/> class.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
     public BuiltInSignatureProvider(ILogger<BuiltInSignatureProvider> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -63,7 +79,7 @@ public class BuiltInSignatureProvider : ISignaturePort
     public Task<SignatureTemplate?> GetTemplateAsync(string templateId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(templateId);
-        
+
         _templates.TryGetValue(templateId, out var template);
         return Task.FromResult(template);
     }
@@ -149,7 +165,7 @@ public class BuiltInSignatureProvider : ISignaturePort
     public Task<SignatureRequest?> GetSignatureRequestAsync(string requestId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
-        
+
         _requests.TryGetValue(requestId, out var request);
         return Task.FromResult(request);
     }
@@ -158,7 +174,7 @@ public class BuiltInSignatureProvider : ISignaturePort
     public Task<SignatureStatus> GetStatusAsync(string requestId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
-        
+
         if (_requests.TryGetValue(requestId, out var request))
         {
             return Task.FromResult(request.Status);
@@ -260,8 +276,8 @@ public class BuiltInSignatureProvider : ISignaturePort
     /// Records a manual signature (called when signature is physically collected).
     /// </summary>
     public Task<bool> RecordManualSignatureAsync(
-        string requestId, 
-        string signerEmail, 
+        string requestId,
+        string signerEmail,
         string signerName,
         byte[]? signatureImage = null,
         CancellationToken cancellationToken = default)
@@ -275,7 +291,7 @@ public class BuiltInSignatureProvider : ISignaturePort
             return Task.FromResult(false);
         }
 
-        var signer = request.Signers.FirstOrDefault(s => 
+        var signer = request.Signers.FirstOrDefault(s =>
             s.Email.Equals(signerEmail, StringComparison.OrdinalIgnoreCase));
 
         if (signer == null)
@@ -318,7 +334,7 @@ public class BuiltInSignatureProvider : ISignaturePort
 
         // Check if we have a stored signed document
         var key = documentId != null ? $"{requestId}-{documentId}" : requestId;
-        
+
         if (_signedDocuments.TryGetValue(key, out var doc))
         {
             return Task.FromResult(doc);
@@ -352,7 +368,7 @@ public class BuiltInSignatureProvider : ISignaturePort
         ArgumentNullException.ThrowIfNull(content);
 
         var key = documentId != null ? $"{requestId}-{documentId}" : requestId;
-        
+
         var doc = new SignedDocument
         {
             RequestId = requestId,
@@ -484,14 +500,14 @@ public class BuiltInSignatureProvider : ISignaturePort
     {
         if (_requests.TryGetValue(requestId, out var request))
         {
-            var signer = request.Signers.FirstOrDefault(s => 
+            var signer = request.Signers.FirstOrDefault(s =>
                 s.Email.Equals(signerEmail, StringComparison.OrdinalIgnoreCase));
 
             if (signer != null && signer.ViewedAt == null)
             {
                 signer.ViewedAt = DateTime.UtcNow;
                 signer.Status = "viewed";
-                
+
                 if (request.Status == SignatureStatus.Sent)
                 {
                     request.Status = SignatureStatus.Delivered;
@@ -511,7 +527,7 @@ public class BuiltInSignatureProvider : ISignaturePort
     {
         if (_requests.TryGetValue(requestId, out var request))
         {
-            var signer = request.Signers.FirstOrDefault(s => 
+            var signer = request.Signers.FirstOrDefault(s =>
                 s.Email.Equals(signerEmail, StringComparison.OrdinalIgnoreCase));
 
             if (signer != null)

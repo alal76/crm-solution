@@ -1,5 +1,18 @@
 // CRM Solution - Customer Relationship Management System
-// Product Repository Unit Tests
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Xunit;
 using Moq;
@@ -256,7 +269,7 @@ public class ProductRepositoryTests
         // Arrange
         var product = new ProductEntity { Id = 1, StockQuantity = 10 };
         var products = new List<ProductEntity> { product }.AsQueryable();
-        
+
         SetupMockDbSet(products);
         _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
 

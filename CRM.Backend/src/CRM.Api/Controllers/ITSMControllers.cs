@@ -1,6 +1,18 @@
-// This file is part of the CRM Solution.
-// Copyright (c) 2025 CRM Solution Contributors
-// Licensed under the AGPL-3.0 license.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Interfaces.ITSM;
@@ -29,6 +41,9 @@ public class ProblemsController : ControllerBase
     private readonly IProblemService _problemService;
     private readonly ILogger<ProblemsController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProblemsController"/> class.
+    /// </summary>
     public ProblemsController(IProblemService problemService, ILogger<ProblemsController> logger)
     {
         _problemService = problemService;
@@ -181,7 +196,7 @@ public class UpdateRCADto
 /// Configuration Management Database (CMDB) API endpoints.
 /// </summary>
 /// <remarks>
-/// CMDB stores information about Configuration Items (CIs) such as servers, applications, 
+/// CMDB stores information about Configuration Items (CIs) such as servers, applications,
 /// network devices, and their relationships. Key features include: CI lifecycle management,
 /// relationship mapping, impact analysis, and service mapping.
 /// </remarks>
@@ -195,6 +210,9 @@ public class CMDBController : ControllerBase
 {
     private readonly ICMDBService _cmdbService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CMDBController"/> class.
+    /// </summary>
     public CMDBController(ICMDBService cmdbService)
     {
         _cmdbService = cmdbService;
@@ -327,14 +345,14 @@ public class CMDBController : ControllerBase
     {
         var relatedCIs = await _cmdbService.GetRelatedCIsAsync(id);
         var rootCI = await _cmdbService.GetCIByIdAsync(id);
-        
+
         var serviceMap = new ServiceMapDto
         {
             RootCI = rootCI,
             RelatedCIs = relatedCIs.ToList(),
             Depth = depth
         };
-        
+
         return Ok(serviceMap);
     }
 
@@ -346,6 +364,7 @@ public class CMDBController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<string>>> GetCITypes()
     {
+        await Task.CompletedTask;
         // Return the available CI types
         var types = Enum.GetNames(typeof(CIType));
         return Ok(types);
@@ -370,7 +389,7 @@ public class CreateRelationshipDto
 /// Change Management API endpoints for managing IT changes.
 /// </summary>
 /// <remarks>
-/// Change Management ensures that standardized methods and procedures are used for efficient and prompt handling 
+/// Change Management ensures that standardized methods and procedures are used for efficient and prompt handling
 /// of all changes. Key features include: change requests, approvals, scheduling, conflict detection, and blackout periods.
 /// </remarks>
 [ApiController]
@@ -383,6 +402,9 @@ public class ChangesController : ControllerBase
 {
     private readonly IChangeManagementService _changeService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ChangesController"/> class.
+    /// </summary>
     public ChangesController(IChangeManagementService changeService)
     {
         _changeService = changeService;
@@ -601,7 +623,7 @@ public class ChangesController : ControllerBase
     {
         var start = startDate ?? DateTime.UtcNow.AddDays(-7);
         var end = endDate ?? DateTime.UtcNow.AddDays(30);
-        
+
         var filter = new ChangeFilterDto
         {
             PlannedStartFrom = start,
@@ -609,10 +631,10 @@ public class ChangesController : ControllerBase
             PageNumber = 1,
             PageSize = 100
         };
-        
+
         var (changes, _) = await _changeService.GetChangesAsync(filter);
         var blackouts = await _changeService.GetBlackoutPeriodsAsync(start, end);
-        
+
         return Ok(new ChangeCalendarDto
         {
             Changes = changes.ToList(),
@@ -659,5 +681,12 @@ public class ChangeCalendarDto
     public DateTime EndDate { get; set; }
 }
 
-public class ApproveChangeDto { public string? Comments { get; set; } }
-public class ScheduleChangeDto { public DateTime ScheduledStart { get; set; } public DateTime ScheduledEnd { get; set; } }
+public class ApproveChangeDto
+{
+    public string? Comments { get; set; }
+}
+public class ScheduleChangeDto
+{
+    public DateTime ScheduledStart { get; set; }
+    public DateTime ScheduledEnd { get; set; }
+}

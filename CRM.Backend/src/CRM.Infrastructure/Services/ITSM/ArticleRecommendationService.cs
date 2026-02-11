@@ -1,6 +1,18 @@
-// This file is part of the CRM Solution.
-// Copyright (c) 2025 CRM Solution Contributors
-// Licensed under the AGPL-3.0 license.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
@@ -19,32 +31,32 @@ public interface IArticleRecommendationService
     /// Get recommended articles for an incident based on its content.
     /// </summary>
     Task<List<ArticleRecommendation>> GetRecommendationsAsync(int incidentId, int maxResults = 5);
-    
+
     /// <summary>
     /// Get recommended articles based on text content (search query).
     /// </summary>
     Task<List<ArticleRecommendation>> SearchArticlesAsync(string query, int maxResults = 10);
-    
+
     /// <summary>
     /// Record when a recommended article was helpful.
     /// </summary>
     Task RecordArticleFeedbackAsync(int incidentId, int articleId, ArticleFeedbackType feedback, int userId);
-    
+
     /// <summary>
     /// Get trending/popular articles.
     /// </summary>
     Task<List<TrendingArticle>> GetTrendingArticlesAsync(int daysBack = 30, int maxResults = 10);
-    
+
     /// <summary>
     /// Get related articles for a given article.
     /// </summary>
     Task<List<ArticleRecommendation>> GetRelatedArticlesAsync(int articleId, int maxResults = 5);
-    
+
     /// <summary>
     /// Train/update the recommendation model with new data.
     /// </summary>
     Task UpdateRecommendationModelAsync();
-    
+
     /// <summary>
     /// Get recommendation statistics.
     /// </summary>
@@ -196,7 +208,7 @@ public class ArticleRecommendationService : IArticleRecommendationService
     public async Task<List<ArticleRecommendation>> GetRecommendationsAsync(int incidentId, int maxResults = 5)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var incident = await context.Incidents
             .Include(i => i.Category)
             .FirstOrDefaultAsync(i => i.IncidentId == incidentId);
@@ -208,7 +220,7 @@ public class ArticleRecommendationService : IArticleRecommendationService
 
         // Build search text from incident
         var searchText = $"{incident.ShortDescription} {incident.Description}";
-        
+
         if (incident.Category != null)
         {
             searchText += $" {incident.Category.Name}";
@@ -226,7 +238,7 @@ public class ArticleRecommendationService : IArticleRecommendationService
     public async Task<List<ArticleRecommendation>> SearchArticlesAsync(string query, int maxResults = 10)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         // Get all published articles
         var articles = await context.ITSMKnowledgeArticles
             .Where(a => a.PublishingState == PublishingState.Published)
@@ -240,7 +252,7 @@ public class ArticleRecommendationService : IArticleRecommendationService
         {
             var articleText = $"{article.Title} {article.ArticleBody} {article.Tags} {article.Category}";
             var articleWords = ExtractKeywords(articleText);
-            
+
             var (score, matchedKeywords) = CalculateRelevanceScore(queryWords, articleWords);
 
             if (score > 0)
@@ -248,11 +260,11 @@ public class ArticleRecommendationService : IArticleRecommendationService
                 // Boost score based on article quality metrics
                 var viewCount = _articleViewCounts.GetValueOrDefault(article.ArticleId, 0);
                 var helpfulCount = _articleHelpfulCounts.GetValueOrDefault(article.ArticleId, 0);
-                
+
                 // Apply popularity boost
                 var popularityBoost = Math.Log10(viewCount + 1) * 0.1;
                 var helpfulBoost = helpfulCount * 0.05;
-                
+
                 score += popularityBoost + helpfulBoost;
 
                 recommendations.Add(new ArticleRecommendation
@@ -324,7 +336,7 @@ public class ArticleRecommendationService : IArticleRecommendationService
             {
                 ArticleId = g.Key,
                 RecentViews = g.Count(f => f.FeedbackType == ArticleFeedbackType.Viewed),
-                RecentHelpful = g.Count(f => f.FeedbackType == ArticleFeedbackType.Helpful || 
+                RecentHelpful = g.Count(f => f.FeedbackType == ArticleFeedbackType.Helpful ||
                                              f.FeedbackType == ArticleFeedbackType.SolvedIncident)
             })
             .ToList();
@@ -347,14 +359,14 @@ public class ArticleRecommendationService : IArticleRecommendationService
 
             // Determine trend direction
             var avgRecentViews = daysBack > 0 ? recentViews / (double)daysBack : 0;
-            var avgHistoricalViews = totalViews > recentViews 
+            var avgHistoricalViews = totalViews > recentViews
                 ? (totalViews - recentViews) / 30.0 // Assume 30 days history
                 : 0;
 
-            var trend = avgRecentViews > avgHistoricalViews * 1.2 
+            var trend = avgRecentViews > avgHistoricalViews * 1.2
                 ? TrendDirection.Rising
-                : avgRecentViews < avgHistoricalViews * 0.8 
-                    ? TrendDirection.Falling 
+                : avgRecentViews < avgHistoricalViews * 0.8
+                    ? TrendDirection.Falling
                     : TrendDirection.Stable;
 
             if (trendScore > 0 || totalViews > 0)
@@ -382,7 +394,7 @@ public class ArticleRecommendationService : IArticleRecommendationService
     public async Task<List<ArticleRecommendation>> GetRelatedArticlesAsync(int articleId, int maxResults = 5)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var article = await context.ITSMKnowledgeArticles
             .FirstOrDefaultAsync(a => a.ArticleId == articleId);
 
@@ -393,9 +405,9 @@ public class ArticleRecommendationService : IArticleRecommendationService
 
         // Build search text from current article
         var searchText = $"{article.Title} {article.Tags} {article.Category}";
-        
+
         var recommendations = await SearchArticlesAsync(searchText, maxResults + 1);
-        
+
         // Remove the source article from results
         return recommendations
             .Where(r => r.ArticleId != articleId)
@@ -432,7 +444,7 @@ public class ArticleRecommendationService : IArticleRecommendationService
     public async Task<RecommendationStats> GetStatsAsync(DateTime fromDate, DateTime toDate)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var feedbackInRange = _feedbackRecords
             .Where(f => f.CreatedAt >= fromDate && f.CreatedAt <= toDate)
             .ToList();
@@ -463,7 +475,7 @@ public class ArticleRecommendationService : IArticleRecommendationService
                 .ToDictionary(g => g.Key, g => g.Count()),
             TopArticles = feedbackInRange
                 .GroupBy(f => f.ArticleId)
-                .Select(g => 
+                .Select(g =>
                 {
                     var article = articles.FirstOrDefault(a => a.ArticleId == g.Key);
                     return new TopRecommendedArticle
@@ -471,10 +483,10 @@ public class ArticleRecommendationService : IArticleRecommendationService
                         ArticleId = g.Key,
                         Title = article?.Title ?? $"Article {g.Key}",
                         TimesRecommended = g.Count(),
-                        TimesHelpful = g.Count(f => f.FeedbackType == ArticleFeedbackType.Helpful || 
+                        TimesHelpful = g.Count(f => f.FeedbackType == ArticleFeedbackType.Helpful ||
                                                     f.FeedbackType == ArticleFeedbackType.SolvedIncident),
                         EffectivenessRate = g.Count() > 0
-                            ? (double)g.Count(f => f.FeedbackType == ArticleFeedbackType.Helpful || 
+                            ? (double)g.Count(f => f.FeedbackType == ArticleFeedbackType.Helpful ||
                                                    f.FeedbackType == ArticleFeedbackType.SolvedIncident) / g.Count() * 100
                             : 0
                     };
@@ -494,7 +506,7 @@ public class ArticleRecommendationService : IArticleRecommendationService
 
         // Simple keyword extraction
         var words = text.ToLower()
-            .Split(new[] { ' ', '\n', '\r', '\t', '.', ',', '!', '?', ';', ':', '-', '(', ')', '[', ']' }, 
+            .Split(new[] { ' ', '\n', '\r', '\t', '.', ',', '!', '?', ';', ':', '-', '(', ')', '[', ']' },
                    StringSplitOptions.RemoveEmptyEntries)
             .Where(w => w.Length > 2)
             .Where(w => !StopWords.Contains(w))
@@ -504,7 +516,7 @@ public class ArticleRecommendationService : IArticleRecommendationService
     }
 
     private (double score, List<string> matchedKeywords) CalculateRelevanceScore(
-        List<string> queryWords, 
+        List<string> queryWords,
         List<string> articleWords)
     {
         double score = 0;

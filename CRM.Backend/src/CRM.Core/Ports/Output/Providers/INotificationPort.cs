@@ -1,10 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Output Port for Notification Provider
-// 
-// HEXAGONAL ARCHITECTURE NOTE:
-// This port defines the contract for notification/communication operations.
-// Implementations: BuiltInNotificationProvider (email), NovuProvider, TwilioProvider, SendGridProvider
-// Supports multi-channel notifications: email, SMS, push, in-app.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 namespace CRM.Core.Ports.Output.Providers;
 
@@ -23,14 +31,14 @@ public interface INotificationPort
     string ProviderName { get; }
 
     /// <summary>
-    /// Checks if the notification provider is properly configured and available.
-    /// </summary>
-    Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Gets the channels supported by this provider.
     /// </summary>
     IEnumerable<string> SupportedChannels { get; }
+
+    /// <summary>
+    /// Checks if the notification provider is properly configured and available.
+    /// </summary>
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);
 
     #region Email Operations
 
@@ -286,7 +294,9 @@ public class EmailAttachment
 {
     public string FileName { get; set; } = string.Empty;
     public string ContentType { get; set; } = "application/octet-stream";
+#pragma warning disable SA1011 // Closing square bracket should be followed by a space
     public byte[]? Content { get; set; }
+#pragma warning restore SA1011
     public string? ContentUrl { get; set; }
     public bool IsInline { get; set; }
     public string? ContentId { get; set; }

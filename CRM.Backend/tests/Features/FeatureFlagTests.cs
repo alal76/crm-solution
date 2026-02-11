@@ -1,5 +1,18 @@
-// CRM Solution - Pluggable Architecture Tests
-// Feature Flag Loading Tests
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,7 +51,7 @@ public class FeatureFlagTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddFeatureManagement(configuration.GetSection("FeatureManagement"));
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var featureManager = serviceProvider.GetRequiredService<IFeatureManager>();
 
@@ -75,7 +88,7 @@ public class FeatureFlagTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddFeatureManagement(configuration.GetSection("FeatureManagement"));
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var featureManager = serviceProvider.GetRequiredService<IFeatureManager>();
 
@@ -110,7 +123,7 @@ public class FeatureFlagTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddFeatureManagement(configuration.GetSection("FeatureManagement"));
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var featureManager = serviceProvider.GetRequiredService<IFeatureManager>();
 
@@ -142,7 +155,7 @@ public class FeatureFlagTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddFeatureManagement(configuration.GetSection("FeatureManagement"));
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var featureManager = serviceProvider.GetRequiredService<IFeatureManager>();
 
@@ -171,13 +184,13 @@ public class FeatureFlagTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddFeatureManagement(configuration.GetSection("FeatureManagement"));
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var featureManager = serviceProvider.GetRequiredService<IFeatureManager>();
 
         // Act & Assert - configured flag
         Assert.True(await featureManager.IsEnabledAsync(FeatureFlags.UseExternalChat));
-        
+
         // Act & Assert - unconfigured flags default to false
         Assert.False(await featureManager.IsEnabledAsync(FeatureFlags.UseExternalSearch));
         Assert.False(await featureManager.IsEnabledAsync(FeatureFlags.EnableITSM));
@@ -209,7 +222,7 @@ public class FeatureFlagTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddFeatureManagement(configuration.GetSection("FeatureManagement"));
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var featureManager = serviceProvider.GetRequiredService<IFeatureManager>();
 

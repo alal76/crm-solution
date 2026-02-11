@@ -15,10 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.ComponentModel.DataAnnotations.Schema;
-// CRM Solution - Customer Relationship Management System
-// Copyright (C) 2024-2026 Abhishek Lal
-// Licensed under the GNU Affero General Public License v3.0
-
 using System.ComponentModel.DataAnnotations;
 
 namespace CRM.Core.Entities;
@@ -192,4 +188,6 @@ public class AccountTerritoryAssignment
 /// Backward compatibility alias for CustomerTerritoryAssignment
 /// </summary>
 [Obsolete("Use AccountTerritoryAssignment instead")]
-public class CustomerTerritoryAssignment : AccountTerritoryAssignment { }
+public class CustomerTerritoryAssignment : AccountTerritoryAssignment
+{
+}

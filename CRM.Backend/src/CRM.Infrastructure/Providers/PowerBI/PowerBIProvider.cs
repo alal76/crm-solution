@@ -1,6 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Power BI Analytics Provider Implementation
-// Phase 5 Week 23: Power BI Provider
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -19,14 +31,6 @@ namespace CRM.Infrastructure.Providers.PowerBI;
 /// </summary>
 public class PowerBIProvider : IAnalyticsPort
 {
-    private readonly HttpClient _httpClient;
-    private readonly PowerBIConfiguration _config;
-    private readonly ILogger<PowerBIProvider> _logger;
-
-    private string? _accessToken;
-    private DateTime _tokenExpiry = DateTime.MinValue;
-    private readonly SemaphoreSlim _tokenLock = new(1, 1);
-
     private const string PowerBIApiBaseUrl = "https://api.powerbi.com/v1.0/myorg";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -35,6 +39,14 @@ public class PowerBIProvider : IAnalyticsPort
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
+
+    private readonly HttpClient _httpClient;
+    private readonly PowerBIConfiguration _config;
+    private readonly ILogger<PowerBIProvider> _logger;
+    private readonly SemaphoreSlim _tokenLock = new(1, 1);
+
+    private string? _accessToken;
+    private DateTime _tokenExpiry = DateTime.MinValue;
 
     public PowerBIProvider(
         HttpClient httpClient,
@@ -137,8 +149,8 @@ public class PowerBIProvider : IAnalyticsPort
     }
 
     public async Task<IEnumerable<DashboardInfo>> GetDashboardsForUserAsync(
-        int userId, 
-        IEnumerable<string>? roles = null, 
+        int userId,
+        IEnumerable<string>? roles = null,
         CancellationToken cancellationToken = default)
     {
         // Power BI handles permissions through RLS; we return all dashboards
@@ -261,8 +273,8 @@ public class PowerBIProvider : IAnalyticsPort
     }
 
     public async Task<string> GetGuestTokenAsync(
-        string dashboardId, 
-        Dictionary<string, string>? filters = null, 
+        string dashboardId,
+        Dictionary<string, string>? filters = null,
         CancellationToken cancellationToken = default)
     {
         await EnsureAuthenticatedAsync(cancellationToken);
@@ -342,7 +354,9 @@ public class PowerBIProvider : IAnalyticsPort
             // Get tiles from all dashboards
             var dashboards = await GetDashboardsAsync(cancellationToken);
             var allTiles = new List<ChartInfo>();
-            foreach (var dashboard in dashboards.Take(10)) // Limit to prevent too many API calls
+
+            // Limit to prevent too many API calls
+            foreach (var dashboard in dashboards.Take(10))
             {
                 var tiles = await GetDashboardTilesAsync(dashboard.Id, cancellationToken);
                 allTiles.AddRange(tiles);
@@ -382,8 +396,8 @@ public class PowerBIProvider : IAnalyticsPort
     }
 
     public Task<EmbedResult> GetChartEmbedAsync(
-        string chartId, 
-        Dictionary<string, string>? filters = null, 
+        string chartId,
+        Dictionary<string, string>? filters = null,
         CancellationToken cancellationToken = default)
     {
         // Tiles are embedded as part of dashboards in Power BI
@@ -402,8 +416,8 @@ public class PowerBIProvider : IAnalyticsPort
     #region Report Operations
 
     public async Task<ReportResult> ExecuteReportAsync(
-        string reportId, 
-        Dictionary<string, object>? parameters = null, 
+        string reportId,
+        Dictionary<string, object>? parameters = null,
         CancellationToken cancellationToken = default)
     {
         await EnsureAuthenticatedAsync(cancellationToken);
@@ -636,7 +650,7 @@ public class PowerBIProvider : IAnalyticsPort
             _accessToken = token.AccessToken;
             _tokenExpiry = DateTime.UtcNow.AddMinutes(_config.TokenCacheMinutes);
 
-            _httpClient.DefaultRequestHeaders.Authorization = 
+            _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _accessToken);
         }
         finally

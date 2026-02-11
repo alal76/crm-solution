@@ -1,5 +1,18 @@
-// CRM Solution - Custom Report Builder Service
-// Phase 7, Task 7.5 - Custom report creation with query builder, CSV export, and scheduling
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Globalization;
 using System.Text;
@@ -8,8 +21,8 @@ using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ReportEntity = CRM.Core.Entities.Reports.ReportDefinition;
-using ReportEntityType = CRM.Core.Entities.Reports.ReportType;
 using ReportEntityDataSource = CRM.Core.Entities.Reports.ReportDataSource;
+using ReportEntityType = CRM.Core.Entities.Reports.ReportType;
 
 namespace CRM.Infrastructure.Services;
 
@@ -75,7 +88,9 @@ public interface IReportBuilderService
     /// <param name="reportId">Report ID to export.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>CSV byte array, or null if report not found.</returns>
+#pragma warning disable SA1011 // Closing square bracket should be followed by a space
     Task<byte[]?> ExportToCsvAsync(string reportId, CancellationToken ct = default);
+#pragma warning restore SA1011 // Closing square bracket should be followed by a space
 
     /// <summary>
     /// Returns the list of entity sources available for report building.
@@ -139,8 +154,10 @@ public enum ReportType
 {
     /// <summary>Simple tabular list of records.</summary>
     Tabular,
+
     /// <summary>Records grouped with subtotals.</summary>
     Summary,
+
     /// <summary>Cross-tabulated data matrix.</summary>
     Matrix
 }
@@ -218,11 +235,11 @@ public class ReportBuilderService : IReportBuilderService
         new() { Name = "Leads",          DisplayName = "Leads",          Fields = new() { "Id", "FirstName", "LastName", "Email", "CompanyName", "Status", "Source", "Score", "CreatedAt" } },
         new() { Name = "Opportunities",  DisplayName = "Opportunities",  Fields = new() { "Id", "Name", "Stage", "Amount", "Probability", "ExpectedCloseDate", "CreatedAt" } },
         new() { Name = "Contacts",       DisplayName = "Contacts",       Fields = new() { "Id", "FirstName", "LastName", "EmailPrimary", "PhonePrimary", "JobTitle" } },
-        new() { Name = "ServiceRequests",DisplayName = "Service Requests",Fields = new() { "Id", "Subject", "Status", "Priority", "CreatedAt" } },
+        new() { Name = "ServiceRequests", DisplayName = "Service Requests", Fields = new() { "Id", "Subject", "Status", "Priority", "CreatedAt" } },
     };
 
     /// <summary>
-    /// Initializes a new instance of ReportBuilderService.
+    /// Initializes a new instance of the <see cref="ReportBuilderService"/> class.
     /// </summary>
     public ReportBuilderService(ICrmDbContext context, ILogger<ReportBuilderService> logger)
     {
@@ -362,7 +379,9 @@ public class ReportBuilderService : IReportBuilderService
     }
 
     /// <inheritdoc />
+#pragma warning disable SA1011 // Closing square bracket should be followed by a space
     public async Task<byte[]?> ExportToCsvAsync(string reportId, CancellationToken ct = default)
+#pragma warning restore SA1011 // Closing square bracket should be followed by a space
     {
         var result = await ExecuteReportAsync(reportId, ct);
         if (result == null)
@@ -416,7 +435,10 @@ public class ReportBuilderService : IReportBuilderService
                 if (doc.RootElement.TryGetProperty("direction", out var d))
                     dto.SortDirection = d.GetString() ?? "Asc";
             }
-            catch { /* ignore parse errors */ }
+            catch
+            {
+                /* ignore parse errors */
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(entity.GroupByJson))
@@ -427,7 +449,10 @@ public class ReportBuilderService : IReportBuilderService
                 if (doc.RootElement.TryGetProperty("field", out var f))
                     dto.GroupBy = f.GetString();
             }
-            catch { /* ignore parse errors */ }
+            catch
+            {
+                /* ignore parse errors */
+            }
         }
 
         return dto;
