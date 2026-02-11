@@ -13,8 +13,8 @@ Write-Host "╚═════════════════════�
 
 # Step 1: Check remote server status
 Write-Host "Step 1: Checking remote server..." -ForegroundColor Green
-# WARNING: Disables SSH host key verification. Use known_hosts in production.
-$sshTest = ssh -o StrictHostKeyChecking=no -p $RemotePort -i "$env:USERPROFILE\.ssh\crm-deploy-key" "${RemoteUser}@${RemoteHost}" "docker --version && docker compose version" 2>&1
+# WARNING: accept-new accepts on first connect but rejects if the host key changes (MITM protection).
+$sshTest = ssh -o StrictHostKeyChecking=accept-new -p $RemotePort -i "$env:USERPROFILE\.ssh\crm-deploy-key" "${RemoteUser}@${RemoteHost}" "docker --version && docker compose version" 2>&1
 Write-Host $sshTest
 Write-Host ""
 
@@ -48,8 +48,8 @@ docker compose logs api | tail -20
 "@
 
 Write-Host "Building on remote server (this may take 5-10 minutes)..." -ForegroundColor Yellow
-# WARNING: Disables SSH host key verification. Use known_hosts in production.
-$output = ssh -o StrictHostKeyChecking=no -p $RemotePort -i "$env:USERPROFILE\.ssh\crm-deploy-key" "${RemoteUser}@${RemoteHost}" $deployCmd 2>&1
+# WARNING: accept-new accepts on first connect but rejects if the host key changes (MITM protection).
+$output = ssh -o StrictHostKeyChecking=accept-new -p $RemotePort -i "$env:USERPROFILE\.ssh\crm-deploy-key" "${RemoteUser}@${RemoteHost}" $deployCmd 2>&1
 Write-Host $output
 
 # Step 3: Verify deployment
@@ -57,8 +57,8 @@ Write-Host ""
 Write-Host "Step 3: Verifying deployment..." -ForegroundColor Green
 
 $statusCmd = "cd /opt/crm && docker compose ps"
-# WARNING: Disables SSH host key verification. Use known_hosts in production.
-$status = ssh -o StrictHostKeyChecking=no -p $RemotePort -i "$env:USERPROFILE\.ssh\crm-deploy-key" "${RemoteUser}@${RemoteHost}" $statusCmd 2>&1
+# WARNING: accept-new accepts on first connect but rejects if the host key changes (MITM protection).
+$status = ssh -o StrictHostKeyChecking=accept-new -p $RemotePort -i "$env:USERPROFILE\.ssh\crm-deploy-key" "${RemoteUser}@${RemoteHost}" $statusCmd 2>&1
 Write-Host $status
 
 Write-Host ""

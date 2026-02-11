@@ -29,6 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CRM.Core.Ports.Output.Providers;
+using Microsoft.Extensions.Configuration;
 
 namespace CRM.Tests.Services;
 
@@ -57,6 +59,8 @@ public class AuthenticationServiceTests : IDisposable
     private readonly IMemoryCache _memoryCache;
     private readonly Mock<ILogger<AuthenticationService>> _mockLogger;
     private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
+    private readonly Mock<INotificationPort> _mockNotificationPort;
+    private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly AuthenticationService _service;
 
     public AuthenticationServiceTests()
@@ -77,6 +81,8 @@ public class AuthenticationServiceTests : IDisposable
         _mockHttpClientFactory = new Mock<IHttpClientFactory>();
         _mockHttpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
             .Returns(new HttpClient());
+        _mockNotificationPort = new Mock<INotificationPort>();
+        _mockConfiguration = new Mock<IConfiguration>();
 
         // Setup JWT token service mock to return valid tokens
         _mockJwtTokenService.Setup(x => x.GenerateAccessToken(It.IsAny<User>()))
@@ -92,6 +98,8 @@ public class AuthenticationServiceTests : IDisposable
             _mockTotpService.Object,
             _memoryCache,
             _mockHttpClientFactory.Object,
+            _mockNotificationPort.Object,
+            _mockConfiguration.Object,
             _mockLogger.Object);
     }
 

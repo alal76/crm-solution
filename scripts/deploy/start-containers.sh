@@ -7,8 +7,8 @@ SSH_HOST="root@192.168.0.9"
 echo "🚀 Starting CRM containers..."
 echo ""
 
-# WARNING: Disables SSH host key verification. Use known_hosts in production.
-ssh -i "$SSH_KEY" -p 22 -o ConnectTimeout=10 -o StrictHostKeyChecking=no "$SSH_HOST" << 'EOF'
+# WARNING: accept-new accepts on first connect but rejects if the host key changes (MITM protection).
+ssh -i "$SSH_KEY" -p 22 -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_HOST" << 'EOF'
 cd /opt/crm
 echo "Current directory: $(pwd)"
 echo ""

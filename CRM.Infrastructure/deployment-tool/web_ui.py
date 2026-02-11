@@ -2973,7 +2973,7 @@ class WizardHandler(SimpleHTTPRequestHandler):
             return {'success': False, 'error': 'Host and user are required'}
         
         # Build SSH command
-        ssh_opts = f'-o ConnectTimeout=10 -o StrictHostKeyChecking=no -o BatchMode=yes'
+        ssh_opts = f'-o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o BatchMode=yes'
         if key_path:
             key_path_expanded = os.path.expanduser(key_path)
             ssh_opts += f' -i "{key_path_expanded}"'
@@ -3171,7 +3171,7 @@ class WizardHandler(SimpleHTTPRequestHandler):
                 if not host or not user:
                     return {'success': False, 'error': 'Remote host configuration missing'}
                 
-                ssh_cmd = f'ssh -o StrictHostKeyChecking=no {user}@{host}'
+                ssh_cmd = f'ssh -o StrictHostKeyChecking=accept-new {user}@{host}'
                 result = subprocess.run(
                     f'{ssh_cmd} "cd /tmp/crm-solution && docker compose -f docker/docker-compose.unified.yml down -v --remove-orphans"',
                     shell=True, capture_output=True, text=True, timeout=120

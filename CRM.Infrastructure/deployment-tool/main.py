@@ -2085,7 +2085,7 @@ class BuildEngine:
         if self.config.git_use_ssh:
             # Use SSH key
             if self.config.git_ssh_key:
-                git_cmd = f"GIT_SSH_COMMAND='ssh -i {self.config.git_ssh_key} -o StrictHostKeyChecking=no'"
+                git_cmd = f"GIT_SSH_COMMAND='ssh -i {self.config.git_ssh_key} -o StrictHostKeyChecking=accept-new'"
             else:
                 git_cmd = ""
             clone_cmd = f"{git_cmd} git clone --branch {branch} --single-branch {repo_url} {self.build_dir}"

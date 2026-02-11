@@ -25,8 +25,8 @@ function Invoke-RemoteCommand {
         [switch]$Quiet = $false
     )
     
-    # WARNING: Disables SSH host key verification. Use known_hosts in production.
-    $output = ssh -i "$SSHKey" -p $RemotePort -o ConnectTimeout=10 -o StrictHostKeyChecking=no "${RemoteUser}@${RemoteHost}" $Command 2>&1
+    # WARNING: accept-new accepts on first connect but rejects if the host key changes (MITM protection).
+    $output = ssh -i "$SSHKey" -p $RemotePort -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "${RemoteUser}@${RemoteHost}" $Command 2>&1
     if (-not $Quiet) {
         $output
     }
@@ -40,8 +40,8 @@ function Copy-ToRemote {
         [string]$RemotePath
     )
     
-    # WARNING: Disables SSH host key verification. Use known_hosts in production.
-    scp -i "$SSHKey" -P $RemotePort -o ConnectTimeout=10 -o StrictHostKeyChecking=no $LocalPath "${RemoteUser}@${RemoteHost}:${RemotePath}" 2>&1
+    # WARNING: accept-new accepts on first connect but rejects if the host key changes (MITM protection).
+    scp -i "$SSHKey" -P $RemotePort -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new $LocalPath "${RemoteUser}@${RemoteHost}:${RemotePath}" 2>&1
     return $LASTEXITCODE
 }
 

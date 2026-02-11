@@ -33,9 +33,8 @@ spec:
         fsGroup: 1000
       containers:
       - name: crm-api
-        image: ${REGISTRY_HOST:-registry.local}:5000/crm-api:latest  # Replace REGISTRY_HOST
-        # NOTE: Change to 'Always' in production, and pin to a specific image tag instead of :latest
-        imagePullPolicy: IfNotPresent
+        image: ${REGISTRY_HOST:-registry.local}:5000/crm-api:v1  # Replace REGISTRY_HOST
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
           name: http

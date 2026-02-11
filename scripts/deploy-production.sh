@@ -37,13 +37,13 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 # SSH Helper
 #-------------------------------------------------------------------------------
 ssh_cmd() {
-    # WARNING: Disables SSH host key verification. Use known_hosts in production.
-    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${REMOTE_USER}@${REMOTE_HOST}" "$@"
+    # WARNING: accept-new accepts on first connect but rejects if the host key changes (MITM protection).
+    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 "${REMOTE_USER}@${REMOTE_HOST}" "$@"
 }
 
 scp_cmd() {
-    # WARNING: Disables SSH host key verification. Use known_hosts in production.
-    scp -i "$SSH_KEY" -o StrictHostKeyChecking=no "$@"
+    # WARNING: accept-new accepts on first connect but rejects if the host key changes (MITM protection).
+    scp -i "$SSH_KEY" -o StrictHostKeyChecking=accept-new "$@"
 }
 
 #-------------------------------------------------------------------------------

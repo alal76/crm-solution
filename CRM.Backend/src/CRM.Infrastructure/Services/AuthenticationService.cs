@@ -23,8 +23,10 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using CRM.Core.Ports.Input;
+using CRM.Core.Ports.Output.Providers;
 
 namespace CRM.Infrastructure.Services;
 
@@ -48,6 +50,8 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     private readonly ITotpService _totpService;
     private readonly IMemoryCache _cache;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly INotificationPort _notificationPort;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
@@ -58,6 +62,8 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         ITotpService totpService,
         IMemoryCache cache,
         IHttpClientFactory httpClientFactory,
+        INotificationPort notificationPort,
+        IConfiguration configuration,
         ILogger<AuthenticationService> logger)
     {
         _userRepository = userRepository;
@@ -67,6 +73,8 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         _totpService = totpService;
         _cache = cache;
         _httpClientFactory = httpClientFactory;
+        _notificationPort = notificationPort;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -880,7 +888,52 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();
 
-        // In production, send email with reset link
+        // Send password reset email via notification provider
+        try
+        {
+            var frontendUrl = _configuration.GetValue<string>("FrontendUrl")
+                ?? _configuration.GetValue<string>("AllowedOrigins")
+                ?? "http://localhost:3000";
+            // Take first URL if AllowedOrigins contains multiple comma-separated values
+            frontendUrl = frontendUrl.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault() ?? "http://localhost:3000";
+            var resetUrl = $"{frontendUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(resetToken)}&email={Uri.EscapeDataString(user.Email)}";
+
+            var emailRequest = new EmailNotificationRequest
+            {
+                To = user.Email,
+                ToName = $"{user.FirstName} {user.LastName}".Trim(),
+                Subject = "CRM - Password Reset Request",
+                IsHtml = true,
+                Body = $@"<html><body style='font-family: Arial, sans-serif;'>
+<h2>Password Reset Request</h2>
+<p>Hi {user.FirstName},</p>
+<p>We received a request to reset your password. Click the link below to set a new password:</p>
+<p><a href='{resetUrl}' style='display:inline-block;padding:10px 20px;background-color:#1976d2;color:#ffffff;text-decoration:none;border-radius:4px;'>Reset Password</a></p>
+<p>Or copy and paste this URL into your browser:</p>
+<p style='word-break:break-all;'>{resetUrl}</p>
+<p>This link will expire in 24 hours.</p>
+<p>If you did not request a password reset, please ignore this email.</p>
+<br/>
+<p>— CRM System</p>
+</body></html>",
+                PlainTextBody = $"Hi {user.FirstName},\n\nWe received a request to reset your password. Visit the following link to set a new password:\n\n{resetUrl}\n\nThis link will expire in 24 hours.\n\nIf you did not request a password reset, please ignore this email.\n\n— CRM System"
+            };
+
+            var result = await _notificationPort.SendEmailAsync(emailRequest);
+            if (result.Success)
+            {
+                _logger.LogInformation("Password reset email sent to {Email}, messageId={MessageId}", user.Email, result.MessageId);
+            }
+            else
+            {
+                _logger.LogWarning("Password reset email delivery reported failure for {Email}: {Error}", user.Email, result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send password reset email to {Email}. Token was still generated and saved — returning token for backward compatibility.", user.Email);
+        }
+
         return resetToken;
     }
 
