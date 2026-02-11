@@ -20,6 +20,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;

@@ -14,610 +14,443 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Xunit;
-using Moq;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
-using CRM.Api.Hubs;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
-using System.Linq.Expressions;
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services;
 
 /// <summary>
-/// Unit tests for UserGroupService
-/// Covers: Group CRUD, permissions, membership, system admin groups
+/// Unit tests for UserGroupService.
+/// Uses ICrmDbContext mock pattern with MockDbSetFactory.
 /// </summary>
 public class UserGroupServiceTests
 {
-    private readonly Mock<IRepository<UserGroup>> _mockGroupRepository;
-    private readonly Mock<IRepository<UserGroupMember>> _mockMemberRepository;
-    private readonly Mock<IRepository<User>> _mockUserRepository;
-    private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ICrmNotificationService> _mockNotificationService;
+    private readonly Mock<ICrmDbContext> _mockContext;
     private readonly Mock<ILogger<UserGroupService>> _mockLogger;
     private readonly UserGroupService _service;
 
+    // Backing lists for mock DbSets
+    private readonly List<UserGroup> _groups;
+    private readonly List<UserGroupMember> _members;
+    private readonly List<User> _users;
+
     public UserGroupServiceTests()
     {
-        _mockGroupRepository = new Mock<IRepository<UserGroup>>();
-        _mockMemberRepository = new Mock<IRepository<UserGroupMember>>();
-        _mockUserRepository = new Mock<IRepository<User>>();
-        _mockDbContext = new Mock<ICrmDbContext>();
-        _mockNotificationService = new Mock<ICrmNotificationService>();
+        _mockContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<UserGroupService>>();
 
-        _service = new UserGroupService(
-            _mockGroupRepository.Object,
-            _mockMemberRepository.Object,
-            _mockUserRepository.Object,
-            _mockDbContext.Object,
-            _mockNotificationService.Object,
-            _mockLogger.Object);
+        _groups = new List<UserGroup>();
+        _members = new List<UserGroupMember>();
+        _users = new List<User>();
+
+        SetupDbSets();
+
+        _service = new UserGroupService(_mockContext.Object, _mockLogger.Object);
     }
 
-    #region GetAll Tests
+    /// <summary>
+    /// Rebuilds the mock DbSets from the current backing lists.
+    /// Call this after modifying the backing lists within a test.
+    /// </summary>
+    private void SetupDbSets()
+    {
+        var mockGroupSet = MockDbSetFactory.CreateMockDbSet(_groups);
+        mockGroupSet.Setup(m => m.Remove(It.IsAny<UserGroup>()))
+            .Callback<UserGroup>(g => _groups.Remove(g));
+
+        var mockMemberSet = MockDbSetFactory.CreateMockDbSet(_members);
+        mockMemberSet.Setup(m => m.Remove(It.IsAny<UserGroupMember>()))
+            .Callback<UserGroupMember>(m => _members.Remove(m));
+
+        var mockUserSet = MockDbSetFactory.CreateMockDbSet(_users);
+
+        _mockContext.Setup(c => c.UserGroups).Returns(mockGroupSet.Object);
+        _mockContext.Setup(c => c.UserGroupMembers).Returns(mockMemberSet.Object);
+        _mockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+    }
+
+    #region Helpers
+
+    private static UserGroup CreateTestGroup(int id, string name = "Test Group", bool isActive = true)
+    {
+        return new UserGroup
+        {
+            Id = id,
+            Name = name,
+            Description = $"Description for {name}",
+            IsActive = isActive,
+            IsDefault = false,
+            IsSystemAdmin = false,
+            DisplayOrder = 0,
+            CreatedAt = DateTime.UtcNow,
+            Members = new List<UserGroupMember>()
+        };
+    }
+
+    private static User CreateTestUser(int id, string firstName = "Test", string lastName = "User")
+    {
+        return new User
+        {
+            Id = id,
+            Username = $"{firstName.ToLower()}.{lastName.ToLower()}",
+            Email = $"{firstName.ToLower()}.{lastName.ToLower()}@test.com",
+            FirstName = firstName,
+            LastName = lastName,
+            PasswordHash = "hashed",
+            IsActive = true,
+            Role = (int)UserRole.Sales
+        };
+    }
+
+    private static CreateUserGroupRequest CreateTestRequest(string name = "New Group")
+    {
+        return new CreateUserGroupRequest
+        {
+            Name = name,
+            Description = $"Description for {name}",
+            IsActive = true,
+            IsDefault = false,
+            IsSystemAdmin = false,
+            CanAccessDashboard = true,
+            CanAccessCustomers = true,
+            CanAccessContacts = true
+        };
+    }
+
+    #endregion
+
+    #region GetAllGroupsAsync
 
     [Fact]
-    public async Task GetAllAsync_ReturnsAllGroups()
+    public async Task GetAllGroupsAsync_ShouldReturnOnlyActiveGroups()
     {
         // Arrange
-        var groups = new List<UserGroup>
-        {
-            new UserGroup { Id = 1, Name = "Administrators" },
-            new UserGroup { Id = 2, Name = "Sales Team" }
-        };
-
-        _mockGroupRepository.Setup(r => r.GetAllAsync())
-            .ReturnsAsync(groups);
+        _groups.Add(CreateTestGroup(1, "Active Group", isActive: true));
+        _groups.Add(CreateTestGroup(2, "Inactive Group", isActive: false));
+        _groups.Add(CreateTestGroup(3, "Another Active", isActive: true));
+        SetupDbSets();
 
         // Act
-        var result = await _service.GetAllAsync();
+        var result = await _service.GetAllGroupsAsync();
 
         // Assert
-        result.Should().HaveCount(2);
+        var groups = result.ToList();
+        groups.Should().HaveCount(2);
+        groups.Should().OnlyContain(g => g.IsActive);
     }
 
     [Fact]
-    public async Task GetAllAsync_EmptyDatabase_ReturnsEmptyList()
+    public async Task GetAllGroupsAsync_ShouldReturnEmptyList_WhenNoActiveGroups()
     {
-        // Arrange
-        _mockGroupRepository.Setup(r => r.GetAllAsync())
-            .ReturnsAsync(new List<UserGroup>());
+        // Arrange - list is empty by default
 
         // Act
-        var result = await _service.GetAllAsync();
+        var result = await _service.GetAllGroupsAsync();
 
         // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task GetActiveGroupsAsync_ReturnsOnlyActiveGroups()
+    public async Task GetAllGroupsAsync_ShouldReturnDtoWithCorrectProperties()
     {
         // Arrange
-        var groups = new List<UserGroup>
-        {
-            new UserGroup { Id = 1, Name = "Active", IsActive = true },
-            new UserGroup { Id = 2, Name = "Inactive", IsActive = false }
-        };
-
-        _mockGroupRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroup, bool>>>()))
-            .ReturnsAsync(groups.Where(g => g.IsActive).ToList());
+        var group = CreateTestGroup(1, "Sales Team");
+        group.IsSystemAdmin = true;
+        group.HeaderColor = "#FF0000";
+        _groups.Add(group);
+        SetupDbSets();
 
         // Act
-        var result = await _service.GetActiveGroupsAsync();
+        var result = (await _service.GetAllGroupsAsync()).ToList();
 
         // Assert
         result.Should().HaveCount(1);
-        result.First().Name.Should().Be("Active");
+        var dto = result.First();
+        dto.Name.Should().Be("Sales Team");
+        dto.IsSystemAdmin.Should().BeTrue();
+        dto.HeaderColor.Should().Be("#FF0000");
     }
 
     #endregion
 
-    #region GetById Tests
+    #region GetGroupByIdAsync
 
     [Fact]
-    public async Task GetByIdAsync_ExistingGroup_ReturnsGroup()
+    public async Task GetGroupByIdAsync_ShouldReturnGroup_WhenExists()
     {
         // Arrange
-        var group = new UserGroup
-        {
-            Id = 1,
-            Name = "Administrators",
-            Description = "System administrators"
-        };
-
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(group);
+        _groups.Add(CreateTestGroup(1, "Sales"));
+        _groups.Add(CreateTestGroup(2, "Marketing"));
+        SetupDbSets();
 
         // Act
-        var result = await _service.GetByIdAsync(1);
+        var result = await _service.GetGroupByIdAsync(1);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Name.Should().Be("Administrators");
+        result!.Name.Should().Be("Sales");
     }
 
     [Fact]
-    public async Task GetByIdAsync_NonExistingGroup_ReturnsNull()
+    public async Task GetGroupByIdAsync_ShouldReturnNull_WhenNotFound()
     {
-        // Arrange
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(999))
-            .ReturnsAsync((UserGroup?)null);
+        // Arrange - empty list
 
         // Act
-        var result = await _service.GetByIdAsync(999);
+        var result = await _service.GetGroupByIdAsync(999);
 
         // Assert
         result.Should().BeNull();
     }
 
-    [Fact]
-    public async Task GetByIdWithMembersAsync_ReturnsGroupWithMembers()
-    {
-        // Arrange
-        var group = new UserGroup
-        {
-            Id = 1,
-            Name = "Sales Team",
-            UserGroupMembers = new List<UserGroupMember>
-            {
-                new UserGroupMember { UserId = 1, User = new User { Username = "user1" } },
-                new UserGroupMember { UserId = 2, User = new User { Username = "user2" } }
-            }
-        };
-
-        _mockGroupRepository.Setup(r => r.GetByIdWithIncludesAsync(1, It.IsAny<string[]>()))
-            .ReturnsAsync(group);
-
-        // Act
-        var result = await _service.GetByIdWithMembersAsync(1);
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.UserGroupMembers.Should().HaveCount(2);
-    }
-
     #endregion
 
-    #region Create Tests
+    #region CreateGroupAsync
 
     [Fact]
-    public async Task CreateAsync_ValidGroup_ReturnsCreatedGroup()
+    public async Task CreateGroupAsync_ShouldCreateGroup_WhenNameIsUnique()
     {
         // Arrange
-        var createDto = new CreateUserGroupDto
-        {
-            Name = "New Group",
-            Description = "Test group"
-        };
-
-        _mockGroupRepository.Setup(r => r.AddAsync(It.IsAny<UserGroup>()))
-            .ReturnsAsync((UserGroup g) => { g.Id = 1; return g; });
+        var request = CreateTestRequest("New Group");
 
         // Act
-        var result = await _service.CreateAsync(createDto);
+        var result = await _service.CreateGroupAsync(request);
 
         // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(1);
         result.Name.Should().Be("New Group");
+        _groups.Should().HaveCount(1);
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateAsync_DuplicateName_ThrowsException()
+    public async Task CreateGroupAsync_ShouldThrowInvalidOperation_WhenNameExists()
     {
         // Arrange
-        var createDto = new CreateUserGroupDto { Name = "Existing Group" };
-
-        _mockGroupRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroup, bool>>>()))
-            .ReturnsAsync(new List<UserGroup> { new UserGroup { Name = "Existing Group" } });
+        _groups.Add(CreateTestGroup(1, "Existing Group"));
+        SetupDbSets();
+        var request = CreateTestRequest("Existing Group");
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _service.CreateAsync(createDto));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.CreateGroupAsync(request));
     }
 
     [Fact]
-    public async Task CreateAsync_NullDto_ThrowsArgumentNullException()
-    {
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            _service.CreateAsync(null!));
-    }
-
-    [Fact]
-    public async Task CreateAsync_SystemAdminGroup_SetsSystemAdminFlag()
+    public async Task CreateGroupAsync_ShouldSetPermissionsFromRequest()
     {
         // Arrange
-        var createDto = new CreateUserGroupDto
-        {
-            Name = "SysAdmin",
-            IsSystemAdmin = true
-        };
-
-        _mockGroupRepository.Setup(r => r.AddAsync(It.IsAny<UserGroup>()))
-            .ReturnsAsync((UserGroup g) => { g.Id = 1; return g; });
+        var request = CreateTestRequest("Permissions Group");
+        request.CanAccessDashboard = true;
+        request.CanAccessCustomers = false;
+        request.IsSystemAdmin = true;
 
         // Act
-        var result = await _service.CreateAsync(createDto);
+        var result = await _service.CreateGroupAsync(request);
 
         // Assert
+        result.Should().NotBeNull();
+        result.CanAccessDashboard.Should().BeTrue();
+        result.CanAccessCustomers.Should().BeFalse();
         result.IsSystemAdmin.Should().BeTrue();
     }
 
     #endregion
 
-    #region Update Tests
+    #region UpdateGroupAsync
 
     [Fact]
-    public async Task UpdateAsync_ValidGroup_ReturnsUpdatedGroup()
+    public async Task UpdateGroupAsync_ShouldUpdateGroup_WhenExists()
     {
         // Arrange
-        var existingGroup = new UserGroup { Id = 1, Name = "Old Name" };
-        var updateDto = new UpdateUserGroupDto { Id = 1, Name = "New Name" };
-
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(existingGroup);
-
-        _mockGroupRepository.Setup(r => r.UpdateAsync(It.IsAny<UserGroup>()))
-            .ReturnsAsync((UserGroup g) => g);
+        _groups.Add(CreateTestGroup(1, "Old Name"));
+        SetupDbSets();
+        var request = CreateTestRequest("Updated Name");
 
         // Act
-        var result = await _service.UpdateAsync(updateDto);
+        var result = await _service.UpdateGroupAsync(1, request);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Name.Should().Be("New Name");
+        result!.Name.Should().Be("Updated Name");
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateAsync_NonExistingGroup_ReturnsNull()
+    public async Task UpdateGroupAsync_ShouldThrowKeyNotFound_WhenGroupDoesNotExist()
     {
         // Arrange
-        var updateDto = new UpdateUserGroupDto { Id = 999 };
+        var request = CreateTestRequest("Doesn't Matter");
 
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(999))
-            .ReturnsAsync((UserGroup?)null);
-
-        // Act
-        var result = await _service.UpdateAsync(updateDto);
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task UpdatePermissionsAsync_ValidGroup_UpdatesPermissions()
-    {
-        // Arrange
-        var group = new UserGroup { Id = 1, CanCreateCustomers = false };
-        var permissions = new UpdateGroupPermissionsDto
-        {
-            CanCreateCustomers = true,
-            CanEditCustomers = true
-        };
-
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(group);
-
-        _mockGroupRepository.Setup(r => r.UpdateAsync(It.IsAny<UserGroup>()))
-            .ReturnsAsync((UserGroup g) => g);
-
-        // Act
-        var result = await _service.UpdatePermissionsAsync(1, permissions);
-
-        // Assert
-        result.Should().BeTrue();
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _service.UpdateGroupAsync(999, request));
     }
 
     #endregion
 
-    #region Delete Tests
+    #region DeleteGroupAsync
 
     [Fact]
-    public async Task DeleteAsync_ExistingGroup_ReturnsTrue()
+    public async Task DeleteGroupAsync_ShouldDeleteGroup_WhenExists()
     {
         // Arrange
-        var group = new UserGroup { Id = 1, IsSystemAdmin = false };
-
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(group);
-
-        _mockGroupRepository.Setup(r => r.DeleteAsync(1))
-            .ReturnsAsync(true);
+        _groups.Add(CreateTestGroup(1, "To Delete"));
+        SetupDbSets();
 
         // Act
-        var result = await _service.DeleteAsync(1);
+        await _service.DeleteGroupAsync(1);
 
         // Assert
-        result.Should().BeTrue();
+        _groups.Should().BeEmpty();
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task DeleteAsync_NonExistingGroup_ReturnsFalse()
+    public async Task DeleteGroupAsync_ShouldThrowKeyNotFound_WhenGroupDoesNotExist()
     {
-        // Arrange
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(999))
-            .ReturnsAsync((UserGroup?)null);
-
-        // Act
-        var result = await _service.DeleteAsync(999);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task DeleteAsync_SystemAdminGroup_ThrowsException()
-    {
-        // Arrange
-        var group = new UserGroup { Id = 1, IsSystemAdmin = true };
-
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(group);
+        // Arrange - empty list
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _service.DeleteAsync(1));
-    }
-
-    [Fact]
-    public async Task DeleteAsync_DefaultGroup_ThrowsException()
-    {
-        // Arrange
-        var group = new UserGroup { Id = 1, IsDefault = true };
-
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(group);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _service.DeleteAsync(1));
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _service.DeleteGroupAsync(999));
     }
 
     #endregion
 
-    #region Membership Tests
+    #region GetGroupMembersAsync
 
     [Fact]
-    public async Task AddMemberAsync_ValidIds_AddsMember()
+    public async Task GetGroupMembersAsync_ShouldReturnMembers_ForGivenGroup()
     {
         // Arrange
-        var group = new UserGroup { Id = 1, Name = "Sales" };
-        var user = new User { Id = 1, Username = "user1" };
+        var user1 = CreateTestUser(1, "Alice", "Smith");
+        var user2 = CreateTestUser(2, "Bob", "Jones");
+        _users.AddRange(new[] { user1, user2 });
 
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(group);
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
-
-        _mockMemberRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroupMember, bool>>>()))
-            .ReturnsAsync(new List<UserGroupMember>());
-
-        _mockMemberRepository.Setup(r => r.AddAsync(It.IsAny<UserGroupMember>()))
-            .ReturnsAsync((UserGroupMember m) => { m.Id = 1; return m; });
+        _members.Add(new UserGroupMember { Id = 1, UserGroupId = 10, UserId = 1, AddedAt = DateTime.UtcNow, User = user1 });
+        _members.Add(new UserGroupMember { Id = 2, UserGroupId = 10, UserId = 2, AddedAt = DateTime.UtcNow, User = user2 });
+        _members.Add(new UserGroupMember { Id = 3, UserGroupId = 20, UserId = 1, AddedAt = DateTime.UtcNow, User = user1 }); // different group
+        SetupDbSets();
 
         // Act
-        var result = await _service.AddMemberAsync(1, 1);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task AddMemberAsync_AlreadyMember_ReturnsFalse()
-    {
-        // Arrange
-        _mockMemberRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroupMember, bool>>>()))
-            .ReturnsAsync(new List<UserGroupMember> { new UserGroupMember { UserGroupId = 1, UserId = 1 } });
-
-        // Act
-        var result = await _service.AddMemberAsync(1, 1);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task RemoveMemberAsync_ExistingMember_RemovesMember()
-    {
-        // Arrange
-        var member = new UserGroupMember { Id = 1, UserGroupId = 1, UserId = 1 };
-
-        _mockMemberRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroupMember, bool>>>()))
-            .ReturnsAsync(new List<UserGroupMember> { member });
-
-        _mockMemberRepository.Setup(r => r.DeleteAsync(It.IsAny<int>()))
-            .ReturnsAsync(true);
-
-        // Act
-        var result = await _service.RemoveMemberAsync(1, 1);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task RemoveMemberAsync_NotAMember_ReturnsFalse()
-    {
-        // Arrange
-        _mockMemberRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroupMember, bool>>>()))
-            .ReturnsAsync(new List<UserGroupMember>());
-
-        // Act
-        var result = await _service.RemoveMemberAsync(1, 1);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task GetMembersAsync_ReturnsGroupMembers()
-    {
-        // Arrange
-        var members = new List<UserGroupMember>
-        {
-            new UserGroupMember { UserId = 1, User = new User { Username = "user1" } },
-            new UserGroupMember { UserId = 2, User = new User { Username = "user2" } }
-        };
-
-        _mockMemberRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroupMember, bool>>>()))
-            .ReturnsAsync(members);
-
-        // Act
-        var result = await _service.GetMembersAsync(1);
+        var result = (await _service.GetGroupMembersAsync(10)).ToList();
 
         // Assert
         result.Should().HaveCount(2);
+        result.Should().Contain(m => m.Email == "alice.smith@test.com");
+        result.Should().Contain(m => m.Email == "bob.jones@test.com");
     }
 
     [Fact]
-    public async Task GetUserGroupsAsync_ReturnsUserGroups()
+    public async Task GetGroupMembersAsync_ShouldReturnEmpty_WhenNoMembers()
     {
-        // Arrange
-        var members = new List<UserGroupMember>
-        {
-            new UserGroupMember { UserGroup = new UserGroup { Name = "Sales" } },
-            new UserGroupMember { UserGroup = new UserGroup { Name = "Marketing" } }
-        };
-
-        _mockMemberRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroupMember, bool>>>()))
-            .ReturnsAsync(members);
+        // Arrange - no members
 
         // Act
-        var result = await _service.GetUserGroupsAsync(1);
+        var result = await _service.GetGroupMembersAsync(999);
 
         // Assert
-        result.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public async Task BulkAddMembersAsync_ValidIds_AddsAllMembers()
-    {
-        // Arrange
-        var group = new UserGroup { Id = 1 };
-        var userIds = new List<int> { 1, 2, 3 };
-
-        _mockGroupRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(group);
-
-        _mockMemberRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroupMember, bool>>>()))
-            .ReturnsAsync(new List<UserGroupMember>());
-
-        _mockMemberRepository.Setup(r => r.AddAsync(It.IsAny<UserGroupMember>()))
-            .ReturnsAsync((UserGroupMember m) => m);
-
-        // Act
-        var result = await _service.BulkAddMembersAsync(1, userIds);
-
-        // Assert
-        result.Should().Be(3);
+        result.Should().BeEmpty();
     }
 
     #endregion
 
-    #region Permission Check Tests
+    #region AddUserToGroupAsync
 
     [Fact]
-    public async Task CanUserAccessAsync_SystemAdmin_ReturnsTrue()
+    public async Task AddUserToGroupAsync_ShouldAddMember_WhenValid()
     {
         // Arrange
-        var group = new UserGroup { Id = 1, IsSystemAdmin = true };
-        var members = new List<UserGroupMember>
-        {
-            new UserGroupMember { UserId = 1, UserGroup = group }
-        };
-
-        _mockMemberRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroupMember, bool>>>()))
-            .ReturnsAsync(members);
+        _groups.Add(CreateTestGroup(1, "Target Group"));
+        _users.Add(CreateTestUser(10, "New", "Member"));
+        SetupDbSets();
 
         // Act
-        var result = await _service.CanUserAccessAsync(1, "AnyPermission");
+        await _service.AddUserToGroupAsync(1, 10);
 
         // Assert
-        result.Should().BeTrue();
+        _members.Should().HaveCount(1);
+        _members.First().UserGroupId.Should().Be(1);
+        _members.First().UserId.Should().Be(10);
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task CanUserAccessAsync_HasPermission_ReturnsTrue()
+    public async Task AddUserToGroupAsync_ShouldThrowKeyNotFound_WhenGroupNotFound()
     {
         // Arrange
-        var group = new UserGroup
-        {
-            Id = 1,
-            IsSystemAdmin = false,
-            CanCreateCustomers = true
-        };
-        var members = new List<UserGroupMember>
-        {
-            new UserGroupMember { UserId = 1, UserGroup = group }
-        };
+        _users.Add(CreateTestUser(10));
+        SetupDbSets();
 
-        _mockMemberRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroupMember, bool>>>()))
-            .ReturnsAsync(members);
-
-        // Act
-        var result = await _service.CanUserAccessAsync(1, "CanCreateCustomers");
-
-        // Assert
-        result.Should().BeTrue();
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _service.AddUserToGroupAsync(999, 10));
     }
 
     [Fact]
-    public async Task CanUserAccessAsync_NoPermission_ReturnsFalse()
+    public async Task AddUserToGroupAsync_ShouldThrowKeyNotFound_WhenUserNotFound()
     {
         // Arrange
-        var group = new UserGroup
-        {
-            Id = 1,
-            IsSystemAdmin = false,
-            CanCreateCustomers = false
-        };
-        var members = new List<UserGroupMember>
-        {
-            new UserGroupMember { UserId = 1, UserGroup = group }
-        };
+        _groups.Add(CreateTestGroup(1));
+        SetupDbSets();
 
-        _mockMemberRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<UserGroupMember, bool>>>()))
-            .ReturnsAsync(members);
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _service.AddUserToGroupAsync(1, 999));
+    }
 
-        // Act
-        var result = await _service.CanUserAccessAsync(1, "CanCreateCustomers");
+    [Fact]
+    public async Task AddUserToGroupAsync_ShouldThrowInvalidOperation_WhenAlreadyMember()
+    {
+        // Arrange
+        _groups.Add(CreateTestGroup(1));
+        _users.Add(CreateTestUser(10));
+        _members.Add(new UserGroupMember { Id = 1, UserGroupId = 1, UserId = 10, AddedAt = DateTime.UtcNow });
+        SetupDbSets();
 
-        // Assert
-        result.Should().BeFalse();
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.AddUserToGroupAsync(1, 10));
     }
 
     #endregion
 
-    #region Statistics Tests
+    #region RemoveUserFromGroupAsync
 
     [Fact]
-    public async Task GetStatisticsAsync_ReturnsStats()
+    public async Task RemoveUserFromGroupAsync_ShouldRemoveMember_WhenExists()
     {
         // Arrange
-        var groups = new List<UserGroup>
-        {
-            new UserGroup { Id = 1, IsActive = true },
-            new UserGroup { Id = 2, IsActive = false },
-            new UserGroup { Id = 3, IsActive = true }
-        };
-
-        _mockGroupRepository.Setup(r => r.GetAllAsync())
-            .ReturnsAsync(groups);
+        _members.Add(new UserGroupMember { Id = 1, UserGroupId = 1, UserId = 10, AddedAt = DateTime.UtcNow });
+        SetupDbSets();
 
         // Act
-        var result = await _service.GetStatisticsAsync();
+        await _service.RemoveUserFromGroupAsync(1, 10);
 
         // Assert
-        result.TotalGroups.Should().Be(3);
-        result.ActiveGroups.Should().Be(2);
+        _members.Should().BeEmpty();
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemoveUserFromGroupAsync_ShouldThrowKeyNotFound_WhenNotMember()
+    {
+        // Arrange - no members
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _service.RemoveUserFromGroupAsync(1, 999));
     }
 
     #endregion

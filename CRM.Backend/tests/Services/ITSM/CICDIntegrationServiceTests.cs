@@ -23,6 +23,8 @@ using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
+using CRM.Core.Interfaces.ITSM;
+using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.ITSM;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

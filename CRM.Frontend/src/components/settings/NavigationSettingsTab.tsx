@@ -145,8 +145,8 @@ const DEFAULT_ADMIN_SUBCATEGORIES: AdminSubcategory[] = [
 
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', menuName: 'Dashboard', icon: 'DashboardIcon', order: 0, visible: true, isAdmin: false, category: 'main' },
-  { id: 'customers', label: 'Customers', menuName: 'Customers', icon: 'PeopleIcon', order: 1, visible: true, isAdmin: false, category: 'main' },
-  { id: 'customer-overview', label: 'Customer Overview', menuName: 'CustomerOverview', icon: 'PersonSearchIcon', order: 2, visible: true, isAdmin: false, category: 'main' },
+  { id: 'accounts', label: 'Accounts', menuName: 'Accounts', icon: 'PeopleIcon', order: 1, visible: true, isAdmin: false, category: 'main' },
+  { id: 'accounts-360', label: 'Accounts 360', menuName: 'Accounts360', icon: 'PersonSearchIcon', order: 2, visible: true, isAdmin: false, category: 'main' },
   { id: 'contacts', label: 'Contacts', menuName: 'Contacts', icon: 'PeopleIcon', order: 3, visible: true, isAdmin: false, category: 'main' },
   { id: 'relationships', label: 'Relationships', menuName: 'Relationships', icon: 'RelationshipsIcon', order: 4, visible: true, isAdmin: false, category: 'main' },
   { id: 'leads', label: 'Leads', menuName: 'Leads', icon: 'PeopleIcon', order: 5, visible: true, isAdmin: false, category: 'sales' },

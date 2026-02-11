@@ -255,8 +255,8 @@ function NavigationContent() {
   // Nav item ID to path/icon mapping (defined outside useMemo for stability)
   const navItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
     'dashboard': { label: 'Dashboard', icon: DashboardIcon, path: '/', menuName: 'Dashboard' },
-    'accounts': { label: 'Accounts', icon: PeopleIcon, path: '/accounts', menuName: 'Accounts' }, // Industry-standard label
-    'customer-overview': { label: 'Account Overview', icon: PersonSearchIcon, path: '/account-overview', menuName: 'CustomerOverview' },
+    'accounts': { label: 'Accounts', icon: PeopleIcon, path: '/accounts', menuName: 'Accounts' },
+    'accounts-360': { label: 'Accounts 360', icon: PersonSearchIcon, path: '/account-overview', menuName: 'Accounts360' },
     'contacts': { label: 'Contacts', icon: PeopleIcon, path: '/contacts', menuName: 'Contacts' },
     'leads': { label: 'Leads', icon: PeopleIcon, path: '/leads', menuName: 'Leads' },
     'opportunities': { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', menuName: 'Opportunities' },
@@ -339,7 +339,7 @@ function NavigationContent() {
 
   // Default order for nav items
   const defaultNavOrder = useMemo(() => [
-    'dashboard', 'customers', 'customer-overview', 'contacts', 'relationships', 'leads', 'opportunities',
+    'dashboard', 'accounts', 'accounts-360', 'contacts', 'relationships', 'leads', 'opportunities',
     'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'quotes',
     'contracts', 'invoices', 'payments', 'orders', 'commissions', 'subscriptions', 'teams',
     'territories', 'lead-routing', 'approvals',
@@ -396,7 +396,7 @@ function NavigationContent() {
   const defaultNavItemsWithCategory = useMemo(() => [
     { id: 'dashboard', order: 0, visible: true, category: 'main' },
     { id: 'accounts', order: 1, visible: true, category: 'main' },
-    { id: 'customer-overview', order: 2, visible: true, category: 'main' },
+    { id: 'accounts-360', order: 2, visible: true, category: 'main' },
     { id: 'contacts', order: 3, visible: true, category: 'main' },
     { id: 'relationships', order: 3.5, visible: true, category: 'main' },
     { id: 'leads', order: 4, visible: true, category: 'sales' },

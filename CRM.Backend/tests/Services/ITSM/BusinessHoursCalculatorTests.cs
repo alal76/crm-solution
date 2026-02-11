@@ -17,6 +17,7 @@
 using System;
 using System.Threading.Tasks;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.ITSM;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;

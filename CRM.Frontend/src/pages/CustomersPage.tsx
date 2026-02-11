@@ -268,7 +268,7 @@ function CustomersPage() {
     refresh: refreshFieldConfigs,
     getTabFields,
     isFieldVisible 
-  } = useFieldConfig('Customers');
+  } = useFieldConfig('Accounts');
 
   // Get account context for filtering
   const { selectedAccounts, isContextActive, getAccountIds } = useAccountContext();

@@ -279,7 +279,7 @@ function ThemedApp() {
                 path="/accounts"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Customers">
+                    <RoleBasedRoute requiredPage="Accounts">
                       <AccountsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -289,7 +289,7 @@ function ThemedApp() {
                 path="/account-overview"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Customers">
+                    <RoleBasedRoute requiredPage="Accounts">
                       <AccountOverviewPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -369,7 +369,7 @@ function ThemedApp() {
                 path="/relationships"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Customers">
+                    <RoleBasedRoute requiredPage="Accounts">
                       <RelationshipsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
@@ -1286,7 +1286,7 @@ function ThemedApp() {
                 path="/accounts/:id"
                 element={
                   <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Customers">
+                    <RoleBasedRoute requiredPage="Accounts">
                       <AccountPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>

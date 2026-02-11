@@ -304,7 +304,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Map menu name to module enabled status and group permission
     const menuMap: Record<string, { enabled: boolean; permitted: boolean }> = {
       'Dashboard': { enabled: modules.dashboardEnabled, permitted: groupPerms.canAccessDashboard },
-      'Customers': { enabled: modules.customersEnabled, permitted: groupPerms.canAccessCustomers },
+      'Accounts': { enabled: modules.customersEnabled, permitted: groupPerms.canAccessCustomers },
       'Contacts': { enabled: modules.contactsEnabled, permitted: groupPerms.canAccessContacts },
       'Leads': { enabled: modules.leadsEnabled, permitted: groupPerms.canAccessLeads },
       'Opportunities': { enabled: modules.opportunitiesEnabled, permitted: groupPerms.canAccessOpportunities },
@@ -343,7 +343,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const modules = moduleStatus || defaultModuleStatus;
     
     const moduleMap: Record<string, boolean> = {
-      'customers': modules.customersEnabled,
+      'accounts': modules.customersEnabled,
       'contacts': modules.contactsEnabled,
       'leads': modules.leadsEnabled,
       'opportunities': modules.opportunitiesEnabled,

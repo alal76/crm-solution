@@ -53,7 +53,7 @@ const mockViewOnlyUser = {
 // Navigation items configuration
 const NAVIGATION_ITEMS = [
   { id: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: 'Dashboard', permission: 'view_dashboard' },
-  { id: 'customers', path: '/accounts', label: 'Customers', icon: 'People', permission: 'view_customers' },
+  { id: 'accounts', path: '/accounts', label: 'Accounts', icon: 'People', permission: 'view_customers' },
   { id: 'contacts', path: '/contacts', label: 'Contacts', icon: 'Contacts', permission: 'view_contacts' },
   { id: 'opportunities', path: '/opportunities', label: 'Opportunities', icon: 'TrendingUp', permission: 'view_opportunities' },
   { id: 'products', path: '/products', label: 'Products', icon: 'Inventory', permission: 'view_products' },
@@ -86,8 +86,8 @@ describe('Navigation - Structure', () => {
     expect(dashboard?.path).toBe('/dashboard');
   });
 
-  it('should have Customers item', () => {
-    const customers = NAVIGATION_ITEMS.find(item => item.id === 'customers');
+  it('should have Accounts item', () => {
+    const customers = NAVIGATION_ITEMS.find(item => item.id === 'accounts');
     expect(customers).toBeTruthy();
     expect(customers?.path).toBe('/accounts');
   });
@@ -137,21 +137,21 @@ describe('Navigation - Role-Based Access', () => {
   it('should show all items to admin', () => {
     const visible = getVisibleItems(mockAdminUser);
     expect(visible.some(item => item.id === 'dashboard')).toBe(true);
-    expect(visible.some(item => item.id === 'customers')).toBe(true);
+    expect(visible.some(item => item.id === 'accounts')).toBe(true);
     expect(visible.some(item => item.id === 'settings')).toBe(true);
   });
 
   it('should show limited items to sales user', () => {
     const visible = getVisibleItems(mockSalesUser);
     expect(visible.some(item => item.id === 'dashboard')).toBe(true);
-    expect(visible.some(item => item.id === 'customers')).toBe(true);
+    expect(visible.some(item => item.id === 'accounts')).toBe(true);
     expect(visible.some(item => item.id === 'opportunities')).toBe(true);
   });
 
   it('should show minimal items to view-only user', () => {
     const visible = getVisibleItems(mockViewOnlyUser);
     expect(visible.some(item => item.id === 'dashboard')).toBe(true);
-    expect(visible.some(item => item.id === 'customers')).toBe(true);
+    expect(visible.some(item => item.id === 'accounts')).toBe(true);
     expect(visible.some(item => item.id === 'settings')).toBe(false);
   });
 
@@ -483,7 +483,7 @@ describe('Navigation - Notifications', () => {
 
 describe('Navigation - Breadcrumbs', () => {
   it('should display current path', () => {
-    const breadcrumbs = ['Home', 'Customers', 'Acme Corp'];
+    const breadcrumbs = ['Home', 'Accounts', 'Acme Corp'];
     expect(breadcrumbs.length).toBe(3);
   });
 
@@ -498,7 +498,7 @@ describe('Navigation - Breadcrumbs', () => {
       return ['Home', ...parts.map(p => p.charAt(0).toUpperCase() + p.slice(1))];
     };
     
-    expect(generateBreadcrumbs('/accounts/1/edit')).toEqual(['Home', 'Customers', '1', 'Edit']);
+    expect(generateBreadcrumbs('/accounts/1/edit')).toEqual(['Home', 'Accounts', '1', 'Edit']);
   });
 });
 

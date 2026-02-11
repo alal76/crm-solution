@@ -61,7 +61,7 @@ function RoleBasedRoute({
     const pageToMenuMap: Record<string, string> = {
       // Core CRM pages
       'Dashboard': 'Dashboard',
-      'Customers': 'Customers',
+      'Accounts': 'Accounts',
       'Contacts': 'Contacts',
       'Leads': 'Leads',
       'Opportunities': 'Opportunities',
