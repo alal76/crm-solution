@@ -81,7 +81,7 @@ The following items remain from the remediation effort:
 
 | ID | Priority | Description | Notes |
 |----|----------|-------------|-------|
-| P-27 | 🟢 Low | Move refresh tokens to separate table | Currently in Users table |
+| ~~P-27~~ | ~~🟢 Low~~ | ✅ **DONE** — Created dedicated RefreshTokens table with token rotation, reuse detection, multi-device support. Refactored all 6 AuthenticationService code paths. Added POST /api/auths/refresh endpoint. SQL migration 022 migrates existing tokens and drops legacy User columns. | Was in Users table |
 
 ### Known TODO Comments in Codebase
 
@@ -101,8 +101,8 @@ The following items remain from the remediation effort:
 |----------|-------|
 | 🔴 Critical | 0 |
 | 🟡 Medium | 2 |
-| 🟢 Low | 12 |
-| **Total** | **14** |
+| 🟢 Low | 11 |
+| **Total** | **13** |
 
 ---
 

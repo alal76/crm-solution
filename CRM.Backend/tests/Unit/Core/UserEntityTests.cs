@@ -141,8 +141,6 @@ public class UserEntityTests
             user.PasswordResetToken.Should().BeNull();
             user.PasswordResetTokenExpiry.Should().BeNull();
             user.EmailVerificationToken.Should().BeNull();
-            user.RefreshToken.Should().BeNull();
-            user.RefreshTokenExpiry.Should().BeNull();
             user.DepartmentId.Should().BeNull();
             user.UserProfileId.Should().BeNull();
             user.ContactId.Should().BeNull();
@@ -238,15 +236,19 @@ public class UserEntityTests
             var expiry = DateTime.UtcNow.AddDays(7);
 
             // Act
-            var user = new User
+            var user = new User();
+            var token = new RefreshToken
             {
-                RefreshToken = "refresh_token_xyz789",
-                RefreshTokenExpiry = expiry
+                Token = "refresh_token_xyz789",
+                UserId = 1,
+                ExpiresAt = expiry
             };
+            user.RefreshTokens.Add(token);
 
             // Assert
-            user.RefreshToken.Should().Be("refresh_token_xyz789");
-            user.RefreshTokenExpiry.Should().Be(expiry);
+            user.RefreshTokens.Should().HaveCount(1);
+            user.RefreshTokens.First().Token.Should().Be("refresh_token_xyz789");
+            user.RefreshTokens.First().ExpiresAt.Should().Be(expiry);
         }
 
         [Fact]
@@ -920,13 +922,19 @@ public class UserEntityTests
 
             // Act - Simulate login
             user.LastLoginDate = loginTime;
-            user.RefreshToken = "new_refresh_token_abc123";
-            user.RefreshTokenExpiry = refreshExpiry;
+            var refreshToken = new RefreshToken
+            {
+                Token = "new_refresh_token_abc123",
+                UserId = user.Id,
+                ExpiresAt = refreshExpiry
+            };
+            user.RefreshTokens.Add(refreshToken);
 
             // Assert
             user.LastLoginDate.Should().Be(loginTime);
-            user.RefreshToken.Should().NotBeNullOrEmpty();
-            user.RefreshTokenExpiry.Should().BeAfter(loginTime);
+            user.RefreshTokens.Should().HaveCount(1);
+            user.RefreshTokens.First().Token.Should().NotBeNullOrEmpty();
+            user.RefreshTokens.First().ExpiresAt.Should().BeAfter(loginTime);
         }
 
         [Fact]

@@ -17,6 +17,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -46,6 +47,7 @@ public class WebhooksController : ControllerBase
     /// Receive an interaction from a web form submission
     /// </summary>
     [HttpPost("web-form")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IngestResultDto>> IngestWebFormSubmission([FromBody] WebFormSubmissionDto dto)
     {
         try
@@ -131,6 +133,7 @@ public class WebhooksController : ControllerBase
     /// Supports Exchange, IMAP-based services, SendGrid, Mailgun, etc.
     /// </summary>
     [HttpPost("email/inbound")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IngestResultDto>> IngestInboundEmail([FromBody] InboundEmailDto dto)
     {
         try
@@ -268,6 +271,7 @@ public class WebhooksController : ControllerBase
     /// Twitter/X webhook for direct messages and mentions
     /// </summary>
     [HttpPost("twitter")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IngestResultDto>> IngestTwitterMessage([FromBody] SocialMediaMessageDto dto)
     {
         return await IngestSocialMediaMessage(dto, ChannelType.Twitter, InteractionType.SocialMedia);
@@ -277,6 +281,7 @@ public class WebhooksController : ControllerBase
     /// Facebook webhook for messages and comments
     /// </summary>
     [HttpPost("facebook")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IngestResultDto>> IngestFacebookMessage([FromBody] SocialMediaMessageDto dto)
     {
         return await IngestSocialMediaMessage(dto, ChannelType.Facebook, InteractionType.SocialMedia);
@@ -286,6 +291,7 @@ public class WebhooksController : ControllerBase
     /// Instagram webhook for direct messages
     /// </summary>
     [HttpPost("instagram")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IngestResultDto>> IngestInstagramMessage([FromBody] SocialMediaMessageDto dto)
     {
         // Instagram uses Facebook's graph API, so we reuse Facebook channel type
@@ -296,6 +302,7 @@ public class WebhooksController : ControllerBase
     /// LinkedIn webhook for messages
     /// </summary>
     [HttpPost("linkedin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IngestResultDto>> IngestLinkedInMessage([FromBody] SocialMediaMessageDto dto)
     {
         return await IngestSocialMediaMessage(dto, ChannelType.LinkedIn, InteractionType.SocialMedia);
@@ -305,6 +312,7 @@ public class WebhooksController : ControllerBase
     /// WhatsApp Business webhook
     /// </summary>
     [HttpPost("whatsapp")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IngestResultDto>> IngestWhatsAppMessage([FromBody] WhatsAppMessageDto dto)
     {
         try
@@ -382,6 +390,7 @@ public class WebhooksController : ControllerBase
     /// Webhook verification endpoint (GET) for Facebook/Twitter/WhatsApp verification
     /// </summary>
     [HttpGet("verify")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> VerifyWebhook(
         [FromQuery(Name = "hub.mode")] string? hubMode,
         [FromQuery(Name = "hub.verify_token")] string? hubVerifyToken,

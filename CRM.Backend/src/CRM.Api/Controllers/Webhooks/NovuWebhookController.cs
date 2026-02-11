@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using CRM.Core.Entities;
@@ -59,6 +60,7 @@ public class NovuWebhookController : ControllerBase
     /// - notification_unsubscribed: User unsubscribed
     /// </remarks>
     [HttpPost("delivery")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> HandleDeliveryWebhook(
         [FromHeader(Name = "X-Novu-Signature")] string? signature)
     {
@@ -101,6 +103,7 @@ public class NovuWebhookController : ControllerBase
     /// Verify webhook connectivity (Novu may ping this endpoint).
     /// </summary>
     [HttpGet("delivery")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult VerifyWebhook()
     {
         return Ok(new
@@ -115,6 +118,7 @@ public class NovuWebhookController : ControllerBase
     /// Handles notification status updates from Novu.
     /// </summary>
     [HttpPost("notification-status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> HandleNotificationStatus()
     {
         try

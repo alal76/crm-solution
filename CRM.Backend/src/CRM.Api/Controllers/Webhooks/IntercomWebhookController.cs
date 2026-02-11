@@ -21,6 +21,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Providers.Intercom;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -60,6 +61,7 @@ public class IntercomWebhookController : ControllerBase
     /// Intercom sends events for conversations, contacts, and messages.
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> HandleWebhook(CancellationToken cancellationToken)
     {
         // Read the raw body for signature validation
@@ -131,6 +133,7 @@ public class IntercomWebhookController : ControllerBase
     /// Verification endpoint for Intercom webhook setup.
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult Verify([FromQuery] string? hub_challenge)
     {
         if (!string.IsNullOrEmpty(hub_challenge))

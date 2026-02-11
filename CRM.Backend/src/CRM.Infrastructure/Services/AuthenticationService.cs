@@ -78,6 +78,39 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         _logger = logger;
     }
 
+    /// <summary>
+    /// Persist a refresh token to the dedicated RefreshTokens table.
+    /// Revokes all existing active tokens for the user to enforce single-session (can be relaxed later for multi-device).
+    /// </summary>
+    private async Task PersistRefreshTokenAsync(User user, string tokenString, string? ipAddress = null, string? deviceInfo = null)
+    {
+        // Revoke all existing active refresh tokens for this user
+        var activeTokens = await _dbContext.RefreshTokens
+            .Where(rt => rt.UserId == user.Id && rt.RevokedAt == null && rt.ExpiresAt > DateTime.UtcNow)
+            .ToListAsync();
+
+        foreach (var activeToken in activeTokens)
+        {
+            activeToken.RevokedAt = DateTime.UtcNow;
+            activeToken.RevokedReason = "Replaced by new login";
+            activeToken.ReplacedByToken = tokenString;
+        }
+
+        // Create new refresh token record
+        var refreshTokenEntity = new Core.Entities.RefreshToken
+        {
+            Token = tokenString,
+            UserId = user.Id,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            IpAddress = ipAddress,
+            DeviceInfo = deviceInfo,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.RefreshTokens.Add(refreshTokenEntity);
+        await _dbContext.SaveChangesAsync();
+    }
+
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
         // Validate input
@@ -147,7 +180,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         await _userRepository.AddAsync(user);
         await _userRepository.SaveAsync();
 
-        return GenerateAuthResponse(user);
+        var response = GenerateAuthResponse(user);
+        await PersistRefreshTokenAsync(user, response.RefreshToken);
+        return response;
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
@@ -273,10 +308,10 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         response.PasswordExpirationWarning = passwordStatus.isWarning;
         response.DaysUntilPasswordExpiration = passwordStatus.daysRemaining;
 
-        // Store refresh token for later validation
-        user.RefreshToken = response.RefreshToken;
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        // Store refresh token in dedicated table
+        await PersistRefreshTokenAsync(user, response.RefreshToken);
 
+        // Update last login date (already set above, save via repository)
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();
 
@@ -387,7 +422,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();
 
-        return GenerateAuthResponse(user);
+        var response = GenerateAuthResponse(user);
+        await PersistRefreshTokenAsync(user, response.RefreshToken);
+        return response;
     }
 
     public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
@@ -395,35 +432,70 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         if (string.IsNullOrWhiteSpace(refreshToken))
             throw new ArgumentException("Refresh token is required");
 
-        // Find user with matching refresh token using indexed database query
-        var user = await _dbContext.Users
-            .FirstOrDefaultAsync(u =>
-                !u.IsDeleted &&
-                u.IsActive &&
-                u.RefreshToken == refreshToken &&
-                u.RefreshTokenExpiry > DateTime.UtcNow);
+        // Find the refresh token record in the dedicated table
+        var storedToken = await _dbContext.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
-        if (user == null)
-            throw new UnauthorizedAccessException("Invalid or expired refresh token");
+        if (storedToken == null)
+            throw new UnauthorizedAccessException("Invalid refresh token");
 
-        // Load full user data for response
+        // Detect token reuse: if this token was already revoked, revoke ALL tokens for this user (potential theft)
+        if (storedToken.IsRevoked)
+        {
+            _logger.LogWarning("Refresh token reuse detected for UserId {UserId}. Revoking all tokens.", storedToken.UserId);
+            var allUserTokens = await _dbContext.RefreshTokens
+                .Where(rt => rt.UserId == storedToken.UserId && rt.RevokedAt == null)
+                .ToListAsync();
+
+            foreach (var token in allUserTokens)
+            {
+                token.RevokedAt = DateTime.UtcNow;
+                token.RevokedReason = "Revoked due to token reuse detection";
+            }
+            await _dbContext.SaveChangesAsync();
+
+            throw new UnauthorizedAccessException("Token has been revoked — all sessions invalidated for security");
+        }
+
+        // Check if token is expired
+        if (storedToken.IsExpired)
+            throw new UnauthorizedAccessException("Refresh token has expired");
+
+        // Verify the user is still active
+        if (storedToken.User == null || storedToken.User.IsDeleted || !storedToken.User.IsActive)
+            throw new UnauthorizedAccessException("User account is inactive or deleted");
+
+        // Load full user data for response (with navigation properties)
         var fullUser = await _dbContext.Users
             .Include(u => u.PrimaryGroup)
             .Include(u => u.Department)
             .Include(u => u.UserProfile)
-            .FirstOrDefaultAsync(u => u.Id == user.Id);
+            .FirstOrDefaultAsync(u => u.Id == storedToken.UserId);
 
         if (fullUser == null)
             throw new UnauthorizedAccessException("User not found");
 
-        // Generate new tokens
+        // Generate new tokens (rotation)
         var response = GenerateAuthResponse(fullUser);
 
-        // Update refresh token (rotate on use for security)
-        fullUser.RefreshToken = response.RefreshToken;
-        fullUser.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        await _userRepository.UpdateAsync(fullUser);
-        await _userRepository.SaveAsync();
+        // Revoke old token and create new one (token rotation)
+        storedToken.RevokedAt = DateTime.UtcNow;
+        storedToken.ReplacedByToken = response.RefreshToken;
+        storedToken.RevokedReason = "Rotated on refresh";
+
+        var newRefreshToken = new Core.Entities.RefreshToken
+        {
+            Token = response.RefreshToken,
+            UserId = fullUser.Id,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            IpAddress = storedToken.IpAddress,
+            DeviceInfo = storedToken.DeviceInfo,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.RefreshTokens.Add(newRefreshToken);
+        await _dbContext.SaveChangesAsync();
 
         return response;
     }
@@ -833,9 +905,8 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         var response = GenerateAuthResponse(fullUser ?? user);
 
-        // Store refresh token
-        user.RefreshToken = response.RefreshToken;
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        // Store refresh token in dedicated table
+        await PersistRefreshTokenAsync(user, response.RefreshToken);
 
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();
@@ -1028,9 +1099,8 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         // Generate auth response with tokens
         var response = GenerateAuthResponse(user);
 
-        // Store refresh token
-        user.RefreshToken = response.RefreshToken;
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        // Store refresh token in dedicated table
+        await PersistRefreshTokenAsync(user, response.RefreshToken);
 
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();

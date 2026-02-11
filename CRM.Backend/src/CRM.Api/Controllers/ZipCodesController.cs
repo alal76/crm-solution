@@ -17,6 +17,7 @@
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.API.Controllers;
@@ -50,6 +51,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>List of countries</returns>
     [HttpGet("countries")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<CountryInfo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CountryInfo>>> GetCountries()
     {
         var results = await _zipCodeService.GetCountriesAsync();
@@ -64,6 +66,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>List of matching address details</returns>
     [HttpGet("lookup/{postalCode}")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<ZipCodeLookupResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> LookupByPostalCode(
         string postalCode,
         [FromQuery] string? countryCode = null)
@@ -86,6 +89,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>List of matching cities with postal codes</returns>
     [HttpGet("search/city")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<ZipCodeLookupResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> SearchByCity(
         [FromQuery] string city,
         [FromQuery] string? countryCode = null,
@@ -107,6 +111,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>List of states/provinces</returns>
     [HttpGet("states/{countryCode}")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<StateInfo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<StateInfo>>> GetStates(string countryCode)
     {
         if (string.IsNullOrWhiteSpace(countryCode))
@@ -126,6 +131,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>List of city names</returns>
     [HttpGet("cities/{countryCode}/{stateCode}")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<string>>> GetCities(string countryCode, string stateCode)
     {
         if (string.IsNullOrWhiteSpace(countryCode) || string.IsNullOrWhiteSpace(stateCode))
@@ -146,6 +152,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>List of postal codes</returns>
     [HttpGet("postalcodes/{countryCode}/{stateCode}/{city}")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<ZipCodeLookupResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> GetPostalCodes(string countryCode, string stateCode, string city)
     {
         if (string.IsNullOrWhiteSpace(countryCode) || string.IsNullOrWhiteSpace(stateCode) || string.IsNullOrWhiteSpace(city))
@@ -165,6 +172,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>Validation result</returns>
     [HttpGet("validate")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ZipCodeValidationResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<ZipCodeValidationResult>> ValidatePostalCode(
         [FromQuery] string postalCode,
         [FromQuery] string countryCode)
@@ -184,6 +192,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>Total count of zip codes</returns>
     [HttpGet("count")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<int>> GetCount()
     {
         var count = await _zipCodeService.GetZipCodeCountAsync();
@@ -197,6 +206,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>List of localities within the postal/zip code area</returns>
     [HttpGet("localities/{zipCodeId}")]
     [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<LocalityInfo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LocalityInfo>>> GetLocalities(int zipCodeId)
     {
         var localities = await _zipCodeService.GetLocalitiesAsync(zipCodeId);
@@ -211,6 +221,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>List of localities in the city</returns>
     [HttpGet("localities/city")]
     [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<LocalityInfo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LocalityInfo>>> GetLocalitiesByCity(
         [FromQuery] string city,
         [FromQuery] string? countryCode = null)
@@ -231,6 +242,8 @@ public class ZipCodesController : ControllerBase
     /// <returns>The created locality</returns>
     [HttpPost("localities")]
     [Authorize]
+    [ProducesResponseType(typeof(LocalityInfo), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<LocalityInfo>> CreateLocality([FromBody] CreateLocalityRequest request)
     {
         if (!ModelState.IsValid)
@@ -270,6 +283,8 @@ public class ZipCodesController : ControllerBase
     /// <returns>Import status including progress if running</returns>
     [HttpGet("import/status")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ZipCodeImportStatus), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ZipCodeImportStatus>> GetImportStatus()
     {
         if (_zipCodeImportService == null)
@@ -287,6 +302,8 @@ public class ZipCodesController : ControllerBase
     /// <returns>Import result</returns>
     [HttpPost("import/geonames")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ZipCodeImportResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ZipCodeImportResult>> ImportFromGeoNames()
     {
         if (_zipCodeImportService == null)
@@ -316,6 +333,8 @@ public class ZipCodesController : ControllerBase
     /// <returns>Import result</returns>
     [HttpPost("import/geonames/{countryCode}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ZipCodeImportResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ZipCodeImportResult>> ImportCountryFromGeoNames(string countryCode)
     {
         if (_zipCodeImportService == null)
@@ -350,6 +369,8 @@ public class ZipCodesController : ControllerBase
     /// <returns>Import result</returns>
     [HttpPost("import/github")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ZipCodeImportResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ZipCodeImportResult>> ImportFromGitHub([FromBody] GitHubImportRequest? request = null)
     {
         if (_zipCodeImportService == null)
@@ -378,6 +399,7 @@ public class ZipCodesController : ControllerBase
     /// <returns>Statistics about ZIP code data</returns>
     [HttpGet("stats")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ZipCodeStats), StatusCodes.Status200OK)]
     public async Task<ActionResult<ZipCodeStats>> GetStats()
     {
         var countryCount = await _zipCodeService.GetCountryCountAsync();

@@ -50,6 +50,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<CampaignMetric> CampaignMetrics { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<OAuthToken> OAuthTokens { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Department> Departments { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<UserGroup> UserGroups { get; set; }
@@ -818,7 +819,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
             // Column mappings for backward compatibility with existing database schema
             entity.Property(e => e.LastLoginDate).HasColumnName("LastLoginAt");
             entity.Property(e => e.EmailVerified).HasColumnName("IsEmailVerified");
-            entity.Property(e => e.RefreshTokenExpiry).HasColumnName("RefreshTokenExpiryTime");
             // Role is stored as INT in database matching the UserRole enum values
 
             // Configure relationships
@@ -836,6 +836,26 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(g => g.PrimaryUsers)
                 .HasForeignKey(e => e.PrimaryGroupId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure RefreshToken
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Token).IsRequired().HasMaxLength(128);
+            entity.Property(e => e.IpAddress).HasMaxLength(45);
+            entity.Property(e => e.DeviceInfo).HasMaxLength(500);
+            entity.Property(e => e.ReplacedByToken).HasMaxLength(128);
+            entity.Property(e => e.RevokedReason).HasMaxLength(200);
+
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.ExpiresAt);
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configure UserGroup

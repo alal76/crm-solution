@@ -17,6 +17,7 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Text;
@@ -43,6 +44,7 @@ public class SendGridWebhookController : ControllerBase
 
     [HttpPost("events")]
     [Consumes("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> HandleEvents()
     {
         try
@@ -86,6 +88,7 @@ public class SendGridWebhookController : ControllerBase
 
     [HttpPost("inbound")]
     [Consumes("multipart/form-data")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> HandleInboundEmail()
     {
         try

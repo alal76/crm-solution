@@ -173,7 +173,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // Column mappings for backward compatibility
         builder.Property(e => e.LastLoginDate).HasColumnName("LastLoginAt");
         builder.Property(e => e.EmailVerified).HasColumnName("IsEmailVerified");
-        builder.Property(e => e.RefreshTokenExpiry).HasColumnName("RefreshTokenExpiryTime");
 
         // Configure relationships
         builder.HasOne(e => e.Department)
