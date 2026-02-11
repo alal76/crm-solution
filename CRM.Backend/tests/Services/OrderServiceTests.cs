@@ -5,6 +5,14 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
@@ -96,7 +104,6 @@ public class OrderServiceTests
     // ========================================================================
     // GetAllAsync
     // ========================================================================
-
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllOrders_WhenNoFilter()
     {
@@ -156,7 +163,6 @@ public class OrderServiceTests
     // ========================================================================
     // GetByIdAsync
     // ========================================================================
-
     [Fact]
     public async Task GetByIdAsync_ShouldReturnOrder_WhenExists()
     {
@@ -187,7 +193,6 @@ public class OrderServiceTests
     // ========================================================================
     // CreateAsync + Event Dispatch
     // ========================================================================
-
     [Fact]
     public async Task CreateAsync_ShouldSetTimestampsAndDispatchEvent()
     {
@@ -217,7 +222,6 @@ public class OrderServiceTests
     // ========================================================================
     // DeleteAsync + Event Dispatch
     // ========================================================================
-
     [Fact]
     public async Task DeleteAsync_ShouldSoftDeleteAndDispatchEvent()
     {
@@ -239,7 +243,6 @@ public class OrderServiceTests
     // ========================================================================
     // SubmitForApprovalAsync
     // ========================================================================
-
     [Fact]
     public async Task SubmitForApprovalAsync_ShouldSetPendingApproval_WhenDraft()
     {
@@ -273,7 +276,6 @@ public class OrderServiceTests
     // ========================================================================
     // ApproveAsync / RejectAsync
     // ========================================================================
-
     [Fact]
     public async Task ApproveAsync_ShouldSetApprovedStatus()
     {
@@ -310,7 +312,6 @@ public class OrderServiceTests
     // ========================================================================
     // CancelAsync
     // ========================================================================
-
     [Fact]
     public async Task CancelAsync_ShouldCancel_WhenNotFulfilledOrDelivered()
     {
@@ -344,7 +345,6 @@ public class OrderServiceTests
     // ========================================================================
     // PutOnHoldAsync / ReleaseFromHoldAsync
     // ========================================================================
-
     [Fact]
     public async Task PutOnHoldAsync_ShouldSetOnHoldStatus()
     {
@@ -393,7 +393,6 @@ public class OrderServiceTests
     // ========================================================================
     // MarkAsFulfilledAsync / MarkAsDeliveredAsync
     // ========================================================================
-
     [Fact]
     public async Task MarkAsFulfilledAsync_ShouldSetFulfilledStatus()
     {
@@ -429,7 +428,6 @@ public class OrderServiceTests
     // ========================================================================
     // Line Items
     // ========================================================================
-
     [Fact]
     public async Task AddLineItemAsync_ShouldAddToOrder()
     {
@@ -485,7 +483,6 @@ public class OrderServiceTests
     // ========================================================================
     // GenerateOrderNumberAsync
     // ========================================================================
-
     [Fact]
     public async Task GenerateOrderNumberAsync_ShouldReturnFormattedNumber()
     {
@@ -503,7 +500,6 @@ public class OrderServiceTests
     // ========================================================================
     // CreateInvoiceAsync
     // ========================================================================
-
     [Fact]
     public async Task CreateInvoiceAsync_ShouldCreateInvoiceFromOrder()
     {
@@ -524,7 +520,6 @@ public class OrderServiceTests
     // ========================================================================
     // CloneOrderAsync
     // ========================================================================
-
     [Fact]
     public async Task CloneOrderAsync_ShouldCreateCopyWithDraftStatus()
     {

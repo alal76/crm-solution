@@ -79,7 +79,6 @@ public class SubscriptionServiceTests
     // ========================================================================
     // GetAllAsync
     // ========================================================================
-
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllNonDeletedSubscriptions()
     {
@@ -139,7 +138,6 @@ public class SubscriptionServiceTests
     // ========================================================================
     // GetByIdAsync
     // ========================================================================
-
     [Fact]
     public async Task GetByIdAsync_ShouldReturnSubscription_WhenExists()
     {
@@ -180,7 +178,6 @@ public class SubscriptionServiceTests
     // ========================================================================
     // GetBySubscriptionNumberAsync
     // ========================================================================
-
     [Fact]
     public async Task GetBySubscriptionNumberAsync_ShouldReturnMatchingSubscription()
     {
@@ -198,7 +195,6 @@ public class SubscriptionServiceTests
     // ========================================================================
     // CreateAsync
     // ========================================================================
-
     [Fact]
     public async Task CreateAsync_ShouldSetTimestampsAndSubscriptionNumber()
     {
@@ -232,7 +228,6 @@ public class SubscriptionServiceTests
     // ========================================================================
     // DeleteAsync
     // ========================================================================
-
     [Fact]
     public async Task DeleteAsync_ShouldSoftDelete()
     {
@@ -260,7 +255,6 @@ public class SubscriptionServiceTests
     // ========================================================================
     // ActivateAsync / PauseAsync / ResumeAsync / CancelAsync
     // ========================================================================
-
     [Fact]
     public async Task ActivateAsync_ShouldSetStatusToActive()
     {
@@ -366,7 +360,6 @@ public class SubscriptionServiceTests
     // ========================================================================
     // CalculateMRRAsync / CalculateARRAsync
     // ========================================================================
-
     [Fact]
     public async Task CalculateMRRAsync_ShouldSumActiveSubscriptionMRR()
     {
@@ -405,7 +398,6 @@ public class SubscriptionServiceTests
     // ========================================================================
     // SetAutoRenewalAsync
     // ========================================================================
-
     [Fact]
     public async Task SetAutoRenewalAsync_ShouldUpdateContractNotes()
     {

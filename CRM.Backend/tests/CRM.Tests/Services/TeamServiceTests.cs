@@ -83,7 +83,6 @@ public class TeamServiceTests
     // ========================================================================
     // GetAllAsync
     // ========================================================================
-
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllNonDeletedTeams()
     {
@@ -143,7 +142,6 @@ public class TeamServiceTests
     // ========================================================================
     // GetByIdAsync / GetByNameAsync
     // ========================================================================
-
     [Fact]
     public async Task GetByIdAsync_ShouldReturnTeam_WhenExists()
     {
@@ -189,7 +187,6 @@ public class TeamServiceTests
     // ========================================================================
     // CreateAsync / DeleteAsync
     // ========================================================================
-
     [Fact]
     public async Task CreateAsync_ShouldSetIsActiveTrue()
     {
@@ -233,7 +230,6 @@ public class TeamServiceTests
     // ========================================================================
     // AddMemberAsync / RemoveMemberAsync
     // ========================================================================
-
     [Fact]
     public async Task AddMemberAsync_ShouldCreateTeamMember()
     {
@@ -292,7 +288,6 @@ public class TeamServiceTests
     // ========================================================================
     // IsMemberAsync / GetTeamsForUserAsync
     // ========================================================================
-
     [Fact]
     public async Task IsMemberAsync_ShouldReturnTrue_WhenUserIsMember()
     {
@@ -341,7 +336,6 @@ public class TeamServiceTests
     // ========================================================================
     // SetManagerAsync / Hierarchy
     // ========================================================================
-
     [Fact]
     public async Task SetManagerAsync_ShouldSetManagerId()
     {

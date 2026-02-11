@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import apiClient from '../../services/api';
+import apiClient from '../../services/apiClient';
 
 interface ChangeCalendarItem {
   changeId: number;

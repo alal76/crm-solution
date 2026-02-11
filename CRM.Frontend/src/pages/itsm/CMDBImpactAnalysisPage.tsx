@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import apiClient from '../../services/api';
+import apiClient from '../../services/apiClient';
 
 const CMDBImpactAnalysisPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
