@@ -70,6 +70,12 @@ public enum ActivityType
     FileUploaded = 63,
     FileDeleted = 64,
 
+    // Payments
+    PaymentReceived = 70,
+    PaymentFailed = 71,
+    PaymentRefunded = 72,
+    PaymentDisputed = 73,
+
     // Custom
     Other = 99
 }

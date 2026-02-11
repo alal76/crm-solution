@@ -30,6 +30,7 @@ using CRM.Infrastructure.Providers.Meilisearch;
 using CRM.Infrastructure.Providers.Novu;
 using CRM.Infrastructure.Providers.PowerBI;
 using CRM.Infrastructure.Providers.SendGrid;
+using CRM.Infrastructure.Providers.Stripe;
 using CRM.Infrastructure.Providers.Superset;
 using CRM.Infrastructure.Providers.Twilio;
 using Microsoft.Extensions.Configuration;
@@ -163,6 +164,9 @@ public static class ProviderServiceExtensions
 
         // Integration providers
         AddIntegrationProviders(services, providersSection.GetSection("Integrations"));
+
+        // Payment providers
+        AddPaymentProviders(services, providersSection.GetSection("Payment"));
 
         // AI/LLM providers (Phase 7)
         AddAIProviders(services, providersSection.GetSection("AI"));
@@ -451,6 +455,16 @@ public static class ProviderServiceExtensions
 
             services.AddScoped<ZapierProvider>();
             services.AddScoped<IIntegrationPort, ZapierProvider>();
+        }
+    }
+
+    private static void AddPaymentProviders(IServiceCollection services, IConfiguration config)
+    {
+        // Stripe
+        var stripeConfig = config.GetSection("Stripe");
+        if (!string.IsNullOrEmpty(stripeConfig["WebhookSecret"]))
+        {
+            services.Configure<StripeConfiguration>(stripeConfig);
         }
     }
 
