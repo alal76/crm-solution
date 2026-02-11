@@ -24,7 +24,7 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// Controller for managing email integrations and sync operations.
-/// Part of Marketing & Sales gap analysis implementation (G5).
+/// Part of Marketing and Sales gap analysis implementation (G5).
 /// </summary>
 [ApiController]
 [Route("api/email")]

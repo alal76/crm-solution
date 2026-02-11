@@ -28,7 +28,7 @@ namespace CRM.Infrastructure.Repositories;
 /// </summary>
 public class Repository<T> : IRepository<T> where T : BaseEntity
 {
-    protected readonly ICrmDbContext _context;
+    private readonly ICrmDbContext _context;
 
     public Repository(ICrmDbContext context)
     {

@@ -48,9 +48,9 @@ public class AIChatbotController : ControllerBase
     private readonly ILogger<AIChatbotController> _logger;
 
     // Cached documentation context
+    private static readonly object _cacheLock = new();
     private static string? _cachedDocumentation;
     private static DateTime _cacheExpiry = DateTime.MinValue;
-    private static readonly object _cacheLock = new();
 
     public AIChatbotController(
         CrmDbContext context,
@@ -204,7 +204,8 @@ public class AIChatbotController : ControllerBase
             var effectiveProviders = settings?.EffectiveFallbackOrder ?? new List<string>();
             if (settings == null || effectiveProviders.Count == 0)
             {
-                return Ok(new {
+                return Ok(new
+                {
                     response = "I apologize, but I'm having trouble connecting to the AI service. Please check your LLM settings or try again later."
                 });
             }
@@ -283,7 +284,8 @@ public class AIChatbotController : ControllerBase
             else
             {
                 _logger.LogWarning("LLM request failed: {Error}", response.Error);
-                return Ok(new {
+                return Ok(new
+                {
                     response = "I'm having trouble processing your request right now. Please try again or rephrase your question."
                 });
             }
@@ -291,7 +293,8 @@ public class AIChatbotController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing chatbot message");
-            return Ok(new {
+            return Ok(new
+            {
                 response = "An error occurred while processing your message. Please try again."
             });
         }
@@ -326,12 +329,13 @@ public class AIChatbotController : ControllerBase
             // Add context-specific suggestions
             if (context.ToLower().Contains("customer") || context.ToLower().Contains("account"))
             {
-                suggestions.InsertRange(0, new[]
+                var contextSuggestions = new[]
                 {
                     "Show me recent activities for this customer",
                     "What opportunities are open for this account?",
                     "How do I add a contact to this customer?"
-                });
+                };
+                suggestions.InsertRange(0, contextSuggestions);
             }
         }
 

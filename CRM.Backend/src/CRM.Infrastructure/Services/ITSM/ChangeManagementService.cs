@@ -146,7 +146,7 @@ public class ChangeManagementService : IChangeManagementService
         return true;
     }
 
-    public async Task<bool> ApproveChangeAsync(int changeId, int approverId, string comments)
+    public async Task<bool> ApproveChangeAsync(int changeId, int approverId, string? comments)
     {
         var context = _dbContextResolver.ResolveContext();
 

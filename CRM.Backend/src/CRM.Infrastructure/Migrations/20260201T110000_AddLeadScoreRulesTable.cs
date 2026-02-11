@@ -88,21 +88,23 @@ public partial class AddLeadScoreRulesTable : Migration
             column: "Category");
 
         // Seed default scoring rules
+        var seedValues = new object[,]
+        {
+            { "C-Level Executive", "Bonus points for C-Level executives", 0, "JobTitle", 2, "CEO,CFO,CTO,CIO,COO,CMO", 30, true, 10, "Demographics", DateTime.UtcNow, false },
+            { "Director Level", "Bonus points for Director titles", 0, "JobTitle", 2, "Director,VP,Vice President", 20, true, 20, "Demographics", DateTime.UtcNow, false },
+            { "Manager Level", "Bonus points for Manager titles", 0, "JobTitle", 2, "Manager,Head of", 10, true, 30, "Demographics", DateTime.UtcNow, false },
+            { "Technology Industry", "Bonus for tech industry leads", 0, "Industry", 2, "Technology,Software,SaaS", 15, true, 40, "Demographics", DateTime.UtcNow, false },
+            { "Enterprise Company", "Bonus for large company size", 0, "CompanySize", 4, "1000", 20, true, 50, "Demographics", DateTime.UtcNow, false },
+            { "Email Opened", "Points for opening marketing emails", 1, null, 0, null, 5, true, 100, "Engagement", DateTime.UtcNow, false },
+            { "Email Clicked", "Points for clicking email links", 1, null, 0, null, 10, true, 110, "Engagement", DateTime.UtcNow, false },
+            { "Form Submitted", "Points for submitting contact forms", 1, null, 0, null, 20, true, 120, "Engagement", DateTime.UtcNow, false },
+            { "Inactivity Decay", "Reduce score for inactive leads", 2, null, 0, null, -5, true, 200, "Decay", DateTime.UtcNow, false }
+        };
+
         migrationBuilder.InsertData(
             table: "LeadScoreRules",
             columns: new[] { "Name", "Description", "RuleType", "FieldName", "Operator", "Value", "ScoreImpact", "IsActive", "Priority", "Category", "CreatedAt", "IsDeleted" },
-            values: new object[,]
-            {
-                { "C-Level Executive", "Bonus points for C-Level executives", 0, "JobTitle", 2, "CEO,CFO,CTO,CIO,COO,CMO", 30, true, 10, "Demographics", DateTime.UtcNow, false },
-                { "Director Level", "Bonus points for Director titles", 0, "JobTitle", 2, "Director,VP,Vice President", 20, true, 20, "Demographics", DateTime.UtcNow, false },
-                { "Manager Level", "Bonus points for Manager titles", 0, "JobTitle", 2, "Manager,Head of", 10, true, 30, "Demographics", DateTime.UtcNow, false },
-                { "Technology Industry", "Bonus for tech industry leads", 0, "Industry", 2, "Technology,Software,SaaS", 15, true, 40, "Demographics", DateTime.UtcNow, false },
-                { "Enterprise Company", "Bonus for large company size", 0, "CompanySize", 4, "1000", 20, true, 50, "Demographics", DateTime.UtcNow, false },
-                { "Email Opened", "Points for opening marketing emails", 1, null, 0, null, 5, true, 100, "Engagement", DateTime.UtcNow, false },
-                { "Email Clicked", "Points for clicking email links", 1, null, 0, null, 10, true, 110, "Engagement", DateTime.UtcNow, false },
-                { "Form Submitted", "Points for submitting contact forms", 1, null, 0, null, 20, true, 120, "Engagement", DateTime.UtcNow, false },
-                { "Inactivity Decay", "Reduce score for inactive leads", 2, null, 0, null, -5, true, 200, "Decay", DateTime.UtcNow, false }
-            });
+            values: seedValues);
     }
 
     /// <inheritdoc />

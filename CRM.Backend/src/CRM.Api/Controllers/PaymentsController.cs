@@ -83,12 +83,12 @@ public class PaymentsController : ControllerBase
             return HandleServiceException(ex);
         }
     }
-[ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
     /// <summary>Gets a payment by transaction ID.</summary>
     [HttpGet("by-transaction/{transactionId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Payment>> GetByTransactionId(string transactionId, CancellationToken cancellationToken = default)
     {
         try
@@ -103,12 +103,12 @@ public class PaymentsController : ControllerBase
             return HandleServiceException(ex);
         }
     }
-[ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
     /// <summary>Creates a new payment record.</summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Payment>> Create([FromBody] Payment payment, CancellationToken cancellationToken = default)
     {
         try
@@ -174,7 +174,7 @@ public class PaymentsController : ControllerBase
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var result = await _paymentService.ProcessPaymentAsync(
-                request.InvoiceId, request.Amount, request.Method, request.Details, cancellationToken);
+                request.InvoiceId, request.Amount, request.Method, request.Details ?? new PaymentDetails(), cancellationToken);
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
@@ -225,13 +225,13 @@ public class PaymentsController : ControllerBase
             return HandleServiceException(ex);
         }
     }
-[ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
     /// <summary>Captures a previously authorized payment.</summary>
     [HttpPost("{id}/capture")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PaymentResult>> CapturePayment(int id, [FromQuery] decimal? amount = null, CancellationToken cancellationToken = default)
     {
         try
@@ -369,10 +369,10 @@ public class PaymentsController : ControllerBase
         }
     }
 
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     /// <summary>Gets payment statistics.</summary>
     [HttpGet("statistics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PaymentStatistics>> GetStatistics(
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
@@ -390,10 +390,10 @@ public class PaymentsController : ControllerBase
         }
     }
 
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     /// <summary>Gets payment history for a customer.</summary>
     [HttpGet("customer/{customerId}/history")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Payment>>> GetCustomerPaymentHistory(int customerId, CancellationToken cancellationToken = default)
     {
         try
@@ -449,11 +449,11 @@ public class PaymentsController : ControllerBase
         }
     }
 
+    /// <summary>Applies a payment to multiple invoices.</summary>
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    /// <summary>Applies a payment to multiple invoices.</summary>
     [HttpPost("{id}/apply")]
     public async Task<ActionResult<IEnumerable<PaymentAllocation>>> ApplyPaymentToInvoices(
         int id,

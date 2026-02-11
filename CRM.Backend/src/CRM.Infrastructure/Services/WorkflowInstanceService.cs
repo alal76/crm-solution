@@ -1496,8 +1496,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
 
         // Complete the subprocess node with child's output
         parentNodeInstance.OutputData = child.OutputData;
-        await CompleteNodeExecutionAsync(parentNodeInstance.Id, outputData: child.OutputData != null
-            ? JsonSerializer.Deserialize<object>(child.OutputData) : null);
+        var childOutputData = child.OutputData != null
+            ? JsonSerializer.Deserialize<object>(child.OutputData) : null;
+        await CompleteNodeExecutionAsync(parentNodeInstance.Id, outputData: childOutputData);
 
         await LogAsync(parentInstanceId, WorkflowLogLevel.Info, "Subprocess",
             $"Child workflow #{childInstanceId} completed, advancing parent",
@@ -1725,7 +1726,7 @@ public class WorkflowInstanceService : IWorkflowInstanceService
                 nodeInstance.Status = WorkflowNodeInstanceStatus.Failed;
                 nodeInstance.CompletedAt = DateTime.UtcNow;
                 nodeInstance.UpdatedAt = DateTime.UtcNow;
-                nodeInstance.ErrorMessage = $"Node timed out after {nodeInstance.WorkflowNode.TimeoutMinutes} minutes";
+                nodeInstance.ErrorMessage = $"Node timed out after {nodeInstance.WorkflowNode?.TimeoutMinutes} minutes";
                 await _context.SaveChangesAsync(cancellationToken);
 
                 await LogAsync(nodeInstance.WorkflowInstanceId, WorkflowLogLevel.Warning, "Timeout",
@@ -1740,8 +1741,10 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         }
 
         if (processed > 0)
+        {
             _logger.LogInformation("Processed {Count} timed-out item(s) ({Instances} instances, {Nodes} nodes)",
                 processed, timedOutInstances.Count, timedOutNodes.Count);
+        }
 
         return processed;
     }
@@ -1773,8 +1776,10 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             throw new ArgumentException($"Node instance {nodeInstanceId} not found");
 
         if (nodeInstance.Status != WorkflowNodeInstanceStatus.Waiting)
+        {
             throw new InvalidOperationException(
                 $"Node instance {nodeInstanceId} is not in Waiting status (current: {nodeInstance.Status})");
+        }
 
         // Complete the wait node immediately
         nodeInstance.Status = WorkflowNodeInstanceStatus.Completed;

@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * CRM Solution - Customer Relationship Management System
- * Copyright (C) 2024-2026 Abhishek Lal
- *
- * News & Social Media Feed DTOs
- */
-
 namespace CRM.Core.Dtos;
 
 /// <summary>

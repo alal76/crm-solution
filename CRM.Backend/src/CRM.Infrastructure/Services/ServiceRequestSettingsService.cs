@@ -395,8 +395,7 @@ public class ServiceRequestCustomFieldService : IServiceRequestCustomFieldServic
         query = query.Where(f =>
             (!f.CategoryId.HasValue && !f.SubcategoryId.HasValue) || // Global fields
             (categoryId.HasValue && f.CategoryId == categoryId && !f.SubcategoryId.HasValue) || // Category-specific
-            (subcategoryId.HasValue && f.SubcategoryId == subcategoryId) // Subcategory-specific
-        );
+            (subcategoryId.HasValue && f.SubcategoryId == subcategoryId)); // Subcategory-specific
 
         var fields = await query
             .OrderBy(f => f.DisplayOrder)

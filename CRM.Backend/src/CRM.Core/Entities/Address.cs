@@ -125,4 +125,3 @@ public class Address : BaseEntity
         AddressXml = GenerateAddressXml();
     }
 }
-

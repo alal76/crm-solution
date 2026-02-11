@@ -24,7 +24,7 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// Controller for managing calendar integrations with Google and Outlook.
-/// Part of Marketing & Sales gap analysis implementation (G4).
+/// Part of Marketing and Sales gap analysis implementation (G4).
 /// </summary>
 [ApiController]
 [Route("api/calendar")]

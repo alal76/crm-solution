@@ -325,7 +325,7 @@ public class LeadScoreRulesController : ControllerBase
 /// </summary>
 public class LeadScoreRuleDto
 {
-    public required string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public LeadScoreRuleType RuleType { get; set; }
     public string? FieldName { get; set; }

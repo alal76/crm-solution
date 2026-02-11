@@ -1,10 +1,9 @@
-// -----------------------------------------------------------------------
-// CRM Solution - Reports Controller
+// CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
@@ -14,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-// -----------------------------------------------------------------------
 
 using System.Security.Claims;
 using CRM.Core.Dtos.Reports;
@@ -163,8 +161,8 @@ public class ReportsController : ControllerBase
     /// <summary>
     /// Updates an existing report definition.
     /// </summary>
-    /// <param name="id">The report ID.</param>
-    /// <param name="dto">The updated report definition.</param>
+    /// <param name="id">The identifier of the report to update.</param>
+    /// <param name="dto">The updated report definition data.</param>
     /// <returns>The updated report definition.</returns>
     [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(ReportDefinitionDto), StatusCodes.Status200OK)]
@@ -319,9 +317,9 @@ public class ReportsController : ControllerBase
     /// <summary>
     /// Updates a schedule for a report.
     /// </summary>
-    /// <param name="reportId">The report ID.</param>
-    /// <param name="scheduleId">The schedule ID.</param>
-    /// <param name="dto">The updated schedule.</param>
+    /// <param name="reportId">The identifier of the parent report.</param>
+    /// <param name="scheduleId">The identifier of the schedule to update.</param>
+    /// <param name="dto">The schedule configuration to apply.</param>
     /// <returns>The updated schedule.</returns>
     [HttpPut("{reportId:int}/schedules/{scheduleId:int}")]
     [ProducesResponseType(typeof(ReportScheduleDto), StatusCodes.Status200OK)]
@@ -402,8 +400,8 @@ public class ReportsController : ControllerBase
     /// <summary>
     /// Updates a report folder.
     /// </summary>
-    /// <param name="id">The folder ID.</param>
-    /// <param name="dto">The updated folder.</param>
+    /// <param name="id">The identifier of the folder to update.</param>
+    /// <param name="dto">The folder properties to apply.</param>
     /// <returns>The updated folder.</returns>
     [HttpPut("folders/{id:int}")]
     [ProducesResponseType(typeof(ReportFolderDto), StatusCodes.Status200OK)]

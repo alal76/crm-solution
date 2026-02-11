@@ -85,7 +85,8 @@ public class ErrorHandlingMiddleware
             _logger.LogError(ex, "Unhandled exception occurred");
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new {
+            await context.Response.WriteAsJsonAsync(new
+            {
                 message = "Internal server error",
                 errorCode = "INTERNAL_ERROR",
                 timestamp = DateTime.UtcNow

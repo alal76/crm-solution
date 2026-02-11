@@ -661,11 +661,11 @@ public class LandingPageService : ILandingPageService
 </section>";
     }
 
-    private async Task<string> RenderFormBlockAsync(JsonElement content, JsonElement style, LandingPage landingPage)
+    private Task<string> RenderFormBlockAsync(JsonElement content, JsonElement style, LandingPage landingPage)
     {
         if (!landingPage.FormDefinitionId.HasValue || landingPage.FormDefinition == null)
         {
-            return "<!-- No form configured -->";
+            return Task.FromResult("<!-- No form configured -->");
         }
 
         var form = landingPage.FormDefinition;
@@ -701,7 +701,7 @@ public class LandingPageService : ILandingPageService
   </div>
 </section>");
 
-        return sb.ToString();
+        return Task.FromResult(sb.ToString());
     }
 
     private string RenderTwoColumnBlock(JsonElement content, JsonElement style)

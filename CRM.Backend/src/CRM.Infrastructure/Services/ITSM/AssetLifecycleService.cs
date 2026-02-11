@@ -394,8 +394,7 @@ public class AssetLifecycleService : IAssetLifecycleService
             _transitions
                 .Where(t => t.ConfigurationItemId == configurationItemId)
                 .OrderByDescending(t => t.TransitionedAt)
-                .ToList()
-        );
+                .ToList());
     }
 
     public async Task<List<AssetEndOfLifeAlert>> GetEndOfLifeAlertsAsync(int daysAhead = 90)
@@ -465,7 +464,8 @@ public class AssetLifecycleService : IAssetLifecycleService
             // Calculate refresh score
             var score = CalculateRefreshScore(ci, ageMonths, incidentCount);
 
-            if (score >= 50) // Only include if score is high enough
+            // Only include if score is high enough
+            if (score >= 50)
             {
                 var reason = DetermineRefreshReason(ci, ageMonths, incidentCount);
 

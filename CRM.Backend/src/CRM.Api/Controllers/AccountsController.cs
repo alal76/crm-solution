@@ -65,11 +65,11 @@ public class AccountsController : ControllerBase
     private readonly ICrmNotificationService _notificationService;
 
     /// <summary>
-    /// Initializes the controller with required services.
+    /// Initializes a new instance of the <see cref="AccountsController"/> class.
     /// </summary>
-    /// <param name="accountService">Service for account business logic</param>
-    /// <param name="logger">Logger for error and audit logging</param>
-    /// <param name="notificationService">Service for SignalR real-time notifications</param>
+    /// <param name="accountService">Service for account business logic.</param>
+    /// <param name="logger">Logger for error and audit logging.</param>
+    /// <param name="notificationService">Service for SignalR real-time notifications.</param>
     public AccountsController(
         IAccountService accountService,
         ILogger<AccountsController> logger,
@@ -113,8 +113,9 @@ public class AccountsController : ControllerBase
     ///            Returns ETag header for optimistic concurrency control.
     ///            Supports If-None-Match header for cache validation.
     /// </summary>
-    /// <param name="id">The unique account identifier</param>
-    /// <returns>AccountDto if found</returns>
+    /// <param name="id">The unique account identifier.</param>
+    /// <param name="ifNoneMatch">Optional ETag value for cache validation.</param>
+    /// <returns>AccountDto if found.</returns>
     /// <response code="200">Returns the account with ETag header</response>
     /// <response code="304">Not Modified - if If-None-Match matches current ETag</response>
     /// <response code="404">If account not found</response>

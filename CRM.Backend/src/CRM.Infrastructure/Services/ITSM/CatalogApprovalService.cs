@@ -499,8 +499,7 @@ public class CatalogApprovalService : ICatalogApprovalService
     public async Task<ApprovalWorkflow?> GetApprovalStatusAsync(int serviceRequestId)
     {
         return await Task.FromResult(
-            _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId)
-        );
+            _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId));
     }
 
     public async Task<List<PendingServiceRequestApproval>> GetPendingApprovalsAsync(int approverId)
@@ -635,8 +634,7 @@ public class CatalogApprovalService : ICatalogApprovalService
         return await Task.FromResult(
             _actions.Where(a => a.WorkflowId == workflow.WorkflowId)
                     .OrderBy(a => a.ActionAt)
-                    .ToList()
-        );
+                    .ToList());
     }
 
     public async Task<CatalogApprovalRule> GetApprovalRuleAsync(int catalogItemId)

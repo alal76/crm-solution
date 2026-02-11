@@ -161,10 +161,10 @@ public class AvailableSlot
 
 public enum SlotQuality
 {
-    Optimal,       // Maintenance window, low-traffic period
-    Good,          // Outside business hours
-    Acceptable,    // Business hours, no conflicts
-    Risky          // Peak period, multiple changes scheduled
+    Optimal, // Maintenance window, low-traffic period
+    Good, // Outside business hours
+    Acceptable, // Business hours, no conflicts
+    Risky // Peak period, multiple changes scheduled
 }
 
 /// <summary>
@@ -243,7 +243,7 @@ public class ChangeCalendarService : IChangeCalendarService
             .Where(c => c.State != ChangeState.Cancelled &&
                        c.State != ChangeState.Failed)
             .Include(c => c.AssignedTo)
-            .Include(c => c.ImpactedCIs)
+            .Include(c => c.ImpactedCIs!)
                 .ThenInclude(ci => ci.ConfigurationItem)
             .ToListAsync();
 
@@ -272,7 +272,7 @@ public class ChangeCalendarService : IChangeCalendarService
 
         // Get the change request details
         var change = await context.Changes
-            .Include(c => c.ImpactedCIs)
+            .Include(c => c.ImpactedCIs!)
                 .ThenInclude(ci => ci.ConfigurationItem)
             .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
@@ -308,7 +308,7 @@ public class ChangeCalendarService : IChangeCalendarService
                        c.State != ChangeState.Failed)
             .Where(c =>
                 (c.PlannedStartDate <= proposedEnd && c.PlannedEndDate >= proposedStart))
-            .Include(c => c.ImpactedCIs)
+            .Include(c => c.ImpactedCIs!)
                 .ThenInclude(ci => ci.ConfigurationItem)
             .ToListAsync();
 
@@ -413,9 +413,8 @@ public class ChangeCalendarService : IChangeCalendarService
             blackouts.Where(b =>
                 b.IsActive &&
                 ((b.StartDate <= endDate && b.EndDate >= startDate) ||
-                 (b.IsRecurringYearly && IsRecurringInRange(b, startDate, endDate)))
-            ).ToList()
-        );
+                 (b.IsRecurringYearly && IsRecurringInRange(b, startDate, endDate))))
+            .ToList());
     }
 
     public async Task<BlackoutPeriod?> GetConflictingBlackoutAsync(DateTime proposedStart, DateTime proposedEnd)

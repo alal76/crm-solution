@@ -57,7 +57,7 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
 
     public override DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.Cascade;
 
-    public override int RecommendedBatchSize => _deploymentMode switch
+    public override int RecommendedBatchSize => DeploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => 100,
         DatabaseDeploymentMode.Clustered => 500,   // RAC can handle parallel DML
@@ -65,7 +65,7 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
         _ => 100
     };
 
-    public override ConnectionPoolSettings ConnectionPoolSettings => _deploymentMode switch
+    public override ConnectionPoolSettings ConnectionPoolSettings => DeploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => new ConnectionPoolSettings
         {
@@ -168,7 +168,7 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
         // Oracle supports bitmap indexes, function-based indexes, partitioned indexes
         // RAC: Consider global vs local indexes for partitioned tables
         // Autonomous: Auto-indexing handles most cases
-        if (_deploymentMode == DatabaseDeploymentMode.Hyperscale)
+        if (DeploymentMode == DatabaseDeploymentMode.Hyperscale)
         {
             // Autonomous Database has auto-indexing
             // Exadata has storage indexes
@@ -179,7 +179,7 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
     {
         // Oracle connection strings use different format (TNS or EZ Connect)
         // These optimizations assume standard Oracle.ManagedDataAccess connection string format
-        var optimizations = _deploymentMode switch
+        var optimizations = DeploymentMode switch
         {
             DatabaseDeploymentMode.Standalone =>
                 ";Statement Cache Size=50;Self Tuning=True",

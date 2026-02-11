@@ -795,7 +795,7 @@ public class ChatwootProvider : IChatPort
             CreatedAt = payload.CreatedAt,
             Attachments = payload.Attachments?.Select(a => new ChatAttachment
             {
-                Url = a.DataUrl,
+                Url = a.DataUrl ?? string.Empty,
                 FileName = a.FileName,
                 ContentType = a.FileType,
                 FileSize = a.FileSize

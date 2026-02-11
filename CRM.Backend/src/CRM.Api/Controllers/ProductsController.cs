@@ -37,8 +37,11 @@ public class ProductsController : ControllerBase
     private readonly ICrmNotificationService _notificationService;
 
     /// <summary>
-    /// Initializes the products controller with required services.
+    /// Initializes a new instance of the <see cref="ProductsController"/> class.
     /// </summary>
+    /// <param name="productService">Service for product business logic.</param>
+    /// <param name="logger">Logger for error and audit logging.</param>
+    /// <param name="notificationService">Service for SignalR real-time notifications.</param>
     public ProductsController(
         IProductService productService,
         ILogger<ProductsController> logger,
@@ -162,7 +165,8 @@ public class ProductsController : ControllerBase
     {
         try
         {
-            var serviceTypes = new[] {
+            var serviceTypes = new[]
+            {
                 ProductType.Service,
                 ProductType.Consulting,
                 ProductType.ManagedService,

@@ -82,12 +82,12 @@ public class InvoicesController : ControllerBase
             return HandleServiceException(ex);
         }
     }
-[ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
     /// <summary>Gets an invoice by invoice number.</summary>
     [HttpGet("by-number/{invoiceNumber}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Invoice>> GetByInvoiceNumber(string invoiceNumber, CancellationToken cancellationToken = default)
     {
         try
@@ -102,12 +102,12 @@ public class InvoicesController : ControllerBase
             return HandleServiceException(ex);
         }
     }
-[ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
     /// <summary>Creates a new invoice.</summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Invoice>> Create([FromBody] Invoice invoice, CancellationToken cancellationToken = default)
     {
         try
@@ -122,13 +122,13 @@ public class InvoicesController : ControllerBase
             return HandleServiceException(ex);
         }
     }
-[ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
     /// <summary>Updates an existing invoice.</summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Invoice>> Update(int id, [FromBody] Invoice invoice, CancellationToken cancellationToken = default)
     {
         try
@@ -222,11 +222,11 @@ public class InvoicesController : ControllerBase
         }
     }
 
+    /// <summary>Sends an invoice to the customer.</summary>
+    [HttpPost("{id}/send")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    /// <summary>Sends an invoice to the customer.</summary>
-    [HttpPost("{id}/send")]
     public async Task<IActionResult> SendInvoice(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -263,9 +263,11 @@ public class InvoicesController : ControllerBase
     #region Status Management
 
     /// <summary>Updates the status of an invoice.</summary>
-    [HttpPatch("{id}/status")]    [ProducesResponseType(StatusCodes.Status200OK)]
+    [HttpPatch("{id}/status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]    public async Task<ActionResult<Invoice>> UpdateStatus(int id, [FromBody] InvoiceStatusRequest request, CancellationToken cancellationToken = default)
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<Invoice>> UpdateStatus(int id, [FromBody] InvoiceStatusRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -379,12 +381,12 @@ public class InvoicesController : ControllerBase
             return HandleServiceException(ex);
         }
     }
-[ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
     /// <summary>Gets all payments for an invoice.</summary>
     [HttpGet("{id}/payments")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Payment>>> GetPayments(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -399,14 +401,14 @@ public class InvoicesController : ControllerBase
         }
     }
 
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     #endregion
 
     #region Queries
 
     /// <summary>Gets all overdue invoices.</summary>
     [HttpGet("overdue")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Invoice>>> GetOverdueInvoices([FromQuery] int? daysPastDue = null, CancellationToken cancellationToken = default)
     {
         try
@@ -519,12 +521,12 @@ public class InvoicesController : ControllerBase
             return HandleServiceException(ex);
         }
     }
-[ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
     /// <summary>Gets all line items for an invoice.</summary>
     [HttpGet("{id}/line-items")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<InvoiceLineItem>>> GetLineItems(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -539,15 +541,15 @@ public class InvoicesController : ControllerBase
         }
     }
 
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     #endregion
 
     #region Calculations
 
     /// <summary>Recalculates the totals for an invoice.</summary>
     [HttpPost("{id}/recalculate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Invoice>> RecalculateTotals(int id, CancellationToken cancellationToken = default)
     {
         try

@@ -69,7 +69,6 @@ public interface ISelfServiceChatbotService
 }
 
 // ====== DTOs ======
-
 public class ChatbotMessageDto
 {
     public string SessionId { get; set; } = string.Empty;

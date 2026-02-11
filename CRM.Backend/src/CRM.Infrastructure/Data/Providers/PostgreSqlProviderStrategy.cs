@@ -57,7 +57,7 @@ public class PostgreSqlProviderStrategy : DatabaseProviderStrategyBase
 
     public override DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.Cascade;
 
-    public override int RecommendedBatchSize => _deploymentMode switch
+    public override int RecommendedBatchSize => DeploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => 100,
         DatabaseDeploymentMode.Clustered => 500,   // Patroni can handle larger batches
@@ -65,7 +65,7 @@ public class PostgreSqlProviderStrategy : DatabaseProviderStrategyBase
         _ => 100
     };
 
-    public override ConnectionPoolSettings ConnectionPoolSettings => _deploymentMode switch
+    public override ConnectionPoolSettings ConnectionPoolSettings => DeploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => ConnectionPoolSettings.Standalone,
         DatabaseDeploymentMode.Clustered => new ConnectionPoolSettings
@@ -141,7 +141,7 @@ public class PostgreSqlProviderStrategy : DatabaseProviderStrategyBase
         // GIN indexes for JSONB, arrays, full-text search
         // GiST indexes for geometric/range types
         // BRIN indexes for large tables with natural ordering
-        if (_deploymentMode == DatabaseDeploymentMode.Hyperscale)
+        if (DeploymentMode == DatabaseDeploymentMode.Hyperscale)
         {
             // Citus distributes tables - indexes need to include distribution column
             // This would require explicit configuration per entity
@@ -150,7 +150,7 @@ public class PostgreSqlProviderStrategy : DatabaseProviderStrategyBase
 
     public override string OptimizeConnectionString(string baseConnectionString)
     {
-        var optimizations = _deploymentMode switch
+        var optimizations = DeploymentMode switch
         {
             DatabaseDeploymentMode.Standalone =>
                 ";SSL Mode=Prefer;Trust Server Certificate=true",

@@ -55,7 +55,7 @@ public class MySqlProviderStrategy : DatabaseProviderStrategyBase
 
     public override DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.Cascade;
 
-    public override int RecommendedBatchSize => _deploymentMode switch
+    public override int RecommendedBatchSize => DeploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => 100,
         DatabaseDeploymentMode.Clustered => 200,   // Group Replication has write overhead
@@ -107,7 +107,7 @@ public class MySqlProviderStrategy : DatabaseProviderStrategyBase
 
     public override string OptimizeConnectionString(string baseConnectionString)
     {
-        var optimizations = _deploymentMode switch
+        var optimizations = DeploymentMode switch
         {
             DatabaseDeploymentMode.Standalone =>
                 ";CharSet=utf8mb4;SslMode=Preferred",
@@ -160,7 +160,7 @@ public class MariaDbProviderStrategy : DatabaseProviderStrategyBase
 
     public override DeleteBehavior DefaultDeleteBehavior => DeleteBehavior.Cascade;
 
-    public override int RecommendedBatchSize => _deploymentMode switch
+    public override int RecommendedBatchSize => DeploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => 100,
         DatabaseDeploymentMode.Clustered => 50,    // Galera has certification overhead, smaller batches better
@@ -168,7 +168,7 @@ public class MariaDbProviderStrategy : DatabaseProviderStrategyBase
         _ => 100
     };
 
-    public override ConnectionPoolSettings ConnectionPoolSettings => _deploymentMode switch
+    public override ConnectionPoolSettings ConnectionPoolSettings => DeploymentMode switch
     {
         DatabaseDeploymentMode.Standalone => ConnectionPoolSettings.Standalone,
         DatabaseDeploymentMode.Clustered => new ConnectionPoolSettings
@@ -240,7 +240,7 @@ public class MariaDbProviderStrategy : DatabaseProviderStrategyBase
 
     public override string OptimizeConnectionString(string baseConnectionString)
     {
-        var optimizations = _deploymentMode switch
+        var optimizations = DeploymentMode switch
         {
             DatabaseDeploymentMode.Standalone =>
                 ";CharSet=utf8mb4;SslMode=Preferred",

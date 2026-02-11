@@ -391,9 +391,9 @@ public class IncidentService : IIncidentService
         return $"INC{nextNumber:D7}";
     }
 
-    private async Task<IncidentDto> MapToDto(Incident incident, ICrmDbContext context)
+    private Task<IncidentDto> MapToDto(Incident incident, ICrmDbContext context)
     {
-        return new IncidentDto
+        return Task.FromResult(new IncidentDto
         {
             IncidentId = incident.IncidentId,
             Number = incident.Number,
@@ -425,6 +425,6 @@ public class IncidentService : IIncidentService
             MajorIncident = incident.MajorIncident,
             ProblemId = incident.ProblemId,
             CreatedAt = incident.CreatedAt
-        };
+        });
     }
 }

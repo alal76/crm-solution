@@ -63,7 +63,6 @@ public interface IMonitoringIntegrationService
 }
 
 // ====== DTOs ======
-
 public class MonitoringAlertDto
 {
     public string Source { get; set; } = string.Empty;

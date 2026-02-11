@@ -224,9 +224,9 @@ public class KCSPublishResult
 
 public enum PublishAudience
 {
-    Internal,        // IT staff only
-    AllEmployees,    // Self-service portal
-    Public           // Public knowledge base
+    Internal, // IT staff only
+    AllEmployees, // Self-service portal
+    Public // Public knowledge base
 }
 
 /// <summary>
