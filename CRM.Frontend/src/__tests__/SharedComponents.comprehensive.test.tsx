@@ -737,7 +737,7 @@ describe('Component - LookupSelect', () => {
 describe('Component - Breadcrumbs', () => {
   describe('Path Display', () => {
     it('should display breadcrumb trail', () => {
-      const breadcrumbs = ['Home', 'Customers', 'Acme Corp'];
+      const breadcrumbs = ['Home', 'Accounts', 'Acme Corp'];
       expect(breadcrumbs.length).toBe(3);
     });
 
@@ -748,9 +748,9 @@ describe('Component - Breadcrumbs', () => {
     });
 
     it('should make items clickable except last', () => {
-      const breadcrumbs = ['Home', 'Customers', 'Acme Corp'];
+      const breadcrumbs = ['Home', 'Accounts', 'Acme Corp'];
       const clickable = breadcrumbs.slice(0, -1);
-      expect(clickable).toEqual(['Home', 'Customers']);
+      expect(clickable).toEqual(['Home', 'Accounts']);
     });
   });
 });

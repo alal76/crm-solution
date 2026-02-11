@@ -571,7 +571,7 @@ function GroupManagementTab() {
               </Box>
               <Grid container spacing={1}>
                 <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessDashboard', 'Dashboard')}</Grid>
-                <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessCustomers', 'Customers')}</Grid>
+                <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessCustomers', 'Accounts')}</Grid>
                 <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessContacts', 'Contacts')}</Grid>
                 <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessLeads', 'Leads')}</Grid>
                 <Grid item xs={6} sm={4}>{renderPermissionSwitch('canAccessOpportunities', 'Opportunities')}</Grid>

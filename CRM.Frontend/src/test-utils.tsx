@@ -67,7 +67,7 @@ export const mockProfile = {
   lastName: 'User',
   role: 'Admin',
   permissions: ['view_customers', 'edit_customers', 'delete_customers', 'view_opportunities', 'edit_opportunities'],
-  menuAccess: ['Dashboard', 'Customers', 'Contacts', 'Opportunities', 'Products', 'Campaigns', 'Settings'],
+  menuAccess: ['Dashboard', 'Accounts', 'Contacts', 'Opportunities', 'Products', 'Campaigns', 'Settings'],
 };
 
 export const mockProfileContext = {

@@ -509,20 +509,18 @@ public class EmailParseActionTests
     public void EmailParseAction_HasExpectedValues()
     {
         // Assert
-        Enum.GetValues<EmailParseAction>().Should().HaveCount(5);
+        Enum.GetValues<EmailParseAction>().Should().HaveCount(4);
         EmailParseAction.IncidentCreated.Should().BeDefined();
-        EmailParseAction.IncidentUpdated.Should().BeDefined();
+        EmailParseAction.CommentAdded.Should().BeDefined();
         EmailParseAction.Ignored.Should().BeDefined();
         EmailParseAction.Failed.Should().BeDefined();
-        EmailParseAction.Duplicate.Should().BeDefined();
     }
 
     [Theory]
     [InlineData(EmailParseAction.IncidentCreated, 0)]
-    [InlineData(EmailParseAction.IncidentUpdated, 1)]
+    [InlineData(EmailParseAction.CommentAdded, 1)]
     [InlineData(EmailParseAction.Ignored, 2)]
     [InlineData(EmailParseAction.Failed, 3)]
-    [InlineData(EmailParseAction.Duplicate, 4)]
     public void EmailParseAction_HasCorrectIntValues(EmailParseAction action, int expectedValue)
     {
         // Assert

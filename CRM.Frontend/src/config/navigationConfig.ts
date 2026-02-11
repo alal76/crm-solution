@@ -109,7 +109,7 @@ export const NAV_ITEMS_CONFIG: NavItemConfig[] = [
   },
   {
     id: 'account-overview',
-    label: 'Account Overview',
+    label: 'Accounts 360',
     path: '/account-overview',
     icon: CustomerOverviewIcon,
     order: 2,

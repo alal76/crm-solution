@@ -323,25 +323,25 @@ function ProfileManagementPage() {
           </Typography>
 
           <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, color: 'primary.main' }}>
-            Customer Management
+            Account Management
           </Typography>
           <Grid container spacing={1}>
             <Grid item xs={12}>
               <FormControlLabel
                 control={<Checkbox name="canCreateCustomers" checked={formData.canCreateCustomers} onChange={handleInputChange} />}
-                label="Create Customers"
+                label="Create Accounts"
               />
             </Grid>
             <Grid item xs={12}>
               <FormControlLabel
                 control={<Checkbox name="canEditCustomers" checked={formData.canEditCustomers} onChange={handleInputChange} />}
-                label="Edit Customers"
+                label="Edit Accounts"
               />
             </Grid>
             <Grid item xs={12}>
               <FormControlLabel
                 control={<Checkbox name="canDeleteCustomers" checked={formData.canDeleteCustomers} onChange={handleInputChange} />}
-                label="Delete Customers"
+                label="Delete Accounts"
               />
             </Grid>
           </Grid>
