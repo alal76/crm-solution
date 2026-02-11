@@ -8,7 +8,7 @@ This directory contains the active CI/CD workflows for the CRM Solution project.
 - **Triggers**: Push and PR to `main` and `develop` branches
 - **Purpose**: Complete CI/CD pipeline with comprehensive testing and Docker builds
 - **Jobs**:
-  - **Frontend Tests & Build** — Node 18.x + 20.x matrix, TypeScript check, unit tests, bundle build
+  - **Frontend Tests & Build** — Node 20.x, TypeScript check, unit tests, bundle build
   - **Backend Tests & Build** — .NET 8.0, all 3 test projects (all must pass)
   - **BVT (Build Verification Tests)** — Playwright API tests against live API + MariaDB (118 tests, must pass)
   - **Docker Build & Push** — API and Frontend images to GHCR (only after all tests pass)

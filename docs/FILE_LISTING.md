@@ -12,7 +12,7 @@ This document lists all files created for Docker containerization and Kubernetes
 Dockerfile.frontend
 ├── Purpose: Build production React application image
 ├── Type: Multi-stage Docker build
-├── Base Image: node:18-alpine (builder) → node:18-alpine (runtime)
+├── Base Image: node:20-alpine (builder) → nginx:alpine-slim (runtime)
 ├── Features:
 │   ├── Optimized image size
 │   ├── Health checks

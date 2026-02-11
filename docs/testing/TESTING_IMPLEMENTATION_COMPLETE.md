@@ -136,7 +136,7 @@ The CRM solution now includes a production-ready testing infrastructure with:
 **CI/CD**:
 - Platform: GitHub Actions
 - Runners: Linux (ubuntu-latest)
-- Languages: Node.js 18.x/20.x, .NET 8.0
+- Languages: Node.js 20.x, .NET 8.0
 - Services: MariaDB (for integration tests)
 
 ### Test Organization
@@ -210,7 +210,7 @@ Checks:
 
 **Jobs** (7 total, configurable parallel execution):
 
-1. **frontend-tests** (Node 18.x & 20.x)
+1. **frontend-tests** (Node 20.x)
    - npm install → TypeScript check → Linting → Unit tests → Coverage upload → Build
 
 2. **backend-tests** (.NET 8.0)
@@ -428,7 +428,7 @@ Push code to repository to trigger automatic CI/CD pipeline
 
 3. **Configured complete CI/CD pipeline**:
    - GitHub Actions with 7 parallel jobs
-   - Multi-version testing (Node 18.x/20.x, .NET 8.0)
+   - Node 20.x and .NET 8.0 testing
    - Security scanning and code quality checks
    - Integration tests with MariaDB service
    - Test report aggregation

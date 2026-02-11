@@ -390,7 +390,7 @@ EOF
         -e CRM_FRONTEND_URL="${CRM_FRONTEND_URL}" \
         -e MARIADB_HOST="${MARIADB_HOST}" \
         -e REDIS_HOST="${REDIS_HOST}" \
-        node:18-alpine sh -c "npm install && node setup.js"
+        node:20-alpine sh -c "npm install && node setup.js"
     
     # Cleanup
     rm -rf "${SETUP_DIR}"
