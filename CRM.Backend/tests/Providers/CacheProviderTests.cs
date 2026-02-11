@@ -21,7 +21,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using CRM.Infrastructure.Services;
-using CRM.Infrastructure.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;

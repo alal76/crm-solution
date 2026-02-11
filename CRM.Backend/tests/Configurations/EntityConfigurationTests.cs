@@ -16,8 +16,12 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Configuration;
 using CRM.Core.Entities;
+using CRM.Core.Entities.Workflow;
+using CRM.Core.Models;
 using CRM.Infrastructure.Data;
+using Moq;
 using Xunit;
 using FluentAssertions;
 
@@ -39,7 +43,8 @@ public class EntityConfigurationTests
             .UseInMemoryDatabase(databaseName: $"ConfigTest_{Guid.NewGuid()}")
             .Options;
 
-        _context = new CrmDbContext(_options);
+        var mockConfiguration = new Mock<IConfiguration>();
+        _context = new CrmDbContext(_options, mockConfiguration.Object);
         _model = _context.Model;
     }
 

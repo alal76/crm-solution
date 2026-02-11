@@ -17,16 +17,14 @@
 using Xunit;
 using Moq;
 using FluentAssertions;
-using CRM.Core.Validation;
 using CRM.Core.DTOs;
 using CRM.Core.Interfaces;
 using CRM.Core.Entities;
-using CRM.Core.Enums;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 
-namespace CRM.Tests.Validators;
+namespace CRM.Tests.Validators.LeadValidation;
 
 /// <summary>
 /// Unit tests for Lead Validator
@@ -871,4 +869,9 @@ public interface ILeadService
 public interface ICampaignService
 {
     Task<CampaignResultDto?> GetByIdAsync(int id);
+}
+
+public interface IUserService
+{
+    Task<UserResultDto?> GetByIdAsync(int id);
 }
