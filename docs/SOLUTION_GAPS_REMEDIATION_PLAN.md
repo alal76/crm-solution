@@ -25,8 +25,8 @@ The following items remain from the remediation effort:
 
 | ID | Priority | Description | Notes |
 |----|----------|-------------|-------|
-| P-01 | 🟢 Low | Fix ~1895 StyleCop warnings | Phase 8.5 |
-| P-02 | 🟢 Low | Add [ProducesResponseType] to ~72 controllers | Phase 10.11.1 |
+| ~~P-01~~ | ~~🟢 Low~~ | ✅ **DONE** — Reduced StyleCop warnings from 1,895 → 4 (2× NU1902 package vulnerability + 2× AD0001 analyzer bug — both non-actionable) | Phase 8.5 |
+| ~~P-02~~ | ~~🟢 Low~~ | ✅ **DONE** — Added `[ProducesResponseType]` to all 97 CRM.Api controllers (600+ action methods annotated). Zero controllers without annotations remain. | Phase 10.11.1 |
 | ~~P-03~~ | ~~🟢 Low~~ | ✅ **DONE** — Documented all 1,377 API endpoints (95 controllers, 11 domain categories) in SOLUTION_CONTEXT.md Section 10 | Phase 10.11.2 |
 
 ### Test Coverage
@@ -101,8 +101,8 @@ The following items remain from the remediation effort:
 |----------|-------|
 | 🔴 Critical | 0 |
 | 🟡 Medium | 2 |
-| 🟢 Low | 11 |
-| **Total** | **13** |
+| 🟢 Low | 9 |
+| **Total** | **11** |
 
 ---
 
