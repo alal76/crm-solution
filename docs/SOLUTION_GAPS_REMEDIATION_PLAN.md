@@ -53,7 +53,7 @@ The following items remain from the remediation effort:
 
 ## References
 
-- [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — 109 pending TODO items
+- [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — 142 pending TODO items
 - [specifications/INDEX.md](specifications/INDEX.md) — 10/40 specs complete
 - [copilot-instructions.md](../.github/copilot-instructions.md)
 

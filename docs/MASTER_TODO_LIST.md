@@ -1,8 +1,8 @@
 # CRM Solution - Master TODO List (Pending Items Only)
 
-> **Last Updated:** February 15, 2026
+> **Last Updated:** February 11, 2026
 > **Purpose:** Consolidated list of all PENDING enhancements and action items
-> **Total Pending Items:** 109
+> **Total Pending Items:** 142
 > **Completed items have been archived — see git history for prior state**
 
 ---
@@ -109,7 +109,7 @@
 | ID | Priority | Description |
 |----|----------|-------------|
 | ~~TODO-AUDIT-01~~ | ~~P2~~ | ✅ **DONE** — Wired 16 ITSM components into 9 pages (IncidentDetail, ProblemDetail, CMDBDetail, SLADashboard, ChangeDetail, KnowledgeArticleDetail, ServiceCatalog, ServiceCatalogRequestCreate, IncidentForm) |
-| TODO-AUDIT-02 | P3 | Evaluate ChatTimelineItem.tsx and AnalyticsEmbed.tsx — integrate or remove |
+| ~~TODO-AUDIT-02~~ | ~~P3~~ | ✅ **DONE** — ChatTimelineItem.tsx used in CustomerOverviewPage.tsx; AnalyticsEmbed.tsx used in DashboardPage.tsx. Both actively imported. |
 | ~~TODO-AUDIT-03~~ | ~~P3~~ | ✅ **DONE** — Deleted dead ModuleFieldSettingsTab.tsx (superseded by ModuleFieldSettingsTabNew.tsx) |
 
 ### 2.2 Orphaned Admin Pages (3)
@@ -128,7 +128,7 @@
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| ~~TODO-AUDIT-06~~ | ~~P2~~ | ✅ **DONE** — Created itsmService.ts with 8 typed service objects + ~15 interfaces |
+| TODO-AUDIT-06 | P2 | Create itsmService.ts with typed service objects + interfaces (previously marked done but file does not exist) |
 | TODO-AUDIT-07 | P3 | Migrate 31 ITSM pages from Tailwind CSS to MUI components |
 
 ### 2.5 Backend Test Coverage
@@ -154,7 +154,7 @@
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| TODO-ITSM-01 | P3 | Align entity models for 28 ITSM_ADVANCED services (currently in Directory.Build.props, commented out) |
+| TODO-ITSM-01 | P3 | Align entity models for 28 ITSM_ADVANCED services (ITSM_ADVANCED constant is active in Directory.Build.props) |
 | TODO-ITSM-02 | P3 | Fix 460+ build errors in advanced services (AssetLifecycle, KCSWorkflow, ImpactAnalysis, CABWorkflow, etc.) |
 | TODO-ITSM-03 | P2 | Implement KnowledgeManagementService AI-powered semantic search |
 
@@ -286,7 +286,7 @@
 | TODO-UX-11 | P3 | Dark mode toggle |
 | TODO-UX-12 | P3 | Customizable sidebar navigation |
 | TODO-UX-13 | P3 | Split view for comparing records |
-| TODO-UX-14 | P3 | Breadcrumb navigation |
+| ~~TODO-UX-14~~ | ~~P3~~ | ✅ **DONE** — Breadcrumbs.tsx component implemented and rendered in App.tsx |
 | TODO-UX-15 | P3 | Recent items quick access |
 
 ---
@@ -435,10 +435,10 @@
 | Priority | Count | Description |
 |----------|-------|-------------|
 | **P0 — Critical** | 0 | No critical blockers |
-| **P1 — High** | 6 | Core functionality gaps: validations, lead conversion, global search, inline editing |
-| **P2 — Medium** | 61 | Service completion, testing, integrations, reporting, AI features |
-| **P3 — Low** | 42 | Portal, mobile, advanced customization, nice-to-have UX |
-| **Total** | **109** | |
+| **P1 — High** | 8 | Core functionality gaps: validations, lead conversion, global search, inline editing |
+| **P2 — Medium** | 84 | Service completion, testing, integrations, reporting, AI features |
+| **P3 — Low** | 50 | Portal, mobile, advanced customization, nice-to-have UX |
+| **Total** | **142** | |
 
 ### Recommended Implementation Order
 
